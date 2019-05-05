@@ -12,27 +12,44 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
 
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-sql-driver/mysql"
 	"github.com/n1try/wakapi/middlewares"
 	"github.com/n1try/wakapi/models"
 	"github.com/n1try/wakapi/routes"
 	"github.com/n1try/wakapi/services"
 )
 
-func getConfig() models.Config {
+func readConfig() models.Config {
 	portPtr := flag.Int("port", 8080, "Port for the webserver to listen on")
+	dbUser := flag.String("u", "admin", "Database user")
+	dbPassword := flag.String("p", "admin", "Database password")
+	dbHost := flag.String("h", "localhost", "Database host")
+	dbName := flag.String("db", "wakapi", "Database name")
+
 	flag.Parse()
+
 	return models.Config{
-		Port: *portPtr,
+		Port:       *portPtr,
+		DbHost:     *dbHost,
+		DbUser:     *dbUser,
+		DbPassword: *dbPassword,
+		DbName:     *dbName,
 	}
 }
 
 func main() {
 	// Read Config
-	config := getConfig()
+	config := readConfig()
 
 	// Connect Database
-	db, _ := sql.Open("mysql", "fakatime_user:eB2zyLt2heqWj5Y9@tcp(muetsch.io:3306)/fakatime")
+	dbConfig := mysql.Config{
+		User:   config.DbUser,
+		Passwd: config.DbPassword,
+		Net:    "tcp",
+		Addr:   config.DbHost,
+		DBName: config.DbName,
+	}
+	db, _ := sql.Open("mysql", dbConfig.FormatDSN())
 	defer db.Close()
 	err := db.Ping()
 	if err != nil {
