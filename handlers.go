@@ -9,10 +9,6 @@ import (
 	"github.com/n1try/wakapi/models"
 )
 
-func Authenticate(w http.ResponseWriter, r *http.Request) {
-
-}
-
 func HeartbeatHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		w.WriteHeader(415)
