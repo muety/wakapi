@@ -1,15 +1,21 @@
-package main
+package routes
 
 import (
 	"encoding/json"
 	"net/http"
 	"os"
 
+	"github.com/n1try/wakapi/services"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/n1try/wakapi/models"
 )
 
-func HeartbeatHandler(w http.ResponseWriter, r *http.Request) {
+type HeartbeatHandler struct {
+	HeartbeatSrvc *services.HeartbeatService
+}
+
+func (h *HeartbeatHandler) Post(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		w.WriteHeader(415)
 		return
@@ -23,7 +29,8 @@ func HeartbeatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = HeartbeatSrvc.InsertMulti(heartbeats)
+	user := r.Context().Value(models.UserKey).(*models.User)
+	err = h.HeartbeatSrvc.InsertBatch(heartbeats, user)
 	if err != nil {
 		w.WriteHeader(500)
 		os.Stderr.WriteString(err.Error())

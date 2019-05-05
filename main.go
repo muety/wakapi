@@ -13,11 +13,11 @@ import (
 	"github.com/gorilla/mux"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/n1try/wakapi/middlewares"
 	"github.com/n1try/wakapi/models"
+	"github.com/n1try/wakapi/routes"
 	"github.com/n1try/wakapi/services"
 )
-
-var HeartbeatSrvc services.HeartbeatService
 
 func getConfig() models.Config {
 	portPtr := flag.Int("port", 8080, "Port for the webserver to listen on")
@@ -40,8 +40,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Init Services
-	HeartbeatSrvc = services.HeartbeatService{db}
+	// Services
+	heartbeatSrvc := &services.HeartbeatService{db}
+	userSrvc := &services.UserService{db}
+
+	// Handlers
+	heartbeatHandler := &routes.HeartbeatHandler{HeartbeatSrvc: heartbeatSrvc}
+
+	// Middlewares
+	authenticate := &middlewares.AuthenticateMiddleware{UserSrvc: userSrvc}
 
 	// Setup Routing
 	router := mux.NewRouter()
@@ -51,11 +58,11 @@ func main() {
 
 	// API Routes
 	heartbeats := apiRouter.Path("/heartbeat").Subrouter()
-	heartbeats.Methods("POST").HandlerFunc(HeartbeatHandler)
+	heartbeats.Methods("POST").HandlerFunc(heartbeatHandler.Post)
 
 	// Sub-Routes Setup
 	router.PathPrefix("/api").Handler(negroni.Classic().With(
-		negroni.HandlerFunc(AuthenticateMiddleware),
+		negroni.HandlerFunc(authenticate.Handle),
 		negroni.Wrap(apiRouter),
 	))
 
