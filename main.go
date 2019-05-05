@@ -2,8 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"flag"
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/n1try/wakapi/middlewares"
@@ -20,20 +20,30 @@ import (
 )
 
 func readConfig() models.Config {
-	portPtr := flag.Int("port", 8080, "Port for the webserver to listen on")
-	dbUser := flag.String("u", "admin", "Database user")
-	dbPassword := flag.String("p", "admin", "Database password")
-	dbHost := flag.String("h", "localhost", "Database host")
-	dbName := flag.String("db", "wakapi", "Database name")
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	flag.Parse()
+	portPtr, err := strconv.Atoi(os.Getenv("WAKAPI_PORT"))
+	dbUser, valid := os.LookupEnv("WAKAPI_DB_USER")
+	dbPassword, valid := os.LookupEnv("WAKAPI_DB_PASSWORD")
+	dbHost, valid := os.LookupEnv("WAKAPI_DB_HOST")
+	dbName, valid := os.LookupEnv("WAKAPI_DB_NAME")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	if !valid {
+		log.Fatal("Config parameters missing.")
+	}
 
 	return models.Config{
-		Port:       *portPtr,
-		DbHost:     *dbHost,
-		DbUser:     *dbUser,
-		DbPassword: *dbPassword,
-		DbName:     *dbName,
+		Port:       portPtr,
+		DbHost:     dbHost,
+		DbUser:     dbUser,
+		DbPassword: dbPassword,
+		DbName:     dbName,
 	}
 }
 
@@ -43,18 +53,18 @@ func main() {
 
 	// Connect Database
 	dbConfig := mysql.Config{
-		User:   config.DbUser,
-		Passwd: config.DbPassword,
-		Net:    "tcp",
-		Addr:   config.DbHost,
-		DBName: config.DbName,
+		User:                 config.DbUser,
+		Passwd:               config.DbPassword,
+		Net:                  "tcp",
+		Addr:                 config.DbHost,
+		DBName:               config.DbName,
+		AllowNativePasswords: true,
 	}
 	db, _ := sql.Open("mysql", dbConfig.FormatDSN())
 	defer db.Close()
 	err := db.Ping()
 	if err != nil {
-		fmt.Println("Could not connect to database.")
-		os.Exit(1)
+		log.Fatal("Could not connect to database.")
 	}
 
 	// Services
@@ -91,6 +101,6 @@ func main() {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	fmt.Printf("Listening on %+s\n", portString)
+	log.Printf("Listening on %+s\n", portString)
 	s.ListenAndServe()
 }
