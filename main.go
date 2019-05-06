@@ -25,7 +25,7 @@ func readConfig() models.Config {
 		log.Fatal(err)
 	}
 
-	portPtr, err := strconv.Atoi(os.Getenv("WAKAPI_PORT"))
+	port, err := strconv.Atoi(os.Getenv("WAKAPI_PORT"))
 	dbUser, valid := os.LookupEnv("WAKAPI_DB_USER")
 	dbPassword, valid := os.LookupEnv("WAKAPI_DB_PASSWORD")
 	dbHost, valid := os.LookupEnv("WAKAPI_DB_HOST")
@@ -39,7 +39,7 @@ func readConfig() models.Config {
 	}
 
 	return models.Config{
-		Port:       portPtr,
+		Port:       port,
 		DbHost:     dbHost,
 		DbUser:     dbUser,
 		DbPassword: dbPassword,
@@ -80,8 +80,6 @@ func main() {
 	// Setup Routing
 	router := mux.NewRouter()
 	apiRouter := mux.NewRouter().PathPrefix("/api").Subrouter()
-	n := negroni.Classic()
-	n.UseHandler(router)
 
 	// API Routes
 	heartbeats := apiRouter.Path("/heartbeat").Subrouter()
