@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/n1try/wakapi/services"
+	"github.com/n1try/wakapi/utils"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/n1try/wakapi/models"
@@ -20,13 +21,20 @@ func (h *HeartbeatHandler) Post(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(415)
 		return
 	}
+
+	opSys, editor, _ := utils.ParseUserAgent(r.Header.Get("User-Agent"))
+
 	dec := json.NewDecoder(r.Body)
-	var heartbeats []models.Heartbeat
+	var heartbeats []*models.Heartbeat
 	err := dec.Decode(&heartbeats)
 	if err != nil {
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))
 		return
+	}
+	for _, h := range heartbeats {
+		h.OperatingSystem = opSys
+		h.Editor = editor
 	}
 
 	user := r.Context().Value(models.UserKey).(*models.User)
@@ -37,5 +45,5 @@ func (h *HeartbeatHandler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(201)
+	w.WriteHeader(200)
 }

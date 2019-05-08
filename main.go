@@ -59,6 +59,7 @@ func main() {
 		Addr:                 config.DbHost,
 		DBName:               config.DbName,
 		AllowNativePasswords: true,
+		ParseTime:            true,
 	}
 	db, _ := sql.Open("mysql", dbConfig.FormatDSN())
 	defer db.Close()
@@ -70,9 +71,11 @@ func main() {
 	// Services
 	heartbeatSrvc := &services.HeartbeatService{db}
 	userSrvc := &services.UserService{db}
+	aggregationSrvc := &services.AggregationService{db, heartbeatSrvc}
 
 	// Handlers
 	heartbeatHandler := &routes.HeartbeatHandler{HeartbeatSrvc: heartbeatSrvc}
+	aggregationHandler := &routes.AggregationHandler{AggregationSrvc: aggregationSrvc}
 
 	// Middlewares
 	authenticate := &middlewares.AuthenticateMiddleware{UserSrvc: userSrvc}
@@ -84,6 +87,9 @@ func main() {
 	// API Routes
 	heartbeats := apiRouter.Path("/heartbeat").Subrouter()
 	heartbeats.Methods("POST").HandlerFunc(heartbeatHandler.Post)
+
+	aggreagations := apiRouter.Path("/aggregation").Subrouter()
+	aggreagations.Methods("GET").HandlerFunc(aggregationHandler.Get)
 
 	// Sub-Routes Setup
 	router.PathPrefix("/api").Handler(negroni.Classic().With(

@@ -9,15 +9,17 @@ import (
 type HeartbeatReqTime time.Time
 
 type Heartbeat struct {
-	User     string           `json:"user"`
-	Entity   string           `json:"entity"`
-	Type     string           `json:"type"`
-	Category string           `json:"category"`
-	Project  string           `json:"project"`
-	Branch   string           `json:"branch"`
-	Language string           `json:"language"`
-	IsWrite  bool             `json:"is_write"`
-	Time     HeartbeatReqTime `json:"time"`
+	User            string           `json:"user"`
+	Entity          string           `json:"entity"`
+	Type            string           `json:"type"`
+	Category        string           `json:"category"`
+	Project         string           `json:"project"`
+	Branch          string           `json:"branch"`
+	Language        string           `json:"language"`
+	IsWrite         bool             `json:"is_write"`
+	Editor          string           `json:"editor"`
+	OperatingSystem string           `json:"operating_system"`
+	Time            HeartbeatReqTime `json:"time"`
 }
 
 func (j *HeartbeatReqTime) UnmarshalJSON(b []byte) error {
