@@ -24,6 +24,6 @@ func (srv *AggregationService) Aggregate(from time.Time, to time.Time, user *mod
 	}
 }
 
-func (srv *AggregationService) aggregateBy(*[]models.Heartbeat, models.AggregationType) *models.Aggregation {
+func (srv *AggregationService) aggregateBy(heartbeats *[]models.Heartbeat, aggregationType int) *models.Aggregation {
 	return &models.Aggregation{}
 }

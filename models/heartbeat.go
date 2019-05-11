@@ -15,18 +15,18 @@ type HeartbeatReqTime time.Time
 
 type Heartbeat struct {
 	gorm.Model
-	User            *User             `json:"user" gorm:"not_null; association_foreignkey:ID"`
-	UserID          string            `json:"-" gorm:"not_null"`
-	Entity          string            `json:"entity" gorm:"not_null"`
+	User            *User             `json:"user" gorm:"not null; association_foreignkey:ID"`
+	UserID          string            `json:"-" gorm:"not null; index:idx_time_user"`
+	Entity          string            `json:"entity" gorm:"not null"`
 	Type            string            `json:"type"`
 	Category        string            `json:"category"`
-	Project         string            `json:"project; index:idx_project"`
+	Project         string            `json:"project" gorm:"index:idx_project"`
 	Branch          string            `json:"branch"`
-	Language        string            `json:"language" gorm:"not_null; index:idx_language"`
+	Language        string            `json:"language" gorm:"not null"`
 	IsWrite         bool              `json:"is_write"`
-	Editor          string            `json:"editor" gorm:"not_null; index:idx_editor"`
-	OperatingSystem string            `json:"operating_system" gorm:"not_null; index:idx_os"`
-	Time            *HeartbeatReqTime `json:"time" gorm:"type:timestamp; default:now(); index:idx_time"`
+	Editor          string            `json:"editor" gorm:"not null"`
+	OperatingSystem string            `json:"operating_system" gorm:"not null"`
+	Time            *HeartbeatReqTime `json:"time" gorm:"type:timestamp; default:now(); index:idx_time,idx_time_user"`
 }
 
 func (h *Heartbeat) Valid() bool {

@@ -64,6 +64,8 @@ func main() {
 	// Migrate database schema
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Heartbeat{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
+	db.AutoMigrate(&models.Aggregation{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
+	db.AutoMigrate(&models.AggregationItem{}).AddForeignKey("aggregation_id", "aggregations(id)", "RESTRICT", "RESTRICT")
 
 	// Services
 	heartbeatSrvc := &services.HeartbeatService{db}
