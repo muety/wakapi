@@ -22,8 +22,7 @@ import (
 )
 
 func readConfig() models.Config {
-	err := godotenv.Load()
-	if err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
 	}
 
