@@ -3,7 +3,10 @@ package utils
 import (
 	"errors"
 	"regexp"
+	"strings"
 	"time"
+
+	"github.com/n1try/wakapi/models"
 )
 
 func ParseDate(date string) (time.Time, error) {
@@ -21,4 +24,17 @@ func ParseUserAgent(ua string) (string, string, error) {
 		return "", "", errors.New("Failed to parse user agent string")
 	}
 	return groups[0][1], groups[0][2], nil
+}
+
+func MakeConnectionString(config *models.Config) string {
+	str := strings.Builder{}
+	str.WriteString(config.DbUser)
+	str.WriteString(":")
+	str.WriteString(config.DbPassword)
+	str.WriteString("@tcp(")
+	str.WriteString(config.DbHost)
+	str.WriteString(")/")
+	str.WriteString(config.DbName)
+	str.WriteString("?charset=utf8&parseTime=true")
+	return str.String()
 }

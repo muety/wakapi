@@ -33,6 +33,6 @@ func (m *AuthenticateMiddleware) Handle(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	ctx := context.WithValue(r.Context(), models.UserKey, &user)
+	ctx := context.WithValue(r.Context(), models.UserKey, user)
 	next(w, r.WithContext(ctx))
 }

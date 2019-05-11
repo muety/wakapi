@@ -1,25 +1,36 @@
 package models
 
 import (
+	"database/sql/driver"
+	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 type HeartbeatReqTime time.Time
 
 type Heartbeat struct {
-	User            string           `json:"user"`
-	Entity          string           `json:"entity"`
-	Type            string           `json:"type"`
-	Category        string           `json:"category"`
-	Project         string           `json:"project"`
-	Branch          string           `json:"branch"`
-	Language        string           `json:"language"`
-	IsWrite         bool             `json:"is_write"`
-	Editor          string           `json:"editor"`
-	OperatingSystem string           `json:"operating_system"`
-	Time            HeartbeatReqTime `json:"time"`
+	gorm.Model
+	User            *User             `json:"user" gorm:"not_null; association_foreignkey:ID"`
+	UserID          string            `json:"-" gorm:"not_null"`
+	Entity          string            `json:"entity" gorm:"not_null"`
+	Type            string            `json:"type"`
+	Category        string            `json:"category"`
+	Project         string            `json:"project; index:idx_project"`
+	Branch          string            `json:"branch"`
+	Language        string            `json:"language" gorm:"not_null; index:idx_language"`
+	IsWrite         bool              `json:"is_write"`
+	Editor          string            `json:"editor" gorm:"not_null; index:idx_editor"`
+	OperatingSystem string            `json:"operating_system" gorm:"not_null; index:idx_os"`
+	Time            *HeartbeatReqTime `json:"time" gorm:"type:timestamp; default:now(); index:idx_time"`
+}
+
+func (h *Heartbeat) Valid() bool {
+	return h.User != nil && h.UserID != "" && h.Entity != "" && h.Language != "" && h.Editor != "" && h.OperatingSystem != "" && h.Time != nil
 }
 
 func (j *HeartbeatReqTime) UnmarshalJSON(b []byte) error {
@@ -31,6 +42,25 @@ func (j *HeartbeatReqTime) UnmarshalJSON(b []byte) error {
 	t := time.Unix(i, 0)
 	*j = HeartbeatReqTime(t)
 	return nil
+}
+
+func (j *HeartbeatReqTime) Scan(value interface{}) error {
+	fmt.Printf("%T", value)
+	switch value.(type) {
+	case int64:
+		*j = HeartbeatReqTime(time.Unix(123456, 0))
+		break
+	case time.Time:
+		*j = HeartbeatReqTime(value.(time.Time))
+		break
+	default:
+		return errors.New(fmt.Sprintf("Unsupported type"))
+	}
+	return nil
+}
+
+func (j HeartbeatReqTime) Value() (driver.Value, error) {
+	return time.Time(j), nil
 }
 
 func (j HeartbeatReqTime) String() string {

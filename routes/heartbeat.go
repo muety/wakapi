@@ -8,7 +8,6 @@ import (
 	"github.com/n1try/wakapi/services"
 	"github.com/n1try/wakapi/utils"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/n1try/wakapi/models"
 )
 
@@ -22,24 +21,32 @@ func (h *HeartbeatHandler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var heartbeats []models.Heartbeat
+	user := r.Context().Value(models.UserKey).(*models.User)
 	opSys, editor, _ := utils.ParseUserAgent(r.Header.Get("User-Agent"))
 
 	dec := json.NewDecoder(r.Body)
-	var heartbeats []*models.Heartbeat
-	err := dec.Decode(&heartbeats)
-	if err != nil {
+	if err := dec.Decode(&heartbeats); err != nil {
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	for _, h := range heartbeats {
+
+	for i := 0; i < len(heartbeats); i++ {
+		h := &heartbeats[i]
 		h.OperatingSystem = opSys
 		h.Editor = editor
+		h.User = user
+		h.UserID = user.ID
+
+		if !h.Valid() {
+			w.WriteHeader(400)
+			w.Write([]byte("Invalid heartbeat object."))
+			return
+		}
 	}
 
-	user := r.Context().Value(models.UserKey).(*models.User)
-	err = h.HeartbeatSrvc.InsertBatch(heartbeats, user)
-	if err != nil {
+	if err := h.HeartbeatSrvc.InsertBatch(&heartbeats); err != nil {
 		w.WriteHeader(500)
 		os.Stderr.WriteString(err.Error())
 		return

@@ -1,16 +1,16 @@
 package services
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/n1try/wakapi/models"
 )
 
 type AggregationService struct {
-	Db               *sql.DB
+	Db               *gorm.DB
 	HeartbeatService *HeartbeatService
 }
 
@@ -19,7 +19,7 @@ func (srv *AggregationService) Aggregate(from time.Time, to time.Time, user *mod
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, h := range heartbeats {
+	for _, h := range *heartbeats {
 		fmt.Printf("%+v\n", h)
 	}
 }

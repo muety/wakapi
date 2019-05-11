@@ -1,33 +1,27 @@
 package services
 
 import (
-	"database/sql"
-	"fmt"
-
+	"github.com/jinzhu/gorm"
 	"github.com/n1try/wakapi/models"
 )
 
 const TableUser = "user"
 
 type UserService struct {
-	Db *sql.DB
+	Db *gorm.DB
 }
 
-func (srv *UserService) GetUserById(userId string) (models.User, error) {
-	q := fmt.Sprintf("SELECT user_id, api_key FROM %+s WHERE user_id = ?;", TableUser)
-	u := models.User{}
-	err := srv.Db.QueryRow(q, userId).Scan(&u.UserId, &u.ApiKey)
-	if err != nil {
+func (srv *UserService) GetUserById(userId string) (*models.User, error) {
+	u := &models.User{}
+	if err := srv.Db.Where(&models.User{ID: userId}).First(u).Error; err != nil {
 		return u, err
 	}
 	return u, nil
 }
 
-func (srv *UserService) GetUserByKey(key string) (models.User, error) {
-	q := fmt.Sprintf("SELECT user_id, api_key FROM %+s WHERE api_key = ?;", TableUser)
-	var u models.User
-	err := srv.Db.QueryRow(q, key).Scan(&u.UserId, &u.ApiKey)
-	if err != nil {
+func (srv *UserService) GetUserByKey(key string) (*models.User, error) {
+	u := &models.User{}
+	if err := srv.Db.Where(&models.User{ApiKey: key}).First(u).Error; err != nil {
 		return u, err
 	}
 	return u, nil

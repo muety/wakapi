@@ -6,4 +6,5 @@ type Config struct {
 	DbUser     string
 	DbPassword string
 	DbName     string
+	DbDialect  string
 }

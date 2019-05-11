@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -10,13 +9,16 @@ import (
 
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/n1try/wakapi/middlewares"
 	"github.com/n1try/wakapi/models"
 	"github.com/n1try/wakapi/routes"
 	"github.com/n1try/wakapi/services"
+	"github.com/n1try/wakapi/utils"
+
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 func readConfig() models.Config {
@@ -44,6 +46,7 @@ func readConfig() models.Config {
 		DbUser:     dbUser,
 		DbPassword: dbPassword,
 		DbName:     dbName,
+		DbDialect:  "mysql",
 	}
 }
 
@@ -51,22 +54,17 @@ func main() {
 	// Read Config
 	config := readConfig()
 
-	// Connect Database
-	dbConfig := mysql.Config{
-		User:                 config.DbUser,
-		Passwd:               config.DbPassword,
-		Net:                  "tcp",
-		Addr:                 config.DbHost,
-		DBName:               config.DbName,
-		AllowNativePasswords: true,
-		ParseTime:            true,
-	}
-	db, _ := sql.Open("mysql", dbConfig.FormatDSN())
-	defer db.Close()
-	err := db.Ping()
+	// Connect to database
+	db, err := gorm.Open(config.DbDialect, utils.MakeConnectionString(&config))
 	if err != nil {
-		log.Fatal("Could not connect to database.")
+		// log.Fatal("Could not connect to database.")
+		log.Fatal(err)
 	}
+	defer db.Close()
+
+	// Migrate database schema
+	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.Heartbeat{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
 
 	// Services
 	heartbeatSrvc := &services.HeartbeatService{db}
