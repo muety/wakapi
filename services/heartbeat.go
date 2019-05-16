@@ -11,7 +11,8 @@ import (
 const TableHeartbeat = "heartbeat"
 
 type HeartbeatService struct {
-	Db *gorm.DB
+	Cofnig *models.Config
+	Db     *gorm.DB
 }
 
 func (srv *HeartbeatService) InsertBatch(heartbeats *[]models.Heartbeat) error {

@@ -8,7 +8,8 @@ import (
 const TableUser = "user"
 
 type UserService struct {
-	Db *gorm.DB
+	Config *models.Config
+	Db     *gorm.DB
 }
 
 func (srv *UserService) GetUserById(userId string) (*models.User, error) {

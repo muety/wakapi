@@ -10,6 +10,7 @@ import (
 )
 
 type AggregationService struct {
+	Config           *models.Config
 	Db               *gorm.DB
 	HeartbeatService *HeartbeatService
 }

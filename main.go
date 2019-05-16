@@ -23,7 +23,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-func readConfig() models.Config {
+func readConfig() *models.Config {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func readConfig() models.Config {
 	intervalStr := cfg.Section("data").Key("aggregation_interval").String()
 	interval, _ := time.ParseDuration(intervalStr)
 
-	return models.Config{
+	return &models.Config{
 		Port:                port,
 		DbHost:              dbHost,
 		DbUser:              dbUser,
@@ -62,7 +62,7 @@ func main() {
 	config := readConfig()
 
 	// Connect to database
-	db, err := gorm.Open(config.DbDialect, utils.MakeConnectionString(&config))
+	db, err := gorm.Open(config.DbDialect, utils.MakeConnectionString(config))
 	if err != nil {
 		// log.Fatal("Could not connect to database.")
 		log.Fatal(err)
@@ -76,9 +76,9 @@ func main() {
 	db.AutoMigrate(&models.AggregationItem{}).AddForeignKey("aggregation_id", "aggregations(id)", "RESTRICT", "RESTRICT")
 
 	// Services
-	heartbeatSrvc := &services.HeartbeatService{db}
-	userSrvc := &services.UserService{db}
-	aggregationSrvc := &services.AggregationService{db, heartbeatSrvc}
+	heartbeatSrvc := &services.HeartbeatService{config, db}
+	userSrvc := &services.UserService{config, db}
+	aggregationSrvc := &services.AggregationService{config, db, heartbeatSrvc}
 
 	// Handlers
 	heartbeatHandler := &routes.HeartbeatHandler{HeartbeatSrvc: heartbeatSrvc}
