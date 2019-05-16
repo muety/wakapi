@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
+	ini "gopkg.in/ini.v1"
 
 	"github.com/n1try/wakapi/middlewares"
 	"github.com/n1try/wakapi/models"
@@ -26,26 +28,32 @@ func readConfig() models.Config {
 		log.Fatal(err)
 	}
 
-	port, err := strconv.Atoi(os.Getenv("WAKAPI_PORT"))
 	dbUser, valid := os.LookupEnv("WAKAPI_DB_USER")
 	dbPassword, valid := os.LookupEnv("WAKAPI_DB_PASSWORD")
 	dbHost, valid := os.LookupEnv("WAKAPI_DB_HOST")
 	dbName, valid := os.LookupEnv("WAKAPI_DB_NAME")
 
-	if err != nil {
-		log.Fatal(err)
-	}
 	if !valid {
-		log.Fatal("Config parameters missing.")
+		log.Fatal("Environment variables missing.")
 	}
 
+	cfg, err := ini.Load("config.ini")
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Fail to read file: %v", err))
+	}
+
+	port := cfg.Section("server").Key("port").MustInt()
+	intervalStr := cfg.Section("data").Key("aggregation_interval").String()
+	interval, _ := time.ParseDuration(intervalStr)
+
 	return models.Config{
-		Port:       port,
-		DbHost:     dbHost,
-		DbUser:     dbUser,
-		DbPassword: dbPassword,
-		DbName:     dbName,
-		DbDialect:  "mysql",
+		Port:                port,
+		DbHost:              dbHost,
+		DbUser:              dbUser,
+		DbPassword:          dbPassword,
+		DbName:              dbName,
+		DbDialect:           "mysql",
+		AggregationInterval: interval,
 	}
 }
 
