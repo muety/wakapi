@@ -15,9 +15,9 @@ type HeartbeatService struct {
 	Db     *gorm.DB
 }
 
-func (srv *HeartbeatService) InsertBatch(heartbeats *[]models.Heartbeat) error {
+func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {
 	var batch []interface{}
-	for _, h := range *heartbeats {
+	for _, h := range heartbeats {
 		batch = append(batch, h)
 	}
 
@@ -27,13 +27,13 @@ func (srv *HeartbeatService) InsertBatch(heartbeats *[]models.Heartbeat) error {
 	return nil
 }
 
-func (srv *HeartbeatService) GetAllFrom(date time.Time, user *models.User) (*[]models.Heartbeat, error) {
-	var heartbeats []models.Heartbeat
+func (srv *HeartbeatService) GetAllFrom(date time.Time, user *models.User) ([]*models.Heartbeat, error) {
+	var heartbeats []*models.Heartbeat
 	if err := srv.Db.
 		Where(&models.Heartbeat{UserID: user.ID}).
 		Where("time > ?", date).
-		Find(&heartbeats).Error; err != nil {
+		Find(heartbeats).Error; err != nil {
 		return nil, err
 	}
-	return &heartbeats, nil
+	return heartbeats, nil
 }

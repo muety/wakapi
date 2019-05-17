@@ -21,7 +21,7 @@ func (h *HeartbeatHandler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var heartbeats []models.Heartbeat
+	var heartbeats []*models.Heartbeat
 	user := r.Context().Value(models.UserKey).(*models.User)
 	opSys, editor, _ := utils.ParseUserAgent(r.Header.Get("User-Agent"))
 
@@ -32,8 +32,7 @@ func (h *HeartbeatHandler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for i := 0; i < len(heartbeats); i++ {
-		h := &heartbeats[i]
+	for _, h := range heartbeats {
 		h.OperatingSystem = opSys
 		h.Editor = editor
 		h.User = user
@@ -46,7 +45,7 @@ func (h *HeartbeatHandler) Post(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := h.HeartbeatSrvc.InsertBatch(&heartbeats); err != nil {
+	if err := h.HeartbeatSrvc.InsertBatch(heartbeats); err != nil {
 		w.WriteHeader(500)
 		os.Stderr.WriteString(err.Error())
 		return

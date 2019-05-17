@@ -84,13 +84,10 @@ func (srv *AggregationService) aggregate(from, to time.Time, user *models.User) 
 	return aggregations
 }
 
-func (srv *AggregationService) aggregateBy(heartbeats *[]models.Heartbeat, aggregationType uint8) []models.AggregationItem {
-	beats := *heartbeats
+func (srv *AggregationService) aggregateBy(heartbeats []*models.Heartbeat, aggregationType uint8) []models.AggregationItem {
 	durations := make(map[string]time.Duration)
 
-	for i := 0; i < len(beats); i++ {
-		h := &beats[i]
-
+	for i, h := range heartbeats {
 		var key string
 		switch aggregationType {
 		case models.AggregationProject:
@@ -111,7 +108,7 @@ func (srv *AggregationService) aggregateBy(heartbeats *[]models.Heartbeat, aggre
 			continue
 		}
 
-		timePassed := h.Time.Time().Sub((&beats[i-1]).Time.Time())
+		timePassed := h.Time.Time().Sub(heartbeats[i-1].Time.Time())
 		timeThresholded := math.Min(float64(timePassed), float64(time.Duration(2)*time.Minute))
 		durations[key] += time.Duration(int64(timeThresholded))
 	}
