@@ -45,7 +45,6 @@ func (j *HeartbeatReqTime) UnmarshalJSON(b []byte) error {
 }
 
 func (j *HeartbeatReqTime) Scan(value interface{}) error {
-	fmt.Printf("%T", value)
 	switch value.(type) {
 	case int64:
 		*j = HeartbeatReqTime(time.Unix(123456, 0))
@@ -66,4 +65,8 @@ func (j HeartbeatReqTime) Value() (driver.Value, error) {
 func (j HeartbeatReqTime) String() string {
 	t := time.Time(j)
 	return t.Format("2006-01-02 15:04:05")
+}
+
+func (j HeartbeatReqTime) Time() time.Time {
+	return time.Time(j)
 }

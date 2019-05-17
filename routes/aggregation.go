@@ -33,7 +33,17 @@ func (h *AggregationHandler) Get(w http.ResponseWriter, r *http.Request) {
 		to = time.Now()
 	}
 
-	h.AggregationSrvc.Aggregate(from, to, user)
+	aggregations, err := h.AggregationSrvc.FindOrAggregate(from, to, user)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	for i := 0; i < len(aggregations); i++ {
+		if err := h.AggregationSrvc.SaveAggregation(aggregations[i]); err != nil {
+			w.WriteHeader(500)
+			return
+		}
+	}
 
 	w.WriteHeader(200)
 }
