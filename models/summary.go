@@ -26,3 +26,8 @@ type SummaryItem struct {
 	Key   string        `json:"key"`
 	Total time.Duration `json:"total"`
 }
+
+type SummaryItemContainer struct {
+	Type  uint8
+	Items []SummaryItem
+}

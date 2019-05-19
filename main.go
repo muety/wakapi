@@ -63,7 +63,7 @@ func main() {
 
 	// Connect to database
 	db, err := gorm.Open(config.DbDialect, utils.MakeConnectionString(config))
-	db.LogMode(true)
+	db.LogMode(false)
 	if err != nil {
 		// log.Fatal("Could not connect to database.")
 		log.Fatal(err)

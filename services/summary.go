@@ -20,25 +20,52 @@ func (srv *SummaryService) GetSummary(from, to time.Time, user *models.User) (*m
 		return nil, err
 	}
 
+	types := []uint8{models.SummaryProject, models.SummaryLanguage, models.SummaryEditor, models.SummaryOS}
+
+	var projectItems []models.SummaryItem
+	var languageItems []models.SummaryItem
+	var editorItems []models.SummaryItem
+	var osItems []models.SummaryItem
+
+	c := make(chan models.SummaryItemContainer)
+	for _, t := range types {
+		go srv.aggregateBy(heartbeats, t, c)
+	}
+
+	for i := 0; i < len(types); i++ {
+		item := <-c
+		switch item.Type {
+		case models.SummaryProject:
+			projectItems = item.Items
+		case models.SummaryLanguage:
+			languageItems = item.Items
+		case models.SummaryEditor:
+			editorItems = item.Items
+		case models.SummaryOS:
+			osItems = item.Items
+		}
+	}
+	close(c)
+
 	summary := &models.Summary{
 		UserID:           user.ID,
 		FromTime:         &from,
 		ToTime:           &to,
-		Projects:         srv.aggregateBy(heartbeats, models.SummaryProject),
-		Languages:        srv.aggregateBy(heartbeats, models.SummaryLanguage),
-		Editors:          srv.aggregateBy(heartbeats, models.SummaryEditor),
-		OperatingSystems: srv.aggregateBy(heartbeats, models.SummaryOS),
+		Projects:         projectItems,
+		Languages:        languageItems,
+		Editors:          editorItems,
+		OperatingSystems: osItems,
 	}
 
 	return summary, nil
 }
 
-func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, aggregationType uint8) []models.SummaryItem {
+func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryType uint8, c chan models.SummaryItemContainer) {
 	durations := make(map[string]time.Duration)
 
 	for i, h := range heartbeats {
 		var key string
-		switch aggregationType {
+		switch summaryType {
 		case models.SummaryProject:
 			key = h.Project
 		case models.SummaryEditor:
@@ -70,5 +97,5 @@ func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, aggregati
 		})
 	}
 
-	return items
+	c <- models.SummaryItemContainer{Type: summaryType, Items: items}
 }
