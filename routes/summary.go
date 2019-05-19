@@ -1,7 +1,10 @@
 package routes
 
 import (
+	"crypto/md5"
+	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/n1try/wakapi/models"
@@ -16,7 +19,7 @@ const (
 	IntervalLastYear  string = "year"
 )
 
-var summaryCache map[time.Time]*models.Summary
+var summaryCache map[string]*models.Summary
 
 type SummaryHandler struct {
 	SummarySrvc *services.SummaryService
@@ -51,22 +54,42 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if _, ok := summaryCache[from]; !ok {
+	live := params.Get("live") != "" && params.Get("live") != "false"
+	to := utils.StartOfDay()
+	if live {
+		to = time.Now()
+	}
+
+	var summary *models.Summary
+	cacheKey := getHash([]time.Time{from, to})
+	if _, ok := summaryCache[cacheKey]; !ok {
 		// Cache Miss
-		summary, err := h.SummarySrvc.GetSummary(from, utils.StartOfDay(), user) // 'to' is always constant
+		fmt.Println("Cache miss")
+		summary, err = h.SummarySrvc.GetSummary(from, to, user) // 'to' is always constant
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		summaryCache[from] = summary
+		if !live {
+			summaryCache[cacheKey] = summary
+		}
+	} else {
+		summary, _ = summaryCache[cacheKey]
 	}
 
-	summary, _ := summaryCache[from]
 	utils.RespondJSON(w, http.StatusOK, summary)
 }
 
 func tryInitCache() {
 	if summaryCache == nil {
-		summaryCache = make(map[time.Time]*models.Summary)
+		summaryCache = make(map[string]*models.Summary)
 	}
+}
+
+func getHash(times []time.Time) string {
+	digest := md5.New()
+	for _, t := range times {
+		digest.Write([]byte(strconv.Itoa(int(t.Unix()))))
+	}
+	return string(digest.Sum(nil))
 }
