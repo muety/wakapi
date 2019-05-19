@@ -16,6 +16,8 @@ const (
 	IntervalLastYear  string = "year"
 )
 
+var summaryCache map[time.Time]*models.Summary
+
 type SummaryHandler struct {
 	SummarySrvc *services.SummaryService
 }
@@ -25,6 +27,8 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
+
+	tryInitCache()
 
 	user := r.Context().Value(models.UserKey).(*models.User)
 	params := r.URL.Query()
@@ -47,11 +51,22 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	summary, err := h.SummarySrvc.GetSummary(from, utils.StartOfDay(), user)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	if _, ok := summaryCache[from]; !ok {
+		// Cache Miss
+		summary, err := h.SummarySrvc.GetSummary(from, utils.StartOfDay(), user) // 'to' is always constant
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		summaryCache[from] = summary
 	}
 
+	summary, _ := summaryCache[from]
 	utils.RespondJSON(w, http.StatusOK, summary)
+}
+
+func tryInitCache() {
+	if summaryCache == nil {
+		summaryCache = make(map[time.Time]*models.Summary)
+	}
 }
