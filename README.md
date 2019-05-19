@@ -7,11 +7,9 @@
 * Run server: `go run *.go`
 
 ## Todo
-* Aggregation logic
-* Summary endpoint
+* Persisted (for performance)
 * User sign up and log in
-* UI routes
-* Graph generation
+* UI / Graphs
 
 ## License
 * GPL-v3 @ [Ferdinand Mütsch](https://muetsch.io)
