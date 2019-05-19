@@ -18,7 +18,7 @@ type HeartbeatService struct {
 func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {
 	var batch []interface{}
 	for _, h := range heartbeats {
-		batch = append(batch, h)
+		batch = append(batch, *h)
 	}
 
 	if err := gormbulk.BulkInsert(srv.Db, batch, 3000); err != nil {
@@ -27,12 +27,13 @@ func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {
 	return nil
 }
 
-func (srv *HeartbeatService) GetAllFrom(date time.Time, user *models.User) ([]*models.Heartbeat, error) {
+func (srv *HeartbeatService) GetAllWithin(from, to time.Time, user *models.User) ([]*models.Heartbeat, error) {
 	var heartbeats []*models.Heartbeat
 	if err := srv.Db.
 		Where(&models.Heartbeat{UserID: user.ID}).
-		Where("time > ?", date).
-		Find(heartbeats).Error; err != nil {
+		Where("time >= ?", from).
+		Where("time <= ?", to).
+		Find(&heartbeats).Error; err != nil {
 		return nil, err
 	}
 	return heartbeats, nil

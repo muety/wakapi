@@ -42,18 +42,18 @@ func readConfig() *models.Config {
 		log.Fatal(fmt.Sprintf("Fail to read file: %v", err))
 	}
 
-	port := cfg.Section("server").Key("port").MustInt()
-	intervalStr := cfg.Section("data").Key("aggregation_interval").String()
-	interval, _ := time.ParseDuration(intervalStr)
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		port = cfg.Section("server").Key("port").MustInt()
+	}
 
 	return &models.Config{
-		Port:                port,
-		DbHost:              dbHost,
-		DbUser:              dbUser,
-		DbPassword:          dbPassword,
-		DbName:              dbName,
-		DbDialect:           "mysql",
-		AggregationInterval: interval,
+		Port:       port,
+		DbHost:     dbHost,
+		DbUser:     dbUser,
+		DbPassword: dbPassword,
+		DbName:     dbName,
+		DbDialect:  "mysql",
 	}
 }
 
@@ -73,17 +73,15 @@ func main() {
 	// Migrate database schema
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Heartbeat{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
-	db.AutoMigrate(&models.Aggregation{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
-	db.AutoMigrate(&models.AggregationItem{}).AddForeignKey("aggregation_id", "aggregations(id)", "RESTRICT", "RESTRICT")
 
 	// Services
 	heartbeatSrvc := &services.HeartbeatService{config, db}
 	userSrvc := &services.UserService{config, db}
-	aggregationSrvc := &services.AggregationService{config, db, heartbeatSrvc}
+	summarySrvc := &services.SummaryService{config, db, heartbeatSrvc}
 
 	// Handlers
 	heartbeatHandler := &routes.HeartbeatHandler{HeartbeatSrvc: heartbeatSrvc}
-	aggregationHandler := &routes.AggregationHandler{AggregationSrvc: aggregationSrvc}
+	summaryHandler := &routes.SummaryHandler{SummarySrvc: summarySrvc}
 
 	// Middlewares
 	authenticate := &middlewares.AuthenticateMiddleware{UserSrvc: userSrvc}
@@ -96,8 +94,8 @@ func main() {
 	heartbeats := apiRouter.Path("/heartbeat").Subrouter()
 	heartbeats.Methods("POST").HandlerFunc(heartbeatHandler.Post)
 
-	aggreagations := apiRouter.Path("/aggregation").Subrouter()
-	aggreagations.Methods("GET").HandlerFunc(aggregationHandler.Get)
+	aggreagations := apiRouter.Path("/summary").Subrouter()
+	aggreagations.Methods("GET").HandlerFunc(summaryHandler.Get)
 
 	// Sub-Routes Setup
 	router.PathPrefix("/api").Handler(negroni.Classic().With(

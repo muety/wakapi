@@ -7,15 +7,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/jinzhu/gorm"
 )
 
 type HeartbeatReqTime time.Time
 
 type Heartbeat struct {
-	gorm.Model
-	User            *User             `json:"user" gorm:"not null; association_foreignkey:ID"`
+	ID              uint              `gorm:"primary_key"`
+	User            *User             `json:"-" gorm:"not null; index:idx_time_user"`
 	UserID          string            `json:"-" gorm:"not null; index:idx_time_user"`
 	Entity          string            `json:"entity" gorm:"not null"`
 	Type            string            `json:"type"`

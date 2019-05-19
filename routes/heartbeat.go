@@ -16,8 +16,8 @@ type HeartbeatHandler struct {
 }
 
 func (h *HeartbeatHandler) Post(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		w.WriteHeader(415)
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -27,7 +27,7 @@ func (h *HeartbeatHandler) Post(w http.ResponseWriter, r *http.Request) {
 
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&heartbeats); err != nil {
-		w.WriteHeader(400)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -39,17 +39,17 @@ func (h *HeartbeatHandler) Post(w http.ResponseWriter, r *http.Request) {
 		h.UserID = user.ID
 
 		if !h.Valid() {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("Invalid heartbeat object."))
 			return
 		}
 	}
 
 	if err := h.HeartbeatSrvc.InsertBatch(heartbeats); err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		os.Stderr.WriteString(err.Error())
 		return
 	}
 
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 }
