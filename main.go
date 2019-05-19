@@ -104,7 +104,7 @@ func main() {
 	))
 
 	// Listen HTTP
-	portString := ":" + strconv.Itoa(config.Port)
+	portString := "127.0.0.1:" + strconv.Itoa(config.Port)
 	s := &http.Server{
 		Handler:      router,
 		Addr:         portString,
