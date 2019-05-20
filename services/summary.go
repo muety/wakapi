@@ -76,6 +76,10 @@ func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryTy
 			key = h.OperatingSystem
 		}
 
+		if key == "" {
+			continue
+		}
+
 		if _, ok := durations[key]; !ok {
 			durations[key] = time.Duration(0)
 		}

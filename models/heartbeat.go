@@ -18,17 +18,17 @@ type Heartbeat struct {
 	Entity          string            `json:"entity" gorm:"not null"`
 	Type            string            `json:"type"`
 	Category        string            `json:"category"`
-	Project         string            `json:"project" gorm:"index:idx_project"`
+	Project         string            `json:"project"`
 	Branch          string            `json:"branch"`
-	Language        string            `json:"language" gorm:"not null"`
+	Language        string            `json:"language"`
 	IsWrite         bool              `json:"is_write"`
-	Editor          string            `json:"editor" gorm:"not null"`
-	OperatingSystem string            `json:"operating_system" gorm:"not null"`
+	Editor          string            `json:"editor"`
+	OperatingSystem string            `json:"operating_system"`
 	Time            *HeartbeatReqTime `json:"time" gorm:"type:timestamp; default:now(); index:idx_time,idx_time_user"`
 }
 
 func (h *Heartbeat) Valid() bool {
-	return h.User != nil && h.UserID != "" && h.Entity != "" && h.Language != "" && h.Editor != "" && h.OperatingSystem != "" && h.Time != nil
+	return h.User != nil && h.UserID != "" && h.Time != nil
 }
 
 func (j *HeartbeatReqTime) UnmarshalJSON(b []byte) error {
