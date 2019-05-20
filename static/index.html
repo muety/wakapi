@@ -54,10 +54,10 @@
     <div class="input-container" id="input-container">
         <label for="apikey">API Key: </label>
         <input type="text" class="apikey-input" id="apikey-input" name="apikey" placeholder="Enter your API key here">
-        <button onclick="load('day')">Day</button>
-        <button onclick="load('week')">Week</button>
-        <button onclick="load('month')">Month</button>
-        <button onclick="load('year')">Year</button>
+        <button onclick="load('day', true)">Day (live)</button>
+        <button onclick="load('week', false)">Week</button>
+        <button onclick="load('month', false)">Month</button>
+        <button onclick="load('year', false)">Year</button>
     </div>
     <div class="grid-container" id="grid-container">
         <div class="header-container">
@@ -95,9 +95,9 @@
             return hours + ':' + minutes + ':' + seconds;
         }
 
-        function load(interval) {
+        function load(interval, live) {
             let apiKey = document.getElementById('apikey-input').value
-            fetch(`${window.location.href}/api/summary?interval=${interval}&live=true`, {
+            fetch(`${window.location.href}/api/summary?interval=${interval}&live=${live}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
