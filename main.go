@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 	ini "gopkg.in/ini.v1"
 
 	"github.com/n1try/wakapi/middlewares"
@@ -85,6 +86,11 @@ func main() {
 
 	// Middlewares
 	authenticate := &middlewares.AuthenticateMiddleware{UserSrvc: userSrvc}
+	cors := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedHeaders: []string{"*"},
+		Debug:          false,
+	})
 
 	// Setup Routing
 	router := mux.NewRouter()
@@ -98,10 +104,13 @@ func main() {
 	aggreagations.Methods("GET").HandlerFunc(summaryHandler.Get)
 
 	// Sub-Routes Setup
-	router.PathPrefix("/api").Handler(negroni.Classic().With(
-		negroni.HandlerFunc(authenticate.Handle),
-		negroni.Wrap(apiRouter),
-	))
+	router.PathPrefix("/api").Handler(negroni.Classic().
+		With(cors).
+		With(
+			negroni.HandlerFunc(authenticate.Handle),
+			negroni.Wrap(apiRouter),
+		))
+	router.PathPrefix("/").Handler(negroni.Classic().With(negroni.Wrap(http.FileServer(http.Dir("./static")))))
 
 	// Listen HTTP
 	portString := "127.0.0.1:" + strconv.Itoa(config.Port)

@@ -1,0 +1,243 @@
+<html>
+
+<head>
+    <title>Coding Stats</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <link rel="icon" data-emoji="📊" type="image/png">
+    <style>
+        body {
+            font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+            color: #666;
+        }
+
+        .grid-container {
+            width: 60%;
+            display: grid;
+            grid-template-areas:
+                'header header header'
+                'sec1 sec1 sec2'
+                'sec1 sec1 sec3'
+                'sec1 sec1 sec4'
+                'footer footer footer';
+            grid-gap: 10px;
+            visibility: hidden;
+        }
+
+        .projects-container {
+            grid-area: sec1
+        }
+
+        .os-container {
+            grid-area: sec2
+        }
+
+        .editor-container {
+            grid-area: sec3
+        }
+
+        .language-container {
+            grid-area: sec4
+        }
+
+        .header-container {
+            grid-area: header
+        }
+
+        .apikey-input {
+            width: 300px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Statistics</h1>
+    <div class="input-container" id="input-container">
+        <label for="apikey">API Key: </label>
+        <input type="text" class="apikey-input" id="apikey-input" name="apikey" placeholder="Enter your API key here">
+        <button onclick="load('day')">Day</button>
+        <button onclick="load('week')">Week</button>
+        <button onclick="load('month')">Month</button>
+        <button onclick="load('year')">Year</button>
+    </div>
+    <div class="grid-container" id="grid-container">
+        <div class="header-container">
+            <p>
+                <strong>Total:</strong> <span id="total-span"></span><br>
+            </p>
+        </div>
+        <div class="projects-container" id="projects-container">
+            <canvas id="chart-projects"></canvas>
+        </div>
+        <div class="os-container" id="os-container">
+            <canvas id="chart-os"></canvas>
+        </div>
+        <div class="editor-container" id="editor-container">
+            <canvas id="chart-editor"></canvas>
+        </div>
+        <div class="language-container" id="language-container">
+            <canvas id="chart-language"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.4/seedrandom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
+
+    <script>
+        String.prototype.toHHMMSS = function () {
+            var sec_num = parseInt(this, 10);
+            var hours = Math.floor(sec_num / 3600);
+            var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+            var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+            if (hours < 10) { hours = "0" + hours; }
+            if (minutes < 10) { minutes = "0" + minutes; }
+            if (seconds < 10) { seconds = "0" + seconds; }
+            return hours + ':' + minutes + ':' + seconds;
+        }
+
+        function load(interval) {
+            let apiKey = document.getElementById('apikey-input').value
+            fetch(`/api/summary?interval=${interval}&live=true`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': `Basic ${btoa(apiKey)}`
+                }
+            })
+                .then((res) => {
+                    if (res.status === 401) {
+                        console.error('Unauthorized')
+                        alert('Unauthorized')
+                    }
+                    return res
+                })
+                .then((res) => res.json())
+                .then((json) => draw(json))
+                .catch(err => console.error(err));
+        }
+
+        function draw(data) {
+            let titleOptions = {
+                display: true,
+                fontSize: 16
+            }
+
+            function getTooltipOptions(key, type) {
+                return {
+                    mode: 'single',
+                    callbacks: {
+                        label: (item) => {
+                            let idx = type === 'pie' ? item.index : item.datasetIndex
+                            let d = data[key][idx]
+                            return `${d.key}: ${d.total.toString().toHHMMSS()}`
+                        }
+                    }
+                }
+            }
+
+            let projectChart = new Chart(document.getElementById("chart-projects").getContext('2d'), {
+                type: 'horizontalBar',
+                data: {
+                    datasets: data.projects
+                        .map(p => {
+                            return {
+                                label: p.key,
+                                data: [parseInt(p.total)],
+                                backgroundColor: getRandomColor(p.key)
+                            }
+                        })
+                },
+                options: {
+                    title: Object.assign(titleOptions, { text: 'Projects' }),
+                    tooltips: getTooltipOptions('projects', 'bar'),
+                    legend: {
+                        display: false
+                    }
+                }
+            });
+
+            let osChart = new Chart(document.getElementById("chart-os").getContext('2d'), {
+                type: 'pie',
+                data: {
+                    datasets: [{
+                        data: data.operating_systems.map(p => parseInt(p.total)),
+                        backgroundColor: data.operating_systems.map(p => getRandomColor(p.key))
+                    }],
+                    labels: data.operating_systems.map(p => p.key)
+                },
+                options: {
+                    title: Object.assign(titleOptions, { text: 'Operating Systems' }),
+                    tooltips: getTooltipOptions('operating_systems', 'pie')
+                }
+            });
+
+            let editorChart = new Chart(document.getElementById("chart-editor").getContext('2d'), {
+                type: 'pie',
+                data: {
+                    datasets: [{
+                        data: data.editors.map(p => parseInt(p.total)),
+                        backgroundColor: data.editors.map(p => getRandomColor(p.key))
+                    }],
+                    labels: data.editors.map(p => p.key)
+                },
+                options: {
+                    title: Object.assign(titleOptions, { text: 'Editors' }),
+                    tooltips: getTooltipOptions('editors', 'pie')
+                }
+            });
+
+            let languageChart = new Chart(document.getElementById("chart-language").getContext('2d'), {
+                type: 'pie',
+                data: {
+                    datasets: [{
+                        data: data.languages
+                            .map(p => parseInt(p.total)),
+                        backgroundColor: data.languages.map(p => getRandomColor(p.key))
+                    }],
+                    labels: data.languages
+                        .map(p => p.key)
+                },
+                options: {
+                    title: Object.assign(titleOptions, { text: 'Languages' }),
+                    tooltips: getTooltipOptions('languages', 'pie')
+                }
+            });
+
+            getTotal(data.operating_systems)
+            document.getElementById('grid-container').style.visibility = 'visible';
+        }
+
+        function getRandomColor(seed) {
+            seed = seed ? seed : '1234567';
+            Math.seedrandom(seed);
+            var letters = '0123456789ABCDEF'.split('');
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function getTotal(data) {
+            let total = data.reduce((acc, d) => acc + d.total, 0)
+            document.getElementById("total-span").innerText = total.toString().toHHMMSS()
+        }
+
+        // https://koddsson.com/posts/emoji-favicon/
+        const favicon = document.querySelector("link[rel=icon]");
+        if (favicon) {
+            const emoji = favicon.getAttribute("data-emoji");
+            if (emoji) {
+                const canvas = document.createElement("canvas");
+                canvas.height = 64;
+                canvas.width = 64;
+                const ctx = canvas.getContext("2d");
+                ctx.font = "64px serif";
+                ctx.fillText(emoji, 0, 64);
+                favicon.href = canvas.toDataURL();
+            }
+        }
+    </script>
+</body>
+
+</html>
