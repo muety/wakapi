@@ -6,7 +6,8 @@
 * Copy `.env.example` to `.env` and set database credentials
 * Install dependencies: `go get -d ./...`
 * Set target port in `config.ini`
-* Run server: `go run *.go`
+* Build executable: `go build`
+* Run server: `./wakapi`
 * Edit your local `~/.wakatime.cfg` file and add `api_url = https://your.server:someport/api/heartbeat`
 
 **First run** (create user account): When running the server for the very first time, the database gets populated. Afterwards you have to create yourself a user account. Until proper user sign up and login is implemented, this is done via SQL, like this.
