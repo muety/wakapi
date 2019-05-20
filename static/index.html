@@ -97,7 +97,7 @@
 
         function load(interval) {
             let apiKey = document.getElementById('apikey-input').value
-            fetch(`api/summary?interval=${interval}&live=true`, {
+            fetch(`${window.location.href}/api/summary?interval=${interval}&live=true`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
