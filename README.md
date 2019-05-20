@@ -19,6 +19,7 @@
 * Persisted summaries / aggregations (for performance)
 * User sign up and log in
 * Additional endpoints for retrieving statistics data
+* Dockerize
 * Unit tests
 
 ## Important note
