@@ -33,6 +33,7 @@ func (srv *HeartbeatService) GetAllWithin(from, to time.Time, user *models.User)
 		Where(&models.Heartbeat{UserID: user.ID}).
 		Where("time >= ?", from).
 		Where("time <= ?", to).
+		Order("time asc").
 		Find(&heartbeats).Error; err != nil {
 		return nil, err
 	}
