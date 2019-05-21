@@ -1,6 +1,8 @@
 # 📈 wakapi
 **A minimalistic, self-hosted WakaTime-compatible backend for coding statistics**
 
+![Wakapi screenshot](https://anchr.io/i/zCVbN.png)
+
 [![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoff.ee/n1try)
 
 ## Prerequisites
