@@ -87,6 +87,9 @@ func main() {
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Heartbeat{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
 
+	// Migrate custom languages
+	migrateLanguages(db, config)
+
 	// Services
 	heartbeatSrvc := &services.HeartbeatService{config, db}
 	userSrvc := &services.UserService{config, db}
@@ -134,4 +137,17 @@ func main() {
 	}
 	log.Printf("Listening on %+s\n", portString)
 	s.ListenAndServe()
+}
+
+func migrateLanguages(db *gorm.DB, cfg *models.Config) {
+	for k, v := range cfg.CustomLanguages {
+		result := db.Model(models.Heartbeat{}).
+			Where("language = ?", "").
+			Where("entity LIKE ?", "%."+k).
+			Updates(models.Heartbeat{Language: v})
+		if result.Error != nil {
+			log.Fatal(result.Error)
+		}
+		log.Printf("Migrated %+v rows for custom language %+s.\n", result.RowsAffected, k)
+	}
 }

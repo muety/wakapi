@@ -14,14 +14,14 @@ type HeartbeatReqTime time.Time
 
 type Heartbeat struct {
 	ID              uint              `gorm:"primary_key"`
-	User            *User             `json:"-" gorm:"not null; index:idx_time_user"`
+	User            *User             `json:"-" gorm:"not null"`
 	UserID          string            `json:"-" gorm:"not null; index:idx_time_user"`
-	Entity          string            `json:"entity" gorm:"not null"`
+	Entity          string            `json:"entity" gorm:"not null: index:idx_entity"`
 	Type            string            `json:"type"`
 	Category        string            `json:"category"`
 	Project         string            `json:"project"`
 	Branch          string            `json:"branch"`
-	Language        string            `json:"language"`
+	Language        string            `json:"language" gorm:"index:idx_language"`
 	IsWrite         bool              `json:"is_write"`
 	Editor          string            `json:"editor"`
 	OperatingSystem string            `json:"operating_system"`

@@ -2,7 +2,6 @@ package routes
 
 import (
 	"crypto/md5"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -75,7 +74,6 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 	cachedSummary, ok := h.Cache.Get(cacheKey)
 	if !ok {
 		// Cache Miss
-		fmt.Println("Cache miss")
 		summary, err = h.SummarySrvc.GetSummary(from, to, user) // 'to' is always constant
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
