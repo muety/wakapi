@@ -2,8 +2,12 @@ package middlewares
 
 import (
 	"context"
+	"crypto/md5"
 	"encoding/base64"
+	"encoding/hex"
+	"errors"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -31,16 +35,34 @@ func (m *AuthenticateMiddleware) Handle(w http.ResponseWriter, r *http.Request, 
 		m.Init()
 	}
 
-	authHeader := strings.Split(r.Header.Get("Authorization"), " ")
-	if len(authHeader) != 2 {
+	var user *models.User
+	var userKey string
+	user, userKey, err := m.tryGetUserByApiKey(r)
+
+	if err != nil {
+		user, userKey, err = m.tryGetUserByPassword(r)
+	}
+
+	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
+	m.Cache.Set(userKey, user, cache.DefaultExpiration)
+
+	ctx := context.WithValue(r.Context(), models.UserKey, user)
+	next(w, r.WithContext(ctx))
+}
+
+func (m *AuthenticateMiddleware) tryGetUserByApiKey(r *http.Request) (*models.User, string, error) {
+	authHeader := strings.Split(r.Header.Get("Authorization"), " ")
+	if len(authHeader) != 2 || authHeader[0] != "Basic" {
+		return nil, "", errors.New("Failed to extract API key")
+	}
+
 	key, err := base64.StdEncoding.DecodeString(authHeader[1])
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
+		return nil, "", err
 	}
 
 	var user *models.User
@@ -49,15 +71,46 @@ func (m *AuthenticateMiddleware) Handle(w http.ResponseWriter, r *http.Request, 
 	if !ok {
 		user, err = m.UserSrvc.GetUserByKey(userKey)
 		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
+			return nil, "", err
 		}
 	} else {
 		user = cachedUser.(*models.User)
 	}
+	return user, userKey, nil
+}
 
-	m.Cache.Set(userKey, user, cache.DefaultExpiration)
+func (m *AuthenticateMiddleware) tryGetUserByPassword(r *http.Request) (*models.User, string, error) {
+	authHeader := strings.Split(r.Header.Get("Authorization"), " ")
+	if len(authHeader) != 2 || authHeader[0] != "Basic" {
+		return nil, "", errors.New("Failed to extract API key")
+	}
 
-	ctx := context.WithValue(r.Context(), models.UserKey, user)
-	next(w, r.WithContext(ctx))
+	hash, err := base64.StdEncoding.DecodeString(authHeader[1])
+	userKey := strings.TrimSpace(string(hash))
+	if err != nil {
+		return nil, "", err
+	}
+
+	var user *models.User
+	cachedUser, ok := m.Cache.Get(userKey)
+	if !ok {
+		re := regexp.MustCompile(`^(.+):(.+)$`)
+		groups := re.FindAllStringSubmatch(userKey, -1)
+		if len(groups) == 0 || len(groups[0]) != 3 {
+			return nil, "", errors.New("Failed to parse user agent string")
+		}
+		userId, password := groups[0][1], groups[0][2]
+		user, err = m.UserSrvc.GetUserById(userId)
+		if err != nil {
+			return nil, "", err
+		}
+		passwordHash := md5.Sum([]byte(password))
+		passwordHashString := hex.EncodeToString(passwordHash[:])
+		if passwordHashString != user.Password {
+			return nil, "", errors.New("Invalid password")
+		}
+	} else {
+		user = cachedUser.(*models.User)
+	}
+	return user, userKey, nil
 }

@@ -43,7 +43,7 @@
             grid-area: header
         }
 
-        .apikey-input {
+        .input {
             width: 300px;
         }
     </style>
@@ -52,8 +52,10 @@
 <body>
     <h1>Statistics</h1>
     <div class="input-container" id="input-container">
-        <label for="apikey">API Key: </label>
-        <input type="text" class="apikey-input" id="apikey-input" name="apikey" placeholder="Enter your API key here">
+        <label for="user">User: </label>
+        <input type="text" class="input" id="user-input" name="user" placeholder="Enter Username">
+        <label for="pw">API Key: </label>
+        <input type="password" class="input" id="password-input" name="pw" placeholder="Enter Password">
         <button onclick="load('day', true)">Day (live)</button>
         <button onclick="load('week', false)">Week</button>
         <button onclick="load('month', false)">Month</button>
@@ -96,12 +98,14 @@
         }
 
         function load(interval, live) {
-            let apiKey = document.getElementById('apikey-input').value
+            let user = document.getElementById('user-input').value
+            let password = document.getElementById('password-input').value
+            let hashed = btoa(`${user}:${password}`)
             fetch(`${window.location.href}/api/summary?interval=${interval}&live=${live}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
-                    'Authorization': `Basic ${btoa(apiKey)}`
+                    'Authorization': `Basic ${hashed}`
                 }
             })
                 .then((res) => {
