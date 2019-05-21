@@ -16,12 +16,17 @@
 * Set target port in `config.ini`
 * Build executable: `go build`
 * Run server: `./wakapi`
-* On your development computers, edit your local `~/.wakatime.cfg` file and add `api_url = https://your.server:someport/api/heartbeat`
+* Edit your local `~/.wakatime.cfg` file
+  * `api_url = https://your.server:someport/api/heartbeat`
+  * `api_key = the_api_key_printed_to_the_console_after_starting_the_server`
+* Open [http://localhost:3000](http://localhost:3000) in your browser
 
-**First run** (create user account): When running the server for the very first time, the database gets populated. Afterwards you have to create yourself a user account. Until proper user sign up and login is implemented, this is done via SQL, like this.
-* `mysql -u yourusername -p -H your.hostname`
-* `USE yourdatabasename;`
-* `INSERT INTO users (id, api_key) VALUES ('your_cool_nickname', '728f084c-85e0-41de-aa2a-b6cc871200c1');` (the latter value is your api key from `~/.wakatime.cfg`)
+### User Accounts
+* When starting wakapi for the first time, a default user _**admin**_ with password _**admin**_ is created. The corresponding API key is printed to the console.
+* Additional users, at the moment, can be added only via SQL statements on your database, like this:
+    * Connect to your database server: `mysql -u yourusername -p -H your.hostname` (alternatively use GUI tools like _MySQL Workbench_)
+    * Select your database: `USE yourdatabasename;`
+    * ADd the new user: `INSERT INTO users (id, password, api_key) VALUES ('your_nickname', MD5('your_password'), '728f084c-85e0-41de-aa2a-b6cc871200c1');` (the latter value should be a random [UUIDv4](https://tools.ietf.org/html/rfc4122), as can be found in your `~/.wakatime.cfg`)
 
 ## Best Practices
 It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or _nginx_ to enable **TLS encryption** (HTTPS).
@@ -34,6 +39,7 @@ However, if you want to expose your wakapi instance to the public anyway, you ne
 * Enhanced UI
   * Loading spinner
   * Responsiveness
+* Support for SQLite database
 * Dockerize
 * Unit tests
 

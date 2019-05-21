@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,6 +15,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
+	uuid "github.com/satori/go.uuid"
 	ini "gopkg.in/ini.v1"
 
 	"github.com/n1try/wakapi/middlewares"
@@ -87,7 +90,8 @@ func main() {
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Heartbeat{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
 
-	// Migrate custom languages
+	// Custom migrations and initial data
+	addDefaultUser(db, config)
 	migrateLanguages(db, config)
 
 	// Services
@@ -148,6 +152,23 @@ func migrateLanguages(db *gorm.DB, cfg *models.Config) {
 		if result.Error != nil {
 			log.Fatal(result.Error)
 		}
-		log.Printf("Migrated %+v rows for custom language %+s.\n", result.RowsAffected, k)
+		if result.RowsAffected > 0 {
+			log.Printf("Migrated %+v rows for custom language %+s.\n", result.RowsAffected, k)
+		}
+	}
+}
+
+func addDefaultUser(db *gorm.DB, cfg *models.Config) {
+	pw := md5.Sum([]byte(models.DefaultPassword))
+	pwString := hex.EncodeToString(pw[:])
+	apiKey := uuid.Must(uuid.NewV4()).String()
+	u := &models.User{ID: models.DefaultUser, Password: pwString, ApiKey: apiKey}
+	result := db.FirstOrCreate(u, &models.User{ID: u.ID})
+	if result.Error != nil {
+		log.Println("Unable to create default user.")
+		log.Fatal(result.Error)
+	}
+	if result.RowsAffected > 0 {
+		log.Printf("Created default user '%s' with password '%s' and API key '%s'.\n", u.ID, models.DefaultPassword, u.ApiKey)
 	}
 }
