@@ -43,6 +43,7 @@ func readConfig() *models.Config {
 		log.Fatal(fmt.Sprintf("Fail to read file: %v", err))
 	}
 
+	addr := cfg.Section("server").Key("listen").MustString("127.0.0.1")
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
 		port = cfg.Section("server").Key("port").MustInt()
@@ -50,6 +51,7 @@ func readConfig() *models.Config {
 
 	return &models.Config{
 		Port:       port,
+		Addr:       addr,
 		DbHost:     dbHost,
 		DbUser:     dbUser,
 		DbPassword: dbPassword,
@@ -65,6 +67,8 @@ func main() {
 	// Connect to database
 	db, err := gorm.Open(config.DbDialect, utils.MakeConnectionString(config))
 	db.LogMode(false)
+	db.DB().SetMaxIdleConns(1)
+	db.DB().SetMaxOpenConns(10)
 	if err != nil {
 		// log.Fatal("Could not connect to database.")
 		log.Fatal(err)
@@ -98,10 +102,10 @@ func main() {
 
 	// API Routes
 	heartbeats := apiRouter.Path("/heartbeat").Subrouter()
-	heartbeats.Methods("POST").HandlerFunc(heartbeatHandler.Post)
+	heartbeats.Methods(http.MethodPost).HandlerFunc(heartbeatHandler.Post)
 
 	aggreagations := apiRouter.Path("/summary").Subrouter()
-	aggreagations.Methods("GET").HandlerFunc(summaryHandler.Get)
+	aggreagations.Methods(http.MethodGet).HandlerFunc(summaryHandler.Get)
 
 	// Sub-Routes Setup
 	router.PathPrefix("/api").Handler(negroni.Classic().
@@ -113,7 +117,7 @@ func main() {
 	router.PathPrefix("/").Handler(negroni.Classic().With(negroni.Wrap(http.FileServer(http.Dir("./static")))))
 
 	// Listen HTTP
-	portString := "127.0.0.1:" + strconv.Itoa(config.Port)
+	portString := config.Addr + ":" + strconv.Itoa(config.Port)
 	s := &http.Server{
 		Handler:      router,
 		Addr:         portString,

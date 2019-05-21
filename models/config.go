@@ -2,6 +2,7 @@ package models
 
 type Config struct {
 	Port       int
+	Addr	   string
 	DbHost     string
 	DbUser     string
 	DbPassword string

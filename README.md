@@ -1,4 +1,4 @@
-# wakapi
+# 📈 wakapi - A WakaTime-compatible backend for coding statistics
 
 ## Usage
 * Create an empty MySQL database
@@ -15,14 +15,21 @@
 * `USE yourdatabasename;`
 * `INSERT INTO users (id, api_key) VALUES ('your_cool_nickname', '728f084c-85e0-41de-aa2a-b6cc871200c1');` (the latter value is your api key from `~/.wakatime.cfg`)
 
+## Best Practices
+It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or _nginx_ to enable **TLS encryption** (HTTPS).
+However, if you want to expose your wakapi instance to the public anyway, you need to set `listen = 0.0.0.0` in `config.ini`
+
 ## Todo
 * Persisted summaries / aggregations (for performance)
 * User sign up and log in
 * Additional endpoints for retrieving statistics data
+* Enhanced UI
+  * Loading spinner
+  * Responsiveness
 * Dockerize
 * Unit tests
 
-## Important note
+## Important Note
 **This is not an alternative to using WakaTime.** It is just a custom, non-commercial, self-hosted application to collect coding statistics using the already existing editor plugins provided by the WakaTime community. It was created for personal use only and with the purpose of keeping the sovereignity of your own data. However, if you like the official product, **please support the authors and buy an official WakaTime subscription!**
 
 ## License
