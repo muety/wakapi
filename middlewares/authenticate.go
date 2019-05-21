@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	"fmt"
 
 	"github.com/patrickmn/go-cache"
 
@@ -54,7 +53,6 @@ func (m *AuthenticateMiddleware) Handle(w http.ResponseWriter, r *http.Request, 
 			return
 		}
 	} else {
-		fmt.Println("Cache Hit")
 		user = cachedUser.(*models.User)
 	}
 
