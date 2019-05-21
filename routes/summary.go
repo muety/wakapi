@@ -2,6 +2,7 @@ package routes
 
 import (
 	"crypto/md5"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/n1try/wakapi/models"
 	"github.com/n1try/wakapi/services"
 	"github.com/n1try/wakapi/utils"
+	cache "github.com/patrickmn/go-cache"
 )
 
 const (
@@ -18,10 +20,17 @@ const (
 	IntervalLastYear  string = "year"
 )
 
-var summaryCache map[string]*models.Summary
-
 type SummaryHandler struct {
 	SummarySrvc *services.SummaryService
+	Cache       *cache.Cache
+	Initialized bool
+}
+
+func (m *SummaryHandler) Init() {
+	if m.Cache == nil {
+		m.Cache = cache.New(24*time.Hour, 24*time.Hour)
+	}
+	m.Initialized = true
 }
 
 func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +39,9 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tryInitCache()
+	if !h.Initialized {
+		h.Init()
+	}
 
 	user := r.Context().Value(models.UserKey).(*models.User)
 	params := r.URL.Query()
@@ -61,27 +72,23 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	var summary *models.Summary
 	cacheKey := getHash([]time.Time{from, to})
-	if _, ok := summaryCache[cacheKey]; !ok {
+	cachedSummary, ok := h.Cache.Get(cacheKey)
+	if !ok {
 		// Cache Miss
+		fmt.Println("Cache miss")
 		summary, err = h.SummarySrvc.GetSummary(from, to, user) // 'to' is always constant
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		if !live {
-			summaryCache[cacheKey] = summary
+			h.Cache.Set(cacheKey, summary, cache.DefaultExpiration)
 		}
 	} else {
-		summary, _ = summaryCache[cacheKey]
+		summary = cachedSummary.(*models.Summary)
 	}
 
 	utils.RespondJSON(w, http.StatusOK, summary)
-}
-
-func tryInitCache() {
-	if summaryCache == nil {
-		summaryCache = make(map[string]*models.Summary)
-	}
 }
 
 func getHash(times []time.Time) string {
