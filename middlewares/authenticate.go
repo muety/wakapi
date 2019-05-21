@@ -5,6 +5,10 @@ import (
 	"encoding/base64"
 	"net/http"
 	"strings"
+	"time"
+	"fmt"
+
+	"github.com/patrickmn/go-cache"
 
 	"github.com/n1try/wakapi/models"
 	"github.com/n1try/wakapi/services"
@@ -12,9 +16,22 @@ import (
 
 type AuthenticateMiddleware struct {
 	UserSrvc *services.UserService
+	Cache *cache.Cache
+	Initialized bool
+}
+
+func (m *AuthenticateMiddleware) Init() {
+	if m.Cache == nil {
+		m.Cache = cache.New(1*time.Hour, 2*time.Hour)
+	}
+	m.Initialized = true
 }
 
 func (m *AuthenticateMiddleware) Handle(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	if !m.Initialized {
+		m.Init()
+	}
+
 	authHeader := strings.Split(r.Header.Get("Authorization"), " ")
 	if len(authHeader) != 2 {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -27,11 +44,21 @@ func (m *AuthenticateMiddleware) Handle(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	user, err := m.UserSrvc.GetUserByKey(strings.TrimSpace(string(key)))
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
+	var user *models.User
+	userKey := strings.TrimSpace(string(key))
+	cachedUser, ok := m.Cache.Get(userKey)
+	if !ok {
+		user, err = m.UserSrvc.GetUserByKey(userKey)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+	} else {
+		fmt.Println("Cache Hit")
+		user = cachedUser.(*models.User)
 	}
+
+	m.Cache.Set(userKey, user, cache.DefaultExpiration)
 
 	ctx := context.WithValue(r.Context(), models.UserKey, user)
 	next(w, r.WithContext(ctx))
