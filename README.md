@@ -1,14 +1,22 @@
-# 📈 wakapi - A WakaTime-compatible backend for coding statistics
+# 📈 wakapi
+**A minimalistic, self-hosted WakaTime-compatible backend for coding statistics**
+
+[![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoff.ee/n1try)
+
+## Prerequisites
+* Go >= 1.10 (with `$GOPATH` properly set)
+* A MySQL database
 
 ## Usage
 * Create an empty MySQL database
-* Clone repository
-* Copy `.env.example` to `.env` and set database credentials
+* Get code: `go get github.com/n1try/wakapi`
+* Go to project root: `cd "$GOPATH/src/github.com/n1try/wakapi"`
 * Install dependencies: `go get -d ./...`
+* Copy `.env.example` to `.env` and set database credentials
 * Set target port in `config.ini`
 * Build executable: `go build`
 * Run server: `./wakapi`
-* Edit your local `~/.wakatime.cfg` file and add `api_url = https://your.server:someport/api/heartbeat`
+* On your development computers, edit your local `~/.wakatime.cfg` file and add `api_url = https://your.server:someport/api/heartbeat`
 
 **First run** (create user account): When running the server for the very first time, the database gets populated. Afterwards you have to create yourself a user account. Until proper user sign up and login is implemented, this is done via SQL, like this.
 * `mysql -u yourusername -p -H your.hostname`
