@@ -11,7 +11,7 @@ import (
 const TableHeartbeat = "heartbeat"
 
 type HeartbeatService struct {
-	Cofnig *models.Config
+	Config *models.Config
 	Db     *gorm.DB
 }
 

@@ -14,8 +14,8 @@ import (
 )
 
 type AuthenticateMiddleware struct {
-	UserSrvc *services.UserService
-	Cache *cache.Cache
+	UserSrvc    *services.UserService
+	Cache       *cache.Cache
 	Initialized bool
 }
 

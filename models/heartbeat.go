@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -25,10 +26,28 @@ type Heartbeat struct {
 	Editor          string            `json:"editor"`
 	OperatingSystem string            `json:"operating_system"`
 	Time            *HeartbeatReqTime `json:"time" gorm:"type:timestamp; default:now(); index:idx_time,idx_time_user"`
+	languageRegex   *regexp.Regexp
 }
 
 func (h *Heartbeat) Valid() bool {
 	return h.User != nil && h.UserID != "" && h.Time != nil
+}
+
+func (h *Heartbeat) Augment(customLangs map[string]string) {
+	if h.Language == "" {
+		if h.languageRegex == nil {
+			h.languageRegex = regexp.MustCompile(`^.+\.(.+)$`)
+		}
+		groups := h.languageRegex.FindAllStringSubmatch(h.Entity, -1)
+		if len(groups) == 0 || len(groups[0]) != 2 {
+			return
+		}
+		ending := groups[0][1]
+		if _, ok := customLangs[ending]; !ok {
+			return
+		}
+		h.Language, _ = customLangs[ending]
+	}
 }
 
 func (j *HeartbeatReqTime) UnmarshalJSON(b []byte) error {

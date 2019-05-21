@@ -49,14 +49,22 @@ func readConfig() *models.Config {
 		port = cfg.Section("server").Key("port").MustInt()
 	}
 
+	// Read custom languages
+	customLangs := make(map[string]string)
+	languageKeys := cfg.Section("languages").Keys()
+	for _, k := range languageKeys {
+		customLangs[k.Name()] = k.MustString("unknown")
+	}
+
 	return &models.Config{
-		Port:       port,
-		Addr:       addr,
-		DbHost:     dbHost,
-		DbUser:     dbUser,
-		DbPassword: dbPassword,
-		DbName:     dbName,
-		DbDialect:  "mysql",
+		Port:            port,
+		Addr:            addr,
+		DbHost:          dbHost,
+		DbUser:          dbUser,
+		DbPassword:      dbPassword,
+		DbName:          dbName,
+		DbDialect:       "mysql",
+		CustomLanguages: customLangs,
 	}
 }
 

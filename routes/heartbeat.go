@@ -32,13 +32,14 @@ func (h *HeartbeatHandler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, h := range heartbeats {
-		h.OperatingSystem = opSys
-		h.Editor = editor
-		h.User = user
-		h.UserID = user.ID
+	for _, hb := range heartbeats {
+		hb.OperatingSystem = opSys
+		hb.Editor = editor
+		hb.User = user
+		hb.UserID = user.ID
+		hb.Augment(h.HeartbeatSrvc.Config.CustomLanguages)
 
-		if !h.Valid() {
+		if !hb.Valid() {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("Invalid heartbeat object."))
 			return
