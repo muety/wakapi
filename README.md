@@ -1,5 +1,5 @@
 # 📈 wakapi
-**A minimalistic, self-hosted WakaTime-compatible backend for coding statistics**
+**A minimalist, self-hosted WakaTime-compatible backend for coding statistics**
 
 ![Wakapi screenshot](https://anchr.io/i/zCVbN.png)
 
