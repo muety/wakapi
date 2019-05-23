@@ -1,5 +1,5 @@
 # 📈 wakapi
-**A minimalistic, self-hosted WakaTime-compatible backend for coding statistics**
+**A minimalist, self-hosted WakaTime-compatible backend for coding statistics**
 
 ![Wakapi screenshot](https://anchr.io/i/zCVbN.png)
 
@@ -28,7 +28,7 @@
 * Additional users, at the moment, can be added only via SQL statements on your database, like this:
     * Connect to your database server: `mysql -u yourusername -p -H your.hostname` (alternatively use GUI tools like _MySQL Workbench_)
     * Select your database: `USE yourdatabasename;`
-    * ADd the new user: `INSERT INTO users (id, password, api_key) VALUES ('your_nickname', MD5('your_password'), '728f084c-85e0-41de-aa2a-b6cc871200c1');` (the latter value should be a random [UUIDv4](https://tools.ietf.org/html/rfc4122), as can be found in your `~/.wakatime.cfg`)
+    * Add the new user: `INSERT INTO users (id, password, api_key) VALUES ('your_nickname', MD5('your_password'), '728f084c-85e0-41de-aa2a-b6cc871200c1');` (the latter value should be a random [UUIDv4](https://tools.ietf.org/html/rfc4122), as can be found in your `~/.wakatime.cfg`)
 
 ## Best Practices
 It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or _nginx_ to enable **TLS encryption** (HTTPS).
