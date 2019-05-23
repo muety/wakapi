@@ -9,7 +9,8 @@ func StartOfDay() time.Time {
 
 func StartOfWeek() time.Time {
 	ref := time.Now()
-	return firstDayOfISOWeek(ref.Year(), ref.Day(), ref.Location())
+	year, week := ref.ISOWeek()
+	return firstDayOfISOWeek(year, week, ref.Location())
 }
 
 func StartOfMonth() time.Time {

@@ -56,7 +56,8 @@
         <input type="text" class="input" id="user-input" name="user" placeholder="Enter Username">
         <label for="pw">API Key: </label>
         <input type="password" class="input" id="password-input" name="pw" placeholder="Enter Password">
-        <button onclick="load('day', true)">Day (live)</button>
+        <button onclick="load('today', true)">Today (live)</button>
+        <button onclick="load('day', false)">Day</button>
         <button onclick="load('week', false)">Week</button>
         <button onclick="load('month', false)">Month</button>
         <button onclick="load('year', false)">Year</button>
@@ -85,6 +86,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
 
     <script>
+		const projectsCanvas = document.getElementById("chart-projects")
+		const osCanvas = document.getElementById("chart-os")
+		const editorsCanvas = document.getElementById("chart-editor")
+		const languagesCanvas = document.getElementById("chart-language")
+
+		let charts = []
+    			
         String.prototype.toHHMMSS = function () {
             var sec_num = parseInt(this, 10);
             var hours = Math.floor(sec_num / 3600);
@@ -101,6 +109,7 @@
             let user = document.getElementById('user-input').value
             let password = document.getElementById('password-input').value
             let hashed = btoa(`${user}:${password}`)
+            
             fetch(`${window.location.href}/api/summary?interval=${interval}&live=${live}`, {
                 method: 'GET',
                 headers: {
@@ -139,7 +148,9 @@
                 }
             }
 
-            let projectChart = new Chart(document.getElementById("chart-projects").getContext('2d'), {
+			charts.forEach(c => c.destroy())
+
+            let projectChart = new Chart(projectsCanvas.getContext('2d'), {
                 type: 'horizontalBar',
                 data: {
                     datasets: data.projects
@@ -160,7 +171,7 @@
                 }
             });
 
-            let osChart = new Chart(document.getElementById("chart-os").getContext('2d'), {
+            let osChart = new Chart(osCanvas.getContext('2d'), {
                 type: 'pie',
                 data: {
                     datasets: [{
@@ -175,7 +186,7 @@
                 }
             });
 
-            let editorChart = new Chart(document.getElementById("chart-editor").getContext('2d'), {
+            let editorChart = new Chart(editorsCanvas.getContext('2d'), {
                 type: 'pie',
                 data: {
                     datasets: [{
@@ -190,7 +201,7 @@
                 }
             });
 
-            let languageChart = new Chart(document.getElementById("chart-language").getContext('2d'), {
+            let languageChart = new Chart(languagesCanvas.getContext('2d'), {
                 type: 'pie',
                 data: {
                     datasets: [{
@@ -209,6 +220,8 @@
 
             getTotal(data.operating_systems)
             document.getElementById('grid-container').style.visibility = 'visible';
+
+            charts = [projectChart, osChart, editorChart, languageChart]        
         }
 
         function getRandomColor(seed) {

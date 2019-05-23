@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	IntervalToday	  string = "today"
 	IntervalLastDay   string = "day"
 	IntervalLastWeek  string = "week"
 	IntervalLastMonth string = "month"
@@ -44,10 +45,12 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	user := r.Context().Value(models.UserKey).(*models.User)
 	params := r.URL.Query()
+	interval := params.Get("interval")		
 	from, err := utils.ParseDate(params.Get("from"))
 	if err != nil {
-		interval := params.Get("interval")
 		switch interval {
+		case IntervalToday:
+			from = utils.StartOfDay()
 		case IntervalLastDay:
 			from = utils.StartOfDay().Add(-24 * time.Hour)
 		case IntervalLastWeek:
@@ -63,7 +66,7 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	live := params.Get("live") != "" && params.Get("live") != "false"
+	live := (params.Get("live") != "" && params.Get("live") != "false") || interval == IntervalToday
 	to := utils.StartOfDay()
 	if live {
 		to = time.Now()
