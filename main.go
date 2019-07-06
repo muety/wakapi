@@ -88,6 +88,7 @@ func main() {
 
 	// Migrate database schema
 	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.Alias{})
 	db.AutoMigrate(&models.Heartbeat{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
 
 	// Custom migrations and initial data
@@ -95,9 +96,10 @@ func main() {
 	migrateLanguages(db, config)
 
 	// Services
+	aliasSrvc := &services.AliasService{config, db}
 	heartbeatSrvc := &services.HeartbeatService{config, db}
 	userSrvc := &services.UserService{config, db}
-	summarySrvc := &services.SummaryService{config, db, heartbeatSrvc}
+	summarySrvc := &services.SummaryService{config, db, heartbeatSrvc, aliasSrvc}
 
 	// Handlers
 	heartbeatHandler := &routes.HeartbeatHandler{HeartbeatSrvc: heartbeatSrvc}

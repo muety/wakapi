@@ -2,6 +2,7 @@ package routes
 
 import (
 	"crypto/md5"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -43,6 +44,13 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := r.Context().Value(models.UserKey).(*models.User)
+
+	// Initialize aliases for user
+	if !h.SummarySrvc.AliasService.IsInitialized(user.ID) {
+		log.Printf("Initializing aliases for user '%s'\n", user.ID)
+		h.SummarySrvc.AliasService.InitUser(user.ID)
+	}
+
 	params := r.URL.Query()
 	from, err := utils.ParseDate(params.Get("from"))
 	if err != nil {
