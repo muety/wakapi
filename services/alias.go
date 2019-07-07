@@ -14,7 +14,7 @@ type AliasService struct {
 
 var userAliases map[string][]*models.Alias
 
-func (srv *AliasService) InitUser(userId string) error {
+func (srv *AliasService) LoadUserAliases(userId string) error {
 	if userAliases == nil {
 		userAliases = make(map[string][]*models.Alias)
 	}

@@ -28,6 +28,10 @@ func (srv *SummaryService) GetSummary(from, to time.Time, user *models.User) (*m
 	var editorItems []models.SummaryItem
 	var osItems []models.SummaryItem
 
+	if err := srv.AliasService.LoadUserAliases(user.ID); err != nil {
+		return nil, err
+	}
+
 	c := make(chan models.SummaryItemContainer)
 	for _, t := range types {
 		go srv.aggregateBy(heartbeats, t, user, c)
