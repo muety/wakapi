@@ -12,6 +12,7 @@ type SummaryService struct {
 	Config           *models.Config
 	Db               *gorm.DB
 	HeartbeatService *HeartbeatService
+	AliasService     *AliasService
 }
 
 func (srv *SummaryService) GetSummary(from, to time.Time, user *models.User) (*models.Summary, error) {
@@ -29,7 +30,7 @@ func (srv *SummaryService) GetSummary(from, to time.Time, user *models.User) (*m
 
 	c := make(chan models.SummaryItemContainer)
 	for _, t := range types {
-		go srv.aggregateBy(heartbeats, t, c)
+		go srv.aggregateBy(heartbeats, t, user, c)
 	}
 
 	for i := 0; i < len(types); i++ {
@@ -60,7 +61,7 @@ func (srv *SummaryService) GetSummary(from, to time.Time, user *models.User) (*m
 	return summary, nil
 }
 
-func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryType uint8, c chan models.SummaryItemContainer) {
+func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryType uint8, user *models.User, c chan models.SummaryItemContainer) {
 	durations := make(map[string]time.Duration)
 
 	for i, h := range heartbeats {
@@ -78,6 +79,10 @@ func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryTy
 
 		if key == "" {
 			key = "unknown"
+		}
+
+		if aliasedKey, err := srv.AliasService.GetAliasOrDefault(user.ID, summaryType, key); err == nil {
+			key = aliasedKey
 		}
 
 		if _, ok := durations[key]; !ok {

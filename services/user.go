@@ -5,8 +5,6 @@ import (
 	"github.com/n1try/wakapi/models"
 )
 
-const TableUser = "user"
-
 type UserService struct {
 	Config *models.Config
 	Db     *gorm.DB
