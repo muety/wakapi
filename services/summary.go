@@ -2,6 +2,7 @@ package services
 
 import (
 	"math"
+	"sort"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -27,6 +28,10 @@ func (srv *SummaryService) GetSummary(from, to time.Time, user *models.User) (*m
 	var languageItems []models.SummaryItem
 	var editorItems []models.SummaryItem
 	var osItems []models.SummaryItem
+
+	if err := srv.AliasService.LoadUserAliases(user.ID); err != nil {
+		return nil, err
+	}
 
 	c := make(chan models.SummaryItemContainer)
 	for _, t := range types {
@@ -105,6 +110,10 @@ func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryTy
 			Total: v / time.Second,
 		})
 	}
+
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].Total > items[j].Total
+	})
 
 	c <- models.SummaryItemContainer{Type: summaryType, Items: items}
 }

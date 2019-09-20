@@ -1,5 +1,5 @@
 # 📈 wakapi
-**A minimalistic, self-hosted WakaTime-compatible backend for coding statistics**
+**A minimalist, self-hosted WakaTime-compatible backend for coding statistics**
 
 ![Wakapi screenshot](https://anchr.io/i/zCVbN.png)
 
@@ -28,7 +28,23 @@
 * Additional users, at the moment, can be added only via SQL statements on your database, like this:
     * Connect to your database server: `mysql -u yourusername -p -H your.hostname` (alternatively use GUI tools like _MySQL Workbench_)
     * Select your database: `USE yourdatabasename;`
-    * ADd the new user: `INSERT INTO users (id, password, api_key) VALUES ('your_nickname', MD5('your_password'), '728f084c-85e0-41de-aa2a-b6cc871200c1');` (the latter value should be a random [UUIDv4](https://tools.ietf.org/html/rfc4122), as can be found in your `~/.wakatime.cfg`)
+    * Add the new user: `INSERT INTO users (id, password, api_key) VALUES ('your_nickname', MD5('your_password'), '728f084c-85e0-41de-aa2a-b6cc871200c1');` (the latter value should be a random [UUIDv4](https://tools.ietf.org/html/rfc4122), as can be found in your `~/.wakatime.cfg`)
+
+### Aliases
+There is an option to add aliases for project names, editors, operating systems and languages. For instance, if you want to map two projects – `myapp-frontend` and `myapp-backend` – two a common project name – `myapp-web` – in your statistics, you can add project aliases.
+
+At the moment, this can only be done via raw database queries. See [_User Accounts_](#user-accounts) section above on how to do such.
+For the above example, you would need to add two aliases, like this:
+
+* `INSERT INTO aliases (type, user_id, key, value) VALUES (0, 'your_username', 'myapp-web', 'myapp-frontend')` (analogously for `myapp-backend`)
+
+#### Types
+* Project ~  type **0**
+* Language ~  type **1**
+* Editor ~ type **2**
+* OS ~  type **3**
+
+**NOTE:** In order for the aliases to take effect for non-live statistics, you would either have to wait 24 hours for the cache to be invalidated or restart Wakapi.
 
 ## Best Practices
 It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or _nginx_ to enable **TLS encryption** (HTTPS).

@@ -65,7 +65,8 @@
         <input type="text" class="input" id="user-input" name="user" placeholder="Enter Username">
         <label for="pw">Password: </label>
         <input type="password" class="input" id="password-input" name="pw" placeholder="Enter Password">
-        <button onclick="load('day', true)">Day (live)</button>
+        <button onclick="load('today', true)">Today (live)</button>
+        <button onclick="load('day', false)">Day</button>
         <button onclick="load('week', false)">Week</button>
         <button onclick="load('month', false)">Month</button>
         <button onclick="load('year', false)">Year</button>
@@ -94,6 +95,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
 
     <script>
+        const SHOW_TOP_N = 10
+
+        const projectsCanvas = document.getElementById("chart-projects")
+        const osCanvas = document.getElementById("chart-os")
+        const editorsCanvas = document.getElementById("chart-editor")
+        const languagesCanvas = document.getElementById("chart-language")
+
+        let charts = []
+
         String.prototype.toHHMMSS = function () {
             var sec_num = parseInt(this, 10);
             var hours = Math.floor(sec_num / 3600);
@@ -110,6 +120,7 @@
             let user = document.getElementById('user-input').value
             let password = document.getElementById('password-input').value
             let hashed = btoa(`${user}:${password}`)
+
             fetch(`${window.location.href}/api/summary?interval=${interval}&live=${live}`, {
                 method: 'GET',
                 headers: {
@@ -148,10 +159,13 @@
                 }
             }
 
-            let projectChart = new Chart(document.getElementById("chart-projects").getContext('2d'), {
+            charts.forEach(c => c.destroy())
+
+            let projectChart = new Chart(projectsCanvas.getContext('2d'), {
                 type: 'horizontalBar',
                 data: {
                     datasets: data.projects
+                        .slice(0, Math.min(SHOW_TOP_N, data.projects.length))
                         .map(p => {
                             return {
                                 label: p.key,
@@ -161,7 +175,7 @@
                         })
                 },
                 options: {
-                    title: Object.assign(titleOptions, { text: 'Projects' }),
+                    title: Object.assign(titleOptions, { text: `Projects (top ${SHOW_TOP_N})` }),
                     tooltips: getTooltipOptions('projects', 'bar'),
                     legend: {
                         display: false
@@ -169,55 +183,67 @@
                 }
             });
 
-            let osChart = new Chart(document.getElementById("chart-os").getContext('2d'), {
+            let osChart = new Chart(osCanvas.getContext('2d'), {
                 type: 'pie',
                 data: {
                     datasets: [{
-                        data: data.operating_systems.map(p => parseInt(p.total)),
+                        data: data.operating_systems
+                            .slice(0, Math.min(SHOW_TOP_N, data.operating_systems.length))
+                            .map(p => parseInt(p.total)),
                         backgroundColor: data.operating_systems.map(p => getRandomColor(p.key))
                     }],
-                    labels: data.operating_systems.map(p => p.key)
+                    labels: data.operating_systems
+                        .slice(0, Math.min(SHOW_TOP_N, data.operating_systems.length))
+                        .map(p => p.key)
                 },
                 options: {
-                    title: Object.assign(titleOptions, { text: 'Operating Systems' }),
+                    title: Object.assign(titleOptions, { text: `Operating Systems (top ${SHOW_TOP_N})` }),
                     tooltips: getTooltipOptions('operating_systems', 'pie')
                 }
             });
 
-            let editorChart = new Chart(document.getElementById("chart-editor").getContext('2d'), {
+            let editorChart = new Chart(editorsCanvas.getContext('2d'), {
                 type: 'pie',
                 data: {
                     datasets: [{
-                        data: data.editors.map(p => parseInt(p.total)),
+                        data: data.editors
+                            .slice(0, Math.min(SHOW_TOP_N, data.editors.length))
+                            .map(p => parseInt(p.total)),
                         backgroundColor: data.editors.map(p => getRandomColor(p.key))
                     }],
-                    labels: data.editors.map(p => p.key)
+                    labels: data.editors
+                        .slice(0, Math.min(SHOW_TOP_N, data.editors.length))
+                        .map(p => p.key)
                 },
                 options: {
-                    title: Object.assign(titleOptions, { text: 'Editors' }),
+                    title: Object.assign(titleOptions, { text: `Editors (top ${SHOW_TOP_N})` }),
                     tooltips: getTooltipOptions('editors', 'pie')
                 }
             });
 
-            let languageChart = new Chart(document.getElementById("chart-language").getContext('2d'), {
+            let languageChart = new Chart(languagesCanvas.getContext('2d'), {
                 type: 'pie',
                 data: {
                     datasets: [{
                         data: data.languages
+                            .slice(0, Math.min(SHOW_TOP_N, data.languages.length))
                             .map(p => parseInt(p.total)),
                         backgroundColor: data.languages.map(p => getRandomColor(p.key))
                     }],
                     labels: data.languages
+                        .slice(0, Math.min(SHOW_TOP_N, data.languages.length))
                         .map(p => p.key)
                 },
                 options: {
-                    title: Object.assign(titleOptions, { text: 'Languages' }),
+                    title: Object.assign(titleOptions, { text: `Languages (top ${SHOW_TOP_N})` }),
                     tooltips: getTooltipOptions('languages', 'pie')
                 }
             });
 
             getTotal(data.operating_systems)
             document.getElementById('grid-container').style.visibility = 'visible';
+
+            charts = [projectChart, osChart, editorChart, languageChart]
         }
 
         function getRandomColor(seed) {
