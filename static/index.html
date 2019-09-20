@@ -10,6 +10,14 @@
             color: #666;
         }
 
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        h3 {
+            margin: 10px 0 20px 0;
+        }
+
         .grid-container {
             width: 75%;
             display: grid;
@@ -50,11 +58,12 @@
 </head>
 
 <body>
-    <h1>Statistics</h1>
+    <h1>Wakapi</h1>
+    <h3>Your Coding Statistics Dashboard</h3>
     <div class="input-container" id="input-container">
         <label for="user">User: </label>
         <input type="text" class="input" id="user-input" name="user" placeholder="Enter Username">
-        <label for="pw">API Key: </label>
+        <label for="pw">Password: </label>
         <input type="password" class="input" id="password-input" name="pw" placeholder="Enter Password">
         <button onclick="load('day', true)">Day (live)</button>
         <button onclick="load('week', false)">Week</button>
