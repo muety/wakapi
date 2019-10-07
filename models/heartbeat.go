@@ -16,7 +16,7 @@ type Heartbeat struct {
 	ID              uint              `gorm:"primary_key"`
 	User            *User             `json:"-" gorm:"not null"`
 	UserID          string            `json:"-" gorm:"not null; index:idx_time_user"`
-	Entity          string            `json:"entity" gorm:"not null: index:idx_entity"`
+	Entity          string            `json:"entity" gorm:"not null; index:idx_entity"`
 	Type            string            `json:"type"`
 	Category        string            `json:"category"`
 	Project         string            `json:"project"`
