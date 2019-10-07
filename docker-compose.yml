@@ -1,0 +1,35 @@
+version: "3.1"
+services:
+
+  wakapi:
+    image: wakapi:latest
+    build:
+      dockerfile: Dockerfile
+      context: .
+    container_name: wakapi
+    environment:
+      - WAKAPI_DB_USER=wakapi
+      - WAKAPI_DB_PASSWORD=supersecretpassword
+      - WAKAPI_DB_HOST=wakapi_db
+      - WAKAPI_DB_NAME=wakapi_db
+    ports:
+      - "3000:3000"
+    depends_on:
+      - wakapi_db
+  wakapi_db:
+    image: linuxserver/mariadb
+    container_name: wakapi_db
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - MYSQL_ROOT_PASSWORD=rootpass
+      - TZ=Europe/London
+      - MYSQL_DATABASE=wakapi_db
+      - MYSQL_USER=wakapi
+      - MYSQL_PASSWORD=supersecretpassword
+    restart: unless-stopped
+    ports:
+          - "3306:3306"
+
+              
+      
