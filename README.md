@@ -23,6 +23,14 @@
   * `api_key = the_api_key_printed_to_the_console_after_starting_the_server`
 * Open [http://localhost:3000](http://localhost:3000) in your browser
 
+## Docker
+* Edit the docker-compose file and change passwords for the DB
+* Build the container `docker-compose build`
+* Start the application `docker-compose up -d`
+* To get the api key look in the logs `docker-compose logs | grep "API key"`
+* The application should now be running on `hostname:3000`
+
+
 ### User Accounts
 * When starting wakapi for the first time, a default user _**admin**_ with password _**admin**_ is created. The corresponding API key is printed to the console.
 * Additional users, at the moment, can be added only via SQL statements on your database, like this:
