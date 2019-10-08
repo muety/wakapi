@@ -1,8 +1,16 @@
+# Build Stage
 FROM golang:alpine AS build-env
 ADD . /src
 RUN cd /src && go build -o wakapi
 
-# final stage
+# Final Stage
+# When running the application using `docker run`, you can pass environment variables
+# to override config values from .env using `-e` syntax.
+# Available options are: 
+# – WAKAPI_DB_USER
+# – WAKAPI_DB_PASSWORD
+# – WAKAPI_DB_HOST
+# – WAKAPI_DB_NAME
 FROM alpine
 WORKDIR /app
 COPY --from=build-env /src/wakapi /app/

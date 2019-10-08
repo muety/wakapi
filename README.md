@@ -6,7 +6,7 @@
 [![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoff.ee/n1try)
 
 ## Prerequisites
-* Go >= 1.10 (with `$GOPATH` properly set)
+* Go >= 1.13 (with `$GOPATH` properly set)
 * A MySQL database
 
 ## Usage
@@ -23,12 +23,12 @@
   * `api_key = the_api_key_printed_to_the_console_after_starting_the_server`
 * Open [http://localhost:3000](http://localhost:3000) in your browser
 
-## Docker
-* Edit the docker-compose file and change passwords for the DB
+### Run with Docker
+* Edit `docker-compose.yml` file and change passwords for the DB
 * Build the container `docker-compose build`
 * Start the application `docker-compose up -d`
 * To get the api key look in the logs `docker-compose logs | grep "API key"`
-* The application should now be running on `hostname:3000`
+* The application should now be running on `localhost:3000`
 
 
 ### User Accounts
