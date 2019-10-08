@@ -1,6 +1,6 @@
 version: "3.1"
-services:
 
+services:
   wakapi:
     image: wakapi:latest
     build:
@@ -29,7 +29,12 @@ services:
       - MYSQL_PASSWORD=supersecretpassword
     restart: unless-stopped
     ports:
-          - "3306:3306"
+      - "3306:3306"
+    volumes:
+      - "dbdata:/config"
+
+volumes:
+  dbdata:
 
               
       
