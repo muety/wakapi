@@ -25,3 +25,13 @@ func (srv *UserService) GetUserByKey(key string) (*models.User, error) {
 	}
 	return u, nil
 }
+
+func (srv *UserService) GetAll() ([]*models.User, error) {
+	var users []*models.User
+	if err := srv.Db.
+		Table("users").
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}

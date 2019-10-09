@@ -39,3 +39,16 @@ func (srv *HeartbeatService) GetAllWithin(from, to time.Time, user *models.User)
 	}
 	return heartbeats, nil
 }
+
+func (srv *HeartbeatService) GetFirstUserHeartbeats(userIds []string) ([]*models.Heartbeat, error) {
+	var heartbeats []*models.Heartbeat
+	if err := srv.Db.
+		Table("heartbeats").
+		Select("user_id, min(time) as time").
+		Where("user_id IN (?)", userIds).
+		Group("user_id").
+		Scan(&heartbeats).Error; err != nil {
+		return nil, err
+	}
+	return heartbeats, nil
+}

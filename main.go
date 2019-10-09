@@ -89,7 +89,10 @@ func main() {
 	// Migrate database schema
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Alias{})
+	db.AutoMigrate(&models.Summary{})
+	db.AutoMigrate(&models.SummaryItem{})
 	db.AutoMigrate(&models.Heartbeat{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
+	db.AutoMigrate(&models.SummaryItem{}).AddForeignKey("summary_id", "summaries(id)", "CASCADE", "CASCADE")
 
 	// Custom migrations and initial data
 	addDefaultUser(db, config)
@@ -100,6 +103,10 @@ func main() {
 	heartbeatSrvc := &services.HeartbeatService{config, db}
 	userSrvc := &services.UserService{config, db}
 	summarySrvc := &services.SummaryService{config, db, heartbeatSrvc, aliasSrvc}
+	aggregationSrvc := &services.AggregationService{config, db, userSrvc, summarySrvc, heartbeatSrvc}
+
+	sums, err := aggregationSrvc.GenerateJobs()
+	fmt.Println(sums)
 
 	// Handlers
 	heartbeatHandler := &routes.HeartbeatHandler{HeartbeatSrvc: heartbeatSrvc}

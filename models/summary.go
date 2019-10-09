@@ -13,9 +13,10 @@ const (
 )
 
 type Summary struct {
-	UserID           string        `json:"user_id"`
-	FromTime         *time.Time    `json:"from"`
-	ToTime           *time.Time    `json:"to"`
+	ID               uint          `json:"-" gorm:"primary_key"`
+	UserID           string        `json:"user_id" gorm:"not null; index:idx_time_summary_user"`
+	FromTime         *time.Time    `json:"from" gorm:"not null; type:timestamp; default:now(); index:idx_time_summary_user"`
+	ToTime           *time.Time    `json:"to" gorm:"not null; type:timestamp; default:now(); index:idx_time_summary_user"`
 	Projects         []SummaryItem `json:"projects"`
 	Languages        []SummaryItem `json:"languages"`
 	Editors          []SummaryItem `json:"editors"`
@@ -23,8 +24,10 @@ type Summary struct {
 }
 
 type SummaryItem struct {
-	Key   string        `json:"key"`
-	Total time.Duration `json:"total"`
+	ID        uint          `json:"-" gorm:"primary_key"`
+	SummaryID uint          `json:"-"`
+	Key       string        `json:"key"`
+	Total     time.Duration `json:"total"`
 }
 
 type SummaryItemContainer struct {

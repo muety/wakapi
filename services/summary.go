@@ -66,6 +66,18 @@ func (srv *SummaryService) GetSummary(from, to time.Time, user *models.User) (*m
 	return summary, nil
 }
 
+func (srv *SummaryService) GetLatestUserSummaries() ([]*models.Summary, error) {
+	var summaries []*models.Summary
+	if err := srv.Db.
+		Table("summaries").
+		Select("user_id, max(to_time) as to_time").
+		Group("user_id").
+		Scan(&summaries).Error; err != nil {
+		return nil, err
+	}
+	return summaries, nil
+}
+
 func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryType uint8, user *models.User, c chan models.SummaryItemContainer) {
 	durations := make(map[string]time.Duration)
 
