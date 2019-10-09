@@ -73,9 +73,8 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var summary *models.Summary
-	cacheKey := getHash([]time.Time{from, to})
-	cachedSummary, ok := h.Cache.Get(cacheKey)
-	if !ok {
+	cacheKey := getHash([]time.Time{from, to}, user)
+	if cachedSummary, ok := h.Cache.Get(cacheKey); !ok {
 		// Cache Miss
 		summary, err = h.SummarySrvc.GetSummary(from, to, user) // 'to' is always constant
 		if err != nil {
@@ -92,10 +91,11 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 	utils.RespondJSON(w, http.StatusOK, summary)
 }
 
-func getHash(times []time.Time) string {
+func getHash(times []time.Time, user *models.User) string {
 	digest := md5.New()
 	for _, t := range times {
 		digest.Write([]byte(strconv.Itoa(int(t.Unix()))))
 	}
+	digest.Write([]byte(user.ID))
 	return string(digest.Sum(nil))
 }
