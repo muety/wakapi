@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"math"
 	"sort"
 	"time"
@@ -64,6 +65,14 @@ func (srv *SummaryService) GetSummary(from, to time.Time, user *models.User) (*m
 	}
 
 	return summary, nil
+}
+
+func (srv *SummaryService) SaveSummary(summary *models.Summary) error {
+	fmt.Println("Saving summary", summary)
+	if err := srv.Db.Create(summary).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (srv *SummaryService) GetLatestUserSummaries() ([]*models.Summary, error) {

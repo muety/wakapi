@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/jinzhu/gorm"
 	"github.com/n1try/wakapi/models"
@@ -12,13 +13,9 @@ type AliasService struct {
 	Db     *gorm.DB
 }
 
-var userAliases map[string][]*models.Alias
+var userAliases sync.Map
 
 func (srv *AliasService) LoadUserAliases(userId string) error {
-	if userAliases == nil {
-		userAliases = make(map[string][]*models.Alias)
-	}
-
 	var aliases []*models.Alias
 	if err := srv.Db.
 		Where(&models.Alias{UserID: userId}).
@@ -26,13 +23,13 @@ func (srv *AliasService) LoadUserAliases(userId string) error {
 		return err
 	}
 
-	userAliases[userId] = aliases
+	userAliases.Store(userId, aliases)
 	return nil
 }
 
 func (srv *AliasService) GetAliasOrDefault(userId string, summaryType uint8, value string) (string, error) {
-	if userAliases, ok := userAliases[userId]; ok {
-		for _, a := range userAliases {
+	if ua, ok := userAliases.Load(userId); ok {
+		for _, a := range ua.([]*models.Alias) {
 			if a.Type == summaryType && a.Value == value {
 				return a.Key, nil
 			}
@@ -43,7 +40,7 @@ func (srv *AliasService) GetAliasOrDefault(userId string, summaryType uint8, val
 }
 
 func (src *AliasService) IsInitialized(userId string) bool {
-	if _, ok := userAliases[userId]; ok {
+	if _, ok := userAliases.Load(userId); ok {
 		return true
 	}
 	return false

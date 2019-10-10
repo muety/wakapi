@@ -13,11 +13,17 @@
 package services
 
 import (
-	"container/list"
+	"log"
 	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/n1try/wakapi/models"
+)
+
+const (
+	summaryInterval time.Duration = 24 * time.Hour
+	nSummaryWorkers int           = 8
+	nPersistWorkers int           = 8
 )
 
 type AggregationService struct {
@@ -29,26 +35,54 @@ type AggregationService struct {
 }
 
 type AggregationJob struct {
-	UserId string
+	UserID string
 	From   time.Time
 	To     time.Time
 }
 
 // Use https://godoc.org/github.com/jasonlvhit/gocron to trigger jobs on a regular basis.
 func (srv *AggregationService) Start(interval time.Duration) {
+	jobs := make(chan *AggregationJob)
+	summaries := make(chan *models.Summary)
+
+	for i := 0; i < nSummaryWorkers; i++ {
+		go srv.summaryWorker(jobs, summaries)
+	}
+
+	for i := 0; i < nPersistWorkers; i++ {
+		go srv.persistWorker(summaries)
+	}
+
+	srv.generateJobs(jobs)
 }
 
-func (srv *AggregationService) generateJobs() (*list.List, error) {
-	var aggregationJobs *list.List = list.New()
+func (srv *AggregationService) summaryWorker(jobs <-chan *AggregationJob, summaries chan<- *models.Summary) {
+	for job := range jobs {
+		if summary, err := srv.SummaryService.GetSummary(job.From, job.To, &models.User{ID: job.UserID}); err != nil {
+			log.Printf("Failed to generate summary (%v, %v, %s) – %v.", job.From, job.To, job.UserID, err)
+		} else {
+			summaries <- summary
+		}
+	}
+}
 
+func (srv *AggregationService) persistWorker(summaries <-chan *models.Summary) {
+	for summary := range summaries {
+		if err := srv.SummaryService.SaveSummary(summary); err != nil {
+			log.Printf("Failed to save summary (%v, %v, %s) – %v.", summary.UserID, summary.FromTime, summary.ToTime, err)
+		}
+	}
+}
+
+func (srv *AggregationService) generateJobs(jobs chan<- *AggregationJob) error {
 	users, err := srv.UserService.GetAll()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	latestSummaries, err := srv.SummaryService.GetLatestUserSummaries()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	userSummaryTimes := make(map[string]*time.Time)
@@ -56,42 +90,48 @@ func (srv *AggregationService) generateJobs() (*list.List, error) {
 		userSummaryTimes[s.UserID] = s.ToTime
 	}
 
-	missingUserIds := make([]string, 0)
+	missingUserIDs := make([]string, 0)
 	for _, u := range users {
 		if _, ok := userSummaryTimes[u.ID]; !ok {
-			missingUserIds = append(missingUserIds, u.ID)
+			missingUserIDs = append(missingUserIDs, u.ID)
 		}
 	}
 
-	firstHeartbeats, err := srv.HeartbeatService.GetFirstUserHeartbeats(missingUserIds)
+	firstHeartbeats, err := srv.HeartbeatService.GetFirstUserHeartbeats(missingUserIDs)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	for id, t := range userSummaryTimes {
-		var from time.Time
-		if t.Hour() == 0 {
-			from = *t
-		} else {
-			nextDay := t.Add(24 * time.Hour)
-			from = time.Date(nextDay.Year(), nextDay.Month(), nextDay.Day(), 0, 0, 0, 0, t.Location())
-		}
-
-		aggregationJobs.PushBack(&AggregationJob{id, from, from.Add(24 * time.Hour)})
+		generateUserJobs(id, *t, jobs)
 	}
 
 	for _, h := range firstHeartbeats {
-		var from time.Time
-		var t time.Time = time.Time(*(h.Time))
-		if t.Hour() == 0 {
-			from = time.Time(*(h.Time))
-		} else {
-			nextDay := t.Add(24 * time.Hour)
-			from = time.Date(nextDay.Year(), nextDay.Month(), nextDay.Day(), 0, 0, 0, 0, t.Location())
-		}
-
-		aggregationJobs.PushBack(&AggregationJob{h.UserID, from, from.Add(24 * time.Hour)})
+		generateUserJobs(h.UserID, time.Time(*(h.Time)), jobs)
 	}
 
-	return aggregationJobs, nil
+	return nil
+}
+
+func generateUserJobs(userId string, lastAggregation time.Time, jobs chan<- *AggregationJob) {
+	var from, to time.Time
+	end := getStartOfToday().Add(-1 * time.Second)
+
+	if lastAggregation.Hour() == 0 {
+		from = lastAggregation
+	} else {
+		nextDay := lastAggregation.Add(24 * time.Hour)
+		from = time.Date(nextDay.Year(), nextDay.Month(), nextDay.Day(), 0, 0, 0, 0, lastAggregation.Location())
+	}
+
+	for from.Before(end) && to.Before(end) {
+		to = from.Add(24 * time.Hour)
+		jobs <- &AggregationJob{userId, from, to}
+		from = to
+	}
+}
+
+func getStartOfToday() time.Time {
+	now := time.Now()
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 1, now.Location())
 }

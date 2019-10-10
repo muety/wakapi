@@ -105,8 +105,7 @@ func main() {
 	summarySrvc := &services.SummaryService{config, db, heartbeatSrvc, aliasSrvc}
 	aggregationSrvc := &services.AggregationService{config, db, userSrvc, summarySrvc, heartbeatSrvc}
 
-	sums, err := aggregationSrvc.GenerateJobs()
-	fmt.Println(sums)
+	aggregationSrvc.Start(time.Second)
 
 	// Handlers
 	heartbeatHandler := &routes.HeartbeatHandler{HeartbeatSrvc: heartbeatSrvc}
