@@ -27,6 +27,7 @@ func ParseUserAgent(ua string) (string, string, error) {
 }
 
 func MakeConnectionString(config *models.Config) string {
+	location, _ := time.LoadLocation("Local")
 	str := strings.Builder{}
 	str.WriteString(config.DbUser)
 	str.WriteString(":")
@@ -35,6 +36,7 @@ func MakeConnectionString(config *models.Config) string {
 	str.WriteString(config.DbHost)
 	str.WriteString(")/")
 	str.WriteString(config.DbName)
-	str.WriteString("?charset=utf8&parseTime=true")
+	str.WriteString("?charset=utf8&parseTime=true&loc=")
+	str.WriteString(location.String())
 	return str.String()
 }
