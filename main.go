@@ -105,6 +105,7 @@ func main() {
 	summarySrvc := &services.SummaryService{config, db, heartbeatSrvc, aliasSrvc}
 	aggregationSrvc := &services.AggregationService{config, db, userSrvc, summarySrvc, heartbeatSrvc}
 
+	// DEBUG ONLY !!!
 	aggregationSrvc.Start(time.Second)
 
 	// Handlers

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"sort"
@@ -17,10 +18,26 @@ type SummaryService struct {
 	AliasService     *AliasService
 }
 
+type Interval struct {
+	Start time.Time
+	End   time.Time
+}
+
 func (srv *SummaryService) GetSummary(from, to time.Time, user *models.User) (*models.Summary, error) {
-	heartbeats, err := srv.HeartbeatService.GetAllWithin(from, to, user)
+	existingSummaries, err := srv.GetByUserWithin(user, from, to)
 	if err != nil {
 		return nil, err
+	}
+
+	missingIntervals := getMissingIntervals(from, to, existingSummaries)
+
+	heartbeats := make([]*models.Heartbeat, 0)
+	for _, interval := range missingIntervals {
+		hb, err := srv.HeartbeatService.GetAllWithin(interval.Start, interval.End, user)
+		if err != nil {
+			return nil, err
+		}
+		heartbeats = append(heartbeats, hb...)
 	}
 
 	types := []uint8{models.SummaryProject, models.SummaryLanguage, models.SummaryEditor, models.SummaryOS}
@@ -54,7 +71,7 @@ func (srv *SummaryService) GetSummary(from, to time.Time, user *models.User) (*m
 	}
 	close(c)
 
-	summary := &models.Summary{
+	aggregatedSummary := &models.Summary{
 		UserID:           user.ID,
 		FromTime:         &from,
 		ToTime:           &to,
@@ -64,7 +81,87 @@ func (srv *SummaryService) GetSummary(from, to time.Time, user *models.User) (*m
 		OperatingSystems: osItems,
 	}
 
+	allSummaries := []*models.Summary{aggregatedSummary}
+	allSummaries = append(allSummaries, existingSummaries...)
+
+	summary, err := mergeSummaries(allSummaries)
+	if err != nil {
+		return nil, err
+	}
+
 	return summary, nil
+}
+
+func mergeSummaries(summaries []*models.Summary) (*models.Summary, error) {
+	if len(summaries) < 1 {
+		return nil, errors.New("no summaries given")
+	}
+
+	var minTime, maxTime time.Time
+	minTime = time.Now()
+
+	finalSummary := &models.Summary{
+		UserID:           summaries[0].UserID,
+		Projects:         make([]models.SummaryItem, 0),
+		Languages:        make([]models.SummaryItem, 0),
+		Editors:          make([]models.SummaryItem, 0),
+		OperatingSystems: make([]models.SummaryItem, 0),
+	}
+
+	for _, s := range summaries {
+		if s.UserID != finalSummary.UserID {
+			return nil, errors.New("users don't match")
+		}
+
+		if s.FromTime.Before(minTime) {
+			minTime = *(s.FromTime)
+		}
+
+		if s.ToTime.After(maxTime) {
+			maxTime = *(s.ToTime)
+		}
+
+		// TODO: Multi-thread ?
+		finalSummary.Projects = mergeSummaryItems(&(finalSummary.Projects), &(s.Projects))
+		finalSummary.Languages = mergeSummaryItems(&(finalSummary.Languages), &(s.Languages))
+		finalSummary.Editors = mergeSummaryItems(&(finalSummary.Editors), &(s.Editors))
+		finalSummary.OperatingSystems = mergeSummaryItems(&(finalSummary.OperatingSystems), &(s.OperatingSystems))
+	}
+
+	finalSummary.FromTime = &minTime
+	finalSummary.ToTime = &maxTime
+
+	return finalSummary, nil
+}
+
+func mergeSummaryItems(existing *[]models.SummaryItem, new *[]models.SummaryItem) []models.SummaryItem {
+	items := make(map[string]time.Duration)
+
+	// Build map from existing
+	for _, item := range *existing {
+		items[item.Key] = item.Total
+	}
+
+	for _, item := range *new {
+		if _, ok := items[item.Key]; !ok {
+			items[item.Key] = item.Total
+		} else {
+			items[item.Key] += item.Total
+		}
+	}
+
+	var i int
+	itemList := make([]models.SummaryItem, len(items))
+	for k, v := range items {
+		itemList[i] = models.SummaryItem{Key: k, Total: v}
+		i++
+	}
+
+	sort.Slice(itemList, func(i, j int) bool {
+		return itemList[i].Total > itemList[j].Total
+	})
+
+	return itemList
 }
 
 func (srv *SummaryService) SaveSummary(summary *models.Summary) error {
@@ -73,6 +170,18 @@ func (srv *SummaryService) SaveSummary(summary *models.Summary) error {
 		return err
 	}
 	return nil
+}
+
+func (srv *SummaryService) GetByUserWithin(user *models.User, from, to time.Time) ([]*models.Summary, error) {
+	var summaries []*models.Summary
+	if err := srv.Db.
+		Where(&models.Summary{UserID: user.ID}).
+		Where("from_time >= ?", from).
+		Where("to_time <= ?", to).
+		Find(&summaries).Error; err != nil {
+		return nil, err
+	}
+	return summaries, nil
 }
 
 func (srv *SummaryService) GetLatestUserSummaries() ([]*models.Summary, error) {
@@ -137,4 +246,31 @@ func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryTy
 	})
 
 	c <- models.SummaryItemContainer{Type: summaryType, Items: items}
+}
+
+func getMissingIntervals(from, to time.Time, existingSummaries []*models.Summary) []*Interval {
+	if len(existingSummaries) == 0 {
+		return []*Interval{&Interval{from, to}}
+	}
+
+	intervals := make([]*Interval, 0)
+
+	// Pre
+	if from.Before(*(existingSummaries[0].FromTime)) {
+		intervals = append(intervals, &Interval{from, *(existingSummaries[0].FromTime)})
+	}
+
+	// Between
+	for i := 0; i < len(existingSummaries)-1; i++ {
+		if existingSummaries[i].ToTime.Before(*(existingSummaries[i+1].FromTime)) {
+			intervals = append(intervals, &Interval{*(existingSummaries[i].ToTime), *(existingSummaries[i+1].FromTime)})
+		}
+	}
+
+	// Post
+	if to.After(*(existingSummaries[len(existingSummaries)-1].ToTime)) {
+		intervals = append(intervals, &Interval{to, *(existingSummaries[len(existingSummaries)-1].ToTime)})
+	}
+
+	return intervals
 }
