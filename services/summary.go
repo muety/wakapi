@@ -23,7 +23,8 @@ type Interval struct {
 	End   time.Time
 }
 
-func (srv *SummaryService) GetSummary(from, to time.Time, user *models.User) (*models.Summary, error) {
+// TODO: Rename methods to clarify difference between generating a new summary from old summaries and heartbeats, like this method, and only retrieving a persisted summary from database, like GetByUserWithin
+func (srv *SummaryService) CreateSummary(from, to time.Time, user *models.User) (*models.Summary, error) {
 	existingSummaries, err := srv.GetByUserWithin(user, from, to)
 	if err != nil {
 		return nil, err
@@ -135,25 +136,25 @@ func mergeSummaries(summaries []*models.Summary) (*models.Summary, error) {
 }
 
 func mergeSummaryItems(existing *[]models.SummaryItem, new *[]models.SummaryItem) []models.SummaryItem {
-	items := make(map[string]time.Duration)
+	items := make(map[string]*models.SummaryItem)
 
 	// Build map from existing
 	for _, item := range *existing {
-		items[item.Key] = item.Total
+		items[item.Key] = &item
 	}
 
 	for _, item := range *new {
-		if _, ok := items[item.Key]; !ok {
-			items[item.Key] = item.Total
+		if it, ok := items[item.Key]; !ok {
+			items[item.Key] = &item
 		} else {
-			items[item.Key] += item.Total
+			(*it).Total += item.Total
 		}
 	}
 
 	var i int
 	itemList := make([]models.SummaryItem, len(items))
 	for k, v := range items {
-		itemList[i] = models.SummaryItem{Key: k, Total: v}
+		itemList[i] = models.SummaryItem{Key: k, Total: v.Total, Type: v.Type}
 		i++
 	}
 
@@ -178,6 +179,10 @@ func (srv *SummaryService) GetByUserWithin(user *models.User, from, to time.Time
 		Where(&models.Summary{UserID: user.ID}).
 		Where("from_time >= ?", from).
 		Where("to_time <= ?", to).
+		Preload("Projects", "type = ?", models.SummaryProject).
+		Preload("Languages", "type = ?", models.SummaryLanguage).
+		Preload("Editors", "type = ?", models.SummaryEditor).
+		Preload("OperatingSystems", "type = ?", models.SummaryOS).
 		Find(&summaries).Error; err != nil {
 		return nil, err
 	}
@@ -238,6 +243,7 @@ func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryTy
 		items = append(items, models.SummaryItem{
 			Key:   k,
 			Total: v / time.Second,
+			Type:  summaryType,
 		})
 	}
 

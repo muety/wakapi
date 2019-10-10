@@ -26,6 +26,7 @@ type Summary struct {
 type SummaryItem struct {
 	ID        uint          `json:"-" gorm:"primary_key"`
 	SummaryID uint          `json:"-"`
+	Type      uint8         `json:"-"`
 	Key       string        `json:"key"`
 	Total     time.Duration `json:"total"`
 }

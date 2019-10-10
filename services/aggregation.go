@@ -58,7 +58,7 @@ func (srv *AggregationService) Start(interval time.Duration) {
 
 func (srv *AggregationService) summaryWorker(jobs <-chan *AggregationJob, summaries chan<- *models.Summary) {
 	for job := range jobs {
-		if summary, err := srv.SummaryService.GetSummary(job.From, job.To, &models.User{ID: job.UserID}); err != nil {
+		if summary, err := srv.SummaryService.CreateSummary(job.From, job.To, &models.User{ID: job.UserID}); err != nil {
 			log.Printf("Failed to generate summary (%v, %v, %s) – %v.", job.From, job.To, job.UserID, err)
 		} else {
 			summaries <- summary

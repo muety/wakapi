@@ -76,7 +76,7 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 	cacheKey := getHash([]time.Time{from, to}, user)
 	if cachedSummary, ok := h.Cache.Get(cacheKey); !ok {
 		// Cache Miss
-		summary, err = h.SummarySrvc.GetSummary(from, to, user) // 'to' is always constant
+		summary, err = h.SummarySrvc.CreateSummary(from, to, user) // 'to' is always constant
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
