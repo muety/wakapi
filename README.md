@@ -59,14 +59,12 @@ It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https:/
 However, if you want to expose your wakapi instance to the public anyway, you need to set `listen = 0.0.0.0` in `config.ini`
 
 ## Todo
-* Persisted summaries / aggregations (for performance)
 * User sign up and log in
 * Additional endpoints for retrieving statistics data
 * Enhanced UI
   * Loading spinner
   * Responsiveness
 * Support for SQLite database
-* Dockerize
 * Unit tests
 
 ## Important Note
