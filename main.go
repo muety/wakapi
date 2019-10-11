@@ -103,10 +103,10 @@ func main() {
 	heartbeatSrvc := &services.HeartbeatService{config, db}
 	userSrvc := &services.UserService{config, db}
 	summarySrvc := &services.SummaryService{config, db, heartbeatSrvc, aliasSrvc}
-	aggregationSrvc := &services.AggregationService{config, db, userSrvc, summarySrvc, heartbeatSrvc}
+	_ = &services.AggregationService{config, db, userSrvc, summarySrvc, heartbeatSrvc}
 
 	// DEBUG ONLY !!!
-	aggregationSrvc.Start(time.Second)
+	//aggregationSrvc.Start(time.Second)
 
 	// Handlers
 	heartbeatHandler := &routes.HeartbeatHandler{HeartbeatSrvc: heartbeatSrvc}

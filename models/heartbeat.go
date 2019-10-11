@@ -13,24 +13,24 @@ import (
 type HeartbeatReqTime time.Time
 
 type Heartbeat struct {
-	ID              uint              `gorm:"primary_key"`
-	User            *User             `json:"-" gorm:"not null"`
-	UserID          string            `json:"-" gorm:"not null; index:idx_time_user"`
-	Entity          string            `json:"entity" gorm:"not null; index:idx_entity"`
-	Type            string            `json:"type"`
-	Category        string            `json:"category"`
-	Project         string            `json:"project"`
-	Branch          string            `json:"branch"`
-	Language        string            `json:"language" gorm:"index:idx_language"`
-	IsWrite         bool              `json:"is_write"`
-	Editor          string            `json:"editor"`
-	OperatingSystem string            `json:"operating_system"`
-	Time            *HeartbeatReqTime `json:"time" gorm:"type:timestamp; default:now(); index:idx_time,idx_time_user"`
+	ID              uint             `gorm:"primary_key"`
+	User            *User            `json:"-" gorm:"not null"`
+	UserID          string           `json:"-" gorm:"not null; index:idx_time_user"`
+	Entity          string           `json:"entity" gorm:"not null; index:idx_entity"`
+	Type            string           `json:"type"`
+	Category        string           `json:"category"`
+	Project         string           `json:"project"`
+	Branch          string           `json:"branch"`
+	Language        string           `json:"language" gorm:"index:idx_language"`
+	IsWrite         bool             `json:"is_write"`
+	Editor          string           `json:"editor"`
+	OperatingSystem string           `json:"operating_system"`
+	Time            HeartbeatReqTime `json:"time" gorm:"type:timestamp; default:now(); index:idx_time,idx_time_user"`
 	languageRegex   *regexp.Regexp
 }
 
 func (h *Heartbeat) Valid() bool {
-	return h.User != nil && h.UserID != "" && h.Time != nil
+	return h.User != nil && h.UserID != "" && h.Time != HeartbeatReqTime(time.Time{})
 }
 
 func (h *Heartbeat) Augment(customLangs map[string]string) {

@@ -23,8 +23,7 @@ type Interval struct {
 	End   time.Time
 }
 
-// TODO: Rename methods to clarify difference between generating a new summary from old summaries and heartbeats, like this method, and only retrieving a persisted summary from database, like GetByUserWithin
-func (srv *SummaryService) CreateSummary(from, to time.Time, user *models.User) (*models.Summary, error) {
+func (srv *SummaryService) Construct(from, to time.Time, user *models.User) (*models.Summary, error) {
 	existingSummaries, err := srv.GetByUserWithin(user, from, to)
 	if err != nil {
 		return nil, err
@@ -43,10 +42,10 @@ func (srv *SummaryService) CreateSummary(from, to time.Time, user *models.User) 
 
 	types := []uint8{models.SummaryProject, models.SummaryLanguage, models.SummaryEditor, models.SummaryOS}
 
-	var projectItems []models.SummaryItem
-	var languageItems []models.SummaryItem
-	var editorItems []models.SummaryItem
-	var osItems []models.SummaryItem
+	var projectItems []*models.SummaryItem
+	var languageItems []*models.SummaryItem
+	var editorItems []*models.SummaryItem
+	var osItems []*models.SummaryItem
 
 	if err := srv.AliasService.LoadUserAliases(user.ID); err != nil {
 		return nil, err
@@ -74,8 +73,8 @@ func (srv *SummaryService) CreateSummary(from, to time.Time, user *models.User) 
 
 	aggregatedSummary := &models.Summary{
 		UserID:           user.ID,
-		FromTime:         &from,
-		ToTime:           &to,
+		FromTime:         from,
+		ToTime:           to,
 		Projects:         projectItems,
 		Languages:        languageItems,
 		Editors:          editorItems,
@@ -93,79 +92,7 @@ func (srv *SummaryService) CreateSummary(from, to time.Time, user *models.User) 
 	return summary, nil
 }
 
-func mergeSummaries(summaries []*models.Summary) (*models.Summary, error) {
-	if len(summaries) < 1 {
-		return nil, errors.New("no summaries given")
-	}
-
-	var minTime, maxTime time.Time
-	minTime = time.Now()
-
-	finalSummary := &models.Summary{
-		UserID:           summaries[0].UserID,
-		Projects:         make([]models.SummaryItem, 0),
-		Languages:        make([]models.SummaryItem, 0),
-		Editors:          make([]models.SummaryItem, 0),
-		OperatingSystems: make([]models.SummaryItem, 0),
-	}
-
-	for _, s := range summaries {
-		if s.UserID != finalSummary.UserID {
-			return nil, errors.New("users don't match")
-		}
-
-		if s.FromTime.Before(minTime) {
-			minTime = *(s.FromTime)
-		}
-
-		if s.ToTime.After(maxTime) {
-			maxTime = *(s.ToTime)
-		}
-
-		// TODO: Multi-thread ?
-		finalSummary.Projects = mergeSummaryItems(&(finalSummary.Projects), &(s.Projects))
-		finalSummary.Languages = mergeSummaryItems(&(finalSummary.Languages), &(s.Languages))
-		finalSummary.Editors = mergeSummaryItems(&(finalSummary.Editors), &(s.Editors))
-		finalSummary.OperatingSystems = mergeSummaryItems(&(finalSummary.OperatingSystems), &(s.OperatingSystems))
-	}
-
-	finalSummary.FromTime = &minTime
-	finalSummary.ToTime = &maxTime
-
-	return finalSummary, nil
-}
-
-func mergeSummaryItems(existing *[]models.SummaryItem, new *[]models.SummaryItem) []models.SummaryItem {
-	items := make(map[string]*models.SummaryItem)
-
-	// Build map from existing
-	for _, item := range *existing {
-		items[item.Key] = &item
-	}
-
-	for _, item := range *new {
-		if it, ok := items[item.Key]; !ok {
-			items[item.Key] = &item
-		} else {
-			(*it).Total += item.Total
-		}
-	}
-
-	var i int
-	itemList := make([]models.SummaryItem, len(items))
-	for k, v := range items {
-		itemList[i] = models.SummaryItem{Key: k, Total: v.Total, Type: v.Type}
-		i++
-	}
-
-	sort.Slice(itemList, func(i, j int) bool {
-		return itemList[i].Total > itemList[j].Total
-	})
-
-	return itemList
-}
-
-func (srv *SummaryService) SaveSummary(summary *models.Summary) error {
+func (srv *SummaryService) Insert(summary *models.Summary) error {
 	fmt.Println("Saving summary", summary)
 	if err := srv.Db.Create(summary).Error; err != nil {
 		return err
@@ -189,7 +116,8 @@ func (srv *SummaryService) GetByUserWithin(user *models.User, from, to time.Time
 	return summaries, nil
 }
 
-func (srv *SummaryService) GetLatestUserSummaries() ([]*models.Summary, error) {
+// Will return *models.Summary objects with only user_id and to_time filled
+func (srv *SummaryService) GetLatestByUser() ([]*models.Summary, error) {
 	var summaries []*models.Summary
 	if err := srv.Db.
 		Table("summaries").
@@ -238,9 +166,9 @@ func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryTy
 		durations[key] += time.Duration(int64(timeThresholded))
 	}
 
-	items := make([]models.SummaryItem, 0)
+	items := make([]*models.SummaryItem, 0)
 	for k, v := range durations {
-		items = append(items, models.SummaryItem{
+		items = append(items, &models.SummaryItem{
 			Key:   k,
 			Total: v / time.Second,
 			Type:  summaryType,
@@ -262,21 +190,93 @@ func getMissingIntervals(from, to time.Time, existingSummaries []*models.Summary
 	intervals := make([]*Interval, 0)
 
 	// Pre
-	if from.Before(*(existingSummaries[0].FromTime)) {
-		intervals = append(intervals, &Interval{from, *(existingSummaries[0].FromTime)})
+	if from.Before(existingSummaries[0].FromTime) {
+		intervals = append(intervals, &Interval{from, existingSummaries[0].FromTime})
 	}
 
 	// Between
 	for i := 0; i < len(existingSummaries)-1; i++ {
-		if existingSummaries[i].ToTime.Before(*(existingSummaries[i+1].FromTime)) {
-			intervals = append(intervals, &Interval{*(existingSummaries[i].ToTime), *(existingSummaries[i+1].FromTime)})
+		if existingSummaries[i].ToTime.Before(existingSummaries[i+1].FromTime) {
+			intervals = append(intervals, &Interval{existingSummaries[i].ToTime, existingSummaries[i+1].FromTime})
 		}
 	}
 
 	// Post
-	if to.After(*(existingSummaries[len(existingSummaries)-1].ToTime)) {
-		intervals = append(intervals, &Interval{to, *(existingSummaries[len(existingSummaries)-1].ToTime)})
+	if to.After(existingSummaries[len(existingSummaries)-1].ToTime) {
+		intervals = append(intervals, &Interval{to, existingSummaries[len(existingSummaries)-1].ToTime})
 	}
 
 	return intervals
+}
+
+func mergeSummaries(summaries []*models.Summary) (*models.Summary, error) {
+	if len(summaries) < 1 {
+		return nil, errors.New("no summaries given")
+	}
+
+	var minTime, maxTime time.Time
+	minTime = time.Now()
+
+	finalSummary := &models.Summary{
+		UserID:           summaries[0].UserID,
+		Projects:         make([]*models.SummaryItem, 0),
+		Languages:        make([]*models.SummaryItem, 0),
+		Editors:          make([]*models.SummaryItem, 0),
+		OperatingSystems: make([]*models.SummaryItem, 0),
+	}
+
+	for _, s := range summaries {
+		if s.UserID != finalSummary.UserID {
+			return nil, errors.New("users don't match")
+		}
+
+		if s.FromTime.Before(minTime) {
+			minTime = s.FromTime
+		}
+
+		if s.ToTime.After(maxTime) {
+			maxTime = s.ToTime
+		}
+
+		// TODO: Multi-thread ?
+		finalSummary.Projects = mergeSummaryItems(finalSummary.Projects, s.Projects)
+		finalSummary.Languages = mergeSummaryItems(finalSummary.Languages, s.Languages)
+		finalSummary.Editors = mergeSummaryItems(finalSummary.Editors, s.Editors)
+		finalSummary.OperatingSystems = mergeSummaryItems(finalSummary.OperatingSystems, s.OperatingSystems)
+	}
+
+	finalSummary.FromTime = minTime
+	finalSummary.ToTime = maxTime
+
+	return finalSummary, nil
+}
+
+func mergeSummaryItems(existing []*models.SummaryItem, new []*models.SummaryItem) []*models.SummaryItem {
+	items := make(map[string]*models.SummaryItem)
+
+	// Build map from existing
+	for _, item := range existing {
+		items[item.Key] = item
+	}
+
+	for _, item := range new {
+		if it, ok := items[item.Key]; !ok {
+			items[item.Key] = item
+		} else {
+			(*it).Total += item.Total
+		}
+	}
+
+	var i int
+	itemList := make([]*models.SummaryItem, len(items))
+	for k, v := range items {
+		itemList[i] = &models.SummaryItem{Key: k, Total: v.Total, Type: v.Type}
+		i++
+	}
+
+	sort.Slice(itemList, func(i, j int) bool {
+		return itemList[i].Total > itemList[j].Total
+	})
+
+	return itemList
 }

@@ -58,7 +58,7 @@ func (srv *AggregationService) Start(interval time.Duration) {
 
 func (srv *AggregationService) summaryWorker(jobs <-chan *AggregationJob, summaries chan<- *models.Summary) {
 	for job := range jobs {
-		if summary, err := srv.SummaryService.CreateSummary(job.From, job.To, &models.User{ID: job.UserID}); err != nil {
+		if summary, err := srv.SummaryService.Construct(job.From, job.To, &models.User{ID: job.UserID}); err != nil {
 			log.Printf("Failed to generate summary (%v, %v, %s) – %v.", job.From, job.To, job.UserID, err)
 		} else {
 			summaries <- summary
@@ -68,7 +68,7 @@ func (srv *AggregationService) summaryWorker(jobs <-chan *AggregationJob, summar
 
 func (srv *AggregationService) persistWorker(summaries <-chan *models.Summary) {
 	for summary := range summaries {
-		if err := srv.SummaryService.SaveSummary(summary); err != nil {
+		if err := srv.SummaryService.Insert(summary); err != nil {
 			log.Printf("Failed to save summary (%v, %v, %s) – %v.", summary.UserID, summary.FromTime, summary.ToTime, err)
 		}
 	}
@@ -80,12 +80,12 @@ func (srv *AggregationService) generateJobs(jobs chan<- *AggregationJob) error {
 		return err
 	}
 
-	latestSummaries, err := srv.SummaryService.GetLatestUserSummaries()
+	latestSummaries, err := srv.SummaryService.GetLatestByUser()
 	if err != nil {
 		return err
 	}
 
-	userSummaryTimes := make(map[string]*time.Time)
+	userSummaryTimes := make(map[string]time.Time)
 	for _, s := range latestSummaries {
 		userSummaryTimes[s.UserID] = s.ToTime
 	}
@@ -103,11 +103,11 @@ func (srv *AggregationService) generateJobs(jobs chan<- *AggregationJob) error {
 	}
 
 	for id, t := range userSummaryTimes {
-		generateUserJobs(id, *t, jobs)
+		generateUserJobs(id, t, jobs)
 	}
 
 	for _, h := range firstHeartbeats {
-		generateUserJobs(h.UserID, time.Time(*(h.Time)), jobs)
+		generateUserJobs(h.UserID, time.Time(h.Time), jobs)
 	}
 
 	return nil

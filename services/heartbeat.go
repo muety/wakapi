@@ -40,6 +40,7 @@ func (srv *HeartbeatService) GetAllWithin(from, to time.Time, user *models.User)
 	return heartbeats, nil
 }
 
+// Will return *models.Heartbeat object with only user_id and time fields filled
 func (srv *HeartbeatService) GetFirstUserHeartbeats(userIds []string) ([]*models.Heartbeat, error) {
 	var heartbeats []*models.Heartbeat
 	if err := srv.Db.
