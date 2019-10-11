@@ -79,11 +79,10 @@ func main() {
 	// Connect to database
 	db, err := gorm.Open(config.DbDialect, utils.MakeConnectionString(config))
 	db.LogMode(false)
-	db.DB().SetMaxIdleConns(1)
-	db.DB().SetMaxOpenConns(10)
+	db.DB().SetMaxIdleConns(int(config.DbMaxConn))
+	db.DB().SetMaxOpenConns(int(config.DbMaxConn))
 	if err != nil {
-		// log.Fatal("Could not connect to database.")
-		log.Fatal(err)
+		log.Fatal("Could not connect to database.")
 	}
 	defer db.Close()
 
