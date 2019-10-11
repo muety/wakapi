@@ -44,6 +44,9 @@ func (srv *AggregationService) Schedule() {
 		go srv.persistWorker(summaries)
 	}
 
+	// Run once initially
+	srv.trigger(jobs)
+
 	gocron.Every(1).Day().At("02:15").Do(srv.trigger, jobs)
 	<-gocron.Start()
 }
