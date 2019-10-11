@@ -1,29 +1,17 @@
-/*
-	<< WORK IN PROGRESS >>
-	Don't use theses classes, yet.
-
-	This aims to implement https://github.com/n1try/wakapi/issues/1.
-	Idea is to have regularly running, cron-like background jobs that request a summary
-	from SummaryService for a pre-defined time interval, e.g. 24 hours. Those are persisted
-	to the database. Once a user request a summary for a certain time frame that partilly
-	overlaps with pre-generated summaries, those will be aggregated together with actual heartbeats
-	for the non-overlapping time frames left and right.
-*/
-
 package services
 
 import (
 	"log"
+	"runtime"
 	"time"
 
+	"github.com/jasonlvhit/gocron"
 	"github.com/jinzhu/gorm"
 	"github.com/n1try/wakapi/models"
 )
 
 const (
-	summaryInterval time.Duration = 24 * time.Hour
-	nSummaryWorkers int           = 8
-	nPersistWorkers int           = 8
+	summaryInterval time.Duration = 24 * time.Hour // TODO: Make configurable
 )
 
 type AggregationService struct {
@@ -40,27 +28,32 @@ type AggregationJob struct {
 	To     time.Time
 }
 
-// Use https://godoc.org/github.com/jasonlvhit/gocron to trigger jobs on a regular basis.
-func (srv *AggregationService) Start(interval time.Duration) {
+// Schedule a job to (re-)generate summaries every day shortly after midnight
+// TODO: Make configurable
+func (srv *AggregationService) Schedule() {
 	jobs := make(chan *AggregationJob)
 	summaries := make(chan *models.Summary)
+	defer close(jobs)
+	defer close(summaries)
 
-	for i := 0; i < nSummaryWorkers; i++ {
+	for i := 0; i < runtime.NumCPU(); i++ {
 		go srv.summaryWorker(jobs, summaries)
 	}
 
-	for i := 0; i < nPersistWorkers; i++ {
+	for i := 0; i < int(srv.Config.DbMaxConn); i++ {
 		go srv.persistWorker(summaries)
 	}
 
-	srv.generateJobs(jobs)
+	gocron.Every(1).Day().At("02:15").Do(srv.trigger, jobs)
+	<-gocron.Start()
 }
 
 func (srv *AggregationService) summaryWorker(jobs <-chan *AggregationJob, summaries chan<- *models.Summary) {
 	for job := range jobs {
 		if summary, err := srv.SummaryService.Construct(job.From, job.To, &models.User{ID: job.UserID}); err != nil {
-			log.Printf("Failed to generate summary (%v, %v, %s) – %v.", job.From, job.To, job.UserID, err)
+			log.Printf("Failed to generate summary (%v, %v, %s) – %v.\n", job.From, job.To, job.UserID, err)
 		} else {
+			log.Printf("Successfully generated summary (%v, %v, %s).\n", job.From, job.To, job.UserID)
 			summaries <- summary
 		}
 	}
@@ -69,19 +62,23 @@ func (srv *AggregationService) summaryWorker(jobs <-chan *AggregationJob, summar
 func (srv *AggregationService) persistWorker(summaries <-chan *models.Summary) {
 	for summary := range summaries {
 		if err := srv.SummaryService.Insert(summary); err != nil {
-			log.Printf("Failed to save summary (%v, %v, %s) – %v.", summary.UserID, summary.FromTime, summary.ToTime, err)
+			log.Printf("Failed to save summary (%v, %v, %s) – %v.\n", summary.UserID, summary.FromTime, summary.ToTime, err)
 		}
 	}
 }
 
-func (srv *AggregationService) generateJobs(jobs chan<- *AggregationJob) error {
+func (srv *AggregationService) trigger(jobs chan<- *AggregationJob) error {
+	log.Println("Generating summaries.")
+
 	users, err := srv.UserService.GetAll()
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
 	latestSummaries, err := srv.SummaryService.GetLatestByUser()
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
@@ -99,6 +96,7 @@ func (srv *AggregationService) generateJobs(jobs chan<- *AggregationJob) error {
 
 	firstHeartbeats, err := srv.HeartbeatService.GetFirstUserHeartbeats(missingUserIDs)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
@@ -120,12 +118,12 @@ func generateUserJobs(userId string, lastAggregation time.Time, jobs chan<- *Agg
 	if lastAggregation.Hour() == 0 {
 		from = lastAggregation
 	} else {
-		nextDay := lastAggregation.Add(24 * time.Hour)
+		nextDay := lastAggregation.Add(summaryInterval)
 		from = time.Date(nextDay.Year(), nextDay.Month(), nextDay.Day(), 0, 0, 0, 0, lastAggregation.Location())
 	}
 
 	for from.Before(end) && to.Before(end) {
-		to = from.Add(24 * time.Hour)
+		to = from.Add(summaryInterval)
 		jobs <- &AggregationJob{userId, from, to}
 		from = to
 	}

@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -43,9 +42,10 @@ func readConfig() *models.Config {
 
 	cfg, err := ini.Load("config.ini")
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Fail to read file: %v", err))
+		log.Fatalf("Fail to read file: %v", err)
 	}
 
+	dbMaxConn := cfg.Section("database").Key("max_connections").MustUint(1)
 	addr := cfg.Section("server").Key("listen").MustString("127.0.0.1")
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
@@ -67,6 +67,7 @@ func readConfig() *models.Config {
 		DbPassword:      dbPassword,
 		DbName:          dbName,
 		DbDialect:       "mysql",
+		DbMaxConn:       dbMaxConn,
 		CustomLanguages: customLangs,
 	}
 }
@@ -103,10 +104,10 @@ func main() {
 	heartbeatSrvc := &services.HeartbeatService{config, db}
 	userSrvc := &services.UserService{config, db}
 	summarySrvc := &services.SummaryService{config, db, heartbeatSrvc, aliasSrvc}
-	_ = &services.AggregationService{config, db, userSrvc, summarySrvc, heartbeatSrvc}
+	aggregationSrvc := &services.AggregationService{config, db, userSrvc, summarySrvc, heartbeatSrvc}
 
-	// DEBUG ONLY !!!
-	//aggregationSrvc.Start(time.Second)
+	// Aggregate heartbeats to summaries and persist them
+	go aggregationSrvc.Schedule()
 
 	// Handlers
 	heartbeatHandler := &routes.HeartbeatHandler{HeartbeatSrvc: heartbeatSrvc}

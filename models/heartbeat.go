@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql/driver"
 	"errors"
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -70,7 +69,7 @@ func (j *HeartbeatReqTime) Scan(value interface{}) error {
 		*j = HeartbeatReqTime(value.(time.Time))
 		break
 	default:
-		return errors.New(fmt.Sprintf("Unsupported type"))
+		return errors.New("Unsupported type")
 	}
 	return nil
 }

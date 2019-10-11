@@ -8,5 +8,6 @@ type Config struct {
 	DbPassword      string
 	DbName          string
 	DbDialect       string
+	DbMaxConn       uint
 	CustomLanguages map[string]string
 }

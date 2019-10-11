@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"math"
 	"sort"
 	"time"
@@ -93,7 +92,6 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User) (*mo
 }
 
 func (srv *SummaryService) Insert(summary *models.Summary) error {
-	fmt.Println("Saving summary", summary)
 	if err := srv.Db.Create(summary).Error; err != nil {
 		return err
 	}
@@ -238,7 +236,6 @@ func mergeSummaries(summaries []*models.Summary) (*models.Summary, error) {
 			maxTime = s.ToTime
 		}
 
-		// TODO: Multi-thread ?
 		finalSummary.Projects = mergeSummaryItems(finalSummary.Projects, s.Projects)
 		finalSummary.Languages = mergeSummaryItems(finalSummary.Languages, s.Languages)
 		finalSummary.Editors = mergeSummaryItems(finalSummary.Editors, s.Editors)
