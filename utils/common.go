@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -34,6 +35,8 @@ func MakeConnectionString(config *models.Config) string {
 	str.WriteString(config.DbPassword)
 	str.WriteString("@tcp(")
 	str.WriteString(config.DbHost)
+	str.WriteString(":")
+	str.WriteString(strconv.Itoa(int(config.DbPort)))
 	str.WriteString(")/")
 	str.WriteString(config.DbName)
 	str.WriteString("?charset=utf8&parseTime=true&loc=")

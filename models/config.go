@@ -4,6 +4,7 @@ type Config struct {
 	Port            int
 	Addr            string
 	DbHost          string
+	DbPort          uint
 	DbUser          string
 	DbPassword      string
 	DbName          string

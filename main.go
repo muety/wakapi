@@ -35,9 +35,14 @@ func readConfig() *models.Config {
 	dbPassword, valid := os.LookupEnv("WAKAPI_DB_PASSWORD")
 	dbHost, valid := os.LookupEnv("WAKAPI_DB_HOST")
 	dbName, valid := os.LookupEnv("WAKAPI_DB_NAME")
+	dbPortStr, valid := os.LookupEnv("WAKAPI_DB_PORT")
+	dbPort, err := strconv.Atoi(dbPortStr)
+	if err != nil {
+		dbPort = 3306
+	}
 
 	if !valid {
-		log.Fatal("Environment variables missing.")
+		log.Fatal("Environment variables missing or invalid.")
 	}
 
 	cfg, err := ini.Load("config.ini")
@@ -63,6 +68,7 @@ func readConfig() *models.Config {
 		Port:            port,
 		Addr:            addr,
 		DbHost:          dbHost,
+		DbPort:          uint(dbPort),
 		DbUser:          dbUser,
 		DbPassword:      dbPassword,
 		DbName:          dbName,
