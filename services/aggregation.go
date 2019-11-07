@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	summaryInterval time.Duration = 24 * time.Hour // TODO: Make configurable
+	intervalDays int = 1 // TODO: Make configurable
 )
 
 type AggregationService struct {
@@ -121,12 +121,23 @@ func generateUserJobs(userId string, lastAggregation time.Time, jobs chan<- *Agg
 	if lastAggregation.Hour() == 0 {
 		from = lastAggregation
 	} else {
-		nextDay := lastAggregation.Add(summaryInterval)
-		from = time.Date(nextDay.Year(), nextDay.Month(), nextDay.Day(), 0, 0, 0, 0, lastAggregation.Location())
+		from = time.Date(
+			lastAggregation.Year(),
+			lastAggregation.Month(),
+			lastAggregation.Day()+intervalDays,
+			0, 0, 0, 0,
+			lastAggregation.Location(),
+		)
 	}
 
 	for from.Before(end) && to.Before(end) {
-		to = from.Add(summaryInterval)
+		to = time.Date(
+			from.Year(),
+			from.Month(),
+			from.Day()+intervalDays,
+			0, 0, 0, 0,
+			from.Location(),
+		)
 		jobs <- &AggregationJob{userId, from, to}
 		from = to
 	}
