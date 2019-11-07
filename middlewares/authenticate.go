@@ -37,10 +37,10 @@ func (m *AuthenticateMiddleware) Handle(w http.ResponseWriter, r *http.Request, 
 
 	var user *models.User
 	var userKey string
-	user, userKey, err := m.tryGetUserByApiKey(r)
+	user, userKey, err := m.tryGetUserByPassword(r)
 
 	if err != nil {
-		user, userKey, err = m.tryGetUserByPassword(r)
+		user, userKey, err = m.tryGetUserByApiKey(r)
 	}
 
 	if err != nil {
@@ -57,7 +57,7 @@ func (m *AuthenticateMiddleware) Handle(w http.ResponseWriter, r *http.Request, 
 func (m *AuthenticateMiddleware) tryGetUserByApiKey(r *http.Request) (*models.User, string, error) {
 	authHeader := strings.Split(r.Header.Get("Authorization"), " ")
 	if len(authHeader) != 2 || authHeader[0] != "Basic" {
-		return nil, "", errors.New("Failed to extract API key")
+		return nil, "", errors.New("failed to extract API key")
 	}
 
 	key, err := base64.StdEncoding.DecodeString(authHeader[1])
@@ -82,7 +82,7 @@ func (m *AuthenticateMiddleware) tryGetUserByApiKey(r *http.Request) (*models.Us
 func (m *AuthenticateMiddleware) tryGetUserByPassword(r *http.Request) (*models.User, string, error) {
 	authHeader := strings.Split(r.Header.Get("Authorization"), " ")
 	if len(authHeader) != 2 || authHeader[0] != "Basic" {
-		return nil, "", errors.New("Failed to extract API key")
+		return nil, "", errors.New("failed to extract API key")
 	}
 
 	hash, err := base64.StdEncoding.DecodeString(authHeader[1])
@@ -97,7 +97,7 @@ func (m *AuthenticateMiddleware) tryGetUserByPassword(r *http.Request) (*models.
 		re := regexp.MustCompile(`^(.+):(.+)$`)
 		groups := re.FindAllStringSubmatch(userKey, -1)
 		if len(groups) == 0 || len(groups[0]) != 3 {
-			return nil, "", errors.New("Failed to parse user agent string")
+			return nil, "", errors.New("failed to parse user agent string")
 		}
 		userId, password := groups[0][1], groups[0][2]
 		user, err = m.UserSrvc.GetUserById(userId)
@@ -107,7 +107,7 @@ func (m *AuthenticateMiddleware) tryGetUserByPassword(r *http.Request) (*models.
 		passwordHash := md5.Sum([]byte(password))
 		passwordHashString := hex.EncodeToString(passwordHash[:])
 		if passwordHashString != user.Password {
-			return nil, "", errors.New("Invalid password")
+			return nil, "", errors.New("invalid password")
 		}
 	} else {
 		user = cachedUser.(*models.User)

@@ -188,7 +188,7 @@ func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryTy
 
 func getMissingIntervals(from, to time.Time, existingSummaries []*models.Summary) []*Interval {
 	if len(existingSummaries) == 0 {
-		return []*Interval{&Interval{from, to}}
+		return []*Interval{{from, to}}
 	}
 
 	intervals := make([]*Interval, 0)

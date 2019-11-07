@@ -62,13 +62,13 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 			from = utils.StartOfYear()
 		default:
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Missing 'from' parameter"))
+			w.Write([]byte("missing 'from' parameter"))
 			return
 		}
 	}
 
 	live := (params.Get("live") != "" && params.Get("live") != "false") || interval == IntervalToday
-	recompute := (params.Get("recompute") != "" && params.Get("recompute") != "false")
+	recompute := params.Get("recompute") != "" && params.Get("recompute") != "false"
 	to := utils.StartOfDay()
 	if live {
 		to = time.Now()

@@ -69,7 +69,7 @@ func (j *HeartbeatReqTime) Scan(value interface{}) error {
 		*j = HeartbeatReqTime(value.(time.Time))
 		break
 	default:
-		return errors.New("Unsupported type")
+		return errors.New("unsupported type")
 	}
 	return nil
 }

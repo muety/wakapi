@@ -22,7 +22,7 @@ func ParseUserAgent(ua string) (string, string, error) {
 	re := regexp.MustCompile(`^wakatime\/[\d+.]+\s\((\w+).*\)\s.+\s(\w+)\/.+$`)
 	groups := re.FindAllStringSubmatch(ua, -1)
 	if len(groups) == 0 || len(groups[0]) != 3 {
-		return "", "", errors.New("Failed to parse user agent string")
+		return "", "", errors.New("failed to parse user agent string")
 	}
 	return groups[0][1], groups[0][2], nil
 }

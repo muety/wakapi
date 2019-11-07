@@ -36,7 +36,7 @@ func (srv *AliasService) GetAliasOrDefault(userId string, summaryType uint8, val
 		}
 		return value, nil
 	}
-	return "", errors.New("User aliases not initialized")
+	return "", errors.New("user aliases not initialized")
 }
 
 func (src *AliasService) IsInitialized(userId string) bool {

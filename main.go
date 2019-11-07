@@ -105,11 +105,11 @@ func main() {
 	migrateLanguages(db, config)
 
 	// Services
-	aliasSrvc := &services.AliasService{config, db}
-	heartbeatSrvc := &services.HeartbeatService{config, db}
-	userSrvc := &services.UserService{config, db}
-	summarySrvc := &services.SummaryService{config, db, heartbeatSrvc, aliasSrvc}
-	aggregationSrvc := &services.AggregationService{config, db, userSrvc, summarySrvc, heartbeatSrvc}
+	aliasSrvc := &services.AliasService{Config: config, Db: db}
+	heartbeatSrvc := &services.HeartbeatService{Config: config, Db: db}
+	userSrvc := &services.UserService{Config: config, Db: db}
+	summarySrvc := &services.SummaryService{Config: config, Db: db, HeartbeatService: heartbeatSrvc, AliasService: aliasSrvc}
+	aggregationSrvc := &services.AggregationService{Config: config, Db: db, UserService: userSrvc, SummaryService: summarySrvc, HeartbeatService: heartbeatSrvc}
 
 	// Aggregate heartbeats to summaries and persist them
 	go aggregationSrvc.Schedule()
@@ -119,8 +119,8 @@ func main() {
 	summaryHandler := &routes.SummaryHandler{SummarySrvc: summarySrvc}
 
 	// Middlewares
-	authenticate := &middlewares.AuthenticateMiddleware{UserSrvc: userSrvc}
-	cors := cors.New(cors.Options{
+	authenticateMiddleware := &middlewares.AuthenticateMiddleware{UserSrvc: userSrvc}
+	corsMiddleware := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
 		AllowedHeaders: []string{"*"},
 		Debug:          false,
@@ -139,9 +139,9 @@ func main() {
 
 	// Sub-Routes Setup
 	router.PathPrefix("/api").Handler(negroni.Classic().
-		With(cors).
+		With(corsMiddleware).
 		With(
-			negroni.HandlerFunc(authenticate.Handle),
+			negroni.HandlerFunc(authenticateMiddleware.Handle),
 			negroni.Wrap(apiRouter),
 		))
 	router.PathPrefix("/").Handler(negroni.Classic().With(negroni.Wrap(http.FileServer(http.Dir("./static")))))
