@@ -37,9 +37,6 @@ func readConfig() *models.Config {
 	dbName, valid := os.LookupEnv("WAKAPI_DB_NAME")
 	dbPortStr, valid := os.LookupEnv("WAKAPI_DB_PORT")
 	dbPort, err := strconv.Atoi(dbPortStr)
-	if err != nil {
-		dbPort = 3306
-	}
 
 	if !valid {
 		log.Fatal("Environment variables missing or invalid.")
