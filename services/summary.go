@@ -22,10 +22,16 @@ type Interval struct {
 	End   time.Time
 }
 
-func (srv *SummaryService) Construct(from, to time.Time, user *models.User) (*models.Summary, error) {
-	existingSummaries, err := srv.GetByUserWithin(user, from, to)
-	if err != nil {
-		return nil, err
+func (srv *SummaryService) Construct(from, to time.Time, user *models.User, recompute bool) (*models.Summary, error) {
+	var existingSummaries []*models.Summary
+	if recompute {
+		existingSummaries = make([]*models.Summary, 0)
+	} else {
+		summaries, err := srv.GetByUserWithin(user, from, to)
+		if err != nil {
+			return nil, err
+		}
+		existingSummaries = summaries
 	}
 
 	missingIntervals := getMissingIntervals(from, to, existingSummaries)

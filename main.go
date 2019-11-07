@@ -170,12 +170,7 @@ func migrateLanguages(db *gorm.DB, cfg *models.Config) {
 func addDefaultUser(db *gorm.DB, cfg *models.Config) {
 	pw := md5.Sum([]byte(models.DefaultPassword))
 	pwString := hex.EncodeToString(pw[:])
-	var err error
-	apiKey := uuid.Must(uuid.NewV4(), err).String()
-	if err != nil {
-		log.Println("Unable to create api key.")
-		log.Fatal(err)
-	}
+	apiKey := uuid.NewV4().String()
 	u := &models.User{ID: models.DefaultUser, Password: pwString, ApiKey: apiKey}
 	result := db.FirstOrCreate(u, &models.User{ID: u.ID})
 	if result.Error != nil {

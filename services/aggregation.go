@@ -53,7 +53,7 @@ func (srv *AggregationService) Schedule() {
 
 func (srv *AggregationService) summaryWorker(jobs <-chan *AggregationJob, summaries chan<- *models.Summary) {
 	for job := range jobs {
-		if summary, err := srv.SummaryService.Construct(job.From, job.To, &models.User{ID: job.UserID}); err != nil {
+		if summary, err := srv.SummaryService.Construct(job.From, job.To, &models.User{ID: job.UserID}, true); err != nil {
 			log.Printf("Failed to generate summary (%v, %v, %s) – %v.\n", job.From, job.To, job.UserID, err)
 		} else {
 			log.Printf("Successfully generated summary (%v, %v, %s).\n", job.From, job.To, job.UserID)

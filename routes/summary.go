@@ -10,6 +10,7 @@ import (
 	"github.com/n1try/wakapi/services"
 	"github.com/n1try/wakapi/utils"
 	cache "github.com/patrickmn/go-cache"
+	uuid "github.com/satori/go.uuid"
 )
 
 const (
@@ -67,21 +68,27 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	live := (params.Get("live") != "" && params.Get("live") != "false") || interval == IntervalToday
+	recompute := (params.Get("recompute") != "" && params.Get("recompute") != "false")
 	to := utils.StartOfDay()
 	if live {
 		to = time.Now()
 	}
 
 	var summary *models.Summary
-	cacheKey := getHash([]time.Time{from, to}, user)
+	var cacheKey string
+	if !recompute {
+		cacheKey = getHash([]time.Time{from, to}, user)
+	} else {
+		cacheKey = uuid.NewV4().String()
+	}
 	if cachedSummary, ok := h.Cache.Get(cacheKey); !ok {
 		// Cache Miss
-		summary, err = h.SummarySrvc.Construct(from, to, user) // 'to' is always constant
+		summary, err = h.SummarySrvc.Construct(from, to, user, recompute) // 'to' is always constant
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		if !live {
+		if !live && !recompute {
 			h.Cache.Set(cacheKey, summary, cache.DefaultExpiration)
 		}
 	} else {
