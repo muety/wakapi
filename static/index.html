@@ -61,15 +61,21 @@
     <h1>Wakapi</h1>
     <h3>Your Coding Statistics Dashboard</h3>
     <div class="input-container" id="input-container">
-        <label for="user">User: </label>
-        <input type="text" class="input" id="user-input" name="user" placeholder="Enter Username">
-        <label for="pw">Password: </label>
-        <input type="password" class="input" id="password-input" name="pw" placeholder="Enter Password">
-        <button onclick="load('today', true)">Today (live)</button>
-        <button onclick="load('day', false)">Day</button>
-        <button onclick="load('week', false)">Week</button>
-        <button onclick="load('month', false)">Month</button>
-        <button onclick="load('year', false)">Year</button>
+        <div>
+            <label for="user">User: </label>
+            <input type="text" class="input" id="user-input" name="user" placeholder="Enter Username">
+            <label for="pw">Password: </label>
+            <input type="password" class="input" id="password-input" name="pw" placeholder="Enter Password">
+        </div>
+        <div style="margin-top: 10px">
+            <span>Shortcuts: </span>
+            <button onclick="load('today', true)">Today (live)</button>
+            <button onclick="load('day', false)">Yesterday</button>
+            <button onclick="load('week', false)">This Week</button>
+            <button onclick="load('month', false)">This Month</button>
+            <button onclick="load('year', false)">This Year</button>
+            <button onclick="load('any', false)">All Time</button>
+        </div>
     </div>
     <div class="grid-container" id="grid-container">
         <div class="header-container">

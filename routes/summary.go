@@ -19,6 +19,7 @@ const (
 	IntervalLastWeek  string = "week"
 	IntervalLastMonth string = "month"
 	IntervalLastYear  string = "year"
+	IntervalAny       string = "any"
 )
 
 type SummaryHandler struct {
@@ -60,6 +61,8 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 			from = utils.StartOfMonth()
 		case IntervalLastYear:
 			from = utils.StartOfYear()
+		case IntervalAny:
+			from = time.Time{}
 		default:
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("missing 'from' parameter"))

@@ -20,7 +20,7 @@ func StartOfMonth() time.Time {
 
 func StartOfYear() time.Time {
 	ref := time.Now()
-	return time.Date(ref.Year(), 0, 0, 0, 0, 0, 0, ref.Location())
+	return time.Date(ref.Year(), time.January, 0, 0, 0, 0, 0, ref.Location())
 }
 
 // https://stackoverflow.com/a/18632496
