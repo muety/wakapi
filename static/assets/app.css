@@ -1,0 +1,44 @@
+body {
+    font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+    color: #666;
+}
+
+h1 {
+    margin-bottom: 10px;
+}
+
+h3 {
+    margin: 10px 0 20px 0;
+}
+
+.grid-container {
+    width: 75%;
+    display: grid;
+    grid-template-areas: 'header header header' 'sec1 sec1 sec2' 'sec1 sec1 sec3' 'sec1 sec1 sec4' 'footer footer footer';
+    grid-gap: 10px;
+    visibility: hidden;
+}
+
+.projects-container {
+    grid-area: sec1
+}
+
+.os-container {
+    grid-area: sec2
+}
+
+.editor-container {
+    grid-area: sec3
+}
+
+.language-container {
+    grid-area: sec4
+}
+
+.header-container {
+    grid-area: header
+}
+
+.input {
+    width: 300px;
+}

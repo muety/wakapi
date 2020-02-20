@@ -1,9 +1,12 @@
 package services
 
 import (
+	"crypto/md5"
 	"errors"
+	"github.com/patrickmn/go-cache"
 	"math"
 	"sort"
+	"strconv"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -12,6 +15,7 @@ import (
 
 type SummaryService struct {
 	Config           *models.Config
+	Cache            *cache.Cache
 	Db               *gorm.DB
 	HeartbeatService *HeartbeatService
 	AliasService     *AliasService
@@ -22,11 +26,21 @@ type Interval struct {
 	End   time.Time
 }
 
+func (srv *SummaryService) Init() {
+	srv.Cache = cache.New(24*time.Hour, 24*time.Hour)
+}
+
 func (srv *SummaryService) Construct(from, to time.Time, user *models.User, recompute bool) (*models.Summary, error) {
 	var existingSummaries []*models.Summary
+	var cacheKey string
+
 	if recompute {
 		existingSummaries = make([]*models.Summary, 0)
 	} else {
+		cacheKey = getHash([]time.Time{from, to}, user)
+		if result, ok := srv.Cache.Get(cacheKey); ok {
+			return result.(*models.Summary), nil
+		}
 		summaries, err := srv.GetByUserWithin(user, from, to)
 		if err != nil {
 			return nil, err
@@ -92,6 +106,10 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User, reco
 	summary, err := mergeSummaries(allSummaries)
 	if err != nil {
 		return nil, err
+	}
+
+	if cacheKey != "" {
+		srv.Cache.SetDefault(cacheKey, summary)
 	}
 
 	return summary, nil
@@ -282,4 +300,13 @@ func mergeSummaryItems(existing []*models.SummaryItem, new []*models.SummaryItem
 	})
 
 	return itemList
+}
+
+func getHash(times []time.Time, user *models.User) string {
+	digest := md5.New()
+	for _, t := range times {
+		digest.Write([]byte(strconv.Itoa(int(t.Unix()))))
+	}
+	digest.Write([]byte(user.ID))
+	return string(digest.Sum(nil))
 }

@@ -10,6 +10,8 @@ type UserService struct {
 	Db     *gorm.DB
 }
 
+func (srv *UserService) Init() {}
+
 func (srv *UserService) GetUserById(userId string) (*models.User, error) {
 	u := &models.User{}
 	if err := srv.Db.Where(&models.User{ID: userId}).First(u).Error; err != nil {

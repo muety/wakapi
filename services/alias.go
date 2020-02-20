@@ -15,6 +15,8 @@ type AliasService struct {
 
 var userAliases sync.Map
 
+func (srv *AliasService) Init() {}
+
 func (srv *AliasService) LoadUserAliases(userId string) error {
 	var aliases []*models.Alias
 	if err := srv.Db.

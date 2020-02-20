@@ -1,0 +1,54 @@
+<html>
+
+<head>
+    <title>Coding Stats</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <link rel="icon" data-emoji="📊" type="image/png">
+    <link rel="stylesheet" href="/assets/app.css">
+</head>
+
+<body>
+<h1>Wakapi</h1>
+<h3>Your Coding Statistics Dashboard</h3>
+<div>
+    <a href="/?interval=today">Today (live)</a>
+    <a href="/?interval=day">Yesterday</a>
+    <a href="/?interval=week">This Week</a>
+    <a href="/?interval=month">This Month</a>
+    <a href="/?interval=year">This Year</a>
+    <a href="/?interval=any">All Time</a>
+</div>
+<div class="grid-container" id="grid-container">
+    <div class="header-container">
+        <p>
+            <strong>Total:</strong> <span id="total-span"></span><br>
+        </p>
+    </div>
+    <div class="projects-container" id="projects-container">
+        <canvas id="chart-projects"></canvas>
+    </div>
+    <div class="os-container" id="os-container">
+        <canvas id="chart-os"></canvas>
+    </div>
+    <div class="editor-container" id="editor-container">
+        <canvas id="chart-editor"></canvas>
+    </div>
+    <div class="language-container" id="language-container">
+        <canvas id="chart-language"></canvas>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.4/seedrandom.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
+
+<script>
+    let wakapiData = {}
+    wakapiData.projects = {{ json .Projects }}
+    wakapiData.operatingSystems = {{ .OperatingSystems | json }}
+    wakapiData.editors = {{ .Editors | json }}
+    wakapiData.languages = {{ .Languages | json }}
+</script>
+<script src="/assets/app.js"></script>
+</body>
+
+</html>

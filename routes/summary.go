@@ -1,16 +1,15 @@
 package routes
 
 import (
-	"crypto/md5"
+	"errors"
+	"html/template"
 	"net/http"
-	"strconv"
+	"path"
 	"time"
 
 	"github.com/n1try/wakapi/models"
 	"github.com/n1try/wakapi/services"
 	"github.com/n1try/wakapi/utils"
-	cache "github.com/patrickmn/go-cache"
-	uuid "github.com/satori/go.uuid"
 )
 
 const (
@@ -23,15 +22,23 @@ const (
 )
 
 type SummaryHandler struct {
-	SummarySrvc *services.SummaryService
-	Cache       *cache.Cache
-	Initialized bool
+	SummarySrvc   *services.SummaryService
+	Initialized   bool
+	indexTemplate *template.Template
 }
 
 func (m *SummaryHandler) Init() {
-	if m.Cache == nil {
-		m.Cache = cache.New(24*time.Hour, 24*time.Hour)
+	indexTplPath := "views/index.tpl.html"
+	indexTpl, err := template.New(path.Base(indexTplPath)).Funcs(template.FuncMap{
+		"json": utils.Json,
+	}).ParseFiles(indexTplPath)
+
+	if err != nil {
+		panic(err)
 	}
+
+	m.indexTemplate = indexTpl
+
 	m.Initialized = true
 }
 
@@ -45,6 +52,37 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 		h.Init()
 	}
 
+	summary, err, status := loadUserSummary(r, h.SummarySrvc)
+	if err != nil {
+		w.WriteHeader(status)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	utils.RespondJSON(w, http.StatusOK, summary)
+}
+
+func (h *SummaryHandler) Index(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	if !h.Initialized {
+		h.Init()
+	}
+
+	summary, err, status := loadUserSummary(r, h.SummarySrvc)
+	if err != nil {
+		w.WriteHeader(status)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	h.indexTemplate.Execute(w, summary)
+}
+
+func loadUserSummary(r *http.Request, summaryService *services.SummaryService) (*models.Summary, error, int) {
 	user := r.Context().Value(models.UserKey).(*models.User)
 	params := r.URL.Query()
 	interval := params.Get("interval")
@@ -64,9 +102,7 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 		case IntervalAny:
 			from = time.Time{}
 		default:
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("missing 'from' parameter"))
-			return
+			return nil, errors.New("missing 'from' parameter"), http.StatusBadRequest
 		}
 	}
 
@@ -78,34 +114,10 @@ func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var summary *models.Summary
-	var cacheKey string
-	if !recompute {
-		cacheKey = getHash([]time.Time{from, to}, user)
-	} else {
-		cacheKey = uuid.NewV4().String()
-	}
-	if cachedSummary, ok := h.Cache.Get(cacheKey); !ok {
-		// Cache Miss
-		summary, err = h.SummarySrvc.Construct(from, to, user, recompute) // 'to' is always constant
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		if !live && !recompute {
-			h.Cache.Set(cacheKey, summary, cache.DefaultExpiration)
-		}
-	} else {
-		summary = cachedSummary.(*models.Summary)
+	summary, err = summaryService.Construct(from, to, user, recompute) // 'to' is always constant
+	if err != nil {
+		return nil, err, http.StatusInternalServerError
 	}
 
-	utils.RespondJSON(w, http.StatusOK, summary)
-}
-
-func getHash(times []time.Time, user *models.User) string {
-	digest := md5.New()
-	for _, t := range times {
-		digest.Write([]byte(strconv.Itoa(int(t.Unix()))))
-	}
-	digest.Write([]byte(user.ID))
-	return string(digest.Sum(nil))
+	return summary, nil, http.StatusOK
 }

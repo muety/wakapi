@@ -28,6 +28,8 @@ type AggregationJob struct {
 	To     time.Time
 }
 
+func (srv *AggregationService) Init() {}
+
 // Schedule a job to (re-)generate summaries every day shortly after midnight
 // TODO: Make configurable
 func (srv *AggregationService) Schedule() {

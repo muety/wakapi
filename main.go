@@ -108,6 +108,11 @@ func main() {
 	summarySrvc := &services.SummaryService{Config: config, Db: db, HeartbeatService: heartbeatSrvc, AliasService: aliasSrvc}
 	aggregationSrvc := &services.AggregationService{Config: config, Db: db, UserService: userSrvc, SummaryService: summarySrvc, HeartbeatService: heartbeatSrvc}
 
+	services := []services.Initializable{aliasSrvc, heartbeatSrvc, summarySrvc, userSrvc, aggregationSrvc}
+	for _, s := range services {
+		s.Init()
+	}
+
 	// Aggregate heartbeats to summaries and persist them
 	go aggregationSrvc.Schedule()
 
@@ -117,6 +122,7 @@ func main() {
 
 	// Middlewares
 	authenticateMiddleware := &middlewares.AuthenticateMiddleware{UserSrvc: userSrvc}
+	basicAuthMiddleware := &middlewares.RequireBasicAuthMiddleware{}
 	corsMiddleware := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
 		AllowedHeaders: []string{"*"},
@@ -125,23 +131,36 @@ func main() {
 
 	// Setup Routing
 	router := mux.NewRouter()
+	mainRouter := mux.NewRouter().PathPrefix("").Subrouter()
 	apiRouter := mux.NewRouter().PathPrefix("/api").Subrouter()
+
+	// Main Routes
+	index := mainRouter.Path("/").Subrouter()
+	index.Methods(http.MethodGet).Path("/").HandlerFunc(summaryHandler.Index)
 
 	// API Routes
 	heartbeats := apiRouter.Path("/heartbeat").Subrouter()
 	heartbeats.Methods(http.MethodPost).HandlerFunc(heartbeatHandler.Post)
 
+	// Static Routes
+	router.PathPrefix("/assets").Handler(negroni.Classic().With(negroni.Wrap(http.FileServer(http.Dir("./static")))))
+
 	aggreagations := apiRouter.Path("/summary").Subrouter()
 	aggreagations.Methods(http.MethodGet).HandlerFunc(summaryHandler.Get)
 
 	// Sub-Routes Setup
+	router.PathPrefix("/").Handler(negroni.Classic().
+		With(negroni.HandlerFunc(basicAuthMiddleware.Handle),
+			negroni.HandlerFunc(authenticateMiddleware.Handle),
+			negroni.Wrap(mainRouter),
+		))
+
 	router.PathPrefix("/api").Handler(negroni.Classic().
 		With(corsMiddleware).
 		With(
 			negroni.HandlerFunc(authenticateMiddleware.Handle),
 			negroni.Wrap(apiRouter),
 		))
-	router.PathPrefix("/").Handler(negroni.Classic().With(negroni.Wrap(http.FileServer(http.Dir("./static")))))
 
 	// Listen HTTP
 	portString := config.Addr + ":" + strconv.Itoa(config.Port)
