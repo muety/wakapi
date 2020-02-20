@@ -6,8 +6,12 @@
 [![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoff.ee/n1try)
 
 ## Prerequisites
+### Server
 * Go >= 1.13 (with `$GOPATH` properly set)
 * A MySQL database
+
+### Client
+* [WakaTime plugin](https://wakatime.com/plugins) for your editor / IDE
 
 ## Usage
 * Create an empty MySQL database
