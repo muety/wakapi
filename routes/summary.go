@@ -28,18 +28,20 @@ type SummaryHandler struct {
 }
 
 func (m *SummaryHandler) Init() {
+	m.loadTemplates()
+	m.Initialized = true
+}
+
+func (m *SummaryHandler) loadTemplates() {
 	indexTplPath := "views/index.tpl.html"
 	indexTpl, err := template.New(path.Base(indexTplPath)).Funcs(template.FuncMap{
 		"json": utils.Json,
+		"date": utils.FormatDateHuman,
 	}).ParseFiles(indexTplPath)
-
 	if err != nil {
 		panic(err)
 	}
-
 	m.indexTemplate = indexTpl
-
-	m.Initialized = true
 }
 
 func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +72,10 @@ func (h *SummaryHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	if !h.Initialized {
 		h.Init()
+	}
+
+	if h.SummarySrvc.Config.IsDev() {
+		h.loadTemplates()
 	}
 
 	summary, err, status := loadUserSummary(r, h.SummarySrvc)

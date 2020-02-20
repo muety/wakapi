@@ -1,6 +1,7 @@
 package models
 
 type Config struct {
+	Env             string
 	Port            int
 	Addr            string
 	DbHost          string
@@ -11,4 +12,8 @@ type Config struct {
 	DbDialect       string
 	DbMaxConn       uint
 	CustomLanguages map[string]string
+}
+
+func (c *Config) IsDev() bool {
+	return c.Env == "dev"
 }

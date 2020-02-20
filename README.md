@@ -1,7 +1,7 @@
 # 📈 wakapi
 **A minimalist, self-hosted WakaTime-compatible backend for coding statistics**
 
-![Wakapi screenshot](https://anchr.io/i/zCVbN.png)
+![Wakapi screenshot](https://anchr.io/i/bxQ69.png)
 
 [![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoff.ee/n1try)
 
@@ -61,9 +61,6 @@ However, if you want to expose your wakapi instance to the public anyway, you ne
 ## Todo
 * User sign up and log in
 * Additional endpoints for retrieving statistics data
-* Enhanced UI
-  * Loading spinner
-  * Responsiveness
 * Support for SQLite database
 * Unit tests
 

@@ -31,6 +31,7 @@ func readConfig() *models.Config {
 		log.Fatal(err)
 	}
 
+	env, _ := os.LookupEnv("ENV")
 	dbUser, valid := os.LookupEnv("WAKAPI_DB_USER")
 	dbPassword, valid := os.LookupEnv("WAKAPI_DB_PASSWORD")
 	dbHost, valid := os.LookupEnv("WAKAPI_DB_HOST")
@@ -62,6 +63,7 @@ func readConfig() *models.Config {
 	}
 
 	return &models.Config{
+		Env:             env,
 		Port:            port,
 		Addr:            addr,
 		DbHost:          dbHost,

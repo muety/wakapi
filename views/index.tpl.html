@@ -1,54 +1,74 @@
 <html>
 
 <head>
-    <title>Coding Stats</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>Wakapi – Coding Statistics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
     <link rel="icon" data-emoji="📊" type="image/png">
-    <link rel="stylesheet" href="/assets/app.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+    <link href="/assets/app.css" rel="stylesheet">
 </head>
 
-<body>
-<h1>Wakapi</h1>
-<h3>Your Coding Statistics Dashboard</h3>
-<div>
-    <a href="/?interval=today">Today (live)</a>
-    <a href="/?interval=day">Yesterday</a>
-    <a href="/?interval=week">This Week</a>
-    <a href="/?interval=month">This Month</a>
-    <a href="/?interval=year">This Year</a>
-    <a href="/?interval=any">All Time</a>
-</div>
-<div class="grid-container" id="grid-container">
-    <div class="header-container">
-        <p>
-            <strong>Total:</strong> <span id="total-span"></span><br>
-        </p>
+<body class="bg-gray-800 text-gray-700 p-4 pt-12 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
+    <div class="flex items-center justify-center">
+        <h1 class="font-semibold text-2xl text-white m-0 border-b-4 border-green-700">Your Coding Statistics 🤓</h1>
     </div>
-    <div class="projects-container" id="projects-container">
-        <canvas id="chart-projects"></canvas>
+    <div class="text-white text-sm flex items-center justify-center mt-4">
+        <a href="/?interval=today" class="m-1 border-b border-green-700">Today (live)</a>
+        <a href="/?interval=day" class="m-1 border-b border-green-700">Yesterday</a>
+        <a href="/?interval=week" class="m-1 border-b border-green-700">This Week</a>
+        <a href="/?interval=month" class="m-1 border-b border-green-700">This Month</a>
+        <a href="/?interval=year" class="m-1 border-b border-green-700">This Year</a>
+        <a href="/?interval=any" class="m-1 border-b border-green-700">All Time</a>
     </div>
-    <div class="os-container" id="os-container">
-        <canvas id="chart-os"></canvas>
-    </div>
-    <div class="editor-container" id="editor-container">
-        <canvas id="chart-editor"></canvas>
-    </div>
-    <div class="language-container" id="language-container">
-        <canvas id="chart-language"></canvas>
-    </div>
-</div>
+    <main class="mt-12 flex-grow" id="grid-container">
+        <div class="flex justify-center">
+            <div class="p-1">
+                <div class="flex justify-center p-4 bg-white rounded shadow">
+                    <p class="mx-2"><strong>▶️</strong> <span title="Start Time">{{ .FromTime | date }}</span></p>
+                    <p class="mx-2"><strong>⏹</strong> <span title="End Time">{{ .ToTime | date }}</span></p>
+                    <p class="mx-2"><strong>⏱</strong> <span id="total-span" title="Total Hours"></span></p>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-wrap justify-center">
+            <div class="w-full lg:w-1/2 p-1">
+                <div class="p-4 bg-white rounded shadow m-2" id="projects-container">
+                    <canvas id="chart-projects"></canvas>
+                </div>
+            </div>
+            <div class="w-full lg:w-1/2 p-1">
+                <div class="p-4 bg-white rounded shadow m-2" id="os-container">
+                    <canvas id="chart-os"></canvas>
+                </div>
+            </div>
+            <div class="w-full lg:w-1/2 p-1">
+                <div class="p-4 bg-white rounded shadow m-2" id="editor-container">
+                    <canvas id="chart-editor"></canvas>
+                </div>
+            </div>
+            <div class="w-full lg:w-1/2 p-1">
+                <div class="p-4 bg-white rounded shadow m-2" id="language-container">
+                    <canvas id="chart-language"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="w-full text-center text-gray-300 text-xs mt-12">
+        Made by <a href="https://muetsch.io" class="border-b border-green-700">Ferdinand Mütsch</a> as <a href="https://github.com/n1try/wakapi" class="border-b border-green-700">open-source</a>.
+    </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.4/seedrandom.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.4/seedrandom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
 
-<script>
-    let wakapiData = {}
-    wakapiData.projects = {{ json .Projects }}
-    wakapiData.operatingSystems = {{ .OperatingSystems | json }}
-    wakapiData.editors = {{ .Editors | json }}
-    wakapiData.languages = {{ .Languages | json }}
-</script>
-<script src="/assets/app.js"></script>
+    <script>
+        let wakapiData = {}
+        wakapiData.projects = {{ json .Projects }}
+        wakapiData.operatingSystems = {{ .OperatingSystems | json }}
+        wakapiData.editors = {{ .Editors | json }}
+        wakapiData.languages = {{ .Languages | json }}
+    </script>
+    <script src="/assets/app.js"></script>
 </body>
 
 </html>
