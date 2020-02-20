@@ -78,6 +78,12 @@ func (h *SummaryHandler) Index(w http.ResponseWriter, r *http.Request) {
 		h.loadTemplates()
 	}
 
+	q := r.URL.Query()
+	if q.Get("interval") == "" && q.Get("from") == "" {
+		q.Set("interval", "today")
+		r.URL.RawQuery = q.Encode()
+	}
+
 	summary, err, status := loadUserSummary(r, h.SummarySrvc)
 	if err != nil {
 		w.WriteHeader(status)
