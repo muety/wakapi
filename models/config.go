@@ -11,6 +11,7 @@ type Config struct {
 	DbName          string
 	DbDialect       string
 	DbMaxConn       uint
+	CleanUp         bool
 	CustomLanguages map[string]string
 }
 

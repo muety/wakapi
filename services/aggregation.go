@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	intervalDays int = 1 // TODO: Make configurable
+	aggregateIntervalDays int = 1 // TODO: Make configurable
 )
 
 type AggregationService struct {
@@ -126,7 +126,7 @@ func generateUserJobs(userId string, lastAggregation time.Time, jobs chan<- *Agg
 		from = time.Date(
 			lastAggregation.Year(),
 			lastAggregation.Month(),
-			lastAggregation.Day()+intervalDays,
+			lastAggregation.Day()+aggregateIntervalDays,
 			0, 0, 0, 0,
 			lastAggregation.Location(),
 		)
@@ -136,7 +136,7 @@ func generateUserJobs(userId string, lastAggregation time.Time, jobs chan<- *Agg
 		to = time.Date(
 			from.Year(),
 			from.Month(),
-			from.Day()+intervalDays,
+			from.Day()+aggregateIntervalDays,
 			0, 0, 0, 0,
 			from.Location(),
 		)

@@ -1,6 +1,9 @@
 package services
 
 import (
+	"github.com/jasonlvhit/gocron"
+	"github.com/n1try/wakapi/utils"
+	"log"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -8,7 +11,10 @@ import (
 	gormbulk "github.com/t-tiger/gorm-bulk-insert"
 )
 
-const TableHeartbeat = "heartbeat"
+const (
+	TableHeartbeat  = "heartbeat"
+	cleanUpInterval = time.Duration(aggregateIntervalDays) * 2 * 24 * time.Hour
+)
 
 type HeartbeatService struct {
 	Config *models.Config
@@ -54,4 +60,30 @@ func (srv *HeartbeatService) GetFirstUserHeartbeats(userIds []string) ([]*models
 		return nil, err
 	}
 	return heartbeats, nil
+}
+
+func (srv *HeartbeatService) DeleteBefore(t time.Time) error {
+	if err := srv.Db.
+		Where("time <= ?", t).
+		Delete(models.Heartbeat{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (srv *HeartbeatService) CleanUp() error {
+	refTime := utils.StartOfDay().Add(-cleanUpInterval)
+	if err := srv.DeleteBefore(refTime); err != nil {
+		log.Printf("Failed to clean up heartbeats older than %v – %v\n", refTime, err)
+		return err
+	}
+	log.Printf("Successfully cleaned up heartbeats older than %v\n", refTime)
+	return nil
+}
+
+func (srv *HeartbeatService) ScheduleCleanUp() {
+	srv.CleanUp()
+
+	gocron.Every(1).Day().At("02:30").Do(srv.CleanUp)
+	<-gocron.Start()
 }

@@ -55,6 +55,8 @@ func readConfig() *models.Config {
 		port = cfg.Section("server").Key("port").MustInt()
 	}
 
+	cleanUp := cfg.Section("app").Key("cleanup").MustBool(false)
+
 	// Read custom languages
 	customLangs := make(map[string]string)
 	languageKeys := cfg.Section("languages").Keys()
@@ -73,6 +75,7 @@ func readConfig() *models.Config {
 		DbName:          dbName,
 		DbDialect:       "mysql",
 		DbMaxConn:       dbMaxConn,
+		CleanUp:         cleanUp,
 		CustomLanguages: customLangs,
 	}
 }
@@ -83,7 +86,7 @@ func main() {
 
 	// Connect to database
 	db, err := gorm.Open(config.DbDialect, utils.MakeConnectionString(config))
-	db.LogMode(false)
+	db.LogMode(config.IsDev())
 	db.DB().SetMaxIdleConns(int(config.DbMaxConn))
 	db.DB().SetMaxOpenConns(int(config.DbMaxConn))
 	if err != nil {
@@ -117,6 +120,10 @@ func main() {
 
 	// Aggregate heartbeats to summaries and persist them
 	go aggregationSrvc.Schedule()
+
+	if config.CleanUp {
+		go heartbeatSrvc.ScheduleCleanUp()
+	}
 
 	// Handlers
 	heartbeatHandler := &routes.HeartbeatHandler{HeartbeatSrvc: heartbeatSrvc}
