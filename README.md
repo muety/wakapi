@@ -15,9 +15,9 @@
 
 ## Usage
 * Create an empty MySQL database
+* Enable Go module support: `export GO111MODULE=on`
 * Get code: `go get github.com/n1try/wakapi`
 * Go to project root: `cd "$GOPATH/src/github.com/n1try/wakapi"`
-* Install dependencies: `go get -d ./...`
 * Copy `.env.example` to `.env` and set database credentials
 * Set target port in `config.ini`
 * Build executable: `go build`
