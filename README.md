@@ -27,6 +27,8 @@
   * `api_key = the_api_key_printed_to_the_console_after_starting_the_server`
 * Open [http://localhost:3000](http://localhost:3000) in your browser
 
+**Alternatively** to building from source using `go get` you can also download one of the existing [pre-compiled binaries](https://github.com/n1try/wakapi/releases).
+
 ### Run with Docker
 * Edit `docker-compose.yml` file and change passwords for the DB
 * Build the container `docker-compose build`
