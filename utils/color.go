@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/n1try/wakapi/models"
+	"github.com/muety/wakapi/models"
 	"strings"
 )
 

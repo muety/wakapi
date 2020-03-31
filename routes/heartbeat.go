@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/n1try/wakapi/services"
-	"github.com/n1try/wakapi/utils"
+	"github.com/muety/wakapi/services"
+	"github.com/muety/wakapi/utils"
 
-	"github.com/n1try/wakapi/models"
+	"github.com/muety/wakapi/models"
 )
 
 type HeartbeatHandler struct {

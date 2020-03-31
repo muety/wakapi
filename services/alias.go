@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/jinzhu/gorm"
-	"github.com/n1try/wakapi/models"
+	"github.com/muety/wakapi/models"
 )
 
 type AliasService struct {

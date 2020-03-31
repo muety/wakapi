@@ -2,12 +2,12 @@ package services
 
 import (
 	"github.com/jasonlvhit/gocron"
-	"github.com/n1try/wakapi/utils"
+	"github.com/muety/wakapi/utils"
 	"log"
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/n1try/wakapi/models"
+	"github.com/muety/wakapi/models"
 	gormbulk "github.com/t-tiger/gorm-bulk-insert"
 )
 

@@ -7,7 +7,7 @@ import (
 
 	"github.com/jasonlvhit/gocron"
 	"github.com/jinzhu/gorm"
-	"github.com/n1try/wakapi/models"
+	"github.com/muety/wakapi/models"
 )
 
 const (

@@ -13,8 +13,8 @@ import (
 
 	"github.com/patrickmn/go-cache"
 
-	"github.com/n1try/wakapi/models"
-	"github.com/n1try/wakapi/services"
+	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/services"
 )
 
 type AuthenticateMiddleware struct {

@@ -36,9 +36,6 @@
 * To get the api key look in the logs `docker-compose logs | grep "API key"`
 * The application should now be running on `localhost:3000`
 
-### Build for specific platform
-Example: `GOOS=darwin GOARCH=386 go build -o build/wakapi_1.1.0_$GOOS_$GOARCH github.com/muety/wakapi`
-
 ### User Accounts
 * When starting wakapi for the first time, a default user _**admin**_ with password _**admin**_ is created. The corresponding API key is printed to the console.
 * Additional users, at the moment, can be added only via SQL statements on your database, like this:

@@ -1,4 +1,4 @@
-module github.com/n1try/wakapi
+module github.com/muety/wakapi
 
 go 1.13
 

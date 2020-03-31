@@ -20,11 +20,11 @@ import (
 	uuid "github.com/satori/go.uuid"
 	ini "gopkg.in/ini.v1"
 
-	"github.com/n1try/wakapi/middlewares"
-	"github.com/n1try/wakapi/models"
-	"github.com/n1try/wakapi/routes"
-	"github.com/n1try/wakapi/services"
-	"github.com/n1try/wakapi/utils"
+	"github.com/muety/wakapi/middlewares"
+	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/routes"
+	"github.com/muety/wakapi/services"
+	"github.com/muety/wakapi/utils"
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/postgres"

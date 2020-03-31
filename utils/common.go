@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/n1try/wakapi/models"
+	"github.com/muety/wakapi/models"
 )
 
 func ParseDate(date string) (time.Time, error) {

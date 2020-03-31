@@ -7,9 +7,9 @@ import (
 	"path"
 	"time"
 
-	"github.com/n1try/wakapi/models"
-	"github.com/n1try/wakapi/services"
-	"github.com/n1try/wakapi/utils"
+	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/services"
+	"github.com/muety/wakapi/utils"
 )
 
 const (
