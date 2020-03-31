@@ -13,6 +13,7 @@ type Config struct {
 	DbMaxConn       uint
 	CleanUp         bool
 	CustomLanguages map[string]string
+	LanguageColors  map[string]string
 }
 
 func (c *Config) IsDev() bool {

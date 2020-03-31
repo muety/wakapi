@@ -3,10 +3,13 @@ package main
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/codegangsta/negroni"
@@ -25,6 +28,8 @@ import (
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
+
+// TODO: Refactor entire project to be structured after business domains
 
 func readConfig() *models.Config {
 	if err := godotenv.Load(); err != nil {
@@ -64,6 +69,27 @@ func readConfig() *models.Config {
 		customLangs[k.Name()] = k.MustString("unknown")
 	}
 
+	// Read language colors
+	// Source: https://raw.githubusercontent.com/ozh/github-colors/master/colors.json
+	var colors = make(map[string]string)
+	var rawColors map[string]struct {
+		Color string `json:"color"`
+		Url   string `json:"url"`
+	}
+
+	data, err := ioutil.ReadFile("data/colors.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := json.Unmarshal(data, &rawColors); err != nil {
+		log.Fatal(err)
+	}
+
+	for k, v := range rawColors {
+		colors[strings.ToLower(k)] = v.Color
+	}
+
 	return &models.Config{
 		Env:             env,
 		Port:            port,
@@ -77,6 +103,7 @@ func readConfig() *models.Config {
 		DbMaxConn:       dbMaxConn,
 		CleanUp:         cleanUp,
 		CustomLanguages: customLangs,
+		LanguageColors:  colors,
 	}
 }
 
@@ -147,8 +174,8 @@ func main() {
 	mainRouter.Path("/").Methods(http.MethodGet).HandlerFunc(summaryHandler.Index)
 
 	// API Routes
-	apiRouter.Path("/heartbeat").Methods(http.MethodPost).HandlerFunc(heartbeatHandler.Post)
-	apiRouter.Path("/summary").Methods(http.MethodGet).HandlerFunc(summaryHandler.Get)
+	apiRouter.Path("/heartbeat").Methods(http.MethodPost).HandlerFunc(heartbeatHandler.ApiPost)
+	apiRouter.Path("/summary").Methods(http.MethodGet).HandlerFunc(summaryHandler.ApiGet)
 
 	// Static Routes
 	router.PathPrefix("/assets").Handler(negroni.Classic().With(negroni.Wrap(http.FileServer(http.Dir("./static")))))

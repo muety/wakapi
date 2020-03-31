@@ -121,7 +121,7 @@ function draw() {
                 data: wakapiData.languages
                     .slice(0, Math.min(SHOW_TOP_N, wakapiData.languages.length))
                     .map(p => parseInt(p.total)),
-                backgroundColor: wakapiData.languages.map(p => getRandomColor(p.key))
+                backgroundColor: wakapiData.languages.map(p => languageColors[p.key.toLowerCase()] || getRandomColor(p.key))
             }],
             labels: wakapiData.languages
                 .slice(0, Math.min(SHOW_TOP_N, wakapiData.languages.length))

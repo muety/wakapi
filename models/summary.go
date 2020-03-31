@@ -35,3 +35,8 @@ type SummaryItemContainer struct {
 	Type  uint8
 	Items []*SummaryItem
 }
+
+type SummaryViewModel struct {
+	*Summary
+	LanguageColors map[string]string
+}

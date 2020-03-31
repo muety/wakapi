@@ -15,7 +15,7 @@ type HeartbeatHandler struct {
 	HeartbeatSrvc *services.HeartbeatService
 }
 
-func (h *HeartbeatHandler) Post(w http.ResponseWriter, r *http.Request) {
+func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return

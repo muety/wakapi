@@ -64,7 +64,8 @@
 
     <script>
         let wakapiData = {}
-        wakapiData.projects = {{ json .Projects }}
+        let languageColors = {{ .LanguageColors | json }}
+        wakapiData.projects = {{ .Projects | json }}
         wakapiData.operatingSystems = {{ .OperatingSystems | json }}
         wakapiData.editors = {{ .Editors | json }}
         wakapiData.languages = {{ .Languages | json }}

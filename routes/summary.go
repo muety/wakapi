@@ -44,7 +44,7 @@ func (m *SummaryHandler) loadTemplates() {
 	m.indexTemplate = indexTpl
 }
 
-func (h *SummaryHandler) Get(w http.ResponseWriter, r *http.Request) {
+func (h *SummaryHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -91,7 +91,12 @@ func (h *SummaryHandler) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.indexTemplate.Execute(w, summary)
+	vm := models.SummaryViewModel{
+		Summary:        summary,
+		LanguageColors: utils.FilterLanguageColors(h.SummarySrvc.Config.LanguageColors, summary),
+	}
+
+	h.indexTemplate.Execute(w, vm)
 }
 
 func loadUserSummary(r *http.Request, summaryService *services.SummaryService) (*models.Summary, error, int) {
