@@ -1,11 +1,13 @@
 const SHOW_TOP_N = 10
+const CHART_TARGET_SIZE = 170
 
-const projectsCanvas = document.getElementById("chart-projects")
-const osCanvas = document.getElementById("chart-os")
-const editorsCanvas = document.getElementById("chart-editor")
-const languagesCanvas = document.getElementById("chart-language")
+const projectsCanvas = document.getElementById('chart-projects')
+const osCanvas = document.getElementById('chart-os')
+const editorsCanvas = document.getElementById('chart-editor')
+const languagesCanvas = document.getElementById('chart-language')
 
 let charts = []
+let resizeCount = 0
 
 String.prototype.toHHMMSS = function () {
     var sec_num = parseInt(this, 10)
@@ -64,7 +66,9 @@ function draw() {
             tooltips: getTooltipOptions('projects', 'bar'),
             legend: {
                 display: false
-            }
+            },
+            maintainAspectRatio: false,
+            onResize: onChartResize
         }
     })
 
@@ -83,7 +87,9 @@ function draw() {
         },
         options: {
             title: Object.assign(titleOptions, {text: `Operating Systems (top ${SHOW_TOP_N})`}),
-            tooltips: getTooltipOptions('operatingSystems', 'pie')
+            tooltips: getTooltipOptions('operatingSystems', 'pie'),
+            maintainAspectRatio: false,
+            onResize: onChartResize
         }
     })
 
@@ -102,7 +108,9 @@ function draw() {
         },
         options: {
             title: Object.assign(titleOptions, {text: `Editors (top ${SHOW_TOP_N})`}),
-            tooltips: getTooltipOptions('editors', 'pie')
+            tooltips: getTooltipOptions('editors', 'pie'),
+            maintainAspectRatio: false,
+            onResize: onChartResize
         }
     })
 
@@ -121,7 +129,9 @@ function draw() {
         },
         options: {
             title: Object.assign(titleOptions, {text: `Languages (top ${SHOW_TOP_N})`}),
-            tooltips: getTooltipOptions('languages', 'pie')
+            tooltips: getTooltipOptions('languages', 'pie'),
+            maintainAspectRatio: false,
+            onResize: onChartResize
         }
     })
 
@@ -129,39 +139,78 @@ function draw() {
     document.getElementById('grid-container').style.visibility = 'visible'
 
     charts = [projectChart, osChart, editorChart, languageChart]
+
+    charts.forEach(c => c.options.onResize(c.chart))
+    equalizeHeights()
+}
+
+function getContainer(chart) {
+    return chart.canvas.parentNode
+}
+
+function onChartResize(chart) {
+    let container = getContainer(chart)
+    let targetHeight = Math.min(chart.width, CHART_TARGET_SIZE)
+    let actualHeight = chart.height - chart.chartArea.top
+    let containerTargetHeight = container.clientHeight += (targetHeight - actualHeight)
+    container.style.height = parseInt(containerTargetHeight) + 'px'
+
+    resizeCount++
+    watchEqualize()
+}
+
+function watchEqualize() {
+    if (resizeCount === charts.length) {
+        equalizeHeights()
+        resizeCount = 0
+    }
+}
+
+function equalizeHeights() {
+    let maxHeight = 0
+    charts.forEach(c => {
+        let container = getContainer(c)
+        if (maxHeight < container.clientHeight) {
+            maxHeight = container.clientHeight
+        }
+    })
+    charts.forEach(c => {
+        let container = getContainer(c)
+        container.style.height = parseInt(maxHeight) + 'px'
+    })
 }
 
 function getTotal(data) {
     let total = data.reduce((acc, d) => acc + d.total, 0)
-    document.getElementById("total-span").innerText = total.toString().toHHMMSS()
+    document.getElementById('total-span').innerText = total.toString().toHHMMSS()
 }
 
 function getRandomColor(seed) {
-    seed = seed ? seed : '1234567';
-    Math.seedrandom(seed);
-    var letters = '0123456789ABCDEF'.split('');
-    var color = '#';
+    seed = seed ? seed : '1234567'
+    Math.seedrandom(seed)
+    var letters = '0123456789ABCDEF'.split('')
+    var color = '#'
     for (var i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
+        color += letters[Math.floor(Math.random() * 16)]
     }
-    return color;
+    return color
 }
 
 // https://koddsson.com/posts/emoji-favicon/
-const favicon = document.querySelector("link[rel=icon]");
+const favicon = document.querySelector('link[rel=icon]')
 if (favicon) {
-    const emoji = favicon.getAttribute("data-emoji");
+    const emoji = favicon.getAttribute('data-emoji')
     if (emoji) {
-        const canvas = document.createElement("canvas");
-        canvas.height = 64;
-        canvas.width = 64;
-        const ctx = canvas.getContext("2d");
-        ctx.font = "64px serif";
-        ctx.fillText(emoji, 0, 64);
-        favicon.href = canvas.toDataURL();
+        const canvas = document.createElement('canvas')
+        canvas.height = 64
+        canvas.width = 64
+        const ctx = canvas.getContext('2d')
+        ctx.font = '64px serif'
+        ctx.fillText(emoji, 0, 64)
+        favicon.href = canvas.toDataURL()
     }
 }
 
-window.addEventListener('load', function() {
+window.addEventListener('load', function () {
     draw()
 })

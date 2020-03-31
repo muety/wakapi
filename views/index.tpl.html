@@ -10,7 +10,7 @@
     <link href="assets/app.css" rel="stylesheet">
 </head>
 
-<body class="bg-gray-800 text-gray-700 p-4 pt-12 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
+<body class="bg-gray-800 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
     <div class="flex items-center justify-center">
         <h1 class="font-semibold text-2xl text-white m-0 border-b-4 border-green-700">Your Coding Statistics 🤓</h1>
     </div>
@@ -22,7 +22,7 @@
         <a href="?interval=year" class="m-1 border-b border-green-700">This Year</a>
         <a href="?interval=any" class="m-1 border-b border-green-700">All Time</a>
     </div>
-    <main class="mt-12 flex-grow" id="grid-container">
+    <main class="mt-10 flex-grow" id="grid-container">
         <div class="flex justify-center">
             <div class="p-1">
                 <div class="flex justify-center p-4 bg-white rounded shadow">
@@ -34,23 +34,23 @@
         </div>
         <div class="flex flex-wrap justify-center">
             <div class="w-full lg:w-1/2 p-1">
-                <div class="p-4 bg-white rounded shadow m-2" id="projects-container">
+                <div class="p-4 bg-white rounded shadow m-2" id="projects-container" style="height: 300px">
                     <canvas id="chart-projects"></canvas>
                 </div>
             </div>
             <div class="w-full lg:w-1/2 p-1">
-                <div class="p-4 bg-white rounded shadow m-2" id="os-container">
+                <div class="p-4 bg-white rounded shadow m-2" id="os-container" style="height: 300px">
                     <canvas id="chart-os"></canvas>
                 </div>
             </div>
             <div class="w-full lg:w-1/2 p-1">
-                <div class="p-4 bg-white rounded shadow m-2" id="editor-container">
-                    <canvas id="chart-editor"></canvas>
+                <div class="p-4 bg-white rounded shadow m-2 relative" id="language-container" style="height: 300px">
+                    <canvas id="chart-language"></canvas>
                 </div>
             </div>
             <div class="w-full lg:w-1/2 p-1">
-                <div class="p-4 bg-white rounded shadow m-2" id="language-container">
-                    <canvas id="chart-language"></canvas>
+                <div class="p-4 bg-white rounded shadow m-2" id="editor-container" style="height: 300px">
+                    <canvas id="chart-editor"></canvas>
                 </div>
             </div>
         </div>
