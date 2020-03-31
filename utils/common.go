@@ -2,9 +2,8 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/n1try/wakapi/models"
@@ -32,18 +31,34 @@ func ParseUserAgent(ua string) (string, string, error) {
 }
 
 func MakeConnectionString(config *models.Config) string {
+	switch config.DbDialect {
+	case "mysql":
+		return mySqlConnectionString(config)
+	case "postgres":
+		return postgresConnectionString(config)
+	}
+	return ""
+}
+
+func mySqlConnectionString(config *models.Config) string {
 	location, _ := time.LoadLocation("Local")
-	str := strings.Builder{}
-	str.WriteString(config.DbUser)
-	str.WriteString(":")
-	str.WriteString(config.DbPassword)
-	str.WriteString("@tcp(")
-	str.WriteString(config.DbHost)
-	str.WriteString(":")
-	str.WriteString(strconv.Itoa(int(config.DbPort)))
-	str.WriteString(")/")
-	str.WriteString(config.DbName)
-	str.WriteString("?charset=utf8&parseTime=true&loc=")
-	str.WriteString(location.String())
-	return str.String()
+	return fmt.Sprintf(
+		"%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true&loc=%s",
+		config.DbUser,
+		config.DbPassword,
+		config.DbHost,
+		config.DbPort,
+		config.DbName,
+		location.String(),
+	)
+}
+
+func postgresConnectionString(config *models.Config) string {
+	return fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable",
+		config.DbHost,
+		config.DbPort,
+		config.DbUser,
+		config.DbName,
+		config.DbPassword,
+	)
 }

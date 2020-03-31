@@ -8,13 +8,13 @@
 ## Prerequisites
 ### Server
 * Go >= 1.13 (with `$GOPATH` properly set)
-* A MySQL database
+* An SQL database (MySQL or Postgres)
 
 ### Client
 * [WakaTime plugin](https://wakatime.com/plugins) for your editor / IDE
 
 ## Usage
-* Create an empty MySQL database
+* Create an empty database 
 * Enable Go module support: `export GO111MODULE=on`
 * Get code: `go get github.com/muety/wakapi`
 * Go to project root: `cd "$GOPATH/src/github.com/muety/wakapi"`
@@ -36,6 +36,8 @@
 * To get the api key look in the logs `docker-compose logs | grep "API key"`
 * The application should now be running on `localhost:3000`
 
+### Build for specific platform
+Example: `GOOS=darwin GOARCH=386 go build -o build/wakapi_1.1.0_$GOOS_$GOARCH github.com/muety/wakapi`
 
 ### User Accounts
 * When starting wakapi for the first time, a default user _**admin**_ with password _**admin**_ is created. The corresponding API key is printed to the console.
@@ -63,12 +65,6 @@ For the above example, you would need to add two aliases, like this:
 ## Best Practices
 It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or _nginx_ to enable **TLS encryption** (HTTPS).
 However, if you want to expose your wakapi instance to the public anyway, you need to set `listen = 0.0.0.0` in `config.ini`
-
-## Todo
-* User sign up and log in
-* Additional endpoints for retrieving statistics data
-* Support for SQLite database
-* Unit tests
 
 ## Important Note
 **This is not an alternative to using WakaTime.** It is just a custom, non-commercial, self-hosted application to collect coding statistics using the already existing editor plugins provided by the WakaTime community. It was created for personal use only and with the purpose of keeping the sovereignity of your own data. However, if you like the official product, **please support the authors and buy an official WakaTime subscription!**

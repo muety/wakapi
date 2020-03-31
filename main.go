@@ -27,6 +27,7 @@ import (
 	"github.com/n1try/wakapi/utils"
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 // TODO: Refactor entire project to be structured after business domains
@@ -36,7 +37,9 @@ func readConfig() *models.Config {
 		log.Fatal(err)
 	}
 
+	// TODO: Use jinzhu/configor or so
 	env, _ := os.LookupEnv("ENV")
+	dbType, valid := os.LookupEnv("WAKAPI_DB_TYPE")
 	dbUser, valid := os.LookupEnv("WAKAPI_DB_USER")
 	dbPassword, valid := os.LookupEnv("WAKAPI_DB_PASSWORD")
 	dbHost, valid := os.LookupEnv("WAKAPI_DB_HOST")
@@ -51,6 +54,10 @@ func readConfig() *models.Config {
 	cfg, err := ini.Load("config.ini")
 	if err != nil {
 		log.Fatalf("Fail to read file: %v", err)
+	}
+
+	if dbType == "" {
+		dbType = "mysql"
 	}
 
 	dbMaxConn := cfg.Section("database").Key("max_connections").MustUint(1)
@@ -99,7 +106,7 @@ func readConfig() *models.Config {
 		DbUser:          dbUser,
 		DbPassword:      dbPassword,
 		DbName:          dbName,
-		DbDialect:       "mysql",
+		DbDialect:       dbType,
 		DbMaxConn:       dbMaxConn,
 		CleanUp:         cleanUp,
 		CustomLanguages: customLangs,
@@ -119,6 +126,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Could not connect to database.")
 	}
+	// TODO: Graceful shutdown
 	defer db.Close()
 
 	// Migrate database schema
