@@ -16,8 +16,8 @@
 ## Usage
 * Create an empty MySQL database
 * Enable Go module support: `export GO111MODULE=on`
-* Get code: `go get github.com/n1try/wakapi`
-* Go to project root: `cd "$GOPATH/src/github.com/n1try/wakapi"`
+* Get code: `go get github.com/muety/wakapi`
+* Go to project root: `cd "$GOPATH/src/github.com/muety/wakapi"`
 * Copy `.env.example` to `.env` and set database credentials
 * Set target port in `config.ini`
 * Build executable: `go build`
@@ -27,7 +27,7 @@
   * `api_key = the_api_key_printed_to_the_console_after_starting_the_server`
 * Open [http://localhost:3000](http://localhost:3000) in your browser
 
-**As an alternative** to building from source or using `go get` you can also download one of the existing [pre-compiled binaries](https://github.com/n1try/wakapi/releases).
+**As an alternative** to building from source or using `go get` you can also download one of the existing [pre-compiled binaries](https://github.com/muety/wakapi/releases).
 
 ### Run with Docker
 * Edit `docker-compose.yml` file and change passwords for the DB
