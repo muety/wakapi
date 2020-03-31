@@ -8,9 +8,7 @@ for os in ${OSLIST[*]}
   do
     for arch in ${ARCHLIST[*]}
       do
-        GOOS=$os
-        GOARCH=$arch
-        echo "Building $GOOS / $GOARCH"
-        GOOS=$GOOS GOARCH=$GOARCH go build -o "build/wakapi_${VERSION}_${GOOS}_${GOARCH}" "github.com/muety/wakapi"
+        echo "Building $os / $arch"
+        GOOS=$os GOARCH=$arch go build -o "build/wakapi_${VERSION}_${os}_${arch}" "github.com/muety/wakapi"
       done
   done
