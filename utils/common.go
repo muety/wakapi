@@ -36,6 +36,8 @@ func MakeConnectionString(config *models.Config) string {
 		return mySqlConnectionString(config)
 	case "postgres":
 		return postgresConnectionString(config)
+	case "sqlite3":
+		return sqliteConnectionString(config)
 	}
 	return ""
 }
@@ -61,4 +63,8 @@ func postgresConnectionString(config *models.Config) string {
 		config.DbName,
 		config.DbPassword,
 	)
+}
+
+func sqliteConnectionString(config *models.Config) string {
+	return config.DbName
 }
