@@ -18,9 +18,10 @@ import (
 )
 
 type AuthenticateMiddleware struct {
-	UserSrvc    *services.UserService
-	Cache       *cache.Cache
-	Initialized bool
+	UserSrvc       *services.UserService
+	Cache          *cache.Cache
+	WhitelistPaths []string
+	Initialized    bool
 }
 
 func (m *AuthenticateMiddleware) Init() {
@@ -33,6 +34,13 @@ func (m *AuthenticateMiddleware) Init() {
 func (m *AuthenticateMiddleware) Handle(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	if !m.Initialized {
 		m.Init()
+	}
+
+	for _, p := range m.WhitelistPaths {
+		if strings.HasPrefix(r.URL.Path, p) || r.URL.Path == p {
+			next(w, r)
+			return
+		}
 	}
 
 	var user *models.User

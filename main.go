@@ -164,9 +164,13 @@ func main() {
 	// Handlers
 	heartbeatHandler := &routes.HeartbeatHandler{HeartbeatSrvc: heartbeatSrvc}
 	summaryHandler := &routes.SummaryHandler{SummarySrvc: summarySrvc}
+	healthHandler := &routes.HealthHandler{Db: db}
 
 	// Middlewares
-	authenticateMiddleware := &middlewares.AuthenticateMiddleware{UserSrvc: userSrvc}
+	authenticateMiddleware := &middlewares.AuthenticateMiddleware{
+		UserSrvc:       userSrvc,
+		WhitelistPaths: []string{"/api/health"},
+	}
 	basicAuthMiddleware := &middlewares.RequireBasicAuthMiddleware{}
 	corsMiddleware := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
@@ -185,6 +189,7 @@ func main() {
 	// API Routes
 	apiRouter.Path("/heartbeat").Methods(http.MethodPost).HandlerFunc(heartbeatHandler.ApiPost)
 	apiRouter.Path("/summary").Methods(http.MethodGet).HandlerFunc(summaryHandler.ApiGet)
+	apiRouter.Path("/health").Methods(http.MethodGet).HandlerFunc(healthHandler.ApiGet)
 
 	// Static Routes
 	router.PathPrefix("/assets").Handler(negroni.Classic().With(negroni.Wrap(http.FileServer(http.Dir("./static")))))
