@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql/driver"
 	"errors"
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -24,7 +25,7 @@ type Heartbeat struct {
 	IsWrite         bool             `json:"is_write"`
 	Editor          string           `json:"editor"`
 	OperatingSystem string           `json:"operating_system"`
-	Time            HeartbeatReqTime `json:"time" gorm:"type:timestamp; default:now(); index:idx_time,idx_time_user"`
+	Time            HeartbeatReqTime `json:"time" gorm:"type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time,idx_time_user"`
 	languageRegex   *regexp.Regexp
 }
 
@@ -62,14 +63,20 @@ func (j *HeartbeatReqTime) UnmarshalJSON(b []byte) error {
 
 func (j *HeartbeatReqTime) Scan(value interface{}) error {
 	switch value.(type) {
+	case string:
+		t, err := time.Parse("2006-01-02 15:04:05-07:00", value.(string))
+		if err != nil {
+			return errors.New(fmt.Sprintf("unsupported date time format: %s", value))
+		}
+		*j = HeartbeatReqTime(t)
 	case int64:
-		*j = HeartbeatReqTime(time.Unix(123456, 0))
+		*j = HeartbeatReqTime(time.Unix(value.(int64), 0))
 		break
 	case time.Time:
 		*j = HeartbeatReqTime(value.(time.Time))
 		break
 	default:
-		return errors.New("unsupported type")
+		return errors.New(fmt.Sprintf("unsupported type: %T", value))
 	}
 	return nil
 }
