@@ -4,3 +4,5 @@ launch.json
 wakapi
 .idea
 build
+*.exe
+*.db
