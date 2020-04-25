@@ -2,8 +2,7 @@
 -- SQL in section 'Up' is executed when this migration is applied
 create table aliases
 (
-    id      integer
-        primary key autoincrement,
+    id      integer primary key autoincrement,
     type    integer      not null,
     user_id varchar(255) not null,
     key     varchar(255) not null,
@@ -18,8 +17,7 @@ create index idx_alias_user
 
 create table summaries
 (
-    id        integer
-        primary key autoincrement,
+    id        integer primary key autoincrement,
     user_id   varchar(255) not null,
     from_time timestamp default CURRENT_TIMESTAMP not null,
     to_time   timestamp default CURRENT_TIMESTAMP not null
@@ -30,8 +28,7 @@ create index idx_time_summary_user
 
 create table summary_items
 (
-    id         integer
-        primary key autoincrement,
+    id         integer primary key autoincrement,
     summary_id integer REFERENCES summaries (id) ON DELETE CASCADE ON UPDATE CASCADE,
     type       integer,
     key        varchar(255),
@@ -40,17 +37,14 @@ create table summary_items
 
 create table users
 (
-    id       varchar(255)
-        primary key,
-    api_key  varchar(255)
-        unique,
+    id       varchar(255) primary key,
+    api_key  varchar(255) unique,
     password varchar(255)
 );
 
 create table heartbeats
 (
-    id               integer
-        primary key autoincrement,
+    id               integer primary key autoincrement,
     user_id          varchar(255) not null REFERENCES users (id) ON DELETE RESTRICT ON UPDATE RESTRICT,
     entity           varchar(255) not null,
     type             varchar(255),
