@@ -121,32 +121,14 @@ func main() {
 	// Read Config
 	config := readConfig()
 	// Enable line numbers in logging
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	if config.IsDev() {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+	}
 
 	// Connect to database
 	db, err := gorm.Open(config.DbDialect, utils.MakeConnectionString(config))
-	var migrateDo func()
 	if config.DbDialect == "sqlite3" {
 		db.DB().Exec("PRAGMA foreign_keys = ON;")
-		migrations := &migrate.PackrMigrationSource{
-			Box: packr.New("migrations", "./migrations/sqlite3"),
-		}
-		migrateDo = func() {
-			n, err := migrate.Exec(db.DB(), "sqlite3", migrations, migrate.Up)
-			if err != nil {
-				log.Fatal(err)
-			}
-			log.Printf("Applied %d migrations!\n", n)
-		}
-	} else {
-		migrateDo = func() {
-			db.AutoMigrate(&models.Alias{})
-			db.AutoMigrate(&models.Summary{})
-			db.AutoMigrate(&models.SummaryItem{})
-			db.AutoMigrate(&models.User{})
-			db.AutoMigrate(&models.Heartbeat{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
-			db.AutoMigrate(&models.SummaryItem{}).AddForeignKey("summary_id", "summaries(id)", "CASCADE", "CASCADE")
-		}
 	}
 	db.LogMode(config.IsDev())
 	db.DB().SetMaxIdleConns(int(config.DbMaxConn))
@@ -159,7 +141,8 @@ func main() {
 	defer db.Close()
 
 	// Migrate database schema
-	migrateDo()
+	migrateDo := databaseMigrateActions(config.DbDialect)
+	migrateDo(db)
 
 	// Custom migrations and initial data
 	addDefaultUser(db, config)
@@ -241,6 +224,32 @@ func main() {
 	}
 	log.Printf("Listening on %+s\n", portString)
 	s.ListenAndServe()
+}
+
+func databaseMigrateActions(dbDialect string) func(db *gorm.DB) {
+	var migrateDo func(db *gorm.DB)
+	if dbDialect == "sqlite3" {
+		migrations := &migrate.PackrMigrationSource{
+			Box: packr.New("migrations", "./migrations/sqlite3"),
+		}
+		migrateDo = func(db *gorm.DB) {
+			n, err := migrate.Exec(db.DB(), "sqlite3", migrations, migrate.Up)
+			if err != nil {
+				log.Fatal(err)
+			}
+			log.Printf("Applied %d migrations!\n", n)
+		}
+	} else {
+		migrateDo = func(db *gorm.DB) {
+			db.AutoMigrate(&models.Alias{})
+			db.AutoMigrate(&models.Summary{})
+			db.AutoMigrate(&models.SummaryItem{})
+			db.AutoMigrate(&models.User{})
+			db.AutoMigrate(&models.Heartbeat{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
+			db.AutoMigrate(&models.SummaryItem{}).AddForeignKey("summary_id", "summaries(id)", "CASCADE", "CASCADE")
+		}
+	}
+	return migrateDo
 }
 
 func migrateLanguages(db *gorm.DB, cfg *models.Config) {
