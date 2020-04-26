@@ -6,34 +6,46 @@
 [![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoff.ee/n1try)
 
 ## Prerequisites
-### Server
-* Go >= 1.13 (with `$GOPATH` properly set)
-* An SQL database (MySQL, Postgres, Sqlite)
+**On the server side:**
+* Go > 1.13 (with `$GOPATH` properly set)
+* _Optional_: A MySQL- or Postgres database
 
-### Client
+**On your local machine:**
 * [WakaTime plugin](https://wakatime.com/plugins) for your editor / IDE
 
-## Usage
-* Create an empty database 
-* Enable Go module support: `export GO111MODULE=on`
-* Get code: `go get github.com/muety/wakapi`
-* Go to project root: `cd "$GOPATH/src/github.com/muety/wakapi"`
-* Copy `.env.example` to `.env` and set database credentials
-* Set target port in `config.ini`
-* Build executable: `go build`
-* Run server: `./wakapi`
-* Edit your local `~/.wakatime.cfg` file
-  * `api_url = https://your.server:someport/api/heartbeat`
-  * `api_key = the_api_key_printed_to_the_console_after_starting_the_server`
-* Open [http://localhost:3000](http://localhost:3000) in your browser
+## Run from source
+1. _Optional:_ Create an empty database, when using MySQL or Postgres
+1. Enable Go module support: `export GO111MODULE=on`
+1. Get code: `go get github.com/muety/wakapi`
+1. Go to project root: `cd "$GOPATH/src/github.com/muety/wakapi"`
+1. Copy `.env.example` to `.env` and set database credentials
+1. Set target port in `config.ini`
+1. Build executable: `go build`
+1. Run server: `./wakapi`
 
 **As an alternative** to building from source or using `go get` you can also download one of the existing [pre-compiled binaries](https://github.com/muety/wakapi/releases).
 
-### Run with Docker
-* Edit `docker-compose.yml` file and change passwords for the DB
-* Start the application `docker-compose up -d`
-* To get the api key look in the logs `docker-compose logs | grep "API key"`
-* The application should now be running on `localhost:3000`
+## Run with Docker
+```
+docker run -d -p 3000:3000 --name wakapi n1try/wakapi
+```
+
+To get your API key, take a look into the logs `docker logs wakapi | grep "API key"`
+
+In addition, you can specify several environment variables for configuration:
+* `-e WAKAPI_DEFAULT_USER_NAME=admin`
+* `-e WAKAPI_DEFAULT_USER_PASSWORD=admin`
+
+By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres, see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile) and [.env.example](https://github.com/muety/wakapi/blob/master/.env.example) for further options.
+
+## Configure WakaTime
+To make your local WakaTime client talk to Wakapi, edit your local `~/.wakatime.cfg` file.
+```
+api_url = https://your.server:someport/api/heartbeat`
+api_key = the_api_key_printed_to_the_console_after_starting_the_server`
+```
+
+## Customization
 
 ### User Accounts
 * When starting wakapi for the first time, a default user _**admin**_ with password _**admin**_ is created. The corresponding API key is printed to the console.
