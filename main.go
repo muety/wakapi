@@ -47,6 +47,8 @@ func readConfig() *models.Config {
 	dbHost := utils.LookupFatal("WAKAPI_DB_HOST")
 	dbName := utils.LookupFatal("WAKAPI_DB_NAME")
 	dbPortStr := utils.LookupFatal("WAKAPI_DB_PORT")
+	defaultUserName := utils.LookupFatal("WAKAPI_DEFAULT_USER_NAME")
+	defaultUserPassword := utils.LookupFatal("WAKAPI_DEFAULT_USER_PASSWORD")
 	dbPort, err := strconv.Atoi(dbPortStr)
 
 	cfg, err := ini.Load("config.ini")
@@ -96,19 +98,21 @@ func readConfig() *models.Config {
 	}
 
 	return &models.Config{
-		Env:             env,
-		Port:            port,
-		Addr:            addr,
-		DbHost:          dbHost,
-		DbPort:          uint(dbPort),
-		DbUser:          dbUser,
-		DbPassword:      dbPassword,
-		DbName:          dbName,
-		DbDialect:       dbType,
-		DbMaxConn:       dbMaxConn,
-		CleanUp:         cleanUp,
-		CustomLanguages: customLangs,
-		LanguageColors:  colors,
+		Env:                 env,
+		Port:                port,
+		Addr:                addr,
+		DbHost:              dbHost,
+		DbPort:              uint(dbPort),
+		DbUser:              dbUser,
+		DbPassword:          dbPassword,
+		DbName:              dbName,
+		DbDialect:           dbType,
+		DbMaxConn:           dbMaxConn,
+		CleanUp:             cleanUp,
+		DefaultUserName:     defaultUserName,
+		DefaultUserPassword: defaultUserPassword,
+		CustomLanguages:     customLangs,
+		LanguageColors:      colors,
 	}
 }
 
@@ -263,16 +267,16 @@ func migrateLanguages(db *gorm.DB, cfg *models.Config) {
 }
 
 func addDefaultUser(db *gorm.DB, cfg *models.Config) {
-	pw := md5.Sum([]byte(models.DefaultPassword))
+	pw := md5.Sum([]byte(cfg.DefaultUserPassword))
 	pwString := hex.EncodeToString(pw[:])
 	apiKey := uuid.NewV4().String()
-	u := &models.User{ID: models.DefaultUser, Password: pwString, ApiKey: apiKey}
+	u := &models.User{ID: cfg.DefaultUserName, Password: pwString, ApiKey: apiKey}
 	result := db.FirstOrCreate(u, &models.User{ID: u.ID})
 	if result.Error != nil {
 		log.Println("Unable to create default user.")
 		log.Fatal(result.Error)
 	}
 	if result.RowsAffected > 0 {
-		log.Printf("Created default user '%s' with password '%s' and API key '%s'.\n", u.ID, models.DefaultPassword, u.ApiKey)
+		log.Printf("Created default user '%s' with password '%s' and API key '%s'.\n", u.ID, cfg.DefaultUserPassword, u.ApiKey)
 	}
 }
