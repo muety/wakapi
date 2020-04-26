@@ -1,14 +1,8 @@
 #!/bin/bash
 
-OSLIST=( darwin linux windows )
-ARCHLIST=( amd64 )
+# Requires Go and Docker to be installed
+# Run once initially: go get github.com/mattn/go-sqlite3
+
 VERSION=$(cat version.txt)
 
-for os in ${OSLIST[*]}
-  do
-    for arch in ${ARCHLIST[*]}
-      do
-        echo "Building $os / $arch"
-        GOOS=$os GOARCH=$arch go build -o "build/wakapi_${VERSION}_${os}_${arch}" "github.com/muety/wakapi"
-      done
-  done
+xgo -targets linux/amd64,darwin/amd64,windows/amd64 -dest build -out "wakapi_$VERSION" .
