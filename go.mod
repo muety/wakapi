@@ -14,8 +14,6 @@ require (
 	github.com/rs/cors v1.7.0
 	github.com/rubenv/sql-migrate v0.0.0-20200402132117-435005d389bc
 	github.com/satori/go.uuid v1.2.0
-	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/t-tiger/gorm-bulk-insert v0.0.0-20191014134946-beb77b81825f
-	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/ini.v1 v1.50.0
 )

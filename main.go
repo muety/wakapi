@@ -40,19 +40,14 @@ func readConfig() *models.Config {
 		log.Fatal(err)
 	}
 
-	// TODO: Use jinzhu/configor or so
-	env, _ := os.LookupEnv("ENV")
-	dbType, valid := os.LookupEnv("WAKAPI_DB_TYPE")
-	dbUser, valid := os.LookupEnv("WAKAPI_DB_USER")
-	dbPassword, valid := os.LookupEnv("WAKAPI_DB_PASSWORD")
-	dbHost, valid := os.LookupEnv("WAKAPI_DB_HOST")
-	dbName, valid := os.LookupEnv("WAKAPI_DB_NAME")
-	dbPortStr, valid := os.LookupEnv("WAKAPI_DB_PORT")
+	env := utils.LookupFatal("ENV")
+	dbType := utils.LookupFatal("WAKAPI_DB_TYPE")
+	dbUser := utils.LookupFatal("WAKAPI_DB_USER")
+	dbPassword := utils.LookupFatal("WAKAPI_DB_PASSWORD")
+	dbHost := utils.LookupFatal("WAKAPI_DB_HOST")
+	dbName := utils.LookupFatal("WAKAPI_DB_NAME")
+	dbPortStr := utils.LookupFatal("WAKAPI_DB_PORT")
 	dbPort, err := strconv.Atoi(dbPortStr)
-
-	if !valid {
-		log.Fatal("Environment variables missing or invalid.")
-	}
 
 	cfg, err := ini.Load("config.ini")
 	if err != nil {
