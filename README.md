@@ -31,7 +31,6 @@
 
 ### Run with Docker
 * Edit `docker-compose.yml` file and change passwords for the DB
-* Build the container `docker-compose build`
 * Start the application `docker-compose up -d`
 * To get the api key look in the logs `docker-compose logs | grep "API key"`
 * The application should now be running on `localhost:3000`

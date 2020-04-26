@@ -8,33 +8,20 @@ services:
       context: .
     container_name: wakapi
     environment:
-      - WAKAPI_DB_USER=wakapi
-      - WAKAPI_DB_PASSWORD=supersecretpassword
-      - WAKAPI_DB_HOST=wakapi_db
-      - WAKAPI_DB_NAME=wakapi_db
+      - WAKAPI_DB_TYPE=sqlite3
+      - WAKAPI_DB_USER=
+      - WAKAPI_DB_PASSWORD=
+      - WAKAPI_DB_HOST=
+      - WAKAPI_DB_NAME=/data/wakapi.db
+      - WAKAPI_DEFAULT_USER_NAME=admin
+      - WAKAPI_DEFAULT_USER_PASSWORD=admin
     ports:
       - "3000:3000"
-    depends_on:
-      - wakapi_db
-  wakapi_db:
-    image: linuxserver/mariadb
-    container_name: wakapi_db
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - MYSQL_ROOT_PASSWORD=rootpass
-      - TZ=Europe/London
-      - MYSQL_DATABASE=wakapi_db
-      - MYSQL_USER=wakapi
-      - MYSQL_PASSWORD=supersecretpassword
-    restart: unless-stopped
-    ports:
-      - "3306:3306"
     volumes:
-      - "dbdata:/config"
+      - wakapi_data:/data
 
 volumes:
-  dbdata:
+  wakapi_data:
 
               
       
