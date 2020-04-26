@@ -15,8 +15,8 @@ const (
 type Summary struct {
 	ID               uint           `json:"-" gorm:"primary_key"`
 	UserID           string         `json:"user_id" gorm:"not null; index:idx_time_summary_user"`
-	FromTime         time.Time      `json:"from" gorm:"not null; type:timestamp; default:now(); index:idx_time_summary_user"`
-	ToTime           time.Time      `json:"to" gorm:"not null; type:timestamp; default:now(); index:idx_time_summary_user"`
+	FromTime         time.Time      `json:"from" gorm:"not null; type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time_summary_user"`
+	ToTime           time.Time      `json:"to" gorm:"not null; type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time_summary_user"`
 	Projects         []*SummaryItem `json:"projects"`
 	Languages        []*SummaryItem `json:"languages"`
 	Editors          []*SummaryItem `json:"editors"`

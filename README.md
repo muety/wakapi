@@ -8,7 +8,7 @@
 ## Prerequisites
 ### Server
 * Go >= 1.13 (with `$GOPATH` properly set)
-* An SQL database (MySQL or Postgres)
+* An SQL database (MySQL, Postgres, Sqlite)
 
 ### Client
 * [WakaTime plugin](https://wakatime.com/plugins) for your editor / IDE
