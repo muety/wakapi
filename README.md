@@ -1,9 +1,11 @@
 # 📈 wakapi
 **A minimalist, self-hosted WakaTime-compatible backend for coding statistics**
 
-![Wakapi screenshot](https://anchr.io/i/bxQ69.png)
+If you like this project, please consider supporting it 🙂. You can donate either through [buying me a coffee](https://buymeacoff.ee/n1try) or becoming a GitHub sponor. Every little donation is highly appreciated and boosts the developers' motivation to keep improving Wakapi!
 
 [![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoff.ee/n1try)
+
+![Wakapi screenshot](https://anchr.io/i/bxQ69.png)
 
 ## Prerequisites
 **On the server side:**
