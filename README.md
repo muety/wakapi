@@ -1,8 +1,9 @@
 # 📈 wakapi
 
 [![](http://img.shields.io/liberapay/receives/muety.svg?logo=liberapay&style=flat-square)](https://liberapay.com/muety/)
+[![Say thanks](https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg?style=flat-square)](https://saythanks.io/to/n1try)
 ![](https://img.shields.io/github/license/muety/wakapi?style=flat-square)
-[![Go Report Card](https://goreportcard.com/badge/github.com/muety/wakapi)](https://goreportcard.com/report/github.com/muety/wakapi)
+[![Go Report Card](https://goreportcard.com/badge/github.com/muety/wakapi?style=flat-square)](https://goreportcard.com/report/github.com/muety/wakapi)
 
 [![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoff.ee/n1try)
 
