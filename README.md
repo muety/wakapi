@@ -4,13 +4,13 @@
 ![](https://img.shields.io/github/license/muety/wakapi?style=flat-square)
 [![Go Report Card](https://goreportcard.com/badge/github.com/muety/wakapi)](https://goreportcard.com/report/github.com/muety/wakapi)
 
+[![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoff.ee/n1try)
+
 ---
 
 **A minimalist, self-hosted WakaTime-compatible backend for coding statistics**
 
 ![Wakapi screenshot](https://anchr.io/i/bxQ69.png)
-
-[![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoff.ee/n1try)
 
 ## Prerequisites
 **On the server side:**
