@@ -12,6 +12,8 @@
 
 ![Wakapi screenshot](https://anchr.io/i/bxQ69.png)
 
+If you like this project, please consider supporting it 🙂. You can donate either through [buying me a coffee](https://buymeacoff.ee/n1try) or becoming a GitHub sponor. Every little donation is highly appreciated and boosts the developers' motivation to keep improving Wakapi!
+
 ## Prerequisites
 **On the server side:**
 * Go > 1.13 (with `$GOPATH` properly set)
