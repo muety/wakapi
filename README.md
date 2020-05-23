@@ -1,4 +1,11 @@
 # 📈 wakapi
+
+[![](http://img.shields.io/liberapay/receives/muety.svg?logo=liberapay&style=flat-square)](https://liberapay.com/muety/)
+![](https://img.shields.io/github/license/muety/wakapi?style=flat-square)
+[![Go Report Card](https://goreportcard.com/badge/github.com/muety/wakapi)](https://goreportcard.com/report/github.com/muety/wakapi)
+
+---
+
 **A minimalist, self-hosted WakaTime-compatible backend for coding statistics**
 
 ![Wakapi screenshot](https://anchr.io/i/bxQ69.png)
