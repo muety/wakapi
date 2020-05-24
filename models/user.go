@@ -7,6 +7,12 @@ type User struct {
 }
 
 type Login struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `schema:"username"`
+	Password string `schema:"password"`
+}
+
+type Signup struct {
+	Username       string `schema:"username"`
+	Password       string `schema:"password"`
+	PasswordRepeat string `schema:"password_repeat"`
 }

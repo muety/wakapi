@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"path"
+	"strings"
 )
 
 func init() {
@@ -17,8 +18,10 @@ var templates map[string]*template.Template
 func loadTemplates() {
 	tplPath := "views"
 	tpls := template.New("").Funcs(template.FuncMap{
-		"json": utils.Json,
-		"date": utils.FormatDateHuman,
+		"json":       utils.Json,
+		"date":       utils.FormatDateHuman,
+		"title":      strings.Title,
+		"capitalize": utils.Capitalize,
 	})
 	templates = make(map[string]*template.Template)
 

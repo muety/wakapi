@@ -1,8 +1,6 @@
 package main
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"encoding/json"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/securecookie"
@@ -19,7 +17,6 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"github.com/rubenv/sql-migrate"
-	uuid "github.com/satori/go.uuid"
 	ini "gopkg.in/ini.v1"
 
 	"github.com/muety/wakapi/middlewares"
@@ -31,6 +28,19 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+)
+
+var (
+	db     *gorm.DB
+	config *models.Config
+)
+
+var (
+	aliasService       *services.AliasService
+	heartbeatService   *services.HeartbeatService
+	userService        *services.UserService
+	summaryService     *services.SummaryService
+	aggregationService *services.AggregationService
 )
 
 // TODO: Refactor entire project to be structured after business domains
@@ -125,14 +135,16 @@ func readConfig() *models.Config {
 
 func main() {
 	// Read Config
-	config := readConfig()
+	config = readConfig()
+
 	// Enable line numbers in logging
 	if config.IsDev() {
 		log.SetFlags(log.LstdFlags | log.Lshortfile)
 	}
 
 	// Connect to database
-	db, err := gorm.Open(config.DbDialect, utils.MakeConnectionString(config))
+	var err error
+	db, err = gorm.Open(config.DbDialect, utils.MakeConnectionString(config))
 	if config.DbDialect == "sqlite3" {
 		db.DB().Exec("PRAGMA foreign_keys = ON;")
 	}
@@ -150,34 +162,34 @@ func main() {
 	migrateDo := databaseMigrateActions(config.DbDialect)
 	migrateDo(db)
 
-	// Custom migrations and initial data
-	addDefaultUser(db, config)
-	migrateLanguages(db, config)
-
 	// Services
-	aliasSrvc := &services.AliasService{Config: config, Db: db}
-	heartbeatSrvc := &services.HeartbeatService{Config: config, Db: db}
-	userSrvc := &services.UserService{Config: config, Db: db}
-	summarySrvc := &services.SummaryService{Config: config, Db: db, HeartbeatService: heartbeatSrvc, AliasService: aliasSrvc}
-	aggregationSrvc := &services.AggregationService{Config: config, Db: db, UserService: userSrvc, SummaryService: summarySrvc, HeartbeatService: heartbeatSrvc}
+	aliasService = &services.AliasService{Config: config, Db: db}
+	heartbeatService = &services.HeartbeatService{Config: config, Db: db}
+	userService = &services.UserService{Config: config, Db: db}
+	summaryService = &services.SummaryService{Config: config, Db: db, HeartbeatService: heartbeatService, AliasService: aliasService}
+	aggregationService = &services.AggregationService{Config: config, Db: db, UserService: userService, SummaryService: summaryService, HeartbeatService: heartbeatService}
 
-	svcs := []services.Initializable{aliasSrvc, heartbeatSrvc, summarySrvc, userSrvc, aggregationSrvc}
+	svcs := []services.Initializable{aliasService, heartbeatService, userService, summaryService, aggregationService}
 	for _, s := range svcs {
 		s.Init()
 	}
 
+	// Custom migrations and initial data
+	addDefaultUser()
+	migrateLanguages()
+
 	// Aggregate heartbeats to summaries and persist them
-	go aggregationSrvc.Schedule()
+	go aggregationService.Schedule()
 
 	if config.CleanUp {
-		go heartbeatSrvc.ScheduleCleanUp()
+		go heartbeatService.ScheduleCleanUp()
 	}
 
 	// Handlers
-	heartbeatHandler := routes.NewHeartbeatHandler(config, heartbeatSrvc)
-	summaryHandler := routes.NewSummaryHandler(config, summarySrvc)
+	heartbeatHandler := routes.NewHeartbeatHandler(config, heartbeatService)
+	summaryHandler := routes.NewSummaryHandler(config, summaryService)
 	healthHandler := routes.NewHealthHandler(db)
-	indexHandler := routes.NewIndexHandler(config, userSrvc)
+	indexHandler := routes.NewIndexHandler(config, userService)
 
 	// Setup Routers
 	router := mux.NewRouter()
@@ -191,7 +203,7 @@ func main() {
 	corsMiddleware := handlers.CORS()
 	authenticateMiddleware := middlewares.NewAuthenticateMiddleware(
 		config,
-		userSrvc,
+		userService,
 		[]string{"/api/health"},
 	).Handler
 
@@ -204,6 +216,7 @@ func main() {
 	indexRouter.Path("/").Methods(http.MethodGet).HandlerFunc(indexHandler.Index)
 	indexRouter.Path("/login").Methods(http.MethodPost).HandlerFunc(indexHandler.Login)
 	indexRouter.Path("/logout").Methods(http.MethodPost).HandlerFunc(indexHandler.Logout)
+	indexRouter.Path("/signup").Methods(http.MethodGet, http.MethodPost).HandlerFunc(indexHandler.Signup)
 
 	// Summary Routes
 	summaryRouter.Methods(http.MethodGet).HandlerFunc(summaryHandler.Index)
@@ -254,8 +267,8 @@ func databaseMigrateActions(dbDialect string) func(db *gorm.DB) {
 	return migrateDo
 }
 
-func migrateLanguages(db *gorm.DB, cfg *models.Config) {
-	for k, v := range cfg.CustomLanguages {
+func migrateLanguages() {
+	for k, v := range config.CustomLanguages {
 		result := db.Model(models.Heartbeat{}).
 			Where("language = ?", "").
 			Where("entity LIKE ?", "%."+k).
@@ -269,17 +282,18 @@ func migrateLanguages(db *gorm.DB, cfg *models.Config) {
 	}
 }
 
-func addDefaultUser(db *gorm.DB, cfg *models.Config) {
-	pw := md5.Sum([]byte(cfg.DefaultUserPassword))
-	pwString := hex.EncodeToString(pw[:])
-	apiKey := uuid.NewV4().String()
-	u := &models.User{ID: cfg.DefaultUserName, Password: pwString, ApiKey: apiKey}
-	result := db.FirstOrCreate(u, &models.User{ID: u.ID})
-	if result.Error != nil {
-		log.Println("Unable to create default user.")
-		log.Fatal(result.Error)
-	}
-	if result.RowsAffected > 0 {
-		log.Printf("Created default user '%s' with password '%s' and API key '%s'.\n", u.ID, cfg.DefaultUserPassword, u.ApiKey)
+func addDefaultUser() {
+	u, created, err := userService.CreateOrGet(&models.Signup{
+		Username: config.DefaultUserName,
+		Password: config.DefaultUserPassword,
+	})
+
+	if err != nil {
+		log.Println("unable to create default user")
+		log.Fatal(err)
+	} else if created {
+		log.Printf("created default user '%s' with password '%s' and API key '%s'\n", u.ID, config.DefaultUserPassword, u.ApiKey)
+	} else {
+		log.Printf("default user '%s' already existing\n", u.ID)
 	}
 }
