@@ -12,15 +12,18 @@ import (
 )
 
 type HeartbeatHandler struct {
-	HeartbeatSrvc *services.HeartbeatService
+	config        *models.Config
+	heartbeatSrvc *services.HeartbeatService
+}
+
+func NewHeartbeatHandler(config *models.Config, heartbearService *services.HeartbeatService) *HeartbeatHandler {
+	return &HeartbeatHandler{
+		config:        config,
+		heartbeatSrvc: heartbearService,
+	}
 }
 
 func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
 	var heartbeats []*models.Heartbeat
 	user := r.Context().Value(models.UserKey).(*models.User)
 	opSys, editor, _ := utils.ParseUserAgent(r.Header.Get("User-Agent"))
@@ -37,7 +40,7 @@ func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
 		hb.Editor = editor
 		hb.User = user
 		hb.UserID = user.ID
-		hb.Augment(h.HeartbeatSrvc.Config.CustomLanguages)
+		hb.Augment(h.config.CustomLanguages)
 
 		if !hb.Valid() {
 			w.WriteHeader(http.StatusBadRequest)
@@ -46,7 +49,7 @@ func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := h.HeartbeatSrvc.InsertBatch(heartbeats); err != nil {
+	if err := h.heartbeatSrvc.InsertBatch(heartbeats); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		os.Stderr.WriteString(err.Error())
 		return

@@ -1,5 +1,6 @@
 package models
 
 const (
-	UserKey = "user"
+	UserKey       = "user"
+	AuthCookieKey = "wakapi_auth"
 )

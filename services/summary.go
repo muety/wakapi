@@ -138,7 +138,7 @@ func (srv *SummaryService) GetByUserWithin(user *models.User, from, to time.Time
 	return summaries, nil
 }
 
-// Will return *models.Summary objects with only user_id and to_time filled
+// Will return *models.Index objects with only user_id and to_time filled
 func (srv *SummaryService) GetLatestByUser() ([]*models.Summary, error) {
 	var summaries []*models.Summary
 	if err := srv.Db.

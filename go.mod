@@ -6,6 +6,9 @@ require (
 	github.com/codegangsta/negroni v1.0.0
 	github.com/gobuffalo/packr/v2 v2.8.0
 	github.com/gorilla/mux v1.7.3
+	github.com/gorilla/schema v1.1.0
+	github.com/gorilla/securecookie v1.1.1
+	github.com/gorilla/sessions v1.2.0
 	github.com/jasonlvhit/gocron v0.0.0-20191106203602-f82992d443f4
 	github.com/jinzhu/gorm v1.9.11
 	github.com/joho/godotenv v1.3.0

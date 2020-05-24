@@ -39,4 +39,5 @@ type SummaryItemContainer struct {
 type SummaryViewModel struct {
 	*Summary
 	LanguageColors map[string]string
+	Error          string
 }

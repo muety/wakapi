@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/gorilla/securecookie"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -97,6 +98,12 @@ func readConfig() *models.Config {
 		colors[strings.ToLower(k)] = v.Color
 	}
 
+	// TODO: Read keys from env, so that users are not logged out every time the server is restarted
+	secureCookie := securecookie.New(
+		securecookie.GenerateRandomKey(64),
+		securecookie.GenerateRandomKey(32),
+	)
+
 	return &models.Config{
 		Env:                 env,
 		Port:                port,
@@ -109,6 +116,7 @@ func readConfig() *models.Config {
 		DbDialect:           dbType,
 		DbMaxConn:           dbMaxConn,
 		CleanUp:             cleanUp,
+		SecureCookie:        secureCookie,
 		DefaultUserName:     defaultUserName,
 		DefaultUserPassword: defaultUserPassword,
 		CustomLanguages:     customLangs,
@@ -154,8 +162,8 @@ func main() {
 	summarySrvc := &services.SummaryService{Config: config, Db: db, HeartbeatService: heartbeatSrvc, AliasService: aliasSrvc}
 	aggregationSrvc := &services.AggregationService{Config: config, Db: db, UserService: userSrvc, SummaryService: summarySrvc, HeartbeatService: heartbeatSrvc}
 
-	services := []services.Initializable{aliasSrvc, heartbeatSrvc, summarySrvc, userSrvc, aggregationSrvc}
-	for _, s := range services {
+	svcs := []services.Initializable{aliasSrvc, heartbeatSrvc, summarySrvc, userSrvc, aggregationSrvc}
+	for _, s := range svcs {
 		s.Init()
 	}
 
@@ -167,16 +175,13 @@ func main() {
 	}
 
 	// Handlers
-	heartbeatHandler := &routes.HeartbeatHandler{HeartbeatSrvc: heartbeatSrvc}
-	summaryHandler := &routes.SummaryHandler{SummarySrvc: summarySrvc}
-	healthHandler := &routes.HealthHandler{Db: db}
+	heartbeatHandler := routes.NewHeartbeatHandler(config, heartbeatSrvc)
+	summaryHandler := routes.NewSummaryHandler(config, summarySrvc)
+	healthHandler := routes.NewHealthHandler(db)
+	indexHandler := routes.NewIndexHandler(config, userSrvc)
 
 	// Middlewares
-	authenticateMiddleware := &middlewares.AuthenticateMiddleware{
-		UserSrvc:       userSrvc,
-		WhitelistPaths: []string{"/api/health"},
-	}
-	basicAuthMiddleware := &middlewares.RequireBasicAuthMiddleware{}
+	authenticateMiddleware := middlewares.NewAuthenticateMiddleware(config, userSrvc, []string{"/api/health"})
 	corsMiddleware := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
 		AllowedHeaders: []string{"*"},
@@ -186,10 +191,16 @@ func main() {
 	// Setup Routing
 	router := mux.NewRouter()
 	mainRouter := mux.NewRouter().PathPrefix("/").Subrouter()
+	summaryRouter := mux.NewRouter().PathPrefix("/summary").Subrouter()
 	apiRouter := mux.NewRouter().PathPrefix("/api").Subrouter()
 
 	// Main Routes
-	mainRouter.Path("/").Methods(http.MethodGet).HandlerFunc(summaryHandler.Index)
+	mainRouter.Path("/").Methods(http.MethodGet).HandlerFunc(indexHandler.Index)
+	mainRouter.Path("/login").Methods(http.MethodPost).HandlerFunc(indexHandler.Login)
+	mainRouter.Path("/logout").Methods(http.MethodPost).HandlerFunc(indexHandler.Logout)
+
+	// Summary Routes
+	summaryRouter.Path("").Methods(http.MethodGet).HandlerFunc(summaryHandler.Index)
 
 	// API Routes
 	apiRouter.Path("/heartbeat").Methods(http.MethodPost).HandlerFunc(heartbeatHandler.ApiPost)
@@ -207,9 +218,12 @@ func main() {
 			negroni.Wrap(apiRouter),
 		))
 
-	router.PathPrefix("/").Handler(negroni.Classic().With(
-		negroni.HandlerFunc(basicAuthMiddleware.Handle),
+	router.PathPrefix("/summary").Handler(negroni.Classic().With(
 		negroni.HandlerFunc(authenticateMiddleware.Handle),
+		negroni.Wrap(summaryRouter),
+	))
+
+	router.PathPrefix("/").Handler(negroni.Classic().With(
 		negroni.Wrap(mainRouter),
 	))
 
