@@ -23,19 +23,17 @@ If you like this project, please consider supporting it 🙂. You can donate eit
 **On your local machine:**
 * [WakaTime plugin](https://wakatime.com/plugins) for your editor / IDE
 
-## Run from source
-1. _Optional:_ Create an empty database, when using MySQL or Postgres
+## Server Setup
+### Run from source
 1. Enable Go module support: `export GO111MODULE=on`
 1. Get code: `go get github.com/muety/wakapi`
 1. Go to project root: `cd "$GOPATH/src/github.com/muety/wakapi"`
 1. Copy `.env.example` to `.env` and set database credentials
-1. Set target port in `config.ini`
+1. Adapt `config.ini` to your needs
 1. Build executable: `go build`
 1. Run server: `./wakapi`
 
-**As an alternative** to building from source or using `go get` you can also download one of the existing [pre-compiled binaries](https://github.com/muety/wakapi/releases).
-
-## Run with Docker
+### Run with Docker
 ```
 docker run -d -p 3000:3000 --name wakapi n1try/wakapi
 ```
@@ -48,8 +46,11 @@ In addition, you can specify several environment variables for configuration:
 
 By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres, see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile) and [.env.example](https://github.com/muety/wakapi/blob/master/.env.example) for further options.
 
-## Configure WakaTime
-To make your local WakaTime client talk to Wakapi, edit your local `~/.wakatime.cfg` file.
+## Client Setup
+Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime) client tools. In order to collect statistics to Wakapi, you need to set them up.
+
+1. **Set up WakaTime** for your specific IDE or editor. Please refer to the respective [plugin guide](https://wakatime.com/plugins)
+2. Make your local WakaTime client talk to Wakapi by **editing your local `~/.wakatime.cfg`** file as follows
 ```
 api_url = https://your.server:someport/api/heartbeat`
 api_key = the_api_key_printed_to_the_console_after_starting_the_server`
