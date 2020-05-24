@@ -31,7 +31,7 @@ func (h *IndexHandler) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
-		http.Redirect(w, r, "/summary", http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.BasePath), http.StatusFound)
 		return
 	}
 
@@ -56,7 +56,7 @@ func (h *IndexHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
-		http.Redirect(w, r, "/summary", http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.BasePath), http.StatusFound)
 		return
 	}
 
@@ -95,7 +95,7 @@ func (h *IndexHandler) Login(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	}
 	http.SetCookie(w, cookie)
-	http.Redirect(w, r, "/summary", http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.BasePath), http.StatusFound)
 }
 
 func (h *IndexHandler) Logout(w http.ResponseWriter, r *http.Request) {
@@ -104,7 +104,7 @@ func (h *IndexHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.ClearCookie(w, models.AuthCookieKey)
-	http.Redirect(w, r, "/", http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("%s/", h.config.BasePath), http.StatusFound)
 }
 
 func (h *IndexHandler) Signup(w http.ResponseWriter, r *http.Request) {
@@ -113,7 +113,7 @@ func (h *IndexHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
-		http.Redirect(w, r, "/summary", http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.BasePath), http.StatusFound)
 		return
 	}
 
@@ -133,7 +133,7 @@ func (h *IndexHandler) handleGetSignup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
-		http.Redirect(w, r, "/summary", http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.BasePath), http.StatusFound)
 		return
 	}
 
@@ -150,7 +150,7 @@ func (h *IndexHandler) handlePostSignup(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
-		http.Redirect(w, r, "/summary", http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.BasePath), http.StatusFound)
 		return
 	}
 
@@ -180,7 +180,7 @@ func (h *IndexHandler) handlePostSignup(w http.ResponseWriter, r *http.Request) 
 	}
 
 	msg := url.QueryEscape("account created successfully")
-	http.Redirect(w, r, fmt.Sprintf("/?success=%s", msg), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("%s/?success=%s", h.config.BasePath, msg), http.StatusFound)
 }
 
 func respondAlert(w http.ResponseWriter, error, success, tplName string, status int) {

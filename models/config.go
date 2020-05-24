@@ -6,6 +6,7 @@ type Config struct {
 	Env                  string
 	Port                 int
 	Addr                 string
+	BasePath             string
 	DbHost               string
 	DbPort               uint
 	DbUser               string

@@ -77,6 +77,11 @@ func readConfig() *models.Config {
 		port = cfg.Section("server").Key("port").MustInt()
 	}
 
+	basePath := cfg.Section("server").Key("base_path").MustString("/")
+	if strings.HasSuffix(basePath, "/") {
+		basePath = basePath[:len(basePath)-1]
+	}
+
 	cleanUp := cfg.Section("app").Key("cleanup").MustBool(false)
 
 	// Read custom languages
@@ -117,6 +122,7 @@ func readConfig() *models.Config {
 		Env:                 env,
 		Port:                port,
 		Addr:                addr,
+		BasePath:            basePath,
 		DbHost:              dbHost,
 		DbPort:              uint(dbPort),
 		DbUser:              dbUser,
