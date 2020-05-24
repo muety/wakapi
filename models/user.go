@@ -16,3 +16,9 @@ type Signup struct {
 	Password       string `schema:"password"`
 	PasswordRepeat string `schema:"password_repeat"`
 }
+
+func (s *Signup) IsValid() bool {
+	return len(s.Username) >= 3 &&
+		len(s.Password) >= 6 &&
+		s.Password == s.PasswordRepeat
+}

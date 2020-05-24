@@ -27,6 +27,9 @@ func loadTemplates() {
 		"getBasePath": func() string {
 			return models.GetConfig().BasePath
 		},
+		"getVersion": func() string {
+			return models.GetConfig().Version
+		},
 	})
 	templates = make(map[string]*template.Template)
 

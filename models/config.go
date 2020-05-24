@@ -16,6 +16,7 @@ var cfg *Config
 
 type Config struct {
 	Env                  string
+	Version              string
 	Port                 int
 	Addr                 string
 	BasePath             string
@@ -56,10 +57,27 @@ func LookupFatal(key string) string {
 	return v
 }
 
+func readVersion() string {
+	file, err := os.Open("version.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	bytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return string(bytes)
+}
+
 func readConfig() *Config {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
 	}
+
+	version := readVersion()
 
 	env := LookupFatal("ENV")
 	dbType := LookupFatal("WAKAPI_DB_TYPE")
@@ -131,6 +149,7 @@ func readConfig() *Config {
 
 	return &Config{
 		Env:                 env,
+		Version:             version,
 		Port:                port,
 		Addr:                addr,
 		BasePath:            basePath,

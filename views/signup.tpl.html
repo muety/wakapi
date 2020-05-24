@@ -10,22 +10,31 @@
 {{ template "alerts.tpl.html" . }}
 
 <main class="mt-10 flex-grow flex justify-center w-full" id="grid-container">
-    <div class="flex-grow max-w-lg mt-12">
-        <form action="signup" method="post">
+    <div class="flex-grow max-w-lg mt-8">
+        <div>
+            <p class="text-sm text-gray-300">
+                💡 In order to use Wakapi, you need to create an account.
+                After successful signup, you still need to set up the <a href="https://wakatime.com" target="_blank" class="border-b border-green-700">WakaTime</a> client tools.
+                Please refer to <a href="https://github.com/muety/wakapi#client-setup" target="_blank" class="border-b border-green-700">this readme section</a> for instructions.
+                You will be able to view you <strong>API Key</strong> once you log in.
+            </p>
+        </div>
+
+        <form class="mt-10" action="signup" method="post">
             <div class="mb-8">
                 <label class="inline-block text-sm mb-1 text-gray-500" for="username">Username</label>
                 <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3" type="text" id="username"
-                       name="username" placeholder="Choose a username" required>
+                       name="username" placeholder="Choose a username" minlength="3" required autofocus>
             </div>
             <div class="mb-8">
                 <label class="inline-block text-sm mb-1 text-gray-500" for="password">Password</label>
                 <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3" type="password" id="password"
-                       name="password" placeholder="Choose a password" required>
+                       name="password" placeholder="Choose a password" minlength="6" required>
             </div>
             <div class="mb-8">
                 <label class="inline-block text-sm mb-1 text-gray-500" for="password">And again ...</label>
                 <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3" type="password" id="password_repeat"
-                       name="password_repeat" placeholder="Repeat your password" required>
+                       name="password_repeat" placeholder="Repeat your password" minlength="6" required>
             </div>
             <div class="flex justify-between float-right">
                 <button type="submit" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">Create Account</button>

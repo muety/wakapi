@@ -164,8 +164,8 @@ func (h *IndexHandler) handlePostSignup(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if signup.Password != signup.PasswordRepeat {
-		respondAlert(w, "passwords do not match", "", "signup.tpl.html", http.StatusBadRequest)
+	if !signup.IsValid() {
+		respondAlert(w, "invalid parameters", "", "signup.tpl.html", http.StatusBadRequest)
 		return
 	}
 
