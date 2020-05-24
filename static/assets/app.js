@@ -196,6 +196,21 @@ function getRandomColor(seed) {
     return color
 }
 
+function showApiKeyPopup(event) {
+    const el = document.getElementById('api-key-popup')
+    el.classList.remove('hidden')
+    el.classList.add('block')
+    event.stopPropagation()
+}
+
+function copyApiKey(event) {
+    const el = document.getElementById('api-key-container')
+    el.select()
+    el.setSelectionRange(0, 9999)
+    document.execCommand('copy')
+    event.stopPropagation()
+}
+
 // https://koddsson.com/posts/emoji-favicon/
 const favicon = document.querySelector('link[rel=icon]')
 if (favicon) {
@@ -210,6 +225,17 @@ if (favicon) {
         favicon.href = canvas.toDataURL()
     }
 }
+
+// Click outside
+window.addEventListener('click', function(event) {
+    if (event.target.classList.contains('popup')) {
+        return
+    }
+    document.querySelectorAll('.popup').forEach(el => {
+        el.classList.remove('block')
+        el.classList.add('hidden')
+    })
+})
 
 window.addEventListener('load', function () {
     draw()

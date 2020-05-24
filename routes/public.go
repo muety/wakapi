@@ -182,33 +182,3 @@ func (h *IndexHandler) handlePostSignup(w http.ResponseWriter, r *http.Request) 
 	msg := url.QueryEscape("account created successfully")
 	http.Redirect(w, r, fmt.Sprintf("%s/?success=%s", h.config.BasePath, msg), http.StatusFound)
 }
-
-func respondAlert(w http.ResponseWriter, error, success, tplName string, status int) {
-	w.WriteHeader(status)
-	if tplName == "" {
-		tplName = "index.tpl.html"
-	}
-	templates[tplName].Execute(w, struct {
-		Error   string
-		Success string
-	}{Error: error})
-}
-
-// TODO: do better
-func handleAlerts(w http.ResponseWriter, r *http.Request, tplName string) bool {
-	if err := r.URL.Query().Get("error"); err != "" {
-		if err == "unauthorized" {
-			respondAlert(w, err, "", tplName, http.StatusUnauthorized)
-		} else {
-			respondAlert(w, err, "", tplName, http.StatusInternalServerError)
-		}
-		return true
-	}
-
-	if success := r.URL.Query().Get("success"); success != "" {
-		respondAlert(w, "", success, tplName, http.StatusOK)
-		return true
-	}
-
-	return false
-}

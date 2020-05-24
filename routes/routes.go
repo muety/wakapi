@@ -6,6 +6,7 @@ import (
 	"github.com/muety/wakapi/utils"
 	"html/template"
 	"io/ioutil"
+	"net/http"
 	"path"
 	"strings"
 )
@@ -47,4 +48,34 @@ func loadTemplates() {
 
 		templates[tplName] = tpl
 	}
+}
+
+func respondAlert(w http.ResponseWriter, error, success, tplName string, status int) {
+	w.WriteHeader(status)
+	if tplName == "" {
+		tplName = "index.tpl.html"
+	}
+	templates[tplName].Execute(w, struct {
+		Error   string
+		Success string
+	}{Error: error})
+}
+
+// TODO: do better
+func handleAlerts(w http.ResponseWriter, r *http.Request, tplName string) bool {
+	if err := r.URL.Query().Get("error"); err != "" {
+		if err == "unauthorized" {
+			respondAlert(w, err, "", tplName, http.StatusUnauthorized)
+		} else {
+			respondAlert(w, err, "", tplName, http.StatusInternalServerError)
+		}
+		return true
+	}
+
+	if success := r.URL.Query().Get("success"); success != "" {
+		respondAlert(w, "", success, tplName, http.StatusOK)
+		return true
+	}
+
+	return false
 }

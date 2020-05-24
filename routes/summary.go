@@ -20,19 +20,19 @@ const (
 )
 
 type SummaryHandler struct {
-	cummarySrvc *services.SummaryService
+	summarySrvc *services.SummaryService
 	config      *models.Config
 }
 
 func NewSummaryHandler(summaryService *services.SummaryService) *SummaryHandler {
 	return &SummaryHandler{
-		cummarySrvc: summaryService,
+		summarySrvc: summaryService,
 		config:      models.GetConfig(),
 	}
 }
 
 func (h *SummaryHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
-	summary, err, status := loadUserSummary(r, h.cummarySrvc)
+	summary, err, status := loadUserSummary(r, h.summarySrvc)
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))
@@ -53,16 +53,22 @@ func (h *SummaryHandler) Index(w http.ResponseWriter, r *http.Request) {
 		r.URL.RawQuery = q.Encode()
 	}
 
-	summary, err, status := loadUserSummary(r, h.cummarySrvc)
+	summary, err, status := loadUserSummary(r, h.summarySrvc)
 	if err != nil {
-		w.WriteHeader(status)
-		w.Write([]byte(err.Error()))
+		respondAlert(w, err.Error(), "", "summary.tpl.html", status)
+		return
+	}
+
+	user := r.Context().Value(models.UserKey).(*models.User)
+	if user == nil {
+		respondAlert(w, "unauthorized", "", "summary.tpl.html", http.StatusUnauthorized)
 		return
 	}
 
 	vm := models.SummaryViewModel{
 		Summary:        summary,
 		LanguageColors: utils.FilterLanguageColors(h.config.LanguageColors, summary),
+		ApiKey:         user.ApiKey,
 	}
 
 	templates["summary.tpl.html"].Execute(w, vm)

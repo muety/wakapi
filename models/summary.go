@@ -41,4 +41,5 @@ type SummaryViewModel struct {
 	LanguageColors map[string]string
 	Error          string
 	Success        string
+	ApiKey         string
 }

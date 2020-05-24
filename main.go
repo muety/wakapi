@@ -87,12 +87,12 @@ func main() {
 	heartbeatHandler := routes.NewHeartbeatHandler(heartbeatService)
 	summaryHandler := routes.NewSummaryHandler(summaryService)
 	healthHandler := routes.NewHealthHandler(db)
-	indexHandler := routes.NewIndexHandler(userService)
+	publicHandler := routes.NewIndexHandler(userService)
 
 	// Setup Routers
 	router := mux.NewRouter()
-	indexRouter := router.PathPrefix("/").Subrouter()
-	summaryRouter := indexRouter.PathPrefix("/summary").Subrouter()
+	publicRouter := router.PathPrefix("/").Subrouter()
+	summaryRouter := publicRouter.PathPrefix("/summary").Subrouter()
 	apiRouter := router.PathPrefix("/api").Subrouter()
 
 	// Middlewares
@@ -110,10 +110,10 @@ func main() {
 	apiRouter.Use(corsMiddleware, authenticateMiddleware)
 
 	// Public Routes
-	indexRouter.Path("/").Methods(http.MethodGet).HandlerFunc(indexHandler.Index)
-	indexRouter.Path("/login").Methods(http.MethodPost).HandlerFunc(indexHandler.Login)
-	indexRouter.Path("/logout").Methods(http.MethodPost).HandlerFunc(indexHandler.Logout)
-	indexRouter.Path("/signup").Methods(http.MethodGet, http.MethodPost).HandlerFunc(indexHandler.Signup)
+	publicRouter.Path("/").Methods(http.MethodGet).HandlerFunc(publicHandler.Index)
+	publicRouter.Path("/login").Methods(http.MethodPost).HandlerFunc(publicHandler.Login)
+	publicRouter.Path("/logout").Methods(http.MethodPost).HandlerFunc(publicHandler.Logout)
+	publicRouter.Path("/signup").Methods(http.MethodGet, http.MethodPost).HandlerFunc(publicHandler.Signup)
 
 	// Summary Routes
 	summaryRouter.Methods(http.MethodGet).HandlerFunc(summaryHandler.Index)
