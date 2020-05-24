@@ -30,7 +30,13 @@ func NewAuthenticateMiddleware(config *models.Config, userService *services.User
 	}
 }
 
-func (m *AuthenticateMiddleware) Handle(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+func (m *AuthenticateMiddleware) Handler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		m.ServeHTTP(w, r, h.ServeHTTP)
+	})
+}
+
+func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	for _, p := range m.whitelistPaths {
 		if strings.HasPrefix(r.URL.Path, p) || r.URL.Path == p {
 			next(w, r)

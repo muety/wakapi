@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/securecookie"
 	"io/ioutil"
 	"log"
@@ -13,12 +14,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/codegangsta/negroni"
 	"github.com/gobuffalo/packr/v2"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
-	"github.com/rs/cors"
 	"github.com/rubenv/sql-migrate"
 	uuid "github.com/satori/go.uuid"
 	ini "gopkg.in/ini.v1"
@@ -180,27 +179,34 @@ func main() {
 	healthHandler := routes.NewHealthHandler(db)
 	indexHandler := routes.NewIndexHandler(config, userSrvc)
 
-	// Middlewares
-	authenticateMiddleware := middlewares.NewAuthenticateMiddleware(config, userSrvc, []string{"/api/health"})
-	corsMiddleware := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"},
-		AllowedHeaders: []string{"*"},
-		Debug:          false,
-	})
-
-	// Setup Routing
+	// Setup Routers
 	router := mux.NewRouter()
-	mainRouter := mux.NewRouter().PathPrefix("/").Subrouter()
-	summaryRouter := mux.NewRouter().PathPrefix("/summary").Subrouter()
-	apiRouter := mux.NewRouter().PathPrefix("/api").Subrouter()
+	indexRouter := router.PathPrefix("/").Subrouter()
+	summaryRouter := indexRouter.PathPrefix("/summary").Subrouter()
+	apiRouter := router.PathPrefix("/api").Subrouter()
 
-	// Main Routes
-	mainRouter.Path("/").Methods(http.MethodGet).HandlerFunc(indexHandler.Index)
-	mainRouter.Path("/login").Methods(http.MethodPost).HandlerFunc(indexHandler.Login)
-	mainRouter.Path("/logout").Methods(http.MethodPost).HandlerFunc(indexHandler.Logout)
+	// Middlewares
+	recoveryMiddleware := handlers.RecoveryHandler()
+	loggingMiddleware := middlewares.NewLoggingMiddleware().Handler
+	corsMiddleware := handlers.CORS()
+	authenticateMiddleware := middlewares.NewAuthenticateMiddleware(
+		config,
+		userSrvc,
+		[]string{"/api/health"},
+	).Handler
+
+	// Router configs
+	router.Use(loggingMiddleware, recoveryMiddleware)
+	summaryRouter.Use(authenticateMiddleware)
+	apiRouter.Use(corsMiddleware, authenticateMiddleware)
+
+	// Public Routes
+	indexRouter.Path("/").Methods(http.MethodGet).HandlerFunc(indexHandler.Index)
+	indexRouter.Path("/login").Methods(http.MethodPost).HandlerFunc(indexHandler.Login)
+	indexRouter.Path("/logout").Methods(http.MethodPost).HandlerFunc(indexHandler.Logout)
 
 	// Summary Routes
-	summaryRouter.Path("").Methods(http.MethodGet).HandlerFunc(summaryHandler.Index)
+	summaryRouter.Methods(http.MethodGet).HandlerFunc(summaryHandler.Index)
 
 	// API Routes
 	apiRouter.Path("/heartbeat").Methods(http.MethodPost).HandlerFunc(heartbeatHandler.ApiPost)
@@ -208,24 +214,7 @@ func main() {
 	apiRouter.Path("/health").Methods(http.MethodGet).HandlerFunc(healthHandler.ApiGet)
 
 	// Static Routes
-	router.PathPrefix("/assets").Handler(negroni.Classic().With(negroni.Wrap(http.FileServer(http.Dir("./static")))))
-
-	// Sub-Routes Setup
-	router.PathPrefix("/api").Handler(negroni.Classic().
-		With(corsMiddleware).
-		With(
-			negroni.HandlerFunc(authenticateMiddleware.Handle),
-			negroni.Wrap(apiRouter),
-		))
-
-	router.PathPrefix("/summary").Handler(negroni.Classic().With(
-		negroni.HandlerFunc(authenticateMiddleware.Handle),
-		negroni.Wrap(summaryRouter),
-	))
-
-	router.PathPrefix("/").Handler(negroni.Classic().With(
-		negroni.Wrap(mainRouter),
-	))
+	router.PathPrefix("/assets").Handler(http.FileServer(http.Dir("./static")))
 
 	// Listen HTTP
 	portString := config.Addr + ":" + strconv.Itoa(config.Port)
