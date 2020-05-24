@@ -13,7 +13,12 @@ type UserService struct {
 	Db     *gorm.DB
 }
 
-func (srv *UserService) Init() {}
+func NewUserService(db *gorm.DB) *UserService {
+	return &UserService{
+		Config: models.GetConfig(),
+		Db:     db,
+	}
+}
 
 func (srv *UserService) GetUserById(userId string) (*models.User, error) {
 	u := &models.User{}

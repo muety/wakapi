@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
 	"html/template"
 	"io/ioutil"
@@ -22,6 +23,9 @@ func loadTemplates() {
 		"date":       utils.FormatDateHuman,
 		"title":      strings.Title,
 		"capitalize": utils.Capitalize,
+		"getBasePath": func() string {
+			return models.GetConfig().BasePath
+		},
 	})
 	templates = make(map[string]*template.Template)
 

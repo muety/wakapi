@@ -21,13 +21,19 @@ type SummaryService struct {
 	AliasService     *AliasService
 }
 
+func NewSummaryService(db *gorm.DB, heartbeatService *HeartbeatService, aliasService *AliasService) *SummaryService {
+	return &SummaryService{
+		Config:           models.GetConfig(),
+		Cache:            cache.New(24*time.Hour, 24*time.Hour),
+		Db:               db,
+		HeartbeatService: heartbeatService,
+		AliasService:     aliasService,
+	}
+}
+
 type Interval struct {
 	Start time.Time
 	End   time.Time
-}
-
-func (srv *SummaryService) Init() {
-	srv.Cache = cache.New(24*time.Hour, 24*time.Hour)
 }
 
 func (srv *SummaryService) Construct(from, to time.Time, user *models.User, recompute bool) (*models.Summary, error) {

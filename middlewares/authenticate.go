@@ -21,9 +21,9 @@ type AuthenticateMiddleware struct {
 	whitelistPaths []string
 }
 
-func NewAuthenticateMiddleware(config *models.Config, userService *services.UserService, whitelistPaths []string) *AuthenticateMiddleware {
+func NewAuthenticateMiddleware(userService *services.UserService, whitelistPaths []string) *AuthenticateMiddleware {
 	return &AuthenticateMiddleware{
-		config:         config,
+		config:         models.GetConfig(),
 		userSrvc:       userService,
 		cache:          cache.New(1*time.Hour, 2*time.Hour),
 		whitelistPaths: whitelistPaths,

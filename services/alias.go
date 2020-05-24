@@ -13,9 +13,14 @@ type AliasService struct {
 	Db     *gorm.DB
 }
 
-var userAliases sync.Map
+func NewAliasService(db *gorm.DB) *AliasService {
+	return &AliasService{
+		Config: models.GetConfig(),
+		Db:     db,
+	}
+}
 
-func (srv *AliasService) Init() {}
+var userAliases sync.Map
 
 func (srv *AliasService) LoadUserAliases(userId string) error {
 	var aliases []*models.Alias

@@ -16,10 +16,10 @@ type HeartbeatHandler struct {
 	heartbeatSrvc *services.HeartbeatService
 }
 
-func NewHeartbeatHandler(config *models.Config, heartbearService *services.HeartbeatService) *HeartbeatHandler {
+func NewHeartbeatHandler(heartbeatService *services.HeartbeatService) *HeartbeatHandler {
 	return &HeartbeatHandler{
-		config:        config,
-		heartbeatSrvc: heartbearService,
+		config:        models.GetConfig(),
+		heartbeatSrvc: heartbeatService,
 	}
 }
 

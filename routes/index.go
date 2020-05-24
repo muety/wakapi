@@ -18,9 +18,9 @@ type IndexHandler struct {
 var loginDecoder = schema.NewDecoder()
 var signupDecoder = schema.NewDecoder()
 
-func NewIndexHandler(config *models.Config, userService *services.UserService) *IndexHandler {
+func NewIndexHandler(userService *services.UserService) *IndexHandler {
 	return &IndexHandler{
-		config:   config,
+		config:   models.GetConfig(),
 		userSrvc: userService,
 	}
 }

@@ -21,7 +21,12 @@ type HeartbeatService struct {
 	Db     *gorm.DB
 }
 
-func (srv *HeartbeatService) Init() {}
+func NewHeartbeatService(db *gorm.DB) *HeartbeatService {
+	return &HeartbeatService{
+		Config: models.GetConfig(),
+		Db:     db,
+	}
+}
 
 func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {
 	var batch []interface{}

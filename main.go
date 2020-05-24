@@ -1,29 +1,21 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/gorilla/handlers"
-	"github.com/gorilla/securecookie"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gobuffalo/packr/v2"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
-	"github.com/joho/godotenv"
-	"github.com/rubenv/sql-migrate"
-	ini "gopkg.in/ini.v1"
-
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/routes"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
+	"github.com/rubenv/sql-migrate"
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -45,103 +37,8 @@ var (
 
 // TODO: Refactor entire project to be structured after business domains
 
-func readConfig() *models.Config {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal(err)
-	}
-
-	env := utils.LookupFatal("ENV")
-	dbType := utils.LookupFatal("WAKAPI_DB_TYPE")
-	dbUser := utils.LookupFatal("WAKAPI_DB_USER")
-	dbPassword := utils.LookupFatal("WAKAPI_DB_PASSWORD")
-	dbHost := utils.LookupFatal("WAKAPI_DB_HOST")
-	dbName := utils.LookupFatal("WAKAPI_DB_NAME")
-	dbPortStr := utils.LookupFatal("WAKAPI_DB_PORT")
-	defaultUserName := utils.LookupFatal("WAKAPI_DEFAULT_USER_NAME")
-	defaultUserPassword := utils.LookupFatal("WAKAPI_DEFAULT_USER_PASSWORD")
-	dbPort, err := strconv.Atoi(dbPortStr)
-
-	cfg, err := ini.Load("config.ini")
-	if err != nil {
-		log.Fatalf("Fail to read file: %v", err)
-	}
-
-	if dbType == "" {
-		dbType = "mysql"
-	}
-
-	dbMaxConn := cfg.Section("database").Key("max_connections").MustUint(1)
-	addr := cfg.Section("server").Key("listen").MustString("127.0.0.1")
-	port, err := strconv.Atoi(os.Getenv("PORT"))
-	if err != nil {
-		port = cfg.Section("server").Key("port").MustInt()
-	}
-
-	basePath := cfg.Section("server").Key("base_path").MustString("/")
-	if strings.HasSuffix(basePath, "/") {
-		basePath = basePath[:len(basePath)-1]
-	}
-
-	cleanUp := cfg.Section("app").Key("cleanup").MustBool(false)
-
-	// Read custom languages
-	customLangs := make(map[string]string)
-	languageKeys := cfg.Section("languages").Keys()
-	for _, k := range languageKeys {
-		customLangs[k.Name()] = k.MustString("unknown")
-	}
-
-	// Read language colors
-	// Source: https://raw.githubusercontent.com/ozh/github-colors/master/colors.json
-	var colors = make(map[string]string)
-	var rawColors map[string]struct {
-		Color string `json:"color"`
-		Url   string `json:"url"`
-	}
-
-	data, err := ioutil.ReadFile("data/colors.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := json.Unmarshal(data, &rawColors); err != nil {
-		log.Fatal(err)
-	}
-
-	for k, v := range rawColors {
-		colors[strings.ToLower(k)] = v.Color
-	}
-
-	// TODO: Read keys from env, so that users are not logged out every time the server is restarted
-	secureCookie := securecookie.New(
-		securecookie.GenerateRandomKey(64),
-		securecookie.GenerateRandomKey(32),
-	)
-
-	return &models.Config{
-		Env:                 env,
-		Port:                port,
-		Addr:                addr,
-		BasePath:            basePath,
-		DbHost:              dbHost,
-		DbPort:              uint(dbPort),
-		DbUser:              dbUser,
-		DbPassword:          dbPassword,
-		DbName:              dbName,
-		DbDialect:           dbType,
-		DbMaxConn:           dbMaxConn,
-		CleanUp:             cleanUp,
-		SecureCookie:        secureCookie,
-		DefaultUserName:     defaultUserName,
-		DefaultUserPassword: defaultUserPassword,
-		CustomLanguages:     customLangs,
-		LanguageColors:      colors,
-	}
-}
-
 func main() {
-	// Read Config
-	config = readConfig()
+	config = models.GetConfig()
 
 	// Enable line numbers in logging
 	if config.IsDev() {
@@ -159,7 +56,7 @@ func main() {
 	db.DB().SetMaxOpenConns(int(config.DbMaxConn))
 	if err != nil {
 		log.Println(err)
-		log.Fatal("Could not connect to database.")
+		log.Fatal("could not connect to database")
 	}
 	// TODO: Graceful shutdown
 	defer db.Close()
@@ -169,16 +66,11 @@ func main() {
 	migrateDo(db)
 
 	// Services
-	aliasService = &services.AliasService{Config: config, Db: db}
-	heartbeatService = &services.HeartbeatService{Config: config, Db: db}
-	userService = &services.UserService{Config: config, Db: db}
-	summaryService = &services.SummaryService{Config: config, Db: db, HeartbeatService: heartbeatService, AliasService: aliasService}
-	aggregationService = &services.AggregationService{Config: config, Db: db, UserService: userService, SummaryService: summaryService, HeartbeatService: heartbeatService}
-
-	svcs := []services.Initializable{aliasService, heartbeatService, userService, summaryService, aggregationService}
-	for _, s := range svcs {
-		s.Init()
-	}
+	aliasService = services.NewAliasService(db)
+	heartbeatService = services.NewHeartbeatService(db)
+	userService = services.NewUserService(db)
+	summaryService = services.NewSummaryService(db, heartbeatService, aliasService)
+	aggregationService = services.NewAggregationService(db, userService, summaryService, heartbeatService)
 
 	// Custom migrations and initial data
 	addDefaultUser()
@@ -192,10 +84,10 @@ func main() {
 	}
 
 	// Handlers
-	heartbeatHandler := routes.NewHeartbeatHandler(config, heartbeatService)
-	summaryHandler := routes.NewSummaryHandler(config, summaryService)
+	heartbeatHandler := routes.NewHeartbeatHandler(heartbeatService)
+	summaryHandler := routes.NewSummaryHandler(summaryService)
 	healthHandler := routes.NewHealthHandler(db)
-	indexHandler := routes.NewIndexHandler(config, userService)
+	indexHandler := routes.NewIndexHandler(userService)
 
 	// Setup Routers
 	router := mux.NewRouter()
@@ -208,7 +100,6 @@ func main() {
 	loggingMiddleware := middlewares.NewLoggingMiddleware().Handler
 	corsMiddleware := handlers.CORS()
 	authenticateMiddleware := middlewares.NewAuthenticateMiddleware(
-		config,
 		userService,
 		[]string{"/api/health"},
 	).Handler

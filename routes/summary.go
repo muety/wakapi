@@ -24,10 +24,10 @@ type SummaryHandler struct {
 	config      *models.Config
 }
 
-func NewSummaryHandler(config *models.Config, summaryService *services.SummaryService) *SummaryHandler {
+func NewSummaryHandler(summaryService *services.SummaryService) *SummaryHandler {
 	return &SummaryHandler{
 		cummarySrvc: summaryService,
-		config:      config,
+		config:      models.GetConfig(),
 	}
 }
 
