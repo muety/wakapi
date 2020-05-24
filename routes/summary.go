@@ -2,7 +2,9 @@ package routes
 
 import (
 	"errors"
+	"fmt"
 	"html/template"
+	"io/ioutil"
 	"net/http"
 	"path"
 	"time"
@@ -22,9 +24,9 @@ const (
 )
 
 type SummaryHandler struct {
-	SummarySrvc   *services.SummaryService
-	Initialized   bool
-	indexTemplate *template.Template
+	SummarySrvc *services.SummaryService
+	Initialized bool
+	templates   map[string]*template.Template
 }
 
 func (m *SummaryHandler) Init() {
@@ -33,15 +35,31 @@ func (m *SummaryHandler) Init() {
 }
 
 func (m *SummaryHandler) loadTemplates() {
-	indexTplPath := "views/index.tpl.html"
-	indexTpl, err := template.New(path.Base(indexTplPath)).Funcs(template.FuncMap{
+	tplPath := "views"
+	templates := template.New("").Funcs(template.FuncMap{
 		"json": utils.Json,
 		"date": utils.FormatDateHuman,
-	}).ParseFiles(indexTplPath)
+	})
+	m.templates = make(map[string]*template.Template)
+
+	files, err := ioutil.ReadDir(tplPath)
 	if err != nil {
 		panic(err)
 	}
-	m.indexTemplate = indexTpl
+
+	for _, file := range files {
+		tplName := file.Name()
+		if file.IsDir() || path.Ext(tplName) != ".html" {
+			continue
+		}
+
+		tpl, err := templates.New(tplName).ParseFiles(fmt.Sprintf("%s/%s", tplPath, tplName))
+		if err != nil {
+			panic(err)
+		}
+
+		m.templates[tplName] = tpl
+	}
 }
 
 func (h *SummaryHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
@@ -96,7 +114,7 @@ func (h *SummaryHandler) Index(w http.ResponseWriter, r *http.Request) {
 		LanguageColors: utils.FilterLanguageColors(h.SummarySrvc.Config.LanguageColors, summary),
 	}
 
-	h.indexTemplate.Execute(w, vm)
+	h.templates["index.tpl.html"].Execute(w, vm)
 }
 
 func loadUserSummary(r *http.Request, summaryService *services.SummaryService) (*models.Summary, error, int) {
