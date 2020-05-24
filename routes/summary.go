@@ -2,9 +2,7 @@ package routes
 
 import (
 	"errors"
-	"html/template"
 	"net/http"
-	"path"
 	"time"
 
 	"github.com/muety/wakapi/models"
@@ -22,39 +20,19 @@ const (
 )
 
 type SummaryHandler struct {
-	SummarySrvc   *services.SummaryService
-	Initialized   bool
-	indexTemplate *template.Template
+	cummarySrvc *services.SummaryService
+	config      *models.Config
 }
 
-func (m *SummaryHandler) Init() {
-	m.loadTemplates()
-	m.Initialized = true
-}
-
-func (m *SummaryHandler) loadTemplates() {
-	indexTplPath := "views/index.tpl.html"
-	indexTpl, err := template.New(path.Base(indexTplPath)).Funcs(template.FuncMap{
-		"json": utils.Json,
-		"date": utils.FormatDateHuman,
-	}).ParseFiles(indexTplPath)
-	if err != nil {
-		panic(err)
+func NewSummaryHandler(summaryService *services.SummaryService) *SummaryHandler {
+	return &SummaryHandler{
+		cummarySrvc: summaryService,
+		config:      models.GetConfig(),
 	}
-	m.indexTemplate = indexTpl
 }
 
 func (h *SummaryHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	if !h.Initialized {
-		h.Init()
-	}
-
-	summary, err, status := loadUserSummary(r, h.SummarySrvc)
+	summary, err, status := loadUserSummary(r, h.cummarySrvc)
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))
@@ -65,17 +43,8 @@ func (h *SummaryHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SummaryHandler) Index(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	if !h.Initialized {
-		h.Init()
-	}
-
-	if h.SummarySrvc.Config.IsDev() {
-		h.loadTemplates()
+	if h.config.IsDev() {
+		loadTemplates()
 	}
 
 	q := r.URL.Query()
@@ -84,7 +53,7 @@ func (h *SummaryHandler) Index(w http.ResponseWriter, r *http.Request) {
 		r.URL.RawQuery = q.Encode()
 	}
 
-	summary, err, status := loadUserSummary(r, h.SummarySrvc)
+	summary, err, status := loadUserSummary(r, h.cummarySrvc)
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))
@@ -93,10 +62,10 @@ func (h *SummaryHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	vm := models.SummaryViewModel{
 		Summary:        summary,
-		LanguageColors: utils.FilterLanguageColors(h.SummarySrvc.Config.LanguageColors, summary),
+		LanguageColors: utils.FilterLanguageColors(h.config.LanguageColors, summary),
 	}
 
-	h.indexTemplate.Execute(w, vm)
+	templates["summary.tpl.html"].Execute(w, vm)
 }
 
 func loadUserSummary(r *http.Request, summaryService *services.SummaryService) (*models.Summary, error, int) {

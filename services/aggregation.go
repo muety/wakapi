@@ -22,13 +22,21 @@ type AggregationService struct {
 	HeartbeatService *HeartbeatService
 }
 
+func NewAggregationService(db *gorm.DB, userService *UserService, summaryService *SummaryService, heartbeatService *HeartbeatService) *AggregationService {
+	return &AggregationService{
+		Config:           models.GetConfig(),
+		Db:               db,
+		UserService:      userService,
+		SummaryService:   summaryService,
+		HeartbeatService: heartbeatService,
+	}
+}
+
 type AggregationJob struct {
 	UserID string
 	From   time.Time
 	To     time.Time
 }
-
-func (srv *AggregationService) Init() {}
 
 // Schedule a job to (re-)generate summaries every day shortly after midnight
 // TODO: Make configurable

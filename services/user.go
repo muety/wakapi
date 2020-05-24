@@ -1,8 +1,11 @@
 package services
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"github.com/jinzhu/gorm"
 	"github.com/muety/wakapi/models"
+	uuid "github.com/satori/go.uuid"
 )
 
 type UserService struct {
@@ -10,7 +13,12 @@ type UserService struct {
 	Db     *gorm.DB
 }
 
-func (srv *UserService) Init() {}
+func NewUserService(db *gorm.DB) *UserService {
+	return &UserService{
+		Config: models.GetConfig(),
+		Db:     db,
+	}
+}
 
 func (srv *UserService) GetUserById(userId string) (*models.User, error) {
 	u := &models.User{}
@@ -36,4 +44,27 @@ func (srv *UserService) GetAll() ([]*models.User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+func (srv *UserService) CreateOrGet(signup *models.Signup) (*models.User, bool, error) {
+	pw := md5.Sum([]byte(signup.Password))
+	pwString := hex.EncodeToString(pw[:])
+	apiKey := uuid.NewV4().String()
+
+	u := &models.User{
+		ID:       signup.Username,
+		ApiKey:   apiKey,
+		Password: pwString,
+	}
+
+	result := srv.Db.FirstOrCreate(u, &models.User{ID: u.ID})
+	if err := result.Error; err != nil {
+		return nil, false, err
+	}
+
+	if result.RowsAffected == 1 {
+		return u, true, nil
+	}
+
+	return u, false, nil
 }

@@ -1,0 +1,12 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.4/seedrandom.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
+
+<script>
+    let wakapiData = {}
+    let languageColors = {{ .LanguageColors | json }}
+        wakapiData.projects = {{ .Projects | json }}
+            wakapiData.operatingSystems = {{ .OperatingSystems | json }}
+                wakapiData.editors = {{ .Editors | json }}
+                    wakapiData.languages = {{ .Languages | json }}
+</script>
+<script src="assets/app.js"></script>

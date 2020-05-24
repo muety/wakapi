@@ -7,12 +7,16 @@ import (
 )
 
 type HealthHandler struct {
-	Db *gorm.DB
+	db *gorm.DB
+}
+
+func NewHealthHandler(db *gorm.DB) *HealthHandler {
+	return &HealthHandler{db: db}
 }
 
 func (h *HealthHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 	var dbStatus int
-	if err := h.Db.DB().Ping(); err == nil {
+	if err := h.db.DB().Ping(); err == nil {
 		dbStatus = 1
 	}
 

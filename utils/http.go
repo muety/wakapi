@@ -12,3 +12,13 @@ func RespondJSON(w http.ResponseWriter, status int, object interface{}) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
+
+func ClearCookie(w http.ResponseWriter, name string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     name,
+		Value:    "",
+		Path:     "/",
+		Secure:   true,
+		HttpOnly: true,
+	})
+}
