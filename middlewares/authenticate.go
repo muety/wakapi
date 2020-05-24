@@ -3,6 +3,7 @@ package middlewares
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/muety/wakapi/utils"
 	"net/http"
 	"strings"
@@ -56,7 +57,7 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			w.WriteHeader(http.StatusUnauthorized)
 		} else {
 			utils.ClearCookie(w, models.AuthCookieKey)
-			http.Redirect(w, r, "/?error=unauthorized", http.StatusFound)
+			http.Redirect(w, r, fmt.Sprintf("%s/?error=unauthorized", m.config.BasePath), http.StatusFound)
 		}
 		return
 	}
