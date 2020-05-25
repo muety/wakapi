@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"github.com/jinzhu/gorm"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
@@ -66,4 +67,20 @@ func (srv *UserService) CreateOrGet(signup *models.Signup) (*models.User, bool, 
 	}
 
 	return u, false, nil
+}
+
+func (srv *UserService) MigrateMd5Password(user *models.User, login *models.Login) (*models.User, error) {
+	user.Password = login.Password
+	if err := utils.HashPassword(user, srv.Config.PasswordSalt); err != nil {
+		return nil, err
+	}
+
+	result := srv.Db.Model(user).Update("password", user.Password)
+	if err := result.Error; err != nil {
+		return nil, err
+	} else if result.RowsAffected < 1 {
+		return nil, errors.New("nothing changes")
+	}
+
+	return user, nil
 }

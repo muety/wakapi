@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/gorilla/schema"
+	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
@@ -76,7 +77,8 @@ func (h *IndexHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !utils.CheckPassword(user, login.Password, h.config.PasswordSalt) {
+	// TODO: depending on middleware package here is a hack
+	if !middlewares.CheckAndMigratePassword(user, &login, h.config.PasswordSalt, h.userSrvc) {
 		respondAlert(w, "invalid credentials", "", "", http.StatusUnauthorized)
 		return
 	}

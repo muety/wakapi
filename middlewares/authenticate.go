@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/muety/wakapi/utils"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -94,18 +95,33 @@ func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.Us
 		return nil, err
 	}
 
-	var user *models.User
 	cachedUser, ok := m.cache.Get(login.Username)
-	if !ok {
-		user, err = m.userSrvc.GetUserById(login.Username)
-		if err != nil {
-			return nil, err
-		}
-		if !utils.CheckPassword(user, login.Password, m.config.PasswordSalt) {
-			return nil, errors.New("invalid password")
-		}
-	} else {
-		user = cachedUser.(*models.User)
+
+	if ok {
+		return cachedUser.(*models.User), nil
 	}
+
+	user, err := m.userSrvc.GetUserById(login.Username)
+	if err != nil {
+		return nil, err
+	}
+
+	if !CheckAndMigratePassword(user, login, m.config.PasswordSalt, m.userSrvc) {
+		return nil, errors.New("invalid password")
+	}
+
 	return user, nil
+}
+
+// migrate old md5-hashed passwords to new salted bcrypt hashes for backwards compatibility
+func CheckAndMigratePassword(user *models.User, login *models.Login, salt string, userServiceRef *services.UserService) bool {
+	if utils.IsMd5(user.Password) {
+		if utils.CheckPasswordMd5(user, login.Password) {
+			log.Printf("migrating old md5 password to new bcrypt format for user '%s'", user.ID)
+			userServiceRef.MigrateMd5Password(user, login)
+			return true
+		}
+		return false
+	}
+	return utils.CheckPasswordBcrypt(user, login.Password, salt)
 }

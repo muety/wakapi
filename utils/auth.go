@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"crypto/md5"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"github.com/muety/wakapi/models"
 	"golang.org/x/crypto/bcrypt"
@@ -9,6 +11,8 @@ import (
 	"regexp"
 	"strings"
 )
+
+var md5Regex = regexp.MustCompile(`^[a-f0-9]{32}$`)
 
 func ExtractBasicAuth(r *http.Request) (username, password string, err error) {
 	authHeader := strings.Split(r.Header.Get("Authorization"), " ")
@@ -54,9 +58,23 @@ func ExtractCookieAuth(r *http.Request, config *models.Config) (login *models.Lo
 	return login, nil
 }
 
-func CheckPassword(user *models.User, password, salt string) bool {
+func IsMd5(hash string) bool {
+	return md5Regex.Match([]byte(hash))
+}
+
+func CheckPasswordBcrypt(user *models.User, password, salt string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password+salt))
 	return err == nil
+}
+
+// deprecated, only here for backwards compatibility
+func CheckPasswordMd5(user *models.User, password string) bool {
+	hash := md5.Sum([]byte(password))
+	hashStr := hex.EncodeToString(hash[:])
+	if hashStr == user.Password {
+		return true
+	}
+	return false
 }
 
 // inplace
