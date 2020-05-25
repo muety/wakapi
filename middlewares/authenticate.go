@@ -101,7 +101,7 @@ func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.Us
 		if err != nil {
 			return nil, err
 		}
-		if !utils.CheckPassword(user, login.Password) {
+		if !utils.CheckPassword(user, login.Password, m.config.PasswordSalt) {
 			return nil, errors.New("invalid password")
 		}
 	} else {

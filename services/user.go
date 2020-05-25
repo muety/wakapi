@@ -1,10 +1,9 @@
 package services
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"github.com/jinzhu/gorm"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -47,14 +46,14 @@ func (srv *UserService) GetAll() ([]*models.User, error) {
 }
 
 func (srv *UserService) CreateOrGet(signup *models.Signup) (*models.User, bool, error) {
-	pw := md5.Sum([]byte(signup.Password))
-	pwString := hex.EncodeToString(pw[:])
-	apiKey := uuid.NewV4().String()
-
 	u := &models.User{
 		ID:       signup.Username,
-		ApiKey:   apiKey,
-		Password: pwString,
+		ApiKey:   uuid.NewV4().String(),
+		Password: signup.Password,
+	}
+
+	if err := utils.HashPassword(u, srv.Config.PasswordSalt); err != nil {
+		return nil, false, err
 	}
 
 	result := srv.Db.FirstOrCreate(u, &models.User{ID: u.ID})

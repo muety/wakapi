@@ -76,7 +76,7 @@ func (h *IndexHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !utils.CheckPassword(user, login.Password) {
+	if !utils.CheckPassword(user, login.Password, h.config.PasswordSalt) {
 		respondAlert(w, "invalid credentials", "", "", http.StatusUnauthorized)
 		return
 	}

@@ -16,5 +16,6 @@ require (
 	github.com/rubenv/sql-migrate v0.0.0-20200402132117-435005d389bc
 	github.com/satori/go.uuid v1.2.0
 	github.com/t-tiger/gorm-bulk-insert v0.0.0-20191014134946-beb77b81825f
+	golang.org/x/crypto v0.0.0-20191122220453-ac88ee75c92c
 	gopkg.in/ini.v1 v1.50.0
 )

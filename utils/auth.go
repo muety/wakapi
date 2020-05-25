@@ -1,11 +1,10 @@
 package utils
 
 import (
-	"crypto/md5"
 	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"github.com/muety/wakapi/models"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -55,11 +54,16 @@ func ExtractCookieAuth(r *http.Request, config *models.Config) (login *models.Lo
 	return login, nil
 }
 
-func CheckPassword(user *models.User, password string) bool {
-	passwordHash := md5.Sum([]byte(password))
-	passwordHashString := hex.EncodeToString(passwordHash[:])
-	if passwordHashString == user.Password {
-		return true
+func CheckPassword(user *models.User, password, salt string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password+salt))
+	return err == nil
+}
+
+// inplace
+func HashPassword(u *models.User, salt string) error {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(u.Password+salt), bcrypt.DefaultCost)
+	if err == nil {
+		u.Password = string(bytes)
 	}
-	return false
+	return err
 }

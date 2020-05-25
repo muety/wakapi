@@ -30,6 +30,7 @@ type Config struct {
 	CleanUp              bool
 	DefaultUserName      string
 	DefaultUserPassword  string
+	PasswordSalt         string
 	SecureCookieHashKey  string
 	SecureCookieBlockKey string
 	CustomLanguages      map[string]string
@@ -86,6 +87,7 @@ func readConfig() *Config {
 	dbHost := LookupFatal("WAKAPI_DB_HOST")
 	dbName := LookupFatal("WAKAPI_DB_NAME")
 	dbPortStr := LookupFatal("WAKAPI_DB_PORT")
+	passwordSalt := LookupFatal("WAKAPI_PASSWORD_SALT")
 	defaultUserName := LookupFatal("WAKAPI_DEFAULT_USER_NAME")
 	defaultUserPassword := LookupFatal("WAKAPI_DEFAULT_USER_PASSWORD")
 	dbPort, err := strconv.Atoi(dbPortStr)
@@ -162,6 +164,7 @@ func readConfig() *Config {
 		DbMaxConn:           dbMaxConn,
 		CleanUp:             cleanUp,
 		SecureCookie:        secureCookie,
+		PasswordSalt:        passwordSalt,
 		DefaultUserName:     defaultUserName,
 		DefaultUserPassword: defaultUserPassword,
 		CustomLanguages:     customLangs,
