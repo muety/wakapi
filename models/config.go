@@ -15,21 +15,22 @@ import (
 var cfg *Config
 
 type Config struct {
-	Env                  string
-	Version              string
-	Port                 int
-	Addr                 string
-	BasePath             string
-	DbHost               string
-	DbPort               uint
-	DbUser               string
-	DbPassword           string
-	DbName               string
-	DbDialect            string
-	DbMaxConn            uint
-	CleanUp              bool
-	DefaultUserName      string
-	DefaultUserPassword  string
+	Env                 string
+	Version             string
+	Port                int
+	Addr                string
+	BasePath            string
+	DbHost              string
+	DbPort              uint
+	DbUser              string
+	DbPassword          string
+	DbName              string
+	DbDialect           string
+	DbMaxConn           uint
+	CleanUp             bool
+	DefaultUserName     string
+	DefaultUserPassword string
+	// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
 	PasswordSalt         string
 	SecureCookieHashKey  string
 	SecureCookieBlockKey string

@@ -25,12 +25,10 @@ If you like this project, please consider supporting it 🙂. You can donate eit
 
 ## Server Setup
 ### Run from source
-1. Enable Go module support: `export GO111MODULE=on`
-1. Get code: `go get github.com/muety/wakapi`
-1. Go to project root: `cd "$GOPATH/src/github.com/muety/wakapi"`
+1. Clone the project
 1. Copy `.env.example` to `.env` and set database credentials
 1. Adapt `config.ini` to your needs
-1. Build executable: `go build`
+1. Build executable: `GO111MODULE=on go build`
 1. Run server: `./wakapi`
 
 ### Run with Docker
