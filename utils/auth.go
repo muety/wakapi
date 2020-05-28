@@ -63,7 +63,9 @@ func IsMd5(hash string) bool {
 }
 
 func CheckPasswordBcrypt(user *models.User, password, salt string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password+salt))
+	hashedPassword := []byte(strings.TrimSpace(user.Password))
+	plainPassword := []byte(strings.TrimSpace(password) + salt)
+	err := bcrypt.CompareHashAndPassword(hashedPassword, plainPassword)
 	return err == nil
 }
 
@@ -79,7 +81,8 @@ func CheckPasswordMd5(user *models.User, password string) bool {
 
 // inplace
 func HashPassword(u *models.User, salt string) error {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(u.Password+salt), bcrypt.DefaultCost)
+	plainSaltedPassword := []byte(strings.TrimSpace(u.Password) + salt)
+	bytes, err := bcrypt.GenerateFromPassword(plainSaltedPassword, bcrypt.DefaultCost)
 	if err == nil {
 		u.Password = string(bytes)
 	}
