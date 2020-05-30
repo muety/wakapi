@@ -69,6 +69,19 @@ func (srv *UserService) CreateOrGet(signup *models.Signup) (*models.User, bool, 
 	return u, false, nil
 }
 
+func (srv *UserService) Update(user *models.User) (*models.User, error) {
+	result := srv.Db.Model(&models.User{}).Updates(user)
+	if err := result.Error; err != nil {
+		return nil, err
+	}
+
+	if result.RowsAffected != 1 {
+		return nil, errors.New("nothing updated")
+	}
+
+	return user, nil
+}
+
 func (srv *UserService) MigrateMd5Password(user *models.User, login *models.Login) (*models.User, error) {
 	user.Password = login.Password
 	if err := utils.HashPassword(user, srv.Config.PasswordSalt); err != nil {

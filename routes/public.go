@@ -9,6 +9,7 @@ import (
 	"github.com/muety/wakapi/utils"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 type IndexHandler struct {
@@ -105,6 +106,9 @@ func (h *IndexHandler) Login(w http.ResponseWriter, r *http.Request) {
 		respondAlert(w, "internal server error", "", "", http.StatusInternalServerError)
 		return
 	}
+
+	user.LastLoggedInAt = models.CustomTime(time.Now())
+	h.userSrvc.Update(user)
 
 	cookie := &http.Cookie{
 		Name:     models.AuthCookieKey,
