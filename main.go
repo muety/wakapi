@@ -7,19 +7,16 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gobuffalo/packr/v2"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/routes"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"github.com/rubenv/sql-migrate"
-
-	_ "github.com/jinzhu/gorm/dialects/mysql"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 var (
@@ -33,6 +30,7 @@ var (
 	userService        *services.UserService
 	summaryService     *services.SummaryService
 	aggregationService *services.AggregationService
+	keyValueService    *services.KeyValueService
 )
 
 // TODO: Refactor entire project to be structured after business domains
@@ -62,8 +60,8 @@ func main() {
 	defer db.Close()
 
 	// Migrate database schema
-	migrateDo := databaseMigrateActions(config.DbDialect)
-	migrateDo(db)
+	runDatabaseMigrations()
+	applyFixtures()
 
 	// Services
 	aliasService = services.NewAliasService(db)
@@ -71,9 +69,9 @@ func main() {
 	userService = services.NewUserService(db)
 	summaryService = services.NewSummaryService(db, heartbeatService, aliasService)
 	aggregationService = services.NewAggregationService(db, userService, summaryService, heartbeatService)
+	keyValueService = services.NewKeyValueService(db)
 
 	// Custom migrations and initial data
-	addDefaultUser()
 	migrateLanguages()
 
 	// Aggregate heartbeats to summaries and persist them
@@ -87,7 +85,7 @@ func main() {
 	heartbeatHandler := routes.NewHeartbeatHandler(heartbeatService)
 	summaryHandler := routes.NewSummaryHandler(summaryService)
 	healthHandler := routes.NewHealthHandler(db)
-	publicHandler := routes.NewIndexHandler(userService)
+	publicHandler := routes.NewIndexHandler(userService, keyValueService)
 
 	// Setup Routers
 	router := mux.NewRouter()
@@ -114,6 +112,7 @@ func main() {
 	publicRouter.Path("/login").Methods(http.MethodPost).HandlerFunc(publicHandler.Login)
 	publicRouter.Path("/logout").Methods(http.MethodPost).HandlerFunc(publicHandler.Logout)
 	publicRouter.Path("/signup").Methods(http.MethodGet, http.MethodPost).HandlerFunc(publicHandler.Signup)
+	publicRouter.Path("/imprint").Methods(http.MethodGet).HandlerFunc(publicHandler.Imprint)
 
 	// Summary Routes
 	summaryRouter.Methods(http.MethodGet).HandlerFunc(summaryHandler.Index)
@@ -138,30 +137,16 @@ func main() {
 	s.ListenAndServe()
 }
 
-func databaseMigrateActions(dbDialect string) func(db *gorm.DB) {
-	var migrateDo func(db *gorm.DB)
-	if dbDialect == "sqlite3" {
-		migrations := &migrate.PackrMigrationSource{
-			Box: packr.New("migrations", "./migrations/sqlite3"),
-		}
-		migrateDo = func(db *gorm.DB) {
-			n, err := migrate.Exec(db.DB(), "sqlite3", migrations, migrate.Up)
-			if err != nil {
-				log.Fatal(err)
-			}
-			log.Printf("Applied %d migrations!\n", n)
-		}
-	} else {
-		migrateDo = func(db *gorm.DB) {
-			db.AutoMigrate(&models.Alias{})
-			db.AutoMigrate(&models.Summary{})
-			db.AutoMigrate(&models.SummaryItem{})
-			db.AutoMigrate(&models.User{})
-			db.AutoMigrate(&models.Heartbeat{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
-			db.AutoMigrate(&models.SummaryItem{}).AddForeignKey("summary_id", "summaries(id)", "CASCADE", "CASCADE")
-		}
+func runDatabaseMigrations() {
+	if err := config.GetMigrationFunc(config.DbDialect)(db); err != nil {
+		log.Fatal(err)
 	}
-	return migrateDo
+}
+
+func applyFixtures() {
+	if err := config.GetFixturesFunc(config.DbDialect)(db); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func migrateLanguages() {
@@ -176,21 +161,5 @@ func migrateLanguages() {
 		if result.RowsAffected > 0 {
 			log.Printf("Migrated %+v rows for custom language %+s.\n", result.RowsAffected, k)
 		}
-	}
-}
-
-func addDefaultUser() {
-	u, created, err := userService.CreateOrGet(&models.Signup{
-		Username: config.DefaultUserName,
-		Password: config.DefaultUserPassword,
-	})
-
-	if err != nil {
-		log.Println("unable to create default user")
-		log.Fatal(err)
-	} else if created {
-		log.Printf("created default user '%s' with password '%s' and API key '%s'\n", u.ID, config.DefaultUserPassword, u.ApiKey)
-	} else {
-		log.Printf("default user '%s' already existing\n", u.ID)
 	}
 }

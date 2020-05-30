@@ -12,17 +12,19 @@ import (
 )
 
 type IndexHandler struct {
-	config   *models.Config
-	userSrvc *services.UserService
+	config       *models.Config
+	userSrvc     *services.UserService
+	keyValueSrvc *services.KeyValueService
 }
 
 var loginDecoder = schema.NewDecoder()
 var signupDecoder = schema.NewDecoder()
 
-func NewIndexHandler(userService *services.UserService) *IndexHandler {
+func NewIndexHandler(userService *services.UserService, keyValueService *services.KeyValueService) *IndexHandler {
 	return &IndexHandler{
-		config:   models.GetConfig(),
-		userSrvc: userService,
+		config:       models.GetConfig(),
+		userSrvc:     userService,
+		keyValueSrvc: keyValueService,
 	}
 }
 
@@ -49,6 +51,21 @@ func (h *IndexHandler) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	templates["index.tpl.html"].Execute(w, nil)
+}
+
+func (h *IndexHandler) Imprint(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	text := "failed to load content"
+	if data, err := h.keyValueSrvc.GetString(models.ImprintKey); err == nil {
+		text = data.Value
+	}
+
+	templates["imprint.tpl.html"].Execute(w, &struct {
+		HtmlText string
+	}{HtmlText: text})
 }
 
 func (h *IndexHandler) Login(w http.ResponseWriter, r *http.Request) {

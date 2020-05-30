@@ -40,12 +40,6 @@ If you like this project, please consider supporting it 🙂. You can donate eit
 docker run -d -p 3000:3000 --name wakapi n1try/wakapi
 ```
 
-To get your API key, take a look into the logs `docker logs wakapi | grep "API key"`
-
-In addition, you can specify several environment variables for configuration:
-* `-e WAKAPI_DEFAULT_USER_NAME=admin`
-* `-e WAKAPI_DEFAULT_USER_PASSWORD=admin`
-
 By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres, see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile) and [.env.example](https://github.com/muety/wakapi/blob/master/.env.example) for further options.
 
 ## Client Setup
@@ -53,27 +47,24 @@ Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime
 
 1. **Set up WakaTime** for your specific IDE or editor. Please refer to the respective [plugin guide](https://wakatime.com/plugins)
 2. Make your local WakaTime client talk to Wakapi by **editing your local `~/.wakatime.cfg`** file as follows
+
 ```
 api_url = https://your.server:someport/api/heartbeat`
 api_key = the_api_key_printed_to_the_console_after_starting_the_server`
 ```
 
-## Customization
+You can view your API Key after logging in to the web interface.
 
-### User Accounts
-* When starting wakapi for the first time, a default user _**admin**_ with password _**admin**_ is created. The corresponding API key is printed to the console.
-* Additional users, at the moment, can be added only via SQL statements on your database, like this:
-    * Connect to your database server: `mysql -u yourusername -p -H your.hostname` (alternatively use GUI tools like _MySQL Workbench_)
-    * Select your database: `USE yourdatabasename;`
-    * Add the new user: `INSERT INTO users (id, password, api_key) VALUES ('your_nickname', MD5('your_password'), '728f084c-85e0-41de-aa2a-b6cc871200c1');` (the latter value should be a random [UUIDv4](https://tools.ietf.org/html/rfc4122), as can be found in your `~/.wakatime.cfg`)
+## Customization
 
 ### Aliases
 There is an option to add aliases for project names, editors, operating systems and languages. For instance, if you want to map two projects – `myapp-frontend` and `myapp-backend` – two a common project name – `myapp-web` – in your statistics, you can add project aliases.
 
-At the moment, this can only be done via raw database queries. See [_User Accounts_](#user-accounts) section above on how to do such.
-For the above example, you would need to add two aliases, like this:
+At the moment, this can only be done via raw database queries. For the above example, you would need to add two aliases, like this:
 
-* `INSERT INTO aliases (type, user_id, key, value) VALUES (0, 'your_username', 'myapp-web', 'myapp-frontend')` (analogously for `myapp-backend`)
+```sql
+INSERT INTO aliases (`type`, `user_id`, `key`, `value`) VALUES (0, 'your_username', 'myapp-web', 'myapp-frontend');
+```
 
 #### Types
 * Project ~  type **0**

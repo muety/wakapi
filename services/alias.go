@@ -46,7 +46,7 @@ func (srv *AliasService) GetAliasOrDefault(userId string, summaryType uint8, val
 	return "", errors.New("user aliases not initialized")
 }
 
-func (src *AliasService) IsInitialized(userId string) bool {
+func (srv *AliasService) IsInitialized(userId string) bool {
 	if _, ok := userAliases.Load(userId); ok {
 		return true
 	}

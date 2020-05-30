@@ -3,7 +3,9 @@ package models
 import (
 	"encoding/json"
 	"github.com/gorilla/securecookie"
+	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
+	migrate "github.com/rubenv/sql-migrate"
 	"gopkg.in/ini.v1"
 	"io/ioutil"
 	"log"
@@ -15,21 +17,19 @@ import (
 var cfg *Config
 
 type Config struct {
-	Env                 string
-	Version             string
-	Port                int
-	Addr                string
-	BasePath            string
-	DbHost              string
-	DbPort              uint
-	DbUser              string
-	DbPassword          string
-	DbName              string
-	DbDialect           string
-	DbMaxConn           uint
-	CleanUp             bool
-	DefaultUserName     string
-	DefaultUserPassword string
+	Env        string
+	Version    string
+	Port       int
+	Addr       string
+	BasePath   string
+	DbHost     string
+	DbPort     uint
+	DbUser     string
+	DbPassword string
+	DbName     string
+	DbDialect  string
+	DbMaxConn  uint
+	CleanUp    bool
 	// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
 	PasswordSalt         string
 	SecureCookieHashKey  string
@@ -42,6 +42,54 @@ type Config struct {
 
 func (c *Config) IsDev() bool {
 	return IsDev(c.Env)
+}
+
+func (c *Config) GetMigrationFunc(dbDialect string) MigrationFunc {
+	switch dbDialect {
+	case "sqlite3":
+		return func(db *gorm.DB) error {
+			migrations := &migrate.FileMigrationSource{
+				Dir: "migrations/sqlite3",
+			}
+
+			migrate.SetIgnoreUnknown(true)
+			n, err := migrate.Exec(db.DB(), "sqlite3", migrations, migrate.Up)
+			if err != nil {
+				return err
+			}
+
+			log.Printf("applied %d migrations\n", n)
+			return nil
+		}
+	default:
+		return func(db *gorm.DB) error {
+			db.AutoMigrate(&Alias{})
+			db.AutoMigrate(&Summary{})
+			db.AutoMigrate(&SummaryItem{})
+			db.AutoMigrate(&User{})
+			db.AutoMigrate(&Heartbeat{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
+			db.AutoMigrate(&SummaryItem{}).AddForeignKey("summary_id", "summaries(id)", "CASCADE", "CASCADE")
+			db.AutoMigrate(&KeyStringValue{})
+			return nil
+		}
+	}
+}
+
+func (c *Config) GetFixturesFunc(dbDialect string) MigrationFunc {
+	return func(db *gorm.DB) error {
+		migrations := &migrate.FileMigrationSource{
+			Dir: "migrations/common/fixtures",
+		}
+
+		migrate.SetIgnoreUnknown(true)
+		n, err := migrate.Exec(db.DB(), dbDialect, migrations, migrate.Up)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("applied %d fixtures\n", n)
+		return nil
+	}
 }
 
 func IsDev(env string) bool {
@@ -94,8 +142,6 @@ func readConfig() *Config {
 	dbName := LookupFatal("WAKAPI_DB_NAME")
 	dbPortStr := LookupFatal("WAKAPI_DB_PORT")
 	passwordSalt := LookupFatal("WAKAPI_PASSWORD_SALT")
-	defaultUserName := LookupFatal("WAKAPI_DEFAULT_USER_NAME")
-	defaultUserPassword := LookupFatal("WAKAPI_DEFAULT_USER_PASSWORD")
 	dbPort, err := strconv.Atoi(dbPortStr)
 
 	cfg, err := ini.Load("config.ini")
@@ -157,25 +203,23 @@ func readConfig() *Config {
 	)
 
 	return &Config{
-		Env:                 env,
-		Version:             version,
-		Port:                port,
-		Addr:                addr,
-		BasePath:            basePath,
-		DbHost:              dbHost,
-		DbPort:              uint(dbPort),
-		DbUser:              dbUser,
-		DbPassword:          dbPassword,
-		DbName:              dbName,
-		DbDialect:           dbType,
-		DbMaxConn:           dbMaxConn,
-		CleanUp:             cleanUp,
-		InsecureCookies:     insecureCookies,
-		SecureCookie:        secureCookie,
-		PasswordSalt:        passwordSalt,
-		DefaultUserName:     defaultUserName,
-		DefaultUserPassword: defaultUserPassword,
-		CustomLanguages:     customLangs,
-		LanguageColors:      colors,
+		Env:             env,
+		Version:         version,
+		Port:            port,
+		Addr:            addr,
+		BasePath:        basePath,
+		DbHost:          dbHost,
+		DbPort:          uint(dbPort),
+		DbUser:          dbUser,
+		DbPassword:      dbPassword,
+		DbName:          dbName,
+		DbDialect:       dbType,
+		DbMaxConn:       dbMaxConn,
+		CleanUp:         cleanUp,
+		InsecureCookies: insecureCookies,
+		SecureCookie:    secureCookie,
+		PasswordSalt:    passwordSalt,
+		CustomLanguages: customLangs,
+		LanguageColors:  colors,
 	}
 }
