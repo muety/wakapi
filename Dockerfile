@@ -16,6 +16,7 @@ RUN cd /src && go build -o wakapi
 # – WAKAPI_DB_HOST
 # – WAKAPI_DB_PORT
 # – WAKAPI_DB_NAME
+# – WAKAPI_PASSWORD_SALT
 # – WAKAPI_DEFAULT_USER_NAME
 # – WAKAPI_DEFAULT_USER_PASSWORD
 
@@ -28,14 +29,17 @@ ENV WAKAPI_DB_USER ''
 ENV WAKAPI_DB_PASSWORD ''
 ENV WAKAPI_DB_HOST ''
 ENV WAKAPI_DB_NAME=/data/wakapi.db
+ENV WAKAPI_PASSWORD_SALT ''
 ENV WAKAPI_DEFAULT_USER_NAME admin
 ENV WAKAPI_DEFAULT_USER_PASSWORD admin
 
 COPY --from=build-env /src/wakapi /app/
 COPY --from=build-env /src/config.ini /app/
+COPY --from=build-env /src/version.txt /app/
 COPY --from=build-env /src/.env.example /app/.env
 
 RUN sed -i 's/listen = 127.0.0.1/listen = 0.0.0.0/g' /app/config.ini
+RUN sed -i 's/insecure_cookies = false/insecure_cookies = true/g' /app/config.ini
 
 ADD static /app/static
 ADD data /app/data
