@@ -29,13 +29,6 @@ jobs:
       
     - name: Build
       run: go build -v .
-
-    - name: Upload Built Executable to Github Actions Artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: release.zip
-        # A file, directory or wildcard pattern that describes what to upload
-        path: ./
   
     - name: Compress working folder
       run: Compress-Archive -Path .\* -DestinationPath release.zip
