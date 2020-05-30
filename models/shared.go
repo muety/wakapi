@@ -12,5 +12,5 @@ type MigrationFunc func(db *gorm.DB) error
 
 type KeyStringValue struct {
 	Key   string `gorm:"primary_key"`
-	Value string
+	Value string `gorm:"type:text"`
 }
