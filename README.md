@@ -13,12 +13,12 @@
 
 ![Wakapi screenshot](https://anchr.io/i/bxQ69.png)
 
-If you like this project, please consider supporting it 🙂. You can donate either through [buying me a coffee](https://buymeacoff.ee/n1try) or becoming a GitHub sponor. Every little donation is highly appreciated and boosts the developers' motivation to keep improving Wakapi!
+If you like this project, please consider supporting it 🙂. You can donate either through [buying me a coffee](https://buymeacoff.ee/n1try) or becoming a GitHub sponsor. Every little donation is highly appreciated and boosts the developers' motivation to keep improving Wakapi!
 
 ## Demo 
-🔥 **New:** There is hosted [demo version](https://apps.muetsch.io/wakapi) available now. Go check it out!
+🔥 **New:** There is hosted [demo version](https://apps.muetsch.io/wakapi) available now. Go check it out! Please use responsibly.
 
-To use the demo version set `api_url = https://apps.muetsch.io/wakapi/api/heartbeat`. However, this hosted instance might be taken down again in the future, so you might potentially lose your data ❕ Please use responsibly ...
+To use the demo version set `api_url = https://apps.muetsch.io/wakapi/api/heartbeat`. However, this hosted instance might be taken down again in the future, so you might potentially lose your data ❕
 
 ## Prerequisites
 **On the server side:**
