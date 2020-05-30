@@ -93,7 +93,7 @@ func (h *IndexHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Name:     models.AuthCookieKey,
 		Value:    encoded,
 		Path:     "/",
-		Secure:   true,
+		Secure:   !h.config.InsecureCookies,
 		HttpOnly: true,
 	}
 	http.SetCookie(w, cookie)
@@ -105,7 +105,7 @@ func (h *IndexHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
-	utils.ClearCookie(w, models.AuthCookieKey)
+	utils.ClearCookie(w, models.AuthCookieKey, !h.config.InsecureCookies)
 	http.Redirect(w, r, fmt.Sprintf("%s/", h.config.BasePath), http.StatusFound)
 }
 

@@ -13,12 +13,12 @@ func RespondJSON(w http.ResponseWriter, status int, object interface{}) {
 	}
 }
 
-func ClearCookie(w http.ResponseWriter, name string) {
+func ClearCookie(w http.ResponseWriter, name string, secure bool) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     name,
 		Value:    "",
 		Path:     "/",
-		Secure:   true,
+		Secure:   secure,
 		HttpOnly: true,
 	})
 }

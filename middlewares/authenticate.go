@@ -57,7 +57,7 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		if strings.HasPrefix(r.URL.Path, "/api") {
 			w.WriteHeader(http.StatusUnauthorized)
 		} else {
-			utils.ClearCookie(w, models.AuthCookieKey)
+			utils.ClearCookie(w, models.AuthCookieKey, !m.config.InsecureCookies)
 			http.Redirect(w, r, fmt.Sprintf("%s/?error=unauthorized", m.config.BasePath), http.StatusFound)
 		}
 		return

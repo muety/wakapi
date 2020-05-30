@@ -17,7 +17,11 @@ If you like this project, please consider supporting it 🙂. You can donate eit
 
 ## Prerequisites
 **On the server side:**
-* Go > 1.13 (with `$GOPATH` properly set)
+* Go >= 1.13 (with `$GOPATH` properly set)
+* gcc (to compile [go-sqlite3](https://github.com/mattn/go-sqlite3))
+    * Fedora / RHEL: `dnf install @development-tools`
+    * Ubuntu / Debian: `apt install build-essential`
+    * Windows: See [here](https://github.com/mattn/go-sqlite3/issues/214#issuecomment-244604166)
 * _Optional_: A MySQL- or Postgres database
 
 **On your local machine:**

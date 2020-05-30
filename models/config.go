@@ -34,13 +34,18 @@ type Config struct {
 	PasswordSalt         string
 	SecureCookieHashKey  string
 	SecureCookieBlockKey string
+	InsecureCookies      bool
 	CustomLanguages      map[string]string
 	LanguageColors       map[string]string
 	SecureCookie         *securecookie.SecureCookie
 }
 
 func (c *Config) IsDev() bool {
-	return c.Env == "dev"
+	return IsDev(c.Env)
+}
+
+func IsDev(env string) bool {
+	return env == "dev" || env == "development"
 }
 
 func SetConfig(config *Config) {
@@ -104,6 +109,7 @@ func readConfig() *Config {
 
 	dbMaxConn := cfg.Section("database").Key("max_connections").MustUint(1)
 	addr := cfg.Section("server").Key("listen").MustString("127.0.0.1")
+	insecureCookies := IsDev(env) || cfg.Section("server").Key("insecure_cookies").MustBool(false)
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
 		port = cfg.Section("server").Key("port").MustInt()
@@ -164,6 +170,7 @@ func readConfig() *Config {
 		DbDialect:           dbType,
 		DbMaxConn:           dbMaxConn,
 		CleanUp:             cleanUp,
+		InsecureCookies:     insecureCookies,
 		SecureCookie:        secureCookie,
 		PasswordSalt:        passwordSalt,
 		DefaultUserName:     defaultUserName,
