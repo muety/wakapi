@@ -1,4 +1,4 @@
-name: Build WakAPI on Linux
+name: Build Wakapi on Linux
 
 on:
   release:
@@ -39,5 +39,5 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_path: release.zip
-        asset_name: wakapi_linux.zip
+        asset_name: wakapi_linux_amd64.zip
         asset_content_type: application/gzip

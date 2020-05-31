@@ -1,4 +1,4 @@
-name: Build WakAPI on Windows
+name: Build Wakapi on Windows
 
 on:
   release:

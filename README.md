@@ -40,6 +40,10 @@ To use the demo version set `api_url = https://apps.muetsch.io/wakapi/api/heartb
 1. Build executable: `GO111MODULE=on go build`
 1. Run server: `./wakapi`
 
+**As an alternative** to building from source you can also grab a pre-built [release](https://github.com/muety/wakapi/releases). Steps 2, 3 and 5 apply analogously.
+
+**Note:** By default, the application is running in dev mode. However, it is recommended to set `ENV=production` in `.env` for enhanced performance and security. To still be able to log in when using production mode, you either have to run Wakapi behind a reverse proxy, that enables for HTTPS encryption (see [best practices](i#best-practices)) or set `insecure_cookies = true` in `config.ini`. 
+
 ### Run with Docker
 ```
 docker run -d -p 3000:3000 --name wakapi n1try/wakapi
