@@ -1,0 +1,44 @@
+name: Build Wakapi on Windows
+
+on:
+  release:
+    types: 
+      - created
+
+jobs:
+  build-and-release:
+    name: Build and add to release
+    runs-on: windows-latest
+    steps:
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.13
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Get dependencies
+      run: |
+        go get -v -t -d ./...
+
+    - name: Enable Go 1.11 modules
+      run: cmd /c "set GO111MODULE=on"
+      
+    - name: Build
+      run: go build -v .
+  
+    - name: Compress working folder
+      run: Compress-Archive -Path .\* -DestinationPath release.zip
+
+    - name: Upload built executable to Release
+      uses: actions/upload-release-asset@v1.0.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: release.zip
+        asset_name: wakapi_win_amd64.zip
+        asset_content_type: application/gzip
