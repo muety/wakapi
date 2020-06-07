@@ -43,14 +43,6 @@ func (h *IndexHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: make this more generic and reusable
-	if success := r.URL.Query().Get("success"); success != "" {
-		templates["index.tpl.html"].Execute(w, struct {
-			Success string
-			Error   string
-		}{Success: success})
-		return
-	}
 	templates["index.tpl.html"].Execute(w, nil)
 }
 
