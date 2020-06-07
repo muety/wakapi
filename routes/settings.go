@@ -7,6 +7,7 @@ import (
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
+	"net/url"
 )
 
 type SettingsHandler struct {
@@ -28,6 +29,9 @@ func (h *SettingsHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
+	if handleAlerts(w, r, "settings.tpl.html") {
+		return
+	}
 	templates["settings.tpl.html"].Execute(w, nil)
 }
 
@@ -87,11 +91,22 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 		HttpOnly: true,
 	}
 	http.SetCookie(w, cookie)
-	http.Redirect(w, r, fmt.Sprintf("%s/settings", h.config.BasePath), http.StatusFound)
+
+	msg := url.QueryEscape("password was updated successfully")
+	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.BasePath, msg), http.StatusFound)
 }
 
 func (h *SettingsHandler) PostResetApiKey(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
+
+	user := r.Context().Value(models.UserKey).(*models.User)
+	if _, err := h.userSrvc.ResetApiKey(user); err != nil {
+		respondAlert(w, "internal server error", "", "settings.tpl.html", http.StatusInternalServerError)
+		return
+	}
+
+	msg := url.QueryEscape(fmt.Sprintf("your new api key is: %s", user.ApiKey))
+	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.BasePath, msg), http.StatusFound)
 }

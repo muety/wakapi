@@ -13,37 +13,57 @@
 
 {{ template "alerts.tpl.html" . }}
 
-<main class="mt-10 flex-grow flex justify-center w-full">
-    <div class="flex-grow max-w-lg mt-8">
-        <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
-            Change Password
+<main class="mt-4 flex-grow flex justify-center w-full">
+    <div class="flex flex-col flex-grow max-w-lg mt-8">
+        <div class="w-full my-8 pb-8 border-b border-gray-700">
+            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
+                Change Password
+            </div>
+
+            <form class="mt-10" action="settings/credentials" method="post">
+                <div class="mb-8">
+                    <label class="inline-block text-sm mb-1 text-gray-500" for="password_old">Current Password</label>
+                    <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
+                           type="password" id="password_old"
+                           name="password_old" placeholder="Enter your old password" minlength="6" required>
+                </div>
+                <div class="mb-8">
+                    <label class="inline-block text-sm mb-1 text-gray-500" for="password_new">New Password</label>
+                    <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
+                           type="password" id="password_new"
+                           name="password_new" placeholder="Choose a password" minlength="6" required>
+                </div>
+                <div class="mb-8">
+                    <label class="inline-block text-sm mb-1 text-gray-500" for="password_repeat">And again ...</label>
+                    <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
+                           type="password" id="password_repeat"
+                           name="password_repeat" placeholder="Repeat your password" minlength="6" required>
+                </div>
+                <div class="flex justify-between float-right">
+                    <button type="submit" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                        Save
+                    </button>
+                </div>
+            </form>
         </div>
 
-        <form class="mt-10" action="settings/credentials" method="post">
-            <div class="mb-8">
-                <label class="inline-block text-sm mb-1 text-gray-500" for="password_old">Current Password</label>
-                <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
-                       type="password" id="password_old"
-                       name="password_old" placeholder="Enter your old password" minlength="6" required>
+        <div class="w-full mt-4 mb-8 pb-8">
+            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
+                Reset API Key
             </div>
-            <div class="mb-8">
-                <label class="inline-block text-sm mb-1 text-gray-500" for="password_new">New Password</label>
-                <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
-                       type="password" id="password_new"
-                       name="password_new" placeholder="Choose a password" minlength="6" required>
-            </div>
-            <div class="mb-8">
-                <label class="inline-block text-sm mb-1 text-gray-500" for="password_repeat">And again ...</label>
-                <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
-                       type="password" id="password_repeat"
-                       name="password_repeat" placeholder="Repeat your password" minlength="6" required>
-            </div>
-            <div class="flex justify-between float-right">
-                <button type="submit" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
-                    Save
-                </button>
-            </div>
-        </form>
+
+            <form class="mt-6" action="settings/reset" method="post">
+                <div class="text-gray-300 text-sm mb-4">
+                    <strong>⚠️ Caution:</strong> Resetting your API key requires you to update your <span class="font-mono">.wakatime.cfg</span> files on all of your computers to make the WakaTime client send heartbeats again.
+                </div>
+
+                <div class="flex justify-between float-right">
+                    <button type="submit" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm">
+                        Reset
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </main>
 

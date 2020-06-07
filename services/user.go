@@ -82,6 +82,11 @@ func (srv *UserService) Update(user *models.User) (*models.User, error) {
 	return user, nil
 }
 
+func (srv *UserService) ResetApiKey(user *models.User) (*models.User, error) {
+	user.ApiKey = uuid.NewV4().String()
+	return srv.Update(user)
+}
+
 func (srv *UserService) MigrateMd5Password(user *models.User, login *models.Login) (*models.User, error) {
 	user.Password = login.Password
 	if err := utils.HashPassword(user, srv.Config.PasswordSalt); err != nil {
