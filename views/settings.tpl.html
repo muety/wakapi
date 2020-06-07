@@ -5,8 +5,8 @@
 <body class="bg-gray-800 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
 <div class="w-full flex justify-center">
     <div class="flex items-center justify-between max-w-4xl flex-grow">
-        <div><a href="" class="text-gray-500 text-sm">&larr Go back</a></div>
-        <div><h1 class="font-semibold text-2xl text-white m-0 border-b-4 border-green-700">Sign Up</h1></div>
+        <div><a href="" class="text-gray-500 text-sm">&larr; Go back</a></div>
+        <div><h1 class="font-semibold text-2xl text-white m-0 border-b-4 border-green-700">Settings</h1></div>
         <div></div>
     </div>
 </div>
@@ -15,30 +15,22 @@
 
 <main class="mt-10 flex-grow flex justify-center w-full">
     <div class="flex-grow max-w-lg mt-8">
-        <div>
-            <p class="text-sm text-gray-300">
-                💡 In order to use Wakapi, you need to create an account.
-                After successful signup, you still need to set up the <a href="https://wakatime.com" target="_blank"
-                                                                         class="border-b border-green-700">WakaTime</a>
-                client tools.
-                Please refer to <a href="https://github.com/muety/wakapi#client-setup" target="_blank"
-                                   class="border-b border-green-700">this readme section</a> for instructions.
-                You will be able to view you <strong>API Key</strong> once you log in.
-            </p>
+        <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
+            Change Password
         </div>
 
-        <form class="mt-10" action="signup" method="post">
+        <form class="mt-10" action="settings/credentials" method="post">
             <div class="mb-8">
-                <label class="inline-block text-sm mb-1 text-gray-500" for="username">Username</label>
+                <label class="inline-block text-sm mb-1 text-gray-500" for="password_old">Current Password</label>
                 <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
-                       type="text" id="username"
-                       name="username" placeholder="Choose a username" minlength="3" required autofocus>
+                       type="password" id="password_old"
+                       name="password_old" placeholder="Enter your old password" minlength="6" required>
             </div>
             <div class="mb-8">
-                <label class="inline-block text-sm mb-1 text-gray-500" for="password">Password</label>
+                <label class="inline-block text-sm mb-1 text-gray-500" for="password_new">New Password</label>
                 <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
-                       type="password" id="password"
-                       name="password" placeholder="Choose a password" minlength="6" required>
+                       type="password" id="password_new"
+                       name="password_new" placeholder="Choose a password" minlength="6" required>
             </div>
             <div class="mb-8">
                 <label class="inline-block text-sm mb-1 text-gray-500" for="password_repeat">And again ...</label>
@@ -48,7 +40,7 @@
             </div>
             <div class="flex justify-between float-right">
                 <button type="submit" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
-                    Create Account
+                    Save
                 </button>
             </div>
         </form>

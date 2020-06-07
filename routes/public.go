@@ -29,7 +29,7 @@ func NewIndexHandler(userService *services.UserService, keyValueService *service
 	}
 }
 
-func (h *IndexHandler) Index(w http.ResponseWriter, r *http.Request) {
+func (h *IndexHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -54,7 +54,7 @@ func (h *IndexHandler) Index(w http.ResponseWriter, r *http.Request) {
 	templates["index.tpl.html"].Execute(w, nil)
 }
 
-func (h *IndexHandler) Imprint(w http.ResponseWriter, r *http.Request) {
+func (h *IndexHandler) GetImprint(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -69,7 +69,7 @@ func (h *IndexHandler) Imprint(w http.ResponseWriter, r *http.Request) {
 	}{HtmlText: text})
 }
 
-func (h *IndexHandler) Login(w http.ResponseWriter, r *http.Request) {
+func (h *IndexHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -121,7 +121,7 @@ func (h *IndexHandler) Login(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.BasePath), http.StatusFound)
 }
 
-func (h *IndexHandler) Logout(w http.ResponseWriter, r *http.Request) {
+func (h *IndexHandler) PostLogout(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -130,27 +130,7 @@ func (h *IndexHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, fmt.Sprintf("%s/", h.config.BasePath), http.StatusFound)
 }
 
-func (h *IndexHandler) Signup(w http.ResponseWriter, r *http.Request) {
-	if h.config.IsDev() {
-		loadTemplates()
-	}
-
-	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
-		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.BasePath), http.StatusFound)
-		return
-	}
-
-	switch r.Method {
-	case http.MethodPost:
-		h.handlePostSignup(w, r)
-		return
-	default:
-		h.handleGetSignup(w, r)
-		return
-	}
-}
-
-func (h *IndexHandler) handleGetSignup(w http.ResponseWriter, r *http.Request) {
+func (h *IndexHandler) GetSignup(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -167,7 +147,7 @@ func (h *IndexHandler) handleGetSignup(w http.ResponseWriter, r *http.Request) {
 	templates["signup.tpl.html"].Execute(w, nil)
 }
 
-func (h *IndexHandler) handlePostSignup(w http.ResponseWriter, r *http.Request) {
+func (h *IndexHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}

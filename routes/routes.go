@@ -64,7 +64,7 @@ func respondAlert(w http.ResponseWriter, error, success, tplName string, status 
 	templates[tplName].Execute(w, struct {
 		Error   string
 		Success string
-	}{Error: error})
+	}{Error: error, Success: success})
 }
 
 // TODO: do better

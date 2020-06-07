@@ -85,11 +85,13 @@ func main() {
 	heartbeatHandler := routes.NewHeartbeatHandler(heartbeatService)
 	summaryHandler := routes.NewSummaryHandler(summaryService)
 	healthHandler := routes.NewHealthHandler(db)
+	settingsHandler := routes.NewSettingsHandler(userService)
 	publicHandler := routes.NewIndexHandler(userService, keyValueService)
 
 	// Setup Routers
 	router := mux.NewRouter()
 	publicRouter := router.PathPrefix("/").Subrouter()
+	settingsRouter := publicRouter.PathPrefix("/settings").Subrouter()
 	summaryRouter := publicRouter.PathPrefix("/summary").Subrouter()
 	apiRouter := router.PathPrefix("/api").Subrouter()
 
@@ -105,17 +107,24 @@ func main() {
 	// Router configs
 	router.Use(loggingMiddleware, recoveryMiddleware)
 	summaryRouter.Use(authenticateMiddleware)
+	settingsRouter.Use(authenticateMiddleware)
 	apiRouter.Use(corsMiddleware, authenticateMiddleware)
 
 	// Public Routes
-	publicRouter.Path("/").Methods(http.MethodGet).HandlerFunc(publicHandler.Index)
-	publicRouter.Path("/login").Methods(http.MethodPost).HandlerFunc(publicHandler.Login)
-	publicRouter.Path("/logout").Methods(http.MethodPost).HandlerFunc(publicHandler.Logout)
-	publicRouter.Path("/signup").Methods(http.MethodGet, http.MethodPost).HandlerFunc(publicHandler.Signup)
-	publicRouter.Path("/imprint").Methods(http.MethodGet).HandlerFunc(publicHandler.Imprint)
+	publicRouter.Path("/").Methods(http.MethodGet).HandlerFunc(publicHandler.GetIndex)
+	publicRouter.Path("/login").Methods(http.MethodPost).HandlerFunc(publicHandler.PostLogin)
+	publicRouter.Path("/logout").Methods(http.MethodPost).HandlerFunc(publicHandler.PostLogout)
+	publicRouter.Path("/signup").Methods(http.MethodGet).HandlerFunc(publicHandler.GetSignup)
+	publicRouter.Path("/signup").Methods(http.MethodPost).HandlerFunc(publicHandler.PostSignup)
+	publicRouter.Path("/imprint").Methods(http.MethodGet).HandlerFunc(publicHandler.GetImprint)
 
 	// Summary Routes
-	summaryRouter.Methods(http.MethodGet).HandlerFunc(summaryHandler.Index)
+	summaryRouter.Methods(http.MethodGet).HandlerFunc(summaryHandler.GetIndex)
+
+	// Settings Routes
+	settingsRouter.Methods(http.MethodGet).HandlerFunc(settingsHandler.GetIndex)
+	settingsRouter.Path("/credentials").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostCredentials)
+	settingsRouter.Path("/reset").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostResetApiKey)
 
 	// API Routes
 	apiRouter.Path("/heartbeat").Methods(http.MethodPost).HandlerFunc(heartbeatHandler.ApiPost)

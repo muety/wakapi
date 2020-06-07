@@ -42,7 +42,7 @@ func (h *SummaryHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 	utils.RespondJSON(w, http.StatusOK, summary)
 }
 
-func (h *SummaryHandler) Index(w http.ResponseWriter, r *http.Request) {
+func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}

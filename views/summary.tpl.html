@@ -4,21 +4,32 @@
 
 <body class="relative bg-gray-800 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
 
-<div class="hidden flex bg-gray-800 shadow-md z-10 p-2 absolute top-0 right-0 mt-10 mr-8 border border-green-700 rounded popup" id="api-key-popup">
+<div class="hidden flex bg-gray-800 shadow-md z-10 p-2 absolute top-0 right-0 mt-10 mr-8 border border-green-700 rounded popup"
+     id="api-key-popup">
     <div class="flex-grow flex flex-col px-2">
         <span class="text-xs text-gray-500 mx-1">API Key</span>
-        <input type="text" class="bg-transparent text-sm text-white mx-1 font-mono" id="api-key-container" readonly value="{{ .ApiKey }}" style="min-width: 330px">
+        <input type="text" class="bg-transparent text-sm text-white mx-1 font-mono" id="api-key-container" readonly
+               value="{{ .ApiKey }}" style="min-width: 330px">
     </div>
     <div class="flex items-center px-2 border-l border-gray-700">
         <button title="Copy to clipboard" onclick="copyApiKey(event)">📋</button>
     </div>
 </div>
 
-<div class="absolute top-0 right-0 mr-8 mt-10 py-2">
-    <form action="logout" method="post">
-        <button type="button" class="mx-1 py-1 px-3 rounded border border-green-700 text-white text-sm" onclick="showApiKeyPopup(event)">🔐</button>
-        <button type="submit" class="mx-1 py-1 px-3 rounded border border-green-700 text-white text-sm">Logout</button>
-    </form>
+<div class="absolute flex top-0 right-0 mr-8 mt-10 py-2">
+    <div class="mx-1">
+        <button type="button" class="py-1 px-3 h-8 rounded border border-green-700 text-white text-sm"
+                onclick="showApiKeyPopup(event)">🔐
+        </button>
+    </div>
+    <div class="mx-1">
+        <a href="settings" class="py-1 px-3 h-8 block rounded border border-green-700 text-white text-sm">⚙️</a>
+    </div>
+    <div class="mx-1">
+        <form action="logout" method="post">
+            <button type="submit" class="py-1 px-3 h-8 rounded border border-green-700 text-white text-sm">Logout</button>
+        </form>
+    </div>
 </div>
 
 <div class="flex items-center justify-center">

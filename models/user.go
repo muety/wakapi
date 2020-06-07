@@ -19,8 +19,27 @@ type Signup struct {
 	PasswordRepeat string `schema:"password_repeat"`
 }
 
+type CredentialsReset struct {
+	PasswordOld    string `schema:"password_old"`
+	PasswordNew    string `schema:"password_new"`
+	PasswordRepeat string `schema:"password_repeat"`
+}
+
+func (c *CredentialsReset) IsValid() bool {
+	return validatePassword(c.PasswordNew) &&
+		c.PasswordNew == c.PasswordRepeat
+}
+
 func (s *Signup) IsValid() bool {
-	return len(s.Username) >= 3 &&
-		len(s.Password) >= 6 &&
+	return validateUsername(s.Username) &&
+		validatePassword(s.Password) &&
 		s.Password == s.PasswordRepeat
+}
+
+func validateUsername(username string) bool {
+	return len(username) >= 3
+}
+
+func validatePassword(password string) bool {
+	return len(password) >= 6
 }
