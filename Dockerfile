@@ -9,7 +9,7 @@ RUN cd /src && go build -o wakapi
 
 # When running the application using `docker run`, you can pass environment variables
 # to override config values from .env using `-e` syntax.
-# Available options are: 
+# Available options are:
 # – WAKAPI_DB_TYPE
 # – WAKAPI_DB_USER
 # – WAKAPI_DB_PASSWORD
@@ -17,8 +17,7 @@ RUN cd /src && go build -o wakapi
 # – WAKAPI_DB_PORT
 # – WAKAPI_DB_NAME
 # – WAKAPI_PASSWORD_SALT
-# – WAKAPI_DEFAULT_USER_NAME
-# – WAKAPI_DEFAULT_USER_PASSWORD
+# – WAKAPI_BASE_PATH
 
 FROM debian
 WORKDIR /app
@@ -30,8 +29,6 @@ ENV WAKAPI_DB_PASSWORD ''
 ENV WAKAPI_DB_HOST ''
 ENV WAKAPI_DB_NAME=/data/wakapi.db
 ENV WAKAPI_PASSWORD_SALT ''
-ENV WAKAPI_DEFAULT_USER_NAME admin
-ENV WAKAPI_DEFAULT_USER_PASSWORD admin
 
 COPY --from=build-env /src/wakapi /app/
 COPY --from=build-env /src/config.ini /app/
