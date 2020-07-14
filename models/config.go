@@ -161,7 +161,11 @@ func readConfig() *Config {
 		port = cfg.Section("server").Key("port").MustInt()
 	}
 
+	basePathEnv, basePathEnvExists := os.LookupEnv("WAKAPI_BASE_PATH")
 	basePath := cfg.Section("server").Key("base_path").MustString("/")
+	if basePathEnvExists {
+		basePath = basePathEnv
+	}
 	if strings.HasSuffix(basePath, "/") {
 		basePath = basePath[:len(basePath)-1]
 	}
