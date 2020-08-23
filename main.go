@@ -43,6 +43,11 @@ func main() {
 		log.SetFlags(log.LstdFlags | log.Lshortfile)
 	}
 
+	// Show data loss warning
+	if config.CleanUp {
+		promptAbort("`CLEANUP` is set to `true`, which may cause data loss. Are you sure to continue?", 5)
+	}
+
 	// Connect to database
 	var err error
 	db, err = gorm.Open(config.DbDialect, utils.MakeConnectionString(config))
@@ -170,5 +175,13 @@ func migrateLanguages() {
 		if result.RowsAffected > 0 {
 			log.Printf("Migrated %+v rows for custom language %+s.\n", result.RowsAffected, k)
 		}
+	}
+}
+
+func promptAbort(message string, timeoutSec int) {
+	log.Printf("[WARNING] %s.\nTo abort server startup, press Ctrl+C.\n", message)
+	for i := timeoutSec; i > 0; i-- {
+		log.Printf("Starting in %d seconds ...\n", i)
+		time.Sleep(1 * time.Second)
 	}
 }
