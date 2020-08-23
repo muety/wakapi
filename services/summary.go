@@ -240,7 +240,16 @@ func getMissingIntervals(from, to time.Time, existingSummaries []*models.Summary
 
 	// Between
 	for i := 0; i < len(existingSummaries)-1; i++ {
-		if existingSummaries[i].ToTime.Before(existingSummaries[i+1].FromTime) {
+		t1, t2 := existingSummaries[i].ToTime, existingSummaries[i+1].FromTime
+		if t1.Equal(t2) {
+			continue
+		}
+
+		// round to end of day / start of day, assuming that summaries are always generated on a per-day basis
+		td1 := time.Date(t1.Year(), t1.Month(), t1.Day()+1, 0, 0, 0, 0, t1.Location())
+		td2 := time.Date(t2.Year(), t2.Month(), t2.Day(), 0, 0, 0, 0, t2.Location())
+		// one or more day missing in between?
+		if td1.Before(td2) {
 			intervals = append(intervals, &Interval{existingSummaries[i].ToTime, existingSummaries[i+1].FromTime})
 		}
 	}
