@@ -96,10 +96,25 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User, reco
 	}
 	close(c)
 
+	realFrom, realTo := from, to
+	if len(existingSummaries) > 0 {
+		realFrom = existingSummaries[0].FromTime
+		realTo = existingSummaries[len(existingSummaries)-1].ToTime
+	}
+	if len(heartbeats) > 0 {
+		t1, t2 := time.Time(heartbeats[0].Time), time.Time(heartbeats[len(heartbeats)-1].Time)
+		if t1.After(realFrom) && t1.Before(time.Date(realFrom.Year(), realFrom.Month(), realFrom.Day()+1, 0, 0, 0, 0, realFrom.Location())) {
+			realFrom = t1
+		}
+		if t2.Before(realTo) && t2.After(time.Date(realTo.Year(), realTo.Month(), realTo.Day()-1, 0, 0, 0, 0, realTo.Location())) {
+			realTo = t2
+		}
+	}
+
 	aggregatedSummary := &models.Summary{
 		UserID:           user.ID,
-		FromTime:         from,
-		ToTime:           to,
+		FromTime:         realFrom,
+		ToTime:           realTo,
 		Projects:         projectItems,
 		Languages:        languageItems,
 		Editors:          editorItems,
@@ -134,6 +149,7 @@ func (srv *SummaryService) GetByUserWithin(user *models.User, from, to time.Time
 		Where(&models.Summary{UserID: user.ID}).
 		Where("from_time >= ?", from).
 		Where("to_time <= ?", to).
+		Order("from_time asc").
 		Preload("Projects", "type = ?", models.SummaryProject).
 		Preload("Languages", "type = ?", models.SummaryLanguage).
 		Preload("Editors", "type = ?", models.SummaryEditor).

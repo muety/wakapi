@@ -15,12 +15,12 @@ func StartOfWeek() time.Time {
 
 func StartOfMonth() time.Time {
 	ref := time.Now()
-	return time.Date(ref.Year(), ref.Month(), 0, 0, 0, 0, 0, ref.Location())
+	return time.Date(ref.Year(), ref.Month(), 1, 0, 0, 0, 0, ref.Location())
 }
 
 func StartOfYear() time.Time {
 	ref := time.Now()
-	return time.Date(ref.Year(), time.January, 0, 0, 0, 0, 0, ref.Location())
+	return time.Date(ref.Year(), time.January, 1, 0, 0, 0, 0, ref.Location())
 }
 
 // https://stackoverflow.com/a/18632496
