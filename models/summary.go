@@ -5,11 +5,12 @@ import (
 )
 
 const (
-	NSummaryTypes   uint8 = 4
+	NSummaryTypes   uint8 = 99
 	SummaryProject  uint8 = 0
 	SummaryLanguage uint8 = 1
 	SummaryEditor   uint8 = 2
 	SummaryOS       uint8 = 3
+	SummaryMachine  uint8 = 4
 )
 
 type Summary struct {
@@ -21,6 +22,7 @@ type Summary struct {
 	Languages        []*SummaryItem `json:"languages"`
 	Editors          []*SummaryItem `json:"editors"`
 	OperatingSystems []*SummaryItem `json:"operating_systems"`
+	Machines         []*SummaryItem `json:"machines"`
 }
 
 type SummaryItem struct {

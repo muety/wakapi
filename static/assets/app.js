@@ -5,6 +5,7 @@ const projectsCanvas = document.getElementById('chart-projects')
 const osCanvas = document.getElementById('chart-os')
 const editorsCanvas = document.getElementById('chart-editor')
 const languagesCanvas = document.getElementById('chart-language')
+const machinesCanvas = document.getElementById('chart-machine')
 
 let charts = []
 let resizeCount = 0
@@ -135,10 +136,31 @@ function draw() {
         }
     })
 
+    let machineChart = new Chart(machinesCanvas.getContext('2d'), {
+        type: 'pie',
+        data: {
+            datasets: [{
+                data: wakapiData.machines
+                    .slice(0, Math.min(SHOW_TOP_N, wakapiData.machines.length))
+                    .map(p => parseInt(p.total)),
+                backgroundColor: wakapiData.machines.map(p => getRandomColor(p.key))
+            }],
+            labels: wakapiData.machines
+                .slice(0, Math.min(SHOW_TOP_N, wakapiData.machines.length))
+                .map(p => p.key)
+        },
+        options: {
+            title: Object.assign(titleOptions, {text: `Machines (top ${SHOW_TOP_N})`}),
+            tooltips: getTooltipOptions('machines', 'pie'),
+            maintainAspectRatio: false,
+            onResize: onChartResize
+        }
+    })
+
     getTotal(wakapiData.operatingSystems)
     document.getElementById('grid-container').style.visibility = 'visible'
 
-    charts = [projectChart, osChart, editorChart, languageChart]
+    charts = [projectChart, osChart, editorChart, languageChart, machineChart]
 
     charts.forEach(c => c.options.onResize(c.chart))
     equalizeHeights()
