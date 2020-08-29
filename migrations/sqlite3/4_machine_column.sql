@@ -1,11 +1,11 @@
 -- +migrate Up
 -- SQL in section 'Up' is executed when this migration is applied
 
-alter table users
-    add `machine` varchar(255);
+alter table heartbeats
+    add column `machine` varchar(255);
 
 -- +migrate Down
 -- SQL section 'Down' is executed when this migration is rolled back
 
-alter table users
+alter table heartbeats
     drop column `machine`;
