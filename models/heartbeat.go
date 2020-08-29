@@ -5,8 +5,6 @@ import (
 	"time"
 )
 
-type CustomTime time.Time
-
 type Heartbeat struct {
 	ID              uint       `gorm:"primary_key"`
 	User            *User      `json:"-" gorm:"not null"`
@@ -21,7 +19,7 @@ type Heartbeat struct {
 	Editor          string     `json:"editor"`
 	OperatingSystem string     `json:"operating_system"`
 	Machine         string     `json:"machine"`
-	Time            CustomTime `json:"time" gorm:"type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time,idx_time_user"`
+	Time            CustomTime `json:"time" gorm:"type:timestamp(3); default:CURRENT_TIMESTAMP(3); index:idx_time,idx_time_user"`
 	languageRegex   *regexp.Regexp
 }
 

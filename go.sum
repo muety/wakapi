@@ -318,6 +318,8 @@ github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJy
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/t-tiger/gorm-bulk-insert v0.0.0-20191014134946-beb77b81825f h1:Op5lFYUNE7tPxu6gJfwkgY8HMIWpLqiLApBJfGs71U8=
 github.com/t-tiger/gorm-bulk-insert v0.0.0-20191014134946-beb77b81825f/go.mod h1:SK1RZT4TR1aMUNGtbk6YxTPgx2D/gfbxB571QGnAV+c=
+github.com/t-tiger/gorm-bulk-insert v1.3.0 h1:9k7BaVEhw/3fsvh6GTOBwJ2RXk3asc5xs5m6hwozq20=
+github.com/t-tiger/gorm-bulk-insert v1.3.0/go.mod h1:ruDlk8xDl+8sX4bA7PQuYly9YEb3pbp1eP2LCyeRrFY=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
 github.com/urfave/cli v1.20.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijbERA=

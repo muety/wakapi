@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -23,13 +24,15 @@ type KeyStringValue struct {
 	Value string `gorm:"type:text"`
 }
 
+type CustomTime time.Time
+
 func (j *CustomTime) UnmarshalJSON(b []byte) error {
-	s := strings.Split(strings.Trim(string(b), "\""), ".")[0]
+	s := strings.Replace(strings.Trim(string(b), "\""), ".", "", 1) // TODO: not always three decimal points!
 	i, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
 		return err
 	}
-	t := time.Unix(i, 0)
+	t := time.Unix(0, i*int64(math.Pow10(19-len(s))))
 	*j = CustomTime(t)
 	return nil
 }
@@ -60,7 +63,7 @@ func (j CustomTime) Value() (driver.Value, error) {
 
 func (j CustomTime) String() string {
 	t := time.Time(j)
-	return t.Format("2006-01-02 15:04:05")
+	return t.Format("2006-01-02 15:04:05.000")
 }
 
 func (j CustomTime) Time() time.Time {
