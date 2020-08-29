@@ -57,7 +57,7 @@ function draw() {
                 .map(p => {
                     return {
                         label: p.key,
-                        data: [parseInt(p.total)],
+                        data: [parseInt(p.total) / 60],
                         backgroundColor: getRandomColor(p.key)
                     }
                 })
@@ -67,6 +67,14 @@ function draw() {
             tooltips: getTooltipOptions('projects', 'bar'),
             legend: {
                 display: false
+            },
+            scales: {
+                xAxes: [{
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Minutes'
+                    }
+                }]
             },
             maintainAspectRatio: false,
             onResize: onChartResize

@@ -103,6 +103,10 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User, reco
 	if len(existingSummaries) > 0 {
 		realFrom = existingSummaries[0].FromTime
 		realTo = existingSummaries[len(existingSummaries)-1].ToTime
+
+		for _, summary := range existingSummaries {
+			summary.FillUnknown()
+		}
 	}
 	if len(heartbeats) > 0 {
 		t1, t2 := time.Time(heartbeats[0].Time), time.Time(heartbeats[len(heartbeats)-1].Time)
@@ -197,7 +201,7 @@ func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryTy
 		}
 
 		if key == "" {
-			key = "unknown"
+			key = models.UnknownSummaryKey
 		}
 
 		if aliasedKey, err := srv.AliasService.GetAliasOrDefault(user.ID, summaryType, key); err == nil {
