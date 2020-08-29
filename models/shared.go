@@ -27,7 +27,7 @@ type KeyStringValue struct {
 type CustomTime time.Time
 
 func (j *CustomTime) UnmarshalJSON(b []byte) error {
-	s := strings.Replace(strings.Trim(string(b), "\""), ".", "", 1) // TODO: not always three decimal points!
+	s := strings.Replace(strings.Trim(string(b), "\""), ".", "", 1)
 	i, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
 		return err
