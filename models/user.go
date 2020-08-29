@@ -37,7 +37,7 @@ func (s *Signup) IsValid() bool {
 }
 
 func validateUsername(username string) bool {
-	return len(username) >= 3
+	return len(username) >= 3 && username != "current"
 }
 
 func validatePassword(password string) bool {

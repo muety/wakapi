@@ -80,6 +80,7 @@ INSERT INTO aliases (`type`, `user_id`, `key`, `value`) VALUES (0, 'your_usernam
 * Language ~  type **1**
 * Editor ~ type **2**
 * OS ~  type **3**
+* Machine ~  type **4**
 
 **NOTE:** In order for the aliases to take effect for non-live statistics, you would either have to wait 24 hours for the cache to be invalidated or restart Wakapi.
 

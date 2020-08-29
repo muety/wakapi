@@ -65,12 +65,13 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User, reco
 		heartbeats = append(heartbeats, hb...)
 	}
 
-	types := []uint8{models.SummaryProject, models.SummaryLanguage, models.SummaryEditor, models.SummaryOS}
+	types := []uint8{models.SummaryProject, models.SummaryLanguage, models.SummaryEditor, models.SummaryOS, models.SummaryMachine}
 
 	var projectItems []*models.SummaryItem
 	var languageItems []*models.SummaryItem
 	var editorItems []*models.SummaryItem
 	var osItems []*models.SummaryItem
+	var machineItems []*models.SummaryItem
 
 	if err := srv.AliasService.LoadUserAliases(user.ID); err != nil {
 		return nil, err
@@ -92,6 +93,8 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User, reco
 			editorItems = item.Items
 		case models.SummaryOS:
 			osItems = item.Items
+		case models.SummaryMachine:
+			machineItems = item.Items
 		}
 	}
 	close(c)
@@ -100,6 +103,10 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User, reco
 	if len(existingSummaries) > 0 {
 		realFrom = existingSummaries[0].FromTime
 		realTo = existingSummaries[len(existingSummaries)-1].ToTime
+
+		for _, summary := range existingSummaries {
+			summary.FillUnknown()
+		}
 	}
 	if len(heartbeats) > 0 {
 		t1, t2 := time.Time(heartbeats[0].Time), time.Time(heartbeats[len(heartbeats)-1].Time)
@@ -119,6 +126,7 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User, reco
 		Languages:        languageItems,
 		Editors:          editorItems,
 		OperatingSystems: osItems,
+		Machines:         machineItems,
 	}
 
 	allSummaries := []*models.Summary{aggregatedSummary}
@@ -154,6 +162,7 @@ func (srv *SummaryService) GetByUserWithin(user *models.User, from, to time.Time
 		Preload("Languages", "type = ?", models.SummaryLanguage).
 		Preload("Editors", "type = ?", models.SummaryEditor).
 		Preload("OperatingSystems", "type = ?", models.SummaryOS).
+		Preload("Machines", "type = ?", models.SummaryMachine).
 		Find(&summaries).Error; err != nil {
 		return nil, err
 	}
@@ -187,10 +196,12 @@ func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryTy
 			key = h.Language
 		case models.SummaryOS:
 			key = h.OperatingSystem
+		case models.SummaryMachine:
+			key = h.Machine
 		}
 
 		if key == "" {
-			key = "unknown"
+			key = models.UnknownSummaryKey
 		}
 
 		if aliasedKey, err := srv.AliasService.GetAliasOrDefault(user.ID, summaryType, key); err == nil {
@@ -276,6 +287,7 @@ func mergeSummaries(summaries []*models.Summary) (*models.Summary, error) {
 		Languages:        make([]*models.SummaryItem, 0),
 		Editors:          make([]*models.SummaryItem, 0),
 		OperatingSystems: make([]*models.SummaryItem, 0),
+		Machines:         make([]*models.SummaryItem, 0),
 	}
 
 	for _, s := range summaries {
@@ -295,6 +307,7 @@ func mergeSummaries(summaries []*models.Summary) (*models.Summary, error) {
 		finalSummary.Languages = mergeSummaryItems(finalSummary.Languages, s.Languages)
 		finalSummary.Editors = mergeSummaryItems(finalSummary.Editors, s.Editors)
 		finalSummary.OperatingSystems = mergeSummaryItems(finalSummary.OperatingSystems, s.OperatingSystems)
+		finalSummary.Machines = mergeSummaryItems(finalSummary.Machines, s.Machines)
 	}
 
 	finalSummary.FromTime = minTime
