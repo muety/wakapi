@@ -31,6 +31,7 @@ func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
 	var heartbeats []*models.Heartbeat
 	user := r.Context().Value(models.UserKey).(*models.User)
 	opSys, editor, _ := utils.ParseUserAgent(r.Header.Get("User-Agent"))
+	machineName := r.Header.Get("X-Machine-Name")
 
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&heartbeats); err != nil {
@@ -42,6 +43,7 @@ func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
 	for _, hb := range heartbeats {
 		hb.OperatingSystem = opSys
 		hb.Editor = editor
+		hb.Machine = machineName
 		hb.User = user
 		hb.UserID = user.ID
 		hb.Augment(h.config.CustomLanguages)
