@@ -23,10 +23,15 @@ func NewHeartbeatHandler(heartbeatService *services.HeartbeatService) *Heartbeat
 	}
 }
 
+type heartbeatResponseVm struct {
+	Responses [][]interface{} `json:"responses"`
+}
+
 func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
 	var heartbeats []*models.Heartbeat
 	user := r.Context().Value(models.UserKey).(*models.User)
 	opSys, editor, _ := utils.ParseUserAgent(r.Header.Get("User-Agent"))
+	machineName := r.Header.Get("X-Machine-Name")
 
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&heartbeats); err != nil {
@@ -38,6 +43,7 @@ func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
 	for _, hb := range heartbeats {
 		hb.OperatingSystem = opSys
 		hb.Editor = editor
+		hb.Machine = machineName
 		hb.User = user
 		hb.UserID = user.ID
 		hb.Augment(h.config.CustomLanguages)
@@ -55,5 +61,23 @@ func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	utils.RespondJSON(w, http.StatusCreated, constructSuccessResponse(len(heartbeats)))
+}
+
+// construct weird response format (see https://github.com/wakatime/wakatime/blob/2e636d389bf5da4e998e05d5285a96ce2c181e3d/wakatime/api.py#L288)
+// to make the cli consider all heartbeats to having been successfully saved
+// response looks like: { "responses": [ [ { "data": {...} }, 201 ], ... ] }
+func constructSuccessResponse(n int) *heartbeatResponseVm {
+	responses := make([][]interface{}, n)
+
+	for i := 0; i < n; i++ {
+		r := make([]interface{}, 2)
+		r[0] = nil
+		r[1] = http.StatusCreated
+		responses[i] = r
+	}
+
+	return &heartbeatResponseVm{
+		Responses: responses,
+	}
 }

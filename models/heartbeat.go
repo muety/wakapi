@@ -20,6 +20,7 @@ type Heartbeat struct {
 	IsWrite         bool       `json:"is_write"`
 	Editor          string     `json:"editor"`
 	OperatingSystem string     `json:"operating_system"`
+	Machine         string     `json:"machine"`
 	Time            CustomTime `json:"time" gorm:"type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time,idx_time_user"`
 	languageRegex   *regexp.Regexp
 }
