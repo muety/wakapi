@@ -1,22 +1,10 @@
 package routes
 
 import (
-	"errors"
-	"net/http"
-	"time"
-
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-)
-
-const (
-	IntervalToday     string = "today"
-	IntervalLastDay   string = "day"
-	IntervalLastWeek  string = "week"
-	IntervalLastMonth string = "month"
-	IntervalLastYear  string = "year"
-	IntervalAny       string = "any"
+	"net/http"
 )
 
 type SummaryHandler struct {
@@ -32,7 +20,7 @@ func NewSummaryHandler(summaryService *services.SummaryService) *SummaryHandler 
 }
 
 func (h *SummaryHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
-	summary, err, status := loadUserSummary(r, h.summarySrvc)
+	summary, err, status := h.loadUserSummary(r)
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))
@@ -53,7 +41,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		r.URL.RawQuery = q.Encode()
 	}
 
-	summary, err, status := loadUserSummary(r, h.summarySrvc)
+	summary, err, status := h.loadUserSummary(r)
 	if err != nil {
 		respondAlert(w, err.Error(), "", "summary.tpl.html", status)
 		return
@@ -74,39 +62,13 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	templates["summary.tpl.html"].Execute(w, vm)
 }
 
-func loadUserSummary(r *http.Request, summaryService *services.SummaryService) (*models.Summary, error, int) {
-	user := r.Context().Value(models.UserKey).(*models.User)
-	params := r.URL.Query()
-	interval := params.Get("interval")
-	from, err := utils.ParseDate(params.Get("from"))
+func (h *SummaryHandler) loadUserSummary(r *http.Request) (*models.Summary, error, int) {
+	summaryParams, err := utils.ParseSummaryParams(r)
 	if err != nil {
-		switch interval {
-		case IntervalToday:
-			from = utils.StartOfDay()
-		case IntervalLastDay:
-			from = utils.StartOfDay().Add(-24 * time.Hour)
-		case IntervalLastWeek:
-			from = utils.StartOfWeek()
-		case IntervalLastMonth:
-			from = utils.StartOfMonth()
-		case IntervalLastYear:
-			from = utils.StartOfYear()
-		case IntervalAny:
-			from = time.Time{}
-		default:
-			return nil, errors.New("missing 'from' parameter"), http.StatusBadRequest
-		}
+		return nil, err, http.StatusBadRequest
 	}
 
-	live := (params.Get("live") != "" && params.Get("live") != "false") || interval == IntervalToday
-	recompute := params.Get("recompute") != "" && params.Get("recompute") != "false"
-	to := utils.StartOfDay()
-	if live {
-		to = time.Now()
-	}
-
-	var summary *models.Summary
-	summary, err = summaryService.Construct(from, to, user, recompute) // 'to' is always constant
+	summary, err := h.summarySrvc.Construct(summaryParams.From, summaryParams.To, summaryParams.User, summaryParams.Recompute) // 'to' is always constant
 	if err != nil {
 		return nil, err, http.StatusInternalServerError
 	}

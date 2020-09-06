@@ -1,6 +1,9 @@
 package utils
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 func StartOfDay() time.Time {
 	ref := time.Now()
@@ -21,6 +24,14 @@ func StartOfMonth() time.Time {
 func StartOfYear() time.Time {
 	ref := time.Now()
 	return time.Date(ref.Year(), time.January, 1, 0, 0, 0, 0, ref.Location())
+}
+
+func FmtWakatimeDuration(d time.Duration) string {
+	d = d.Round(time.Minute)
+	h := d / time.Hour
+	d -= h * time.Hour
+	m := d / time.Minute
+	return fmt.Sprintf("%d hrs %d mins", h, m)
 }
 
 // https://stackoverflow.com/a/18632496

@@ -15,6 +15,7 @@ import (
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/routes"
+	v1Routes "github.com/muety/wakapi/routes/compat/v1"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 )
@@ -86,12 +87,15 @@ func main() {
 		go heartbeatService.ScheduleCleanUp()
 	}
 
+	// TODO: move endpoint registration to the respective routes files
+
 	// Handlers
 	heartbeatHandler := routes.NewHeartbeatHandler(heartbeatService)
 	summaryHandler := routes.NewSummaryHandler(summaryService)
 	healthHandler := routes.NewHealthHandler(db)
 	settingsHandler := routes.NewSettingsHandler(userService)
 	publicHandler := routes.NewIndexHandler(userService, keyValueService)
+	compatV1AllHandler := v1Routes.NewCompatV1AllHandler(summaryService)
 
 	// Setup Routers
 	router := mux.NewRouter()
@@ -99,6 +103,7 @@ func main() {
 	settingsRouter := publicRouter.PathPrefix("/settings").Subrouter()
 	summaryRouter := publicRouter.PathPrefix("/summary").Subrouter()
 	apiRouter := router.PathPrefix("/api").Subrouter()
+	compatV1Router := apiRouter.PathPrefix("/compat/v1").Subrouter()
 
 	// Middlewares
 	recoveryMiddleware := handlers.RecoveryHandler()
@@ -135,6 +140,9 @@ func main() {
 	apiRouter.Path("/heartbeat").Methods(http.MethodPost).HandlerFunc(heartbeatHandler.ApiPost)
 	apiRouter.Path("/summary").Methods(http.MethodGet).HandlerFunc(summaryHandler.ApiGet)
 	apiRouter.Path("/health").Methods(http.MethodGet).HandlerFunc(healthHandler.ApiGet)
+
+	// Compat V1 API Routes
+	compatV1Router.Path("/users/{user}/all_time_since_today").Methods(http.MethodGet).HandlerFunc(compatV1AllHandler.ApiGet)
 
 	// Static Routes
 	router.PathPrefix("/assets").Handler(http.FileServer(http.Dir("./static")))
