@@ -46,9 +46,11 @@ func (h *CompatV1AllHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 
 	total := summary.TotalTime()
 	vm := &v1.AllTimeVieModel{
-		Seconds:    float32(total),
-		Text:       utils.FmtWakatimeDuration(total * time.Second),
-		IsUpToDate: true,
+		Data: &v1.AllTimeVieModelData{
+			Seconds:    float32(total),
+			Text:       utils.FmtWakatimeDuration(total * time.Second),
+			IsUpToDate: true,
+		},
 	}
 
 	utils.RespondJSON(w, http.StatusOK, vm)
