@@ -9,18 +9,16 @@ import (
 
 func ParseSummaryParams(r *http.Request) (*models.SummaryParams, error) {
 	user := r.Context().Value(models.UserKey).(*models.User)
-
 	params := r.URL.Query()
-
 	interval := params.Get("interval")
 
 	from, err := ParseDate(params.Get("from"))
 	if err != nil {
 		switch interval {
 		case models.IntervalToday:
-			from = StartOfDay()
+			from = StartOfToday()
 		case models.IntervalLastDay:
-			from = StartOfDay().Add(-24 * time.Hour)
+			from = StartOfToday().Add(-24 * time.Hour)
 		case models.IntervalLastWeek:
 			from = StartOfWeek()
 		case models.IntervalLastMonth:
@@ -38,7 +36,7 @@ func ParseSummaryParams(r *http.Request) (*models.SummaryParams, error) {
 
 	recompute := params.Get("recompute") != "" && params.Get("recompute") != "false"
 
-	to := StartOfDay()
+	to := StartOfToday()
 	if live {
 		to = time.Now()
 	}

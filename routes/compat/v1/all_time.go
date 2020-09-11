@@ -25,6 +25,8 @@ func NewCompatV1AllHandler(summaryService *services.SummaryService) *CompatV1All
 
 func (h *CompatV1AllHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	values, _ := url.ParseQuery(r.URL.RawQuery)
+
 	requestedUser := vars["user"]
 	authorizedUser := r.Context().Value(models.UserKey).(*models.User)
 
@@ -33,10 +35,6 @@ func (h *CompatV1AllHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	values, _ := url.ParseQuery(r.URL.RawQuery)
-	values.Set("interval", models.IntervalAny)
-	r.URL.RawQuery = values.Encode()
-
 	summary, err, status := h.loadUserSummary(authorizedUser)
 	if err != nil {
 		w.WriteHeader(status)
@@ -44,21 +42,7 @@ func (h *CompatV1AllHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var total time.Duration
-	if key := values.Get("project"); key != "" {
-		total = summary.TotalTimeBy(models.SummaryProject, key)
-	} else {
-		total = summary.TotalTime()
-	}
-
-	vm := &v1.AllTimeViewModel{
-		Data: &v1.AllTimeViewModelData{
-			Seconds:    float32(total),
-			Text:       utils.FmtWakatimeDuration(total * time.Second),
-			IsUpToDate: true,
-		},
-	}
-
+	vm := v1.NewAllTimeFrom(summary, &v1.Filters{Project: values.Get("project")})
 	utils.RespondJSON(w, http.StatusOK, vm)
 }
 

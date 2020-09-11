@@ -5,9 +5,12 @@ import (
 	"time"
 )
 
-func StartOfDay() time.Time {
-	ref := time.Now()
-	return time.Date(ref.Year(), ref.Month(), ref.Day(), 0, 0, 0, 0, ref.Location())
+func StartOfToday() time.Time {
+	return StartOfDay(time.Now())
+}
+
+func StartOfDay(date time.Time) time.Time {
+	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 }
 
 func StartOfWeek() time.Time {
@@ -24,6 +27,21 @@ func StartOfMonth() time.Time {
 func StartOfYear() time.Time {
 	ref := time.Now()
 	return time.Date(ref.Year(), time.January, 1, 0, 0, 0, 0, ref.Location())
+}
+
+func SplitRangeByDays(from time.Time, to time.Time) [][]time.Time {
+	intervals := make([][]time.Time, 0)
+
+	for t1 := from; t1.Before(to); {
+		t2 := StartOfDay(t1).Add(24 * time.Hour)
+		if t2.After(to) {
+			t2 = to
+		}
+		intervals = append(intervals, []time.Time{t1, t2})
+		t1 = t2
+	}
+
+	return intervals
 }
 
 func FmtWakatimeDuration(d time.Duration) string {

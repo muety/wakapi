@@ -96,6 +96,7 @@ func main() {
 	settingsHandler := routes.NewSettingsHandler(userService)
 	publicHandler := routes.NewIndexHandler(userService, keyValueService)
 	compatV1AllHandler := v1Routes.NewCompatV1AllHandler(summaryService)
+	compatV1SummariesHandler := v1Routes.NewCompatV1SummariesHandler(summaryService)
 
 	// Setup Routers
 	router := mux.NewRouter()
@@ -143,6 +144,7 @@ func main() {
 
 	// Compat V1 API Routes
 	compatV1Router.Path("/users/{user}/all_time_since_today").Methods(http.MethodGet).HandlerFunc(compatV1AllHandler.ApiGet)
+	compatV1Router.Path("/users/{user}/summaries").Methods(http.MethodGet).HandlerFunc(compatV1SummariesHandler.ApiGet)
 
 	// Static Routes
 	router.PathPrefix("/assets").Handler(http.FileServer(http.Dir("./static")))

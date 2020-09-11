@@ -125,7 +125,6 @@ func (s *Summary) TotalTime() time.Duration {
 	var timeSum time.Duration
 
 	mappedItems := s.MappedItems()
-
 	// calculate total duration from any of the present sets of items
 	for _, t := range s.Types() {
 		if items := mappedItems[t]; len(*items) > 0 {
@@ -136,15 +135,26 @@ func (s *Summary) TotalTime() time.Duration {
 		}
 	}
 
-	return timeSum
+	return timeSum * time.Second
 }
 
-func (s *Summary) TotalTimeBy(entityType uint8, key string) time.Duration {
+func (s *Summary) TotalTimeBy(entityType uint8) time.Duration {
 	var timeSum time.Duration
 
 	mappedItems := s.MappedItems()
+	if items := mappedItems[entityType]; len(*items) > 0 {
+		for _, item := range *items {
+			timeSum += item.Total
+		}
+	}
 
-	// calculate total duration from any of the present sets of items
+	return timeSum * time.Second
+}
+
+func (s *Summary) TotalTimeByKey(entityType uint8, key string) time.Duration {
+	var timeSum time.Duration
+
+	mappedItems := s.MappedItems()
 	if items := mappedItems[entityType]; len(*items) > 0 {
 		for _, item := range *items {
 			if item.Key != key {
@@ -154,5 +164,5 @@ func (s *Summary) TotalTimeBy(entityType uint8, key string) time.Duration {
 		}
 	}
 
-	return timeSum
+	return timeSum * time.Second
 }
