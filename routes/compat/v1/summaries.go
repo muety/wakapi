@@ -25,7 +25,7 @@ func NewCompatV1SummariesHandler(summaryService *services.SummaryService) *Compa
 }
 
 /*
-TODO: support parameters: branches, timeout, writes_only, timezone
+TODO: support parameters: project, branches, timeout, writes_only, timezone
 https://wakatime.com/developers#summaries
 timezone can be specified via an offset suffix (e.g. +02:00) in date strings
 */

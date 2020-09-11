@@ -5,6 +5,7 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
 	"math"
+	"sync"
 	"time"
 )
 
@@ -107,22 +108,46 @@ func newDataFrom(s *models.Summary) *wakatimeSummariesData {
 		},
 	}
 
-	for i, e := range s.Projects {
-		data.Projects[i] = convertEntry(e, s.TotalTimeBy(models.SummaryProject))
-	}
-	for i, e := range s.Editors {
-		data.Editors[i] = convertEntry(e, s.TotalTimeBy(models.SummaryEditor))
-	}
-	for i, e := range s.Languages {
-		data.Languages[i] = convertEntry(e, s.TotalTimeBy(models.SummaryLanguage))
-	}
-	for i, e := range s.OperatingSystems {
-		data.OperatingSystems[i] = convertEntry(e, s.TotalTimeBy(models.SummaryOS))
-	}
-	for i, e := range s.Machines {
-		data.Machines[i] = convertEntry(e, s.TotalTimeBy(models.SummaryMachine))
-	}
+	var wg sync.WaitGroup
+	wg.Add(5)
 
+	go func(data *wakatimeSummariesData) {
+		defer wg.Done()
+		for i, e := range s.Projects {
+			data.Projects[i] = convertEntry(e, s.TotalTimeBy(models.SummaryProject))
+		}
+	}(data)
+
+	go func(data *wakatimeSummariesData) {
+		defer wg.Done()
+		for i, e := range s.Editors {
+			data.Editors[i] = convertEntry(e, s.TotalTimeBy(models.SummaryEditor))
+		}
+	}(data)
+
+	go func(data *wakatimeSummariesData) {
+		defer wg.Done()
+		for i, e := range s.Languages {
+			data.Languages[i] = convertEntry(e, s.TotalTimeBy(models.SummaryLanguage))
+
+		}
+	}(data)
+
+	go func(data *wakatimeSummariesData) {
+		defer wg.Done()
+		for i, e := range s.OperatingSystems {
+			data.OperatingSystems[i] = convertEntry(e, s.TotalTimeBy(models.SummaryOS))
+		}
+	}(data)
+
+	go func(data *wakatimeSummariesData) {
+		defer wg.Done()
+		for i, e := range s.Machines {
+			data.Machines[i] = convertEntry(e, s.TotalTimeBy(models.SummaryMachine))
+		}
+	}(data)
+
+	wg.Wait()
 	return data
 }
 
