@@ -138,3 +138,21 @@ func (s *Summary) TotalTime() time.Duration {
 
 	return timeSum
 }
+
+func (s *Summary) TotalTimeBy(entityType uint8, key string) time.Duration {
+	var timeSum time.Duration
+
+	mappedItems := s.MappedItems()
+
+	// calculate total duration from any of the present sets of items
+	if items := mappedItems[entityType]; len(*items) > 0 {
+		for _, item := range *items {
+			if item.Key != key {
+				continue
+			}
+			timeSum += item.Total
+		}
+	}
+
+	return timeSum
+}

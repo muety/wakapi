@@ -44,9 +44,15 @@ func (h *CompatV1AllHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	total := summary.TotalTime()
-	vm := &v1.AllTimeVieModel{
-		Data: &v1.AllTimeVieModelData{
+	var total time.Duration
+	if key := values.Get("project"); key != "" {
+		total = summary.TotalTimeBy(models.SummaryProject, key)
+	} else {
+		total = summary.TotalTime()
+	}
+
+	vm := &v1.AllTimeViewModel{
+		Data: &v1.AllTimeViewModelData{
 			Seconds:    float32(total),
 			Text:       utils.FmtWakatimeDuration(total * time.Second),
 			IsUpToDate: true,
