@@ -80,17 +80,14 @@ INSERT INTO aliases (`type`, `user_id`, `key`, `value`) VALUES (0, 'your_usernam
 * OS ~  type **3**
 * Machine ~  type **4**
 
-**NOTE:** In order for the aliases to take effect for non-live statistics, you would either have to wait 24 hours for the cache to be invalidated or restart Wakapi.
-
 ## API Endpoints
 The following API endpoints are available. A more detailed Swagger documentation is about to come ([#40](https://github.com/muety/wakapi/issues/40)).
 
 * `POST /api/heartbeat`
 * `GET /api/summary`
   * `string` parameter `interval`: One of `today`, `day`, `week`, `month`, `year`, `any`
-  * `bool` parameter `live`: Whether to compute the summary to present time
 * `GET /api/compat/v1/users/current/all_time_since_today` (see [Wakatime API docs](https://wakatime.com/developers#all_time_since_today))
-* `GET /api/compat/v1/users/current/summaries` (see [Wakatime API docs](https://wakatime.com/developers#summaries)) (⏳ [coming soon](https://github.com/muety/wakapi/issues/44))
+* `GET /api/compat/v1/users/current/summaries` (see [Wakatime API docs](https://wakatime.com/developers#summaries))
 * `GET /api/health`
 
 ## Prometheus Export

@@ -14,12 +14,15 @@ const (
 )
 
 const (
-	IntervalToday     string = "today"
-	IntervalLastDay   string = "day"
-	IntervalLastWeek  string = "week"
-	IntervalLastMonth string = "month"
-	IntervalLastYear  string = "year"
-	IntervalAny       string = "any"
+	IntervalToday        string = "today"
+	IntervalYesterday    string = "day"
+	IntervalThisWeek     string = "week"
+	IntervalThisMonth    string = "month"
+	IntervalThisYear     string = "year"
+	IntervalPast7Days    string = "7_days"
+	IntervalPast30Days   string = "30_days"
+	IntervalPast12Months string = "12_months"
+	IntervalAny          string = "any"
 )
 
 const UnknownSummaryKey = "unknown"

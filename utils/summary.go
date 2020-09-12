@@ -10,36 +10,50 @@ import (
 func ParseSummaryParams(r *http.Request) (*models.SummaryParams, error) {
 	user := r.Context().Value(models.UserKey).(*models.User)
 	params := r.URL.Query()
-	interval := params.Get("interval")
 
-	from, err := ParseDate(params.Get("from"))
-	if err != nil {
+	var from, to time.Time
+
+	if interval := params.Get("interval"); interval != "" {
+		to = time.Now()
+
 		switch interval {
 		case models.IntervalToday:
 			from = StartOfToday()
-		case models.IntervalLastDay:
+		case models.IntervalYesterday:
 			from = StartOfToday().Add(-24 * time.Hour)
-		case models.IntervalLastWeek:
+			to = StartOfToday()
+		case models.IntervalThisWeek:
 			from = StartOfWeek()
-		case models.IntervalLastMonth:
+		case models.IntervalThisMonth:
 			from = StartOfMonth()
-		case models.IntervalLastYear:
+		case models.IntervalThisYear:
 			from = StartOfYear()
+		case models.IntervalPast7Days:
+			from = StartOfToday().AddDate(0, 0, -7)
+		case models.IntervalPast30Days:
+			from = StartOfToday().AddDate(0, 0, -30)
+		case models.IntervalPast12Months:
+			from = StartOfToday().AddDate(0, -12, 0)
 		case models.IntervalAny:
 			from = time.Time{}
 		default:
+			return nil, errors.New("invalid interval")
+		}
+	} else {
+		var err error
+
+		from, err = ParseDate(params.Get("from"))
+		if err != nil {
 			return nil, errors.New("missing 'from' parameter")
+		}
+
+		to, err = ParseDate(params.Get("to"))
+		if err != nil {
+			return nil, errors.New("missing 'to' parameter")
 		}
 	}
 
-	live := (params.Get("live") != "" && params.Get("live") != "false") || interval == models.IntervalToday
-
 	recompute := params.Get("recompute") != "" && params.Get("recompute") != "false"
-
-	to := StartOfToday()
-	if live {
-		to = time.Now()
-	}
 
 	return &models.SummaryParams{
 		From:      from,
