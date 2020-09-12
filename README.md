@@ -95,6 +95,9 @@ The following API endpoints are available. A more detailed Swagger documentation
 
 ## Prometheus Export
 If you want to export your Wakapi statistics to Prometheus to view them in a Grafana dashboard or so please refer to an excellent tool called **[wakatime_exporter](https://github.com/MacroPower/wakatime_exporter)**.
+
+[![](https://github-readme-stats.vercel.app/api/pin/?username=MacroPower&repo=wakatime_exporter&show_owner=true)](https://github.com/MacroPower/wakatime_exporter)
+
 It is a standalone webserver that connects to your Wakapi instance and exposes the data as Prometheus metrics. Although originally developed to scrape data from WakaTime, it will mostly for with Wakapi as well, as the APIs are partially compatible.
 
 Simply configure the exporter with `WAKA_SCRAPE_URI` to equal `"https://wakapi.your-server.com/api/compat/v1"` and set your API key accordingly.
