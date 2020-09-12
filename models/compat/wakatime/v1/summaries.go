@@ -12,25 +12,25 @@ import (
 // https://wakatime.com/developers#summaries
 // https://pastr.de/v/736450
 
-type WakatimeSummaries struct {
-	Data  []*wakatimeSummariesData `json:"data"`
-	End   time.Time                `json:"end"`
-	Start time.Time                `json:"start"`
+type SummariesViewModel struct {
+	Data  []*summariesData `json:"data"`
+	End   time.Time        `json:"end"`
+	Start time.Time        `json:"start"`
 }
 
-type wakatimeSummariesData struct {
-	Categories       []*wakatimeSummariesEntry    `json:"categories"`
-	Dependencies     []*wakatimeSummariesEntry    `json:"dependencies"`
-	Editors          []*wakatimeSummariesEntry    `json:"editors"`
-	Languages        []*wakatimeSummariesEntry    `json:"languages"`
-	Machines         []*wakatimeSummariesEntry    `json:"machines"`
-	OperatingSystems []*wakatimeSummariesEntry    `json:"operating_systems"`
-	Projects         []*wakatimeSummariesEntry    `json:"projects"`
-	GrandTotal       *wakatimeSummariesGrandTotal `json:"grand_total"`
-	Range            *wakatimeSummariesRange      `json:"range"`
+type summariesData struct {
+	Categories       []*summariesEntry    `json:"categories"`
+	Dependencies     []*summariesEntry    `json:"dependencies"`
+	Editors          []*summariesEntry    `json:"editors"`
+	Languages        []*summariesEntry    `json:"languages"`
+	Machines         []*summariesEntry    `json:"machines"`
+	OperatingSystems []*summariesEntry    `json:"operating_systems"`
+	Projects         []*summariesEntry    `json:"projects"`
+	GrandTotal       *summariesGrandTotal `json:"grand_total"`
+	Range            *summariesRange      `json:"range"`
 }
 
-type wakatimeSummariesEntry struct {
+type summariesEntry struct {
 	Digital      string  `json:"digital"`
 	Hours        int     `json:"hours"`
 	Minutes      int     `json:"minutes"`
@@ -41,7 +41,7 @@ type wakatimeSummariesEntry struct {
 	TotalSeconds float64 `json:"total_seconds"`
 }
 
-type wakatimeSummariesGrandTotal struct {
+type summariesGrandTotal struct {
 	Digital      string  `json:"digital"`
 	Hours        int     `json:"hours"`
 	Minutes      int     `json:"minutes"`
@@ -49,7 +49,7 @@ type wakatimeSummariesGrandTotal struct {
 	TotalSeconds float64 `json:"total_seconds"`
 }
 
-type wakatimeSummariesRange struct {
+type summariesRange struct {
 	Date     string    `json:"date"`
 	End      time.Time `json:"end"`
 	Start    time.Time `json:"start"`
@@ -57,8 +57,8 @@ type wakatimeSummariesRange struct {
 	Timezone string    `json:"timezone"`
 }
 
-func NewSummariesFrom(summaries []*models.Summary, filters *Filters) *WakatimeSummaries {
-	data := make([]*wakatimeSummariesData, len(summaries))
+func NewSummariesFrom(summaries []*models.Summary, filters *models.Filters) *SummariesViewModel {
+	data := make([]*summariesData, len(summaries))
 	minDate, maxDate := time.Now().Add(1*time.Second), time.Time{}
 
 	for i, s := range summaries {
@@ -72,34 +72,34 @@ func NewSummariesFrom(summaries []*models.Summary, filters *Filters) *WakatimeSu
 		}
 	}
 
-	return &WakatimeSummaries{
+	return &SummariesViewModel{
 		Data:  data,
 		End:   maxDate,
 		Start: minDate,
 	}
 }
 
-func newDataFrom(s *models.Summary) *wakatimeSummariesData {
+func newDataFrom(s *models.Summary) *summariesData {
 	zone, _ := time.Now().Zone()
 	total := s.TotalTime()
 	totalHrs, totalMins := int(total.Hours()), int((total - time.Duration(total.Hours())*time.Hour).Minutes())
 
-	data := &wakatimeSummariesData{
-		Categories:       make([]*wakatimeSummariesEntry, 0),
-		Dependencies:     make([]*wakatimeSummariesEntry, 0),
-		Editors:          make([]*wakatimeSummariesEntry, len(s.Editors)),
-		Languages:        make([]*wakatimeSummariesEntry, len(s.Languages)),
-		Machines:         make([]*wakatimeSummariesEntry, len(s.Machines)),
-		OperatingSystems: make([]*wakatimeSummariesEntry, len(s.OperatingSystems)),
-		Projects:         make([]*wakatimeSummariesEntry, len(s.Projects)),
-		GrandTotal: &wakatimeSummariesGrandTotal{
+	data := &summariesData{
+		Categories:       make([]*summariesEntry, 0),
+		Dependencies:     make([]*summariesEntry, 0),
+		Editors:          make([]*summariesEntry, len(s.Editors)),
+		Languages:        make([]*summariesEntry, len(s.Languages)),
+		Machines:         make([]*summariesEntry, len(s.Machines)),
+		OperatingSystems: make([]*summariesEntry, len(s.OperatingSystems)),
+		Projects:         make([]*summariesEntry, len(s.Projects)),
+		GrandTotal: &summariesGrandTotal{
 			Digital:      fmt.Sprintf("%d:%d", totalHrs, totalMins),
 			Hours:        totalHrs,
 			Minutes:      totalMins,
 			Text:         utils.FmtWakatimeDuration(total),
 			TotalSeconds: total.Seconds(),
 		},
-		Range: &wakatimeSummariesRange{
+		Range: &summariesRange{
 			Date:     time.Now().Format(time.RFC3339),
 			End:      s.ToTime,
 			Start:    s.FromTime,
@@ -111,21 +111,21 @@ func newDataFrom(s *models.Summary) *wakatimeSummariesData {
 	var wg sync.WaitGroup
 	wg.Add(5)
 
-	go func(data *wakatimeSummariesData) {
+	go func(data *summariesData) {
 		defer wg.Done()
 		for i, e := range s.Projects {
 			data.Projects[i] = convertEntry(e, s.TotalTimeBy(models.SummaryProject))
 		}
 	}(data)
 
-	go func(data *wakatimeSummariesData) {
+	go func(data *summariesData) {
 		defer wg.Done()
 		for i, e := range s.Editors {
 			data.Editors[i] = convertEntry(e, s.TotalTimeBy(models.SummaryEditor))
 		}
 	}(data)
 
-	go func(data *wakatimeSummariesData) {
+	go func(data *summariesData) {
 		defer wg.Done()
 		for i, e := range s.Languages {
 			data.Languages[i] = convertEntry(e, s.TotalTimeBy(models.SummaryLanguage))
@@ -133,14 +133,14 @@ func newDataFrom(s *models.Summary) *wakatimeSummariesData {
 		}
 	}(data)
 
-	go func(data *wakatimeSummariesData) {
+	go func(data *summariesData) {
 		defer wg.Done()
 		for i, e := range s.OperatingSystems {
 			data.OperatingSystems[i] = convertEntry(e, s.TotalTimeBy(models.SummaryOS))
 		}
 	}(data)
 
-	go func(data *wakatimeSummariesData) {
+	go func(data *summariesData) {
 		defer wg.Done()
 		for i, e := range s.Machines {
 			data.Machines[i] = convertEntry(e, s.TotalTimeBy(models.SummaryMachine))
@@ -151,7 +151,7 @@ func newDataFrom(s *models.Summary) *wakatimeSummariesData {
 	return data
 }
 
-func convertEntry(e *models.SummaryItem, entityTotal time.Duration) *wakatimeSummariesEntry {
+func convertEntry(e *models.SummaryItem, entityTotal time.Duration) *summariesEntry {
 	// this is a workaround, since currently, the total time of a summary item is mistakenly represented in seconds
 	// TODO: fix some day, while migrating persisted summary items
 	total := e.Total * time.Second
@@ -159,7 +159,7 @@ func convertEntry(e *models.SummaryItem, entityTotal time.Duration) *wakatimeSum
 	mins := int((total - time.Duration(hrs)*time.Hour).Minutes())
 	secs := int((total - time.Duration(hrs)*time.Hour - time.Duration(mins)*time.Minute).Seconds())
 
-	return &wakatimeSummariesEntry{
+	return &summariesEntry{
 		Digital:      fmt.Sprintf("%d:%d:%d", hrs, mins, secs),
 		Hours:        hrs,
 		Minutes:      mins,

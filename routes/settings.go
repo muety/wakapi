@@ -29,10 +29,16 @@ func (h *SettingsHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
+	user := r.Context().Value(models.UserKey).(*models.User)
+	data := map[string]interface{}{
+		"User": user,
+	}
+
+	// TODO: when alerts are present, other data will not be passed to the template
 	if handleAlerts(w, r, "settings.tpl.html") {
 		return
 	}
-	templates["settings.tpl.html"].Execute(w, nil)
+	templates["settings.tpl.html"].Execute(w, data)
 }
 
 func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request) {
@@ -109,4 +115,19 @@ func (h *SettingsHandler) PostResetApiKey(w http.ResponseWriter, r *http.Request
 
 	msg := url.QueryEscape(fmt.Sprintf("your new api key is: %s", user.ApiKey))
 	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.BasePath, msg), http.StatusFound)
+}
+
+func (h *SettingsHandler) PostToggleBadges(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	user := r.Context().Value(models.UserKey).(*models.User)
+
+	if _, err := h.userSrvc.ToggleBadges(user); err != nil {
+		respondAlert(w, "internal server error", "", "settings.tpl.html", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("%s/settings", h.config.BasePath), http.StatusFound)
 }

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/gorilla/mux"
 	"github.com/muety/wakapi/models"
-	v1 "github.com/muety/wakapi/models/compat/v1"
+	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
@@ -12,13 +12,13 @@ import (
 	"time"
 )
 
-type CompatV1SummariesHandler struct {
+type SummariesHandler struct {
 	summarySrvc *services.SummaryService
 	config      *models.Config
 }
 
-func NewCompatV1SummariesHandler(summaryService *services.SummaryService) *CompatV1SummariesHandler {
-	return &CompatV1SummariesHandler{
+func NewSummariesHandler(summaryService *services.SummaryService) *SummariesHandler {
+	return &SummariesHandler{
 		summarySrvc: summaryService,
 		config:      models.GetConfig(),
 	}
@@ -30,7 +30,7 @@ https://wakatime.com/developers#summaries
 timezone can be specified via an offset suffix (e.g. +02:00) in date strings
 */
 
-func (h *CompatV1SummariesHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
+func (h *SummariesHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	requestedUser := vars["user"]
 	authorizedUser := r.Context().Value(models.UserKey).(*models.User)
@@ -47,11 +47,11 @@ func (h *CompatV1SummariesHandler) ApiGet(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	vm := v1.NewSummariesFrom(summaries, &v1.Filters{})
+	vm := v1.NewSummariesFrom(summaries, &models.Filters{})
 	utils.RespondJSON(w, http.StatusOK, vm)
 }
 
-func (h *CompatV1SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary, error, int) {
+func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary, error, int) {
 	user := r.Context().Value(models.UserKey).(*models.User)
 	params := r.URL.Query()
 

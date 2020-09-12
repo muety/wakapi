@@ -15,7 +15,8 @@ import (
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/routes"
-	v1Routes "github.com/muety/wakapi/routes/compat/v1"
+	shieldsV1Routes "github.com/muety/wakapi/routes/compat/shields/v1"
+	wtV1Routes "github.com/muety/wakapi/routes/compat/wakatime/v1"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 )
@@ -95,8 +96,9 @@ func main() {
 	healthHandler := routes.NewHealthHandler(db)
 	settingsHandler := routes.NewSettingsHandler(userService)
 	publicHandler := routes.NewIndexHandler(userService, keyValueService)
-	compatV1AllHandler := v1Routes.NewCompatV1AllHandler(summaryService)
-	compatV1SummariesHandler := v1Routes.NewCompatV1SummariesHandler(summaryService)
+	wakatimeV1AllHandler := wtV1Routes.NewAllTimeHandler(summaryService)
+	wakatimeV1SummariesHandler := wtV1Routes.NewSummariesHandler(summaryService)
+	shieldV1BadgeHandler := shieldsV1Routes.NewBadgeHandler(summaryService, userService)
 
 	// Setup Routers
 	router := mux.NewRouter()
@@ -104,7 +106,9 @@ func main() {
 	settingsRouter := publicRouter.PathPrefix("/settings").Subrouter()
 	summaryRouter := publicRouter.PathPrefix("/summary").Subrouter()
 	apiRouter := router.PathPrefix("/api").Subrouter()
-	compatV1Router := apiRouter.PathPrefix("/compat/v1").Subrouter()
+	compatRouter := apiRouter.PathPrefix("/compat").Subrouter()
+	wakatimeV1Router := compatRouter.PathPrefix("/wakatime/v1").Subrouter()
+	shieldsV1Router := compatRouter.PathPrefix("/shields/v1").Subrouter()
 
 	// Middlewares
 	recoveryMiddleware := handlers.RecoveryHandler()
@@ -112,7 +116,7 @@ func main() {
 	corsMiddleware := handlers.CORS()
 	authenticateMiddleware := middlewares.NewAuthenticateMiddleware(
 		userService,
-		[]string{"/api/health"},
+		[]string{"/api/health", "/api/compat/shields/v1"},
 	).Handler
 
 	// Router configs
@@ -136,15 +140,19 @@ func main() {
 	settingsRouter.Methods(http.MethodGet).HandlerFunc(settingsHandler.GetIndex)
 	settingsRouter.Path("/credentials").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostCredentials)
 	settingsRouter.Path("/reset").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostResetApiKey)
+	settingsRouter.Path("/badges").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostToggleBadges)
 
 	// API Routes
 	apiRouter.Path("/heartbeat").Methods(http.MethodPost).HandlerFunc(heartbeatHandler.ApiPost)
 	apiRouter.Path("/summary").Methods(http.MethodGet).HandlerFunc(summaryHandler.ApiGet)
 	apiRouter.Path("/health").Methods(http.MethodGet).HandlerFunc(healthHandler.ApiGet)
 
-	// Compat V1 API Routes
-	compatV1Router.Path("/users/{user}/all_time_since_today").Methods(http.MethodGet).HandlerFunc(compatV1AllHandler.ApiGet)
-	compatV1Router.Path("/users/{user}/summaries").Methods(http.MethodGet).HandlerFunc(compatV1SummariesHandler.ApiGet)
+	// Wakatime compat V1 API Routes
+	wakatimeV1Router.Path("/users/{user}/all_time_since_today").Methods(http.MethodGet).HandlerFunc(wakatimeV1AllHandler.ApiGet)
+	wakatimeV1Router.Path("/users/{user}/summaries").Methods(http.MethodGet).HandlerFunc(wakatimeV1SummariesHandler.ApiGet)
+
+	// Shields.io compat API Routes
+	shieldsV1Router.PathPrefix("/{user}").Methods(http.MethodGet).HandlerFunc(shieldV1BadgeHandler.ApiGet)
 
 	// Static Routes
 	router.PathPrefix("/assets").Handler(http.FileServer(http.Dir("./static")))

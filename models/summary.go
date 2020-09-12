@@ -25,6 +25,12 @@ const (
 	IntervalAny          string = "any"
 )
 
+func Intervals() []string {
+	return []string{
+		IntervalToday, IntervalYesterday, IntervalThisWeek, IntervalThisMonth, IntervalThisYear, IntervalPast7Days, IntervalPast30Days, IntervalPast12Months, IntervalAny,
+	}
+}
+
 const UnknownSummaryKey = "unknown"
 
 type Summary struct {

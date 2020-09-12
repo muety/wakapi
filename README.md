@@ -4,7 +4,7 @@
 [![Say thanks](https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg?style=flat-square)](https://saythanks.io/to/n1try)
 ![](https://img.shields.io/github/license/muety/wakapi?style=flat-square)
 [![Go Report Card](https://goreportcard.com/badge/github.com/muety/wakapi?style=flat-square)](https://goreportcard.com/report/github.com/muety/wakapi)
-
+![Coding Activity](https://img.shields.io/endpoint?url=https://apps.muetsch.io/wakapi/api/compat/shields/v1/n1try/interval:any/project:wakapi&style=flat-square&color=blue)
 ---
 
 **A minimalist, self-hosted WakaTime-compatible backend for coding statistics**
@@ -97,7 +97,10 @@ If you want to export your Wakapi statistics to Prometheus to view them in a Gra
 
 It is a standalone webserver that connects to your Wakapi instance and exposes the data as Prometheus metrics. Although originally developed to scrape data from WakaTime, it will mostly for with Wakapi as well, as the APIs are partially compatible.
 
-Simply configure the exporter with `WAKA_SCRAPE_URI` to equal `"https://wakapi.your-server.com/api/compat/v1"` and set your API key accordingly.
+Simply configure the exporter with `WAKA_SCRAPE_URI` to equal `"https://wakapi.your-server.com/api/compat/wakatime/v1"` and set your API key accordingly.
+
+## Badges
+
 
 ## Best Practices
 It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or _nginx_ to enable **TLS encryption** (HTTPS).

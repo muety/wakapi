@@ -3,7 +3,7 @@ package v1
 import (
 	"github.com/gorilla/mux"
 	"github.com/muety/wakapi/models"
-	v1 "github.com/muety/wakapi/models/compat/v1"
+	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
@@ -11,19 +11,19 @@ import (
 	"time"
 )
 
-type CompatV1AllHandler struct {
+type AllTimeHandler struct {
 	summarySrvc *services.SummaryService
 	config      *models.Config
 }
 
-func NewCompatV1AllHandler(summaryService *services.SummaryService) *CompatV1AllHandler {
-	return &CompatV1AllHandler{
+func NewAllTimeHandler(summaryService *services.SummaryService) *AllTimeHandler {
+	return &AllTimeHandler{
 		summarySrvc: summaryService,
 		config:      models.GetConfig(),
 	}
 }
 
-func (h *CompatV1AllHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
+func (h *AllTimeHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	values, _ := url.ParseQuery(r.URL.RawQuery)
 
@@ -42,11 +42,11 @@ func (h *CompatV1AllHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vm := v1.NewAllTimeFrom(summary, &v1.Filters{Project: values.Get("project")})
+	vm := v1.NewAllTimeFrom(summary, &models.Filters{Project: values.Get("project")})
 	utils.RespondJSON(w, http.StatusOK, vm)
 }
 
-func (h *CompatV1AllHandler) loadUserSummary(user *models.User) (*models.Summary, error, int) {
+func (h *AllTimeHandler) loadUserSummary(user *models.User) (*models.Summary, error, int) {
 	summaryParams := &models.SummaryParams{
 		From:      time.Time{},
 		To:        time.Now(),
