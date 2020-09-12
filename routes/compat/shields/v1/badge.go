@@ -8,6 +8,7 @@ import (
 	"github.com/muety/wakapi/utils"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 const (
@@ -32,6 +33,11 @@ func NewBadgeHandler(summaryService *services.SummaryService, userService *servi
 func (h *BadgeHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 	intervalReg := regexp.MustCompile(intervalPattern)
 	entityFilterReg := regexp.MustCompile(entityFilterPattern)
+
+	if userAgent := r.Header.Get("user-agent"); !strings.HasPrefix(userAgent, "Shields.io/") && !h.config.IsDev() {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	requestedUserId := mux.Vars(r)["user"]
 	user, err := h.userSrvc.GetUserById(requestedUserId)
