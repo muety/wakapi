@@ -44,7 +44,7 @@ func MakeConnectionString(config *models.Config) string {
 
 func mySqlConnectionString(config *models.Config) string {
 	//location, _ := time.LoadLocation("Local")
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true&loc=%s",
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
 		config.DbUser,
 		config.DbPassword,
 		config.DbHost,
