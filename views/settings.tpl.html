@@ -64,8 +64,71 @@
                 </div>
             </form>
         </div>
+
+        <div class="w-full mt-4 mb-8 pb-8">
+            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
+                Badges
+            </div>
+
+            <form class="mt-6" action="settings/badges" method="post">
+                <div class="text-gray-300 text-sm mb-4">
+                    {{ if .User.BadgesEnabled }}
+                        <p>Badges are currently enabled. You can disable the feature by deactivating the respective API endpoint.</p>
+
+                        <div class="flex justify-around mt-4">
+                            <span class="font-mono font-normal bg-gray-900 p-1 rounded whitespace-no-wrap">GET /api/compat/shields/v1</span>
+                            <button type="submit" class="py-1 px-2 rounded bg-orange-700 hover:bg-orange-800 text-white text-xs" title="Disable support for badges to secure endpoint">
+                                Status: public
+                            </button>
+                        </div>
+
+                        <h3 class="font-semibold mb-2 mt-8">Examples</h3>
+                        <div class="flex flex-col mb-4">
+                            <div class="flex justify-between my-2">
+                                <div>
+                                    <img class="with-url-src" src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:today&style=flat-square&color=blue&label=today"/>
+                                </div>
+                                <span class="with-url-inner text-xs bg-gray-900 rounded py-1 px-2 font-mono whitespace-no-wrap overflow-auto" style="max-width: 300px;">
+                                    https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:today&style=flat-square&color=blue&label=today
+                                </span>
+                            </div>
+                            <div class="flex justify-between my-2">
+                                <div>
+                                    <img class="with-url-src" src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:30_days&style=flat-square&color=blue&label=last 30d"/>
+                                </div>
+                                <span class="with-url-inner text-xs bg-gray-900 rounded py-1 px-2 font-mono whitespace-no-wrap overflow-auto" style="max-width: 300px;">
+                                    https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:30_days&style=flat-square&color=blue&label=last 30d
+                                </span>
+                            </div>
+                        </div>
+
+                        <p>You can also add <span class="text-xs bg-gray-900 rounded py-1 px-2 font-mono">/project:your-cool-project</span> to the URL to filter by project.</p>
+                    {{ else }}
+                        <p>You have the ability to create badges from your coding statistics using <a href="https://shields.io" target="_blank" class="border-b border-green-800">Shields.io</a>. To do so, you need to grant public, unauthorized access to the respective endpoint.</p>
+                        <div class="flex justify-around mt-4">
+                            <span class="font-mono font-normal bg-gray-900 p-1 rounded whitespace-no-wrap">GET /api/compat/shields/v1</span>
+                            <button type="submit" class="py-1 px-2 rounded bg-green-700 hover:bg-green-800 text-white text-xs" title="Make endpoint public to enable badges">
+                                Status: protected
+                            </button>
+                        </div>
+                    {{ end }}
+                </div>
+            </form>
+        </div>
     </div>
 </main>
+
+<script type="text/javascript">
+    const baseUrl = location.href.substring(0, location.href.indexOf('/settings'))
+    document.querySelectorAll('.with-url-src').forEach(e => {
+        e.setAttribute('src', e.getAttribute('src').replace('%s', baseUrl))
+        e.classList.remove('hidden')
+    })
+    document.querySelectorAll('.with-url-inner').forEach(e => {
+        e.innerHTML = e.innerHTML.replace('%s', baseUrl)
+        e.classList.remove('hidden')
+    })
+</script>
 
 {{ template "footer.tpl.html" . }}
 

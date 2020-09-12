@@ -24,10 +24,49 @@ type KeyStringValue struct {
 	Value string `gorm:"type:text"`
 }
 
+type Filters struct {
+	Project  string
+	OS       string
+	Language string
+	Editor   string
+	Machine  string
+}
+
+func NewFiltersWith(entity uint8, key string) *Filters {
+	switch entity {
+	case SummaryProject:
+		return &Filters{Project: key}
+	case SummaryOS:
+		return &Filters{Project: key}
+	case SummaryLanguage:
+		return &Filters{Project: key}
+	case SummaryEditor:
+		return &Filters{Project: key}
+	case SummaryMachine:
+		return &Filters{Project: key}
+	}
+	return &Filters{}
+}
+
+func (f *Filters) First() (bool, uint8, string) {
+	if f.Project != "" {
+		return true, SummaryProject, f.Project
+	} else if f.OS != "" {
+		return true, SummaryOS, f.OS
+	} else if f.Language != "" {
+		return true, SummaryLanguage, f.Language
+	} else if f.Editor != "" {
+		return true, SummaryEditor, f.Editor
+	} else if f.Machine != "" {
+		return true, SummaryMachine, f.Machine
+	}
+	return false, 0, ""
+}
+
 type CustomTime time.Time
 
 func (j *CustomTime) UnmarshalJSON(b []byte) error {
-	s := strings.Replace(strings.Trim(string(b), "\""), ".", "", 1) // TODO: not always three decimal points!
+	s := strings.Replace(strings.Trim(string(b), "\""), ".", "", 1)
 	i, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
 		return err

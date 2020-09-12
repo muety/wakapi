@@ -87,6 +87,19 @@ func (srv *UserService) ResetApiKey(user *models.User) (*models.User, error) {
 	return srv.Update(user)
 }
 
+func (srv *UserService) ToggleBadges(user *models.User) (*models.User, error) {
+	result := srv.Db.Model(user).Update("badges_enabled", !user.BadgesEnabled)
+	if err := result.Error; err != nil {
+		return nil, err
+	}
+
+	if result.RowsAffected != 1 {
+		return nil, errors.New("nothing updated")
+	}
+
+	return user, nil
+}
+
 func (srv *UserService) MigrateMd5Password(user *models.User, login *models.Login) (*models.User, error) {
 	user.Password = login.Password
 	if err := utils.HashPassword(user, srv.Config.PasswordSalt); err != nil {

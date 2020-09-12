@@ -4,9 +4,7 @@
 [![Say thanks](https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg?style=flat-square)](https://saythanks.io/to/n1try)
 ![](https://img.shields.io/github/license/muety/wakapi?style=flat-square)
 [![Go Report Card](https://goreportcard.com/badge/github.com/muety/wakapi?style=flat-square)](https://goreportcard.com/report/github.com/muety/wakapi)
-
-[![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoff.ee/n1try)
-
+![Coding Activity](https://img.shields.io/endpoint?url=https://apps.muetsch.io/wakapi/api/compat/shields/v1/n1try/interval:any/project:wakapi&style=flat-square&color=blue)
 ---
 
 **A minimalist, self-hosted WakaTime-compatible backend for coding statistics**
@@ -82,7 +80,27 @@ INSERT INTO aliases (`type`, `user_id`, `key`, `value`) VALUES (0, 'your_usernam
 * OS ~  type **3**
 * Machine ~  type **4**
 
-**NOTE:** In order for the aliases to take effect for non-live statistics, you would either have to wait 24 hours for the cache to be invalidated or restart Wakapi.
+## API Endpoints
+The following API endpoints are available. A more detailed Swagger documentation is about to come ([#40](https://github.com/muety/wakapi/issues/40)).
+
+* `POST /api/heartbeat`
+* `GET /api/summary`
+  * `string` parameter `interval`: One of `today`, `day`, `week`, `month`, `year`, `any`
+* `GET /api/compat/v1/users/current/all_time_since_today` (see [Wakatime API docs](https://wakatime.com/developers#all_time_since_today))
+* `GET /api/compat/v1/users/current/summaries` (see [Wakatime API docs](https://wakatime.com/developers#summaries))
+* `GET /api/health`
+
+## Prometheus Export
+If you want to export your Wakapi statistics to Prometheus to view them in a Grafana dashboard or so please refer to an excellent tool called **[wakatime_exporter](https://github.com/MacroPower/wakatime_exporter)**.
+
+[![](https://github-readme-stats.vercel.app/api/pin/?username=MacroPower&repo=wakatime_exporter&show_owner=true)](https://github.com/MacroPower/wakatime_exporter)
+
+It is a standalone webserver that connects to your Wakapi instance and exposes the data as Prometheus metrics. Although originally developed to scrape data from WakaTime, it will mostly for with Wakapi as well, as the APIs are partially compatible.
+
+Simply configure the exporter with `WAKA_SCRAPE_URI` to equal `"https://wakapi.your-server.com/api/compat/wakatime/v1"` and set your API key accordingly.
+
+## Badges
+
 
 ## Best Practices
 It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or _nginx_ to enable **TLS encryption** (HTTPS).

@@ -77,7 +77,7 @@ func (srv *HeartbeatService) DeleteBefore(t time.Time) error {
 }
 
 func (srv *HeartbeatService) CleanUp() error {
-	refTime := utils.StartOfDay().Add(-cleanUpInterval)
+	refTime := utils.StartOfToday().Add(-cleanUpInterval)
 	if err := srv.DeleteBefore(refTime); err != nil {
 		log.Printf("Failed to clean up heartbeats older than %v – %v\n", refTime, err)
 		return err

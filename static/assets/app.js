@@ -1,11 +1,21 @@
 const SHOW_TOP_N = 10
-const CHART_TARGET_SIZE = 170
+const CHART_TARGET_SIZE = 200
 
 const projectsCanvas = document.getElementById('chart-projects')
 const osCanvas = document.getElementById('chart-os')
 const editorsCanvas = document.getElementById('chart-editor')
 const languagesCanvas = document.getElementById('chart-language')
 const machinesCanvas = document.getElementById('chart-machine')
+
+const projectContainer = document.getElementById('project-container')
+const osContainer = document.getElementById('os-container')
+const editorContainer = document.getElementById('editor-container')
+const languageContainer = document.getElementById('language-container')
+const machineContainer = document.getElementById('machine-container')
+
+const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer]
+const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas]
+const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines]
 
 let charts = []
 let resizeCount = 0
@@ -29,11 +39,6 @@ String.prototype.toHHMMSS = function () {
 }
 
 function draw() {
-    let titleOptions = {
-        display: true,
-        fontSize: 16
-    }
-
     function getTooltipOptions(key, type) {
         return {
             mode: 'single',
@@ -49,129 +54,156 @@ function draw() {
 
     charts.forEach(c => c.destroy())
 
-    let projectChart = new Chart(projectsCanvas.getContext('2d'), {
-        type: 'horizontalBar',
-        data: {
-            datasets: wakapiData.projects
-                .slice(0, Math.min(SHOW_TOP_N, wakapiData.projects.length))
-                .map(p => {
-                    return {
-                        label: p.key,
-                        data: [parseInt(p.total) / 60],
-                        backgroundColor: getRandomColor(p.key)
-                    }
-                })
-        },
-        options: {
-            title: Object.assign(titleOptions, {text: `Projects (top ${SHOW_TOP_N})`}),
-            tooltips: getTooltipOptions('projects', 'bar'),
-            legend: {
-                display: false
+    let projectChart = !projectsCanvas.classList.contains('hidden')
+        ? new Chart(projectsCanvas.getContext('2d'), {
+            type: 'horizontalBar',
+            data: {
+                datasets: wakapiData.projects
+                    .slice(0, Math.min(SHOW_TOP_N, wakapiData.projects.length))
+                    .map(p => {
+                        return {
+                            label: p.key,
+                            data: [parseInt(p.total) / 60],
+                            backgroundColor: getRandomColor(p.key)
+                        }
+                    })
             },
-            scales: {
-                xAxes: [{
-                    scaleLabel: {
-                        display: true,
-                        labelString: 'Minutes'
-                    }
-                }]
-            },
-            maintainAspectRatio: false,
-            onResize: onChartResize
-        }
-    })
+            options: {
+                tooltips: getTooltipOptions('projects', 'bar'),
+                legend: {
+                    display: false
+                },
+                scales: {
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Minutes'
+                        }
+                    }]
+                },
+                maintainAspectRatio: false,
+                onResize: onChartResize
+            }
+        })
+        : null
 
-    let osChart = new Chart(osCanvas.getContext('2d'), {
-        type: 'pie',
-        data: {
-            datasets: [{
-                data: wakapiData.operatingSystems
+    let osChart = !osCanvas.classList.contains('hidden')
+        ? new Chart(osCanvas.getContext('2d'), {
+            type: 'pie',
+            data: {
+                datasets: [{
+                    data: wakapiData.operatingSystems
+                        .slice(0, Math.min(SHOW_TOP_N, wakapiData.operatingSystems.length))
+                        .map(p => parseInt(p.total)),
+                    backgroundColor: wakapiData.operatingSystems.map(p => getRandomColor(p.key))
+                }],
+                labels: wakapiData.operatingSystems
                     .slice(0, Math.min(SHOW_TOP_N, wakapiData.operatingSystems.length))
-                    .map(p => parseInt(p.total)),
-                backgroundColor: wakapiData.operatingSystems.map(p => getRandomColor(p.key))
-            }],
-            labels: wakapiData.operatingSystems
-                .slice(0, Math.min(SHOW_TOP_N, wakapiData.operatingSystems.length))
-                .map(p => p.key)
-        },
-        options: {
-            title: Object.assign(titleOptions, {text: `Operating Systems (top ${SHOW_TOP_N})`}),
-            tooltips: getTooltipOptions('operatingSystems', 'pie'),
-            maintainAspectRatio: false,
-            onResize: onChartResize
-        }
-    })
+                    .map(p => p.key)
+            },
+            options: {
+                tooltips: getTooltipOptions('operatingSystems', 'pie'),
+                maintainAspectRatio: false,
+                onResize: onChartResize
+            }
+        })
+        : null
 
-    let editorChart = new Chart(editorsCanvas.getContext('2d'), {
-        type: 'pie',
-        data: {
-            datasets: [{
-                data: wakapiData.editors
+    let editorChart = !editorsCanvas.classList.contains('hidden')
+        ? new Chart(editorsCanvas.getContext('2d'), {
+            type: 'pie',
+            data: {
+                datasets: [{
+                    data: wakapiData.editors
+                        .slice(0, Math.min(SHOW_TOP_N, wakapiData.editors.length))
+                        .map(p => parseInt(p.total)),
+                    backgroundColor: wakapiData.editors.map(p => getRandomColor(p.key))
+                }],
+                labels: wakapiData.editors
                     .slice(0, Math.min(SHOW_TOP_N, wakapiData.editors.length))
-                    .map(p => parseInt(p.total)),
-                backgroundColor: wakapiData.editors.map(p => getRandomColor(p.key))
-            }],
-            labels: wakapiData.editors
-                .slice(0, Math.min(SHOW_TOP_N, wakapiData.editors.length))
-                .map(p => p.key)
-        },
-        options: {
-            title: Object.assign(titleOptions, {text: `Editors (top ${SHOW_TOP_N})`}),
-            tooltips: getTooltipOptions('editors', 'pie'),
-            maintainAspectRatio: false,
-            onResize: onChartResize
-        }
-    })
+                    .map(p => p.key)
+            },
+            options: {
+                tooltips: getTooltipOptions('editors', 'pie'),
+                maintainAspectRatio: false,
+                onResize: onChartResize
+            }
+        })
+        : null
 
-    let languageChart = new Chart(languagesCanvas.getContext('2d'), {
-        type: 'pie',
-        data: {
-            datasets: [{
-                data: wakapiData.languages
+    let languageChart = !languagesCanvas.classList.contains('hidden')
+        ? new Chart(languagesCanvas.getContext('2d'), {
+            type: 'pie',
+            data: {
+                datasets: [{
+                    data: wakapiData.languages
+                        .slice(0, Math.min(SHOW_TOP_N, wakapiData.languages.length))
+                        .map(p => parseInt(p.total)),
+                    backgroundColor: wakapiData.languages.map(p => languageColors[p.key.toLowerCase()] || getRandomColor(p.key))
+                }],
+                labels: wakapiData.languages
                     .slice(0, Math.min(SHOW_TOP_N, wakapiData.languages.length))
-                    .map(p => parseInt(p.total)),
-                backgroundColor: wakapiData.languages.map(p => languageColors[p.key.toLowerCase()] || getRandomColor(p.key))
-            }],
-            labels: wakapiData.languages
-                .slice(0, Math.min(SHOW_TOP_N, wakapiData.languages.length))
-                .map(p => p.key)
-        },
-        options: {
-            title: Object.assign(titleOptions, {text: `Languages (top ${SHOW_TOP_N})`}),
-            tooltips: getTooltipOptions('languages', 'pie'),
-            maintainAspectRatio: false,
-            onResize: onChartResize
-        }
-    })
+                    .map(p => p.key)
+            },
+            options: {
+                tooltips: getTooltipOptions('languages', 'pie'),
+                maintainAspectRatio: false,
+                onResize: onChartResize
+            }
+        })
+        : null
 
-    let machineChart = new Chart(machinesCanvas.getContext('2d'), {
-        type: 'pie',
-        data: {
-            datasets: [{
-                data: wakapiData.machines
+    let machineChart = !machinesCanvas.classList.contains('hidden')
+        ? new Chart(machinesCanvas.getContext('2d'), {
+            type: 'pie',
+            data: {
+                datasets: [{
+                    data: wakapiData.machines
+                        .slice(0, Math.min(SHOW_TOP_N, wakapiData.machines.length))
+                        .map(p => parseInt(p.total)),
+                    backgroundColor: wakapiData.machines.map(p => getRandomColor(p.key))
+                }],
+                labels: wakapiData.machines
                     .slice(0, Math.min(SHOW_TOP_N, wakapiData.machines.length))
-                    .map(p => parseInt(p.total)),
-                backgroundColor: wakapiData.machines.map(p => getRandomColor(p.key))
-            }],
-            labels: wakapiData.machines
-                .slice(0, Math.min(SHOW_TOP_N, wakapiData.machines.length))
-                .map(p => p.key)
-        },
-        options: {
-            title: Object.assign(titleOptions, {text: `Machines (top ${SHOW_TOP_N})`}),
-            tooltips: getTooltipOptions('machines', 'pie'),
-            maintainAspectRatio: false,
-            onResize: onChartResize
-        }
-    })
+                    .map(p => p.key)
+            },
+            options: {
+                tooltips: getTooltipOptions('machines', 'pie'),
+                maintainAspectRatio: false,
+                onResize: onChartResize
+            }
+        })
+        : null
 
     getTotal(wakapiData.operatingSystems)
-    document.getElementById('grid-container').style.visibility = 'visible'
 
-    charts = [projectChart, osChart, editorChart, languageChart, machineChart]
+    charts = [projectChart, osChart, editorChart, languageChart, machineChart].filter(c => !!c)
 
     charts.forEach(c => c.options.onResize(c.chart))
     equalizeHeights()
+}
+
+function setTopLabels() {
+    [...document.getElementsByClassName('top-label')]
+        .forEach(e => e.innerText = `(top ${SHOW_TOP_N})`)
+}
+
+function togglePlaceholders(mask) {
+    const placeholderElements = containers.map(c => c.querySelector('.placeholder-container'))
+
+    for (let i = 0; i < mask.length; i++) {
+        if (!mask[i]) {
+            canvases[i].classList.add('hidden')
+            placeholderElements[i].classList.remove('hidden')
+        } else {
+            canvases[i].classList.remove('hidden')
+            placeholderElements[i].classList.add('hidden')
+        }
+    }
+}
+
+function getPresentDataMask() {
+    return data.map(list => list.reduce((acc, e) => acc + e.total, 0) > 0)
 }
 
 function getContainer(chart) {
@@ -257,7 +289,7 @@ if (favicon) {
 }
 
 // Click outside
-window.addEventListener('click', function(event) {
+window.addEventListener('click', function (event) {
     if (event.target.classList.contains('popup')) {
         return
     }
@@ -268,5 +300,7 @@ window.addEventListener('click', function(event) {
 })
 
 window.addEventListener('load', function () {
+    setTopLabels()
+    togglePlaceholders(getPresentDataMask())
     draw()
 })

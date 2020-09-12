@@ -65,7 +65,7 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User, reco
 		heartbeats = append(heartbeats, hb...)
 	}
 
-	types := []uint8{models.SummaryProject, models.SummaryLanguage, models.SummaryEditor, models.SummaryOS, models.SummaryMachine}
+	types := models.SummaryTypes()
 
 	var projectItems []*models.SummaryItem
 	var languageItems []*models.SummaryItem

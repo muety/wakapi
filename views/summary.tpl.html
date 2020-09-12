@@ -36,13 +36,16 @@
     <h1 class="font-semibold text-2xl text-white m-0 border-b-4 border-green-700">Your Coding Statistics 🤓</h1>
 </div>
 
-<div class="text-white text-sm flex items-center justify-center mt-4">
-    <a href="summary?interval=today" class="m-1 border-b border-green-700">Today (live)</a>
-    <a href="summary?interval=day" class="m-1 border-b border-green-700">Yesterday</a>
-    <a href="summary?interval=week" class="m-1 border-b border-green-700">This Week</a>
-    <a href="summary?interval=month" class="m-1 border-b border-green-700">This Month</a>
-    <a href="summary?interval=year" class="m-1 border-b border-green-700">This Year</a>
-    <a href="summary?interval=any" class="m-1 border-b border-green-700">All Time</a>
+<div class="text-white text-sm flex items-center justify-center mt-4 self-center max-w-lg flex-wrap">
+    <a href="summary?interval=today" class="mx-2 my-1 border-b border-green-700">Today</a>
+    <a href="summary?interval=day" class="mx-2 my-1 border-b border-green-700">Yesterday</a>
+    <a href="summary?interval=week" class="mx-2 my-1 border-b border-green-700">This Week</a>
+    <a href="summary?interval=month" class="mx-2 my-1 border-b border-green-700">This Month</a>
+    <a href="summary?interval=year" class="mx-2 my-1 border-b border-green-700">This Year</a>
+    <a href="summary?interval=7_days" class="mx-2 my-1 border-b border-green-700">Past 7 Days</a>
+    <a href="summary?interval=30_days" class="mx-2 my-1 border-b border-green-700">Past 30 Days</a>
+    <a href="summary?interval=12_months" class="mx-2 my-1 border-b border-green-700">Past 12 Months</a>
+    <a href="summary?interval=any" class="mx-2 my-1 border-b border-green-700">All Time</a>
 </div>
 
 {{ template "alerts.tpl.html" . }}
@@ -59,28 +62,68 @@
     </div>
     <div class="flex flex-wrap justify-center">
         <div class="w-full lg:w-1/2 p-1">
-            <div class="p-4 bg-white rounded shadow m-2" id="projects-container" style="height: 300px">
+            <div class="p-4 pb-10 bg-white rounded shadow m-2 flex flex-col" id="project-container" style="height: 300px">
+                <div class="self-center flex">
+                    <span class="font-semibold mr-1">Projects</span>
+                    <span id="project-top-label" class="top-label"></span>
+                </div>
                 <canvas id="chart-projects"></canvas>
+                <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
+                    <img src="assets/images/no_data.svg" class="w-20"/>
+                    <span class="text-sm mt-4">No data available ...</span>
+                </div>
             </div>
         </div>
         <div class="w-full lg:w-1/2 p-1">
-            <div class="p-4 bg-white rounded shadow m-2" id="os-container" style="height: 300px">
+            <div class="p-4 pb-10 bg-white rounded shadow m-2 flex flex-col" id="os-container" style="height: 300px">
+                <div class="self-center flex">
+                    <span class="font-semibold mr-1">Operating Systems</span>
+                    <span id="os-top-label" class="top-label"></span>
+                </div>
                 <canvas id="chart-os"></canvas>
+                <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
+                    <img src="assets/images/no_data.svg" class="w-20"/>
+                    <span class="text-sm mt-4">No data available ...</span>
+                </div>
             </div>
         </div>
         <div class="w-full lg:w-1/2 p-1">
-            <div class="p-4 bg-white rounded shadow m-2 relative" id="language-container" style="height: 300px">
+            <div class="p-4 pb-10 bg-white rounded shadow m-2 flex flex-col relative" id="language-container" style="height: 300px">
+                <div class="self-center flex">
+                    <span class="font-semibold mr-1">Languages</span>
+                    <span id="language-top-label" class="top-label"></span>
+                </div>
                 <canvas id="chart-language"></canvas>
+                <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
+                    <img src="assets/images/no_data.svg" class="w-20"/>
+                    <span class="text-sm mt-4">No data available ...</span>
+                </div>
             </div>
         </div>
         <div class="w-full lg:w-1/2 p-1">
-            <div class="p-4 bg-white rounded shadow m-2" id="editor-container" style="height: 300px">
+            <div class="p-4 pb-10 bg-white rounded shadow m-2 flex flex-col" id="editor-container" style="height: 300px">
+                <div class="self-center flex">
+                    <span class="font-semibold mr-1">Editors</span>
+                    <span id="editor-top-label" class="top-label"></span>
+                </div>
                 <canvas id="chart-editor"></canvas>
+                <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
+                    <img src="assets/images/no_data.svg" class="w-20"/>
+                    <span class="text-sm mt-4">No data available ...</span>
+                </div>
             </div>
         </div>
         <div class="w-full lg:w-1/2 p-1">
-            <div class="p-4 bg-white rounded shadow m-2" id="machine-container" style="height: 300px">
+            <div class="p-4 pb-10 bg-white rounded shadow m-2 flex flex-col" id="machine-container" style="height: 300px">
+                <div class="self-center flex">
+                    <span class="font-semibold mr-1">Machines</span>
+                    <span id="machine-top-label" class="top-label"></span>
+                </div>
                 <canvas id="chart-machine"></canvas>
+                <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
+                    <img src="assets/images/no_data.svg" class="w-20"/>
+                    <span class="text-sm mt-4">No data available ...</span>
+                </div>
             </div>
         </div>
     </div>
