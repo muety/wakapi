@@ -21,7 +21,7 @@ func FormatDateHuman(date time.Time) string {
 }
 
 func ParseUserAgent(ua string) (string, string, error) {
-	re := regexp.MustCompile(`^wakatime\/[\d+.]+\s\((\w+).*\)\s.+\s(\w+)\/.+$`)
+	re := regexp.MustCompile(`(?iU)^wakatime\/[\d+.]+\s\((\w+)-.*\)\s.+\s([^\/\s]+)-wakatime\/.+$`)
 	groups := re.FindAllStringSubmatch(ua, -1)
 	if len(groups) == 0 || len(groups[0]) != 3 {
 		return "", "", errors.New("failed to parse user agent string")
@@ -32,7 +32,7 @@ func ParseUserAgent(ua string) (string, string, error) {
 func MakeConnectionString(config *config.Config) string {
 	switch config.DbDialect {
 	case "mysql":
-		return mySqlConnectionString(config)
+		return mysqlConnectionString(config)
 	case "postgres":
 		return postgresConnectionString(config)
 	case "sqlite3":
@@ -41,7 +41,7 @@ func MakeConnectionString(config *config.Config) string {
 	return ""
 }
 
-func mySqlConnectionString(config *config.Config) string {
+func mysqlConnectionString(config *config.Config) string {
 	//location, _ := time.LoadLocation("Local")
 	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
 		config.DbUser,
