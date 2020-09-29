@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/gorilla/schema"
+	config2 "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
@@ -11,7 +12,7 @@ import (
 )
 
 type SettingsHandler struct {
-	config   *models.Config
+	config   *config2.Config
 	userSrvc *services.UserService
 }
 
@@ -19,7 +20,7 @@ var credentialsDecoder = schema.NewDecoder()
 
 func NewSettingsHandler(userService *services.UserService) *SettingsHandler {
 	return &SettingsHandler{
-		config:   models.GetConfig(),
+		config:   config2.Get(),
 		userSrvc: userService,
 	}
 }

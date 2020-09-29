@@ -3,19 +3,20 @@ package services
 import (
 	"errors"
 	"github.com/jinzhu/gorm"
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
 	uuid "github.com/satori/go.uuid"
 )
 
 type UserService struct {
-	Config *models.Config
+	Config *config.Config
 	Db     *gorm.DB
 }
 
 func NewUserService(db *gorm.DB) *UserService {
 	return &UserService{
-		Config: models.GetConfig(),
+		Config: config.Get(),
 		Db:     db,
 	}
 }

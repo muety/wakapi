@@ -3,10 +3,9 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"github.com/muety/wakapi/config"
 	"regexp"
 	"time"
-
-	"github.com/muety/wakapi/models"
 )
 
 func ParseDate(date string) (time.Time, error) {
@@ -30,7 +29,7 @@ func ParseUserAgent(ua string) (string, string, error) {
 	return groups[0][1], groups[0][2], nil
 }
 
-func MakeConnectionString(config *models.Config) string {
+func MakeConnectionString(config *config.Config) string {
 	switch config.DbDialect {
 	case "mysql":
 		return mySqlConnectionString(config)
@@ -42,7 +41,7 @@ func MakeConnectionString(config *models.Config) string {
 	return ""
 }
 
-func mySqlConnectionString(config *models.Config) string {
+func mySqlConnectionString(config *config.Config) string {
 	//location, _ := time.LoadLocation("Local")
 	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
 		config.DbUser,
@@ -54,7 +53,7 @@ func mySqlConnectionString(config *models.Config) string {
 	)
 }
 
-func postgresConnectionString(config *models.Config) string {
+func postgresConnectionString(config *config.Config) string {
 	return fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable",
 		config.DbHost,
 		config.DbPort,
@@ -64,6 +63,6 @@ func postgresConnectionString(config *models.Config) string {
 	)
 }
 
-func sqliteConnectionString(config *models.Config) string {
+func sqliteConnectionString(config *config.Config) string {
 	return config.DbName
 }

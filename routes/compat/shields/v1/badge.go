@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/gorilla/mux"
+	config2 "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/shields/v1"
 	"github.com/muety/wakapi/services"
@@ -19,14 +20,14 @@ const (
 type BadgeHandler struct {
 	userSrvc    *services.UserService
 	summarySrvc *services.SummaryService
-	config      *models.Config
+	config      *config2.Config
 }
 
 func NewBadgeHandler(summaryService *services.SummaryService, userService *services.UserService) *BadgeHandler {
 	return &BadgeHandler{
 		summarySrvc: summaryService,
 		userSrvc:    userService,
-		config:      models.GetConfig(),
+		config:      config2.Get(),
 	}
 }
 

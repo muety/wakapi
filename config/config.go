@@ -1,10 +1,11 @@
-package models
+package config
 
 import (
 	"encoding/json"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
+	"github.com/muety/wakapi/models"
 	migrate "github.com/rubenv/sql-migrate"
 	"gopkg.in/ini.v1"
 	"io/ioutil"
@@ -44,7 +45,7 @@ func (c *Config) IsDev() bool {
 	return IsDev(c.Env)
 }
 
-func (c *Config) GetMigrationFunc(dbDialect string) MigrationFunc {
+func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
 	switch dbDialect {
 	case "sqlite3":
 		return func(db *gorm.DB) error {
@@ -63,19 +64,19 @@ func (c *Config) GetMigrationFunc(dbDialect string) MigrationFunc {
 		}
 	default:
 		return func(db *gorm.DB) error {
-			db.AutoMigrate(&Alias{})
-			db.AutoMigrate(&Summary{})
-			db.AutoMigrate(&SummaryItem{})
-			db.AutoMigrate(&User{})
-			db.AutoMigrate(&Heartbeat{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
-			db.AutoMigrate(&SummaryItem{}).AddForeignKey("summary_id", "summaries(id)", "CASCADE", "CASCADE")
-			db.AutoMigrate(&KeyStringValue{})
+			db.AutoMigrate(&models.Alias{})
+			db.AutoMigrate(&models.Summary{})
+			db.AutoMigrate(&models.SummaryItem{})
+			db.AutoMigrate(&models.User{})
+			db.AutoMigrate(&models.Heartbeat{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
+			db.AutoMigrate(&models.SummaryItem{}).AddForeignKey("summary_id", "summaries(id)", "CASCADE", "CASCADE")
+			db.AutoMigrate(&models.KeyStringValue{})
 			return nil
 		}
 	}
 }
 
-func (c *Config) GetFixturesFunc(dbDialect string) MigrationFunc {
+func (c *Config) GetFixturesFunc(dbDialect string) models.MigrationFunc {
 	return func(db *gorm.DB) error {
 		migrations := &migrate.FileMigrationSource{
 			Dir: "migrations/common/fixtures",
@@ -94,14 +95,6 @@ func (c *Config) GetFixturesFunc(dbDialect string) MigrationFunc {
 
 func IsDev(env string) bool {
 	return env == "dev" || env == "development"
-}
-
-func SetConfig(config *Config) {
-	cfg = config
-}
-
-func GetConfig() *Config {
-	return cfg
 }
 
 func LookupFatal(key string) string {
@@ -127,7 +120,15 @@ func readVersion() string {
 	return string(bytes)
 }
 
-func readConfig() *Config {
+func Set(config *Config) {
+	cfg = config
+}
+
+func Get() *Config {
+	return cfg
+}
+
+func Load() *Config {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
 	}
@@ -206,7 +207,7 @@ func readConfig() *Config {
 		securecookie.GenerateRandomKey(32),
 	)
 
-	return &Config{
+	Set(&Config{
 		Env:             env,
 		Version:         version,
 		Port:            port,
@@ -225,5 +226,7 @@ func readConfig() *Config {
 		PasswordSalt:    passwordSalt,
 		CustomLanguages: customLangs,
 		LanguageColors:  colors,
-	}
+	})
+
+	return Get()
 }

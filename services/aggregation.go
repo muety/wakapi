@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/muety/wakapi/config"
 	"log"
 	"runtime"
 	"time"
@@ -15,7 +16,7 @@ const (
 )
 
 type AggregationService struct {
-	Config           *models.Config
+	Config           *config.Config
 	Db               *gorm.DB
 	UserService      *UserService
 	SummaryService   *SummaryService
@@ -24,7 +25,7 @@ type AggregationService struct {
 
 func NewAggregationService(db *gorm.DB, userService *UserService, summaryService *SummaryService, heartbeatService *HeartbeatService) *AggregationService {
 	return &AggregationService{
-		Config:           models.GetConfig(),
+		Config:           config.Get(),
 		Db:               db,
 		UserService:      userService,
 		SummaryService:   summaryService,

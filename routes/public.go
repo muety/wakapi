@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/gorilla/schema"
+	config2 "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
@@ -13,7 +14,7 @@ import (
 )
 
 type IndexHandler struct {
-	config       *models.Config
+	config       *config2.Config
 	userSrvc     *services.UserService
 	keyValueSrvc *services.KeyValueService
 }
@@ -23,7 +24,7 @@ var signupDecoder = schema.NewDecoder()
 
 func NewIndexHandler(userService *services.UserService, keyValueService *services.KeyValueService) *IndexHandler {
 	return &IndexHandler{
-		config:       models.GetConfig(),
+		config:       config2.Get(),
 		userSrvc:     userService,
 		keyValueSrvc: keyValueService,
 	}

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	config2 "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
@@ -9,13 +10,13 @@ import (
 
 type SummaryHandler struct {
 	summarySrvc *services.SummaryService
-	config      *models.Config
+	config      *config2.Config
 }
 
 func NewSummaryHandler(summaryService *services.SummaryService) *SummaryHandler {
 	return &SummaryHandler{
 		summarySrvc: summaryService,
-		config:      models.GetConfig(),
+		config:      config2.Get(),
 	}
 }
 

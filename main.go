@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gorilla/handlers"
+	conf "github.com/muety/wakapi/config"
 	"log"
 	"net/http"
 	"strconv"
@@ -23,7 +24,7 @@ import (
 
 var (
 	db     *gorm.DB
-	config *models.Config
+	config *conf.Config
 )
 
 var (
@@ -38,7 +39,7 @@ var (
 // TODO: Refactor entire project to be structured after business domains
 
 func main() {
-	config = models.GetConfig()
+	config = conf.Load()
 
 	// Enable line numbers in logging
 	if config.IsDev() {

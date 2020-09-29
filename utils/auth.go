@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
@@ -45,7 +46,7 @@ func ExtractBearerAuth(r *http.Request) (key string, err error) {
 	return string(keyBytes), err
 }
 
-func ExtractCookieAuth(r *http.Request, config *models.Config) (login *models.Login, err error) {
+func ExtractCookieAuth(r *http.Request, config *config.Config) (login *models.Login, err error) {
 	cookie, err := r.Cookie(models.AuthCookieKey)
 	if err != nil {
 		return nil, errors.New("missing authentication")

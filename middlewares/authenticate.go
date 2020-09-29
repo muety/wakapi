@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	config2 "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
 	"log"
 	"net/http"
@@ -17,7 +18,7 @@ import (
 )
 
 type AuthenticateMiddleware struct {
-	config         *models.Config
+	config         *config2.Config
 	userSrvc       *services.UserService
 	cache          *cache.Cache
 	whitelistPaths []string
@@ -25,7 +26,7 @@ type AuthenticateMiddleware struct {
 
 func NewAuthenticateMiddleware(userService *services.UserService, whitelistPaths []string) *AuthenticateMiddleware {
 	return &AuthenticateMiddleware{
-		config:         models.GetConfig(),
+		config:         config2.Get(),
 		userSrvc:       userService,
 		cache:          cache.New(1*time.Hour, 2*time.Hour),
 		whitelistPaths: whitelistPaths,

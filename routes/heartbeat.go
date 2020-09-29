@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	config2 "github.com/muety/wakapi/config"
 	"net/http"
 	"os"
 
@@ -12,13 +13,13 @@ import (
 )
 
 type HeartbeatHandler struct {
-	config        *models.Config
+	config        *config2.Config
 	heartbeatSrvc *services.HeartbeatService
 }
 
 func NewHeartbeatHandler(heartbeatService *services.HeartbeatService) *HeartbeatHandler {
 	return &HeartbeatHandler{
-		config:        models.GetConfig(),
+		config:        config2.Get(),
 		heartbeatSrvc: heartbeatService,
 	}
 }
