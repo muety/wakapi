@@ -46,7 +46,7 @@ To use the demo version set `api_url = https://apps.muetsch.io/wakapi/api/heartb
 docker run -d -p 3000:3000 --name wakapi n1try/wakapi
 ```
 
-By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres, see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile) and [.env.example](https://github.com/muety/wakapi/blob/master/.env.example) for further options.
+By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres, see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile) and [config.default.yml](https://github.com/muety/wakapi/blob/master/config.default.yml) for further options.
 
 ## 🔧 Configuration
 You can specify configuration options either via a config file (default: `config.yml`, customziable through the `-c` argument) or via environment variables. Here is an overview of all options.
