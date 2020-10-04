@@ -20,7 +20,10 @@ const (
 	defaultEnvConfigPathLegacy = ".env"
 )
 
-var cfg *Config
+var (
+	cfg   *Config
+	cFlag *string
+)
 
 type appConfig struct {
 	CleanUp         bool              `default:"false" env:"WAKAPI_CLEANUP"`
@@ -58,6 +61,11 @@ type Config struct {
 	Security securityConfig
 	Db       dbConfig
 	Server   serverConfig
+}
+
+func init() {
+	cFlag = flag.String("c", defaultConfigPath, "config file location")
+	flag.Parse()
 }
 
 func (c *Config) IsDev() bool {
@@ -157,10 +165,6 @@ func readLanguageColors() map[string]string {
 }
 
 func mustReadConfigLocation() string {
-	var cFlag = flag.String("c", defaultConfigPath, "config file location")
-
-	flag.Parse()
-
 	if _, err := os.Stat(*cFlag); err != nil {
 		log.Fatalf("failed to find config file at '%s'\n", *cFlag)
 	}
