@@ -2,12 +2,14 @@ package v1
 
 import (
 	"github.com/gorilla/mux"
+	config2 "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/shields/v1"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 const (
@@ -18,20 +20,25 @@ const (
 type BadgeHandler struct {
 	userSrvc    *services.UserService
 	summarySrvc *services.SummaryService
-	config      *models.Config
+	config      *config2.Config
 }
 
 func NewBadgeHandler(summaryService *services.SummaryService, userService *services.UserService) *BadgeHandler {
 	return &BadgeHandler{
 		summarySrvc: summaryService,
 		userSrvc:    userService,
-		config:      models.GetConfig(),
+		config:      config2.Get(),
 	}
 }
 
 func (h *BadgeHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 	intervalReg := regexp.MustCompile(intervalPattern)
 	entityFilterReg := regexp.MustCompile(entityFilterPattern)
+
+	if userAgent := r.Header.Get("user-agent"); !strings.HasPrefix(userAgent, "Shields.io/") && !h.config.IsDev() {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	requestedUserId := mux.Vars(r)["user"]
 	user, err := h.userSrvc.GetUserById(requestedUserId)

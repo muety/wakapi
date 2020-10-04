@@ -8,6 +8,7 @@ require (
 	github.com/gorilla/schema v1.1.0
 	github.com/gorilla/securecookie v1.1.1
 	github.com/jasonlvhit/gocron v0.0.0-20191106203602-f82992d443f4
+	github.com/jinzhu/configor v1.2.0
 	github.com/jinzhu/gorm v1.9.11
 	github.com/joho/godotenv v1.3.0
 	github.com/kr/pretty v0.2.0 // indirect
@@ -17,4 +18,5 @@ require (
 	github.com/t-tiger/gorm-bulk-insert v1.3.0
 	golang.org/x/crypto v0.0.0-20191122220453-ac88ee75c92c
 	gopkg.in/ini.v1 v1.50.0
+	gopkg.in/yaml.v2 v2.2.5
 )

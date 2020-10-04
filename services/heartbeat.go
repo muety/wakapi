@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/jasonlvhit/gocron"
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
 	"log"
 	"time"
@@ -17,13 +18,13 @@ const (
 )
 
 type HeartbeatService struct {
-	Config *models.Config
+	Config *config.Config
 	Db     *gorm.DB
 }
 
 func NewHeartbeatService(db *gorm.DB) *HeartbeatService {
 	return &HeartbeatService{
-		Config: models.GetConfig(),
+		Config: config.Get(),
 		Db:     db,
 	}
 }

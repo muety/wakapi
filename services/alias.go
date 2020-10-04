@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"github.com/muety/wakapi/config"
 	"sync"
 
 	"github.com/jinzhu/gorm"
@@ -9,13 +10,13 @@ import (
 )
 
 type AliasService struct {
-	Config *models.Config
+	Config *config.Config
 	Db     *gorm.DB
 }
 
 func NewAliasService(db *gorm.DB) *AliasService {
 	return &AliasService{
-		Config: models.GetConfig(),
+		Config: config.Get(),
 		Db:     db,
 	}
 }

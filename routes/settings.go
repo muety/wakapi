@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/gorilla/schema"
+	config2 "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
@@ -11,7 +12,7 @@ import (
 )
 
 type SettingsHandler struct {
-	config   *models.Config
+	config   *config2.Config
 	userSrvc *services.UserService
 }
 
@@ -19,7 +20,7 @@ var credentialsDecoder = schema.NewDecoder()
 
 func NewSettingsHandler(userService *services.UserService) *SettingsHandler {
 	return &SettingsHandler{
-		config:   models.GetConfig(),
+		config:   config2.Get(),
 		userSrvc: userService,
 	}
 }
@@ -58,7 +59,7 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if !utils.CheckPasswordBcrypt(user, credentials.PasswordOld, h.config.PasswordSalt) {
+	if !utils.CheckPasswordBcrypt(user, credentials.PasswordOld, h.config.Security.PasswordSalt) {
 		respondAlert(w, "invalid credentials", "", "settings.tpl.html", http.StatusUnauthorized)
 		return
 	}
@@ -69,7 +70,7 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 	}
 
 	user.Password = credentials.PasswordNew
-	if err := utils.HashPassword(user, h.config.PasswordSalt); err != nil {
+	if err := utils.HashPassword(user, h.config.Security.PasswordSalt); err != nil {
 		respondAlert(w, "internal server error", "", "settings.tpl.html", http.StatusInternalServerError)
 		return
 	}
@@ -83,7 +84,7 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 		Username: user.ID,
 		Password: user.Password,
 	}
-	encoded, err := h.config.SecureCookie.Encode(models.AuthCookieKey, login)
+	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, login)
 	if err != nil {
 		respondAlert(w, "internal server error", "", "settings.tpl.html", http.StatusInternalServerError)
 		return
@@ -93,13 +94,13 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 		Name:     models.AuthCookieKey,
 		Value:    encoded,
 		Path:     "/",
-		Secure:   !h.config.InsecureCookies,
+		Secure:   !h.config.Security.InsecureCookies,
 		HttpOnly: true,
 	}
 	http.SetCookie(w, cookie)
 
 	msg := url.QueryEscape("password was updated successfully")
-	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.BasePath, msg), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.Server.BasePath, msg), http.StatusFound)
 }
 
 func (h *SettingsHandler) PostResetApiKey(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +115,7 @@ func (h *SettingsHandler) PostResetApiKey(w http.ResponseWriter, r *http.Request
 	}
 
 	msg := url.QueryEscape(fmt.Sprintf("your new api key is: %s", user.ApiKey))
-	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.BasePath, msg), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.Server.BasePath, msg), http.StatusFound)
 }
 
 func (h *SettingsHandler) PostToggleBadges(w http.ResponseWriter, r *http.Request) {
@@ -129,5 +130,5 @@ func (h *SettingsHandler) PostToggleBadges(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("%s/settings", h.config.BasePath), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("%s/settings", h.config.Server.BasePath), http.StatusFound)
 }

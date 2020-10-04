@@ -3,6 +3,7 @@ package services
 import (
 	"crypto/md5"
 	"errors"
+	"github.com/muety/wakapi/config"
 	"github.com/patrickmn/go-cache"
 	"math"
 	"sort"
@@ -14,7 +15,7 @@ import (
 )
 
 type SummaryService struct {
-	Config           *models.Config
+	Config           *config.Config
 	Cache            *cache.Cache
 	Db               *gorm.DB
 	HeartbeatService *HeartbeatService
@@ -23,7 +24,7 @@ type SummaryService struct {
 
 func NewSummaryService(db *gorm.DB, heartbeatService *HeartbeatService, aliasService *AliasService) *SummaryService {
 	return &SummaryService{
-		Config:           models.GetConfig(),
+		Config:           config.Get(),
 		Cache:            cache.New(24*time.Hour, 24*time.Hour),
 		Db:               db,
 		HeartbeatService: heartbeatService,

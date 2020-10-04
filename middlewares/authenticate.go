@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	config2 "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
 	"log"
 	"net/http"
@@ -17,7 +18,7 @@ import (
 )
 
 type AuthenticateMiddleware struct {
-	config         *models.Config
+	config         *config2.Config
 	userSrvc       *services.UserService
 	cache          *cache.Cache
 	whitelistPaths []string
@@ -25,7 +26,7 @@ type AuthenticateMiddleware struct {
 
 func NewAuthenticateMiddleware(userService *services.UserService, whitelistPaths []string) *AuthenticateMiddleware {
 	return &AuthenticateMiddleware{
-		config:         models.GetConfig(),
+		config:         config2.Get(),
 		userSrvc:       userService,
 		cache:          cache.New(1*time.Hour, 2*time.Hour),
 		whitelistPaths: whitelistPaths,
@@ -57,8 +58,8 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		if strings.HasPrefix(r.URL.Path, "/api") {
 			w.WriteHeader(http.StatusUnauthorized)
 		} else {
-			utils.ClearCookie(w, models.AuthCookieKey, !m.config.InsecureCookies)
-			http.Redirect(w, r, fmt.Sprintf("%s/?error=unauthorized", m.config.BasePath), http.StatusFound)
+			utils.ClearCookie(w, models.AuthCookieKey, !m.config.Security.InsecureCookies)
+			http.Redirect(w, r, fmt.Sprintf("%s/?error=unauthorized", m.config.Server.BasePath), http.StatusFound)
 		}
 		return
 	}
@@ -106,7 +107,7 @@ func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.Us
 		return nil, err
 	}
 
-	if !CheckAndMigratePassword(user, login, m.config.PasswordSalt, m.userSrvc) {
+	if !CheckAndMigratePassword(user, login, m.config.Security.PasswordSalt, m.userSrvc) {
 		return nil, errors.New("invalid password")
 	}
 

@@ -3,17 +3,18 @@ package services
 import (
 	"errors"
 	"github.com/jinzhu/gorm"
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 )
 
 type KeyValueService struct {
-	Config *models.Config
+	Config *config.Config
 	Db     *gorm.DB
 }
 
 func NewKeyValueService(db *gorm.DB) *KeyValueService {
 	return &KeyValueService{
-		Config: models.GetConfig(),
+		Config: config.Get(),
 		Db:     db,
 	}
 }
