@@ -7,3 +7,4 @@ build
 *.exe
 *.db
 config.yml
+config.ini
