@@ -14,36 +14,50 @@ import (
 	"strings"
 )
 
+const (
+	defaultConfigPath          = "config.yml"
+	defaultConfigPathLegacy    = "config.ini"
+	defaultEnvConfigPathLegacy = ".env"
+)
+
 var cfg *Config
 
+type appConfig struct {
+	CleanUp         bool              `default:"false" env:"WAKAPI_CLEANUP"`
+	CustomLanguages map[string]string `yaml:"custom_languages"`
+	LanguageColors  map[string]string `yaml:"-"`
+}
+
+type securityConfig struct {
+	// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
+	PasswordSalt    string                     `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
+	InsecureCookies bool                       `yaml:"insecure_cookies" default:"false" env:"WAKAPI_INSECURE_COOKIES"`
+	SecureCookie    *securecookie.SecureCookie `yaml:"-"`
+}
+
+type dbConfig struct {
+	Host     string `env:"WAKAPI_DB_HOST"`
+	Port     uint   `env:"WAKAPI_DB_PORT"`
+	User     string `env:"WAKAPI_DB_USER"`
+	Password string `env:"WAKAPI_DB_PASSWORD"`
+	Name     string `default:"wakapi_db.db" env:"WAKAPI_DB_NAME"`
+	Dialect  string `default:"sqlite3" env:"WAKAPI_DB_TYPE"`
+	MaxConn  uint   `yaml:"max_conn" default:"2" env:"WAKAPI_DB_MAX_CONNECTIONS"`
+}
+
+type serverConfig struct {
+	Port     int    `default:"3000" env:"WAKAPI_PORT"`
+	Addr     string `default:"127.0.0.1" env:"WAKAPI_LISTEN_IPV4"`
+	BasePath string `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
+}
+
 type Config struct {
-	Env     string `default:"dev" env:"ENVIRONMENT"`
-	Version string
-	App     struct {
-		CleanUp         bool              `default:"false" env:"WAKAPI_CLEANUP"`
-		CustomLanguages map[string]string `yaml:"custom_languages"`
-		LanguageColors  map[string]string
-	}
-	Security struct {
-		// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
-		PasswordSalt    string `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
-		InsecureCookies bool   `yaml:"insecure_cookies" default:"false" env:"WAKAPI_INSECURE_COOKIES"`
-		SecureCookie    *securecookie.SecureCookie
-	}
-	Db struct {
-		Host     string `env:"WAKAPI_DB_HOST"`
-		Port     uint   `env:"WAKAPI_DB_PORT"`
-		User     string `env:"WAKAPI_DB_USER"`
-		Password string `env:"WAKAPI_DB_PASSWORD"`
-		Name     string `default:"wakapi_db.db" env:"WAKAPI_DB_PORT"`
-		Dialect  string `default:"sqlite3" env:"WAKAPI_DB_TYPE"`
-		MaxConn  uint   `yaml:"max_conn" default:"2" env:"WAKAPI_DB_MAX_CONNECTIONS"`
-	}
-	Server struct {
-		Port     int    `default:"3000" env:"WAKAPI_PORT"`
-		Addr     string `default:"127.0.0.1" env:"WAKAPI_LISTEN_IPV4"`
-		BasePath string `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
-	}
+	Env      string `default:"dev" env:"ENVIRONMENT"`
+	Version  string `yaml:"-"`
+	App      appConfig
+	Security securityConfig
+	Db       dbConfig
+	Server   serverConfig
 }
 
 func (c *Config) IsDev() bool {
@@ -102,14 +116,6 @@ func IsDev(env string) bool {
 	return env == "dev" || env == "development"
 }
 
-func LookupFatal(key string) string {
-	v, ok := os.LookupEnv(key)
-	if !ok {
-		log.Fatalf("missing env variable '%s'", key)
-	}
-	return v
-}
-
 func readVersion() string {
 	file, err := os.Open("version.txt")
 	if err != nil {
@@ -151,7 +157,7 @@ func readLanguageColors() map[string]string {
 }
 
 func mustReadConfigLocation() string {
-	var cFlag = flag.String("c", "config.yml", "config file location")
+	var cFlag = flag.String("c", defaultConfigPath, "config file location")
 
 	flag.Parse()
 
@@ -172,6 +178,8 @@ func Get() *Config {
 
 func Load() *Config {
 	config := &Config{}
+
+	maybeMigrateLegacyConfig()
 
 	if err := configor.New(&configor.Config{}).Load(config, mustReadConfigLocation()); err != nil {
 		log.Fatalf("failed to read config: %v\n", err)

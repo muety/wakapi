@@ -18,4 +18,5 @@ require (
 	github.com/t-tiger/gorm-bulk-insert v1.3.0
 	golang.org/x/crypto v0.0.0-20191122220453-ac88ee75c92c
 	gopkg.in/ini.v1 v1.50.0
+	gopkg.in/yaml.v2 v2.2.5
 )
