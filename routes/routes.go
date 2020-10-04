@@ -25,7 +25,7 @@ func loadTemplates() {
 		"title":      strings.Title,
 		"capitalize": utils.Capitalize,
 		"getBasePath": func() string {
-			return config.Get().BasePath
+			return config.Get().Server.BasePath
 		},
 		"getVersion": func() string {
 			return config.Get().Version

@@ -36,7 +36,7 @@ func (h *IndexHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
-		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.BasePath), http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
 
@@ -68,7 +68,7 @@ func (h *IndexHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
-		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.BasePath), http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
 
@@ -89,12 +89,12 @@ func (h *IndexHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: depending on middleware package here is a hack
-	if !middlewares.CheckAndMigratePassword(user, &login, h.config.PasswordSalt, h.userSrvc) {
+	if !middlewares.CheckAndMigratePassword(user, &login, h.config.Security.PasswordSalt, h.userSrvc) {
 		respondAlert(w, "invalid credentials", "", "", http.StatusUnauthorized)
 		return
 	}
 
-	encoded, err := h.config.SecureCookie.Encode(models.AuthCookieKey, login)
+	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, login)
 	if err != nil {
 		respondAlert(w, "internal server error", "", "", http.StatusInternalServerError)
 		return
@@ -107,11 +107,11 @@ func (h *IndexHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		Name:     models.AuthCookieKey,
 		Value:    encoded,
 		Path:     "/",
-		Secure:   !h.config.InsecureCookies,
+		Secure:   !h.config.Security.InsecureCookies,
 		HttpOnly: true,
 	}
 	http.SetCookie(w, cookie)
-	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.BasePath), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 }
 
 func (h *IndexHandler) PostLogout(w http.ResponseWriter, r *http.Request) {
@@ -119,8 +119,8 @@ func (h *IndexHandler) PostLogout(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
-	utils.ClearCookie(w, models.AuthCookieKey, !h.config.InsecureCookies)
-	http.Redirect(w, r, fmt.Sprintf("%s/", h.config.BasePath), http.StatusFound)
+	utils.ClearCookie(w, models.AuthCookieKey, !h.config.Security.InsecureCookies)
+	http.Redirect(w, r, fmt.Sprintf("%s/", h.config.Server.BasePath), http.StatusFound)
 }
 
 func (h *IndexHandler) GetSignup(w http.ResponseWriter, r *http.Request) {
@@ -129,7 +129,7 @@ func (h *IndexHandler) GetSignup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
-		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.BasePath), http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
 
@@ -146,7 +146,7 @@ func (h *IndexHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
-		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.BasePath), http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
 
@@ -176,5 +176,5 @@ func (h *IndexHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	msg := url.QueryEscape("account created successfully")
-	http.Redirect(w, r, fmt.Sprintf("%s/?success=%s", h.config.BasePath, msg), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("%s/?success=%s", h.config.Server.BasePath, msg), http.StatusFound)
 }

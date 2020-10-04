@@ -52,7 +52,7 @@ func ExtractCookieAuth(r *http.Request, config *config.Config) (login *models.Lo
 		return nil, errors.New("missing authentication")
 	}
 
-	if err := config.SecureCookie.Decode(models.AuthCookieKey, cookie.Value, &login); err != nil {
+	if err := config.Security.SecureCookie.Decode(models.AuthCookieKey, cookie.Value, &login); err != nil {
 		return nil, errors.New("invalid parameters")
 	}
 

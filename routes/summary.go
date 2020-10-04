@@ -56,7 +56,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 
 	vm := models.SummaryViewModel{
 		Summary:        summary,
-		LanguageColors: utils.FilterLanguageColors(h.config.LanguageColors, summary),
+		LanguageColors: utils.FilterLanguageColors(h.config.App.LanguageColors, summary),
 		ApiKey:         user.ApiKey,
 	}
 

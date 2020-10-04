@@ -30,7 +30,7 @@ func ParseUserAgent(ua string) (string, string, error) {
 }
 
 func MakeConnectionString(config *config.Config) string {
-	switch config.DbDialect {
+	switch config.Db.Dialect {
 	case "mysql":
 		return mysqlConnectionString(config)
 	case "postgres":
@@ -44,25 +44,25 @@ func MakeConnectionString(config *config.Config) string {
 func mysqlConnectionString(config *config.Config) string {
 	//location, _ := time.LoadLocation("Local")
 	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
-		config.DbUser,
-		config.DbPassword,
-		config.DbHost,
-		config.DbPort,
-		config.DbName,
+		config.Db.User,
+		config.Db.Password,
+		config.Db.Host,
+		config.Db.Port,
+		config.Db.Name,
 		"Local",
 	)
 }
 
 func postgresConnectionString(config *config.Config) string {
 	return fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable",
-		config.DbHost,
-		config.DbPort,
-		config.DbUser,
-		config.DbName,
-		config.DbPassword,
+		config.Db.Host,
+		config.Db.Port,
+		config.Db.User,
+		config.Db.Name,
+		config.Db.Password,
 	)
 }
 
 func sqliteConnectionString(config *config.Config) string {
-	return config.DbName
+	return config.Db.Name
 }

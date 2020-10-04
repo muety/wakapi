@@ -47,19 +47,19 @@ func main() {
 	}
 
 	// Show data loss warning
-	if config.CleanUp {
+	if config.App.CleanUp {
 		promptAbort("`CLEANUP` is set to `true`, which may cause data loss. Are you sure to continue?", 5)
 	}
 
 	// Connect to database
 	var err error
-	db, err = gorm.Open(config.DbDialect, utils.MakeConnectionString(config))
-	if config.DbDialect == "sqlite3" {
+	db, err = gorm.Open(config.Db.Dialect, utils.MakeConnectionString(config))
+	if config.Db.Dialect == "sqlite3" {
 		db.DB().Exec("PRAGMA foreign_keys = ON;")
 	}
 	db.LogMode(config.IsDev())
-	db.DB().SetMaxIdleConns(int(config.DbMaxConn))
-	db.DB().SetMaxOpenConns(int(config.DbMaxConn))
+	db.DB().SetMaxIdleConns(int(config.Db.MaxConn))
+	db.DB().SetMaxOpenConns(int(config.Db.MaxConn))
 	if err != nil {
 		log.Println(err)
 		log.Fatal("could not connect to database")
@@ -85,7 +85,7 @@ func main() {
 	// Aggregate heartbeats to summaries and persist them
 	go aggregationService.Schedule()
 
-	if config.CleanUp {
+	if config.App.CleanUp {
 		go heartbeatService.ScheduleCleanUp()
 	}
 
@@ -159,7 +159,7 @@ func main() {
 	router.PathPrefix("/assets").Handler(http.FileServer(http.Dir("./static")))
 
 	// Listen HTTP
-	portString := config.Addr + ":" + strconv.Itoa(config.Port)
+	portString := config.Server.Addr + ":" + strconv.Itoa(config.Server.Port)
 	s := &http.Server{
 		Handler:      router,
 		Addr:         portString,
@@ -171,19 +171,19 @@ func main() {
 }
 
 func runDatabaseMigrations() {
-	if err := config.GetMigrationFunc(config.DbDialect)(db); err != nil {
+	if err := config.GetMigrationFunc(config.Db.Dialect)(db); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func applyFixtures() {
-	if err := config.GetFixturesFunc(config.DbDialect)(db); err != nil {
+	if err := config.GetFixturesFunc(config.Db.Dialect)(db); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func migrateLanguages() {
-	for k, v := range config.CustomLanguages {
+	for k, v := range config.App.CustomLanguages {
 		result := db.Model(models.Heartbeat{}).
 			Where("language = ?", "").
 			Where("entity LIKE ?", "%."+k).

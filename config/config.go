@@ -2,43 +2,48 @@ package config
 
 import (
 	"encoding/json"
+	"flag"
 	"github.com/gorilla/securecookie"
+	"github.com/jinzhu/configor"
 	"github.com/jinzhu/gorm"
-	"github.com/joho/godotenv"
 	"github.com/muety/wakapi/models"
 	migrate "github.com/rubenv/sql-migrate"
-	"gopkg.in/ini.v1"
 	"io/ioutil"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 )
 
 var cfg *Config
 
 type Config struct {
-	Env        string
-	Version    string
-	Port       int
-	Addr       string
-	BasePath   string
-	DbHost     string
-	DbPort     uint
-	DbUser     string
-	DbPassword string
-	DbName     string
-	DbDialect  string
-	DbMaxConn  uint
-	CleanUp    bool
-	// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
-	PasswordSalt         string
-	SecureCookieHashKey  string
-	SecureCookieBlockKey string
-	InsecureCookies      bool
-	CustomLanguages      map[string]string
-	LanguageColors       map[string]string
-	SecureCookie         *securecookie.SecureCookie
+	Env     string `default:"dev" env:"ENVIRONMENT"`
+	Version string
+	App     struct {
+		CleanUp         bool              `default:"false" env:"WAKAPI_CLEANUP"`
+		CustomLanguages map[string]string `yaml:"custom_languages"`
+		LanguageColors  map[string]string
+	}
+	Security struct {
+		// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
+		PasswordSalt    string `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
+		InsecureCookies bool   `yaml:"insecure_cookies" default:"false" env:"WAKAPI_INSECURE_COOKIES"`
+		SecureCookie    *securecookie.SecureCookie
+	}
+	Db struct {
+		Host     string `env:"WAKAPI_DB_HOST"`
+		Port     uint   `env:"WAKAPI_DB_PORT"`
+		User     string `env:"WAKAPI_DB_USER"`
+		Password string `env:"WAKAPI_DB_PASSWORD"`
+		Name     string `default:"wakapi_db.db" env:"WAKAPI_DB_PORT"`
+		Dialect  string `default:"sqlite3" env:"WAKAPI_DB_TYPE"`
+		MaxConn  uint   `yaml:"max_conn" default:"2" env:"WAKAPI_DB_MAX_CONNECTIONS"`
+	}
+	Server struct {
+		Port     int    `default:"3000" env:"WAKAPI_PORT"`
+		Addr     string `default:"127.0.0.1" env:"WAKAPI_LISTEN_IPV4"`
+		BasePath string `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
+	}
 }
 
 func (c *Config) IsDev() bool {
@@ -120,66 +125,7 @@ func readVersion() string {
 	return string(bytes)
 }
 
-func Set(config *Config) {
-	cfg = config
-}
-
-func Get() *Config {
-	return cfg
-}
-
-func Load() *Config {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal(err)
-	}
-
-	version := readVersion()
-
-	env := LookupFatal("ENV")
-	dbType := LookupFatal("WAKAPI_DB_TYPE")
-	dbUser := LookupFatal("WAKAPI_DB_USER")
-	dbPassword := LookupFatal("WAKAPI_DB_PASSWORD")
-	dbHost := LookupFatal("WAKAPI_DB_HOST")
-	dbName := LookupFatal("WAKAPI_DB_NAME")
-	dbPortStr := LookupFatal("WAKAPI_DB_PORT")
-	passwordSalt := LookupFatal("WAKAPI_PASSWORD_SALT")
-	dbPort, err := strconv.Atoi(dbPortStr)
-
-	cfg, err := ini.Load("config.ini")
-	if err != nil {
-		log.Fatalf("Fail to read file: %v", err)
-	}
-
-	if dbType == "" {
-		dbType = "mysql"
-	}
-
-	dbMaxConn := cfg.Section("database").Key("max_connections").MustUint(1)
-	addr := cfg.Section("server").Key("listen").MustString("127.0.0.1")
-	insecureCookies := IsDev(env) || cfg.Section("server").Key("insecure_cookies").MustBool(false)
-	port, err := strconv.Atoi(os.Getenv("PORT"))
-	if err != nil {
-		port = cfg.Section("server").Key("port").MustInt()
-	}
-
-	basePathEnv, basePathEnvExists := os.LookupEnv("WAKAPI_BASE_PATH")
-	basePath := cfg.Section("server").Key("base_path").MustString("/")
-	if basePathEnvExists {
-		basePath = basePathEnv
-	}
-	if strings.HasSuffix(basePath, "/") {
-		basePath = basePath[:len(basePath)-1]
-	}
-
-	cleanUp := cfg.Section("app").Key("cleanup").MustBool(false)
-
-	// Read custom languages
-	customLangs := make(map[string]string)
-	languageKeys := cfg.Section("languages").Keys()
-	for _, k := range languageKeys {
-		customLangs[k.Name()] = k.MustString("unknown")
-	}
-
+func readLanguageColors() map[string]string {
 	// Read language colors
 	// Source: https://raw.githubusercontent.com/ozh/github-colors/master/colors.json
 	var colors = make(map[string]string)
@@ -201,32 +147,54 @@ func Load() *Config {
 		colors[strings.ToLower(k)] = v.Color
 	}
 
+	return colors
+}
+
+func mustReadConfigLocation() string {
+	var cFlag = flag.String("c", "config.yml", "config file location")
+
+	flag.Parse()
+
+	if _, err := os.Stat(*cFlag); err != nil {
+		log.Fatalf("failed to find config file at '%s'\n", *cFlag)
+	}
+
+	return *cFlag
+}
+
+func Set(config *Config) {
+	cfg = config
+}
+
+func Get() *Config {
+	return cfg
+}
+
+func Load() *Config {
+	config := &Config{}
+
+	if err := configor.New(&configor.Config{}).Load(config, mustReadConfigLocation()); err != nil {
+		log.Fatalf("failed to read config: %v\n", err)
+	}
+
+	config.Version = readVersion()
+	config.App.LanguageColors = readLanguageColors()
 	// TODO: Read keys from env, so that users are not logged out every time the server is restarted
-	secureCookie := securecookie.New(
+	config.Security.SecureCookie = securecookie.New(
 		securecookie.GenerateRandomKey(64),
 		securecookie.GenerateRandomKey(32),
 	)
 
-	Set(&Config{
-		Env:             env,
-		Version:         version,
-		Port:            port,
-		Addr:            addr,
-		BasePath:        basePath,
-		DbHost:          dbHost,
-		DbPort:          uint(dbPort),
-		DbUser:          dbUser,
-		DbPassword:      dbPassword,
-		DbName:          dbName,
-		DbDialect:       dbType,
-		DbMaxConn:       dbMaxConn,
-		CleanUp:         cleanUp,
-		InsecureCookies: insecureCookies,
-		SecureCookie:    secureCookie,
-		PasswordSalt:    passwordSalt,
-		CustomLanguages: customLangs,
-		LanguageColors:  colors,
-	})
+	if strings.HasSuffix(config.Server.BasePath, "/") {
+		config.Server.BasePath = config.Server.BasePath[:len(config.Server.BasePath)-1]
+	}
 
+	for k, v := range config.App.CustomLanguages {
+		if v == "" {
+			config.App.CustomLanguages[k] = "unknown"
+		}
+	}
+
+	Set(config)
 	return Get()
 }

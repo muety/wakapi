@@ -51,7 +51,7 @@ func (srv *AggregationService) Schedule() {
 		go srv.summaryWorker(jobs, summaries)
 	}
 
-	for i := 0; i < int(srv.Config.DbMaxConn); i++ {
+	for i := 0; i < int(srv.Config.Db.MaxConn); i++ {
 		go srv.persistWorker(summaries)
 	}
 
