@@ -33,14 +33,13 @@ To use the demo version set `api_url = https://apps.muetsch.io/wakapi/api/heartb
 ## ⌨️ Server Setup
 ### Run from source
 1. Clone the project
-1. Copy `.env.example` to `.env` and set database credentials
-1. Adapt `config.ini` to your needs
+1. Copy `config.default.yml` to `config.yml` and adapt it to your needs
 1. Build executable: `GO111MODULE=on go build`
 1. Run server: `./wakapi`
 
 **As an alternative** to building from source you can also grab a pre-built [release](https://github.com/muety/wakapi/releases). Steps 2, 3 and 5 apply analogously.
 
-**Note:** By default, the application is running in dev mode. However, it is recommended to set `ENV=production` in `.env` for enhanced performance and security. To still be able to log in when using production mode, you either have to run Wakapi behind a reverse proxy, that enables for HTTPS encryption (see [best practices](i#best-practices)) or set `insecure_cookies = true` in `config.ini`. 
+**Note:** By default, the application is running in dev mode. However, it is recommended to set `ENV=production` for enhanced performance and security. To still be able to log in when using production mode, you either have to run Wakapi behind a reverse proxy, that enables for HTTPS encryption (see [best practices](#best-practices)) or set `security.insecure_cookies` to `true` in `config.yml`. 
 
 ### Run with Docker
 ```
@@ -48,6 +47,27 @@ docker run -d -p 3000:3000 --name wakapi n1try/wakapi
 ```
 
 By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres, see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile) and [.env.example](https://github.com/muety/wakapi/blob/master/.env.example) for further options.
+
+## 🔧 Configuration
+You can specify configuration options either via a config file (default: `config.yml`, customziable through the `-c` argument) or via environment variables. Here is an overview of all options.
+
+| YAML Key                  | Environment Variable      | Default      | Description                                                         |
+|---------------------------|---------------------------|--------------|---------------------------------------------------------------------|
+| `env`                       | `ENVIRONMENT`               | `dev`          | Whether to use development- or production settings                  |
+| `app.cleanup`               | `WAKAPI_CLEANUP`            | `false`        | Whether or not to clean up old heartbeats (be careful!)             |
+| `app.custom_languages`      | -                           | -              | Map from file endings to language names                             |
+| `server.port`               | `WAKAPI_PORT`               | `3000`         | Port to listen on                                                   |
+| `server.listen_ipv4`        | `WAKAPI_LISTEN_IPV4`        | `127.0.0.1`    | Network address to listen on                                        |
+| `server.base_path`          | `WAKAPI_BASE_PATH`          | `/`            | Web base path (change when running behind a proxy under a sub-path) |
+| `security.password_salt`    | `WAKAPI_PASSWORD_SALT`      | -              | Pepper to use for password hashing                                  |
+| `security.insecure_cookies` | `WAKAPI_INSECURE_COOKIES`   | `false`        | Whether or not to allow cookies over HTTP                           |
+| `db.host`                   | `WAKAPI_DB_HOST`            | -              | Database host                                                       |
+| `db.port`                   | `WAKAPI_DB_PORT`            | -              | Database port                                                       |
+| `db.user`                   | `WAKAPI_DB_USER`            | -              | Database user                                                       |
+| `db.password`               | `WAKAPI_DB_PASSWORD`        | -              | Database password                                                   |
+| `db.name`                   | `WAKAPI_DB_NAME`            | `wakapi_db.db` | Database name                                                       |
+| `db.dialect`                | `WAKAPI_DB_TYPE`            | `sqlite3`      | Database type (one of sqlite3, mysql, postgres)                     |
+| `db.max_conn`               | `WAKAPI_DB_MAX_CONNECTIONS` | `2`            | Maximum number of database connections                              |
 
 ## 💻 Client Setup
 Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime) client tools. In order to collect statistics to Wakapi, you need to set them up.
@@ -104,7 +124,7 @@ We recently introduced support for [Shields.io](https://shields.io) badges (see 
 
 ## 👍 Best Practices
 It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or _nginx_ to enable **TLS encryption** (HTTPS).
-However, if you want to expose your wakapi instance to the public anyway, you need to set `listen = 0.0.0.0` in `config.ini`
+However, if you want to expose your wakapi instance to the public anyway, you need to set `server.listen_ipv4` to `0.0.0.0` in `config.yml`
 
 ## ⚠️ Important Note
 **This is not an alternative to using WakaTime.** It is just a custom, non-commercial, self-hosted application to collect coding statistics using the already existing editor plugins provided by the WakaTime community. It was created for personal use only and with the purpose of keeping the sovereignity of your own data. However, if you like the official product, **please support the authors and buy an official WakaTime subscription!**

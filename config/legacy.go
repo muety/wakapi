@@ -106,9 +106,9 @@ func migrateLegacyConfig() error {
 			MaxConn:  dbMaxConn,
 		},
 		Server: serverConfig{
-			Port:     port,
-			Addr:     addr,
-			BasePath: basePath,
+			Port:       port,
+			ListenIpV4: addr,
+			BasePath:   basePath,
 		},
 	}
 

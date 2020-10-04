@@ -159,7 +159,7 @@ func main() {
 	router.PathPrefix("/assets").Handler(http.FileServer(http.Dir("./static")))
 
 	// Listen HTTP
-	portString := config.Server.Addr + ":" + strconv.Itoa(config.Server.Port)
+	portString := config.Server.ListenIpV4 + ":" + strconv.Itoa(config.Server.Port)
 	s := &http.Server{
 		Handler:      router,
 		Addr:         portString,
