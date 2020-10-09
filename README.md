@@ -5,6 +5,11 @@
 ![](https://img.shields.io/github/license/muety/wakapi?style=flat-square)
 [![Go Report Card](https://goreportcard.com/badge/github.com/muety/wakapi?style=flat-square)](https://goreportcard.com/report/github.com/muety/wakapi)
 ![Coding Activity](https://img.shields.io/endpoint?url=https://apps.muetsch.io/wakapi/api/compat/shields/v1/n1try/interval:any/project:wakapi&style=flat-square&color=blue)
+
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=muety_wakapi&metric=security_rating)](https://sonarcloud.io/dashboard?id=muety_wakapi)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=muety_wakapi&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=muety_wakapi)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=muety_wakapi&metric=sqale_index)](https://sonarcloud.io/dashboard?id=muety_wakapi)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=muety_wakapi&metric=ncloc)](https://sonarcloud.io/dashboard?id=muety_wakapi)
 ---
 
 **A minimalist, self-hosted WakaTime-compatible backend for coding statistics**
