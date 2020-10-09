@@ -3,7 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/gorilla/schema"
-	config2 "github.com/muety/wakapi/config"
+	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
@@ -14,7 +14,7 @@ import (
 )
 
 type IndexHandler struct {
-	config       *config2.Config
+	config       *conf.Config
 	userSrvc     *services.UserService
 	keyValueSrvc *services.KeyValueService
 }
@@ -24,7 +24,7 @@ var signupDecoder = schema.NewDecoder()
 
 func NewIndexHandler(userService *services.UserService, keyValueService *services.KeyValueService) *IndexHandler {
 	return &IndexHandler{
-		config:       config2.Get(),
+		config:       conf.Get(),
 		userSrvc:     userService,
 		keyValueSrvc: keyValueService,
 	}
@@ -44,7 +44,7 @@ func (h *IndexHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templates["index.tpl.html"].Execute(w, nil)
+	templates[conf.IndexTemplate].Execute(w, nil)
 }
 
 func (h *IndexHandler) GetImprint(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +57,7 @@ func (h *IndexHandler) GetImprint(w http.ResponseWriter, r *http.Request) {
 		text = data.Value
 	}
 
-	templates["imprint.tpl.html"].Execute(w, &struct {
+	templates[conf.ImprintTemplate].Execute(w, &struct {
 		HtmlText string
 	}{HtmlText: text})
 }
@@ -133,11 +133,11 @@ func (h *IndexHandler) GetSignup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if handleAlerts(w, r, "signup.tpl.html") {
+	if handleAlerts(w, r, conf.SignupTemplate) {
 		return
 	}
 
-	templates["signup.tpl.html"].Execute(w, nil)
+	templates[conf.SignupTemplate].Execute(w, nil)
 }
 
 func (h *IndexHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
@@ -152,26 +152,26 @@ func (h *IndexHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 
 	var signup models.Signup
 	if err := r.ParseForm(); err != nil {
-		respondAlert(w, "missing parameters", "", "signup.tpl.html", http.StatusBadRequest)
+		respondAlert(w, "missing parameters", "", conf.SignupTemplate, http.StatusBadRequest)
 		return
 	}
 	if err := signupDecoder.Decode(&signup, r.PostForm); err != nil {
-		respondAlert(w, "missing parameters", "", "signup.tpl.html", http.StatusBadRequest)
+		respondAlert(w, "missing parameters", "", conf.SignupTemplate, http.StatusBadRequest)
 		return
 	}
 
 	if !signup.IsValid() {
-		respondAlert(w, "invalid parameters", "", "signup.tpl.html", http.StatusBadRequest)
+		respondAlert(w, "invalid parameters", "", conf.SignupTemplate, http.StatusBadRequest)
 		return
 	}
 
 	_, created, err := h.userSrvc.CreateOrGet(&signup)
 	if err != nil {
-		respondAlert(w, "failed to create new user", "", "signup.tpl.html", http.StatusInternalServerError)
+		respondAlert(w, "failed to create new user", "", conf.SignupTemplate, http.StatusInternalServerError)
 		return
 	}
 	if !created {
-		respondAlert(w, "user already existing", "", "signup.tpl.html", http.StatusConflict)
+		respondAlert(w, "user already existing", "", conf.SignupTemplate, http.StatusConflict)
 		return
 	}
 

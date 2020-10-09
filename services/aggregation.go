@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	aggregateIntervalDays int = 1 // TODO: Make configurable
+	aggregateIntervalDays int = 1
 )
 
 type AggregationService struct {

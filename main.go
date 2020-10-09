@@ -64,7 +64,6 @@ func main() {
 		log.Println(err)
 		log.Fatal("could not connect to database")
 	}
-	// TODO: Graceful shutdown
 	defer db.Close()
 
 	// Migrate database schema

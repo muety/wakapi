@@ -3,7 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/gorilla/schema"
-	config2 "github.com/muety/wakapi/config"
+	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
@@ -12,7 +12,7 @@ import (
 )
 
 type SettingsHandler struct {
-	config   *config2.Config
+	config   *conf.Config
 	userSrvc *services.UserService
 }
 
@@ -20,7 +20,7 @@ var credentialsDecoder = schema.NewDecoder()
 
 func NewSettingsHandler(userService *services.UserService) *SettingsHandler {
 	return &SettingsHandler{
-		config:   config2.Get(),
+		config:   conf.Get(),
 		userSrvc: userService,
 	}
 }
@@ -36,10 +36,10 @@ func (h *SettingsHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: when alerts are present, other data will not be passed to the template
-	if handleAlerts(w, r, "settings.tpl.html") {
+	if handleAlerts(w, r, conf.SettingsTemplate) {
 		return
 	}
-	templates["settings.tpl.html"].Execute(w, data)
+	templates[conf.SettingsTemplate].Execute(w, data)
 }
 
 func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request) {
@@ -51,32 +51,32 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 
 	var credentials models.CredentialsReset
 	if err := r.ParseForm(); err != nil {
-		respondAlert(w, "missing parameters", "", "settings.tpl.html", http.StatusBadRequest)
+		respondAlert(w, "missing parameters", "", conf.SettingsTemplate, http.StatusBadRequest)
 		return
 	}
 	if err := credentialsDecoder.Decode(&credentials, r.PostForm); err != nil {
-		respondAlert(w, "missing parameters", "", "settings.tpl.html", http.StatusBadRequest)
+		respondAlert(w, "missing parameters", "", conf.SettingsTemplate, http.StatusBadRequest)
 		return
 	}
 
 	if !utils.CheckPasswordBcrypt(user, credentials.PasswordOld, h.config.Security.PasswordSalt) {
-		respondAlert(w, "invalid credentials", "", "settings.tpl.html", http.StatusUnauthorized)
+		respondAlert(w, "invalid credentials", "", conf.SettingsTemplate, http.StatusUnauthorized)
 		return
 	}
 
 	if !credentials.IsValid() {
-		respondAlert(w, "invalid parameters", "", "settings.tpl.html", http.StatusBadRequest)
+		respondAlert(w, "invalid parameters", "", conf.SettingsTemplate, http.StatusBadRequest)
 		return
 	}
 
 	user.Password = credentials.PasswordNew
 	if err := utils.HashPassword(user, h.config.Security.PasswordSalt); err != nil {
-		respondAlert(w, "internal server error", "", "settings.tpl.html", http.StatusInternalServerError)
+		respondAlert(w, "internal server error", "", conf.SettingsTemplate, http.StatusInternalServerError)
 		return
 	}
 
 	if _, err := h.userSrvc.Update(user); err != nil {
-		respondAlert(w, "internal server error", "", "settings.tpl.html", http.StatusInternalServerError)
+		respondAlert(w, "internal server error", "", conf.SettingsTemplate, http.StatusInternalServerError)
 		return
 	}
 
@@ -86,7 +86,7 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 	}
 	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, login)
 	if err != nil {
-		respondAlert(w, "internal server error", "", "settings.tpl.html", http.StatusInternalServerError)
+		respondAlert(w, "internal server error", "", conf.SettingsTemplate, http.StatusInternalServerError)
 		return
 	}
 
@@ -110,7 +110,7 @@ func (h *SettingsHandler) PostResetApiKey(w http.ResponseWriter, r *http.Request
 
 	user := r.Context().Value(models.UserKey).(*models.User)
 	if _, err := h.userSrvc.ResetApiKey(user); err != nil {
-		respondAlert(w, "internal server error", "", "settings.tpl.html", http.StatusInternalServerError)
+		respondAlert(w, "internal server error", "", conf.SettingsTemplate, http.StatusInternalServerError)
 		return
 	}
 
@@ -126,7 +126,7 @@ func (h *SettingsHandler) PostToggleBadges(w http.ResponseWriter, r *http.Reques
 	user := r.Context().Value(models.UserKey).(*models.User)
 
 	if _, err := h.userSrvc.ToggleBadges(user); err != nil {
-		respondAlert(w, "internal server error", "", "settings.tpl.html", http.StatusInternalServerError)
+		respondAlert(w, "internal server error", "", conf.SettingsTemplate, http.StatusInternalServerError)
 		return
 	}
 

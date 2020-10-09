@@ -242,8 +242,8 @@ function equalizeHeights() {
     })
 }
 
-function getTotal(data) {
-    let total = data.reduce((acc, d) => acc + d.total, 0)
+function getTotal(items) {
+    let total = items.reduce((acc, d) => acc + d.total, 0)
     document.getElementById('total-span').innerText = total.toString().toHHMMSS()
 }
 

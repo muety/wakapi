@@ -3,7 +3,7 @@ import random
 import string
 import sys
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, NoneType
 
 import requests
 
@@ -36,7 +36,7 @@ class Heartbeat:
         self.is_write: bool = is_write
         self.branch: str = branch
         self.type: str = type
-        self.category: str = None
+        self.category: str | NoneType = None
 
 
 def generate_data(n: int) -> List[Heartbeat]:
@@ -45,7 +45,7 @@ def generate_data(n: int) -> List[Heartbeat]:
     projects: List[str] = [randomword(random.randint(5, 10)) for _ in range(5)]
     languages: List[str] = list(LANGUAGES.keys())
 
-    for i in range(n):
+    for _ in range(n):
         p: str = random.choice(projects)
         l: str = random.choice(languages)
         f: str = randomword(random.randint(2, 8))
@@ -77,7 +77,7 @@ def post_data_sync(data: List[Heartbeat], url: str):
 
 def randomword(length: int) -> str:
     letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for i in range(length))
+    return ''.join(random.choice(letters) for _ in range(length))
 
 
 if __name__ == '__main__':

@@ -37,6 +37,7 @@ type Interval struct {
 	End   time.Time
 }
 
+// TODO: simplify!
 func (srv *SummaryService) Construct(from, to time.Time, user *models.User, recompute bool) (*models.Summary, error) {
 	var existingSummaries []*models.Summary
 	var cacheKey string

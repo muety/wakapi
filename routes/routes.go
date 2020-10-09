@@ -59,7 +59,7 @@ func loadTemplates() {
 func respondAlert(w http.ResponseWriter, error, success, tplName string, status int) {
 	w.WriteHeader(status)
 	if tplName == "" {
-		tplName = "index.tpl.html"
+		tplName = config.IndexTemplate
 	}
 	templates[tplName].Execute(w, struct {
 		Error   string

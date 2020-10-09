@@ -1,7 +1,7 @@
 package routes
 
 import (
-	config2 "github.com/muety/wakapi/config"
+	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
@@ -10,13 +10,13 @@ import (
 
 type SummaryHandler struct {
 	summarySrvc *services.SummaryService
-	config      *config2.Config
+	config      *conf.Config
 }
 
 func NewSummaryHandler(summaryService *services.SummaryService) *SummaryHandler {
 	return &SummaryHandler{
 		summarySrvc: summaryService,
-		config:      config2.Get(),
+		config:      conf.Get(),
 	}
 }
 
@@ -44,13 +44,13 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 
 	summary, err, status := h.loadUserSummary(r)
 	if err != nil {
-		respondAlert(w, err.Error(), "", "summary.tpl.html", status)
+		respondAlert(w, err.Error(), "", conf.SummaryTemplate, status)
 		return
 	}
 
 	user := r.Context().Value(models.UserKey).(*models.User)
 	if user == nil {
-		respondAlert(w, "unauthorized", "", "summary.tpl.html", http.StatusUnauthorized)
+		respondAlert(w, "unauthorized", "", conf.SummaryTemplate, http.StatusUnauthorized)
 		return
 	}
 
@@ -60,7 +60,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		ApiKey:         user.ApiKey,
 	}
 
-	templates["summary.tpl.html"].Execute(w, vm)
+	templates[conf.SummaryTemplate].Execute(w, vm)
 }
 
 func (h *SummaryHandler) loadUserSummary(r *http.Request) (*models.Summary, error, int) {

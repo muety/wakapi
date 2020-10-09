@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 {{ template "head.tpl.html" . }}
 
@@ -86,7 +87,7 @@
                         <div class="flex flex-col mb-4">
                             <div class="flex justify-between my-2">
                                 <div>
-                                    <img class="with-url-src" src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:today&style=flat-square&color=blue&label=today"/>
+                                    <img class="with-url-src" src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:today&style=flat-square&color=blue&label=today" alt="Shields.io badge"/>
                                 </div>
                                 <span class="with-url-inner text-xs bg-gray-900 rounded py-1 px-2 font-mono whitespace-no-wrap overflow-auto" style="max-width: 300px;">
                                     https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:today&style=flat-square&color=blue&label=today
@@ -94,7 +95,7 @@
                             </div>
                             <div class="flex justify-between my-2">
                                 <div>
-                                    <img class="with-url-src" src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:30_days&style=flat-square&color=blue&label=last 30d"/>
+                                    <img class="with-url-src" src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:30_days&style=flat-square&color=blue&label=last 30d" alt="Shields.io badge"/>
                                 </div>
                                 <span class="with-url-inner text-xs bg-gray-900 rounded py-1 px-2 font-mono whitespace-no-wrap overflow-auto" style="max-width: 300px;">
                                     https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:30_days&style=flat-square&color=blue&label=last 30d
@@ -104,7 +105,7 @@
 
                         <p>You can also add <span class="text-xs bg-gray-900 rounded py-1 px-2 font-mono">/project:your-cool-project</span> to the URL to filter by project.</p>
                     {{ else }}
-                        <p>You have the ability to create badges from your coding statistics using <a href="https://shields.io" target="_blank" class="border-b border-green-800">Shields.io</a>. To do so, you need to grant public, unauthorized access to the respective endpoint.</p>
+                        <p>You have the ability to create badges from your coding statistics using <a href="https://shields.io" target="_blank" class="border-b border-green-800" rel="noopener noreferrer">Shields.io</a>. To do so, you need to grant public, unauthorized access to the respective endpoint.</p>
                         <div class="flex justify-around mt-4">
                             <span class="font-mono font-normal bg-gray-900 p-1 rounded whitespace-no-wrap">GET /api/compat/shields/v1</span>
                             <button type="submit" class="py-1 px-2 rounded bg-green-700 hover:bg-green-800 text-white text-xs" title="Make endpoint public to enable badges">
