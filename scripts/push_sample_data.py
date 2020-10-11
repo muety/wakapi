@@ -1,14 +1,15 @@
 #!/usr/bin/python3
+import argparse
+import base64
 import random
 import string
 import sys
 from datetime import datetime, timedelta
-from typing import List, NoneType
+from typing import List, Union
 
 import requests
+from tqdm import tqdm
 
-N_PROJECTS = 5
-N_PAST_HOURS = 24
 UA = 'wakatime/13.0.7 (Linux-4.15.0-91-generic-x86_64-with-glibc2.4) Python3.8.0.final.0 vscode/1.42.1 vscode-wakatime/4.0.0'
 LANGUAGES = {
     'Go': 'go',
@@ -36,13 +37,13 @@ class Heartbeat:
         self.is_write: bool = is_write
         self.branch: str = branch
         self.type: str = type
-        self.category: str | NoneType = None
+        self.category: Union[str, None] = None
 
 
-def generate_data(n: int) -> List[Heartbeat]:
+def generate_data(n: int, n_projects: int = 5, n_past_hours: int = 24) -> List[Heartbeat]:
     data: List[Heartbeat] = []
     now: datetime = datetime.today()
-    projects: List[str] = [randomword(random.randint(5, 10)) for _ in range(5)]
+    projects: List[str] = [randomword(random.randint(5, 10)) for _ in range(n_projects)]
     languages: List[str] = list(LANGUAGES.keys())
 
     for _ in range(n):
@@ -50,7 +51,7 @@ def generate_data(n: int) -> List[Heartbeat]:
         l: str = random.choice(languages)
         f: str = randomword(random.randint(2, 8))
         delta: timedelta = timedelta(
-            hours=random.randint(0, N_PAST_HOURS - 1),
+            hours=random.randint(0, n_past_hours - 1),
             minutes=random.randint(0, 59),
             seconds=random.randint(0, 59)
         )
@@ -65,12 +66,15 @@ def generate_data(n: int) -> List[Heartbeat]:
     return data
 
 
-def post_data_sync(data: List[Heartbeat], url: str):
-    for h in data:
+def post_data_sync(data: List[Heartbeat], url: str, api_key: str):
+    encoded_key: str = str(base64.b64encode(api_key.encode('utf-8')), 'utf-8')
+
+    for h in tqdm(data):
         r = requests.post(url, json=[h.__dict__], headers={
-            'User-Agent': UA
+            'User-Agent': UA,
+            'Authorization': f'Basic {encoded_key}'
         })
-        if r.status_code != 200:
+        if r.status_code != 201:
             print(r.text)
             sys.exit(1)
 
@@ -80,14 +84,21 @@ def randomword(length: int) -> str:
     return ''.join(random.choice(letters) for _ in range(length))
 
 
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='Wakapi test data insertion script.')
+    parser.add_argument('-n', type=int, default=20, help='total number of random heartbeats to generate and insert')
+    parser.add_argument('-u', '--url', type=str, default='http://localhost:3000/api/heartbeat',
+                        help='url of your api\'s heartbeats endpoint')
+    parser.add_argument('-k', '--apikey', type=str, required=True,
+                        help='your api key (to get one, go to the web interface, create a new user, log in and copy the key)')
+    parser.add_argument('-p', '--projects', type=int, default=5, help='number of different fake projects to generate')
+    parser.add_argument('-o', '--offset', type=int, default=24,
+                        help='negative time offset in hours from now for to be used as an interval within which to generate heartbeats for')
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
-    n: int = 10
-    url: str = 'http://admin:admin@localhost:3000/api/heartbeat'
+    args = parse_arguments()
 
-    if len(sys.argv) > 1:
-        n = int(sys.argv[1])
-    if len(sys.argv) > 2:
-        url = sys.argv[2]
-
-    data: List[Heartbeat] = generate_data(n)
-    post_data_sync(data, url)
+    data: List[Heartbeat] = generate_data(args.n, args.projects, args.offset)
+    post_data_sync(data, args.url, args.apikey)
