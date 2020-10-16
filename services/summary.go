@@ -14,6 +14,8 @@ import (
 	"github.com/muety/wakapi/models"
 )
 
+const HeartbeatDiffThreshold = 2 * time.Minute
+
 type SummaryService struct {
 	Config           *config.Config
 	Cache            *cache.Cache
@@ -218,9 +220,16 @@ func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryTy
 			continue
 		}
 
-		timePassed := h.Time.Time().Sub(heartbeats[i-1].Time.Time())
-		timeThresholded := math.Min(float64(timePassed), float64(time.Duration(2)*time.Minute))
-		durations[key] += time.Duration(int64(timeThresholded))
+		t1, t2, tdiff := h.Time.Time(), heartbeats[i-1].Time.Time(), time.Duration(0)
+		// This is a hack. The time difference between two heartbeats from two subsequent day (e.g. 23:59:59 and 00:00:01) are ignored.
+		// This is to prevent a discrepancy between summaries computed solely from heartbeats and summaries involving pre-aggregated per-day summaries.
+		// For the latter, a duration is already pre-computed and information about individual heartbeats is lost, so there can be no cross-day overflow.
+		// Essentially, we simply ignore such edge-case heartbeats here, which makes the eventual total duration potentially a bit shorter.
+		if t1.Day() == t2.Day() {
+			timePassed := t1.Sub(t2)
+			tdiff = time.Duration(int64(math.Min(float64(timePassed), float64(HeartbeatDiffThreshold))))
+		}
+		durations[key] += tdiff
 	}
 
 	items := make([]*models.SummaryItem, 0)
@@ -269,7 +278,7 @@ func getMissingIntervals(from, to time.Time, existingSummaries []*models.Summary
 
 	// Post
 	if to.After(existingSummaries[len(existingSummaries)-1].ToTime) {
-		intervals = append(intervals, &Interval{to, existingSummaries[len(existingSummaries)-1].ToTime})
+		intervals = append(intervals, &Interval{existingSummaries[len(existingSummaries)-1].ToTime, to})
 	}
 
 	return intervals
