@@ -64,11 +64,11 @@ func NewSummariesFrom(summaries []*models.Summary, filters *models.Filters) *Sum
 	for i, s := range summaries {
 		data[i] = newDataFrom(s)
 
-		if s.FromTime.Before(minDate) {
-			minDate = s.FromTime
+		if s.FromTime.T().Before(minDate) {
+			minDate = s.FromTime.T()
 		}
-		if s.ToTime.After(maxDate) {
-			maxDate = s.ToTime
+		if s.ToTime.T().After(maxDate) {
+			maxDate = s.ToTime.T()
 		}
 	}
 
@@ -101,8 +101,8 @@ func newDataFrom(s *models.Summary) *summariesData {
 		},
 		Range: &summariesRange{
 			Date:     time.Now().Format(time.RFC3339),
-			End:      s.ToTime,
-			Start:    s.FromTime,
+			End:      s.ToTime.T(),
+			Start:    s.FromTime.T(),
 			Text:     "",
 			Timezone: zone,
 		},

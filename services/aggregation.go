@@ -98,7 +98,7 @@ func (srv *AggregationService) trigger(jobs chan<- *AggregationJob) error {
 
 	userSummaryTimes := make(map[string]time.Time)
 	for _, s := range latestSummaries {
-		userSummaryTimes[s.UserID] = s.ToTime
+		userSummaryTimes[s.UserID] = s.ToTime.T()
 	}
 
 	missingUserIDs := make([]string, 0)

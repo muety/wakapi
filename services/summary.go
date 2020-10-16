@@ -105,8 +105,8 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User, reco
 
 	realFrom, realTo := from, to
 	if len(existingSummaries) > 0 {
-		realFrom = existingSummaries[0].FromTime
-		realTo = existingSummaries[len(existingSummaries)-1].ToTime
+		realFrom = existingSummaries[0].FromTime.T()
+		realTo = existingSummaries[len(existingSummaries)-1].ToTime.T()
 
 		for _, summary := range existingSummaries {
 			summary.FillUnknown()
@@ -124,8 +124,8 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User, reco
 
 	aggregatedSummary := &models.Summary{
 		UserID:           user.ID,
-		FromTime:         realFrom,
-		ToTime:           realTo,
+		FromTime:         models.CustomTime(realFrom),
+		ToTime:           models.CustomTime(realTo),
 		Projects:         projectItems,
 		Languages:        languageItems,
 		Editors:          editorItems,
@@ -256,13 +256,13 @@ func getMissingIntervals(from, to time.Time, existingSummaries []*models.Summary
 	intervals := make([]*Interval, 0)
 
 	// Pre
-	if from.Before(existingSummaries[0].FromTime) {
-		intervals = append(intervals, &Interval{from, existingSummaries[0].FromTime})
+	if from.Before(existingSummaries[0].FromTime.T()) {
+		intervals = append(intervals, &Interval{from, existingSummaries[0].FromTime.T()})
 	}
 
 	// Between
 	for i := 0; i < len(existingSummaries)-1; i++ {
-		t1, t2 := existingSummaries[i].ToTime, existingSummaries[i+1].FromTime
+		t1, t2 := existingSummaries[i].ToTime.T(), existingSummaries[i+1].FromTime.T()
 		if t1.Equal(t2) {
 			continue
 		}
@@ -272,13 +272,13 @@ func getMissingIntervals(from, to time.Time, existingSummaries []*models.Summary
 		td2 := time.Date(t2.Year(), t2.Month(), t2.Day(), 0, 0, 0, 0, t2.Location())
 		// one or more day missing in between?
 		if td1.Before(td2) {
-			intervals = append(intervals, &Interval{existingSummaries[i].ToTime, existingSummaries[i+1].FromTime})
+			intervals = append(intervals, &Interval{existingSummaries[i].ToTime.T(), existingSummaries[i+1].FromTime.T()})
 		}
 	}
 
 	// Post
-	if to.After(existingSummaries[len(existingSummaries)-1].ToTime) {
-		intervals = append(intervals, &Interval{existingSummaries[len(existingSummaries)-1].ToTime, to})
+	if to.After(existingSummaries[len(existingSummaries)-1].ToTime.T()) {
+		intervals = append(intervals, &Interval{existingSummaries[len(existingSummaries)-1].ToTime.T(), to})
 	}
 
 	return intervals
@@ -306,12 +306,12 @@ func mergeSummaries(summaries []*models.Summary) (*models.Summary, error) {
 			return nil, errors.New("users don't match")
 		}
 
-		if s.FromTime.Before(minTime) {
-			minTime = s.FromTime
+		if s.FromTime.T().Before(minTime) {
+			minTime = s.FromTime.T()
 		}
 
-		if s.ToTime.After(maxTime) {
-			maxTime = s.ToTime
+		if s.ToTime.T().After(maxTime) {
+			maxTime = s.ToTime.T()
 		}
 
 		finalSummary.Projects = mergeSummaryItems(finalSummary.Projects, s.Projects)
@@ -321,8 +321,8 @@ func mergeSummaries(summaries []*models.Summary) (*models.Summary, error) {
 		finalSummary.Machines = mergeSummaryItems(finalSummary.Machines, s.Machines)
 	}
 
-	finalSummary.FromTime = minTime
-	finalSummary.ToTime = maxTime
+	finalSummary.FromTime = models.CustomTime(minTime)
+	finalSummary.ToTime = models.CustomTime(maxTime)
 
 	return finalSummary, nil
 }

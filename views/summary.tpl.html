@@ -55,8 +55,8 @@
     <div class="flex justify-center">
         <div class="p-1">
             <div class="flex justify-center p-4 bg-white rounded shadow">
-                <p class="mx-2"><strong>▶️</strong> <span title="Start Time">{{ .FromTime | date }}</span></p>
-                <p class="mx-2"><strong>⏹</strong> <span title="End Time">{{ .ToTime | date }}</span></p>
+                <p class="mx-2"><strong>▶️</strong> <span title="Start Time">{{ .FromTime.T | date }}</span></p>
+                <p class="mx-2"><strong>⏹</strong> <span title="End Time">{{ .ToTime.T | date }}</span></p>
                 <p class="mx-2"><strong>⏱</strong> <span id="total-span" title="Total Hours"></span></p>
             </div>
         </div>
