@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gorilla/handlers"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/migrations/common"
 	"log"
 	"net/http"
 	"strconv"
@@ -14,7 +15,6 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/muety/wakapi/middlewares"
-	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/routes"
 	shieldsV1Routes "github.com/muety/wakapi/routes/compat/shields/v1"
 	wtV1Routes "github.com/muety/wakapi/routes/compat/wakatime/v1"
@@ -68,7 +68,7 @@ func main() {
 
 	// Migrate database schema
 	runDatabaseMigrations()
-	applyFixtures()
+	runCustomMigrations()
 
 	// Services
 	aliasService = services.NewAliasService(db)
@@ -77,9 +77,6 @@ func main() {
 	summaryService = services.NewSummaryService(db, heartbeatService, aliasService)
 	aggregationService = services.NewAggregationService(db, userService, summaryService, heartbeatService)
 	keyValueService = services.NewKeyValueService(db)
-
-	// Custom migrations and initial data
-	migrateLanguages()
 
 	// Aggregate heartbeats to summaries and persist them
 	go aggregationService.Schedule()
@@ -175,25 +172,9 @@ func runDatabaseMigrations() {
 	}
 }
 
-func applyFixtures() {
-	if err := config.GetFixturesFunc(config.Db.Dialect)(db); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func migrateLanguages() {
-	for k, v := range config.App.CustomLanguages {
-		result := db.Model(models.Heartbeat{}).
-			Where("language = ?", "").
-			Where("entity LIKE ?", "%."+k).
-			Updates(models.Heartbeat{Language: v})
-		if result.Error != nil {
-			log.Fatal(result.Error)
-		}
-		if result.RowsAffected > 0 {
-			log.Printf("Migrated %+v rows for custom language %+s.\n", result.RowsAffected, k)
-		}
-	}
+func runCustomMigrations() {
+	common.ApplyFixtures(db)
+	common.MigrateLanguages(db)
 }
 
 func promptAbort(message string, timeoutSec int) {

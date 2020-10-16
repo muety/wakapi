@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	config2 "github.com/muety/wakapi/config"
+	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
 	"log"
 	"net/http"
@@ -18,7 +18,7 @@ import (
 )
 
 type AuthenticateMiddleware struct {
-	config         *config2.Config
+	config         *conf.Config
 	userSrvc       *services.UserService
 	cache          *cache.Cache
 	whitelistPaths []string
@@ -26,7 +26,7 @@ type AuthenticateMiddleware struct {
 
 func NewAuthenticateMiddleware(userService *services.UserService, whitelistPaths []string) *AuthenticateMiddleware {
 	return &AuthenticateMiddleware{
-		config:         config2.Get(),
+		config:         conf.Get(),
 		userSrvc:       userService,
 		cache:          cache.New(1*time.Hour, 2*time.Hour),
 		whitelistPaths: whitelistPaths,
@@ -117,12 +117,12 @@ func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.Us
 // migrate old md5-hashed passwords to new salted bcrypt hashes for backwards compatibility
 func CheckAndMigratePassword(user *models.User, login *models.Login, salt string, userServiceRef *services.UserService) bool {
 	if utils.IsMd5(user.Password) {
-		if utils.CheckPasswordMd5(user, login.Password) {
+		if utils.CompareMd5(user.Password, login.Password, "") {
 			log.Printf("migrating old md5 password to new bcrypt format for user '%s'", user.ID)
 			userServiceRef.MigrateMd5Password(user, login)
 			return true
 		}
 		return false
 	}
-	return utils.CheckPasswordBcrypt(user, login.Password, salt)
+	return utils.CompareBcrypt(user.Password, login.Password, salt)
 }

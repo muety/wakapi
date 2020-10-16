@@ -59,7 +59,7 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if !utils.CheckPasswordBcrypt(user, credentials.PasswordOld, h.config.Security.PasswordSalt) {
+	if !utils.CompareBcrypt(user.Password, credentials.PasswordOld, h.config.Security.PasswordSalt) {
 		respondAlert(w, "invalid credentials", "", conf.SettingsTemplate, http.StatusUnauthorized)
 		return
 	}
@@ -70,9 +70,11 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 	}
 
 	user.Password = credentials.PasswordNew
-	if err := utils.HashPassword(user, h.config.Security.PasswordSalt); err != nil {
+	if hash, err := utils.HashBcrypt(user.Password, h.config.Security.PasswordSalt); err != nil {
 		respondAlert(w, "internal server error", "", conf.SettingsTemplate, http.StatusInternalServerError)
 		return
+	} else {
+		user.Password = hash
 	}
 
 	if _, err := h.userSrvc.Update(user); err != nil {

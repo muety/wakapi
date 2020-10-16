@@ -63,28 +63,29 @@ func IsMd5(hash string) bool {
 	return md5Regex.Match([]byte(hash))
 }
 
-func CheckPasswordBcrypt(user *models.User, password, salt string) bool {
-	plainPassword := []byte(strings.TrimSpace(password) + salt)
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), plainPassword)
+func CompareBcrypt(wanted, actual, pepper string) bool {
+	plainPassword := []byte(strings.TrimSpace(actual) + pepper)
+	err := bcrypt.CompareHashAndPassword([]byte(wanted), plainPassword)
 	return err == nil
 }
 
 // deprecated, only here for backwards compatibility
-func CheckPasswordMd5(user *models.User, password string) bool {
-	hash := md5.Sum([]byte(password))
-	hashStr := hex.EncodeToString(hash[:])
-	if hashStr == user.Password {
-		return true
-	}
-	return false
+func CompareMd5(wanted, actual, pepper string) bool {
+	return HashMd5(actual, pepper) == wanted
 }
 
-// inplace
-func HashPassword(u *models.User, salt string) error {
-	plainSaltedPassword := []byte(strings.TrimSpace(u.Password) + salt)
-	bytes, err := bcrypt.GenerateFromPassword(plainSaltedPassword, bcrypt.DefaultCost)
+func HashBcrypt(plain, pepper string) (string, error) {
+	plainPepperedPassword := []byte(strings.TrimSpace(plain) + pepper)
+	bytes, err := bcrypt.GenerateFromPassword(plainPepperedPassword, bcrypt.DefaultCost)
 	if err == nil {
-		u.Password = string(bytes)
+		return string(bytes), nil
 	}
-	return err
+	return "", err
+}
+
+func HashMd5(plain, pepper string) string {
+	plainPepperedPassword := []byte(strings.TrimSpace(plain) + pepper)
+	hash := md5.Sum(plainPepperedPassword)
+	hashStr := hex.EncodeToString(hash[:])
+	return hashStr
 }

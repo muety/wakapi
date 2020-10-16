@@ -54,8 +54,10 @@ func (srv *UserService) CreateOrGet(signup *models.Signup) (*models.User, bool, 
 		Password: signup.Password,
 	}
 
-	if err := utils.HashPassword(u, srv.Config.Security.PasswordSalt); err != nil {
+	if hash, err := utils.HashBcrypt(u.Password, srv.Config.Security.PasswordSalt); err != nil {
 		return nil, false, err
+	} else {
+		u.Password = hash
 	}
 
 	result := srv.Db.FirstOrCreate(u, &models.User{ID: u.ID})
@@ -103,8 +105,10 @@ func (srv *UserService) ToggleBadges(user *models.User) (*models.User, error) {
 
 func (srv *UserService) MigrateMd5Password(user *models.User, login *models.Login) (*models.User, error) {
 	user.Password = login.Password
-	if err := utils.HashPassword(user, srv.Config.Security.PasswordSalt); err != nil {
+	if hash, err := utils.HashBcrypt(user.Password, srv.Config.Security.PasswordSalt); err != nil {
 		return nil, err
+	} else {
+		user.Password = hash
 	}
 
 	result := srv.Db.Model(user).Update("password", user.Password)
