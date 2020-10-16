@@ -1,11 +1,14 @@
 # 📈 wakapi
 
-[![](http://img.shields.io/liberapay/receives/muety.svg?logo=liberapay&style=flat-square)](https://liberapay.com/muety/)
-[![Say thanks](https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg?style=flat-square)](https://saythanks.io/to/n1try)
-![](https://img.shields.io/github/license/muety/wakapi?style=flat-square)
-[![Go Report Card](https://goreportcard.com/badge/github.com/muety/wakapi?style=flat-square)](https://goreportcard.com/report/github.com/muety/wakapi)
-![Coding Activity](https://img.shields.io/endpoint?url=https://apps.muetsch.io/wakapi/api/compat/shields/v1/n1try/interval:any/project:wakapi&style=flat-square&color=blue)
-
+![GitHub go.mod Go version](https://badges.fw-web.space/github/go-mod/go-version/muety/wakapi)
+![](https://img.shields.io/github/license/muety/wakapi)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/muety/wakapi)
+![GitHub issues](https://img.shields.io/github/issues/muety/wakapi)
+![GitHub last commit](https://img.shields.io/github/last-commit/muety/wakapi)
+[![Say thanks](https://badges.fw-web.space/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg)](https://saythanks.io/to/n1try)
+[![](https://badges.fw-web.space/liberapay/receives/muety.svg?logo=liberapay)](https://liberapay.com/muety/)
+[![Go Report Card](https://goreportcard.com/badge/github.com/muety/wakapi)](https://goreportcard.com/report/github.com/muety/wakapi)
+![Coding Activity](https://badges.fw-web.space/endpoint?url=https://apps.muetsch.io/wakapi/api/compat/shields/v1/n1try/interval:any/project:wakapi&color=blue)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=muety_wakapi&metric=security_rating)](https://sonarcloud.io/dashboard?id=muety_wakapi)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=muety_wakapi&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=muety_wakapi)
 [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=muety_wakapi&metric=sqale_index)](https://sonarcloud.io/dashboard?id=muety_wakapi)
