@@ -220,7 +220,7 @@ func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryTy
 			continue
 		}
 
-		t1, t2, tdiff := h.Time.Time(), heartbeats[i-1].Time.Time(), time.Duration(0)
+		t1, t2, tdiff := h.Time.T(), heartbeats[i-1].Time.T(), time.Duration(0)
 		// This is a hack. The time difference between two heartbeats from two subsequent day (e.g. 23:59:59 and 00:00:01) are ignored.
 		// This is to prevent a discrepancy between summaries computed solely from heartbeats and summaries involving pre-aggregated per-day summaries.
 		// For the latter, a duration is already pre-computed and information about individual heartbeats is lost, so there can be no cross-day overflow.

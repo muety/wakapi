@@ -76,28 +76,38 @@ func (j *CustomTime) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// heartbeat timestamps arrive as strings for sqlite and as time.Time for postgres
 func (j *CustomTime) Scan(value interface{}) error {
+	var (
+		t   time.Time
+		err error
+	)
+
 	switch value.(type) {
 	case string:
-		t, err := time.Parse("2006-01-02 15:04:05-07:00", value.(string))
+		t, err = time.Parse("2006-01-02 15:04:05-07:00", value.(string))
 		if err != nil {
 			return errors.New(fmt.Sprintf("unsupported date time format: %s", value))
 		}
-		*j = CustomTime(t)
 	case int64:
-		*j = CustomTime(time.Unix(value.(int64), 0))
+		t = time.Unix(0, value.(int64))
 		break
 	case time.Time:
-		*j = CustomTime(value.(time.Time))
+		t = value.(time.Time)
 		break
 	default:
 		return errors.New(fmt.Sprintf("unsupported type: %T", value))
 	}
+
+	t = time.Unix(0, (t.UnixNano()/int64(time.Millisecond))*int64(time.Millisecond)) // round to millisecond precision
+	*j = CustomTime(t)
+
 	return nil
 }
 
 func (j CustomTime) Value() (driver.Value, error) {
-	return time.Time(j), nil
+	t := time.Unix(0, j.T().UnixNano()/int64(time.Millisecond)*int64(time.Millisecond)) // round to millisecond precision
+	return t, nil
 }
 
 func (j CustomTime) String() string {
@@ -105,6 +115,6 @@ func (j CustomTime) String() string {
 	return t.Format("2006-01-02 15:04:05.000")
 }
 
-func (j CustomTime) Time() time.Time {
+func (j CustomTime) T() time.Time {
 	return time.Time(j)
 }

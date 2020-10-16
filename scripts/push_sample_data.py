@@ -54,7 +54,9 @@ def generate_data(n: int, n_projects: int = 5, n_past_hours: int = 24) -> List[H
         delta: timedelta = timedelta(
             hours=random.randint(0, n_past_hours - 1),
             minutes=random.randint(0, 59),
-            seconds=random.randint(0, 59)
+            seconds=random.randint(0, 59),
+            milliseconds=random.randint(0, 999),
+            microseconds=random.randint(0, 999)
         )
 
         data.append(Heartbeat(
