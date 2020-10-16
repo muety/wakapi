@@ -40,7 +40,6 @@ type AggregationJob struct {
 }
 
 // Schedule a job to (re-)generate summaries every day shortly after midnight
-// TODO: Make configurable
 func (srv *AggregationService) Schedule() {
 	jobs := make(chan *AggregationJob)
 	summaries := make(chan *models.Summary)
@@ -58,7 +57,7 @@ func (srv *AggregationService) Schedule() {
 	// Run once initially
 	srv.trigger(jobs)
 
-	gocron.Every(1).Day().At("02:15").Do(srv.trigger, jobs)
+	gocron.Every(1).Day().At(srv.Config.App.AggregationTime).Do(srv.trigger, jobs)
 	<-gocron.Start()
 }
 

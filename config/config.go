@@ -27,6 +27,7 @@ var (
 
 type appConfig struct {
 	CleanUp         bool              `default:"false" env:"WAKAPI_CLEANUP"`
+	AggregationTime string            `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
 	CustomLanguages map[string]string `yaml:"custom_languages"`
 	LanguageColors  map[string]string `yaml:"-"`
 }
