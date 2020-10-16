@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+
 import argparse
 import base64
 import random
@@ -10,7 +11,7 @@ from typing import List, Union
 import requests
 from tqdm import tqdm
 
-UA = 'wakatime/13.0.7 (Linux-4.15.0-91-generic-x86_64-with-glibc2.4) Python3.8.0.final.0 vscode/1.42.1 vscode-wakatime/4.0.0'
+UA = 'wakatime/13.0.7 (Linux-4.15.0-91-generic-x86_64-with-glibc2.4) Python3.8.0.final.0 generator/1.42.1 generator-wakatime/4.0.0'
 LANGUAGES = {
     'Go': 'go',
     'Java': 'java',
@@ -94,11 +95,15 @@ def parse_arguments():
     parser.add_argument('-p', '--projects', type=int, default=5, help='number of different fake projects to generate')
     parser.add_argument('-o', '--offset', type=int, default=24,
                         help='negative time offset in hours from now for to be used as an interval within which to generate heartbeats for')
+    parser.add_argument('-s', '--seed', type=int, default=2020,
+                        help='a seed for initializing the pseudo-random number generator')
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = parse_arguments()
+
+    random.seed(args.seed)
 
     data: List[Heartbeat] = generate_data(args.n, args.projects, args.offset)
     post_data_sync(data, args.url, args.apikey)
