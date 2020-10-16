@@ -158,13 +158,17 @@ func convertEntry(e *models.SummaryItem, entityTotal time.Duration) *summariesEn
 	hrs := int(total.Hours())
 	mins := int((total - time.Duration(hrs)*time.Hour).Minutes())
 	secs := int((total - time.Duration(hrs)*time.Hour - time.Duration(mins)*time.Minute).Seconds())
+	percentage := math.Round((total.Seconds()/entityTotal.Seconds())*1e4) / 100
+	if math.IsNaN(percentage) || math.IsInf(percentage, 0) {
+		percentage = 0
+	}
 
 	return &summariesEntry{
 		Digital:      fmt.Sprintf("%d:%d:%d", hrs, mins, secs),
 		Hours:        hrs,
 		Minutes:      mins,
 		Name:         e.Key,
-		Percent:      math.Round((total.Seconds()/entityTotal.Seconds())*1e4) / 100,
+		Percent:      percentage,
 		Seconds:      secs,
 		Text:         utils.FmtWakatimeDuration(total),
 		TotalSeconds: total.Seconds(),
