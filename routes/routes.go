@@ -30,6 +30,9 @@ func loadTemplates() {
 		"getVersion": func() string {
 			return config.Get().Version
 		},
+		"getDbType": func() string {
+			return strings.ToLower(config.Get().Db.Dialect)
+		},
 		"htmlSafe": func(html string) template.HTML {
 			return template.HTML(html)
 		},
