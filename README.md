@@ -22,10 +22,10 @@
 
 If you like this project, please consider supporting it 🙂. You can donate either through [buying me a coffee](https://buymeacoff.ee/n1try) or becoming a GitHub sponsor. Every little donation is highly appreciated and boosts the developers' motivation to keep improving Wakapi!
 
-## 👀 Demo 
-🔥 **New:** There is a hosted [demo version](https://apps.muetsch.io/wakapi) available now. Go check it out! Please use responsibly.
+## 👀 Hosted Service
+🔥 **New:** Wakapi is available as a hosted service now. Check out **[wakapi.dev](https://wakapi.dev)**. Please use responsibly.
 
-To use the demo version set `api_url = https://apps.muetsch.io/wakapi/api/heartbeat`. However, this hosted instance might be taken down again in the future, so you might potentially lose your data ❕
+To use the hosted version set `api_url = https://wakapi.dev/api/heartbeat`. However, we do not guarantee data persistence, so you might potentially lose your data if the service is taken down some day ❕
 
 ## ⚙️ Prerequisites
 **On the server side:**
