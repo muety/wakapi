@@ -13,14 +13,16 @@ import (
 )
 
 type HeartbeatHandler struct {
-	config        *config2.Config
-	heartbeatSrvc *services.HeartbeatService
+	config         *config2.Config
+	heartbeatSrvc  *services.HeartbeatService
+	customRuleSrvc *services.CustomRuleService
 }
 
-func NewHeartbeatHandler(heartbeatService *services.HeartbeatService) *HeartbeatHandler {
+func NewHeartbeatHandler(heartbeatService *services.HeartbeatService, customRuleService *services.CustomRuleService) *HeartbeatHandler {
 	return &HeartbeatHandler{
 		config:        config2.Get(),
 		heartbeatSrvc: heartbeatService,
+		customRuleSrvc: customRuleService,
 	}
 }
 
@@ -41,13 +43,20 @@ func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	rules, err := h.customRuleSrvc.GetCustomRuleForUser(user.ID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
 	for _, hb := range heartbeats {
 		hb.OperatingSystem = opSys
 		hb.Editor = editor
 		hb.Machine = machineName
 		hb.User = user
 		hb.UserID = user.ID
-		hb.Augment(h.config.App.CustomLanguages)
+		hb.Augment(rules)
 
 		if !hb.Valid() {
 			w.WriteHeader(http.StatusBadRequest)

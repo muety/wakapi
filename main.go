@@ -31,6 +31,7 @@ var (
 	aliasService       *services.AliasService
 	heartbeatService   *services.HeartbeatService
 	userService        *services.UserService
+	customRuleService  *services.CustomRuleService
 	summaryService     *services.SummaryService
 	aggregationService *services.AggregationService
 	keyValueService    *services.KeyValueService
@@ -74,7 +75,8 @@ func main() {
 	aliasService = services.NewAliasService(db)
 	heartbeatService = services.NewHeartbeatService(db)
 	userService = services.NewUserService(db)
-	summaryService = services.NewSummaryService(db, heartbeatService, aliasService)
+	customRuleService = services.NewCustomRuleService(db)
+	summaryService = services.NewSummaryService(db, heartbeatService, aliasService, customRuleService)
 	aggregationService = services.NewAggregationService(db, userService, summaryService, heartbeatService)
 	keyValueService = services.NewKeyValueService(db)
 
@@ -88,10 +90,10 @@ func main() {
 	// TODO: move endpoint registration to the respective routes files
 
 	// Handlers
-	heartbeatHandler := routes.NewHeartbeatHandler(heartbeatService)
 	summaryHandler := routes.NewSummaryHandler(summaryService)
 	healthHandler := routes.NewHealthHandler(db)
-	settingsHandler := routes.NewSettingsHandler(userService)
+	heartbeatHandler := routes.NewHeartbeatHandler(heartbeatService, customRuleService)
+	settingsHandler := routes.NewSettingsHandler(userService, customRuleService)
 	publicHandler := routes.NewIndexHandler(userService, keyValueService)
 	wakatimeV1AllHandler := wtV1Routes.NewAllTimeHandler(summaryService)
 	wakatimeV1SummariesHandler := wtV1Routes.NewSummariesHandler(summaryService)
@@ -136,6 +138,8 @@ func main() {
 	// Settings Routes
 	settingsRouter.Methods(http.MethodGet).HandlerFunc(settingsHandler.GetIndex)
 	settingsRouter.Path("/credentials").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostCredentials)
+	settingsRouter.Path("/customrules").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostCreateCustomRule)
+	settingsRouter.Path("/customrules/delete").Methods(http.MethodPost).HandlerFunc(settingsHandler.DeleteCustomRule)
 	settingsRouter.Path("/reset").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostResetApiKey)
 	settingsRouter.Path("/badges").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostToggleBadges)
 
