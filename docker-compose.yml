@@ -1,0 +1,25 @@
+version: '3.7'
+
+services:
+  wakapi:
+    build: .
+    ports:
+      - 3000:3000
+    restart: always
+    environment:
+      WAKAPI_DB_TYPE: "postgres"
+      WAKAPI_DB_NAME: "wakapi"
+      WAKAPI_DB_USER: "wakapi"
+      WAKAPI_DB_PASSWORD: "asdfasdfasdf"
+      WAKAPI_DB_HOST: "db"
+      WAKAPI_DB_PORT: "5432"
+      ENV: "dev"
+
+  db:
+    image: postgres:12.3
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: "wakapi"
+      POSTGRES_PASSWORD: "asdfasdfasdf"
+      POSTGRES_DB: "wakapi"

@@ -1,9 +1,12 @@
 # Build Stage
 
 FROM golang:1.13 AS build-env
-ADD . /src
-RUN cd /src && go build -o wakapi
+WORKDIR /src
+ADD ./go.mod .
+RUN go mod download
 
+ADD . .
+RUN go build -o wakapi
 
 # Final Stage
 
