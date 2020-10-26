@@ -14,5 +14,5 @@ func validateLanguage(language string) bool {
 }
 
 func validateExtension(extension string) bool {
-	return len(extension) >= 2
+	return len(extension) >= 1
 }
