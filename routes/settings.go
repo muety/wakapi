@@ -9,19 +9,22 @@ import (
 	"github.com/muety/wakapi/utils"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 type SettingsHandler struct {
-	config   *conf.Config
-	userSrvc *services.UserService
+	config         *conf.Config
+	userSrvc       *services.UserService
+	customRuleSrvc *services.CustomRuleService
 }
 
 var credentialsDecoder = schema.NewDecoder()
 
-func NewSettingsHandler(userService *services.UserService) *SettingsHandler {
+func NewSettingsHandler(userService *services.UserService, customRuleService *services.CustomRuleService) *SettingsHandler {
 	return &SettingsHandler{
-		config:   conf.Get(),
-		userSrvc: userService,
+		config:         conf.Get(),
+		customRuleSrvc: customRuleService,
+		userSrvc:       userService,
 	}
 }
 
@@ -31,14 +34,14 @@ func (h *SettingsHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := r.Context().Value(models.UserKey).(*models.User)
+	rules, _ := h.customRuleSrvc.GetCustomRuleForUser(user.ID)
 	data := map[string]interface{}{
-		"User": user,
+		"User":    user,
+		"Rules":   rules,
+		"Success": r.FormValue("success"),
+		"Error":   r.FormValue("error"),
 	}
 
-	// TODO: when alerts are present, other data will not be passed to the template
-	if handleAlerts(w, r, conf.SettingsTemplate) {
-		return
-	}
 	templates[conf.SettingsTemplate].Execute(w, data)
 }
 
@@ -102,6 +105,56 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 	http.SetCookie(w, cookie)
 
 	msg := url.QueryEscape("password was updated successfully")
+	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.Server.BasePath, msg), http.StatusFound)
+}
+
+func (h *SettingsHandler) DeleteCustomRule(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	user := r.Context().Value(models.UserKey).(*models.User)
+	ruleId, err := strconv.Atoi(r.PostFormValue("ruleid"))
+	if err != nil {
+		respondAlert(w, "internal server error", "", conf.SettingsTemplate, http.StatusInternalServerError)
+		return
+	}
+
+	rule := &models.CustomRule{
+		ID:     uint(ruleId),
+		UserID: user.ID,
+	}
+	h.customRuleSrvc.Delete(rule)
+	msg := url.QueryEscape("Custom rule deleted successfully.")
+
+	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.Server.BasePath, msg), http.StatusFound)
+}
+
+func (h *SettingsHandler) PostCreateCustomRule(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+	user := r.Context().Value(models.UserKey).(*models.User)
+	extension := r.PostFormValue("extension")
+	language := r.PostFormValue("language")
+
+	if extension[0] == '.' {
+		extension = extension[1:]
+	}
+
+	rule := &models.CustomRule{
+		UserID:    user.ID,
+		Extension: extension,
+		Language:  language,
+	}
+
+	if _, err := h.customRuleSrvc.Create(rule); err != nil {
+		respondAlert(w, "internal server error", "", conf.SettingsTemplate, http.StatusInternalServerError)
+		return
+	}
+
+	msg := url.QueryEscape("Custom rule saved successfully.")
+
 	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.Server.BasePath, msg), http.StatusFound)
 }
 

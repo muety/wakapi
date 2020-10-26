@@ -203,7 +203,7 @@ function togglePlaceholders(mask) {
 }
 
 function getPresentDataMask() {
-    return data.map(list => list.reduce((acc, e) => acc + e.total, 0) > 0)
+    return data.map(list => list ? list.reduce((acc, e) => acc + e.total, 0) : 0 > 0)
 }
 
 function getContainer(chart) {
@@ -304,3 +304,4 @@ window.addEventListener('load', function () {
     togglePlaceholders(getPresentDataMask())
     draw()
 })
+

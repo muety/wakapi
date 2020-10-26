@@ -17,20 +17,22 @@ import (
 const HeartbeatDiffThreshold = 2 * time.Minute
 
 type SummaryService struct {
-	Config           *config.Config
-	Cache            *cache.Cache
-	Db               *gorm.DB
-	HeartbeatService *HeartbeatService
-	AliasService     *AliasService
+	Config            *config.Config
+	Cache             *cache.Cache
+	Db                *gorm.DB
+	HeartbeatService  *HeartbeatService
+	AliasService      *AliasService
+	CustomRuleService *CustomRuleService
 }
 
-func NewSummaryService(db *gorm.DB, heartbeatService *HeartbeatService, aliasService *AliasService) *SummaryService {
+func NewSummaryService(db *gorm.DB, heartbeatService *HeartbeatService, aliasService *AliasService, customRuleService *CustomRuleService) *SummaryService {
 	return &SummaryService{
-		Config:           config.Get(),
-		Cache:            cache.New(24*time.Hour, 24*time.Hour),
-		Db:               db,
-		HeartbeatService: heartbeatService,
-		AliasService:     aliasService,
+		Config:            config.Get(),
+		Cache:             cache.New(24*time.Hour, 24*time.Hour),
+		Db:                db,
+		HeartbeatService:  heartbeatService,
+		AliasService:      aliasService,
+		CustomRuleService: customRuleService,
 	}
 }
 

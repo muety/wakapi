@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"regexp"
 	"time"
 )
@@ -27,7 +28,7 @@ func (h *Heartbeat) Valid() bool {
 	return h.User != nil && h.UserID != "" && h.Time != CustomTime(time.Time{})
 }
 
-func (h *Heartbeat) Augment(customLangs map[string]string) {
+func (h *Heartbeat) AugmentWithConfigRules(customLangs map[string]string) {
 	if h.Language == "" {
 		if h.languageRegex == nil {
 			h.languageRegex = regexp.MustCompile(`^.+\.(.+)$`)
@@ -41,5 +42,16 @@ func (h *Heartbeat) Augment(customLangs map[string]string) {
 			return
 		}
 		h.Language, _ = customLangs[ending]
+	}
+}
+
+func (h *Heartbeat) AugmentWithUserRules(customRules []*CustomRule) {
+	for _, lang := range customRules {
+		reg := fmt.Sprintf(".*%s$", lang.Extension)
+		match, err := regexp.MatchString(reg, h.Entity)
+		if match && err == nil {
+			h.Language = lang.Language
+			return
+		}
 	}
 }

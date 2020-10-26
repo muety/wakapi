@@ -99,6 +99,7 @@ func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
 			db.AutoMigrate(&models.Heartbeat{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
 			db.AutoMigrate(&models.SummaryItem{}).AddForeignKey("summary_id", "summaries(id)", "CASCADE", "CASCADE")
 			db.AutoMigrate(&models.KeyStringValue{})
+			db.AutoMigrate(&models.CustomRule{})
 			return nil
 		}
 	}
