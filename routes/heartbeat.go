@@ -56,7 +56,8 @@ func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
 		hb.Machine = machineName
 		hb.User = user
 		hb.UserID = user.ID
-		hb.Augment(rules)
+		hb.AugmentWithConfigRules(h.config.App.CustomLanguages)
+		hb.AugmentWithUserRules(rules)
 
 		if !hb.Valid() {
 			w.WriteHeader(http.StatusBadRequest)

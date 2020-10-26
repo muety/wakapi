@@ -28,7 +28,24 @@ func (h *Heartbeat) Valid() bool {
 	return h.User != nil && h.UserID != "" && h.Time != CustomTime(time.Time{})
 }
 
-func (h *Heartbeat) Augment(customRules []*CustomRule) {
+func (h *Heartbeat) AugmentWithConfigRules(customLangs map[string]string) {
+	if h.Language == "" {
+		if h.languageRegex == nil {
+			h.languageRegex = regexp.MustCompile(`^.+\.(.+)$`)
+		}
+		groups := h.languageRegex.FindAllStringSubmatch(h.Entity, -1)
+		if len(groups) == 0 || len(groups[0]) != 2 {
+			return
+		}
+		ending := groups[0][1]
+		if _, ok := customLangs[ending]; !ok {
+			return
+		}
+		h.Language, _ = customLangs[ending]
+	}
+}
+
+func (h *Heartbeat) AugmentWithUserRules(customRules []*CustomRule) {
 	for _, lang := range customRules {
 		reg := fmt.Sprintf(".*%s$", lang.Extension)
 		match, err := regexp.MatchString(reg, h.Entity)
