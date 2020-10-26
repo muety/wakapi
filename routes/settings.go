@@ -116,7 +116,7 @@ func (h *SettingsHandler) DeleteCustomRule(w http.ResponseWriter, r *http.Reques
 	user := r.Context().Value(models.UserKey).(*models.User)
 	ruleId, err := strconv.Atoi(r.PostFormValue("ruleid"))
 	if err != nil {
-		respondAlert(w, "internal server error", "", "settings.tpl.html", http.StatusInternalServerError)
+		respondAlert(w, "internal server error", "", conf.SettingsTemplate, http.StatusInternalServerError)
 		return
 	}
 
@@ -149,7 +149,7 @@ func (h *SettingsHandler) PostCreateCustomRule(w http.ResponseWriter, r *http.Re
 	};
 
 	if _, err := h.customRuleSrvc.Create(rule); err != nil {
-		respondAlert(w, "internal server error", "", "settings.tpl.html", http.StatusInternalServerError)
+		respondAlert(w, "internal server error", "", conf.SettingsTemplate, http.StatusInternalServerError)
 		return
 	}
 

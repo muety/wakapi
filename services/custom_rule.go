@@ -2,24 +2,25 @@ package services
 
 import (
 	"github.com/jinzhu/gorm"
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 )
 
 type CustomRuleService struct {
-	Config *models.Config
+	Config *config.Config
 	Db     *gorm.DB
 }
 
 func NewCustomRuleService(db *gorm.DB) *CustomRuleService {
 	return &CustomRuleService{
-		Config: models.GetConfig(),
+		Config: config.Get(),
 		Db:     db,
 	}
 }
 
-func (srv *CustomRuleService) GetCustomRuleById(CustomRuleId uint) (*models.CustomRule, error) {
+func (srv *CustomRuleService) GetCustomRuleById(customRuleId uint) (*models.CustomRule, error) {
 	r := &models.CustomRule{}
-	if err := srv.Db.Where(&models.CustomRule{ID: CustomRuleId}).First(r).Error; err != nil {
+	if err := srv.Db.Where(&models.CustomRule{ID: customRuleId}).First(r).Error; err != nil {
 		return r, err
 	}
 	return r, nil
