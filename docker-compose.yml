@@ -13,7 +13,7 @@ services:
       WAKAPI_DB_PASSWORD: "asdfasdfasdf"
       WAKAPI_DB_HOST: "db"
       WAKAPI_DB_PORT: "5432"
-      ENV: "dev"
+      ENVIRONMENT: "dev"
 
   db:
     image: postgres:12.3
