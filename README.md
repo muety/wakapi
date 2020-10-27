@@ -116,8 +116,8 @@ The following API endpoints are available. A more detailed Swagger documentation
 * `POST /api/heartbeat`
 * `GET /api/summary`
   * `string` parameter `interval`: One of `today`, `day`, `week`, `month`, `year`, `any`
-* `GET /api/compat/v1/users/current/all_time_since_today` (see [Wakatime API docs](https://wakatime.com/developers#all_time_since_today))
-* `GET /api/compat/v1/users/current/summaries` (see [Wakatime API docs](https://wakatime.com/developers#summaries))
+* `GET /api/compat/wakatime/v1/users/current/all_time_since_today` (see [Wakatime API docs](https://wakatime.com/developers#all_time_since_today))
+* `GET /api/compat/wakatime/v1/users/current/summaries` (see [Wakatime API docs](https://wakatime.com/developers#summaries))
 * `GET /api/health`
 
 ## ⤴️ Prometheus Export
