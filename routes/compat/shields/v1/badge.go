@@ -20,6 +20,7 @@ const (
 type BadgeHandler struct {
 	userSrvc    *services.UserService
 	summarySrvc *services.SummaryService
+	aliasSrvc   *services.AliasService
 	config      *config2.Config
 }
 
@@ -57,18 +58,18 @@ func (h *BadgeHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 		interval = groups[1]
 	}
 
-	filters := &models.Filters{}
+	var filters *models.Filters
 	switch filterEntity {
 	case "project":
-		filters.Project = filterKey
+		filters = models.NewFiltersWith(models.SummaryProject, filterKey)
 	case "os":
-		filters.OS = filterKey
+		filters = models.NewFiltersWith(models.SummaryOS, filterKey)
 	case "editor":
-		filters.Editor = filterKey
+		filters = models.NewFiltersWith(models.SummaryEditor, filterKey)
 	case "language":
-		filters.Language = filterKey
+		filters = models.NewFiltersWith(models.SummaryLanguage, filterKey)
 	case "machine":
-		filters.Machine = filterKey
+		filters = models.NewFiltersWith(models.SummaryMachine, filterKey)
 	}
 
 	summary, err, status := h.loadUserSummary(user, interval)
@@ -94,7 +95,9 @@ func (h *BadgeHandler) loadUserSummary(user *models.User, interval string) (*mod
 		User: user,
 	}
 
-	summary, err := h.summarySrvc.Construct(summaryParams.From, summaryParams.To, summaryParams.User, summaryParams.Recompute)
+	summary, err := h.summarySrvc.PostProcessWrapped(
+		h.summarySrvc.Construct(summaryParams.From, summaryParams.To, summaryParams.User, summaryParams.Recompute),
+	)
 	if err != nil {
 		return nil, err, http.StatusInternalServerError
 	}

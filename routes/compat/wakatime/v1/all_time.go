@@ -55,7 +55,9 @@ func (h *AllTimeHandler) loadUserSummary(user *models.User) (*models.Summary, er
 		Recompute: false,
 	}
 
-	summary, err := h.summarySrvc.Construct(summaryParams.From, summaryParams.To, summaryParams.User, summaryParams.Recompute) // 'to' is always constant
+	summary, err := h.summarySrvc.PostProcessWrapped(
+		h.summarySrvc.Construct(summaryParams.From, summaryParams.To, summaryParams.User, summaryParams.Recompute), // 'to' is always constant
+	)
 	if err != nil {
 		return nil, err, http.StatusInternalServerError
 	}

@@ -86,7 +86,9 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary
 	summaries := make([]*models.Summary, len(intervals))
 
 	for i, interval := range intervals {
-		summary, err := h.summarySrvc.Construct(interval[0], interval[1], user, false) // 'to' is always constant
+		summary, err := h.summarySrvc.PostProcessWrapped(
+			h.summarySrvc.Construct(interval[0], interval[1], user, false), // 'to' is always constant
+		)
 		if err != nil {
 			return nil, err, http.StatusInternalServerError
 		}

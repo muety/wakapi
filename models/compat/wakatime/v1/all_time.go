@@ -21,7 +21,7 @@ type allTimeData struct {
 func NewAllTimeFrom(summary *models.Summary, filters *models.Filters) *AllTimeViewModel {
 	var total time.Duration
 	if key := filters.Project; key != "" {
-		total = summary.TotalTimeByKey(models.SummaryProject, key)
+		total = summary.TotalTimeByFilters(filters)
 	} else {
 		total = summary.TotalTime()
 	}

@@ -69,7 +69,9 @@ func (h *SummaryHandler) loadUserSummary(r *http.Request) (*models.Summary, erro
 		return nil, err, http.StatusBadRequest
 	}
 
-	summary, err := h.summarySrvc.Construct(summaryParams.From, summaryParams.To, summaryParams.User, summaryParams.Recompute) // 'to' is always constant
+	summary, err := h.summarySrvc.PostProcessWrapped(
+		h.summarySrvc.Construct(summaryParams.From, summaryParams.To, summaryParams.User, summaryParams.Recompute), // 'to' is always constant
+	)
 	if err != nil {
 		return nil, err, http.StatusInternalServerError
 	}

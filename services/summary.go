@@ -150,6 +150,62 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User, reco
 	return summary, nil
 }
 
+func (srv *SummaryService) PostProcessWrapped(summary *models.Summary, err error) (*models.Summary, error) {
+	if err != nil {
+		return nil, err
+	}
+	return srv.PostProcess(summary), nil
+}
+
+func (srv *SummaryService) PostProcess(summary *models.Summary) *models.Summary {
+	updatedSummary := &models.Summary{
+		ID:       summary.ID,
+		UserID:   summary.UserID,
+		FromTime: summary.FromTime,
+		ToTime:   summary.ToTime,
+	}
+
+	processAliases := func(origin []*models.SummaryItem) []*models.SummaryItem {
+		target := make([]*models.SummaryItem, 0)
+
+		findItem := func(key string) *models.SummaryItem {
+			for _, item := range target {
+				if item.Key == key {
+					return item
+				}
+			}
+			return nil
+		}
+
+		for _, item := range origin {
+			// Add all "top-level" items, i.e. such without aliases
+			if key, _ := srv.AliasService.GetAliasOrDefault(summary.UserID, item.Type, item.Key); key == item.Key {
+				target = append(target, item)
+			}
+		}
+
+		for _, item := range origin {
+			// Add all remaining projects and merge with their alias
+			if key, _ := srv.AliasService.GetAliasOrDefault(summary.UserID, item.Type, item.Key); key != item.Key {
+				if targetItem := findItem(key); targetItem != nil {
+					targetItem.Total += item.Total
+				}
+			}
+		}
+
+		return target
+	}
+
+	// Resolve aliases
+	updatedSummary.Projects = processAliases(summary.Projects)
+	updatedSummary.Editors = processAliases(summary.Editors)
+	updatedSummary.Languages = processAliases(summary.Languages)
+	updatedSummary.OperatingSystems = processAliases(summary.OperatingSystems)
+	updatedSummary.Machines = processAliases(summary.Machines)
+
+	return updatedSummary
+}
+
 func (srv *SummaryService) Insert(summary *models.Summary) error {
 	if err := srv.Db.Create(summary).Error; err != nil {
 		return err
@@ -208,10 +264,6 @@ func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryTy
 
 		if key == "" {
 			key = models.UnknownSummaryKey
-		}
-
-		if aliasedKey, err := srv.AliasService.GetAliasOrDefault(user.ID, summaryType, key); err == nil {
-			key = aliasedKey
 		}
 
 		if _, ok := durations[key]; !ok {

@@ -22,8 +22,8 @@ type BadgeData struct {
 
 func NewBadgeDataFrom(summary *models.Summary, filters *models.Filters) *BadgeData {
 	var total time.Duration
-	if hasFilter, filterType, filterKey := filters.First(); hasFilter {
-		total = summary.TotalTimeByKey(filterType, filterKey)
+	if hasFilter, _, _ := filters.First(); hasFilter {
+		total = summary.TotalTimeByFilters(filters)
 	} else {
 		total = summary.TotalTime()
 	}

@@ -147,31 +147,32 @@ func (s *Summary) TotalTime() time.Duration {
 	return timeSum * time.Second
 }
 
-func (s *Summary) TotalTimeBy(entityType uint8) time.Duration {
-	var timeSum time.Duration
-
+func (s *Summary) TotalTimeBy(entityType uint8) (timeSum time.Duration) {
 	mappedItems := s.MappedItems()
 	if items := mappedItems[entityType]; len(*items) > 0 {
 		for _, item := range *items {
-			timeSum += item.Total
+			timeSum = timeSum + item.Total*time.Second
 		}
 	}
-
-	return timeSum * time.Second
+	return timeSum
 }
 
-func (s *Summary) TotalTimeByKey(entityType uint8, key string) time.Duration {
-	var timeSum time.Duration
-
+func (s *Summary) TotalTimeByKey(entityType uint8, key string) (timeSum time.Duration) {
 	mappedItems := s.MappedItems()
 	if items := mappedItems[entityType]; len(*items) > 0 {
 		for _, item := range *items {
 			if item.Key != key {
 				continue
 			}
-			timeSum += item.Total
+			timeSum = timeSum + item.Total*time.Second
 		}
 	}
+	return timeSum
+}
 
-	return timeSum * time.Second
+func (s *Summary) TotalTimeByFilters(filter *Filters) (timeSum time.Duration) {
+	for _, f := range filter.All() {
+		timeSum += s.TotalTimeByKey(f.Type, f.Key)
+	}
+	return timeSum
 }
