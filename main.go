@@ -11,16 +11,15 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/routes"
 	shieldsV1Routes "github.com/muety/wakapi/routes/compat/shields/v1"
 	wtV1Routes "github.com/muety/wakapi/routes/compat/wakatime/v1"
 	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/utils"
+	_ "gorm.io/driver/mysql"
+	_ "gorm.io/driver/postgres"
+	_ "gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 var (
@@ -29,22 +28,22 @@ var (
 )
 
 var (
-	aliasRepository      *repositories.AliasRepository
-	heartbeatRepository  *repositories.HeartbeatRepository
-	userRepository       *repositories.UserRepository
-	customRuleRepository *repositories.CustomRuleRepository
-	summaryRepository    *repositories.SummaryRepository
-	keyValueRepository   *repositories.KeyValueRepository
+	aliasRepository           *repositories.AliasRepository
+	heartbeatRepository       *repositories.HeartbeatRepository
+	userRepository            *repositories.UserRepository
+	languageMappingRepository *repositories.LanguageMappingRepository
+	summaryRepository         *repositories.SummaryRepository
+	keyValueRepository        *repositories.KeyValueRepository
 )
 
 var (
-	aliasService       *services.AliasService
-	heartbeatService   *services.HeartbeatService
-	userService        *services.UserService
-	customRuleService  *services.CustomRuleService
-	summaryService     *services.SummaryService
-	aggregationService *services.AggregationService
-	keyValueService    *services.KeyValueService
+	aliasService           *services.AliasService
+	heartbeatService       *services.HeartbeatService
+	userService            *services.UserService
+	languageMappingService *services.LanguageMappingService
+	summaryService         *services.SummaryService
+	aggregationService     *services.AggregationService
+	keyValueService        *services.KeyValueService
 )
 
 // TODO: Refactor entire project to be structured after business domains
@@ -64,37 +63,39 @@ func main() {
 
 	// Connect to database
 	var err error
-	db, err = gorm.Open(config.Db.Dialect, utils.MakeConnectionString(config))
+	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{})
 	if config.Db.Dialect == "sqlite3" {
-		db.DB().Exec("PRAGMA foreign_keys = ON;")
+		db.Raw("PRAGMA foreign_keys = ON;")
 	}
-	db.LogMode(config.IsDev())
-	db.DB().SetMaxIdleConns(int(config.Db.MaxConn))
-	db.DB().SetMaxOpenConns(int(config.Db.MaxConn))
+
+	sqlDb, _ := db.DB()
+	sqlDb.SetMaxIdleConns(int(config.Db.MaxConn))
+	sqlDb.SetMaxOpenConns(int(config.Db.MaxConn))
 	if err != nil {
 		log.Println(err)
 		log.Fatal("could not connect to database")
 	}
-	defer db.Close()
+	defer sqlDb.Close()
 
 	// Migrate database schema
+	common.RunCustomPreMigrations(db, config)
 	runDatabaseMigrations()
-	runCustomMigrations()
+	common.RunCustomPostMigrations(db, config)
 
 	// Repositories
 	aliasRepository = repositories.NewAliasRepository(db)
 	heartbeatRepository = repositories.NewHeartbeatRepository(db)
 	userRepository = repositories.NewUserRepository(db)
-	customRuleRepository = repositories.NewCustomRuleRepository(db)
+	languageMappingRepository = repositories.NewLanguageMappingRepository(db)
 	summaryRepository = repositories.NewSummaryRepository(db)
 	keyValueRepository = repositories.NewKeyValueRepository(db)
 
 	// Services
 	aliasService = services.NewAliasService(aliasRepository)
-	heartbeatService = services.NewHeartbeatService(heartbeatRepository)
 	userService = services.NewUserService(userRepository)
-	customRuleService = services.NewCustomRuleService(customRuleRepository)
-	summaryService = services.NewSummaryService(summaryRepository, heartbeatService, aliasService, customRuleService)
+	languageMappingService = services.NewLanguageMappingService(languageMappingRepository)
+	heartbeatService = services.NewHeartbeatService(heartbeatRepository, languageMappingService)
+	summaryService = services.NewSummaryService(summaryRepository, heartbeatService, aliasService)
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
 	keyValueService = services.NewKeyValueService(keyValueRepository)
 
@@ -110,8 +111,8 @@ func main() {
 	// Handlers
 	summaryHandler := routes.NewSummaryHandler(summaryService)
 	healthHandler := routes.NewHealthHandler(db)
-	heartbeatHandler := routes.NewHeartbeatHandler(heartbeatService, customRuleService)
-	settingsHandler := routes.NewSettingsHandler(userService, customRuleService)
+	heartbeatHandler := routes.NewHeartbeatHandler(heartbeatService, languageMappingService)
+	settingsHandler := routes.NewSettingsHandler(userService, languageMappingService)
 	publicHandler := routes.NewIndexHandler(userService, keyValueService)
 	wakatimeV1AllHandler := wtV1Routes.NewAllTimeHandler(summaryService)
 	wakatimeV1SummariesHandler := wtV1Routes.NewSummariesHandler(summaryService)
@@ -156,8 +157,8 @@ func main() {
 	// Settings Routes
 	settingsRouter.Methods(http.MethodGet).HandlerFunc(settingsHandler.GetIndex)
 	settingsRouter.Path("/credentials").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostCredentials)
-	settingsRouter.Path("/customrules").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostCreateCustomRule)
-	settingsRouter.Path("/customrules/delete").Methods(http.MethodPost).HandlerFunc(settingsHandler.DeleteCustomRule)
+	settingsRouter.Path("/language_mappings").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostCreateLanguageMapping)
+	settingsRouter.Path("/language_mappings/delete").Methods(http.MethodPost).HandlerFunc(settingsHandler.DeleteLanguageMapping)
 	settingsRouter.Path("/reset").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostResetApiKey)
 	settingsRouter.Path("/badges").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostToggleBadges)
 
@@ -192,11 +193,6 @@ func runDatabaseMigrations() {
 	if err := config.GetMigrationFunc(config.Db.Dialect)(db); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func runCustomMigrations() {
-	common.ApplyFixtures(db)
-	common.MigrateLanguages(db)
 }
 
 func promptAbort(message string, timeoutSec int) {

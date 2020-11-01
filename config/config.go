@@ -3,11 +3,15 @@ package config
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
-	"github.com/jinzhu/gorm"
 	"github.com/muety/wakapi/models"
 	migrate "github.com/rubenv/sql-migrate"
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 	"io/ioutil"
 	"log"
 	"os"
@@ -75,31 +79,16 @@ func (c *Config) IsDev() bool {
 
 func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
 	switch dbDialect {
-	case "sqlite3":
-		return func(db *gorm.DB) error {
-			migrations := &migrate.FileMigrationSource{
-				Dir: "migrations/sqlite3",
-			}
-
-			migrate.SetIgnoreUnknown(true)
-			n, err := migrate.Exec(db.DB(), "sqlite3", migrations, migrate.Up)
-			if err != nil {
-				return err
-			}
-
-			log.Printf("applied %d migrations\n", n)
-			return nil
-		}
 	default:
 		return func(db *gorm.DB) error {
 			db.AutoMigrate(&models.Alias{})
 			db.AutoMigrate(&models.Summary{})
 			db.AutoMigrate(&models.SummaryItem{})
 			db.AutoMigrate(&models.User{})
-			db.AutoMigrate(&models.Heartbeat{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
-			db.AutoMigrate(&models.SummaryItem{}).AddForeignKey("summary_id", "summaries(id)", "CASCADE", "CASCADE")
+			db.AutoMigrate(&models.Heartbeat{})
+			db.AutoMigrate(&models.SummaryItem{})
 			db.AutoMigrate(&models.KeyStringValue{})
-			db.AutoMigrate(&models.CustomRule{})
+			db.AutoMigrate(&models.LanguageMapping{})
 			return nil
 		}
 	}
@@ -112,7 +101,8 @@ func (c *Config) GetFixturesFunc(dbDialect string) models.MigrationFunc {
 		}
 
 		migrate.SetIgnoreUnknown(true)
-		n, err := migrate.Exec(db.DB(), dbDialect, migrations, migrate.Up)
+		sqlDb, _ := db.DB()
+		n, err := migrate.Exec(sqlDb, dbDialect, migrations, migrate.Up)
 		if err != nil {
 			return err
 		}
@@ -120,6 +110,50 @@ func (c *Config) GetFixturesFunc(dbDialect string) models.MigrationFunc {
 		log.Printf("applied %d fixtures\n", n)
 		return nil
 	}
+}
+
+func (c *dbConfig) GetDialector() gorm.Dialector {
+	switch c.Dialect {
+	case "mysql":
+		return mysql.New(mysql.Config{
+			DriverName: c.Dialect,
+			DSN:        mysqlConnectionString(c),
+		})
+	case "postgres":
+		return postgres.New(postgres.Config{
+			DriverName: c.Dialect,
+			DSN:        mysqlConnectionString(c),
+		})
+	case "sqlite3":
+		return sqlite.Open(sqliteConnectionString(c))
+	}
+	return nil
+}
+
+func mysqlConnectionString(config *dbConfig) string {
+	//location, _ := time.LoadLocation("Local")
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
+		config.User,
+		config.Password,
+		config.Host,
+		config.Port,
+		config.Name,
+		"Local",
+	)
+}
+
+func postgresConnectionString(config *dbConfig) string {
+	return fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable",
+		config.Host,
+		config.Port,
+		config.User,
+		config.Name,
+		config.Password,
+	)
+}
+
+func sqliteConnectionString(config *dbConfig) string {
+	return config.Name
 }
 
 func IsDev(env string) bool {

@@ -16,14 +16,16 @@ const (
 )
 
 type HeartbeatService struct {
-	config     *config.Config
-	repository *repositories.HeartbeatRepository
+	config              *config.Config
+	repository          *repositories.HeartbeatRepository
+	languageMappingSrvc *LanguageMappingService
 }
 
-func NewHeartbeatService(heartbeatRepo *repositories.HeartbeatRepository) *HeartbeatService {
+func NewHeartbeatService(heartbeatRepo *repositories.HeartbeatRepository, languageMappingService *LanguageMappingService) *HeartbeatService {
 	return &HeartbeatService{
-		config:     config.Get(),
-		repository: heartbeatRepo,
+		config:              config.Get(),
+		repository:          heartbeatRepo,
+		languageMappingSrvc: languageMappingService,
 	}
 }
 
@@ -32,7 +34,11 @@ func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {
 }
 
 func (srv *HeartbeatService) GetAllWithin(from, to time.Time, user *models.User) ([]*models.Heartbeat, error) {
-	return srv.repository.GetAllWithin(from, to, user)
+	heartbeats, err := srv.repository.GetAllWithin(from, to, user)
+	if err != nil {
+		return nil, err
+	}
+	return srv.augmented(heartbeats, user.ID)
 }
 
 func (srv *HeartbeatService) GetFirstUserHeartbeats(userIds []string) ([]*models.Heartbeat, error) {
@@ -58,4 +64,17 @@ func (srv *HeartbeatService) ScheduleCleanUp() {
 
 	gocron.Every(1).Day().At("02:30").Do(srv.CleanUp)
 	<-gocron.Start()
+}
+
+func (srv *HeartbeatService) augmented(heartbeats []*models.Heartbeat, userId string) ([]*models.Heartbeat, error) {
+	languageMapping, err := srv.languageMappingSrvc.ResolveByUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range heartbeats {
+		heartbeats[i].Augment(languageMapping)
+	}
+
+	return heartbeats, nil
 }

@@ -2,8 +2,8 @@ package repositories
 
 import (
 	"errors"
-	"github.com/jinzhu/gorm"
 	"github.com/muety/wakapi/models"
+	"gorm.io/gorm"
 )
 
 type KeyValueRepository struct {

@@ -2,7 +2,7 @@ package routes
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -16,8 +16,10 @@ func NewHealthHandler(db *gorm.DB) *HealthHandler {
 
 func (h *HealthHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 	var dbStatus int
-	if err := h.db.DB().Ping(); err == nil {
-		dbStatus = 1
+	if sqlDb, err := h.db.DB(); err == nil {
+		if err := sqlDb.Ping(); err == nil {
+			dbStatus = 1
+		}
 	}
 
 	w.Header().Set("Content-Type", "text/plain")

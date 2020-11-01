@@ -2,7 +2,7 @@ package routes
 
 import (
 	"encoding/json"
-	config2 "github.com/muety/wakapi/config"
+	conf "github.com/muety/wakapi/config"
 	"net/http"
 	"os"
 
@@ -13,16 +13,16 @@ import (
 )
 
 type HeartbeatHandler struct {
-	config         *config2.Config
-	heartbeatSrvc  *services.HeartbeatService
-	customRuleSrvc *services.CustomRuleService
+	config              *conf.Config
+	heartbeatSrvc       *services.HeartbeatService
+	languageMappingSrvc *services.LanguageMappingService
 }
 
-func NewHeartbeatHandler(heartbeatService *services.HeartbeatService, customRuleService *services.CustomRuleService) *HeartbeatHandler {
+func NewHeartbeatHandler(heartbeatService *services.HeartbeatService, languageMappingService *services.LanguageMappingService) *HeartbeatHandler {
 	return &HeartbeatHandler{
-		config:         config2.Get(),
-		heartbeatSrvc:  heartbeatService,
-		customRuleSrvc: customRuleService,
+		config:              conf.Get(),
+		heartbeatSrvc:       heartbeatService,
+		languageMappingSrvc: languageMappingService,
 	}
 }
 
@@ -43,12 +43,12 @@ func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rules, err := h.customRuleSrvc.GetCustomRuleForUser(user.ID)
+	/*languageMappings, err := h.languageMappingSrvc.ResolveByUser(user.ID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
-	}
+	}*/
 
 	for _, hb := range heartbeats {
 		hb.OperatingSystem = opSys
@@ -56,8 +56,6 @@ func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
 		hb.Machine = machineName
 		hb.User = user
 		hb.UserID = user.ID
-		hb.AugmentWithConfigRules(h.config.App.CustomLanguages)
-		hb.AugmentWithUserRules(rules)
 
 		if !hb.Valid() {
 			w.WriteHeader(http.StatusBadRequest)

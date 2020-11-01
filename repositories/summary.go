@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/muety/wakapi/models"
+	"gorm.io/gorm"
 	"time"
 )
 

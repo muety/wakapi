@@ -68,23 +68,23 @@
 
         <div class="w-full mt-4 mb-8 pb-8">
             <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
-                Custom Rules
+                Language Mappings
             </div>
             
             <div class="text-gray-300 text-sm mb-4 mt-6">
-                Custom rules modify future coding activity, they’re useful for correcting languages displayed wrong on your dashboard.
+                You can specify custom mapping from file extensions to programming languages (e.g. a <span class="text-xs bg-gray-900 rounded py-1 px-2 font-mono">.jsx</span> file could be mapped to <span class="text-xs bg-gray-900 rounded py-1 px-2 font-mono">React</span>.
             </div>
 
-            {{ if .Rules }}
-            {{ range $i, $rule := .Rules }}
+            {{ if .LanguageMappings }}
+            {{ range $i, $mapping := .LanguageMappings }}
             <div class="text-white border-1 w-full border-green-700 inline-block my-1 py-1 text-align">
                 <label class="inline-block text-sm mb-1 text-gray-500" >When filename ends in:</label>
-                {{ $rule.Extension }}
+                {{ $mapping.Extension }}
                 <label class="inline-block text-sm mb-1 text-gray-500" >Change the language to:</label>
-                {{ $rule.Language }}
+                {{ $mapping.Language }}
 
-                <form class="float-right" action="settings/customrules/delete" method="post">
-                    <input type="hidden" id="ruleid" name="ruleid" required value="{{ $rule.ID }}">
+                <form class="float-right" action="settings/language_mappings/delete" method="post">
+                    <input type="hidden" id="mapping_id" name="mapping_id" required value="{{ $mapping.ID }}">
                     <button type="submit" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm">
                         Remove
                     </button>
@@ -97,12 +97,12 @@
             </div>
             {{end}}
 
-            <form action="settings/customrules" method="post">
+            <form action="settings/language_mappings" method="post">
                 <div class="inline-block justify-around mt-4 w-full">
                     <label class="inline-block text-sm mb-1 text-gray-500" for="extension">When filename ends in:</label>
                     <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
                            type="text" id="extension"
-                           name="extension" placeholder="py" minlength="1" required>
+                           name="extension" placeholder=".py" minlength="1" required>
                 </div>
                 <div class="inline-block justify-around mt-4 w-full">
                     <label class="inline-block text-sm mb-1 text-gray-500" for="language">Change the language to:</label>
@@ -112,7 +112,7 @@
                 </div>
                 <div class="flex justify-between float-right">
                     <button type="submit" class="py-1 px-3 my-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
-                        Add rule
+                        Add
                     </button>
                 </div>
             </form>

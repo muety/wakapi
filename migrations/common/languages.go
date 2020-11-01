@@ -1,9 +1,9 @@
 package common
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"gorm.io/gorm"
 	"log"
 )
 

@@ -17,22 +17,20 @@ import (
 const HeartbeatDiffThreshold = 2 * time.Minute
 
 type SummaryService struct {
-	config            *config.Config
-	cache             *cache.Cache
-	repository        *repositories.SummaryRepository
-	heartbeatService  *HeartbeatService
-	aliasService      *AliasService
-	customRuleService *CustomRuleService
+	config           *config.Config
+	cache            *cache.Cache
+	repository       *repositories.SummaryRepository
+	heartbeatService *HeartbeatService
+	aliasService     *AliasService
 }
 
-func NewSummaryService(summaryRepo *repositories.SummaryRepository, heartbeatService *HeartbeatService, aliasService *AliasService, customRuleService *CustomRuleService) *SummaryService {
+func NewSummaryService(summaryRepo *repositories.SummaryRepository, heartbeatService *HeartbeatService, aliasService *AliasService) *SummaryService {
 	return &SummaryService{
-		config:            config.Get(),
-		cache:             cache.New(24*time.Hour, 24*time.Hour),
-		repository:        summaryRepo,
-		heartbeatService:  heartbeatService,
-		aliasService:      aliasService,
-		customRuleService: customRuleService,
+		config:           config.Get(),
+		cache:            cache.New(24*time.Hour, 24*time.Hour),
+		repository:       summaryRepo,
+		heartbeatService: heartbeatService,
+		aliasService:     aliasService,
 	}
 }
 

@@ -1,9 +1,8 @@
 package repositories
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/muety/wakapi/models"
-	gormbulk "github.com/t-tiger/gorm-bulk-insert"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -16,12 +15,7 @@ func NewHeartbeatRepository(db *gorm.DB) *HeartbeatRepository {
 }
 
 func (r *HeartbeatRepository) InsertBatch(heartbeats []*models.Heartbeat) error {
-	var batch []interface{}
-	for _, h := range heartbeats {
-		batch = append(batch, *h)
-	}
-
-	if err := gormbulk.BulkInsert(r.db, batch, 3000); err != nil {
+	if err := r.db.Create(&heartbeats).Error; err != nil {
 		return err
 	}
 	return nil

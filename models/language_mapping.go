@@ -1,10 +1,10 @@
 package models
 
-type CustomRule struct {
+type LanguageMapping struct {
 	ID        uint   `json:"id" gorm:"primary_key"`
 	User      *User  `json:"-" gorm:"not null"`
-	UserID    string `json:"-" gorm:"not null; index:idx_customrule_user"`
-	Extension string `json:"extension"`
+	UserID    string `json:"-" gorm:"not null; index:idx_language_mapping_user; uniqueIndex:idx_language_mapping_composite"`
+	Extension string `json:"extension" gorm:"uniqueIndex:idx_language_mapping_composite"`
 	Language  string `json:"language"`
 }
 
