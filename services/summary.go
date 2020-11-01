@@ -189,6 +189,14 @@ func (srv *SummaryService) PostProcess(summary *models.Summary) *models.Summary 
 			if key, _ := srv.AliasService.GetAliasOrDefault(summary.UserID, item.Type, item.Key); key != item.Key {
 				if targetItem := findItem(key); targetItem != nil {
 					targetItem.Total += item.Total
+				} else {
+					target = append(target, &models.SummaryItem{
+						ID:        item.ID,
+						SummaryID: item.SummaryID,
+						Type:      item.Type,
+						Key:       key,
+						Total:     item.Total,
+					})
 				}
 			}
 		}
