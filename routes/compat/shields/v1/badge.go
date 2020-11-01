@@ -70,6 +70,8 @@ func (h *BadgeHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 		filters = models.NewFiltersWith(models.SummaryLanguage, filterKey)
 	case "machine":
 		filters = models.NewFiltersWith(models.SummaryMachine, filterKey)
+	default:
+		filters = &models.Filters{}
 	}
 
 	summary, err, status := h.loadUserSummary(user, interval)

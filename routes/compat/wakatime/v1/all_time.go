@@ -43,7 +43,7 @@ func (h *AllTimeHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vm := v1.NewAllTimeFrom(summary, &models.Filters{Project: values.Get("project")})
+	vm := v1.NewAllTimeFrom(summary, models.NewFiltersWith(models.SummaryProject, values.Get("project")))
 	utils.RespondJSON(w, http.StatusOK, vm)
 }
 

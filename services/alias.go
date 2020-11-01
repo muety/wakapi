@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"github.com/muety/wakapi/config"
 	"sync"
 
@@ -36,15 +35,19 @@ func (srv *AliasService) LoadUserAliases(userId string) error {
 }
 
 func (srv *AliasService) GetAliasOrDefault(userId string, summaryType uint8, value string) (string, error) {
-	if ua, ok := userAliases.Load(userId); ok {
-		for _, a := range ua.([]*models.Alias) {
-			if a.Type == summaryType && a.Value == value {
-				return a.Key, nil
-			}
+	if !srv.IsInitialized(userId) {
+		if err := srv.LoadUserAliases(userId); err != nil {
+			return "", err
 		}
-		return value, nil
 	}
-	return "", errors.New("user aliases not initialized")
+
+	aliases, _ := userAliases.Load(userId)
+	for _, a := range aliases.([]*models.Alias) {
+		if a.Type == summaryType && a.Value == value {
+			return a.Key, nil
+		}
+	}
+	return value, nil
 }
 
 func (srv *AliasService) IsInitialized(userId string) bool {
