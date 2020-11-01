@@ -124,7 +124,13 @@ func (h *SettingsHandler) DeleteCustomRule(w http.ResponseWriter, r *http.Reques
 		ID:     uint(ruleId),
 		UserID: user.ID,
 	}
-	h.customRuleSrvc.Delete(rule)
+
+	err = h.customRuleSrvc.Delete(rule)
+	if err != nil {
+		respondAlert(w, "internal server error", "", conf.SettingsTemplate, http.StatusInternalServerError)
+		return
+	}
+
 	msg := url.QueryEscape("Custom rule deleted successfully.")
 
 	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.Server.BasePath, msg), http.StatusFound)

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/jasonlvhit/gocron"
-	"github.com/jinzhu/gorm"
 	"github.com/muety/wakapi/models"
 )
 
@@ -16,20 +15,18 @@ const (
 )
 
 type AggregationService struct {
-	Config           *config.Config
-	Db               *gorm.DB
-	UserService      *UserService
-	SummaryService   *SummaryService
-	HeartbeatService *HeartbeatService
+	config           *config.Config
+	userService      *UserService
+	summaryService   *SummaryService
+	heartbeatService *HeartbeatService
 }
 
-func NewAggregationService(db *gorm.DB, userService *UserService, summaryService *SummaryService, heartbeatService *HeartbeatService) *AggregationService {
+func NewAggregationService(userService *UserService, summaryService *SummaryService, heartbeatService *HeartbeatService) *AggregationService {
 	return &AggregationService{
-		Config:           config.Get(),
-		Db:               db,
-		UserService:      userService,
-		SummaryService:   summaryService,
-		HeartbeatService: heartbeatService,
+		config:           config.Get(),
+		userService:      userService,
+		summaryService:   summaryService,
+		heartbeatService: heartbeatService,
 	}
 }
 
@@ -50,20 +47,20 @@ func (srv *AggregationService) Schedule() {
 		go srv.summaryWorker(jobs, summaries)
 	}
 
-	for i := 0; i < int(srv.Config.Db.MaxConn); i++ {
+	for i := 0; i < int(srv.config.Db.MaxConn); i++ {
 		go srv.persistWorker(summaries)
 	}
 
 	// Run once initially
 	srv.trigger(jobs)
 
-	gocron.Every(1).Day().At(srv.Config.App.AggregationTime).Do(srv.trigger, jobs)
+	gocron.Every(1).Day().At(srv.config.App.AggregationTime).Do(srv.trigger, jobs)
 	<-gocron.Start()
 }
 
 func (srv *AggregationService) summaryWorker(jobs <-chan *AggregationJob, summaries chan<- *models.Summary) {
 	for job := range jobs {
-		if summary, err := srv.SummaryService.Construct(job.From, job.To, &models.User{ID: job.UserID}, true); err != nil {
+		if summary, err := srv.summaryService.Construct(job.From, job.To, &models.User{ID: job.UserID}, true); err != nil {
 			log.Printf("Failed to generate summary (%v, %v, %s) – %v.\n", job.From, job.To, job.UserID, err)
 		} else {
 			log.Printf("Successfully generated summary (%v, %v, %s).\n", job.From, job.To, job.UserID)
@@ -74,7 +71,7 @@ func (srv *AggregationService) summaryWorker(jobs <-chan *AggregationJob, summar
 
 func (srv *AggregationService) persistWorker(summaries <-chan *models.Summary) {
 	for summary := range summaries {
-		if err := srv.SummaryService.Insert(summary); err != nil {
+		if err := srv.summaryService.Insert(summary); err != nil {
 			log.Printf("Failed to save summary (%v, %v, %s) – %v.\n", summary.UserID, summary.FromTime, summary.ToTime, err)
 		}
 	}
@@ -83,13 +80,13 @@ func (srv *AggregationService) persistWorker(summaries <-chan *models.Summary) {
 func (srv *AggregationService) trigger(jobs chan<- *AggregationJob) error {
 	log.Println("Generating summaries.")
 
-	users, err := srv.UserService.GetAll()
+	users, err := srv.userService.GetAll()
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 
-	latestSummaries, err := srv.SummaryService.GetLatestByUser()
+	latestSummaries, err := srv.summaryService.GetLatestByUser()
 	if err != nil {
 		log.Println(err)
 		return err
@@ -107,7 +104,7 @@ func (srv *AggregationService) trigger(jobs chan<- *AggregationJob) error {
 		}
 	}
 
-	firstHeartbeats, err := srv.HeartbeatService.GetFirstUserHeartbeats(missingUserIDs)
+	firstHeartbeats, err := srv.heartbeatService.GetFirstUserHeartbeats(missingUserIDs)
 	if err != nil {
 		log.Println(err)
 		return err

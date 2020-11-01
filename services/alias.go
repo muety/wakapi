@@ -2,36 +2,32 @@ package services
 
 import (
 	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/repositories"
 	"sync"
 
-	"github.com/jinzhu/gorm"
 	"github.com/muety/wakapi/models"
 )
 
 type AliasService struct {
-	Config *config.Config
-	Db     *gorm.DB
+	config     *config.Config
+	repository *repositories.AliasRepository
 }
 
-func NewAliasService(db *gorm.DB) *AliasService {
+func NewAliasService(aliasRepo *repositories.AliasRepository) *AliasService {
 	return &AliasService{
-		Config: config.Get(),
-		Db:     db,
+		config:     config.Get(),
+		repository: aliasRepo,
 	}
 }
 
 var userAliases sync.Map
 
 func (srv *AliasService) LoadUserAliases(userId string) error {
-	var aliases []*models.Alias
-	if err := srv.Db.
-		Where(&models.Alias{UserID: userId}).
-		Find(&aliases).Error; err != nil {
-		return err
+	aliases, err := srv.repository.GetByUser(userId)
+	if err == nil {
+		userAliases.Store(userId, aliases)
 	}
-
-	userAliases.Store(userId, aliases)
-	return nil
+	return err
 }
 
 func (srv *AliasService) GetAliasOrDefault(userId string, summaryType uint8, value string) (string, error) {

@@ -4,6 +4,7 @@ import (
 	"github.com/gorilla/handlers"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/migrations/common"
+	"github.com/muety/wakapi/repositories"
 	"log"
 	"net/http"
 	"strconv"
@@ -25,6 +26,15 @@ import (
 var (
 	db     *gorm.DB
 	config *conf.Config
+)
+
+var (
+	aliasRepository      *repositories.AliasRepository
+	heartbeatRepository  *repositories.HeartbeatRepository
+	userRepository       *repositories.UserRepository
+	customRuleRepository *repositories.CustomRuleRepository
+	summaryRepository    *repositories.SummaryRepository
+	keyValueRepository   *repositories.KeyValueRepository
 )
 
 var (
@@ -71,14 +81,22 @@ func main() {
 	runDatabaseMigrations()
 	runCustomMigrations()
 
+	// Repositories
+	aliasRepository = repositories.NewAliasRepository(db)
+	heartbeatRepository = repositories.NewHeartbeatRepository(db)
+	userRepository = repositories.NewUserRepository(db)
+	customRuleRepository = repositories.NewCustomRuleRepository(db)
+	summaryRepository = repositories.NewSummaryRepository(db)
+	keyValueRepository = repositories.NewKeyValueRepository(db)
+
 	// Services
-	aliasService = services.NewAliasService(db)
-	heartbeatService = services.NewHeartbeatService(db)
-	userService = services.NewUserService(db)
-	customRuleService = services.NewCustomRuleService(db)
-	summaryService = services.NewSummaryService(db, heartbeatService, aliasService, customRuleService)
-	aggregationService = services.NewAggregationService(db, userService, summaryService, heartbeatService)
-	keyValueService = services.NewKeyValueService(db)
+	aliasService = services.NewAliasService(aliasRepository)
+	heartbeatService = services.NewHeartbeatService(heartbeatRepository)
+	userService = services.NewUserService(userRepository)
+	customRuleService = services.NewCustomRuleService(customRuleRepository)
+	summaryService = services.NewSummaryService(summaryRepository, heartbeatService, aliasService, customRuleService)
+	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
+	keyValueService = services.NewKeyValueService(keyValueRepository)
 
 	// Aggregate heartbeats to summaries and persist them
 	go aggregationService.Schedule()

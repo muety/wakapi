@@ -1,63 +1,31 @@
 package services
 
 import (
-	"errors"
-	"github.com/jinzhu/gorm"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/repositories"
 )
 
 type KeyValueService struct {
-	Config *config.Config
-	Db     *gorm.DB
+	config     *config.Config
+	repository *repositories.KeyValueRepository
 }
 
-func NewKeyValueService(db *gorm.DB) *KeyValueService {
+func NewKeyValueService(keyValueRepo *repositories.KeyValueRepository) *KeyValueService {
 	return &KeyValueService{
-		Config: config.Get(),
-		Db:     db,
+		config:     config.Get(),
+		repository: keyValueRepo,
 	}
 }
 
 func (srv *KeyValueService) GetString(key string) (*models.KeyStringValue, error) {
-	kv := &models.KeyStringValue{}
-	if err := srv.Db.
-		Where(&models.KeyStringValue{Key: key}).
-		First(&kv).Error; err != nil {
-		return nil, err
-	}
-
-	return kv, nil
+	return srv.repository.GetString(key)
 }
 
 func (srv *KeyValueService) PutString(kv *models.KeyStringValue) error {
-	result := srv.Db.
-		Where(&models.KeyStringValue{Key: kv.Key}).
-		Assign(kv).
-		FirstOrCreate(kv)
-
-	if err := result.Error; err != nil {
-		return err
-	}
-
-	if result.RowsAffected != 1 {
-		return errors.New("nothing updated")
-	}
-
-	return nil
+	return srv.repository.PutString(kv)
 }
 
 func (srv *KeyValueService) DeleteString(key string) error {
-	result := srv.Db.
-		Delete(&models.KeyStringValue{}, &models.KeyStringValue{Key: key})
-
-	if err := result.Error; err != nil {
-		return err
-	}
-
-	if result.RowsAffected != 1 {
-		return errors.New("nothing deleted")
-	}
-
-	return nil
+	return srv.repository.DeleteString(key)
 }

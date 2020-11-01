@@ -4,35 +4,35 @@ import (
 	"crypto/md5"
 	"errors"
 	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/repositories"
 	"github.com/patrickmn/go-cache"
 	"math"
 	"sort"
 	"strconv"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/muety/wakapi/models"
 )
 
 const HeartbeatDiffThreshold = 2 * time.Minute
 
 type SummaryService struct {
-	Config            *config.Config
-	Cache             *cache.Cache
-	Db                *gorm.DB
-	HeartbeatService  *HeartbeatService
-	AliasService      *AliasService
-	CustomRuleService *CustomRuleService
+	config            *config.Config
+	cache             *cache.Cache
+	repository        *repositories.SummaryRepository
+	heartbeatService  *HeartbeatService
+	aliasService      *AliasService
+	customRuleService *CustomRuleService
 }
 
-func NewSummaryService(db *gorm.DB, heartbeatService *HeartbeatService, aliasService *AliasService, customRuleService *CustomRuleService) *SummaryService {
+func NewSummaryService(summaryRepo *repositories.SummaryRepository, heartbeatService *HeartbeatService, aliasService *AliasService, customRuleService *CustomRuleService) *SummaryService {
 	return &SummaryService{
-		Config:            config.Get(),
-		Cache:             cache.New(24*time.Hour, 24*time.Hour),
-		Db:                db,
-		HeartbeatService:  heartbeatService,
-		AliasService:      aliasService,
-		CustomRuleService: customRuleService,
+		config:            config.Get(),
+		cache:             cache.New(24*time.Hour, 24*time.Hour),
+		repository:        summaryRepo,
+		heartbeatService:  heartbeatService,
+		aliasService:      aliasService,
+		customRuleService: customRuleService,
 	}
 }
 
@@ -50,7 +50,7 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User, reco
 		existingSummaries = make([]*models.Summary, 0)
 	} else {
 		cacheKey = getHash([]time.Time{from, to}, user)
-		if result, ok := srv.Cache.Get(cacheKey); ok {
+		if result, ok := srv.cache.Get(cacheKey); ok {
 			return result.(*models.Summary), nil
 		}
 		summaries, err := srv.GetByUserWithin(user, from, to)
@@ -64,7 +64,7 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User, reco
 
 	heartbeats := make([]*models.Heartbeat, 0)
 	for _, interval := range missingIntervals {
-		hb, err := srv.HeartbeatService.GetAllWithin(interval.Start, interval.End, user)
+		hb, err := srv.heartbeatService.GetAllWithin(interval.Start, interval.End, user)
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +79,7 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User, reco
 	var osItems []*models.SummaryItem
 	var machineItems []*models.SummaryItem
 
-	if err := srv.AliasService.LoadUserAliases(user.ID); err != nil {
+	if err := srv.aliasService.LoadUserAliases(user.ID); err != nil {
 		return nil, err
 	}
 
@@ -144,7 +144,7 @@ func (srv *SummaryService) Construct(from, to time.Time, user *models.User, reco
 	}
 
 	if cacheKey != "" {
-		srv.Cache.SetDefault(cacheKey, summary)
+		srv.cache.SetDefault(cacheKey, summary)
 	}
 
 	return summary, nil
@@ -179,14 +179,14 @@ func (srv *SummaryService) PostProcess(summary *models.Summary) *models.Summary 
 
 		for _, item := range origin {
 			// Add all "top-level" items, i.e. such without aliases
-			if key, _ := srv.AliasService.GetAliasOrDefault(summary.UserID, item.Type, item.Key); key == item.Key {
+			if key, _ := srv.aliasService.GetAliasOrDefault(summary.UserID, item.Type, item.Key); key == item.Key {
 				target = append(target, item)
 			}
 		}
 
 		for _, item := range origin {
 			// Add all remaining projects and merge with their alias
-			if key, _ := srv.AliasService.GetAliasOrDefault(summary.UserID, item.Type, item.Key); key != item.Key {
+			if key, _ := srv.aliasService.GetAliasOrDefault(summary.UserID, item.Type, item.Key); key != item.Key {
 				if targetItem := findItem(key); targetItem != nil {
 					targetItem.Total += item.Total
 				} else {
@@ -215,41 +215,16 @@ func (srv *SummaryService) PostProcess(summary *models.Summary) *models.Summary 
 }
 
 func (srv *SummaryService) Insert(summary *models.Summary) error {
-	if err := srv.Db.Create(summary).Error; err != nil {
-		return err
-	}
-	return nil
+	return srv.repository.Insert(summary)
 }
 
 func (srv *SummaryService) GetByUserWithin(user *models.User, from, to time.Time) ([]*models.Summary, error) {
-	var summaries []*models.Summary
-	if err := srv.Db.
-		Where(&models.Summary{UserID: user.ID}).
-		Where("from_time >= ?", from).
-		Where("to_time <= ?", to).
-		Order("from_time asc").
-		Preload("Projects", "type = ?", models.SummaryProject).
-		Preload("Languages", "type = ?", models.SummaryLanguage).
-		Preload("Editors", "type = ?", models.SummaryEditor).
-		Preload("OperatingSystems", "type = ?", models.SummaryOS).
-		Preload("Machines", "type = ?", models.SummaryMachine).
-		Find(&summaries).Error; err != nil {
-		return nil, err
-	}
-	return summaries, nil
+	return srv.repository.GetByUserWithin(user, from, to)
 }
 
 // Will return *models.Index objects with only user_id and to_time filled
 func (srv *SummaryService) GetLatestByUser() ([]*models.Summary, error) {
-	var summaries []*models.Summary
-	if err := srv.Db.
-		Table("summaries").
-		Select("user_id, max(to_time) as to_time").
-		Group("user_id").
-		Scan(&summaries).Error; err != nil {
-		return nil, err
-	}
-	return summaries, nil
+	return srv.repository.GetLatestByUser()
 }
 
 func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryType uint8, user *models.User, c chan models.SummaryItemContainer) {

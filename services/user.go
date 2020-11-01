@@ -1,50 +1,35 @@
 package services
 
 import (
-	"errors"
-	"github.com/jinzhu/gorm"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	uuid "github.com/satori/go.uuid"
 )
 
 type UserService struct {
-	Config *config.Config
-	Db     *gorm.DB
+	Config     *config.Config
+	repository *repositories.UserRepository
 }
 
-func NewUserService(db *gorm.DB) *UserService {
+func NewUserService(userRepo *repositories.UserRepository) *UserService {
 	return &UserService{
-		Config: config.Get(),
-		Db:     db,
+		Config:     config.Get(),
+		repository: userRepo,
 	}
 }
 
 func (srv *UserService) GetUserById(userId string) (*models.User, error) {
-	u := &models.User{}
-	if err := srv.Db.Where(&models.User{ID: userId}).First(u).Error; err != nil {
-		return u, err
-	}
-	return u, nil
+	return srv.repository.GetById(userId)
 }
 
 func (srv *UserService) GetUserByKey(key string) (*models.User, error) {
-	u := &models.User{}
-	if err := srv.Db.Where(&models.User{ApiKey: key}).First(u).Error; err != nil {
-		return u, err
-	}
-	return u, nil
+	return srv.repository.GetByApiKey(key)
 }
 
 func (srv *UserService) GetAll() ([]*models.User, error) {
-	var users []*models.User
-	if err := srv.Db.
-		Table("users").
-		Find(&users).Error; err != nil {
-		return nil, err
-	}
-	return users, nil
+	return srv.repository.GetAll()
 }
 
 func (srv *UserService) CreateOrGet(signup *models.Signup) (*models.User, bool, error) {
@@ -60,29 +45,11 @@ func (srv *UserService) CreateOrGet(signup *models.Signup) (*models.User, bool, 
 		u.Password = hash
 	}
 
-	result := srv.Db.FirstOrCreate(u, &models.User{ID: u.ID})
-	if err := result.Error; err != nil {
-		return nil, false, err
-	}
-
-	if result.RowsAffected == 1 {
-		return u, true, nil
-	}
-
-	return u, false, nil
+	return srv.repository.InsertOrGet(u)
 }
 
 func (srv *UserService) Update(user *models.User) (*models.User, error) {
-	result := srv.Db.Model(&models.User{}).Updates(user)
-	if err := result.Error; err != nil {
-		return nil, err
-	}
-
-	if result.RowsAffected != 1 {
-		return nil, errors.New("nothing updated")
-	}
-
-	return user, nil
+	return srv.repository.Update(user)
 }
 
 func (srv *UserService) ResetApiKey(user *models.User) (*models.User, error) {
@@ -91,16 +58,7 @@ func (srv *UserService) ResetApiKey(user *models.User) (*models.User, error) {
 }
 
 func (srv *UserService) ToggleBadges(user *models.User) (*models.User, error) {
-	result := srv.Db.Model(user).Update("badges_enabled", !user.BadgesEnabled)
-	if err := result.Error; err != nil {
-		return nil, err
-	}
-
-	if result.RowsAffected != 1 {
-		return nil, errors.New("nothing updated")
-	}
-
-	return user, nil
+	return srv.repository.UpdateField(user, "badges_enabled", !user.BadgesEnabled)
 }
 
 func (srv *UserService) MigrateMd5Password(user *models.User, login *models.Login) (*models.User, error) {
@@ -110,13 +68,5 @@ func (srv *UserService) MigrateMd5Password(user *models.User, login *models.Logi
 	} else {
 		user.Password = hash
 	}
-
-	result := srv.Db.Model(user).Update("password", user.Password)
-	if err := result.Error; err != nil {
-		return nil, err
-	} else if result.RowsAffected < 1 {
-		return nil, errors.New("nothing changes")
-	}
-
-	return user, nil
+	return srv.repository.UpdateField(user, "password", user.Password)
 }
