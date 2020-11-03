@@ -121,8 +121,7 @@ func (c *dbConfig) GetDialector() gorm.Dialector {
 		})
 	case "postgres":
 		return postgres.New(postgres.Config{
-			DriverName: c.Dialect,
-			DSN:        mysqlConnectionString(c),
+			DSN: postgresConnectionString(c),
 		})
 	case "sqlite3":
 		return sqlite.Open(sqliteConnectionString(c))
