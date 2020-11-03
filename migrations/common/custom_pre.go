@@ -13,8 +13,18 @@ func init() {
 	customPreMigrations = []migrationFunc{
 		{
 			f: func(db *gorm.DB, cfg *config.Config) error {
-				if db.Migrator().HasTable("custom_rules") {
-					return db.Migrator().RenameTable("custom_rules", &models.LanguageMapping{})
+				migrator := db.Migrator()
+				oldTableName, newTableName := "custom_rules", "language_mappings"
+				oldIndexName, newIndexName := "idx_customrule_user", "idx_language_mapping_user"
+
+				if migrator.HasTable(oldTableName) {
+					log.Printf("renaming '%s' table to '%s'\n", oldTableName, newTableName)
+					if err := migrator.RenameTable(oldTableName, &models.LanguageMapping{}); err != nil {
+						return err
+					}
+
+					log.Printf("renaming '%s' index to '%s'\n", oldIndexName, newIndexName)
+					return migrator.RenameIndex(&models.LanguageMapping{}, oldIndexName, newIndexName)
 				}
 				return nil
 			},

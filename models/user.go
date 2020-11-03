@@ -6,7 +6,7 @@ type User struct {
 	Password       string     `json:"-"`
 	CreatedAt      CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP"`
 	LastLoggedInAt CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP"`
-	BadgesEnabled  bool       `json:"-" gorm:"not null; default:false; type: bool"`
+	BadgesEnabled  bool       `json:"-" gorm:"default:false; type:bool"`
 }
 
 type Login struct {

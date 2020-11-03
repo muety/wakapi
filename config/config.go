@@ -81,13 +81,12 @@ func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
 	switch dbDialect {
 	default:
 		return func(db *gorm.DB) error {
+			db.AutoMigrate(&models.User{})
+			db.AutoMigrate(&models.KeyStringValue{})
 			db.AutoMigrate(&models.Alias{})
+			db.AutoMigrate(&models.Heartbeat{})
 			db.AutoMigrate(&models.Summary{})
 			db.AutoMigrate(&models.SummaryItem{})
-			db.AutoMigrate(&models.User{})
-			db.AutoMigrate(&models.Heartbeat{})
-			db.AutoMigrate(&models.SummaryItem{})
-			db.AutoMigrate(&models.KeyStringValue{})
 			db.AutoMigrate(&models.LanguageMapping{})
 			return nil
 		}

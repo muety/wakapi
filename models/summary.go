@@ -35,6 +35,7 @@ const UnknownSummaryKey = "unknown"
 
 type Summary struct {
 	ID               uint           `json:"-" gorm:"primary_key"`
+	User             *User          `json:"-" gorm:"not null"`
 	UserID           string         `json:"user_id" gorm:"not null; index:idx_time_summary_user"`
 	FromTime         CustomTime     `json:"from" gorm:"not null; type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time_summary_user"`
 	ToTime           CustomTime     `json:"to" gorm:"not null; type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time_summary_user"`
@@ -47,6 +48,7 @@ type Summary struct {
 
 type SummaryItem struct {
 	ID        uint          `json:"-" gorm:"primary_key"`
+	Summary   *Summary      `json:"-" gorm:"not null"`
 	SummaryID uint          `json:"-"`
 	Type      uint8         `json:"-"`
 	Key       string        `json:"key"`
