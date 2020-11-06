@@ -35,20 +35,20 @@ const UnknownSummaryKey = "unknown"
 
 type Summary struct {
 	ID               uint           `json:"-" gorm:"primary_key"`
-	User             *User          `json:"-" gorm:"not null"`
+	User             *User          `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	UserID           string         `json:"user_id" gorm:"not null; index:idx_time_summary_user"`
 	FromTime         CustomTime     `json:"from" gorm:"not null; type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time_summary_user"`
 	ToTime           CustomTime     `json:"to" gorm:"not null; type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time_summary_user"`
-	Projects         []*SummaryItem `json:"projects"`
-	Languages        []*SummaryItem `json:"languages"`
-	Editors          []*SummaryItem `json:"editors"`
-	OperatingSystems []*SummaryItem `json:"operating_systems"`
-	Machines         []*SummaryItem `json:"machines"`
+	Projects         []*SummaryItem `json:"projects" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Languages        []*SummaryItem `json:"languages" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Editors          []*SummaryItem `json:"editors" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	OperatingSystems []*SummaryItem `json:"operating_systems" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Machines         []*SummaryItem `json:"machines" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 type SummaryItem struct {
 	ID        uint          `json:"-" gorm:"primary_key"`
-	Summary   *Summary      `json:"-" gorm:"not null"`
+	Summary   *Summary      `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	SummaryID uint          `json:"-"`
 	Type      uint8         `json:"-"`
 	Key       string        `json:"key"`

@@ -2,7 +2,7 @@ package models
 
 type LanguageMapping struct {
 	ID        uint   `json:"id" gorm:"primary_key"`
-	User      *User  `json:"-" gorm:"not null"`
+	User      *User  `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	UserID    string `json:"-" gorm:"not null; index:idx_language_mapping_user; uniqueIndex:idx_language_mapping_composite"`
 	Extension string `json:"extension" gorm:"uniqueIndex:idx_language_mapping_composite; type:varchar(16)"`
 	Language  string `json:"language" gorm:"type:varchar(64)"`

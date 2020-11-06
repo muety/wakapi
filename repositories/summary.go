@@ -51,3 +51,12 @@ func (r *SummaryRepository) GetLatestByUser() ([]*models.Summary, error) {
 	}
 	return summaries, nil
 }
+
+func (r *SummaryRepository) DeleteByUser(userId string) error {
+	if err := r.db.
+		Where("user_id = ?", userId).
+		Delete(models.Summary{}).Error; err != nil {
+		return err
+	}
+	return nil
+}

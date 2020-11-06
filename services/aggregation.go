@@ -38,10 +38,18 @@ type AggregationJob struct {
 
 // Schedule a job to (re-)generate summaries every day shortly after midnight
 func (srv *AggregationService) Schedule() {
+	// Run once initially
+	if err := srv.Run(nil); err != nil {
+		log.Fatalf("failed to run aggregation jobs: %v\n", err)
+	}
+
+	gocron.Every(1).Day().At(srv.config.App.AggregationTime).Do(srv.Run, nil)
+	<-gocron.Start()
+}
+
+func (srv *AggregationService) Run(userIds map[string]bool) error {
 	jobs := make(chan *AggregationJob)
 	summaries := make(chan *models.Summary)
-	defer close(jobs)
-	defer close(summaries)
 
 	for i := 0; i < runtime.NumCPU(); i++ {
 		go srv.summaryWorker(jobs, summaries)
@@ -51,11 +59,7 @@ func (srv *AggregationService) Schedule() {
 		go srv.persistWorker(summaries)
 	}
 
-	// Run once initially
-	srv.trigger(jobs)
-
-	gocron.Every(1).Day().At(srv.config.App.AggregationTime).Do(srv.trigger, jobs)
-	<-gocron.Start()
+	return srv.trigger(jobs, userIds)
 }
 
 func (srv *AggregationService) summaryWorker(jobs <-chan *AggregationJob, summaries chan<- *models.Summary) {
@@ -77,13 +81,22 @@ func (srv *AggregationService) persistWorker(summaries <-chan *models.Summary) {
 	}
 }
 
-func (srv *AggregationService) trigger(jobs chan<- *AggregationJob) error {
+func (srv *AggregationService) trigger(jobs chan<- *AggregationJob, userIds map[string]bool) error {
 	log.Println("Generating summaries.")
 
-	users, err := srv.userService.GetAll()
-	if err != nil {
+	var users []*models.User
+	if allUsers, err := srv.userService.GetAll(); err != nil {
 		log.Println(err)
 		return err
+	} else if userIds != nil && len(userIds) > 0 {
+		users = make([]*models.User, len(userIds))
+		for i, u := range allUsers {
+			if yes, ok := userIds[u.ID]; yes && ok {
+				users[i] = u
+			}
+		}
+	} else {
+		users = allUsers
 	}
 
 	latestSummaries, err := srv.summaryService.GetLatestByUser()

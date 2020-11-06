@@ -48,7 +48,7 @@
             </form>
         </div>
 
-        <div class="w-full mt-4 mb-8 pb-8">
+        <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700">
             <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
                 Reset API Key
             </div>
@@ -66,7 +66,7 @@
             </form>
         </div>
 
-        <div class="w-full mt-4 mb-8 pb-8">
+        <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700">
             <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
                 Language Mappings
             </div>
@@ -119,7 +119,7 @@
 
         </div>
 
-        <div class="w-full mt-4 mb-8 pb-8">
+        <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700">
             <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
                 Badges
             </div>
@@ -169,6 +169,34 @@
                 </div>
             </form>
         </div>
+
+        <div class="w-full mt-4 mb-8 pb-8">
+            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
+                ⚠️ Danger Zone
+            </div>
+            <div class="mt-10 text-gray-300 text-sm">
+                <h3 class="font-semibold text-md mb-4 border-b border-green-700 inline-block">
+                    Regenerate summaries
+                </h3>
+                <p>
+                    Wakapi improves its efficiency and speed by automatically aggregating individual heartbeats to summaries on a per-day basis.
+                    That is, historic summaries, i.e. such from past days, are generated once and only fetched from the database in a static fashion afterwards, unless you pass <span class="font-mono font-normal bg-gray-900 p-1 rounded whitespace-no-wrap">&recompute=true</span> with your request.
+                </p>
+                <p class="mt-2">
+                    If, for some reason, these aggregated summaries are faulty or preconditions have change (e.g. you modified language mappings retrospectively), you may want to re-generate them from raw heartbeats.
+                </p>
+                <p class="mt-2">
+                    <strong>Note:</strong> Only run this action if you know what you are doing. Data might be lost is case heartbeats were deleted after the respective summaries had been generated.
+                </p>
+            </div>
+            <div class="mt-10 flex justify-center">
+                <form action="settings/regenerate" method="post" id="form-regenerate-summaries">
+                    <button type="button" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm" id="btn-regenerate-summaries">
+                        Clear & Regenerate
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 </main>
 
@@ -181,6 +209,14 @@
     document.querySelectorAll('.with-url-inner').forEach(e => {
         e.innerHTML = e.innerHTML.replace('%s', baseUrl)
         e.classList.remove('hidden')
+    })
+
+    const btnRegenerate = document.querySelector("#btn-regenerate-summaries")
+    const formRegenerate = document.querySelector('#form-regenerate-summaries')
+    btnRegenerate.addEventListener('click', () => {
+        if (confirm('Are you sure?')) {
+            formRegenerate.submit()
+        }
     })
 </script>
 

@@ -1,12 +1,12 @@
 package models
 
 type User struct {
-	ID             string     `json:"id" gorm:"primary_key"`
-	ApiKey         string     `json:"api_key" gorm:"unique"`
-	Password       string     `json:"-"`
-	CreatedAt      CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP"`
-	LastLoggedInAt CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP"`
-	BadgesEnabled  bool       `json:"-" gorm:"default:false; type:bool"`
+	ID             string       `json:"id" gorm:"primary_key"`
+	ApiKey         string       `json:"api_key" gorm:"unique"`
+	Password       string       `json:"-"`
+	CreatedAt      CustomTime   `gorm:"type:timestamp; default:CURRENT_TIMESTAMP"`
+	LastLoggedInAt CustomTime   `gorm:"type:timestamp; default:CURRENT_TIMESTAMP"`
+	BadgesEnabled  bool         `json:"-" gorm:"default:false; type:bool"`
 }
 
 type Login struct {

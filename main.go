@@ -63,6 +63,9 @@ func main() {
 		db.Raw("PRAGMA foreign_keys = ON;")
 	}
 
+	if config.IsDev() {
+		db = db.Debug()
+	}
 	sqlDb, _ := db.DB()
 	sqlDb.SetMaxIdleConns(int(config.Db.MaxConn))
 	sqlDb.SetMaxOpenConns(int(config.Db.MaxConn))
@@ -103,7 +106,7 @@ func main() {
 	summaryHandler := routes.NewSummaryHandler(summaryService)
 	healthHandler := routes.NewHealthHandler(db)
 	heartbeatHandler := routes.NewHeartbeatHandler(heartbeatService, languageMappingService)
-	settingsHandler := routes.NewSettingsHandler(userService, languageMappingService)
+	settingsHandler := routes.NewSettingsHandler(userService, summaryService, aggregationService, languageMappingService)
 	publicHandler := routes.NewIndexHandler(userService, keyValueService)
 	wakatimeV1AllHandler := wtV1Routes.NewAllTimeHandler(summaryService)
 	wakatimeV1SummariesHandler := wtV1Routes.NewSummariesHandler(summaryService)
@@ -148,10 +151,11 @@ func main() {
 	// Settings Routes
 	settingsRouter.Methods(http.MethodGet).HandlerFunc(settingsHandler.GetIndex)
 	settingsRouter.Path("/credentials").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostCredentials)
-	settingsRouter.Path("/language_mappings").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostCreateLanguageMapping)
+	settingsRouter.Path("/language_mappings").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostLanguageMapping)
 	settingsRouter.Path("/language_mappings/delete").Methods(http.MethodPost).HandlerFunc(settingsHandler.DeleteLanguageMapping)
 	settingsRouter.Path("/reset").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostResetApiKey)
 	settingsRouter.Path("/badges").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostToggleBadges)
+	settingsRouter.Path("/regenerate").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostRegenerateSummaries)
 
 	// API Routes
 	apiRouter.Path("/heartbeat").Methods(http.MethodPost).HandlerFunc(heartbeatHandler.ApiPost)

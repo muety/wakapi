@@ -225,6 +225,10 @@ func (srv *SummaryService) GetLatestByUser() ([]*models.Summary, error) {
 	return srv.repository.GetLatestByUser()
 }
 
+func (srv *SummaryService) DeleteByUser(userId string) error {
+	return srv.repository.DeleteByUser(userId)
+}
+
 func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryType uint8, user *models.User, c chan models.SummaryItemContainer) {
 	durations := make(map[string]time.Duration)
 
