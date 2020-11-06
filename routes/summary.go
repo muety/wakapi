@@ -3,6 +3,7 @@ package routes
 import (
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/models/view"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
@@ -44,13 +45,15 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 
 	summary, err, status := h.loadUserSummary(r)
 	if err != nil {
-		respondAlert(w, err.Error(), "", conf.SummaryTemplate, status)
+		w.WriteHeader(status)
+		templates[conf.SummaryTemplate].Execute(w, h.buildViewModel(r).WithError(err.Error()))
 		return
 	}
 
 	user := r.Context().Value(models.UserKey).(*models.User)
 	if user == nil {
-		respondAlert(w, "unauthorized", "", conf.SummaryTemplate, http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
+		templates[conf.SummaryTemplate].Execute(w, h.buildViewModel(r).WithError("unauthorized"))
 		return
 	}
 
@@ -77,4 +80,11 @@ func (h *SummaryHandler) loadUserSummary(r *http.Request) (*models.Summary, erro
 	}
 
 	return summary, nil, http.StatusOK
+}
+
+func (h *SummaryHandler) buildViewModel(r *http.Request) *view.SummaryViewModel {
+	return &view.SummaryViewModel{
+		Success: r.URL.Query().Get("success"),
+		Error:   r.URL.Query().Get("error"),
+	}
 }

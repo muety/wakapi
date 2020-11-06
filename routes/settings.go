@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/schema"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/models/view"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"log"
@@ -38,16 +39,7 @@ func (h *SettingsHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
-	user := r.Context().Value(models.UserKey).(*models.User)
-	mappings, _ := h.languageMappingSrvc.GetByUser(user.ID)
-	data := map[string]interface{}{
-		"User":             user,
-		"LanguageMappings": mappings,
-		"Success":          r.FormValue("success"),
-		"Error":            r.FormValue("error"),
-	}
-
-	templates[conf.SettingsTemplate].Execute(w, data)
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r))
 }
 
 func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request) {
@@ -59,34 +51,40 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 
 	var credentials models.CredentialsReset
 	if err := r.ParseForm(); err != nil {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s", h.config.Server.BasePath, url.QueryEscape("missing parameters")), http.StatusFound)
+		w.WriteHeader(http.StatusBadRequest)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("missing parameters"))
 		return
 	}
 	if err := credentialsDecoder.Decode(&credentials, r.PostForm); err != nil {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s", h.config.Server.BasePath, url.QueryEscape("missing parameters")), http.StatusFound)
+		w.WriteHeader(http.StatusBadRequest)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("missing parameters"))
 		return
 	}
 
 	if !utils.CompareBcrypt(user.Password, credentials.PasswordOld, h.config.Security.PasswordSalt) {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s", h.config.Server.BasePath, url.QueryEscape("invalid credentials")), http.StatusFound)
+		w.WriteHeader(http.StatusUnauthorized)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("invalid credentials"))
 		return
 	}
 
 	if !credentials.IsValid() {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s", h.config.Server.BasePath, url.QueryEscape("invalid parameters")), http.StatusFound)
+		w.WriteHeader(http.StatusBadRequest)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("invalid parameters"))
 		return
 	}
 
 	user.Password = credentials.PasswordNew
 	if hash, err := utils.HashBcrypt(user.Password, h.config.Security.PasswordSalt); err != nil {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s", h.config.Server.BasePath, url.QueryEscape("internal server error")), http.StatusFound)
+		w.WriteHeader(http.StatusInternalServerError)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))
 		return
 	} else {
 		user.Password = hash
 	}
 
 	if _, err := h.userSrvc.Update(user); err != nil {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s", h.config.Server.BasePath, url.QueryEscape("internal server error")), http.StatusFound)
+		w.WriteHeader(http.StatusInternalServerError)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))
 		return
 	}
 
@@ -96,7 +94,8 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 	}
 	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, login)
 	if err != nil {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s", h.config.Server.BasePath, url.QueryEscape("internal server error")), http.StatusFound)
+		w.WriteHeader(http.StatusInternalServerError)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))
 		return
 	}
 
@@ -109,7 +108,7 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 	}
 	http.SetCookie(w, cookie)
 
-	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.Server.BasePath, url.QueryEscape("password was updated successfully")), http.StatusFound)
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("password was updated successfully"))
 }
 
 func (h *SettingsHandler) DeleteLanguageMapping(w http.ResponseWriter, r *http.Request) {
@@ -120,7 +119,8 @@ func (h *SettingsHandler) DeleteLanguageMapping(w http.ResponseWriter, r *http.R
 	user := r.Context().Value(models.UserKey).(*models.User)
 	id, err := strconv.Atoi(r.PostFormValue("mapping_id"))
 	if err != nil {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s", h.config.Server.BasePath, url.QueryEscape("could not delete mapping")), http.StatusFound)
+		w.WriteHeader(http.StatusInternalServerError)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("could not delete mapping"))
 		return
 	}
 
@@ -131,11 +131,12 @@ func (h *SettingsHandler) DeleteLanguageMapping(w http.ResponseWriter, r *http.R
 
 	err = h.languageMappingSrvc.Delete(mapping)
 	if err != nil {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s", h.config.Server.BasePath, url.QueryEscape("could not delete mapping")), http.StatusFound)
+		w.WriteHeader(http.StatusInternalServerError)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("could not delete mapping"))
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.Server.BasePath, url.QueryEscape("mapping deleted successfully")), http.StatusFound)
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("mapping deleted successfully"))
 }
 
 func (h *SettingsHandler) PostLanguageMapping(w http.ResponseWriter, r *http.Request) {
@@ -157,11 +158,12 @@ func (h *SettingsHandler) PostLanguageMapping(w http.ResponseWriter, r *http.Req
 	}
 
 	if _, err := h.languageMappingSrvc.Create(mapping); err != nil {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s", h.config.Server.BasePath, url.QueryEscape("mapping already exists")), http.StatusFound)
+		w.WriteHeader(http.StatusConflict)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("mapping already exists"))
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.Server.BasePath, url.QueryEscape("mapping added successfully")), http.StatusFound)
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("mapping added successfully"))
 }
 
 func (h *SettingsHandler) PostResetApiKey(w http.ResponseWriter, r *http.Request) {
@@ -171,12 +173,13 @@ func (h *SettingsHandler) PostResetApiKey(w http.ResponseWriter, r *http.Request
 
 	user := r.Context().Value(models.UserKey).(*models.User)
 	if _, err := h.userSrvc.ResetApiKey(user); err != nil {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s", h.config.Server.BasePath, url.QueryEscape("internal server error")), http.StatusFound)
+		w.WriteHeader(http.StatusInternalServerError)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))
 		return
 	}
 
 	msg := url.QueryEscape(fmt.Sprintf("your new api key is: %s", user.ApiKey))
-	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.Server.BasePath, msg), http.StatusFound)
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess(msg))
 }
 
 func (h *SettingsHandler) PostToggleBadges(w http.ResponseWriter, r *http.Request) {
@@ -186,11 +189,12 @@ func (h *SettingsHandler) PostToggleBadges(w http.ResponseWriter, r *http.Reques
 
 	user := r.Context().Value(models.UserKey).(*models.User)
 	if _, err := h.userSrvc.ToggleBadges(user); err != nil {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s", h.config.Server.BasePath, url.QueryEscape("internal server error")), http.StatusFound)
+		w.WriteHeader(http.StatusInternalServerError)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("%s/settings", h.config.Server.BasePath), http.StatusFound)
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r))
 }
 
 func (h *SettingsHandler) PostRegenerateSummaries(w http.ResponseWriter, r *http.Request) {
@@ -203,15 +207,28 @@ func (h *SettingsHandler) PostRegenerateSummaries(w http.ResponseWriter, r *http
 	log.Printf("clearing summaries for user '%s'\n", user.ID)
 	if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
 		log.Printf("failed to clear summaries: %v\n", err)
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s", h.config.Server.BasePath, url.QueryEscape("failed to delete old summaries")), http.StatusFound)
+		w.WriteHeader(http.StatusInternalServerError)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("failed to delete old summaries"))
 		return
 	}
 
 	if err := h.aggregationSrvc.Run(map[string]bool{user.ID: true}); err != nil {
 		log.Printf("failed to regenerate summaries: %v\n", err)
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s", h.config.Server.BasePath, url.QueryEscape("failed to generate aggregations")), http.StatusFound)
+		w.WriteHeader(http.StatusInternalServerError)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("failed to generate aggregations"))
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s", h.config.Server.BasePath, url.QueryEscape("summaries are being regenerated – this may take a few second")), http.StatusFound)
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("summaries are being regenerated – this may take a few seconds"))
+}
+
+func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewModel {
+	user := r.Context().Value(models.UserKey).(*models.User)
+	mappings, _ := h.languageMappingSrvc.GetByUser(user.ID)
+	return &view.SettingsViewModel{
+		User:             user,
+		LanguageMappings: mappings,
+		Success:          r.URL.Query().Get("success"),
+		Error:            r.URL.Query().Get("error"),
+	}
 }

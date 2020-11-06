@@ -43,13 +43,6 @@ func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	/*languageMappings, err := h.languageMappingSrvc.ResolveByUser(user.ID)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		return
-	}*/
-
 	for _, hb := range heartbeats {
 		hb.OperatingSystem = opSys
 		hb.Editor = editor

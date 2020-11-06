@@ -229,7 +229,6 @@ func Load() *Config {
 
 	config.Version = readVersion()
 	config.App.LanguageColors = readLanguageColors()
-	// TODO: Read keys from env, so that users are not logged out every time the server is restarted
 	config.Security.SecureCookie = securecookie.New(
 		securecookie.GenerateRandomKey(64),
 		securecookie.GenerateRandomKey(32),

@@ -107,7 +107,8 @@ func main() {
 	healthHandler := routes.NewHealthHandler(db)
 	heartbeatHandler := routes.NewHeartbeatHandler(heartbeatService, languageMappingService)
 	settingsHandler := routes.NewSettingsHandler(userService, summaryService, aggregationService, languageMappingService)
-	publicHandler := routes.NewIndexHandler(userService, keyValueService)
+	homeHandler := routes.NewHomeHandler(userService)
+	imprintHandler := routes.NewImprintHandler(keyValueService)
 	wakatimeV1AllHandler := wtV1Routes.NewAllTimeHandler(summaryService)
 	wakatimeV1SummariesHandler := wtV1Routes.NewSummariesHandler(summaryService)
 	shieldV1BadgeHandler := shieldsV1Routes.NewBadgeHandler(summaryService, userService)
@@ -138,12 +139,12 @@ func main() {
 	apiRouter.Use(corsMiddleware, authenticateMiddleware)
 
 	// Public Routes
-	publicRouter.Path("/").Methods(http.MethodGet).HandlerFunc(publicHandler.GetIndex)
-	publicRouter.Path("/login").Methods(http.MethodPost).HandlerFunc(publicHandler.PostLogin)
-	publicRouter.Path("/logout").Methods(http.MethodPost).HandlerFunc(publicHandler.PostLogout)
-	publicRouter.Path("/signup").Methods(http.MethodGet).HandlerFunc(publicHandler.GetSignup)
-	publicRouter.Path("/signup").Methods(http.MethodPost).HandlerFunc(publicHandler.PostSignup)
-	publicRouter.Path("/imprint").Methods(http.MethodGet).HandlerFunc(publicHandler.GetImprint)
+	publicRouter.Path("/").Methods(http.MethodGet).HandlerFunc(homeHandler.GetIndex)
+	publicRouter.Path("/login").Methods(http.MethodPost).HandlerFunc(homeHandler.PostLogin)
+	publicRouter.Path("/logout").Methods(http.MethodPost).HandlerFunc(homeHandler.PostLogout)
+	publicRouter.Path("/signup").Methods(http.MethodGet).HandlerFunc(homeHandler.GetSignup)
+	publicRouter.Path("/signup").Methods(http.MethodPost).HandlerFunc(homeHandler.PostSignup)
+	publicRouter.Path("/imprint").Methods(http.MethodGet).HandlerFunc(imprintHandler.GetImprint)
 
 	// Summary Routes
 	summaryRouter.Methods(http.MethodGet).HandlerFunc(summaryHandler.GetIndex)
