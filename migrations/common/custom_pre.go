@@ -38,7 +38,7 @@ func init() {
 				migrator := db.Migrator()
 				const lookupKey = "20201106-migration_cascade_constraints"
 
-				if cfg.Db.Dialect == "sqlite3" {
+				if cfg.Db.Dialect == config.SQLDialectSqlite {
 					// https://stackoverflow.com/a/1884893/3112139
 					// unfortunately, we can't migrate existing sqlite databases to the newly introduced cascade settings
 					// things like deleting all summaries won't work in those cases unless an entirely new db is created
@@ -52,7 +52,7 @@ func init() {
 				}
 
 				condition := "key = ?"
-				if cfg.Db.Dialect == "mysql" {
+				if cfg.Db.Dialect == config.SQLDialectMysql {
 					condition = "`key` = ?"
 				}
 				lookupResult := db.Where(condition, lookupKey).First(&models.KeyStringValue{})

@@ -22,6 +22,10 @@ const (
 	defaultConfigPath          = "config.yml"
 	defaultConfigPathLegacy    = "config.ini"
 	defaultEnvConfigPathLegacy = ".env"
+
+	SQLDialectMysql    = "mysql"
+	SQLDialectPostgres = "postgres"
+	SQLDialectSqlite   = "sqlite3"
 )
 
 var (
@@ -113,16 +117,16 @@ func (c *Config) GetFixturesFunc(dbDialect string) models.MigrationFunc {
 
 func (c *dbConfig) GetDialector() gorm.Dialector {
 	switch c.Dialect {
-	case "mysql":
+	case SQLDialectMysql:
 		return mysql.New(mysql.Config{
 			DriverName: c.Dialect,
 			DSN:        mysqlConnectionString(c),
 		})
-	case "postgres":
+	case SQLDialectPostgres:
 		return postgres.New(postgres.Config{
 			DSN: postgresConnectionString(c),
 		})
-	case "sqlite3":
+	case SQLDialectSqlite:
 		return sqlite.Open(sqliteConnectionString(c))
 	}
 	return nil

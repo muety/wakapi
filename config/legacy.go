@@ -59,7 +59,7 @@ func migrateLegacyConfig() error {
 	}
 
 	if dbType == "" {
-		dbType = "sqlite3"
+		dbType = SQLDialectSqlite
 	}
 
 	dbMaxConn := cfg.Section("database").Key("max_connections").MustUint(2)
