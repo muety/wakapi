@@ -56,11 +56,6 @@ func main() {
 		log.SetFlags(log.LstdFlags | log.Lshortfile)
 	}
 
-	// Show data loss warning
-	if config.App.CleanUp {
-		promptAbort("`CLEANUP` is set to `true`, which may cause data loss. Are you sure to continue?", 5)
-	}
-
 	// Connect to database
 	var err error
 	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{})
@@ -101,10 +96,6 @@ func main() {
 
 	// Aggregate heartbeats to summaries and persist them
 	go aggregationService.Schedule()
-
-	if config.App.CleanUp {
-		go heartbeatService.ScheduleCleanUp()
-	}
 
 	// TODO: move endpoint registration to the respective routes files
 
@@ -192,13 +183,5 @@ func main() {
 func runDatabaseMigrations() {
 	if err := config.GetMigrationFunc(config.Db.Dialect)(db); err != nil {
 		log.Fatal(err)
-	}
-}
-
-func promptAbort(message string, timeoutSec int) {
-	log.Printf("[WARNING] %s.\nTo abort server startup, press Ctrl+C.\n", message)
-	for i := timeoutSec; i > 0; i-- {
-		log.Printf("Starting in %d seconds ...\n", i)
-		time.Sleep(1 * time.Second)
 	}
 }

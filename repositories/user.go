@@ -54,7 +54,7 @@ func (r *UserRepository) InsertOrGet(user *models.User) (*models.User, bool, err
 }
 
 func (r *UserRepository) Update(user *models.User) (*models.User, error) {
-	result := r.db.Model(&models.User{}).Updates(user)
+	result := r.db.Model(user).Updates(user)
 	if err := result.Error; err != nil {
 		return nil, err
 	}

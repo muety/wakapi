@@ -76,8 +76,6 @@ func migrateLegacyConfig() error {
 		basePath = basePathEnv
 	}
 
-	cleanUp := cfg.Section("app").Key("cleanup").MustBool(false)
-
 	// Read custom languages
 	customLangs := make(map[string]string)
 	languageKeys := cfg.Section("languages").Keys()
@@ -89,7 +87,6 @@ func migrateLegacyConfig() error {
 	config := &Config{
 		Env: env,
 		App: appConfig{
-			CleanUp:         cleanUp,
 			CustomLanguages: customLangs,
 		},
 		Security: securityConfig{

@@ -1,11 +1,8 @@
 package services
 
 import (
-	"github.com/jasonlvhit/gocron"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/repositories"
-	"github.com/muety/wakapi/utils"
-	"log"
 	"time"
 
 	"github.com/muety/wakapi/models"
@@ -47,23 +44,6 @@ func (srv *HeartbeatService) GetFirstUserHeartbeats(userIds []string) ([]*models
 
 func (srv *HeartbeatService) DeleteBefore(t time.Time) error {
 	return srv.repository.DeleteBefore(t)
-}
-
-func (srv *HeartbeatService) CleanUp() error {
-	refTime := utils.StartOfToday().Add(-cleanUpInterval)
-	if err := srv.DeleteBefore(refTime); err != nil {
-		log.Printf("Failed to clean up heartbeats older than %v – %v\n", refTime, err)
-		return err
-	}
-	log.Printf("Successfully cleaned up heartbeats older than %v\n", refTime)
-	return nil
-}
-
-func (srv *HeartbeatService) ScheduleCleanUp() {
-	srv.CleanUp()
-
-	gocron.Every(1).Day().At("02:30").Do(srv.CleanUp)
-	<-gocron.Start()
 }
 
 func (srv *HeartbeatService) augmented(heartbeats []*models.Heartbeat, userId string) ([]*models.Heartbeat, error) {

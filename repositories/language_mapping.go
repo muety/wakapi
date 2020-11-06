@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
@@ -34,6 +35,9 @@ func (r *LanguageMappingRepository) GetByUser(userId string) ([]*models.Language
 }
 
 func (r *LanguageMappingRepository) Insert(mapping *models.LanguageMapping) (*models.LanguageMapping, error) {
+	if !mapping.IsValid() {
+		return nil, errors.New("invalid mapping")
+	}
 	result := r.db.Create(mapping)
 	if err := result.Error; err != nil {
 		return nil, err
