@@ -18,13 +18,13 @@ func NewFiltersWith(entity uint8, key string) *Filters {
 	case SummaryProject:
 		return &Filters{Project: key}
 	case SummaryOS:
-		return &Filters{Project: key}
+		return &Filters{OS: key}
 	case SummaryLanguage:
-		return &Filters{Project: key}
+		return &Filters{Language: key}
 	case SummaryEditor:
-		return &Filters{Project: key}
+		return &Filters{Editor: key}
 	case SummaryMachine:
-		return &Filters{Project: key}
+		return &Filters{Machine: key}
 	}
 	return &Filters{}
 }
