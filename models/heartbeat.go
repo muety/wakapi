@@ -41,3 +41,24 @@ func (h *Heartbeat) Augment(languageMappings map[string]string) {
 	}
 	h.Language, _ = languageMappings[ending]
 }
+
+func (h *Heartbeat) GetKey(t uint8) (key string) {
+	switch t {
+	case SummaryProject:
+		key = h.Project
+	case SummaryEditor:
+		key = h.Editor
+	case SummaryLanguage:
+		key = h.Language
+	case SummaryOS:
+		key = h.OperatingSystem
+	case SummaryMachine:
+		key = h.Machine
+	}
+
+	if key == "" {
+		key = UnknownSummaryKey
+	}
+
+	return key
+}

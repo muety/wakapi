@@ -39,17 +39,14 @@ func (r *SummaryRepository) GetByUserWithin(user *models.User, from, to time.Tim
 	return summaries, nil
 }
 
-// Will return *models.Index objects with only user_id and to_time filled
-func (r *SummaryRepository) GetLatestByUser() ([]*models.Summary, error) {
-	var summaries []*models.Summary
-	if err := r.db.
-		Table("summaries").
-		Select("user_id, max(to_time) as to_time").
-		Group("user_id").
-		Scan(&summaries).Error; err != nil {
-		return nil, err
-	}
-	return summaries, nil
+func (r *SummaryRepository) GetLastByUser() ([]*models.TimeByUser, error) {
+	var result []*models.TimeByUser
+	r.db.Model(&models.User{}).
+		Select("users.id as user, max(to_time) as time").
+		Joins("left join summaries on users.id = summaries.user_id").
+		Group("user").
+		Scan(&result)
+	return result, nil
 }
 
 func (r *SummaryRepository) DeleteByUser(userId string) error {

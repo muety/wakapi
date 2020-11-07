@@ -59,12 +59,19 @@ func (srv *AggregationService) Run(userIds map[string]bool) error {
 		go srv.persistWorker(summaries)
 	}
 
+	// don't leak open channels
+	go func(c1 chan *AggregationJob, c2 chan *models.Summary) {
+		defer close(c1)
+		defer close(c2)
+		time.Sleep(1 * time.Hour)
+	}(jobs, summaries)
+
 	return srv.trigger(jobs, userIds)
 }
 
 func (srv *AggregationService) summaryWorker(jobs <-chan *AggregationJob, summaries chan<- *models.Summary) {
 	for job := range jobs {
-		if summary, err := srv.summaryService.Construct(job.From, job.To, &models.User{ID: job.UserID}, true); err != nil {
+		if summary, err := srv.summaryService.Summarize(job.From, job.To, &models.User{ID: job.UserID}); err != nil {
 			log.Printf("Failed to generate summary (%v, %v, %s) – %v.\n", job.From, job.To, job.UserID, err)
 		} else {
 			log.Printf("Successfully generated summary (%v, %v, %s).\n", job.From, job.To, job.UserID)
@@ -99,57 +106,59 @@ func (srv *AggregationService) trigger(jobs chan<- *AggregationJob, userIds map[
 		users = allUsers
 	}
 
-	latestSummaries, err := srv.summaryService.GetLatestByUser()
+	// Get a map from user ids to the time of their latest summary or nil if none exists yet
+	lastUserSummaryTimes, err := srv.summaryService.GetLatestByUser()
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 
-	userSummaryTimes := make(map[string]time.Time)
-	for _, s := range latestSummaries {
-		userSummaryTimes[s.UserID] = s.ToTime.T()
+	// Get a map from user ids to the time of their earliest heartbeats or nil if none exists yet
+	firstUserHeartbeatTimes, err := srv.heartbeatService.GetFirstByUsers()
+	if err != nil {
+		log.Println(err)
+		return err
 	}
 
-	missingUserIDs := make([]string, 0)
-	for _, u := range users {
-		if _, ok := userSummaryTimes[u.ID]; !ok {
-			missingUserIDs = append(missingUserIDs, u.ID)
+	// Build actual lookup table from it
+	firstUserHeartbeatLookup := make(map[string]models.CustomTime)
+	for _, e := range firstUserHeartbeatTimes {
+		firstUserHeartbeatLookup[e.User] = e.Time
+	}
+
+	// Generate summary aggregation jobs
+	for _, e := range lastUserSummaryTimes {
+		if e.Time.Valid() {
+			// Case 1: User has aggregated summaries already
+			// -> Spawn jobs to create summaries from their latest aggregation to now
+			generateUserJobs(e.User, e.Time.T(), jobs)
+		} else if t := firstUserHeartbeatLookup[e.User]; t.Valid() {
+			// Case 2: User has no aggregated summaries, yet, but has heartbeats
+			// -> Spawn jobs to create summaries from their first heartbeat to now
+			generateUserJobs(e.User, t.T(), jobs)
 		}
-	}
-
-	firstHeartbeats, err := srv.heartbeatService.GetFirstUserHeartbeats(missingUserIDs)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
-	for id, t := range userSummaryTimes {
-		generateUserJobs(id, t, jobs)
-	}
-
-	for _, h := range firstHeartbeats {
-		generateUserJobs(h.UserID, time.Time(h.Time), jobs)
+		// Case 3: User doesn't have heartbeats at all
+		// -> Nothing to do
 	}
 
 	return nil
 }
 
-func generateUserJobs(userId string, lastAggregation time.Time, jobs chan<- *AggregationJob) {
-	var from, to time.Time
+func generateUserJobs(userId string, from time.Time, jobs chan<- *AggregationJob) {
+	var to time.Time
+
+	// Go to next day of either user's first heartbeat or latest aggregation
+	from.Add(-1 * time.Second)
+	from = time.Date(
+		from.Year(),
+		from.Month(),
+		from.Day()+aggregateIntervalDays,
+		0, 0, 0, 0,
+		from.Location(),
+	)
+
+	// Iteratively aggregate per-day summaries until end of yesterday is reached
 	end := getStartOfToday().Add(-1 * time.Second)
-
-	if lastAggregation.Hour() == 0 {
-		from = lastAggregation
-	} else {
-		from = time.Date(
-			lastAggregation.Year(),
-			lastAggregation.Month(),
-			lastAggregation.Day()+aggregateIntervalDays,
-			0, 0, 0, 0,
-			lastAggregation.Location(),
-		)
-	}
-
 	for from.Before(end) && to.Before(end) {
 		to = time.Date(
 			from.Year(),

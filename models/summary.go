@@ -75,6 +75,8 @@ type SummaryParams struct {
 	Recompute bool
 }
 
+type AliasResolver func(t uint8, k string) string
+
 func SummaryTypes() []uint8 {
 	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine}
 }
@@ -177,4 +179,54 @@ func (s *Summary) TotalTimeByFilters(filter *Filters) (timeSum time.Duration) {
 		timeSum += s.TotalTimeByKey(f.Type, f.Key)
 	}
 	return timeSum
+}
+
+func (s *Summary) WithResolvedAliases(resolve AliasResolver) *Summary {
+	processAliases := func(origin []*SummaryItem) []*SummaryItem {
+		target := make([]*SummaryItem, 0)
+
+		findItem := func(key string) *SummaryItem {
+			for _, item := range target {
+				if item.Key == key {
+					return item
+				}
+			}
+			return nil
+		}
+
+		for _, item := range origin {
+			// Add all "top-level" items, i.e. such without aliases
+			if key := resolve(item.Type, item.Key); key == item.Key {
+				target = append(target, item)
+			}
+		}
+
+		for _, item := range origin {
+			// Add all remaining projects and merge with their alias
+			if key := resolve(item.Type, item.Key); key != item.Key {
+				if targetItem := findItem(key); targetItem != nil {
+					targetItem.Total += item.Total
+				} else {
+					target = append(target, &SummaryItem{
+						ID:        item.ID,
+						SummaryID: item.SummaryID,
+						Type:      item.Type,
+						Key:       key,
+						Total:     item.Total,
+					})
+				}
+			}
+		}
+
+		return target
+	}
+
+	// Resolve aliases
+	s.Projects = processAliases(s.Projects)
+	s.Editors = processAliases(s.Editors)
+	s.Languages = processAliases(s.Languages)
+	s.OperatingSystems = processAliases(s.OperatingSystems)
+	s.Machines = processAliases(s.Machines)
+
+	return s
 }

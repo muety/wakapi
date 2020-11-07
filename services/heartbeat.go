@@ -38,8 +38,8 @@ func (srv *HeartbeatService) GetAllWithin(from, to time.Time, user *models.User)
 	return srv.augmented(heartbeats, user.ID)
 }
 
-func (srv *HeartbeatService) GetFirstUserHeartbeats(userIds []string) ([]*models.Heartbeat, error) {
-	return srv.repository.GetFirstByUsers(userIds)
+func (srv *HeartbeatService) GetFirstByUsers() ([]*models.TimeByUser, error) {
+	return srv.repository.GetFirstByUsers()
 }
 
 func (srv *HeartbeatService) DeleteBefore(t time.Time) error {

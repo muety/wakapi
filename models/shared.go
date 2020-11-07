@@ -24,6 +24,11 @@ type KeyStringValue struct {
 	Value string `gorm:"type:text"`
 }
 
+type Interval struct {
+	Start time.Time
+	End   time.Time
+}
+
 type CustomTime time.Time
 
 func (j *CustomTime) UnmarshalJSON(b []byte) error {
@@ -78,4 +83,8 @@ func (j CustomTime) String() string {
 
 func (j CustomTime) T() time.Time {
 	return time.Time(j)
+}
+
+func (j CustomTime) Valid() bool {
+	return j.T().Unix() >= 0
 }

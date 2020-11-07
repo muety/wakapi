@@ -34,18 +34,14 @@ func (r *HeartbeatRepository) GetAllWithin(from, to time.Time, user *models.User
 	return heartbeats, nil
 }
 
-// Will return *models.Heartbeat object with only user_id and time fields filled
-func (r *HeartbeatRepository) GetFirstByUsers(userIds []string) ([]*models.Heartbeat, error) {
-	var heartbeats []*models.Heartbeat
-	if err := r.db.
-		Table("heartbeats").
-		Select("user_id, min(time) as time").
-		Where("user_id IN (?)", userIds).
-		Group("user_id").
-		Scan(&heartbeats).Error; err != nil {
-		return nil, err
-	}
-	return heartbeats, nil
+func (r *HeartbeatRepository) GetFirstByUsers() ([]*models.TimeByUser, error) {
+	var result []*models.TimeByUser
+	r.db.Model(&models.User{}).
+		Select("users.id as user, min(time) as time").
+		Joins("left join heartbeats on users.id = heartbeats.user_id").
+		Group("user").
+		Scan(&result)
+	return result, nil
 }
 
 func (r *HeartbeatRepository) DeleteBefore(t time.Time) error {

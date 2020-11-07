@@ -26,6 +26,11 @@ type CredentialsReset struct {
 	PasswordRepeat string `schema:"password_repeat"`
 }
 
+type TimeByUser struct {
+	User string
+	Time CustomTime
+}
+
 func (c *CredentialsReset) IsValid() bool {
 	return validatePassword(c.PasswordNew) &&
 		c.PasswordNew == c.PasswordRepeat
