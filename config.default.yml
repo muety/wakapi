@@ -6,7 +6,6 @@ server:
   base_path: /
 
 app:
-  cleanup: false            # only edit, if you know what you're doing
   aggregation_time: '02:15' # time at which to run daily aggregation batch jobs
   custom_languages:
     vue: Vue

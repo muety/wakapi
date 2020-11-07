@@ -64,7 +64,6 @@ You can specify configuration options either via a config file (default: `config
 | YAML Key                  | Environment Variable      | Default      | Description                                                         |
 |---------------------------|---------------------------|--------------|---------------------------------------------------------------------|
 | `env`                       | `ENVIRONMENT`               | `dev`          | Whether to use development- or production settings                  |
-| `app.cleanup`               | `WAKAPI_CLEANUP`            | `false`        | Whether or not to clean up old heartbeats (be careful!)             |
 | `app.custom_languages`      | -                           | -              | Map from file endings to language names                             |
 | `server.port`               | `WAKAPI_PORT`               | `3000`         | Port to listen on                                                   |
 | `server.listen_ipv4`        | `WAKAPI_LISTEN_IPV4`        | `127.0.0.1`    | Network address to listen on                                        |

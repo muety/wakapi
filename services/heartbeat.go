@@ -8,10 +8,6 @@ import (
 	"github.com/muety/wakapi/models"
 )
 
-const (
-	cleanUpInterval = time.Duration(aggregateIntervalDays) * 2 * 24 * time.Hour
-)
-
 type HeartbeatService struct {
 	config              *config.Config
 	repository          *repositories.HeartbeatRepository
