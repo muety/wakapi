@@ -52,11 +52,16 @@ To use the hosted version set `api_url = https://wakapi.dev/api/heartbeat`. Howe
 **Note:** By default, the application is running in dev mode. However, it is recommended to set `ENV=production` for enhanced performance and security. To still be able to log in when using production mode, you either have to run Wakapi behind a reverse proxy, that enables for HTTPS encryption (see [best practices](#best-practices)) or set `security.insecure_cookies` to `true` in `config.yml`. 
 
 ### Run with Docker
-```
+```bash
 docker run -d -p 3000:3000 --name wakapi n1try/wakapi
 ```
 
 By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres, see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile) and [config.default.yml](https://github.com/muety/wakapi/blob/master/config.default.yml) for further options.
+
+### Running tests
+```bash
+CGO_FLAGS="-g -O2 -Wno-return-local-addr" go test ./...
+```
 
 ## 🔧 Configuration
 You can specify configuration options either via a config file (default: `config.yml`, customziable through the `-c` argument) or via environment variables. Here is an overview of all options.

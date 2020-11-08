@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func init() {
+func Init() {
 	loadTemplates()
 }
 

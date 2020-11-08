@@ -2,10 +2,11 @@ package utils
 
 import (
 	"errors"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestParseUserAgent(t *testing.T) {
+func TestCommon_ParseUserAgent(t *testing.T) {
 	tests := []struct {
 		in        string
 		outOs     string
@@ -38,10 +39,11 @@ func TestParseUserAgent(t *testing.T) {
 		},
 	}
 
-	for i, test := range tests {
-		if os, editor, err := ParseUserAgent(test.in); os != test.outOs || editor != test.outEditor || !checkErr(test.outError, err) {
-			t.Errorf("[%d] Unexpected result of parsing '%s'; got '%v', '%v', '%v'", i, test.in, os, editor, err)
-		}
+	for _, test := range tests {
+		os, editor, err := ParseUserAgent(test.in)
+		assert.True(t, checkErr(err, test.outError))
+		assert.Equal(t, test.outOs, os)
+		assert.Equal(t, test.outEditor, editor)
 	}
 }
 

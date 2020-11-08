@@ -102,6 +102,8 @@ func main() {
 
 	// TODO: move endpoint registration to the respective routes files
 
+	routes.Init()
+
 	// Handlers
 	summaryHandler := routes.NewSummaryHandler(summaryService)
 	healthHandler := routes.NewHealthHandler(db)

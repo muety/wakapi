@@ -24,7 +24,7 @@ type Heartbeat struct {
 }
 
 func (h *Heartbeat) Valid() bool {
-	return h.User != nil && h.UserID != "" && h.Time != CustomTime(time.Time{})
+	return h.User != nil && h.UserID != "" && h.User.ID == h.UserID && h.Time != CustomTime(time.Time{})
 }
 
 func (h *Heartbeat) Augment(languageMappings map[string]string) {
