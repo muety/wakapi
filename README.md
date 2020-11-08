@@ -60,7 +60,7 @@ By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or 
 
 ### Running tests
 ```bash
-CGO_FLAGS="-g -O2 -Wno-return-local-addr" go test ./...
+CGO_FLAGS="-g -O2 -Wno-return-local-addr" -coverprofile=coverage/coverage.out go test ./...
 ```
 
 ## 🔧 Configuration
