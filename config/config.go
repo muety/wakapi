@@ -28,10 +28,8 @@ const (
 	SQLDialectSqlite   = "sqlite3"
 )
 
-var (
-	cfg   *Config
-	cFlag *string
-)
+var cfg *Config
+var cFlag = flag.String("config", defaultConfigPath, "config file location")
 
 type appConfig struct {
 	AggregationTime string            `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
@@ -69,11 +67,6 @@ type Config struct {
 	Security securityConfig
 	Db       dbConfig
 	Server   serverConfig
-}
-
-func init() {
-	cFlag = flag.String("c", defaultConfigPath, "config file location")
-	flag.Parse()
 }
 
 func (c *Config) IsDev() bool {
@@ -219,6 +212,8 @@ func Get() *Config {
 
 func Load() *Config {
 	config := &Config{}
+
+	flag.Parse()
 
 	maybeMigrateLegacyConfig()
 

@@ -28,22 +28,22 @@ var (
 )
 
 var (
-	aliasRepository           *repositories.AliasRepository
-	heartbeatRepository       *repositories.HeartbeatRepository
-	userRepository            *repositories.UserRepository
-	languageMappingRepository *repositories.LanguageMappingRepository
-	summaryRepository         *repositories.SummaryRepository
-	keyValueRepository        *repositories.KeyValueRepository
+	aliasRepository           repositories.IAliasRepository
+	heartbeatRepository       repositories.IHeartbeatRepository
+	userRepository            repositories.IUserRepository
+	languageMappingRepository repositories.ILanguageMappingRepository
+	summaryRepository         repositories.ISummaryRepository
+	keyValueRepository        repositories.IKeyValueRepository
 )
 
 var (
-	aliasService           *services.AliasService
-	heartbeatService       *services.HeartbeatService
-	userService            *services.UserService
-	languageMappingService *services.LanguageMappingService
-	summaryService         *services.SummaryService
-	aggregationService     *services.AggregationService
-	keyValueService        *services.KeyValueService
+	aliasService           services.IAliasService
+	heartbeatService       services.IHeartbeatService
+	userService            services.IUserService
+	languageMappingService services.ILanguageMappingService
+	summaryService         services.ISummaryService
+	aggregationService     services.IAggregationService
+	keyValueService        services.IKeyValueService
 )
 
 // TODO: Refactor entire project to be structured after business domains

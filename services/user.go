@@ -10,10 +10,10 @@ import (
 
 type UserService struct {
 	Config     *config.Config
-	repository *repositories.UserRepository
+	repository repositories.IUserRepository
 }
 
-func NewUserService(userRepo *repositories.UserRepository) *UserService {
+func NewUserService(userRepo repositories.IUserRepository) *UserService {
 	return &UserService{
 		Config:     config.Get(),
 		repository: userRepo,

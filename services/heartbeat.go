@@ -10,11 +10,11 @@ import (
 
 type HeartbeatService struct {
 	config              *config.Config
-	repository          *repositories.HeartbeatRepository
-	languageMappingSrvc *LanguageMappingService
+	repository          repositories.IHeartbeatRepository
+	languageMappingSrvc ILanguageMappingService
 }
 
-func NewHeartbeatService(heartbeatRepo *repositories.HeartbeatRepository, languageMappingService *LanguageMappingService) *HeartbeatService {
+func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, languageMappingService ILanguageMappingService) *HeartbeatService {
 	return &HeartbeatService{
 		config:              config.Get(),
 		repository:          heartbeatRepo,

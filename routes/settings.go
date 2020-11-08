@@ -10,21 +10,20 @@ import (
 	"github.com/muety/wakapi/utils"
 	"log"
 	"net/http"
-	"net/url"
 	"strconv"
 )
 
 type SettingsHandler struct {
 	config              *conf.Config
-	userSrvc            *services.UserService
-	summarySrvc         *services.SummaryService
-	aggregationSrvc     *services.AggregationService
-	languageMappingSrvc *services.LanguageMappingService
+	userSrvc            services.IUserService
+	summarySrvc         services.ISummaryService
+	aggregationSrvc     services.IAggregationService
+	languageMappingSrvc services.ILanguageMappingService
 }
 
 var credentialsDecoder = schema.NewDecoder()
 
-func NewSettingsHandler(userService *services.UserService, summaryService *services.SummaryService, aggregationService *services.AggregationService, languageMappingService *services.LanguageMappingService) *SettingsHandler {
+func NewSettingsHandler(userService services.IUserService, summaryService services.ISummaryService, aggregationService services.IAggregationService, languageMappingService services.ILanguageMappingService) *SettingsHandler {
 	return &SettingsHandler{
 		config:              conf.Get(),
 		summarySrvc:         summaryService,
@@ -178,7 +177,7 @@ func (h *SettingsHandler) PostResetApiKey(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	msg := url.QueryEscape(fmt.Sprintf("your new api key is: %s", user.ApiKey))
+	msg := fmt.Sprintf("your new api key is: %s", user.ApiKey)
 	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess(msg))
 }
 

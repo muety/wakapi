@@ -2,7 +2,7 @@ package v1
 
 import (
 	"github.com/gorilla/mux"
-	config2 "github.com/muety/wakapi/config"
+	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	"github.com/muety/wakapi/services"
@@ -13,14 +13,14 @@ import (
 )
 
 type AllTimeHandler struct {
-	summarySrvc *services.SummaryService
-	config      *config2.Config
+	config      *conf.Config
+	summarySrvc services.ISummaryService
 }
 
-func NewAllTimeHandler(summaryService *services.SummaryService) *AllTimeHandler {
+func NewAllTimeHandler(summaryService services.ISummaryService) *AllTimeHandler {
 	return &AllTimeHandler{
 		summarySrvc: summaryService,
-		config:      config2.Get(),
+		config:      conf.Get(),
 	}
 }
 

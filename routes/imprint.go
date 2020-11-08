@@ -10,10 +10,10 @@ import (
 
 type ImprintHandler struct {
 	config       *conf.Config
-	keyValueSrvc *services.KeyValueService
+	keyValueSrvc services.IKeyValueService
 }
 
-func NewImprintHandler(keyValueService *services.KeyValueService) *ImprintHandler {
+func NewImprintHandler(keyValueService services.IKeyValueService) *ImprintHandler {
 	return &ImprintHandler{
 		config:       conf.Get(),
 		keyValueSrvc: keyValueService,

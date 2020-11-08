@@ -14,11 +14,11 @@ import (
 
 type HeartbeatHandler struct {
 	config              *conf.Config
-	heartbeatSrvc       *services.HeartbeatService
-	languageMappingSrvc *services.LanguageMappingService
+	heartbeatSrvc       services.IHeartbeatService
+	languageMappingSrvc services.ILanguageMappingService
 }
 
-func NewHeartbeatHandler(heartbeatService *services.HeartbeatService, languageMappingService *services.LanguageMappingService) *HeartbeatHandler {
+func NewHeartbeatHandler(heartbeatService services.IHeartbeatService, languageMappingService services.ILanguageMappingService) *HeartbeatHandler {
 	return &HeartbeatHandler{
 		config:              conf.Get(),
 		heartbeatSrvc:       heartbeatService,

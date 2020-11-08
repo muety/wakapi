@@ -3,7 +3,7 @@ package v1
 import (
 	"errors"
 	"github.com/gorilla/mux"
-	config2 "github.com/muety/wakapi/config"
+	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	"github.com/muety/wakapi/services"
@@ -14,14 +14,14 @@ import (
 )
 
 type SummariesHandler struct {
-	summarySrvc *services.SummaryService
-	config      *config2.Config
+	config      *conf.Config
+	summarySrvc services.ISummaryService
 }
 
-func NewSummariesHandler(summaryService *services.SummaryService) *SummariesHandler {
+func NewSummariesHandler(summaryService services.ISummaryService) *SummariesHandler {
 	return &SummariesHandler{
 		summarySrvc: summaryService,
-		config:      config2.Get(),
+		config:      conf.Get(),
 	}
 }
 

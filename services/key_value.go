@@ -8,10 +8,10 @@ import (
 
 type KeyValueService struct {
 	config     *config.Config
-	repository *repositories.KeyValueRepository
+	repository repositories.IKeyValueRepository
 }
 
-func NewKeyValueService(keyValueRepo *repositories.KeyValueRepository) *KeyValueService {
+func NewKeyValueService(keyValueRepo repositories.IKeyValueRepository) *KeyValueService {
 	return &KeyValueService{
 		config:     config.Get(),
 		repository: keyValueRepo,

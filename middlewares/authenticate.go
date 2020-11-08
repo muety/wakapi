@@ -19,12 +19,12 @@ import (
 
 type AuthenticateMiddleware struct {
 	config         *conf.Config
-	userSrvc       *services.UserService
 	cache          *cache.Cache
+	userSrvc       services.IUserService
 	whitelistPaths []string
 }
 
-func NewAuthenticateMiddleware(userService *services.UserService, whitelistPaths []string) *AuthenticateMiddleware {
+func NewAuthenticateMiddleware(userService services.IUserService, whitelistPaths []string) *AuthenticateMiddleware {
 	return &AuthenticateMiddleware{
 		config:         conf.Get(),
 		userSrvc:       userService,
@@ -107,7 +107,7 @@ func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.Us
 		return nil, err
 	}
 
-	if !CheckAndMigratePassword(user, login, m.config.Security.PasswordSalt, m.userSrvc) {
+	if !CheckAndMigratePassword(user, login, m.config.Security.PasswordSalt, &m.userSrvc) {
 		return nil, errors.New("invalid password")
 	}
 
@@ -115,11 +115,11 @@ func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.Us
 }
 
 // migrate old md5-hashed passwords to new salted bcrypt hashes for backwards compatibility
-func CheckAndMigratePassword(user *models.User, login *models.Login, salt string, userServiceRef *services.UserService) bool {
+func CheckAndMigratePassword(user *models.User, login *models.Login, salt string, userServiceRef *services.IUserService) bool {
 	if utils.IsMd5(user.Password) {
 		if utils.CompareMd5(user.Password, login.Password, "") {
 			log.Printf("migrating old md5 password to new bcrypt format for user '%s'", user.ID)
-			userServiceRef.MigrateMd5Password(user, login)
+			(*userServiceRef).MigrateMd5Password(user, login)
 			return true
 		}
 		return false

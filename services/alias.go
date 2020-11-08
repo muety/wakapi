@@ -10,10 +10,10 @@ import (
 
 type AliasService struct {
 	config     *config.Config
-	repository *repositories.AliasRepository
+	repository repositories.IAliasRepository
 }
 
-func NewAliasService(aliasRepo *repositories.AliasRepository) *AliasService {
+func NewAliasService(aliasRepo repositories.IAliasRepository) *AliasService {
 	return &AliasService{
 		config:     config.Get(),
 		repository: aliasRepo,

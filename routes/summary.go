@@ -10,11 +10,11 @@ import (
 )
 
 type SummaryHandler struct {
-	summarySrvc *services.SummaryService
 	config      *conf.Config
+	summarySrvc services.ISummaryService
 }
 
-func NewSummaryHandler(summaryService *services.SummaryService) *SummaryHandler {
+func NewSummaryHandler(summaryService services.ISummaryService) *SummaryHandler {
 	return &SummaryHandler{
 		summarySrvc: summaryService,
 		config:      conf.Get(),

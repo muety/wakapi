@@ -10,11 +10,11 @@ import (
 
 type LanguageMappingService struct {
 	config     *config.Config
-	repository *repositories.LanguageMappingRepository
 	cache      *cache.Cache
+	repository repositories.ILanguageMappingRepository
 }
 
-func NewLanguageMappingService(languageMappingsRepo *repositories.LanguageMappingRepository) *LanguageMappingService {
+func NewLanguageMappingService(languageMappingsRepo repositories.ILanguageMappingRepository) *LanguageMappingService {
 	return &LanguageMappingService{
 		config:     config.Get(),
 		repository: languageMappingsRepo,

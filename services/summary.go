@@ -17,14 +17,14 @@ const HeartbeatDiffThreshold = 2 * time.Minute
 type SummaryService struct {
 	config           *config.Config
 	cache            *cache.Cache
-	repository       *repositories.SummaryRepository
-	heartbeatService *HeartbeatService
-	aliasService     *AliasService
+	repository       repositories.ISummaryRepository
+	heartbeatService IHeartbeatService
+	aliasService     IAliasService
 }
 
 type SummaryRetriever func(f, t time.Time, u *models.User) (*models.Summary, error)
 
-func NewSummaryService(summaryRepo *repositories.SummaryRepository, heartbeatService *HeartbeatService, aliasService *AliasService) *SummaryService {
+func NewSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatService IHeartbeatService, aliasService IAliasService) *SummaryService {
 	return &SummaryService{
 		config:           config.Get(),
 		cache:            cache.New(24*time.Hour, 24*time.Hour),

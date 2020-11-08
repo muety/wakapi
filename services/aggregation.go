@@ -16,12 +16,12 @@ const (
 
 type AggregationService struct {
 	config           *config.Config
-	userService      *UserService
-	summaryService   *SummaryService
-	heartbeatService *HeartbeatService
+	userService      IUserService
+	summaryService   ISummaryService
+	heartbeatService IHeartbeatService
 }
 
-func NewAggregationService(userService *UserService, summaryService *SummaryService, heartbeatService *HeartbeatService) *AggregationService {
+func NewAggregationService(userService IUserService, summaryService ISummaryService, heartbeatService IHeartbeatService) *AggregationService {
 	return &AggregationService{
 		config:           config.Get(),
 		userService:      userService,

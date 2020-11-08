@@ -10,19 +10,18 @@ import (
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
-	"net/url"
 	"time"
 )
 
 type HomeHandler struct {
 	config   *conf.Config
-	userSrvc *services.UserService
+	userSrvc services.IUserService
 }
 
 var loginDecoder = schema.NewDecoder()
 var signupDecoder = schema.NewDecoder()
 
-func NewHomeHandler(userService *services.UserService) *HomeHandler {
+func NewHomeHandler(userService services.IUserService) *HomeHandler {
 	return &HomeHandler{
 		config:   conf.Get(),
 		userSrvc: userService,
@@ -72,7 +71,7 @@ func (h *HomeHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: depending on middleware package here is a hack
-	if !middlewares.CheckAndMigratePassword(user, &login, h.config.Security.PasswordSalt, h.userSrvc) {
+	if !middlewares.CheckAndMigratePassword(user, &login, h.config.Security.PasswordSalt, &h.userSrvc) {
 		w.WriteHeader(http.StatusUnauthorized)
 		templates[conf.IndexTemplate].Execute(w, h.buildViewModel(r).WithError("invalid credentials"))
 		return
@@ -161,8 +160,7 @@ func (h *HomeHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg := url.QueryEscape("account created successfully")
-	http.Redirect(w, r, fmt.Sprintf("%s/?success=%s", h.config.Server.BasePath, msg), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("%s/?success=%s", h.config.Server.BasePath, "account created successfully"), http.StatusFound)
 }
 
 func (h *HomeHandler) buildViewModel(r *http.Request) *view.HomeViewModel {
