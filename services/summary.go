@@ -156,7 +156,7 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User) (*mo
 		Machines:         machineItems,
 	}
 
-	summary.FillUnknown()
+	//summary.FillUnknown()
 
 	return summary, nil
 }

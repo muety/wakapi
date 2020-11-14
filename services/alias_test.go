@@ -11,8 +11,8 @@ import (
 
 type AliasServiceTestSuite struct {
 	suite.Suite
-	TestUserId    string
-	AliasRepoMock *mocks.AliasRepositoryMock
+	TestUserId      string
+	AliasRepository *mocks.AliasRepositoryMock
 }
 
 func (suite *AliasServiceTestSuite) SetupSuite() {
@@ -31,7 +31,7 @@ func (suite *AliasServiceTestSuite) SetupSuite() {
 	aliasRepoMock.On("GetByUser", suite.TestUserId).Return(aliases, nil)
 	aliasRepoMock.On("GetByUser", mock.AnythingOfType("string")).Return([]*models.Alias{}, assert.AnError)
 
-	suite.AliasRepoMock = aliasRepoMock
+	suite.AliasRepository = aliasRepoMock
 }
 
 func TestAliasServiceTestSuite(t *testing.T) {
@@ -39,7 +39,7 @@ func TestAliasServiceTestSuite(t *testing.T) {
 }
 
 func (suite *AliasServiceTestSuite) TestAliasService_GetAliasOrDefault() {
-	sut := NewAliasService(suite.AliasRepoMock)
+	sut := NewAliasService(suite.AliasRepository)
 
 	result1, err1 := sut.GetAliasOrDefault(suite.TestUserId, models.SummaryProject, "wakapi-mobile")
 	result2, err2 := sut.GetAliasOrDefault(suite.TestUserId, models.SummaryProject, "wakapi")
@@ -54,7 +54,7 @@ func (suite *AliasServiceTestSuite) TestAliasService_GetAliasOrDefault() {
 }
 
 func (suite *AliasServiceTestSuite) TestAliasService_GetAliasOrDefault_ErrorOnNonExistingUser() {
-	sut := NewAliasService(suite.AliasRepoMock)
+	sut := NewAliasService(suite.AliasRepository)
 
 	result, err := sut.GetAliasOrDefault("nonexisting", models.SummaryProject, "wakapi-mobile")
 
