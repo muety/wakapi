@@ -163,3 +163,33 @@ func TestSummary_WithResolvedAliases(t *testing.T) {
 	assert.Empty(t, sut.OperatingSystems)
 	assert.Empty(t, sut.Machines)
 }
+
+func TestSummaryItems_Sorted(t *testing.T) {
+	testDuration1, testDuration2, testDuration3 := 10*time.Minute, 5*time.Minute, 20*time.Minute
+
+	sut := &Summary{
+		Projects: []*SummaryItem{
+			{
+				Type:  SummaryProject,
+				Key:   "wakapi",
+				Total: testDuration1,
+			},
+			{
+				Type:  SummaryProject,
+				Key:   "anchr",
+				Total: testDuration2,
+			},
+			{
+				Type:  SummaryProject,
+				Key:   "anchr-mobile",
+				Total: testDuration3,
+			},
+		},
+	}
+
+	sut = sut.Sorted()
+
+	assert.Equal(t, testDuration3, sut.Projects[0].Total)
+	assert.Equal(t, testDuration1, sut.Projects[1].Total)
+	assert.Equal(t, testDuration2, sut.Projects[2].Total)
+}

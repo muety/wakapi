@@ -1,6 +1,7 @@
 package models
 
 import (
+	"sort"
 	"time"
 )
 
@@ -34,17 +35,19 @@ func Intervals() []string {
 const UnknownSummaryKey = "unknown"
 
 type Summary struct {
-	ID               uint           `json:"-" gorm:"primary_key"`
-	User             *User          `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	UserID           string         `json:"user_id" gorm:"not null; index:idx_time_summary_user"`
-	FromTime         CustomTime     `json:"from" gorm:"not null; type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time_summary_user"`
-	ToTime           CustomTime     `json:"to" gorm:"not null; type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time_summary_user"`
-	Projects         []*SummaryItem `json:"projects" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Languages        []*SummaryItem `json:"languages" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Editors          []*SummaryItem `json:"editors" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	OperatingSystems []*SummaryItem `json:"operating_systems" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Machines         []*SummaryItem `json:"machines" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ID               uint         `json:"-" gorm:"primary_key"`
+	User             *User        `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	UserID           string       `json:"user_id" gorm:"not null; index:idx_time_summary_user"`
+	FromTime         CustomTime   `json:"from" gorm:"not null; type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time_summary_user"`
+	ToTime           CustomTime   `json:"to" gorm:"not null; type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time_summary_user"`
+	Projects         SummaryItems `json:"projects" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Languages        SummaryItems `json:"languages" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Editors          SummaryItems `json:"editors" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	OperatingSystems SummaryItems `json:"operating_systems" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Machines         SummaryItems `json:"machines" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
+
+type SummaryItems []*SummaryItem
 
 type SummaryItem struct {
 	ID        uint          `json:"-" gorm:"primary_key"`
@@ -81,12 +84,21 @@ func SummaryTypes() []uint8 {
 	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine}
 }
 
+func (s *Summary) Sorted() *Summary {
+	sort.Sort(sort.Reverse(s.Projects))
+	sort.Sort(sort.Reverse(s.Machines))
+	sort.Sort(sort.Reverse(s.OperatingSystems))
+	sort.Sort(sort.Reverse(s.Languages))
+	sort.Sort(sort.Reverse(s.Editors))
+	return s
+}
+
 func (s *Summary) Types() []uint8 {
 	return SummaryTypes()
 }
 
-func (s *Summary) MappedItems() map[uint8]*[]*SummaryItem {
-	return map[uint8]*[]*SummaryItem{
+func (s *Summary) MappedItems() map[uint8]*SummaryItems {
+	return map[uint8]*SummaryItems{
 		SummaryProject:  &s.Projects,
 		SummaryLanguage: &s.Languages,
 		SummaryEditor:   &s.Editors,
@@ -229,4 +241,16 @@ func (s *Summary) WithResolvedAliases(resolve AliasResolver) *Summary {
 	s.Machines = processAliases(s.Machines)
 
 	return s
+}
+
+func (s SummaryItems) Len() int {
+	return len(s)
+}
+
+func (s SummaryItems) Less(i, j int) bool {
+	return s[i].Total < s[j].Total
+}
+
+func (s SummaryItems) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
 }

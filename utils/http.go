@@ -13,13 +13,3 @@ func RespondJSON(w http.ResponseWriter, status int, object interface{}) {
 		log.Printf("error while writing json response: %v", err)
 	}
 }
-
-func ClearCookie(w http.ResponseWriter, name string, secure bool) {
-	http.SetCookie(w, &http.Cookie{
-		Name:     name,
-		Value:    "",
-		Path:     "/",
-		Secure:   secure,
-		HttpOnly: true,
-	})
-}

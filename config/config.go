@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -41,6 +42,7 @@ type securityConfig struct {
 	// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
 	PasswordSalt    string                     `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
 	InsecureCookies bool                       `yaml:"insecure_cookies" default:"false" env:"WAKAPI_INSECURE_COOKIES"`
+	CookieMaxAgeSec int                        `yaml:"cookie_max_age" default:"172800" env:"WAKAPI_COOKIE_MAX_AGE"`
 	SecureCookie    *securecookie.SecureCookie `yaml:"-"`
 }
 
@@ -67,6 +69,26 @@ type Config struct {
 	Security securityConfig
 	Db       dbConfig
 	Server   serverConfig
+}
+
+func (c *Config) CreateCookie(name, value, path string) *http.Cookie {
+	return c.createCookie(name, value, path, c.Security.CookieMaxAgeSec)
+}
+
+func (c *Config) GetClearCookie(name, path string) *http.Cookie {
+	return c.createCookie(name, "", path, -1)
+}
+
+func (c *Config) createCookie(name, value, path string, maxAge int) *http.Cookie {
+	return &http.Cookie{
+		Name:     name,
+		Value:    value,
+		Path:     path,
+		MaxAge:   maxAge,
+		Secure:   !c.Security.InsecureCookies,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	}
 }
 
 func (c *Config) IsDev() bool {

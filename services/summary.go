@@ -63,7 +63,7 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f Summ
 	// Post-process summary and cache it
 	summary := s.WithResolvedAliases(resolve)
 	srv.cache.SetDefault(cacheKey, summary)
-	return summary, nil
+	return summary.Sorted(), nil
 }
 
 func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User) (*models.Summary, error) {
@@ -97,7 +97,7 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User) (*mod
 
 	// Cache 'em
 	srv.cache.SetDefault(cacheKey, summary)
-	return summary, nil
+	return summary.Sorted(), nil
 }
 
 func (srv *SummaryService) Summarize(from, to time.Time, user *models.User) (*models.Summary, error) {
@@ -158,7 +158,7 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User) (*mo
 
 	//summary.FillUnknown()
 
-	return summary, nil
+	return summary.Sorted(), nil
 }
 
 // CRUD methods

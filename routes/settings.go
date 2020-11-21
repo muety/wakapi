@@ -98,15 +98,7 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	cookie := &http.Cookie{
-		Name:     models.AuthCookieKey,
-		Value:    encoded,
-		Path:     "/",
-		Secure:   !h.config.Security.InsecureCookies,
-		HttpOnly: true,
-	}
-	http.SetCookie(w, cookie)
-
+	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded, "/"))
 	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("password was updated successfully"))
 }
 

@@ -8,7 +8,6 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
 	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/utils"
 	"net/http"
 	"time"
 )
@@ -87,14 +86,7 @@ func (h *HomeHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 	user.LastLoggedInAt = models.CustomTime(time.Now())
 	h.userSrvc.Update(user)
 
-	cookie := &http.Cookie{
-		Name:     models.AuthCookieKey,
-		Value:    encoded,
-		Path:     "/",
-		Secure:   !h.config.Security.InsecureCookies,
-		HttpOnly: true,
-	}
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded, "/"))
 	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 }
 
@@ -103,7 +95,7 @@ func (h *HomeHandler) PostLogout(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
-	utils.ClearCookie(w, models.AuthCookieKey, !h.config.Security.InsecureCookies)
+	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey, "/"))
 	http.Redirect(w, r, fmt.Sprintf("%s/", h.config.Server.BasePath), http.StatusFound)
 }
 
