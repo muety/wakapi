@@ -6,5 +6,6 @@ wakapi
 build
 *.exe
 *.db
-config.yml
+config*.yml
+!config.default.yml
 config.ini

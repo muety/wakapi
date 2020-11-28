@@ -1,6 +1,6 @@
 # 📈 wakapi
 
-![](https://img.shields.io/github/license/muety/wakapi)
+![](https://badges.fw-web.space/github/license/muety/wakapi)
 ![GitHub release (latest by date)](https://badges.fw-web.space/github/v/release/muety/wakapi)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/muety/wakapi)
 ![Docker Cloud Build Status](https://badges.fw-web.space/docker/cloud/build/n1try/wakapi)
