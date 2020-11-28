@@ -1,0 +1,27 @@
+env: development
+
+server:
+  listen_ipv4: 127.0.0.1
+  port: 3000
+  base_path: /
+
+app:
+  cleanup: false            # only edit, if you know what you're doing
+  aggregation_time: '02:16' # time at which to run daily aggregation batch jobs
+  custom_languages:
+    vue: Vue
+    jsx: JSX
+
+db:
+  host:                     # leave blank when using sqlite3
+  port:                     # leave blank when using sqlite3
+  user:                     # leave blank when using sqlite3
+  password:                 # leave blank when using sqlite3
+  name: wakapi_db.db        # database name for mysql / postgres or file path for sqlite (e.g. /tmp/wakapi.db)
+  dialect: sqlite3          # mysql, postgres, sqlite3
+  max_conn: 2
+
+security:
+  password_salt:            # CHANGE !
+  insecure_cookies: false
+  cookie_max_age: 172800
