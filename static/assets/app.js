@@ -47,7 +47,8 @@ function draw() {
                     let idx = type === 'pie' ? item.index : item.datasetIndex
                     let d = wakapiData[key][idx]
                     return `${d.key}: ${d.total.toString().toHHMMSS()}`
-                }
+                },
+                title: () => 'Total Time'
             }
         }
     }

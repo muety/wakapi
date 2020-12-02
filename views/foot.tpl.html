@@ -1,14 +1,2 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.4/seedrandom.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
-
-<script>
-    const languageColors = {{ .LanguageColors | json }}
-
-    let wakapiData = {}
-    wakapiData.projects = {{ .Projects | json }}
-    wakapiData.operatingSystems = {{ .OperatingSystems | json }}
-    wakapiData.editors = {{ .Editors | json }}
-    wakapiData.languages = {{ .Languages | json }}
-    wakapiData.machines = {{ .Machines | json }}
-</script>
-<script src="assets/app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.min.js"></script>

@@ -135,6 +135,19 @@
 {{ template "footer.tpl.html" . }}
 
 {{ template "foot.tpl.html" . }}
+
+<script>
+    const languageColors = {{ .LanguageColors | json }}
+
+    const wakapiData = {}
+    wakapiData.projects = {{ .Projects | json }}
+    wakapiData.operatingSystems = {{ .OperatingSystems | json }}
+    wakapiData.editors = {{ .Editors | json }}
+    wakapiData.languages = {{ .Languages | json }}
+    wakapiData.machines = {{ .Machines | json }}
+</script>
+<script src="assets/app.js"></script>
+
 </body>
 
 </html>
