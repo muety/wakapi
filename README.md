@@ -75,8 +75,7 @@ You can specify configuration options either via a config file (default: `config
 | `server.base_path`          | `WAKAPI_BASE_PATH`          | `/`            | Web base path (change when running behind a proxy under a sub-path) |
 | `security.password_salt`    | `WAKAPI_PASSWORD_SALT`      | -              | Pepper to use for password hashing                                  |
 | `security.insecure_cookies` | `WAKAPI_INSECURE_COOKIES`   | `false`        | Whether or not to allow cookies over HTTP                           |
-| `security.cookie_max_age`   | `WAKAPI_COOKIE_MAX_AGE  `   | `172800`       | Lifetime of authentication cookies in seconds or `0` to use [Session](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Define_the_lifetime_of_a_cookie) cookies 
-|
+| `security.cookie_max_age`   | `WAKAPI_COOKIE_MAX_AGE  `   | `172800`       | Lifetime of authentication cookies in seconds or `0` to use [Session](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Define_the_lifetime_of_a_cookie) cookies |
 | `db.host`                   | `WAKAPI_DB_HOST`            | -              | Database host                                                       |
 | `db.port`                   | `WAKAPI_DB_PORT`            | -              | Database port                                                       |
 | `db.user`                   | `WAKAPI_DB_USER`            | -              | Database user                                                       |
@@ -97,6 +96,10 @@ api_key = the_api_key_printed_to_the_console_after_starting_the_server`
 ```
 
 You can view your API Key after logging in to the web interface.
+
+### Optional: Client-side proxy
+
+See the [advanced setup instructions](docs/advanced_setup.md).  
 
 ## 🔵 Customization
 
