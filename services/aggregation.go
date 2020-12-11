@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/jasonlvhit/gocron"
+	"github.com/go-co-op/gocron"
 	"github.com/muety/wakapi/models"
 )
 
@@ -43,8 +43,9 @@ func (srv *AggregationService) Schedule() {
 		log.Fatalf("failed to run aggregation jobs: %v\n", err)
 	}
 
-	gocron.Every(1).Day().At(srv.config.App.AggregationTime).Do(srv.Run, nil)
-	<-gocron.Start()
+	s := gocron.NewScheduler(time.Local)
+	s.Every(1).Day().At(srv.config.App.AggregationTime).Do(srv.Run, map[string]bool{})
+	s.StartBlocking()
 }
 
 func (srv *AggregationService) Run(userIds map[string]bool) error {
