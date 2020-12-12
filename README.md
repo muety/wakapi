@@ -60,7 +60,7 @@ By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or 
 
 ### Running tests
 ```bash
-CGO_FLAGS="-g -O2 -Wno-return-local-addr" -coverprofile=coverage/coverage.out go test ./...
+CGO_FLAGS="-g -O2 -Wno-return-local-addr" go test -json -coverprofile=coverage/coverage.out ./... -run ./...
 ```
 
 ## 🔧 Configuration
@@ -71,7 +71,10 @@ You can specify configuration options either via a config file (default: `config
 | `env`                       | `ENVIRONMENT`               | `dev`          | Whether to use development- or production settings                  |
 | `app.custom_languages`      | -                           | -              | Map from file endings to language names                             |
 | `server.port`               | `WAKAPI_PORT`               | `3000`         | Port to listen on                                                   |
-| `server.listen_ipv4`        | `WAKAPI_LISTEN_IPV4`        | `127.0.0.1`    | Network address to listen on                                        |
+| `server.listen_ipv4`        | `WAKAPI_LISTEN_IPV4`        | `127.0.0.1`    | IPv4 network address to listen on (leave blank to disable IPv4)     |
+| `server.listen_ipv6`        | `WAKAPI_LISTEN_IPV6`        | ``             | IPv6 network address to listen on (leave blank to disable IPv6)     |
+| `server.tls_cert_path`      | `WAKAPI_TLS_CERT_PATH`      | -              | Path of SSL server certificate (leave blank to not use HTTPS)       |
+| `server.tls_key_path`       | `WAKAPI_TLS_KEY_PATH`       | -              | Path of SSL server private key (leave blank to not use HTTPS)       |
 | `server.base_path`          | `WAKAPI_BASE_PATH`          | `/`            | Web base path (change when running behind a proxy under a sub-path) |
 | `security.password_salt`    | `WAKAPI_PASSWORD_SALT`      | -              | Pepper to use for password hashing                                  |
 | `security.insecure_cookies` | `WAKAPI_INSECURE_COOKIES`   | `false`        | Whether or not to allow cookies over HTTP                           |

@@ -57,9 +57,12 @@ type dbConfig struct {
 }
 
 type serverConfig struct {
-	Port       int    `default:"3000" env:"WAKAPI_PORT"`
-	ListenIpV4 string `yaml:"listen_ipv4" default:"127.0.0.1" env:"WAKAPI_LISTEN_IPV4"`
-	BasePath   string `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
+	Port        int    `default:"3000" env:"WAKAPI_PORT"`
+	ListenIpV4  string `yaml:"listen_ipv4" default:"127.0.0.1" env:"WAKAPI_LISTEN_IPV4"`
+	ListenIpV6  string `yaml:"listen_ipv6" default:"::1" env:"WAKAPI_LISTEN_IPV6"`
+	BasePath    string `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
+	TlsCertPath string `yaml:"tls_cert_path" default:"" env:"WAKAPI_TLS_CERT_PATH"`
+	TlsKeyPath  string `yaml:"tls_key_path" default:"" env:"WAKAPI_TLS_KEY_PATH"`
 }
 
 type Config struct {
@@ -93,6 +96,10 @@ func (c *Config) createCookie(name, value, path string, maxAge int) *http.Cookie
 
 func (c *Config) IsDev() bool {
 	return IsDev(c.Env)
+}
+
+func (c *Config) UseTLS() bool {
+	return c.Server.TlsCertPath != "" && c.Server.TlsKeyPath != ""
 }
 
 func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
@@ -258,6 +265,10 @@ func Load() *Config {
 		if v == "" {
 			config.App.CustomLanguages[k] = "unknown"
 		}
+	}
+
+	if config.Server.ListenIpV4 == "" && config.Server.ListenIpV6 == "" {
+		log.Fatalln("either of listen_ipv4 or listen_ipv6 must be set")
 	}
 
 	Set(config)

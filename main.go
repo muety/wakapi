@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gorilla/handlers"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/migrations/common"
@@ -178,15 +179,55 @@ func main() {
 	router.PathPrefix("/assets").Handler(http.FileServer(http.Dir("./static")))
 
 	// Listen HTTP
-	portString := config.Server.ListenIpV4 + ":" + strconv.Itoa(config.Server.Port)
-	s := &http.Server{
-		Handler:      router,
-		Addr:         portString,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+	listen(router)
+}
+
+func listen(handler http.Handler) {
+	var s4, s6 *http.Server
+
+	// IPv4
+	if config.Server.ListenIpV4 != "" {
+		bindString4 := config.Server.ListenIpV4 + ":" + strconv.Itoa(config.Server.Port)
+		s4 = &http.Server{
+			Handler:      handler,
+			Addr:         bindString4,
+			ReadTimeout:  10 * time.Second,
+			WriteTimeout: 10 * time.Second,
+		}
 	}
-	log.Printf("Listening on %+s\n", portString)
-	s.ListenAndServe()
+
+	// IPv6
+	if config.Server.ListenIpV6 != "" {
+		bindString6 := "[" + config.Server.ListenIpV6 + "]:" + strconv.Itoa(config.Server.Port)
+		s6 = &http.Server{
+			Handler:      handler,
+			Addr:         bindString6,
+			ReadTimeout:  10 * time.Second,
+			WriteTimeout: 10 * time.Second,
+		}
+	}
+
+	if config.UseTLS() {
+		if s4 != nil {
+			fmt.Printf("Listening for HTTPS on %s.\n", s4.Addr)
+			go s4.ListenAndServeTLS(config.Server.TlsCertPath, config.Server.TlsKeyPath)
+		}
+		if s6 != nil {
+			fmt.Printf("Listening for HTTPS on %s.\n", s6.Addr)
+			go s6.ListenAndServeTLS(config.Server.TlsCertPath, config.Server.TlsKeyPath)
+		}
+	} else {
+		if s4 != nil {
+			fmt.Printf("Listening for HTTP on %s.\n", s4.Addr)
+			go s4.ListenAndServe()
+		}
+		if s6 != nil {
+			fmt.Printf("Listening for HTTP on %s.\n", s6.Addr)
+			go s6.ListenAndServe()
+		}
+	}
+
+	<-make(chan interface{}, 1)
 }
 
 func runDatabaseMigrations() {
