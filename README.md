@@ -21,9 +21,10 @@
 
 ![Wakapi screenshot](https://anchr.io/i/bxQ69.png)
 
-If you like this project, please consider supporting it 🙂. You can donate either through [buying me a coffee](https://buymeacoff.ee/n1try) or becoming a GitHub sponsor. Every little donation is highly appreciated and boosts the developers' motivation to keep improving Wakapi!
+## 📬 **User Survey**
+I'd love to get some community feedback from active Wakapi users. If you like, please participate in the recent [user survey](https://github.com/muety/wakapi/issues/82). Thanks a lot!
 
-## 👀 Hosted Service
+## 👀  Demo
 🔥 **New:** Wakapi is available as a hosted service now. Check out **[wakapi.dev](https://wakapi.dev)**. Please use responsibly.
 
 To use the hosted version set `api_url = https://wakapi.dev/api/heartbeat`. However, we do not guarantee data persistence, so you might potentially lose your data if the service is taken down some day ❕
@@ -147,6 +148,9 @@ We recently introduced support for [Shields.io](https://shields.io) badges (see 
 ## 👍 Best Practices
 It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or _nginx_ to enable **TLS encryption** (HTTPS).
 However, if you want to expose your wakapi instance to the public anyway, you need to set `server.listen_ipv4` to `0.0.0.0` in `config.yml`
+
+## 🙏 Support
+If you like this project, please consider supporting it 🙂. You can donate either through [buying me a coffee](https://buymeacoff.ee/n1try) or becoming a GitHub sponsor. Every little donation is highly appreciated and boosts the developers' motivation to keep improving Wakapi!
 
 ## ⚠️ Important Note
 **This is not an alternative to using WakaTime.** It is just a custom, non-commercial, self-hosted application to collect coding statistics using the already existing editor plugins provided by the WakaTime community. It was created for personal use only and with the purpose of keeping the sovereignity of your own data. However, if you like the official product, **please support the authors and buy an official WakaTime subscription!**
