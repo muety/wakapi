@@ -66,9 +66,13 @@
     <div class="flex flex-wrap justify-center">
         <div class="w-full lg:w-1/2 p-1">
             <div class="p-4 pb-10 bg-white rounded shadow m-2 flex flex-col" id="project-container" style="height: 300px">
-                <div class="self-center flex">
-                    <span class="font-semibold mr-1">Projects</span>
-                    <span id="project-top-label" class="top-label"></span>
+                <div class="flex justify-between">
+                    <div class="w-1/4 flex-1"></div>
+                    <span class="font-semibold w-1/2 text-center flex-1">Projects</span>
+                    <div class="flex justify-end flex-1 text-xs items-center">
+                        <label for="project-top-picker" class="mr-1">Show:&nbsp;</label>
+                        <input type="number" min="1" id="project-top-picker" data-entity="0" class="w-1/4 top-picker bg-gray-200 rounded-md text-center" value="10">
+                    </div>
                 </div>
                 <canvas id="chart-projects"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
@@ -79,9 +83,13 @@
         </div>
         <div class="w-full lg:w-1/2 p-1">
             <div class="p-4 pb-10 bg-white rounded shadow m-2 flex flex-col" id="os-container" style="height: 300px">
-                <div class="self-center flex">
-                    <span class="font-semibold mr-1">Operating Systems</span>
-                    <span id="os-top-label" class="top-label"></span>
+                <div class="flex justify-between">
+                    <div class="w-1/4 flex-1"></div>
+                    <span class="font-semibold w-1/2 text-center flex-1">Operating Systems</span>
+                    <div class="flex justify-end flex-1 text-xs items-center">
+                        <label for="os-top-picker" class="mr-1">Show:&nbsp;</label>
+                        <input type="number" min="1" id="os-top-picker" data-entity="1" class="w-1/4 top-picker bg-gray-200 rounded-md text-center" value="10">
+                    </div>
                 </div>
                 <canvas id="chart-os"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
@@ -92,9 +100,13 @@
         </div>
         <div class="w-full lg:w-1/2 p-1">
             <div class="p-4 pb-10 bg-white rounded shadow m-2 flex flex-col relative" id="language-container" style="height: 300px">
-                <div class="self-center flex">
-                    <span class="font-semibold mr-1">Languages</span>
-                    <span id="language-top-label" class="top-label"></span>
+                <div class="flex justify-between">
+                    <div class="w-1/4 flex-1"></div>
+                    <span class="font-semibold w-1/2 text-center flex-1">Languages</span>
+                    <div class="flex justify-end flex-1 text-xs items-center">
+                        <label for="language-top-picker" class="mr-1">Show:&nbsp;</label>
+                        <input type="number" min="1" id="language-top-picker" data-entity="3" class="w-1/4 top-picker bg-gray-200 rounded-md text-center" value="10">
+                    </div>
                 </div>
                 <canvas id="chart-language"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
@@ -105,9 +117,13 @@
         </div>
         <div class="w-full lg:w-1/2 p-1">
             <div class="p-4 pb-10 bg-white rounded shadow m-2 flex flex-col" id="editor-container" style="height: 300px">
-                <div class="self-center flex">
-                    <span class="font-semibold mr-1">Editors</span>
-                    <span id="editor-top-label" class="top-label"></span>
+                <div class="flex justify-between">
+                    <div class="w-1/4 flex-1"></div>
+                    <span class="font-semibold w-1/2 text-center flex-1">Editors</span>
+                    <div class="flex justify-end flex-1 text-xs items-center">
+                        <label for="editor-top-picker" class="mr-1">Show:&nbsp;</label>
+                        <input type="number" min="1" id="editor-top-picker" data-entity="2" class="w-1/4 top-picker bg-gray-200 rounded-md text-center" value="10">
+                    </div>
                 </div>
                 <canvas id="chart-editor"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
@@ -118,9 +134,13 @@
         </div>
         <div class="w-full lg:w-1/2 p-1">
             <div class="p-4 pb-10 bg-white rounded shadow m-2 flex flex-col" id="machine-container" style="height: 300px">
-                <div class="self-center flex">
-                    <span class="font-semibold mr-1">Machines</span>
-                    <span id="machine-top-label" class="top-label"></span>
+                <div class="flex justify-between">
+                    <div class="w-1/4 flex-1"></div>
+                    <span class="font-semibold w-1/2 text-center flex-1">Machines</span>
+                    <div class="flex justify-end flex-1 text-xs items-center">
+                        <label for="machine-top-picker" class="mr-1">Show:&nbsp;</label>
+                        <input type="number" min="1" id="machine-top-picker" data-entity="4" class="w-1/4 top-picker bg-gray-200 rounded-md text-center" value="10">
+                    </div>
                 </div>
                 <canvas id="chart-machine"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
