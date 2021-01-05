@@ -210,20 +210,36 @@ func listen(handler http.Handler) {
 	if config.UseTLS() {
 		if s4 != nil {
 			fmt.Printf("Listening for HTTPS on %s.\n", s4.Addr)
-			go s4.ListenAndServeTLS(config.Server.TlsCertPath, config.Server.TlsKeyPath)
+			go func() {
+				if err := s4.ListenAndServeTLS(config.Server.TlsCertPath, config.Server.TlsKeyPath); err != nil {
+					log.Fatalln(err)
+				}
+			}()
 		}
 		if s6 != nil {
 			fmt.Printf("Listening for HTTPS on %s.\n", s6.Addr)
-			go s6.ListenAndServeTLS(config.Server.TlsCertPath, config.Server.TlsKeyPath)
+			go func() {
+				if err := s6.ListenAndServeTLS(config.Server.TlsCertPath, config.Server.TlsKeyPath); err != nil {
+					log.Fatalln(err)
+				}
+			}()
 		}
 	} else {
 		if s4 != nil {
 			fmt.Printf("Listening for HTTP on %s.\n", s4.Addr)
-			go s4.ListenAndServe()
+			go func() {
+				if err := s4.ListenAndServe(); err != nil {
+					log.Fatalln(err)
+				}
+			}()
 		}
 		if s6 != nil {
 			fmt.Printf("Listening for HTTP on %s.\n", s6.Addr)
-			go s6.ListenAndServe()
+			go func() {
+				if err := s6.ListenAndServe(); err != nil {
+					log.Fatalln(err)
+				}
+			}()
 		}
 	}
 
