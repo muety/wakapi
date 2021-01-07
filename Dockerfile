@@ -1,6 +1,6 @@
 # Build Stage
 
-FROM golang:1.13 AS build-env
+FROM golang:1.15 AS build-env
 WORKDIR /src
 ADD ./go.mod .
 RUN go mod download
@@ -8,19 +8,11 @@ RUN go mod download
 ADD . .
 RUN go build -o wakapi
 
-# Final Stage
+# Run Stage
 
 # When running the application using `docker run`, you can pass environment variables
 # to override config values using `-e` syntax.
-# Available options are:
-# – WAKAPI_DB_TYPE
-# – WAKAPI_DB_USER
-# – WAKAPI_DB_PASSWORD
-# – WAKAPI_DB_HOST
-# – WAKAPI_DB_PORT
-# – WAKAPI_DB_NAME
-# – WAKAPI_PASSWORD_SALT
-# – WAKAPI_BASE_PATH
+# Available options can be found in [README.md#-configuration](README.md#-configuration)
 
 FROM debian
 WORKDIR /app
@@ -32,13 +24,14 @@ ENV WAKAPI_DB_PASSWORD ''
 ENV WAKAPI_DB_HOST ''
 ENV WAKAPI_DB_NAME=/data/wakapi.db
 ENV WAKAPI_PASSWORD_SALT ''
+ENV WAKAPI_LISTEN_IPV4 '0.0.0.0'
+ENV WAKAPI_INSECURE_COOKIES 'true'
 
 COPY --from=build-env /src/wakapi /app/
 COPY --from=build-env /src/config.default.yml /app/config.yml
 COPY --from=build-env /src/version.txt /app/
 
-RUN sed -i 's/listen_ipv4: 127.0.0.1/listen_ipv4: 0.0.0.0/g' /app/config.yml
-RUN sed -i 's/insecure_cookies: false/insecure_cookies: true/g' /app/config.yml
+RUN sed -i 's/listen_ipv6: ::1/listen_ipv6: /g' /app/config.yml
 
 ADD static /app/static
 ADD data /app/data

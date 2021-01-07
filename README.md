@@ -54,7 +54,7 @@ To use the hosted version set `api_url = https://wakapi.dev/api/heartbeat`. Howe
 
 ### Run with Docker
 ```bash
-docker run -d -p 3000:3000 --name wakapi n1try/wakapi
+docker run -d -p 3000:3000 -e "WAKAPI_PASSWORD_SALT=$(openssl rand -hex 16)" --name wakapi n1try/wakapi
 ```
 
 By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres, see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile) and [config.default.yml](https://github.com/muety/wakapi/blob/master/config.default.yml) for further options.
@@ -73,7 +73,7 @@ You can specify configuration options either via a config file (default: `config
 | `app.custom_languages`      | -                           | -              | Map from file endings to language names                             |
 | `server.port`               | `WAKAPI_PORT`               | `3000`         | Port to listen on                                                   |
 | `server.listen_ipv4`        | `WAKAPI_LISTEN_IPV4`        | `127.0.0.1`    | IPv4 network address to listen on (leave blank to disable IPv4)     |
-| `server.listen_ipv6`        | `WAKAPI_LISTEN_IPV6`        | ``             | IPv6 network address to listen on (leave blank to disable IPv6)     |
+| `server.listen_ipv6`        | `WAKAPI_LISTEN_IPV6`        | `::1`          | IPv6 network address to listen on (leave blank to disable IPv6)     |
 | `server.tls_cert_path`      | `WAKAPI_TLS_CERT_PATH`      | -              | Path of SSL server certificate (leave blank to not use HTTPS)       |
 | `server.tls_key_path`       | `WAKAPI_TLS_KEY_PATH`       | -              | Path of SSL server private key (leave blank to not use HTTPS)       |
 | `server.base_path`          | `WAKAPI_BASE_PATH`          | `/`            | Web base path (change when running behind a proxy under a sub-path) |
