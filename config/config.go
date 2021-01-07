@@ -179,6 +179,14 @@ func sqliteConnectionString(config *dbConfig) string {
 	return config.Name
 }
 
+func (c *appConfig) GetCustomLanguages() map[string]string {
+	return cloneStringMap(c.CustomLanguages)
+}
+
+func (c *appConfig) GetLanguageColors() map[string]string {
+	return cloneStringMap(c.LanguageColors)
+}
+
 func IsDev(env string) bool {
 	return env == "dev" || env == "development"
 }
