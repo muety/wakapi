@@ -1,1 +1,6 @@
 .env
+config*.yml
+!config.default.yml
+*.db
+*.exe
+wakapi
