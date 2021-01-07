@@ -68,7 +68,7 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f Summ
 
 func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User) (*models.Summary, error) {
 	// Check cache
-	cacheKey := srv.getHash(from.String(), to.String(), user.ID, "--aliased")
+	cacheKey := srv.getHash(from.String(), to.String(), user.ID)
 	if cacheResult, ok := srv.cache.Get(cacheKey); ok {
 		return cacheResult.(*models.Summary), nil
 	}

@@ -68,6 +68,7 @@ func (srv *LanguageMappingService) Delete(mapping *models.LanguageMapping) error
 	return err
 }
 
-func (srv LanguageMappingService) getServerMappings() map[string]string {
-	return srv.config.App.CustomLanguages
+func (srv *LanguageMappingService) getServerMappings() map[string]string {
+	// https://dave.cheney.net/2017/04/30/if-a-map-isnt-a-reference-variable-what-is-it
+	return srv.config.App.GetCustomLanguages()
 }
