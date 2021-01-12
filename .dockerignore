@@ -4,3 +4,7 @@ config*.yml
 *.db
 *.exe
 wakapi
+Dockerfile
+docker-compose.yml
+.dockerignore
+.git*

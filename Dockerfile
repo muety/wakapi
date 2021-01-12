@@ -2,11 +2,20 @@
 
 FROM golang:1.15 AS build-env
 WORKDIR /src
+
 ADD ./go.mod .
 RUN go mod download
 
 ADD . .
 RUN go build -o wakapi
+
+WORKDIR /app
+RUN cp /src/wakapi . && \
+    cp /src/config.default.yml config.yml && \
+    sed -i 's/listen_ipv6: ::1/listen_ipv6: /g' config.yml && \
+    cp /src/version.txt . && \
+    cp -r /src/static /src/data /src/migrations /src/views . && \
+    cp /src/wait-for-it.sh .
 
 # Run Stage
 
@@ -27,17 +36,7 @@ ENV WAKAPI_PASSWORD_SALT ''
 ENV WAKAPI_LISTEN_IPV4 '0.0.0.0'
 ENV WAKAPI_INSECURE_COOKIES 'true'
 
-COPY --from=build-env /src/wakapi /app/
-COPY --from=build-env /src/config.default.yml /app/config.yml
-COPY --from=build-env /src/version.txt /app/
-
-RUN sed -i 's/listen_ipv6: ::1/listen_ipv6: /g' /app/config.yml
-
-ADD static /app/static
-ADD data /app/data
-ADD migrations /app/migrations
-ADD views /app/views
-ADD wait-for-it.sh .
+COPY --from=build-env /app .
 
 VOLUME /data
 
