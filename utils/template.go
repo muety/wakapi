@@ -12,3 +12,10 @@ func Json(data interface{}) template.JS {
 	}
 	return template.JS(d)
 }
+
+func ToRunes(s string) (r []string) {
+	for _, c := range []rune(s) {
+		r = append(r, string(c))
+	}
+	return r
+}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type KeyValueRepository struct {
@@ -27,9 +28,12 @@ func (r *KeyValueRepository) GetString(key string) (*models.KeyStringValue, erro
 
 func (r *KeyValueRepository) PutString(kv *models.KeyStringValue) error {
 	result := r.db.
+		Clauses(clause.OnConflict{
+			UpdateAll: true,
+		}).
 		Where(&models.KeyStringValue{Key: kv.Key}).
 		Assign(kv).
-		FirstOrCreate(kv)
+		Create(kv)
 
 	if err := result.Error; err != nil {
 		return err

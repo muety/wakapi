@@ -17,6 +17,7 @@ require (
 	github.com/rubenv/sql-migrate v0.0.0-20200402132117-435005d389bc
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.6.1
+	go.uber.org/atomic v1.6.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/ini.v1 v1.50.0
@@ -24,5 +25,5 @@ require (
 	gorm.io/driver/mysql v1.0.3
 	gorm.io/driver/postgres v1.0.5
 	gorm.io/driver/sqlite v1.1.3
-	gorm.io/gorm v1.20.5
+	gorm.io/gorm v1.20.11
 )

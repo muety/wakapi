@@ -40,7 +40,7 @@ type AggregationJob struct {
 func (srv *AggregationService) Schedule() {
 	// Run once initially
 	if err := srv.Run(nil); err != nil {
-		log.Fatalf("failed to run aggregation jobs: %v\n", err)
+		log.Fatalf("failed to run AggregationJob: %v\n", err)
 	}
 
 	s := gocron.NewScheduler(time.Local)

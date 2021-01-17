@@ -10,6 +10,10 @@ type IAggregationService interface {
 	Run(map[string]bool) error
 }
 
+type IMiscService interface {
+	ScheduleCountTotalTime()
+}
+
 type IAliasService interface {
 	LoadUserAliases(string) error
 	GetAliasOrDefault(string, uint8, string) (string, error)

@@ -6,19 +6,24 @@ import (
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
+	"github.com/muety/wakapi/services"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 type HomeHandler struct {
-	config *conf.Config
+	config       *conf.Config
+	keyValueSrvc services.IKeyValueService
 }
 
 var loginDecoder = schema.NewDecoder()
 var signupDecoder = schema.NewDecoder()
 
-func NewHomeHandler() *HomeHandler {
+func NewHomeHandler(keyValueService services.IKeyValueService) *HomeHandler {
 	return &HomeHandler{
-		config: conf.Get(),
+		config:       conf.Get(),
+		keyValueSrvc: keyValueService,
 	}
 }
 
@@ -36,8 +41,25 @@ func (h *HomeHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HomeHandler) buildViewModel(r *http.Request) *view.HomeViewModel {
+	var totalHours int
+	var totalUsers int
+
+	if t, err := h.keyValueSrvc.GetString(conf.KeyLatestTotalTime); err == nil && t != nil && t.Value != "" {
+		if d, err := time.ParseDuration(t.Value); err == nil {
+			totalHours = int(d.Hours())
+		}
+	}
+
+	if t, err := h.keyValueSrvc.GetString(conf.KeyLatestTotalUsers); err == nil && t != nil && t.Value != "" {
+		if d, err := strconv.Atoi(t.Value); err == nil {
+			totalUsers = d
+		}
+	}
+
 	return &view.HomeViewModel{
-		Success: r.URL.Query().Get("success"),
-		Error:   r.URL.Query().Get("error"),
+		Success:    r.URL.Query().Get("success"),
+		Error:      r.URL.Query().Get("error"),
+		TotalHours: totalHours,
+		TotalUsers: totalUsers,
 	}
 }

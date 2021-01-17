@@ -11,21 +11,40 @@
 
 <div class="absolute flex top-0 right-0 mr-8 mt-10 py-2">
     <div class="mx-1">
-        <a href="login" class="py-1 px-3 h-8 block rounded border border-green-700 text-white text-sm">🔑 &nbsp;Login️</a>
+        <a href="login" class="py-1 px-3 h-8 block rounded border border-green-700 text-white text-sm">🔑
+            &nbsp;Login️</a>
     </div>
 </div>
 
 <main class="mt-10 flex-grow flex justify-center w-full">
     <div class="flex flex-col text-white">
-        <h1 class="text-4xl font-semibold antialiased text-center mb-2">Keep Track of <span class="text-green-700">Your</span> Coding Time 🕓</h1>
-        <p class="text-center text-gray-500 text-xl my-2">Wakapi is an open-source tool that helps you keep track of the time you have spent coding on different projects in different programming languages and more. Ideal for statistics freaks any anyone else.</p>
+        <h1 class="text-4xl font-semibold antialiased text-center mb-2">Keep Track of <span
+                class="text-green-700">Your</span> Coding Time 🕓</h1>
+        <p class="text-center text-gray-500 text-xl my-2">Wakapi is an open-source tool that helps you keep track of the
+            time you have spent coding on different projects in different programming languages and more. Ideal for
+            statistics freaks any anyone else.</p>
+
+        <p class="text-center text-gray-500 text-xl my-4">
+            <span class="mr-1">💡 The system has tracked a total of </span>
+            {{ range $d := .TotalHours | printf "%d" | toRunes }}
+            <span class="bg-gray-900 rounded-sm p-1 border border-gray-700 font-mono" style="margin: auto -2px;" title="{{ $.TotalHours }} hours (updated once a day)">{{ $d }}</span>
+            {{ end }}
+            <span class="mx-1">hours of coding time of</span>
+            {{ range $d := .TotalUsers | printf "%d" | toRunes }}
+            <span class="bg-gray-900 rounded-sm p-1 border border-gray-700 font-mono" style="margin: auto -2px;" title="{{ $.TotalUsers }} users (updated once a day)">{{ $d }}</span>
+            {{ end }}
+            <span class="ml-1">users.</span>
+        </p>
 
         <div class="flex justify-center mt-4 mb-8 space-x-2">
             <a href="login">
-                <button type="button" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white font-semibold">🚀 Try it!</button>
+                <button type="button"
+                        class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white font-semibold">🚀 Try it!
+                </button>
             </a>
             <a href="https://github.com/muety/wakapi#%EF%B8%8F-server-setup" target="_blank" rel="noopener noreferrer">
-                <button type="button" class="py-1 px-3 h-8 rounded border border-green-700 text-white">📡 Host it</button>
+                <button type="button" class="py-1 px-3 h-8 rounded border border-green-700 text-white">📡 Host it
+                </button>
             </a>
             <a href="https://github.com/muety/wakapi" target="_blank" rel="noopener noreferrer">
                 <button type="button" class="py-1 px-3 h-8 rounded border border-green-700 text-white">
@@ -47,17 +66,24 @@
                     <li>✅ &nbsp; Fancy statistics and plots</li>
                     <li>✅ &nbsp; Cool badges for readmes</li>
                     <li>✅ &nbsp; Intuitive REST API</li>
-                    <li>✅ &nbsp; Compatible with <a href="https://wakatime.com" target="_blank" rel="noopener noreferrer" class="underline">Wakatime</a></li>
-                    <li>✅ &nbsp; <a href="https://prometheus.io" target="_blank" rel="noopener noreferrer" class="underline">Prometheus</a> metrics via <a href="https://github.com/MacroPower/wakatime_exporter" target="_blank" rel="noopener noreferrer" class="underline">exporter</a></li>
+                    <li>✅ &nbsp; Compatible with <a href="https://wakatime.com" target="_blank"
+                                                    rel="noopener noreferrer" class="underline">Wakatime</a></li>
+                    <li>✅ &nbsp; <a href="https://prometheus.io" target="_blank" rel="noopener noreferrer"
+                                    class="underline">Prometheus</a> metrics via <a
+                            href="https://github.com/MacroPower/wakatime_exporter" target="_blank"
+                            rel="noopener noreferrer" class="underline">exporter</a></li>
                     <li>✅ &nbsp; Self-hosted</li>
                 </ul>
             </div>
         </div>
 
         <div class="flex justify-center space-x-2 mt-12">
-            <img alt="License badge" src="https://badges.fw-web.space/github/license/muety/wakapi?color=%232F855A&style=flat-square">
-            <img alt="Go version badge" src="https://badges.fw-web.space/github/go-mod/go-version/muety/wakapi?color=%232F855A&style=flat-square">
-            <img alt="Wakapi coding time badge" src="https://badges.fw-web.space/endpoint?color=%232F855A&style=flat-square&label=wakapi&url=https://wakapi.dev/api/compat/shields/v1/n1try/interval:any/project:wakapi">
+            <img alt="License badge"
+                 src="https://badges.fw-web.space/github/license/muety/wakapi?color=%232F855A&style=flat-square">
+            <img alt="Go version badge"
+                 src="https://badges.fw-web.space/github/go-mod/go-version/muety/wakapi?color=%232F855A&style=flat-square">
+            <img alt="Wakapi coding time badge"
+                 src="https://badges.fw-web.space/endpoint?color=%232F855A&style=flat-square&label=wakapi&url=https://wakapi.dev/api/compat/shields/v1/n1try/interval:any/project:wakapi">
         </div>
     </div>
 </main>

@@ -1,8 +1,10 @@
 package view
 
 type HomeViewModel struct {
-	Success string
-	Error   string
+	Success    string
+	Error      string
+	TotalHours int
+	TotalUsers int
 }
 
 func (s *HomeViewModel) WithSuccess(m string) *HomeViewModel {

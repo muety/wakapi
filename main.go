@@ -45,6 +45,7 @@ var (
 	summaryService         services.ISummaryService
 	aggregationService     services.IAggregationService
 	keyValueService        services.IKeyValueService
+	miscService            services.IMiscService
 )
 
 // TODO: Refactor entire project to be structured after business domains
@@ -97,9 +98,11 @@ func main() {
 	summaryService = services.NewSummaryService(summaryRepository, heartbeatService, aliasService)
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
 	keyValueService = services.NewKeyValueService(keyValueRepository)
+	miscService = services.NewMiscService(userService, summaryService, keyValueService)
 
-	// Aggregate heartbeats to summaries and persist them
+	// Schedule background tasks
 	go aggregationService.Schedule()
+	go miscService.ScheduleCountTotalTime()
 
 	// TODO: move endpoint registration to the respective routes files
 
@@ -110,7 +113,7 @@ func main() {
 	healthHandler := routes.NewHealthHandler(db)
 	heartbeatHandler := routes.NewHeartbeatHandler(heartbeatService, languageMappingService)
 	settingsHandler := routes.NewSettingsHandler(userService, summaryService, aggregationService, languageMappingService)
-	homeHandler := routes.NewHomeHandler()
+	homeHandler := routes.NewHomeHandler(keyValueService)
 	loginHandler := routes.NewLoginHandler(userService)
 	imprintHandler := routes.NewImprintHandler(keyValueService)
 	wakatimeV1AllHandler := wtV1Routes.NewAllTimeHandler(summaryService)

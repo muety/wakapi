@@ -23,6 +23,7 @@ func loadTemplates() {
 		"date":       utils.FormatDateHuman,
 		"title":      strings.Title,
 		"capitalize": utils.Capitalize,
+		"toRunes":    utils.ToRunes,
 		"getBasePath": func() string {
 			return config.Get().Server.BasePath
 		},

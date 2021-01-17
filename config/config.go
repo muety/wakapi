@@ -27,6 +27,9 @@ const (
 	SQLDialectMysql    = "mysql"
 	SQLDialectPostgres = "postgres"
 	SQLDialectSqlite   = "sqlite3"
+
+	KeyLatestTotalTime  = "latest_total_time"
+	KeyLatestTotalUsers = "latest_total_users"
 )
 
 var cfg *Config
@@ -34,6 +37,7 @@ var cFlag = flag.String("config", defaultConfigPath, "config file location")
 
 type appConfig struct {
 	AggregationTime string            `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
+	CountingTime    string            `yaml:"counting_time" default:"05:15" env:"WAKAPI_COUNTING_TIME"`
 	CustomLanguages map[string]string `yaml:"custom_languages"`
 	LanguageColors  map[string]string `yaml:"-"`
 }
