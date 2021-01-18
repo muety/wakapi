@@ -56,8 +56,10 @@ type dbConfig struct {
 	User     string `env:"WAKAPI_DB_USER"`
 	Password string `env:"WAKAPI_DB_PASSWORD"`
 	Name     string `default:"wakapi_db.db" env:"WAKAPI_DB_NAME"`
-	Dialect  string `default:"sqlite3" env:"WAKAPI_DB_TYPE"`
+	Dialect  string `yaml:"-"`
+	Type     string `yaml:"dialect" default:"sqlite3" env:"WAKAPI_DB_TYPE"`
 	MaxConn  uint   `yaml:"max_conn" default:"2" env:"WAKAPI_DB_MAX_CONNECTIONS"`
+	Ssl      bool   `default:"false" env:"WAKAPI_DB_SSL"`
 }
 
 type serverConfig struct {
@@ -170,12 +172,18 @@ func mysqlConnectionString(config *dbConfig) string {
 }
 
 func postgresConnectionString(config *dbConfig) string {
-	return fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable",
+	sslmode := "disable"
+	if config.Ssl {
+		sslmode = "require"
+	}
+
+	return fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
 		config.Host,
 		config.Port,
 		config.User,
 		config.Name,
 		config.Password,
+		sslmode,
 	)
 }
 
@@ -243,6 +251,13 @@ func mustReadConfigLocation() string {
 	return *cFlag
 }
 
+func resolveDbDialect(dbType string) string {
+	if dbType == "cockroach" {
+		return "postgres"
+	}
+	return dbType
+}
+
 func Set(config *Config) {
 	cfg = config
 }
@@ -264,6 +279,7 @@ func Load() *Config {
 
 	config.Version = readVersion()
 	config.App.LanguageColors = readLanguageColors()
+	config.Db.Dialect = resolveDbDialect(config.Db.Type)
 	config.Security.SecureCookie = securecookie.New(
 		securecookie.GenerateRandomKey(64),
 		securecookie.GenerateRandomKey(32),

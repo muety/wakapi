@@ -85,8 +85,17 @@ You can specify configuration options either via a config file (default: `config
 | `db.user`                   | `WAKAPI_DB_USER`            | -              | Database user                                                       |
 | `db.password`               | `WAKAPI_DB_PASSWORD`        | -              | Database password                                                   |
 | `db.name`                   | `WAKAPI_DB_NAME`            | `wakapi_db.db` | Database name                                                       |
-| `db.dialect`                | `WAKAPI_DB_TYPE`            | `sqlite3`      | Database type (one of sqlite3, mysql, postgres)                     |
+| `db.dialect`                | `WAKAPI_DB_TYPE`            | `sqlite3`      | Database type (one of `sqlite3`, `mysql`, `postgres`, `cockroach`)                     |
 | `db.max_conn`               | `WAKAPI_DB_MAX_CONNECTIONS` | `2`            | Maximum number of database connections                              |
+| `db.ssl`                    | `WAKAPI_DB_SSL`             | `false`        | Whether to use TLS encryption for database connection (Postgres and CockroachDB only) |
+
+### Supported databases
+Wakapi uses [GORM](https://gorm.io) as an ORM. As a consequence, a set of different relational databases is supported.
+* [SQLite](https://sqlite.org/) (_default, easy setup_)
+* [MySQL](https://hub.docker.com/_/mysql) (_recommended, because most extensively tested_)
+* [MariaDB](https://hub.docker.com/_/mariadb) (_open-source MySQL alternative_)
+* [Postgres](https://hub.docker.com/_/postgres) (_open-source as well_)
+* [CockroachDB](https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html) (_cloud-native, distributed, Postgres-compatible API_)
 
 ## 💻 Client Setup
 Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime) client tools. In order to collect statistics to Wakapi, you need to set them up.
