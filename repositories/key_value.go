@@ -5,6 +5,7 @@ import (
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"log"
 )
 
 type KeyValueRepository struct {
@@ -40,7 +41,7 @@ func (r *KeyValueRepository) PutString(kv *models.KeyStringValue) error {
 	}
 
 	if result.RowsAffected != 1 {
-		return errors.New("nothing updated")
+		log.Printf("warning: did not insert key '%s', maybe just updated?\n", kv.Key)
 	}
 
 	return nil

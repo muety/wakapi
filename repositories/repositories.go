@@ -6,7 +6,13 @@ import (
 )
 
 type IAliasRepository interface {
+	Insert(*models.Alias) (*models.Alias, error)
+	Delete(uint) error
+	DeleteBatch([]uint) error
 	GetByUser(string) ([]*models.Alias, error)
+	GetByUserAndKey(string, string) ([]*models.Alias, error)
+	GetByUserAndKeyAndType(string, string, uint8) ([]*models.Alias, error)
+	GetByUserAndTypeAndValue(string, uint8, string) (*models.Alias, error)
 }
 
 type IHeartbeatRepository interface {

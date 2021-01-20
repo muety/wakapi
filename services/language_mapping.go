@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
@@ -18,7 +19,7 @@ func NewLanguageMappingService(languageMappingsRepo repositories.ILanguageMappin
 	return &LanguageMappingService{
 		config:     config.Get(),
 		repository: languageMappingsRepo,
-		cache:      cache.New(1*time.Hour, 2*time.Hour),
+		cache:      cache.New(24*time.Hour, 24*time.Hour),
 	}
 }
 
@@ -63,6 +64,9 @@ func (srv *LanguageMappingService) Create(mapping *models.LanguageMapping) (*mod
 }
 
 func (srv *LanguageMappingService) Delete(mapping *models.LanguageMapping) error {
+	if mapping.UserID == "" {
+		return errors.New("no user id specified")
+	}
 	err := srv.repository.Delete(mapping.ID)
 	srv.cache.Delete(mapping.UserID)
 	return err

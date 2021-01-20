@@ -15,9 +15,14 @@ type IMiscService interface {
 }
 
 type IAliasService interface {
-	LoadUserAliases(string) error
-	GetAliasOrDefault(string, uint8, string) (string, error)
+	Create(*models.Alias) (*models.Alias, error)
+	Delete(*models.Alias) error
+	DeleteMulti([]*models.Alias) error
 	IsInitialized(string) bool
+	InitializeUser(string) error
+	GetByUser(string) ([]*models.Alias, error)
+	GetByUserAndKeyAndType(string, string, uint8) ([]*models.Alias, error)
+	GetAliasOrDefault(string, uint8, string) (string, error)
 }
 
 type IHeartbeatService interface {

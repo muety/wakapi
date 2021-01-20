@@ -5,6 +5,18 @@
 
 <body class="bg-gray-800 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
 
+<style>
+    .inline-bullet-list li a {
+        text-decoration: underline;
+    }
+    .inline-bullet-list li:after {
+        content: "•";
+    }
+    .inline-bullet-list li:last-child:after {
+        content: "";
+    }
+</style>
+
 {{ template "header.tpl.html" . }}
 
 <div class="w-full flex justify-center">
@@ -19,8 +31,31 @@
 
 <main class="mt-4 flex-grow flex justify-center w-full">
     <div class="flex flex-col flex-grow max-w-xl mt-8">
+        <div class="text-gray-500 text-xs mb-8">
+            <ul class="flex justify-center flex-wrap space-x-1 inline-bullet-list">
+                <li class="hover:text-gray-400 mb-1">
+                    <a href="settings#password">Change Password</a>
+                </li>
+                <li class="hover:text-gray-400 mb-1">
+                    <a href="settings#apikey">Reset API Key</a>
+                </li>
+                <li class="hover:text-gray-400 mb-1">
+                    <a href="settings#aliases">Aliases</a>
+                </li>
+                <li class="hover:text-gray-400 mb-1">
+                    <a href="settings#languages">Languages & File Extensions</a>
+                </li>
+                <li class="hover:text-gray-400 mb-1">
+                    <a href="settings#badges">Badges</a>
+                </li>
+                <li class="hover:text-gray-400 mb-1">
+                    <a href="settings#danger">Danger Zone</a>
+                </li>
+            </ul>
+        </div>
+
         <div class="w-full my-8 pb-8 border-b border-gray-700">
-            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
+            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="password">
                 Change Password
             </div>
 
@@ -52,13 +87,15 @@
         </div>
 
         <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700">
-            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
+            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="apikey">
                 Reset API Key
             </div>
 
             <form class="mt-6" action="settings/reset" method="post">
                 <div class="text-gray-300 text-sm mb-4">
-                    <strong>⚠️ Caution:</strong> Resetting your API key requires you to update your <span class="font-mono">.wakatime.cfg</span> files on all of your computers to make the WakaTime client send heartbeats again.
+                    <strong>⚠️ Caution:</strong> Resetting your API key requires you to update your <span
+                        class="font-mono">.wakatime.cfg</span> files on all of your computers to make the WakaTime
+                    client send heartbeats again.
                 </div>
 
                 <div class="flex justify-between float-right">
@@ -69,112 +106,197 @@
             </form>
         </div>
 
-        <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700">
+        <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700" id="aliases">
             <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
-                Language Mappings
+                Aliases
             </div>
-            
+
             <div class="text-gray-300 text-sm mb-4 mt-6">
-                You can specify custom mapping from file extensions to programming languages (e.g. a <span class="text-xs bg-gray-900 rounded py-1 px-2 font-mono">.jsx</span> file could be mapped to <span class="text-xs bg-gray-900 rounded py-1 px-2 font-mono">React</span>.)
+                You can specify aliases for any type of entity. For instance, you can define a rule, that both <span
+                    class="inline-block mb-1 text-gray-500 italic">myapp-frontend</span> and <span
+                    class="inline-block mb-1 text-gray-500 italic">myapp-backend</span> are combined under a
+                project called <span class="inline-block mb-1 text-gray-500 italic">myapp</span>.
             </div>
 
-            {{ if .LanguageMappings }}
-            {{ range $i, $mapping := .LanguageMappings }}
-            <div class="text-white border-1 w-full border-green-700 inline-block my-1 py-1 text-align">
-                <label class="inline-block text-sm mb-1 text-gray-500" >When filename ends in:</label>
-                {{ $mapping.Extension }}
-                <label class="inline-block text-sm mb-1 text-gray-500" >Change the language to:</label>
-                {{ $mapping.Language }}
-
-                <form class="float-right" action="settings/language_mappings/delete" method="post">
-                    <input type="hidden" id="mapping_id" name="mapping_id" required value="{{ $mapping.ID }}">
-                    <button type="submit" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm">
-                        X
+            {{ if .Aliases }}
+            <h3 class="text-md font-semibold text-white">Rules</h3>
+            {{ range $i, $alias := .Aliases }}
+            <div class="flex items-center">
+                <div class="text-gray-500 border-1 w-full border-green-700 inline-block my-1 py-1 text-align text-sm"
+                     style="line-height: 1.8">
+                    &#9656;&nbsp; All <span class="underline">{{ $alias.Type | typeName }}s</span> named
+                    {{ range $j, $value := $alias.Values }}
+                    <span class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono">{{- $value -}}</span>
+                    {{ if lt $j (add (len $alias.Values) -2) }}
+                    <span class="-ml-1">{{- ", " | capitalize -}}</span>
+                    {{ else if lt $j (add (len $alias.Values) -1) }}
+                    <span>{{- "or" -}}</span>
+                    {{ end }}
+                    {{ end }}
+                    are mapped to <span class="underline">{{ $alias.Type | typeName }}</span> <span
+                        class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono">{{ $alias.Key }}</span>.
+                </div>
+                <form class="float-right" action="settings/aliases/delete" method="post">
+                    <input type="hidden" id="delete_alias_key" name="key" required value="{{ $alias.Key }}">
+                    <input type="hidden" id="delete_alias_type" name="type" required value="{{ $alias.Type }}">
+                    <button type="submit" class="py-1 px-3 rounded border border-red-500 hover:border-red-600 text-gray-400 text-sm">
+                        ✕
                     </button>
                 </form>
             </div>
             {{end}}
-            {{else}}
-            <div class="text-white border-1 w-full border-green-700 inline-block my-1 py-1">
-                No rules.
-            </div>
+            <div class="mb-8"></div>
             {{end}}
 
-            <form action="settings/language_mappings" method="post">
-                <div class="inline-block justify-around mt-4 w-full">
-                    <label class="inline-block text-sm mb-1 text-gray-500" for="extension">When filename ends in:</label>
-                    <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
-                           type="text" id="extension"
-                           name="extension" placeholder=".py" minlength="1" required>
-                </div>
-                <div class="inline-block justify-around mt-4 w-full">
-                    <label class="inline-block text-sm mb-1 text-gray-500" for="language">Change the language to:</label>
-                    <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
-                           type="text" id="language"
-                           name="language" placeholder="Python" minlength="1" required>
-                </div>
-                <div class="flex justify-between float-right">
-                    <button type="submit" class="py-1 px-3 my-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
-                        Add
-                    </button>
+            <h3 class="text-md font-semibold text-white">Add Rule</h3>
+            <form action="settings/aliases" method="post">
+                <div class="flex items-center mt-2 w-full text-gray-500 text-sm">
+                    <span class="mr-2">Map</span>
+                    <select name="type" id="select-type"
+                            class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3 cursor-pointer">
+                        {{ range $i, $t := entityTypes }}
+                        <option value="{{ $t }}">{{ $t | typeName | capitalize }}</option>
+                        {{ end }}
+                    </select>
+                    <span class="mx-2">named</span>
+                    <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
+                           type="text" id="alias-value" style="width: 130px;"
+                           name="value" placeholder="myapp-frontend" minlength="1" required>
+                    <span class="mx-2">to</span>
+                    <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
+                           type="text" id="alias-key" style="width: 100px"
+                           name="key" placeholder="myapp" minlength="1" required>
+                    <div class="flex-grow flex justify-end">
+                        <button type="submit"
+                                class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                            Add
+                        </button>
+                    </div>
                 </div>
             </form>
-
         </div>
 
         <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700">
-            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
+            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="languages">
+                Languages & File Extensions
+            </div>
+
+            <div class="text-gray-300 text-sm mb-4 mt-6">
+                You can specify custom mapping from file extensions to programming languages, for instance a <span
+                    class="inline-block mb-1 text-gray-500 italic">.jsx</span> file could be mapped to the <span
+                    class="inline-block mb-1 text-gray-500 italic">React</span> language.
+            </div>
+
+            {{ if .LanguageMappings }}
+            <h3 class="text-md font-semibold text-white">Rules</h3>
+            {{ range $i, $mapping := .LanguageMappings }}
+            <div class="flex items-center">
+                <div class="text-gray-500 border-1 w-full border-green-700 inline-block my-1 py-1 text-align text-sm">
+                    &#9656;&nbsp; When filename ends in <span
+                        class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono mr-1">{{ $mapping.Extension }}</span>
+                    then change the <span class="underline">language</span> to <span
+                        class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono mr-1">{{ $mapping.Language }}</span>
+                </div>
+                <form class="float-right" action="settings/language_mappings/delete" method="post">
+                    <input type="hidden" id="mapping_id" name="mapping_id" required value="{{ $mapping.ID }}">
+                    <button type="submit" class="py-1 px-3 rounded border border-red-500 hover:border-red-600 text-gray-400 text-sm">
+                        ✕
+                    </button>
+                </form>
+            </div>
+            {{end}}
+            <div class="mb-8"></div>
+            {{end}}
+
+            <h3 class="text-md font-semibold text-white">Add Rule</h3>
+            <form action="settings/language_mappings" method="post">
+                <div class="flex items-center w-full text-gray-500 text-sm">
+                    <span class="mr-2">When filename ends in</span>
+                    <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
+                           type="text" id="extension" style="width: 70px"
+                           name="extension" placeholder=".py" minlength="1" required>
+                    <span class="mx-2">change language to</span>
+                    <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
+                           type="text" id="language" style="width: 100px"
+                           name="language" placeholder="Python" minlength="1" required>
+                    <div class="flex-grow flex justify-end">
+                        <button type="submit"
+                                class="py-1 px-3 my-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                            Add
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700">
+            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="badges">
                 Badges
             </div>
 
             <form class="mt-6" action="settings/badges" method="post">
                 <div class="text-gray-300 text-sm mb-4">
                     {{ if .User.BadgesEnabled }}
-                        <p>Badges are currently enabled. You can disable the feature by deactivating the respective API endpoint.</p>
+                    <p>Badges are currently enabled. You can disable the feature by deactivating the respective API
+                        endpoint.</p>
 
-                        <div class="flex justify-around mt-4">
-                            <span class="font-mono font-normal bg-gray-900 p-1 rounded whitespace-no-wrap">GET /api/compat/shields/v1</span>
-                            <button type="submit" class="py-1 px-2 rounded bg-orange-700 hover:bg-orange-800 text-white text-xs" title="Disable support for badges to secure endpoint">
-                                Status: public
-                            </button>
-                        </div>
+                    <div class="flex justify-around mt-4">
+                        <span class="font-mono font-normal bg-gray-900 p-1 rounded whitespace-no-wrap">GET /api/compat/shields/v1</span>
+                        <button type="submit"
+                                class="py-1 px-2 rounded bg-orange-700 hover:bg-orange-800 text-white text-xs"
+                                title="Disable support for badges to secure endpoint">
+                            Status: public
+                        </button>
+                    </div>
 
-                        <h3 class="font-semibold mb-2 mt-8">Examples</h3>
-                        <div class="flex flex-col mb-4">
-                            <div class="flex justify-between my-2">
-                                <div>
-                                    <img class="with-url-src" src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:today&style=flat-square&color=blue&label=today" alt="Shields.io badge"/>
-                                </div>
-                                <span class="with-url-inner text-xs bg-gray-900 rounded py-1 px-2 font-mono whitespace-no-wrap overflow-auto" style="max-width: 300px;">
+                    <h3 class="font-semibold mb-2 mt-8">Examples</h3>
+                    <div class="flex flex-col mb-4">
+                        <div class="flex justify-between my-2">
+                            <div>
+                                <img class="with-url-src"
+                                     src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:today&style=flat-square&color=blue&label=today"
+                                     alt="Shields.io badge"/>
+                            </div>
+                            <span class="with-url-inner text-xs bg-gray-900 rounded py-1 px-2 font-mono whitespace-no-wrap overflow-auto"
+                                  style="max-width: 300px;">
                                     https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:today&style=flat-square&color=blue&label=today
                                 </span>
+                        </div>
+                        <div class="flex justify-between my-2">
+                            <div>
+                                <img class="with-url-src"
+                                     src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:30_days&style=flat-square&color=blue&label=last 30d"
+                                     alt="Shields.io badge"/>
                             </div>
-                            <div class="flex justify-between my-2">
-                                <div>
-                                    <img class="with-url-src" src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:30_days&style=flat-square&color=blue&label=last 30d" alt="Shields.io badge"/>
-                                </div>
-                                <span class="with-url-inner text-xs bg-gray-900 rounded py-1 px-2 font-mono whitespace-no-wrap overflow-auto" style="max-width: 300px;">
+                            <span class="with-url-inner text-xs bg-gray-900 rounded py-1 px-2 font-mono whitespace-no-wrap overflow-auto"
+                                  style="max-width: 300px;">
                                     https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:30_days&style=flat-square&color=blue&label=last 30d
                                 </span>
-                            </div>
                         </div>
+                    </div>
 
-                        <p>You can also add <span class="text-xs bg-gray-900 rounded py-1 px-2 font-mono">/project:your-cool-project</span> to the URL to filter by project.</p>
+                    <p>You can also add <span class="text-xs bg-gray-900 rounded py-1 px-2 font-mono">/project:your-cool-project</span>
+                        to the URL to filter by project.</p>
                     {{ else }}
-                        <p>You have the ability to create badges from your coding statistics using <a href="https://shields.io" target="_blank" class="border-b border-green-800" rel="noopener noreferrer">Shields.io</a>. To do so, you need to grant public, unauthorized access to the respective endpoint.</p>
-                        <div class="flex justify-around mt-4">
-                            <span class="font-mono font-normal bg-gray-900 p-1 rounded whitespace-no-wrap">GET /api/compat/shields/v1</span>
-                            <button type="submit" class="py-1 px-2 rounded bg-green-700 hover:bg-green-800 text-white text-xs" title="Make endpoint public to enable badges">
-                                Status: protected
-                            </button>
-                        </div>
+                    <p>You have the ability to create badges from your coding statistics using <a
+                            href="https://shields.io" target="_blank" class="border-b border-green-800"
+                            rel="noopener noreferrer">Shields.io</a>. To do so, you need to grant public, unauthorized
+                        access to the respective endpoint.</p>
+                    <div class="flex justify-around mt-4">
+                        <span class="font-mono font-normal bg-gray-900 p-1 rounded whitespace-no-wrap">GET /api/compat/shields/v1</span>
+                        <button type="submit"
+                                class="py-1 px-2 rounded bg-green-700 hover:bg-green-800 text-white text-xs"
+                                title="Make endpoint public to enable badges">
+                            Status: protected
+                        </button>
+                    </div>
                     {{ end }}
                 </div>
             </form>
         </div>
 
         <div class="w-full mt-4 mb-8 pb-8">
-            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
+            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="danger">
                 ⚠️ Danger Zone
             </div>
             <div class="mt-10 text-gray-300 text-sm">
@@ -182,19 +304,26 @@
                     Regenerate summaries
                 </h3>
                 <p>
-                    Wakapi improves its efficiency and speed by automatically aggregating individual heartbeats to summaries on a per-day basis.
-                    That is, historic summaries, i.e. such from past days, are generated once and only fetched from the database in a static fashion afterwards, unless you pass <span class="font-mono font-normal bg-gray-900 p-1 rounded whitespace-no-wrap">&recompute=true</span> with your request.
+                    Wakapi improves its efficiency and speed by automatically aggregating individual heartbeats to
+                    summaries on a per-day basis.
+                    That is, historic summaries, i.e. such from past days, are generated once and only fetched from the
+                    database in a static fashion afterwards, unless you pass <span
+                        class="font-mono font-normal bg-gray-900 p-1 rounded whitespace-no-wrap">&recompute=true</span>
+                    with your request.
                 </p>
                 <p class="mt-2">
-                    If, for some reason, these aggregated summaries are faulty or preconditions have change (e.g. you modified language mappings retrospectively), you may want to re-generate them from raw heartbeats.
+                    If, for some reason, these aggregated summaries are faulty or preconditions have change (e.g. you
+                    modified language mappings retrospectively), you may want to re-generate them from raw heartbeats.
                 </p>
                 <p class="mt-2">
-                    <strong>Note:</strong> Only run this action if you know what you are doing. Data might be lost is case heartbeats were deleted after the respective summaries had been generated.
+                    <strong>Note:</strong> Only run this action if you know what you are doing. Data might be lost is
+                    case heartbeats were deleted after the respective summaries had been generated.
                 </p>
             </div>
             <div class="mt-10 flex justify-center">
                 <form action="settings/regenerate" method="post" id="form-regenerate-summaries">
-                    <button type="button" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm" id="btn-regenerate-summaries">
+                    <button type="button" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm"
+                            id="btn-regenerate-summaries">
                         Clear & Regenerate
                     </button>
                 </form>
@@ -214,7 +343,7 @@
         e.classList.remove('hidden')
     })
 
-    const btnRegenerate = document.querySelector("#btn-regenerate-summaries")
+    const btnRegenerate = document.querySelector('#btn-regenerate-summaries')
     const formRegenerate = document.querySelector('#form-regenerate-summaries')
     btnRegenerate.addEventListener('click', () => {
         if (confirm('Are you sure?')) {

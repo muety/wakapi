@@ -50,7 +50,7 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f Summ
 	}
 
 	// Initialize alias resolver service
-	if err := srv.aliasService.LoadUserAliases(user.ID); err != nil {
+	if err := srv.aliasService.InitializeUser(user.ID); err != nil {
 		return nil, err
 	}
 

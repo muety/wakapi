@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
 	"html/template"
 	"io/ioutil"
@@ -19,11 +20,15 @@ var templates map[string]*template.Template
 func loadTemplates() {
 	tplPath := "views"
 	tpls := template.New("").Funcs(template.FuncMap{
-		"json":       utils.Json,
-		"date":       utils.FormatDateHuman,
-		"title":      strings.Title,
-		"capitalize": utils.Capitalize,
-		"toRunes":    utils.ToRunes,
+		"json":        utils.Json,
+		"date":        utils.FormatDateHuman,
+		"title":       strings.Title,
+		"join":        strings.Join,
+		"add":         utils.Add,
+		"capitalize":  utils.Capitalize,
+		"toRunes":     utils.ToRunes,
+		"entityTypes": models.SummaryTypes,
+		"typeName":    typeName,
 		"getBasePath": func() string {
 			return config.Get().Server.BasePath
 		},
@@ -57,4 +62,23 @@ func loadTemplates() {
 
 		templates[tplName] = tpl
 	}
+}
+
+func typeName(t uint8) string {
+	if t == models.SummaryProject {
+		return "project"
+	}
+	if t == models.SummaryLanguage {
+		return "language"
+	}
+	if t == models.SummaryEditor {
+		return "editor"
+	}
+	if t == models.SummaryOS {
+		return "operating system"
+	}
+	if t == models.SummaryMachine {
+		return "machine"
+	}
+	return "unknown"
 }

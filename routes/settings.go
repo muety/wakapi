@@ -17,16 +17,18 @@ type SettingsHandler struct {
 	config              *conf.Config
 	userSrvc            services.IUserService
 	summarySrvc         services.ISummaryService
+	aliasSrvc           services.IAliasService
 	aggregationSrvc     services.IAggregationService
 	languageMappingSrvc services.ILanguageMappingService
 }
 
 var credentialsDecoder = schema.NewDecoder()
 
-func NewSettingsHandler(userService services.IUserService, summaryService services.ISummaryService, aggregationService services.IAggregationService, languageMappingService services.ILanguageMappingService) *SettingsHandler {
+func NewSettingsHandler(userService services.IUserService, summaryService services.ISummaryService, aliasService services.IAliasService, aggregationService services.IAggregationService, languageMappingService services.ILanguageMappingService) *SettingsHandler {
 	return &SettingsHandler{
 		config:              conf.Get(),
 		summarySrvc:         summaryService,
+		aliasSrvc:           aliasService,
 		aggregationSrvc:     aggregationService,
 		languageMappingSrvc: languageMappingService,
 		userSrvc:            userService,
@@ -161,6 +163,60 @@ func (h *SettingsHandler) PostLanguageMapping(w http.ResponseWriter, r *http.Req
 	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("mapping added successfully"))
 }
 
+func (h *SettingsHandler) DeleteAlias(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	user := r.Context().Value(models.UserKey).(*models.User)
+	aliasKey := r.PostFormValue("key")
+	aliasType, err := strconv.Atoi(r.PostFormValue("type"))
+	if err != nil {
+		aliasType = 99 // nothing will be found later on
+	}
+
+	if aliases, err := h.aliasSrvc.GetByUserAndKeyAndType(user.ID, aliasKey, uint8(aliasType)); err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("aliases not found"))
+		return
+	} else if err := h.aliasSrvc.DeleteMulti(aliases); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("could not delete aliases"))
+		return
+	}
+
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("aliases deleted successfully"))
+}
+
+func (h *SettingsHandler) PostAlias(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+	user := r.Context().Value(models.UserKey).(*models.User)
+	aliasKey := r.PostFormValue("key")
+	aliasValue := r.PostFormValue("value")
+	aliasType, err := strconv.Atoi(r.PostFormValue("type"))
+	if err != nil {
+		aliasType = 99 // Alias.IsValid() will return false later on
+	}
+
+	alias := &models.Alias{
+		UserID: user.ID,
+		Key:    aliasKey,
+		Value:  aliasValue,
+		Type:   uint8(aliasType),
+	}
+
+	if _, err := h.aliasSrvc.Create(alias); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		// TODO: distinguish between bad request, conflict and server error
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("invalid input"))
+		return
+	}
+
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("alias added successfully"))
+}
+
 func (h *SettingsHandler) PostResetApiKey(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
@@ -220,9 +276,34 @@ func (h *SettingsHandler) PostRegenerateSummaries(w http.ResponseWriter, r *http
 func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewModel {
 	user := r.Context().Value(models.UserKey).(*models.User)
 	mappings, _ := h.languageMappingSrvc.GetByUser(user.ID)
+	aliases, _ := h.aliasSrvc.GetByUser(user.ID)
+	aliasMap := make(map[string][]*models.Alias)
+	for _, a := range aliases {
+		k := fmt.Sprintf("%s_%d", a.Key, a.Type)
+		if _, ok := aliasMap[k]; !ok {
+			aliasMap[k] = []*models.Alias{a}
+		} else {
+			aliasMap[k] = append(aliasMap[k], a)
+		}
+	}
+
+	combinedAliases := make([]*view.SettingsVMCombinedAlias, 0)
+	for _, l := range aliasMap {
+		ca := &view.SettingsVMCombinedAlias{
+			Key:    l[0].Key,
+			Type:   l[0].Type,
+			Values: make([]string, len(l)),
+		}
+		for i, a := range l {
+			ca.Values[i] = a.Value
+		}
+		combinedAliases = append(combinedAliases, ca)
+	}
+
 	return &view.SettingsViewModel{
 		User:             user,
 		LanguageMappings: mappings,
+		Aliases:          combinedAliases,
 		Success:          r.URL.Query().Get("success"),
 		Error:            r.URL.Query().Get("error"),
 	}

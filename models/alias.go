@@ -8,3 +8,16 @@ type Alias struct {
 	Key    string `gorm:"not null; index:idx_alias_type_key"`
 	Value  string `gorm:"not null"`
 }
+
+func (a *Alias) IsValid() bool {
+	return a.Key != "" && a.Value != "" && a.validateType()
+}
+
+func (a *Alias) validateType() bool {
+	for _, t := range SummaryTypes() {
+		if a.Type == t {
+			return true
+		}
+	}
+	return false
+}

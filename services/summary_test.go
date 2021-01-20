@@ -249,7 +249,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
 
 	from, to = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
 	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(filter(from, to, suite.TestHeartbeats), nil)
-	suite.AliasService.On("LoadUserAliases", TestUserId).Return(nil)
+	suite.AliasService.On("InitializeUser", TestUserId).Return(nil)
 	suite.AliasService.On("GetAliasOrDefault", TestUserId, models.SummaryProject, TestProject1).Return(TestProject2, nil)
 	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, mock.Anything).Return("", nil)
 

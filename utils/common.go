@@ -18,6 +18,10 @@ func FormatDateHuman(date time.Time) string {
 	return date.Format("Mon, 02 Jan 2006 15:04")
 }
 
+func Add(i, j int) int {
+	return i + j
+}
+
 func ParseUserAgent(ua string) (string, string, error) {
 	re := regexp.MustCompile(`(?iU)^wakatime\/[\d+.]+\s\((\w+)-.*\)\s.+\s([^\/\s]+)-wakatime\/.+$`)
 	groups := re.FindAllStringSubmatch(ua, -1)

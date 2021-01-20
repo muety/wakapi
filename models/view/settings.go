@@ -5,8 +5,15 @@ import "github.com/muety/wakapi/models"
 type SettingsViewModel struct {
 	User             *models.User
 	LanguageMappings []*models.LanguageMapping
+	Aliases          []*SettingsVMCombinedAlias
 	Success          string
 	Error            string
+}
+
+type SettingsVMCombinedAlias struct {
+	Key    string
+	Type   uint8
+	Values []string
 }
 
 func (s *SettingsViewModel) WithSuccess(m string) *SettingsViewModel {

@@ -114,24 +114,6 @@ You can view your API Key after logging in to the web interface.
 
 See the [advanced setup instructions](docs/advanced_setup.md).  
 
-## 🔵 Customization
-
-### Aliases
-There is an option to add aliases for project names, editors, operating systems and languages. For instance, if you want to map two projects – `myapp-frontend` and `myapp-backend` – two a common project name – `myapp-web` – in your statistics, you can add project aliases.
-
-At the moment, this can only be done via raw database queries. For the above example, you would need to add two aliases, like this:
-
-```sql
-INSERT INTO aliases (`type`, `user_id`, `key`, `value`) VALUES (0, 'your_username', 'myapp-web', 'myapp-frontend');
-```
-
-#### Types
-* Project ~  type **0**
-* Language ~  type **1**
-* Editor ~ type **2**
-* OS ~  type **3**
-* Machine ~  type **4**
-
 ## 🔧 API Endpoints
 The following API endpoints are available. A more detailed Swagger documentation is about to come ([#40](https://github.com/muety/wakapi/issues/40)).
 

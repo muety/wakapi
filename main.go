@@ -112,7 +112,7 @@ func main() {
 	summaryHandler := routes.NewSummaryHandler(summaryService)
 	healthHandler := routes.NewHealthHandler(db)
 	heartbeatHandler := routes.NewHeartbeatHandler(heartbeatService, languageMappingService)
-	settingsHandler := routes.NewSettingsHandler(userService, summaryService, aggregationService, languageMappingService)
+	settingsHandler := routes.NewSettingsHandler(userService, summaryService, aliasService, aggregationService, languageMappingService)
 	homeHandler := routes.NewHomeHandler(keyValueService)
 	loginHandler := routes.NewLoginHandler(userService)
 	imprintHandler := routes.NewImprintHandler(keyValueService)
@@ -160,6 +160,8 @@ func main() {
 	// Settings Routes
 	settingsRouter.Methods(http.MethodGet).HandlerFunc(settingsHandler.GetIndex)
 	settingsRouter.Path("/credentials").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostCredentials)
+	settingsRouter.Path("/aliases").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostAlias)
+	settingsRouter.Path("/aliases/delete").Methods(http.MethodPost).HandlerFunc(settingsHandler.DeleteAlias)
 	settingsRouter.Path("/language_mappings").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostLanguageMapping)
 	settingsRouter.Path("/language_mappings/delete").Methods(http.MethodPost).HandlerFunc(settingsHandler.DeleteLanguageMapping)
 	settingsRouter.Path("/reset").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostResetApiKey)
