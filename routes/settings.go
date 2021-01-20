@@ -115,13 +115,17 @@ func (h *SettingsHandler) DeleteLanguageMapping(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	mapping := &models.LanguageMapping{
-		ID:     uint(id),
-		UserID: user.ID,
+	if mapping, err := h.languageMappingSrvc.GetById(uint(id)); err != nil || mapping == nil {
+		w.WriteHeader(http.StatusNotFound)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("mapping not found"))
+		return
+	} else if mapping.UserID != user.ID {
+		w.WriteHeader(http.StatusForbidden)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("not allowed to delete mapping"))
+		return
 	}
 
-	err = h.languageMappingSrvc.Delete(mapping)
-	if err != nil {
+	if err := h.languageMappingSrvc.Delete(&models.LanguageMapping{ID: uint(id)}); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("could not delete mapping"))
 		return
