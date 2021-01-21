@@ -5,21 +5,16 @@ import (
 	"errors"
 	"fmt"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"log"
 	"net/http"
 	"strings"
-	"time"
-
-	"github.com/patrickmn/go-cache"
-
-	"github.com/muety/wakapi/models"
-	"github.com/muety/wakapi/services"
 )
 
 type AuthenticateMiddleware struct {
 	config         *conf.Config
-	cache          *cache.Cache
 	userSrvc       services.IUserService
 	whitelistPaths []string
 }
@@ -28,7 +23,6 @@ func NewAuthenticateMiddleware(userService services.IUserService, whitelistPaths
 	return &AuthenticateMiddleware{
 		config:         conf.Get(),
 		userSrvc:       userService,
-		cache:          cache.New(1*time.Hour, 2*time.Hour),
 		whitelistPaths: whitelistPaths,
 	}
 }
@@ -64,8 +58,6 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	m.cache.Set(user.ID, user, cache.DefaultExpiration)
-
 	ctx := context.WithValue(r.Context(), models.UserKey, user)
 	next(w, r.WithContext(ctx))
 }
@@ -78,14 +70,9 @@ func (m *AuthenticateMiddleware) tryGetUserByApiKey(r *http.Request) (*models.Us
 
 	var user *models.User
 	userKey := strings.TrimSpace(key)
-	cachedUser, ok := m.cache.Get(userKey)
-	if !ok {
-		user, err = m.userSrvc.GetUserByKey(userKey)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		user = cachedUser.(*models.User)
+	user, err = m.userSrvc.GetUserByKey(userKey)
+	if err != nil {
+		return nil, err
 	}
 	return user, nil
 }
@@ -94,12 +81,6 @@ func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.Us
 	login, err := utils.ExtractCookieAuth(r, m.config)
 	if err != nil {
 		return nil, err
-	}
-
-	cachedUser, ok := m.cache.Get(login.Username)
-
-	if ok {
-		return cachedUser.(*models.User), nil
 	}
 
 	user, err := m.userSrvc.GetUserById(login.Username)
