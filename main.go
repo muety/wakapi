@@ -13,6 +13,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/muety/wakapi/middlewares"
+	customMiddleware "github.com/muety/wakapi/middlewares/custom"
 	"github.com/muety/wakapi/routes"
 	shieldsV1Routes "github.com/muety/wakapi/routes/compat/shields/v1"
 	wtV1Routes "github.com/muety/wakapi/routes/compat/wakatime/v1"
@@ -138,6 +139,7 @@ func main() {
 		userService,
 		[]string{"/api/health", "/api/compat/shields/v1"},
 	).Handler
+	wakatimeRelayMiddleware := customMiddleware.NewWakatimeRelayMiddleware().Handler
 
 	// Router configs
 	router.Use(loggingMiddleware, recoveryMiddleware)
@@ -169,9 +171,12 @@ func main() {
 	settingsRouter.Path("/regenerate").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostRegenerateSummaries)
 
 	// API Routes
-	apiRouter.Path("/heartbeat").Methods(http.MethodPost).HandlerFunc(heartbeatHandler.ApiPost)
 	apiRouter.Path("/summary").Methods(http.MethodGet).HandlerFunc(summaryHandler.ApiGet)
 	apiRouter.Path("/health").Methods(http.MethodGet).HandlerFunc(healthHandler.ApiGet)
+
+	heartbeatsApiRouter := apiRouter.Path("/heartbeat").Methods(http.MethodPost).Subrouter()
+	heartbeatsApiRouter.Use(wakatimeRelayMiddleware)
+	heartbeatsApiRouter.Path("").HandlerFunc(heartbeatHandler.ApiPost)
 
 	// Wakatime compat V1 API Routes
 	wakatimeV1Router.Path("/users/{user}/all_time_since_today").Methods(http.MethodGet).HandlerFunc(wakatimeV1AllHandler.ApiGet)

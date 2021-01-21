@@ -215,7 +215,7 @@ func readVersion() string {
 		log.Fatal(err)
 	}
 
-	return string(bytes)
+	return strings.TrimSpace(string(bytes))
 }
 
 func readLanguageColors() map[string]string {

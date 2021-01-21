@@ -7,6 +7,7 @@ type User struct {
 	CreatedAt      CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP"`
 	LastLoggedInAt CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP"`
 	BadgesEnabled  bool       `json:"-" gorm:"default:false; type:bool"`
+	WakatimeApiKey string     `json:"-"`
 }
 
 type Login struct {
