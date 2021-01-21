@@ -309,7 +309,7 @@
 
             <div class="mt-10 text-gray-300 text-sm">
                 <h3 class="inline-block font-semibold text-md mb-4 border-b border-green-700">
-                    Wakatime
+                    WakaTime
                 </h3>
 
                 <div class="flex space-x-4">
@@ -319,8 +319,8 @@
                     <p class="text-sm">You can connect Wakapi with the official <a class="underline"
                                                                                    href="https://wakatime.com"
                                                                                    rel="noopener noreferrer"
-                                                                                   target="_blank">Wakatime</a> in a way
-                        that all heartbeats sent to Wakapi are relayed to Wakatime. This way, you can use both services
+                                                                                   target="_blank">WakaTime</a> in a way
+                        that all heartbeats sent to Wakapi are relayed. This way, you can use both services
                         at
                         the same time. To get started, <a class="underline"
                                                           href="https://wakatime.com/developers#authentication"
@@ -330,7 +330,7 @@
 
                 <form action="settings/wakatime_integration" method="post">
 
-                    {{ $placeholderText := "Paste your Wakatime API key here ..." }}
+                    {{ $placeholderText := "Paste your WakaTime API key here ..." }}
                     {{ if .User.WakatimeApiKey }}
                     {{ $placeholderText = "********" }}
                     {{ end }}
@@ -357,7 +357,7 @@
 
                 <p class="mt-6">
                     <span class="font-semibold">👉 Please note:</span>
-                    <span>When enabling this feature, the operators of this server will, in theory (!), have unlimited access to your data stored in Wakatime. If you are concerned about your privacy, please do not enable this integration or wait for OAuth 2 authentication (<a
+                    <span>When enabling this feature, the operators of this server will, in theory (!), have unlimited access to your data stored in WakaTime. If you are concerned about your privacy, please do not enable this integration or wait for OAuth 2 authentication (<a
                             class="underline" target="_blank" href="https://github.com/muety/wakapi/issues/94" rel="noopener noreferrer">#94</a>) to be implemented.</span>
                 </p>
             </div>

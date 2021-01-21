@@ -36,7 +36,7 @@ To use the hosted version set `api_url = https://wakapi.dev/api/heartbeat`. Howe
     * Fedora / RHEL: `dnf install @development-tools`
     * Ubuntu / Debian: `apt install build-essential`
     * Windows: See [here](https://github.com/mattn/go-sqlite3/issues/214#issuecomment-253216476)
-* _Optional_: A MySQL- or Postgres database
+* _Optional_: One of the [supported databases](#supported-databases)
 
 **On your local machine:**
 * [WakaTime plugin](https://wakatime.com/plugins) for your editor / IDE
@@ -111,8 +111,10 @@ api_key = the_api_key_printed_to_the_console_after_starting_the_server`
 You can view your API Key after logging in to the web interface.
 
 ### Optional: Client-side proxy
+See the [advanced setup instructions](docs/advanced_setup.md).
 
-See the [advanced setup instructions](docs/advanced_setup.md).  
+### Optional: WakaTime relay
+You can connect Wakapi with WakaTime in a way that all heartbeats sent to Wakapi are relayed. This way, you can use both services at the same time. Go to the settings page of your instance to configure this integration. 
 
 ## 🔧 API Endpoints
 The following API endpoints are available. A more detailed Swagger documentation is about to come ([#40](https://github.com/muety/wakapi/issues/40)).
