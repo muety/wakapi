@@ -9,9 +9,11 @@
     .inline-bullet-list li a {
         text-decoration: underline;
     }
+
     .inline-bullet-list li:after {
         content: "•";
     }
+
     .inline-bullet-list li:last-child:after {
         content: "";
     }
@@ -32,7 +34,7 @@
 <main class="mt-4 flex-grow flex justify-center w-full">
     <div class="flex flex-col flex-grow max-w-xl mt-8">
         <div class="text-gray-500 text-xs mb-8">
-            <ul class="flex justify-center flex-wrap space-x-1 inline-bullet-list">
+            <ul class="flex justify-center flex-wrap space-x-1 inline-bullet-list px-12">
                 <li class="hover:text-gray-400 mb-1">
                     <a href="settings#password">Change Password</a>
                 </li>
@@ -49,15 +51,18 @@
                     <a href="settings#badges">Badges</a>
                 </li>
                 <li class="hover:text-gray-400 mb-1">
+                    <a href="settings#integrations">Integrations</a>
+                </li>
+                <li class="hover:text-gray-400 mb-1">
                     <a href="settings#danger">Danger Zone</a>
                 </li>
             </ul>
         </div>
 
         <div class="w-full my-8 pb-8 border-b border-gray-700">
-            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="password">
+            <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="password">
                 Change Password
-            </div>
+            </h2>
 
             <form class="mt-10" action="settings/credentials" method="post">
                 <div class="mb-8">
@@ -87,9 +92,9 @@
         </div>
 
         <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700">
-            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="apikey">
+            <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="apikey">
                 Reset API Key
-            </div>
+            </h2>
 
             <form class="mt-6" action="settings/reset" method="post">
                 <div class="text-gray-300 text-sm mb-4">
@@ -107,9 +112,9 @@
         </div>
 
         <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700" id="aliases">
-            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
+            <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
                 Aliases
-            </div>
+            </h2>
 
             <div class="text-gray-300 text-sm mb-4 mt-6">
                 You can specify aliases for any type of entity. For instance, you can define a rule, that both <span
@@ -119,7 +124,7 @@
             </div>
 
             {{ if .Aliases }}
-            <h3 class="text-md font-semibold text-white">Rules</h3>
+            <h3 class="inline-block font-semibold text-md border-b border-green-700 text-white">Rules</h3>
             {{ range $i, $alias := .Aliases }}
             <div class="flex items-center">
                 <div class="text-gray-500 border-1 w-full border-green-700 inline-block my-1 py-1 text-align text-sm"
@@ -139,7 +144,8 @@
                 <form class="float-right" action="settings/aliases/delete" method="post">
                     <input type="hidden" id="delete_alias_key" name="key" required value="{{ $alias.Key }}">
                     <input type="hidden" id="delete_alias_type" name="type" required value="{{ $alias.Type }}">
-                    <button type="submit" class="py-1 px-3 rounded border border-red-500 hover:border-red-600 text-gray-400 text-sm">
+                    <button type="submit"
+                            class="py-1 px-3 rounded border border-red-500 hover:border-red-600 text-gray-400 text-sm">
                         ✕
                     </button>
                 </form>
@@ -148,7 +154,7 @@
             <div class="mb-8"></div>
             {{end}}
 
-            <h3 class="text-md font-semibold text-white">Add Rule</h3>
+            <h3 class="inline-block font-semibold text-md border-b border-green-700 text-white mb-2">Add Rule</h3>
             <form action="settings/aliases" method="post">
                 <div class="flex items-center mt-2 w-full text-gray-500 text-sm">
                     <span class="mr-2">Map</span>
@@ -188,7 +194,7 @@
             </div>
 
             {{ if .LanguageMappings }}
-            <h3 class="text-md font-semibold text-white">Rules</h3>
+            <h3 class="inline-block font-semibold text-md border-b border-green-700 text-white">Rules</h3>
             {{ range $i, $mapping := .LanguageMappings }}
             <div class="flex items-center">
                 <div class="text-gray-500 border-1 w-full border-green-700 inline-block my-1 py-1 text-align text-sm">
@@ -199,7 +205,8 @@
                 </div>
                 <form class="float-right" action="settings/language_mappings/delete" method="post">
                     <input type="hidden" id="mapping_id" name="mapping_id" required value="{{ $mapping.ID }}">
-                    <button type="submit" class="py-1 px-3 rounded border border-red-500 hover:border-red-600 text-gray-400 text-sm">
+                    <button type="submit"
+                            class="py-1 px-3 rounded border border-red-500 hover:border-red-600 text-gray-400 text-sm">
                         ✕
                     </button>
                 </form>
@@ -208,7 +215,7 @@
             <div class="mb-8"></div>
             {{end}}
 
-            <h3 class="text-md font-semibold text-white">Add Rule</h3>
+            <h3 class="inline-block font-semibold text-md border-b border-green-700 text-white">Add Rule</h3>
             <form action="settings/language_mappings" method="post">
                 <div class="flex items-center w-full text-gray-500 text-sm">
                     <span class="mr-2">When filename ends in</span>
@@ -294,6 +301,66 @@
                 </div>
             </form>
         </div>
+
+        <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700">
+            <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="integrations">
+                Integrations
+            </h2>
+
+            <div class="mt-10 text-gray-300 text-sm">
+                <h3 class="inline-block font-semibold text-md mb-4 border-b border-green-700">
+                    Wakatime
+                </h3>
+
+                <div class="flex space-x-4">
+                    <img alt="WakaTime Logo"
+                         width="55px"
+                         src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzQwIiBoZWlnaHQ9IjM0MCIgdmlld0JveD0iMCAwIDM0MCAzNDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMTcwIDIwQzg3LjE1NiAyMCAyMCA4Ny4xNTYgMjAgMTcwQzIwIDI1Mi44NDQgODcuMTU2IDMyMCAxNzAgMzIwQzI1Mi44NDQgMzIwIDMyMCAyNTIuODQ0IDMyMCAxNzBDMzIwIDg3LjE1NiAyNTIuODQ0IDIwIDE3MCAyMFYyMFYyMFoiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iNDAiLz4KPHBhdGggZD0iTTE5MC4xODMgMjEzLjU0MUMxODguNzQgMjE1LjQ0MyAxODYuNTc2IDIxNi42NjcgMTg0LjE1MSAyMTYuNjY3QzE4My45MTMgMjE2LjY2NyAxODMuNjc3IDIxNi42NTEgMTgzLjQ0MyAyMTYuNjI3QzE4My4wNDIgMjE2LjU3OSAxODIuODIzIDIxNi41NDUgMTgyLjYwNiAyMTYuNDk3QzE4Mi4zMzcgMjE2LjQzNCAxODIuMTM3IDIxNi4zNzUgMTgxLjk0IDIxNi4zMDhDMTgxLjU2MSAyMTYuMTc2IDE4MS4zOTIgMjE2LjEwOSAxODEuMjI4IDIxNi4wMzVDMTgwLjg0MyAyMTUuODQ5IDE4MC43MDcgMjE1Ljc3OCAxODAuNTcyIDIxNS43MDFDMTgwLjIwNSAyMTUuNDc4IDE4MC4xMDkgMjE1LjQxMiAxODAuMDE0IDIxNS4zNDVDMTc5Ljg1NiAyMTUuMjMzIDE3OS42OTggMjE1LjExNyAxNzkuNTQ3IDIxNC45OTJDMTc5LjI1MSAyMTQuNzQ2IDE3OS4xNDcgMjE0LjY1IDE3OS4wNDQgMjE0LjU1MkMxNzguNzMxIDIxNC4yNDEgMTc4LjUzMSAyMTQuMDE4IDE3OC4zNDEgMjEzLjc4NUMxNzcuOTgyIDIxMy4zMzEgMTc3LjY5IDIxMi44ODggMTc3LjQzOCAyMTIuNDE1TDE2OC42IDE5OC4yMTRMMTU5Ljc2NiAyMTIuNDE1QzE1OC4zOCAyMTQuOTM5IDE1NS44NzQgMjE2LjY2NyAxNTIuOTk1IDIxNi42NjdDMTUwLjEwNiAyMTYuNjY3IDE0Ny41ODggMjE0LjkyNiAxNDYuMjQzIDIxMi4zNDZMMTA3LjYwNyAxNTYuMDYxQzEwNi4zMzcgMTU0LjUyOSAxMDUuNTU2IDE1Mi40OTkgMTA1LjU1NiAxNTAuMjU4QzEwNS41NTYgMTQ1LjUxNCAxMDkuMDQzIDE0MS42NjUgMTEzLjM0NCAxNDEuNjY1QzExNi4xMjcgMTQxLjY2NSAxMTguNTY0IDE0My4yODIgMTE5Ljk0MiAxNDUuNzA4TDE1Mi41NTUgMTkzLjlMMTYxLjczNSAxNzguOTUyQzE2My4wNTggMTc2LjI4OCAxNjUuNjI2IDE3NC40NzggMTY4LjU3NSAxNzQuNDc4QzE3MS4yNzMgMTc0LjQ3OCAxNzMuNjUyIDE3NS45OTYgMTc1LjA0OSAxNzguMjk4TDE4NC41MTcgMTkzLjgzOUwyMzUuNjg0IDEyMC41ODNDMjM3LjA3NSAxMTguMjI2IDIzOS40NzUgMTE2LjY2NyAyNDIuMjEzIDExNi42NjdDMjQ2LjUxNCAxMTYuNjY3IDI1MCAxMjAuNTE0IDI1MCAxMjUuMjU4QzI1MCAxMjcuMzMyIDI0OS4zMzcgMTI5LjIzMiAyNDguMjMgMTMwLjcxNUwxOTAuMTgzIDIxMy41NDFWMjEzLjU0MVoiIGZpbGw9IndoaXRlIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjEwIi8+Cjwvc3ZnPgo=">
+                    <p class="text-sm">You can connect Wakapi with the official <a class="underline"
+                                                                                   href="https://wakatime.com"
+                                                                                   target="_blank">Wakatime</a> in a way
+                        that all heartbeats sent to Wakapi are relayed to Wakatime. This way, you can use both services
+                        at
+                        the same time. To get started, <a class="underline"
+                                                          href="https://wakatime.com/developers#authentication"
+                                                          target="_blank">get your API key</a> and paste it here.</p>
+                </div>
+
+                <form action="settings/wakatime_integration" method="post">
+
+                    {{ $placeholderText := "Paste your Wakatime API key here ..." }}
+                    {{ if .User.WakatimeApiKey }}
+                    {{ $placeholderText = "********" }}
+                    {{ end }}
+
+                    <div class="flex items-center mt-8 space-x-2">
+                        <label class="text-gray-500 font-semibold">API Key:</label>
+                        <input type="password" name="api_key" id="wakatime_api_key"
+                               class="flex-grow shadow appearance-nonshadow appearance-none bg-gray-800 text-gray-300 border-green-700 border rounded py-1 px-3 {{ if not .User.WakatimeApiKey }}focus:bg-gray-700 focus:border-gray-500{{ end }}"
+                               placeholder="{{ $placeholderText }}" {{ if .User.WakatimeApiKey }}readonly{{ end }}>
+                        <div class="flex-grow flex justify-end">
+                            {{ if not .User.WakatimeApiKey }}
+                            <button type="submit"
+                                    class="py-1 px-3 my-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                                Connect
+                            </button>
+                            {{ else }}
+                            <button type="submit"
+                                    class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm">Disconnect
+                            </button>
+                            {{ end }}
+                        </div>
+                    </div>
+                </form>
+
+                <p class="mt-6">
+                    <span class="font-semibold">👉 Please note:</span>
+                    <span>When enabling this feature, the operators of this server will, in theory (!), have unlimited access to your data stored in Wakatime. If you are concerned about your privacy, please do not enable this integration or wait for OAuth 2 authentication (<a
+                            class="underline" target="_blank" href="https://github.com/muety/wakapi/issues/94">#94</a>) to be implemented.</span>
+                </p>
+            </div>
+        </div>
+
 
         <div class="w-full mt-4 mb-8 pb-8">
             <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="danger">

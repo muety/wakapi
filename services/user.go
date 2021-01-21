@@ -88,6 +88,11 @@ func (srv *UserService) ToggleBadges(user *models.User) (*models.User, error) {
 	return srv.repository.UpdateField(user, "badges_enabled", !user.BadgesEnabled)
 }
 
+func (srv *UserService) SetWakatimeApiKey(user *models.User, apiKey string) (*models.User, error) {
+	srv.cache.Flush()
+	return srv.repository.UpdateField(user, "wakatime_api_key", apiKey)
+}
+
 func (srv *UserService) MigrateMd5Password(user *models.User, login *models.Login) (*models.User, error) {
 	srv.cache.Flush()
 	user.Password = login.Password

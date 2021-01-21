@@ -233,6 +233,21 @@ func (h *SettingsHandler) PostResetApiKey(w http.ResponseWriter, r *http.Request
 	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess(msg))
 }
 
+func (h *SettingsHandler) PostSetWakatimeApiKey(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	user := r.Context().Value(models.UserKey).(*models.User)
+	if _, err := h.userSrvc.SetWakatimeApiKey(user, r.PostFormValue("api_key")); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))
+		return
+	}
+
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("Wakatime API Key updated successfully"))
+}
+
 func (h *SettingsHandler) PostToggleBadges(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()

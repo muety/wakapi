@@ -63,5 +63,6 @@ type IUserService interface {
 	Update(*models.User) (*models.User, error)
 	ResetApiKey(*models.User) (*models.User, error)
 	ToggleBadges(*models.User) (*models.User, error)
+	SetWakatimeApiKey(*models.User, string) (*models.User, error)
 	MigrateMd5Password(*models.User, *models.Login) (*models.User, error)
 }

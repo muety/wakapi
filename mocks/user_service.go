@@ -44,6 +44,11 @@ func (m *UserServiceMock) ToggleBadges(user *models.User) (*models.User, error) 
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
+func (m *UserServiceMock) SetWakatimeApiKey(user *models.User, s string) (*models.User, error) {
+	args := m.Called(user, s)
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
 func (m *UserServiceMock) MigrateMd5Password(user *models.User, login *models.Login) (*models.User, error) {
 	args := m.Called(user, login)
 	return args.Get(0).(*models.User), args.Error(1)

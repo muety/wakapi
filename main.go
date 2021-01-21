@@ -168,6 +168,7 @@ func main() {
 	settingsRouter.Path("/language_mappings/delete").Methods(http.MethodPost).HandlerFunc(settingsHandler.DeleteLanguageMapping)
 	settingsRouter.Path("/reset").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostResetApiKey)
 	settingsRouter.Path("/badges").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostToggleBadges)
+	settingsRouter.Path("/wakatime_integration").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostSetWakatimeApiKey)
 	settingsRouter.Path("/regenerate").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostRegenerateSummaries)
 
 	// API Routes
