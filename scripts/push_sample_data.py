@@ -11,6 +11,7 @@ from typing import List, Union
 import requests
 from tqdm import tqdm
 
+MACHINE = "devmachine"
 UA = 'wakatime/13.0.7 (Linux-4.15.0-91-generic-x86_64-with-glibc2.4) Python3.8.0.final.0 generator/1.42.1 generator-wakatime/4.0.0'
 LANGUAGES = {
     'Go': 'go',
@@ -75,7 +76,8 @@ def post_data_sync(data: List[Heartbeat], url: str, api_key: str):
     for h in tqdm(data):
         r = requests.post(url, json=[h.__dict__], headers={
             'User-Agent': UA,
-            'Authorization': f'Basic {encoded_key}'
+            'Authorization': f'Basic {encoded_key}',
+            'X-Machine-Name': MACHINE,
         })
         if r.status_code != 201:
             print(r.text)
