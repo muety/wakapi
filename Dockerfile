@@ -4,17 +4,15 @@ FROM golang:1.15 AS build-env
 WORKDIR /src
 
 ADD ./go.mod .
-RUN go mod download
+RUN go mod download && go get github.com/markbates/pkger/cmd/pkger
 
 ADD . .
-RUN go build -o wakapi
+RUN go generate && go build -o wakapi
 
 WORKDIR /app
 RUN cp /src/wakapi . && \
     cp /src/config.default.yml config.yml && \
     sed -i 's/listen_ipv6: ::1/listen_ipv6: /g' config.yml && \
-    cp /src/version.txt . && \
-    cp -r /src/static /src/data /src/migrations /src/views . && \
     cp /src/wait-for-it.sh .
 
 # Run Stage

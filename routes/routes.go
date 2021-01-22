@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/markbates/pkger"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
@@ -18,7 +19,7 @@ func Init() {
 var templates map[string]*template.Template
 
 func loadTemplates() {
-	tplPath := "views"
+	tplPath := "/views"
 	tpls := template.New("").Funcs(template.FuncMap{
 		"json":        utils.Json,
 		"date":        utils.FormatDateHuman,
@@ -44,7 +45,12 @@ func loadTemplates() {
 	})
 	templates = make(map[string]*template.Template)
 
-	files, err := ioutil.ReadDir(tplPath)
+	dir, err := pkger.Open(tplPath)
+	defer dir.Close()
+	if err != nil {
+		panic(err)
+	}
+	files, err := dir.Readdir(0)
 	if err != nil {
 		panic(err)
 	}
@@ -55,7 +61,17 @@ func loadTemplates() {
 			continue
 		}
 
-		tpl, err := tpls.New(tplName).ParseFiles(fmt.Sprintf("%s/%s", tplPath, tplName))
+		templateFile, err := pkger.Open(fmt.Sprintf("%s/%s", tplPath, tplName))
+		defer templateFile.Close()
+		if err != nil {
+			panic(err)
+		}
+		template, err := ioutil.ReadAll(templateFile)
+		if err != nil {
+			panic(err)
+		}
+
+		tpl, err := tpls.New(tplName).Parse(string(template))
 		if err != nil {
 			panic(err)
 		}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
+	"github.com/markbates/pkger"
 	"github.com/muety/wakapi/models"
 	migrate "github.com/rubenv/sql-migrate"
 	"gorm.io/driver/mysql"
@@ -126,8 +127,8 @@ func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
 
 func (c *Config) GetFixturesFunc(dbDialect string) models.MigrationFunc {
 	return func(db *gorm.DB) error {
-		migrations := &migrate.FileMigrationSource{
-			Dir: "migrations/common/fixtures",
+		migrations := &migrate.HttpFileSystemMigrationSource {
+			FileSystem: pkger.Dir("/migrations"),
 		}
 
 		migrate.SetIgnoreUnknown(true)
@@ -204,7 +205,7 @@ func IsDev(env string) bool {
 }
 
 func readVersion() string {
-	file, err := os.Open("version.txt")
+	file, err := pkger.Open("/version.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -227,12 +228,17 @@ func readLanguageColors() map[string]string {
 		Url   string `json:"url"`
 	}
 
-	data, err := ioutil.ReadFile("data/colors.json")
+	file, err := pkger.Open("/data/colors.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	bytes, err := ioutil.ReadAll(file)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := json.Unmarshal(data, &rawColors); err != nil {
+	if err := json.Unmarshal(bytes, &rawColors); err != nil {
 		log.Fatal(err)
 	}
 

@@ -1,8 +1,11 @@
 package main
 
+//go:generate $GOPATH/bin/pkger -include /version.txt -include /static -include /data -include /migrations/common/fixtures -include /views
+
 import (
 	"fmt"
 	"github.com/gorilla/handlers"
+	"github.com/markbates/pkger"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/migrations/common"
 	"github.com/muety/wakapi/repositories"
@@ -187,7 +190,7 @@ func main() {
 	shieldsV1Router.PathPrefix("/{user}").Methods(http.MethodGet).HandlerFunc(shieldV1BadgeHandler.ApiGet)
 
 	// Static Routes
-	router.PathPrefix("/assets").Handler(http.FileServer(http.Dir("./static")))
+	router.PathPrefix("/assets").Handler(http.FileServer(pkger.Dir("./static")))
 
 	// Listen HTTP
 	listen(router)
