@@ -62,10 +62,10 @@ func loadTemplates() {
 		}
 
 		templateFile, err := pkger.Open(fmt.Sprintf("%s/%s", tplPath, tplName))
-		defer templateFile.Close()
 		if err != nil {
 			panic(err)
 		}
+		defer templateFile.Close()
 		template, err := ioutil.ReadAll(templateFile)
 		if err != nil {
 			panic(err)
