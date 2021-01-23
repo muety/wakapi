@@ -1,6 +1,6 @@
 package main
 
-//go:generate $GOPATH/bin/pkger -include /version.txt -include /static -include /data -include /migrations/common/fixtures -include /views
+//go:generate $GOPATH/bin/pkger
 
 import (
 	"fmt"
@@ -190,7 +190,7 @@ func main() {
 	shieldsV1Router.PathPrefix("/{user}").Methods(http.MethodGet).HandlerFunc(shieldV1BadgeHandler.ApiGet)
 
 	// Static Routes
-	router.PathPrefix("/assets").Handler(http.FileServer(pkger.Dir("./static")))
+	router.PathPrefix("/assets").Handler(http.FileServer(pkger.Dir("/static")))
 
 	// Listen HTTP
 	listen(router)

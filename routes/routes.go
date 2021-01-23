@@ -19,7 +19,7 @@ func Init() {
 var templates map[string]*template.Template
 
 func loadTemplates() {
-	tplPath := "/views"
+	const tplPath = "/views"
 	tpls := template.New("").Funcs(template.FuncMap{
 		"json":        utils.Json,
 		"date":        utils.FormatDateHuman,
@@ -46,10 +46,10 @@ func loadTemplates() {
 	templates = make(map[string]*template.Template)
 
 	dir, err := pkger.Open(tplPath)
-	defer dir.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer dir.Close()
 	files, err := dir.Readdir(0)
 	if err != nil {
 		panic(err)
