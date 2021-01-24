@@ -65,13 +65,14 @@ func loadTemplates() {
 		if err != nil {
 			panic(err)
 		}
-		defer templateFile.Close()
-		template, err := ioutil.ReadAll(templateFile)
+		templateData, err := ioutil.ReadAll(templateFile)
 		if err != nil {
 			panic(err)
 		}
 
-		tpl, err := tpls.New(tplName).Parse(string(template))
+		templateFile.Close()
+
+		tpl, err := tpls.New(tplName).Parse(string(templateData))
 		if err != nil {
 			panic(err)
 		}

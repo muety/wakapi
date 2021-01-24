@@ -24,6 +24,9 @@ RUN cp /src/wakapi . && \
 FROM debian
 WORKDIR /app
 
+RUN apt update && \
+    apt install -y ca-certificates
+
 ENV ENVIRONMENT prod
 ENV WAKAPI_DB_TYPE sqlite3
 ENV WAKAPI_DB_USER ''

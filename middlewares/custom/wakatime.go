@@ -78,6 +78,7 @@ func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, heade
 	request, err := http.NewRequest(method, url, body)
 	if err != nil {
 		log.Printf("error constructing relayed request – %v\n", err)
+		return
 	}
 
 	for k, v := range headers {
@@ -89,6 +90,7 @@ func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, heade
 	response, err := m.httpClient.Do(request)
 	if err != nil {
 		log.Printf("error executing relayed request – %v\n", err)
+		return
 	}
 
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
