@@ -1,13 +1,15 @@
 name: Build Wakapi on Linux
 
 on:
+  push:
+  pull_request:
   release:
-    types: 
+    types:
       - created
 
 jobs:
   build-and-release:
-    name: Build and add to Release
+    name: Build
     runs-on: ubuntu-latest
     steps:
 
@@ -22,18 +24,21 @@ jobs:
 
     - name: Get dependencies
       run: |
-        go get -v -t -d ./...
-      
+        go get github.com/markbates/pkger/cmd/pkger
+        go get
+        go generate
+
     - name: Build
       run: GO111MODULE=on go build -v .
 
-    - name: Zip Release
-      uses: TheDoctor0/zip-release@v0.3.0
-      with:
-        filename: release.zip
-        exclusions: '*.git*'
+    - name: Zip executable and sample config
+      if: github.event_name == 'release'
+      run: |
+        cp config.default.yml config.yml
+        zip -9 release.zip wakapi config.yml
 
     - name: Upload built executable to Release
+      if: github.event_name == 'release'
       uses: actions/upload-release-asset@v1.0.2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
