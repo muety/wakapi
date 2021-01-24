@@ -43,9 +43,9 @@ To use the hosted version set `api_url = https://wakapi.dev/api/heartbeat`. Howe
 
 ## ⌨️ Server Setup
 ### Run from source
-1. Clone the project
 1. Copy `config.default.yml` to `config.yml` and adapt it to your needs
-1. Build executable: `GO111MODULE=on go build`
+1. Install packaging tool: `GO111MODULE=on go get github.com/markbates/pkger/cmd/pkger`
+1. Build executable: `GO111MODULE=on go generate && go build -o wakapi`
 1. Run server: `./wakapi`
 
 **As an alternative** to building from source you can also grab a pre-built [release](https://github.com/muety/wakapi/releases). Steps 2, 3 and 5 apply analogously.
