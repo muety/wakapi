@@ -1,13 +1,15 @@
 name: Build Wakapi on Windows
 
 on:
+  push:
+  pull_request:
   release:
-    types: 
+    types:
       - created
 
 jobs:
   build-and-release:
-    name: Build and add to release
+    name: Build
     runs-on: windows-latest
     steps:
 
@@ -22,18 +24,24 @@ jobs:
 
     - name: Get dependencies
       run: |
-        go get -v -t -d ./...
+        go get github.com/markbates/pkger/cmd/pkger
+        go get
+        go generate
 
     - name: Enable Go 1.11 modules
       run: cmd /c "set GO111MODULE=on"
-      
+
     - name: Build
       run: go build -v .
-  
+
     - name: Compress working folder
-      run: Compress-Archive -Path .\* -DestinationPath release.zip
+      if: github.event_name == 'release'
+      run: |
+        cp .\config.default.yml .\config.yml
+        Compress-Archive -Path .\wakapi.exe, .\config.yml -DestinationPath release.zip
 
     - name: Upload built executable to Release
+      if: github.event_name == 'release'
       uses: actions/upload-release-asset@v1.0.2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
