@@ -22,7 +22,7 @@
 ![Wakapi screenshot](https://anchr.io/i/bxQ69.png)
 
 ## 📬 **User Survey**
-I'd love to get some community feedback from active Wakapi users. If you like, please participate in the recent [user survey](https://github.com/muety/wakapi/issues/82). Thanks a lot!
+I'd love to get some community feedback from active Wakapi users. If you want, please participate in the recent [user survey](https://github.com/muety/wakapi/issues/82). Thanks a lot!
 
 ## 👀  Demo
 🔥 **New:** Wakapi is available as a hosted service now. Check out **[wakapi.dev](https://wakapi.dev)**. Please use responsibly.
@@ -97,6 +97,9 @@ Wakapi uses [GORM](https://gorm.io) as an ORM. As a consequence, a set of differ
 * [Postgres](https://hub.docker.com/_/postgres) (_open-source as well_)
 * [CockroachDB](https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html) (_cloud-native, distributed, Postgres-compatible API_)
 
+### Optional: WakaTime relay
+You can connect Wakapi with WakaTime in a way that all heartbeats sent to Wakapi are relayed. This way, you can use both services at the same time. Go to the settings page of your instance to configure this integration.
+
 ## 💻 Client Setup
 Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime) client tools. In order to collect statistics to Wakapi, you need to set them up.
 
@@ -104,17 +107,14 @@ Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime
 2. Make your local WakaTime client talk to Wakapi by **editing your local `~/.wakatime.cfg`** file as follows
 
 ```
-api_url = https://your.server:someport/api/heartbeat`
-api_key = the_api_key_printed_to_the_console_after_starting_the_server`
+api_url = http://localhost:3000/api/heartbeat   # <- insert your server here
+api_key = 406fe41f-6d69-4183-a4cc-121e0c524c2b  # <- insert your api key here
 ```
 
 You can view your API Key after logging in to the web interface.
 
 ### Optional: Client-side proxy
 See the [advanced setup instructions](docs/advanced_setup.md).
-
-### Optional: WakaTime relay
-You can connect Wakapi with WakaTime in a way that all heartbeats sent to Wakapi are relayed. This way, you can use both services at the same time. Go to the settings page of your instance to configure this integration. 
 
 ## 🔧 API Endpoints
 The following API endpoints are available. A more detailed Swagger documentation is about to come ([#40](https://github.com/muety/wakapi/issues/40)).
