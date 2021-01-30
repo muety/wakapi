@@ -104,7 +104,7 @@ $ unzip wakapi_linux_amd64.zip
 $ vi config.yml
 
 # Run it
-$ ./ wakapi
+$ ./wakapi
 ```
 
 ### 🧑‍💻 Option 4: Run from source
@@ -223,13 +223,16 @@ If you like this project, please consider supporting it 🙂. You can donate eit
 Since Wakapi heavily relies on the concepts provided by WakaTime, [their FAQs](https://wakatime.com/faq) apply to Wakapi for large parts as well. You might find answers there.
 
 <details>
-<summary>What data is sent to Wakapi?</summary>
-<li>File names</li>
-<li>Project names</li>
-<li>Editor names</li>
-<li>You computer's host name</li>
-<li>Timestamps for every action you take in your editor</li>
-<li>...</li>
+<summary><b>What data is sent to Wakapi?</b></summary>
+
+<ul>
+  <li>File names</li>
+  <li>Project names</li>
+  <li>Editor names</li>
+  <li>You computer's host name</li>
+  <li>Timestamps for every action you take in your editor</li>
+  <li>...</li>
+</ul>
 
 See the related [WakaTime FAQ section](https://wakatime.com/faq#data-collected) for details.
 
@@ -237,30 +240,37 @@ If you host Wakapi yourself, you have control over all your data. However, if yo
 </details>
 
 <details>
-<summary>What happens if I'm offline?</summary>
+<summary><b>What happens if I'm offline?</b></summary>
+
 All data is cached locally on your machine and sent in batches once you're online again.
 </details>
 
 <details>
-<summary>How did Wakapi come about?</summary>
+<summary><b>How did Wakapi come about?</b></summary>
+
 Wakapi was started when I was a student, who wanted to track detailed statistics about my coding time. Although I'm a big fan of WakaTime I didn't want to pay <a href="https://wakatime.com/pricing)">9 $ a month</a> back then. Luckily, most parts of WakaTime are open source!  
 </details>
 
 <details>
-<summary>How does Wakapi compare to WakaTime?</summary>
+<summary><b>How does Wakapi compare to WakaTime?</b></summary>
+
 Wakapi is a small subset of WakaTime and has a lot less features. Cool WakaTime features, that are missing Wakapi, include:
-<li>Leaderboards</li>
-<li><a href="https://wakatime.com/share/embed">Embeddable Charts</a></li>
-<li>Personal Goals</li>
-<li>Team- / Organization Support</li>
-<li>Integrations (with GitLab, etc.)</li>
-<li>Richer API</li>
+
+<ul>
+  <li>Leaderboards</li>
+  <li><a href="https://wakatime.com/share/embed">Embeddable Charts</a></li>
+  <li>Personal Goals</li>
+  <li>Team- / Organization Support</li>
+  <li>Integrations (with GitLab, etc.)</li>
+  <li>Richer API</li>
+</ul>
 
 WakaTime is worth the price. However, if you only want basic statistics and keep sovereignty over your data, you might want to go with Wakapi.
 </details>
 
 <details>
-<summary>How are durations calculated?</summary>
+<summary><b>How are durations calculated?</b></summary>
+
 Inferring a measure for your coding time from heartbeats works a bit different than in WakaTime. While WakaTime has <a href="https://wakatime.com/faq#timeout">timeout intervals</a>, Wakapi essentially just pads every heartbeat, that occurs after a longer pause, with 2 extra minutes.
 
 Here is an example (circles are heartbeats):
@@ -273,9 +283,11 @@ Here is an example (circles are heartbeats):
 
 It is unclear how to handle the three minutes in between. Did the developer do a 3-minute break or were just no heartbeats being sent, e.g. because the developer was starring at the screen find a solution, but not actually typing code.
 
-<li><b>WakaTime</b> (with 5 min timeout): 3 min 20 sec
-<li><b>WakaTime</b> (with 2 min timeout): 20 sec
-<li><b>Wakapi:</b> 10 sec + 2 min + 10 sec = 2 min 20 sec</li>
+<ul>
+  <li><b>WakaTime</b> (with 5 min timeout): 3 min 20 sec
+  <li><b>WakaTime</b> (with 2 min timeout): 20 sec
+  <li><b>Wakapi:</b> 10 sec + 2 min + 10 sec = 2 min 20 sec</li>
+</ul>
 
 Wakapi adds a "padding" of two minutes before the third heartbeat. This is why total times will slightly vary between Wakapi and WakaTime.
 </details>
