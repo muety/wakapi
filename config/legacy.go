@@ -1,24 +1,24 @@
 package config
 
 import (
+	"github.com/emvi/logbuch"
 	"github.com/joho/godotenv"
 	"gopkg.in/ini.v1"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 	"os"
 	"strconv"
 )
 
 func maybeMigrateLegacyConfig() {
 	if yes, err := shouldMigrateLegacyConfig(); err != nil {
-		log.Fatalf("failed to determine whether to migrate legacy config: %v\n", err)
+		logbuch.Fatal("failed to determine whether to migrate legacy config: %v", err)
 	} else if yes {
-		log.Printf("migrating legacy config (%s, %s) to new format (%s); see https://github.com/muety/wakapi/issues/54\n", defaultConfigPathLegacy, defaultEnvConfigPathLegacy, defaultConfigPath)
+		logbuch.Info("migrating legacy config (%s, %s) to new format (%s); see https://github.com/muety/wakapi/issues/54", defaultConfigPathLegacy, defaultEnvConfigPathLegacy, defaultConfigPath)
 		if err := migrateLegacyConfig(); err != nil {
-			log.Fatalf("failed to migrate legacy config: %v\n", err)
+			logbuch.Fatal("failed to migrate legacy config: %v", err)
 		}
-		log.Printf("config migration successful; please delete %s and %s now\n", defaultConfigPathLegacy, defaultEnvConfigPathLegacy)
+		logbuch.Info("config migration successful; please delete %s and %s now", defaultConfigPathLegacy, defaultEnvConfigPathLegacy)
 	}
 }
 

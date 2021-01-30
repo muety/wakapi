@@ -2,10 +2,10 @@ package repositories
 
 import (
 	"errors"
+	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"log"
 )
 
 type KeyValueRepository struct {
@@ -41,7 +41,7 @@ func (r *KeyValueRepository) PutString(kv *models.KeyStringValue) error {
 	}
 
 	if result.RowsAffected != 1 {
-		log.Printf("warning: did not insert key '%s', maybe just updated?\n", kv.Key)
+		logbuch.Warn("did not insert key '%s', maybe just updated?", kv.Key)
 	}
 
 	return nil

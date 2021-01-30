@@ -1,8 +1,8 @@
 package services
 
 import (
+	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
-	"log"
 	"runtime"
 	"time"
 
@@ -40,7 +40,7 @@ type AggregationJob struct {
 func (srv *AggregationService) Schedule() {
 	// Run once initially
 	if err := srv.Run(nil); err != nil {
-		log.Fatalf("failed to run AggregationJob: %v\n", err)
+		logbuch.Fatal("failed to run AggregationJob: %v", err)
 	}
 
 	s := gocron.NewScheduler(time.Local)
@@ -73,9 +73,9 @@ func (srv *AggregationService) Run(userIds map[string]bool) error {
 func (srv *AggregationService) summaryWorker(jobs <-chan *AggregationJob, summaries chan<- *models.Summary) {
 	for job := range jobs {
 		if summary, err := srv.summaryService.Summarize(job.From, job.To, &models.User{ID: job.UserID}); err != nil {
-			log.Printf("Failed to generate summary (%v, %v, %s) – %v.\n", job.From, job.To, job.UserID, err)
+			logbuch.Error("failed to generate summary (%v, %v, %s) – %v", job.From, job.To, job.UserID, err)
 		} else {
-			log.Printf("Successfully generated summary (%v, %v, %s).\n", job.From, job.To, job.UserID)
+			logbuch.Info("successfully generated summary (%v, %v, %s)", job.From, job.To, job.UserID)
 			summaries <- summary
 		}
 	}
@@ -84,17 +84,17 @@ func (srv *AggregationService) summaryWorker(jobs <-chan *AggregationJob, summar
 func (srv *AggregationService) persistWorker(summaries <-chan *models.Summary) {
 	for summary := range summaries {
 		if err := srv.summaryService.Insert(summary); err != nil {
-			log.Printf("Failed to save summary (%v, %v, %s) – %v.\n", summary.UserID, summary.FromTime, summary.ToTime, err)
+			logbuch.Error("failed to save summary (%v, %v, %s) – %v", summary.UserID, summary.FromTime, summary.ToTime, err)
 		}
 	}
 }
 
 func (srv *AggregationService) trigger(jobs chan<- *AggregationJob, userIds map[string]bool) error {
-	log.Println("Generating summaries.")
+	logbuch.Info("generating summaries")
 
 	var users []*models.User
 	if allUsers, err := srv.userService.GetAll(); err != nil {
-		log.Println(err)
+		logbuch.Error(err.Error())
 		return err
 	} else if userIds != nil && len(userIds) > 0 {
 		users = make([]*models.User, len(userIds))
@@ -110,14 +110,14 @@ func (srv *AggregationService) trigger(jobs chan<- *AggregationJob, userIds map[
 	// Get a map from user ids to the time of their latest summary or nil if none exists yet
 	lastUserSummaryTimes, err := srv.summaryService.GetLatestByUser()
 	if err != nil {
-		log.Println(err)
+		logbuch.Error(err.Error())
 		return err
 	}
 
 	// Get a map from user ids to the time of their earliest heartbeats or nil if none exists yet
 	firstUserHeartbeatTimes, err := srv.heartbeatService.GetFirstByUsers()
 	if err != nil {
-		log.Println(err)
+		logbuch.Error(err.Error())
 		return err
 	}
 

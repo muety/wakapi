@@ -1,10 +1,10 @@
 package common
 
 import (
+	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
-	"log"
 )
 
 var customPreMigrations []migrationFunc
@@ -18,12 +18,12 @@ func init() {
 				oldIndexName, newIndexName := "idx_customrule_user", "idx_language_mapping_user"
 
 				if migrator.HasTable(oldTableName) {
-					log.Printf("renaming '%s' table to '%s'\n", oldTableName, newTableName)
+					logbuch.Info("renaming '%s' table to '%s'", oldTableName, newTableName)
 					if err := migrator.RenameTable(oldTableName, &models.LanguageMapping{}); err != nil {
 						return err
 					}
 
-					log.Printf("renaming '%s' index to '%s'\n", oldIndexName, newIndexName)
+					logbuch.Info("renaming '%s' index to '%s'", oldIndexName, newIndexName)
 					return migrator.RenameIndex(&models.LanguageMapping{}, oldIndexName, newIndexName)
 				}
 				return nil
@@ -42,12 +42,12 @@ func init() {
 					// https://stackoverflow.com/a/1884893/3112139
 					// unfortunately, we can't migrate existing sqlite databases to the newly introduced cascade settings
 					// things like deleting all summaries won't work in those cases unless an entirely new db is created
-					log.Println("not attempting to drop and regenerate constraints on sqlite")
+					logbuch.Info("not attempting to drop and regenerate constraints on sqlite")
 					return nil
 				}
 
 				if !migrator.HasTable(&models.KeyStringValue{}) {
-					log.Println("key-value table not yet existing")
+					logbuch.Info("key-value table not yet existing")
 					return nil
 				}
 
@@ -57,7 +57,7 @@ func init() {
 				}
 				lookupResult := db.Where(condition, lookupKey).First(&models.KeyStringValue{})
 				if lookupResult.Error == nil && lookupResult.RowsAffected > 0 {
-					log.Println("no need to migrate cascade constraints")
+					logbuch.Info("no need to migrate cascade constraints")
 					return nil
 				}
 
@@ -77,7 +77,7 @@ func init() {
 
 				for name, table := range constraints {
 					if migrator.HasConstraint(table, name) {
-						log.Printf("dropping constraint '%s'", name)
+						logbuch.Info("dropping constraint '%s'", name)
 						if err := migrator.DropConstraint(table, name); err != nil {
 							return err
 						}
@@ -100,9 +100,9 @@ func init() {
 
 func RunCustomPreMigrations(db *gorm.DB, cfg *config.Config) {
 	for _, m := range customPreMigrations {
-		log.Printf("potentially running migration '%s'\n", m.name)
+		logbuch.Info("potentially running migration '%s'", m.name)
 		if err := m.f(db, cfg); err != nil {
-			log.Fatalf("migration '%s' failed – %v\n", m.name, err)
+			logbuch.Fatal("migration '%s' failed – %v", m.name, err)
 		}
 	}
 }

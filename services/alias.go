@@ -2,10 +2,10 @@ package services
 
 import (
 	"errors"
+	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
-	"log"
 	"sync"
 )
 
@@ -110,6 +110,6 @@ func (srv *AliasService) DeleteMulti(aliases []*models.Alias) error {
 
 func (srv *AliasService) reinitUser(userId string) {
 	if err := srv.InitializeUser(userId); err != nil {
-		log.Printf("error initializing user aliases – %v\n", err)
+		logbuch.Error("error initializing user aliases – %v", err)
 	}
 }

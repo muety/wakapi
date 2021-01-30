@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/emvi/logbuch"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -99,7 +99,7 @@ func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.Us
 func CheckAndMigratePassword(user *models.User, login *models.Login, salt string, userServiceRef *services.IUserService) bool {
 	if utils.IsMd5(user.Password) {
 		if utils.CompareMd5(user.Password, login.Password, "") {
-			log.Printf("migrating old md5 password to new bcrypt format for user '%s'", user.ID)
+			logbuch.Info("migrating old md5 password to new bcrypt format for user '%s'", user.ID)
 			(*userServiceRef).MigrateMd5Password(user, login)
 			return true
 		}

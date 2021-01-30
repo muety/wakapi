@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/emvi/logbuch"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
 	"github.com/markbates/pkger"
@@ -14,7 +15,6 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -144,7 +144,7 @@ func (c *Config) GetFixturesFunc(dbDialect string) models.MigrationFunc {
 			return err
 		}
 
-		log.Printf("applied %d fixtures\n", n)
+		logbuch.Info("applied %d fixtures", n)
 		return nil
 	}
 }
@@ -221,13 +221,13 @@ func IsDev(env string) bool {
 func readVersion() string {
 	file, err := pkger.Open("/version.txt")
 	if err != nil {
-		log.Fatal(err)
+		logbuch.Fatal(err.Error())
 	}
 	defer file.Close()
 
 	bytes, err := ioutil.ReadAll(file)
 	if err != nil {
-		log.Fatal(err)
+		logbuch.Fatal(err.Error())
 	}
 
 	return strings.TrimSpace(string(bytes))
@@ -246,16 +246,16 @@ func readColors() map[string]map[string]string {
 
 	file, err := pkger.Open("/data/colors.json")
 	if err != nil {
-		log.Fatal(err)
+		logbuch.Fatal(err.Error())
 	}
 	defer file.Close()
 	bytes, err := ioutil.ReadAll(file)
 	if err != nil {
-		log.Fatal(err)
+		logbuch.Fatal(err.Error())
 	}
 
 	if err := json.Unmarshal(bytes, &colors); err != nil {
-		log.Fatal(err)
+		logbuch.Fatal(err.Error())
 	}
 
 	return colors
@@ -263,9 +263,8 @@ func readColors() map[string]map[string]string {
 
 func mustReadConfigLocation() string {
 	if _, err := os.Stat(*cFlag); err != nil {
-		log.Fatalf("failed to find config file at '%s'\n", *cFlag)
+		logbuch.Fatal("failed to find config file at '%s'", *cFlag)
 	}
-
 	return *cFlag
 }
 
@@ -292,7 +291,7 @@ func Load() *Config {
 	maybeMigrateLegacyConfig()
 
 	if err := configor.New(&configor.Config{}).Load(config, mustReadConfigLocation()); err != nil {
-		log.Fatalf("failed to read config: %v\n", err)
+		logbuch.Fatal("failed to read config: %v", err)
 	}
 
 	config.Version = readVersion()
@@ -314,7 +313,7 @@ func Load() *Config {
 	}
 
 	if config.Server.ListenIpV4 == "" && config.Server.ListenIpV6 == "" {
-		log.Fatalln("either of listen_ipv4 or listen_ipv6 must be set")
+		logbuch.Fatal("either of listen_ipv4 or listen_ipv6 must be set")
 	}
 
 	Set(config)

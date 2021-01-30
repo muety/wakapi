@@ -1,9 +1,9 @@
 package services
 
 import (
+	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"go.uber.org/atomic"
-	"log"
 	"runtime"
 	"strconv"
 	"time"
@@ -42,7 +42,7 @@ type CountTotalTimeResult struct {
 func (srv *MiscService) ScheduleCountTotalTime() {
 	// Run once initially
 	if err := srv.runCountTotalTime(); err != nil {
-		log.Fatalf("failed to run CountTotalTimeJob: %v\n", err)
+		logbuch.Error("failed to run CountTotalTimeJob: %v", err)
 	}
 
 	s := gocron.NewScheduler(time.Local)
@@ -80,9 +80,9 @@ func (srv *MiscService) runCountTotalTime() error {
 func (srv *MiscService) countTotalTimeWorker(jobs <-chan *CountTotalTimeJob, results chan<- *CountTotalTimeResult) {
 	for job := range jobs {
 		if result, err := srv.summaryService.Aliased(time.Time{}, time.Now(), &models.User{ID: job.UserID}, srv.summaryService.Retrieve); err != nil {
-			log.Printf("Failed to count total for user %s: %v.\n", job.UserID, err)
+			logbuch.Error("failed to count total for user %s: %v", job.UserID, err)
 		} else {
-			log.Printf("Successfully counted total for user %s.\n", job.UserID)
+			logbuch.Info("successfully counted total for user %s", job.UserID)
 			results <- &CountTotalTimeResult{
 				UserId: job.UserID,
 				Total:  result.TotalTime(),
@@ -107,13 +107,13 @@ func (srv *MiscService) persistTotalTimeWorker(results <-chan *CountTotalTimeRes
 		Key:   config.KeyLatestTotalTime,
 		Value: total.String(),
 	}); err != nil {
-		log.Printf("Failed to save total time count: %v\n", err)
+		logbuch.Error("failed to save total time count: %v", err)
 	}
 
 	if err := srv.keyValueService.PutString(&models.KeyStringValue{
 		Key:   config.KeyLatestTotalUsers,
 		Value: strconv.Itoa(c),
 	}); err != nil {
-		log.Printf("Failed to save total users count: %v\n", err)
+		logbuch.Error("failed to save total users count: %v", err)
 	}
 }

@@ -1,9 +1,9 @@
 package common
 
 import (
+	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"gorm.io/gorm"
-	"log"
 )
 
 var customPostMigrations []migrationFunc
@@ -22,9 +22,9 @@ func init() {
 
 func RunCustomPostMigrations(db *gorm.DB, cfg *config.Config) {
 	for _, m := range customPostMigrations {
-		log.Printf("potentially running migration '%s'\n", m.name)
+		logbuch.Info("potentially running migration '%s'", m.name)
 		if err := m.f(db, cfg); err != nil {
-			log.Fatalf("migration '%s' failed – %v\n", m.name, err)
+			logbuch.Fatal("migration '%s' failed – %v", m.name, err)
 		}
 	}
 }

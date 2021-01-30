@@ -1,10 +1,10 @@
 package common
 
 import (
+	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
-	"log"
 )
 
 func MigrateLanguages(db *gorm.DB) {
@@ -16,10 +16,10 @@ func MigrateLanguages(db *gorm.DB) {
 			Where("entity LIKE ?", "%."+k).
 			Updates(models.Heartbeat{Language: v})
 		if result.Error != nil {
-			log.Fatal(result.Error)
+			logbuch.Fatal(result.Error.Error())
 		}
 		if result.RowsAffected > 0 {
-			log.Printf("Migrated %+v rows for custom language %+s.\n", result.RowsAffected, k)
+			logbuch.Info("migrated %+v rows for custom language %+s", result.RowsAffected, k)
 		}
 	}
 }

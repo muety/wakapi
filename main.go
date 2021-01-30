@@ -3,13 +3,12 @@ package main
 //go:generate $GOPATH/bin/pkger
 
 import (
-	"fmt"
+	"github.com/emvi/logbuch"
 	"github.com/gorilla/handlers"
 	"github.com/markbates/pkger"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/migrations/common"
 	"github.com/muety/wakapi/repositories"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -57,9 +56,11 @@ var (
 func main() {
 	config = conf.Load()
 
-	// Enable line numbers in logging
+	// Set log level
 	if config.IsDev() {
-		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		logbuch.SetLevel(logbuch.LevelDebug)
+	} else {
+		logbuch.SetLevel(logbuch.LevelInfo)
 	}
 
 	// Connect to database
@@ -76,8 +77,8 @@ func main() {
 	sqlDb.SetMaxIdleConns(int(config.Db.MaxConn))
 	sqlDb.SetMaxOpenConns(int(config.Db.MaxConn))
 	if err != nil {
-		log.Println(err)
-		log.Fatal("could not connect to database")
+		logbuch.Error(err.Error())
+		logbuch.Fatal("could not connect to database")
 	}
 	defer sqlDb.Close()
 
@@ -203,35 +204,35 @@ func listen(handler http.Handler) {
 
 	if config.UseTLS() {
 		if s4 != nil {
-			fmt.Printf("Listening for HTTPS on %s.\n", s4.Addr)
+			logbuch.Info("--> Listening for HTTPS on %s... ✅", s4.Addr)
 			go func() {
 				if err := s4.ListenAndServeTLS(config.Server.TlsCertPath, config.Server.TlsKeyPath); err != nil {
-					log.Fatalln(err)
+					logbuch.Fatal(err.Error())
 				}
 			}()
 		}
 		if s6 != nil {
-			fmt.Printf("Listening for HTTPS on %s.\n", s6.Addr)
+			logbuch.Info("--> Listening for HTTPS on %s... ✅", s6.Addr)
 			go func() {
 				if err := s6.ListenAndServeTLS(config.Server.TlsCertPath, config.Server.TlsKeyPath); err != nil {
-					log.Fatalln(err)
+					logbuch.Fatal(err.Error())
 				}
 			}()
 		}
 	} else {
 		if s4 != nil {
-			fmt.Printf("Listening for HTTP on %s.\n", s4.Addr)
+			logbuch.Info("--> Listening for HTTP on %s... ✅", s4.Addr)
 			go func() {
 				if err := s4.ListenAndServe(); err != nil {
-					log.Fatalln(err)
+					logbuch.Fatal(err.Error())
 				}
 			}()
 		}
 		if s6 != nil {
-			fmt.Printf("Listening for HTTP on %s.\n", s6.Addr)
+			logbuch.Info("--> Listening for HTTP on %s... ✅", s6.Addr)
 			go func() {
 				if err := s6.ListenAndServe(); err != nil {
-					log.Fatalln(err)
+					logbuch.Fatal(err.Error())
 				}
 			}()
 		}
@@ -242,6 +243,6 @@ func listen(handler http.Handler) {
 
 func runDatabaseMigrations() {
 	if err := config.GetMigrationFunc(config.Db.Dialect)(db); err != nil {
-		log.Fatal(err)
+		logbuch.Fatal(err.Error())
 	}
 }

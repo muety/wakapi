@@ -3,6 +3,7 @@ package routes
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/emvi/logbuch"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	conf "github.com/muety/wakapi/config"
@@ -10,7 +11,6 @@ import (
 	"github.com/muety/wakapi/models/view"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -298,16 +298,16 @@ func (h *SettingsHandler) PostRegenerateSummaries(w http.ResponseWriter, r *http
 
 	user := r.Context().Value(models.UserKey).(*models.User)
 
-	log.Printf("clearing summaries for user '%s'\n", user.ID)
+	logbuch.Info("clearing summaries for user '%s'", user.ID)
 	if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
-		log.Printf("failed to clear summaries: %v\n", err)
+		logbuch.Error("failed to clear summaries: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("failed to delete old summaries"))
 		return
 	}
 
 	if err := h.aggregationSrvc.Run(map[string]bool{user.ID: true}); err != nil {
-		log.Printf("failed to regenerate summaries: %v\n", err)
+		logbuch.Error("failed to regenerate summaries: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("failed to generate aggregations"))
 		return

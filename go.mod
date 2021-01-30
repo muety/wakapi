@@ -3,6 +3,7 @@ module github.com/muety/wakapi
 go 1.13
 
 require (
+	github.com/emvi/logbuch v1.1.1
 	github.com/go-co-op/gocron v0.3.3
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.3
