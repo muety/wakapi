@@ -130,9 +130,12 @@ func main() {
 	settingsRouter := publicRouter.PathPrefix("/settings").Subrouter()
 	summaryRouter := publicRouter.PathPrefix("/summary").Subrouter()
 	apiRouter := router.PathPrefix("/api").Subrouter()
+	summaryApiRouter := apiRouter.PathPrefix("/summary").Subrouter()
+	heartbeatApiRouter := apiRouter.PathPrefix("/heartbeat").Subrouter()
+	healthApiRouter := apiRouter.PathPrefix("/health").Subrouter()
 	compatRouter := apiRouter.PathPrefix("/compat").Subrouter()
-	wakatimeV1Router := compatRouter.PathPrefix("/wakatime/v1").Subrouter()
-	shieldsV1Router := compatRouter.PathPrefix("/shields/v1").Subrouter()
+	wakatimeV1Router := compatRouter.PathPrefix("/wakatime/v1/users/{user}").Subrouter()
+	shieldsV1Router := compatRouter.PathPrefix("/shields/v1/{user}").Subrouter()
 
 	// Middlewares
 	recoveryMiddleware := handlers.RecoveryHandler()
@@ -149,45 +152,22 @@ func main() {
 	summaryRouter.Use(authenticateMiddleware)
 	settingsRouter.Use(authenticateMiddleware)
 	apiRouter.Use(corsMiddleware, authenticateMiddleware)
+	heartbeatApiRouter.Use(wakatimeRelayMiddleware)
 
-	// Public Routes
-	publicRouter.Path("/").Methods(http.MethodGet).HandlerFunc(homeHandler.GetIndex)
-	publicRouter.Path("/login").Methods(http.MethodGet).HandlerFunc(loginHandler.GetIndex)
-	publicRouter.Path("/login").Methods(http.MethodPost).HandlerFunc(loginHandler.PostLogin)
-	publicRouter.Path("/logout").Methods(http.MethodPost).HandlerFunc(loginHandler.PostLogout)
-	publicRouter.Path("/signup").Methods(http.MethodGet).HandlerFunc(loginHandler.GetSignup)
-	publicRouter.Path("/signup").Methods(http.MethodPost).HandlerFunc(loginHandler.PostSignup)
-	publicRouter.Path("/imprint").Methods(http.MethodGet).HandlerFunc(imprintHandler.GetImprint)
+	// Route registrations
+	homeHandler.RegisterRoutes(publicRouter)
+	loginHandler.RegisterRoutes(publicRouter)
+	imprintHandler.RegisterRoutes(publicRouter)
+	summaryHandler.RegisterRoutes(summaryRouter)
+	settingsHandler.RegisterRoutes(settingsRouter)
 
-	// Summary Routes
-	summaryRouter.Methods(http.MethodGet).HandlerFunc(summaryHandler.GetIndex)
-
-	// Settings Routes
-	settingsRouter.Methods(http.MethodGet).HandlerFunc(settingsHandler.GetIndex)
-	settingsRouter.Path("/credentials").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostCredentials)
-	settingsRouter.Path("/aliases").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostAlias)
-	settingsRouter.Path("/aliases/delete").Methods(http.MethodPost).HandlerFunc(settingsHandler.DeleteAlias)
-	settingsRouter.Path("/language_mappings").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostLanguageMapping)
-	settingsRouter.Path("/language_mappings/delete").Methods(http.MethodPost).HandlerFunc(settingsHandler.DeleteLanguageMapping)
-	settingsRouter.Path("/reset").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostResetApiKey)
-	settingsRouter.Path("/badges").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostToggleBadges)
-	settingsRouter.Path("/wakatime_integration").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostSetWakatimeApiKey)
-	settingsRouter.Path("/regenerate").Methods(http.MethodPost).HandlerFunc(settingsHandler.PostRegenerateSummaries)
-
-	// API Routes
-	apiRouter.Path("/summary").Methods(http.MethodGet).HandlerFunc(summaryHandler.ApiGet)
-	apiRouter.Path("/health").Methods(http.MethodGet).HandlerFunc(healthHandler.ApiGet)
-
-	heartbeatsApiRouter := apiRouter.Path("/heartbeat").Methods(http.MethodPost).Subrouter()
-	heartbeatsApiRouter.Use(wakatimeRelayMiddleware)
-	heartbeatsApiRouter.Path("").HandlerFunc(heartbeatHandler.ApiPost)
-
-	// Wakatime compat V1 API Routes
-	wakatimeV1Router.Path("/users/{user}/all_time_since_today").Methods(http.MethodGet).HandlerFunc(wakatimeV1AllHandler.ApiGet)
-	wakatimeV1Router.Path("/users/{user}/summaries").Methods(http.MethodGet).HandlerFunc(wakatimeV1SummariesHandler.ApiGet)
-
-	// Shields.io compat API Routes
-	shieldsV1Router.PathPrefix("/{user}").Methods(http.MethodGet).HandlerFunc(shieldV1BadgeHandler.ApiGet)
+	// API Route registrations
+	summaryHandler.RegisterAPIRoutes(summaryApiRouter)
+	healthHandler.RegisterAPIRoutes(healthApiRouter)
+	heartbeatHandler.RegisterAPIRoutes(heartbeatApiRouter)
+	wakatimeV1AllHandler.RegisterAPIRoutes(wakatimeV1Router)
+	wakatimeV1SummariesHandler.RegisterAPIRoutes(wakatimeV1Router)
+	shieldV1BadgeHandler.RegisterAPIRoutes(shieldsV1Router)
 
 	// Static Routes
 	router.PathPrefix("/assets").Handler(http.FileServer(pkger.Dir("/static")))

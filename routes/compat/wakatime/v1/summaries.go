@@ -25,6 +25,12 @@ func NewSummariesHandler(summaryService services.ISummaryService) *SummariesHand
 	}
 }
 
+func (h *SummariesHandler) RegisterRoutes(router *mux.Router) {}
+
+func (h *SummariesHandler) RegisterAPIRoutes(router *mux.Router) {
+	router.Path("/summaries").Methods(http.MethodGet).HandlerFunc(h.ApiGet)
+}
+
 /*
 TODO: support parameters: project, branches, timeout, writes_only, timezone
 https://wakatime.com/developers#summaries

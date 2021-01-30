@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -22,6 +23,16 @@ func NewLoginHandler(userService services.IUserService) *LoginHandler {
 		userSrvc: userService,
 	}
 }
+
+func (h *LoginHandler) RegisterRoutes(router *mux.Router) {
+	router.Path("/login").Methods(http.MethodGet).HandlerFunc(h.GetIndex)
+	router.Path("/login").Methods(http.MethodPost).HandlerFunc(h.PostLogin)
+	router.Path("/logout").Methods(http.MethodPost).HandlerFunc(h.PostLogout)
+	router.Path("/signup").Methods(http.MethodGet).HandlerFunc(h.GetSignup)
+	router.Path("/signup").Methods(http.MethodPost).HandlerFunc(h.PostSignup)
+}
+
+func (h *LoginHandler) RegisterAPIRoutes(router *mux.Router) {}
 
 func (h *LoginHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {

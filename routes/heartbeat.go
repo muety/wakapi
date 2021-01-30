@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"net/http"
 	"os"
@@ -28,6 +29,12 @@ func NewHeartbeatHandler(heartbeatService services.IHeartbeatService, languageMa
 
 type heartbeatResponseVm struct {
 	Responses [][]interface{} `json:"responses"`
+}
+
+func (h *HeartbeatHandler) RegisterRoutes(router *mux.Router) {}
+
+func (h *HeartbeatHandler) RegisterAPIRoutes(router *mux.Router) {
+	router.Methods(http.MethodPost).HandlerFunc(h.ApiPost)
 }
 
 func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {

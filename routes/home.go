@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -26,6 +27,12 @@ func NewHomeHandler(keyValueService services.IKeyValueService) *HomeHandler {
 		keyValueSrvc: keyValueService,
 	}
 }
+
+func (h *HomeHandler) RegisterRoutes(router *mux.Router) {
+	router.Path("/").Methods(http.MethodGet).HandlerFunc(h.GetIndex)
+}
+
+func (h *HomeHandler) RegisterAPIRoutes(router *mux.Router) {}
 
 func (h *HomeHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -34,6 +35,21 @@ func NewSettingsHandler(userService services.IUserService, summaryService servic
 		userSrvc:            userService,
 	}
 }
+
+func (h *SettingsHandler) RegisterRoutes(router *mux.Router) {
+	router.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
+	router.Path("/credentials").Methods(http.MethodPost).HandlerFunc(h.PostCredentials)
+	router.Path("/aliases").Methods(http.MethodPost).HandlerFunc(h.PostAlias)
+	router.Path("/aliases/delete").Methods(http.MethodPost).HandlerFunc(h.DeleteAlias)
+	router.Path("/language_mappings").Methods(http.MethodPost).HandlerFunc(h.PostLanguageMapping)
+	router.Path("/language_mappings/delete").Methods(http.MethodPost).HandlerFunc(h.DeleteLanguageMapping)
+	router.Path("/reset").Methods(http.MethodPost).HandlerFunc(h.PostResetApiKey)
+	router.Path("/badges").Methods(http.MethodPost).HandlerFunc(h.PostToggleBadges)
+	router.Path("/wakatime_integration").Methods(http.MethodPost).HandlerFunc(h.PostSetWakatimeApiKey)
+	router.Path("/regenerate").Methods(http.MethodPost).HandlerFunc(h.PostRegenerateSummaries)
+}
+
+func (h *SettingsHandler) RegisterAPIRoutes(router *mux.Router) {}
 
 func (h *SettingsHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 	"net/http"
 )
@@ -12,6 +13,12 @@ type HealthHandler struct {
 
 func NewHealthHandler(db *gorm.DB) *HealthHandler {
 	return &HealthHandler{db: db}
+}
+
+func (h *HealthHandler) RegisterRoutes(router *mux.Router) {}
+
+func (h *HealthHandler) RegisterAPIRoutes(router *mux.Router) {
+	router.Methods(http.MethodGet).HandlerFunc(h.ApiGet)
 }
 
 func (h *HealthHandler) ApiGet(w http.ResponseWriter, r *http.Request) {

@@ -24,6 +24,12 @@ func NewAllTimeHandler(summaryService services.ISummaryService) *AllTimeHandler 
 	}
 }
 
+func (h *AllTimeHandler) RegisterRoutes(router *mux.Router) {}
+
+func (h *AllTimeHandler) RegisterAPIRoutes(router *mux.Router) {
+	router.Path("/all_time_since_today").Methods(http.MethodGet).HandlerFunc(h.ApiGet)
+}
+
 func (h *AllTimeHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	values, _ := url.ParseQuery(r.URL.RawQuery)

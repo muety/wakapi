@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
@@ -19,6 +20,14 @@ func NewSummaryHandler(summaryService services.ISummaryService) *SummaryHandler 
 		summarySrvc: summaryService,
 		config:      conf.Get(),
 	}
+}
+
+func (h *SummaryHandler) RegisterRoutes(router *mux.Router) {
+	router.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
+}
+
+func (h *SummaryHandler) RegisterAPIRoutes(router *mux.Router) {
+	router.Methods(http.MethodGet).HandlerFunc(h.ApiGet)
 }
 
 func (h *SummaryHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
