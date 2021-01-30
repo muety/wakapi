@@ -5,9 +5,9 @@ import (
 	"strings"
 )
 
-func FilterLanguageColors(all map[string]string, summary *models.Summary) map[string]string {
+func FilterColors(all map[string]string, haystack models.SummaryItems) map[string]string {
 	subset := make(map[string]string)
-	for _, item := range summary.Languages {
+	for _, item := range haystack {
 		if c, ok := all[strings.ToLower(item.Key)]; ok {
 			subset[strings.ToLower(item.Key)] = c
 		}

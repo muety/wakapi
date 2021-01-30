@@ -66,6 +66,8 @@ type SummaryItemContainer struct {
 type SummaryViewModel struct {
 	*Summary
 	LanguageColors map[string]string
+	EditorColors   map[string]string
+	OSColors       map[string]string
 	Error          string
 	Success        string
 	ApiKey         string

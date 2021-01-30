@@ -158,6 +158,8 @@
 
 <script>
     const languageColors = {{ .LanguageColors | json }}
+    const editorColors = {{ .EditorColors | json }}
+    const osColors = {{ .OSColors | json }}
 
     const wakapiData = {}
     wakapiData.projects = {{ .Projects | json }}

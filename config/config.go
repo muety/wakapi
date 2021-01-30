@@ -37,10 +37,10 @@ var cfg *Config
 var cFlag = flag.String("config", defaultConfigPath, "config file location")
 
 type appConfig struct {
-	AggregationTime string            `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
-	CountingTime    string            `yaml:"counting_time" default:"05:15" env:"WAKAPI_COUNTING_TIME"`
-	CustomLanguages map[string]string `yaml:"custom_languages"`
-	LanguageColors  map[string]string `yaml:"-"`
+	AggregationTime string                       `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
+	CountingTime    string                       `yaml:"counting_time" default:"05:15" env:"WAKAPI_COUNTING_TIME"`
+	CustomLanguages map[string]string            `yaml:"custom_languages"`
+	Colors          map[string]map[string]string `yaml:"-"`
 }
 
 type securityConfig struct {
@@ -127,7 +127,7 @@ func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
 
 func (c *Config) GetFixturesFunc(dbDialect string) models.MigrationFunc {
 	return func(db *gorm.DB) error {
-		migrations := &migrate.HttpFileSystemMigrationSource {
+		migrations := &migrate.HttpFileSystemMigrationSource{
 			FileSystem: pkger.Dir("/migrations"),
 		}
 
@@ -193,11 +193,19 @@ func sqliteConnectionString(config *dbConfig) string {
 }
 
 func (c *appConfig) GetCustomLanguages() map[string]string {
-	return cloneStringMap(c.CustomLanguages)
+	return cloneStringMap(c.CustomLanguages, false)
 }
 
 func (c *appConfig) GetLanguageColors() map[string]string {
-	return cloneStringMap(c.LanguageColors)
+	return cloneStringMap(c.Colors["languages"], true)
+}
+
+func (c *appConfig) GetEditorColors() map[string]string {
+	return cloneStringMap(c.Colors["editors"], true)
+}
+
+func (c *appConfig) GetOSColors() map[string]string {
+	return cloneStringMap(c.Colors["operating_systems"], true)
 }
 
 func IsDev(env string) bool {
@@ -219,14 +227,16 @@ func readVersion() string {
 	return strings.TrimSpace(string(bytes))
 }
 
-func readLanguageColors() map[string]string {
+func readColors() map[string]map[string]string {
 	// Read language colors
-	// Source: https://raw.githubusercontent.com/ozh/github-colors/master/colors.json
-	var colors = make(map[string]string)
-	var rawColors map[string]struct {
-		Color string `json:"color"`
-		Url   string `json:"url"`
-	}
+	// Source:
+	// – https://raw.githubusercontent.com/ozh/github-colors/master/colors.json
+	// – https://wakatime.com/colors/operating_systems
+	// - https://wakatime.com/colors/editors
+	// Extracted from Wakatime website with XPath (see below) and did a bit of regex magic after.
+	// – $x('//span[@class="editor-icon tip"]/@data-original-title').map(e => e.nodeValue)
+	// – $x('//span[@class="editor-icon tip"]/div[1]/text()').map(e => e.nodeValue)
+	var colors = make(map[string]map[string]string)
 
 	file, err := pkger.Open("/data/colors.json")
 	if err != nil {
@@ -238,12 +248,8 @@ func readLanguageColors() map[string]string {
 		log.Fatal(err)
 	}
 
-	if err := json.Unmarshal(bytes, &rawColors); err != nil {
+	if err := json.Unmarshal(bytes, &colors); err != nil {
 		log.Fatal(err)
-	}
-
-	for k, v := range rawColors {
-		colors[strings.ToLower(k)] = v.Color
 	}
 
 	return colors
@@ -284,7 +290,7 @@ func Load() *Config {
 	}
 
 	config.Version = readVersion()
-	config.App.LanguageColors = readLanguageColors()
+	config.App.Colors = readColors()
 	config.Db.Dialect = resolveDbDialect(config.Db.Type)
 	config.Security.SecureCookie = securecookie.New(
 		securecookie.GenerateRandomKey(64),

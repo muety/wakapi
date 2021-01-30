@@ -110,7 +110,7 @@ function draw(subselection) {
                     data: wakapiData.operatingSystems
                         .slice(0, Math.min(showTopN[1], wakapiData.operatingSystems.length))
                         .map(p => parseInt(p.total)),
-                    backgroundColor: wakapiData.operatingSystems.map(p => getRandomColor(p.key))
+                    backgroundColor: wakapiData.operatingSystems.map(p => osColors[p.key.toLowerCase()] || getRandomColor(p.key))
                 }],
                 labels: wakapiData.operatingSystems
                     .slice(0, Math.min(showTopN[1], wakapiData.operatingSystems.length))
@@ -132,7 +132,7 @@ function draw(subselection) {
                     data: wakapiData.editors
                         .slice(0, Math.min(showTopN[2], wakapiData.editors.length))
                         .map(p => parseInt(p.total)),
-                    backgroundColor: wakapiData.editors.map(p => getRandomColor(p.key))
+                    backgroundColor: wakapiData.editors.map(p => editorColors[p.key.toLowerCase()] || getRandomColor(p.key))
                 }],
                 labels: wakapiData.editors
                     .slice(0, Math.min(showTopN[2], wakapiData.editors.length))
