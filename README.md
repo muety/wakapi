@@ -10,7 +10,6 @@
 <p align="center">
   <a href="https://goreportcard.com/report/github.com/muety/wakapi"><img src="https://goreportcard.com/badge/github.com/muety/wakapi"></a>
   <img src="https://badges.fw-web.space/github/languages/code-size/muety/wakapi">
-  <a href="https://goreportcard.com/report/github.com/muety/wakapi"><img src="https://goreportcard.com/badge/github.com/muety/wakapi"></a>
   <a href="https://sonarcloud.io/dashboard?id=muety_wakapi"><img src="https://sonarcloud.io/api/project_badges/measure?project=muety_wakapi&metric=sqale_index"></a>
   <a href="https://sonarcloud.io/dashboard?id=muety_wakapi"><img src="https://sonarcloud.io/api/project_badges/measure?project=muety_wakapi&metric=ncloc"></a>
 </p>
@@ -19,25 +18,15 @@
 
 <div align="center">
   <h3>
-    <a href="https://wakapi.dev">
-      Website
-    </a>
+    <a href="https://wakapi.dev">Website</a>
     <span> | </span>
-    <a href="#-features">
-      Features
-    </a>
+    <a href="#-features">Features</a>
     <span> | </span>
-    <a href="#-how-to-use">
-      How to use
-    </a>
+    <a href="#-how-to-use">How to use</a>
     <span> | </span>
-    <a href="issues">
-      Issues
-    </a>
+    <a href="https://github.com/muety/wakapi/issues">Issues</a>
     <span> | </span>
-    <a href="https://github.com/muety">
-      Contact
-    </a>
+    <a href="https://github.com/muety">Contact</a>
   </h3>
 </div>
 
