@@ -13,11 +13,6 @@ import (
 	"time"
 )
 
-const (
-	WakatimeApiUrl                = "https://wakatime.com/api/v1"
-	WakatimeApiHeartbeatsEndpoint = "/users/current/heartbeats.bulk"
-)
-
 /* Middleware to conditionally relay heartbeats to Wakatime */
 type WakatimeRelayMiddleware struct {
 	httpClient *http.Client
@@ -68,7 +63,7 @@ func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	go m.send(
 		http.MethodPost,
-		WakatimeApiUrl+WakatimeApiHeartbeatsEndpoint,
+		config.WakatimeApiUrl+config.WakatimeApiHeartbeatsEndpoint,
 		bytes.NewReader(body),
 		headers,
 	)

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
@@ -12,6 +13,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type SettingsHandler struct {
@@ -21,6 +23,7 @@ type SettingsHandler struct {
 	aliasSrvc           services.IAliasService
 	aggregationSrvc     services.IAggregationService
 	languageMappingSrvc services.ILanguageMappingService
+	httpClient          *http.Client
 }
 
 var credentialsDecoder = schema.NewDecoder()
@@ -33,6 +36,7 @@ func NewSettingsHandler(userService services.IUserService, summaryService servic
 		aggregationSrvc:     aggregationService,
 		languageMappingSrvc: languageMappingService,
 		userSrvc:            userService,
+		httpClient:          &http.Client{Timeout: 10 * time.Second},
 	}
 }
 
@@ -255,7 +259,15 @@ func (h *SettingsHandler) PostSetWakatimeApiKey(w http.ResponseWriter, r *http.R
 	}
 
 	user := r.Context().Value(models.UserKey).(*models.User)
-	if _, err := h.userSrvc.SetWakatimeApiKey(user, r.PostFormValue("api_key")); err != nil {
+	apiKey := r.PostFormValue("api_key")
+
+	// Healthcheck, if a new API key is set, i.e. the feature is activated
+	if (user.WakatimeApiKey == "" && apiKey != "") && !h.validateWakatimeKey(apiKey) {
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("failed to connect to WakaTime, API key invalid?"))
+		return
+	}
+
+	if _, err := h.userSrvc.SetWakatimeApiKey(user, apiKey); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))
 		return
@@ -302,6 +314,33 @@ func (h *SettingsHandler) PostRegenerateSummaries(w http.ResponseWriter, r *http
 	}
 
 	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("summaries are being regenerated – this may take a few seconds"))
+}
+
+func (h *SettingsHandler) validateWakatimeKey(apiKey string) bool {
+	headers := http.Header{
+		"Accept": []string{"application/json"},
+		"Authorization": []string{
+			fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(apiKey))),
+		},
+	}
+
+	request, err := http.NewRequest(
+		http.MethodGet,
+		conf.WakatimeApiUrl+conf.WakatimeApiUserEndpoint,
+		nil,
+	)
+	if err != nil {
+		return false
+	}
+
+	request.Header = headers
+
+	response, err := h.httpClient.Do(request)
+	if err != nil || response.StatusCode < 200 || response.StatusCode >= 300 {
+		return false
+	}
+
+	return true
 }
 
 func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewModel {

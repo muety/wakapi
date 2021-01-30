@@ -33,6 +33,12 @@ const (
 	KeyLatestTotalUsers = "latest_total_users"
 )
 
+const (
+	WakatimeApiUrl                = "https://wakatime.com/api/v1"
+	WakatimeApiHeartbeatsEndpoint = "/users/current/heartbeats.bulk"
+	WakatimeApiUserEndpoint       = "/users/current"
+)
+
 var cfg *Config
 var cFlag = flag.String("config", defaultConfigPath, "config file location")
 
