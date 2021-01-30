@@ -10,7 +10,6 @@ require (
 	github.com/gorilla/schema v1.1.0
 	github.com/gorilla/securecookie v1.1.1
 	github.com/jinzhu/configor v1.2.0
-	github.com/joho/godotenv v1.3.0
 	github.com/kr/text v0.2.0 // indirect
 	github.com/markbates/pkger v0.17.1
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
@@ -22,7 +21,6 @@ require (
 	go.uber.org/atomic v1.6.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
-	gopkg.in/ini.v1 v1.50.0
 	gopkg.in/yaml.v2 v2.2.8
 	gorm.io/driver/mysql v1.0.3
 	gorm.io/driver/postgres v1.0.5
