@@ -1,6 +1,9 @@
 package models
 
 import (
+	"fmt"
+	"github.com/emvi/logbuch"
+	"github.com/mitchellh/hashstructure/v2"
 	"regexp"
 	"time"
 )
@@ -20,6 +23,7 @@ type Heartbeat struct {
 	OperatingSystem string     `json:"operating_system"`
 	Machine         string     `json:"machine"`
 	Time            CustomTime `json:"time" gorm:"type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time,idx_time_user"`
+	Hash            string     `json:"-" gorm:"type:varchar(17); uniqueIndex"`
 	languageRegex   *regexp.Regexp
 }
 
@@ -61,4 +65,19 @@ func (h *Heartbeat) GetKey(t uint8) (key string) {
 	}
 
 	return key
+}
+
+// Hash is used to prevent duplicate heartbeats
+// Using a UNIQUE INDEX over all relevant columns would be more straightforward,
+// whereas manually computing this kind of hash is quite cumbersome. However,
+// such a unique index would, according to https://stackoverflow.com/q/65980064/3112139,
+// essentially double the space required for heartbeats, so we decided to go this way.
+
+func (h *Heartbeat) Hashed() *Heartbeat {
+	hash, err := hashstructure.Hash(h, hashstructure.FormatV2, nil)
+	if err != nil {
+		logbuch.Error("CRITICAL ERROR: failed to hash struct – %v", err)
+	}
+	h.Hash = fmt.Sprintf("%x", hash) // "uint64 values with high bit set are not supported"
+	return h
 }

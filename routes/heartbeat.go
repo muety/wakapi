@@ -62,6 +62,8 @@ func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("Invalid heartbeat object."))
 			return
 		}
+
+		hb.Hashed()
 	}
 
 	if err := h.heartbeatSrvc.InsertBatch(heartbeats); err != nil {
