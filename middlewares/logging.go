@@ -39,8 +39,19 @@ func (lg *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.URL.String(),
 		duration,
 		ww.BytesWritten(),
-		r.RemoteAddr,
+		readUserIP(r),
 	)
+}
+
+func readUserIP(r *http.Request) string {
+	ip := r.Header.Get("X-Real-Ip")
+	if ip == "" {
+		ip = r.Header.Get("X-Forwarded-For")
+	}
+	if ip == "" {
+		ip = r.RemoteAddr
+	}
+	return ip
 }
 
 // The below writer-wrapping code has been lifted from
