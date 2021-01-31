@@ -22,8 +22,6 @@ import (
 
 const (
 	defaultConfigPath          = "config.yml"
-	defaultConfigPathLegacy    = "config.ini"
-	defaultEnvConfigPathLegacy = ".env"
 
 	SQLDialectMysql    = "mysql"
 	SQLDialectPostgres = "postgres"
@@ -287,8 +285,6 @@ func Load() *Config {
 	config := &Config{}
 
 	flag.Parse()
-
-	maybeMigrateLegacyConfig()
 
 	if err := configor.New(&configor.Config{}).Load(config, mustReadConfigLocation()); err != nil {
 		logbuch.Fatal("failed to read config: %v", err)

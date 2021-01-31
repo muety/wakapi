@@ -1,6 +1,5 @@
 launch.json
 .vscode
-.env
 wakapi
 .idea
 build
@@ -8,5 +7,4 @@ build
 *.db
 config*.yml
 !config.default.yml
-config.ini
 pkged.go
