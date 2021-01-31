@@ -71,6 +71,10 @@ func (j *CustomTime) Scan(value interface{}) error {
 	return nil
 }
 
+func (j *CustomTime) Hash() (uint64, error) {
+	return uint64((j.T().UnixNano() / 1000) / 1000), nil
+}
+
 func (j CustomTime) Value() (driver.Value, error) {
 	t := time.Unix(0, j.T().UnixNano()/int64(time.Millisecond)*int64(time.Millisecond)) // round to millisecond precision
 	return t, nil

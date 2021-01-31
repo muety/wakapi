@@ -9,22 +9,22 @@ import (
 )
 
 type Heartbeat struct {
-	ID              uint       `gorm:"primary_key"`
-	User            *User      `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	UserID          string     `json:"-" gorm:"not null; index:idx_time_user"`
-	Entity          string     `json:"entity" gorm:"not null; index:idx_entity"`
-	Type            string     `json:"type"`
-	Category        string     `json:"category"`
-	Project         string     `json:"project"`
-	Branch          string     `json:"branch"`
-	Language        string     `json:"language" gorm:"index:idx_language"`
-	IsWrite         bool       `json:"is_write"`
-	Editor          string     `json:"editor"`
-	OperatingSystem string     `json:"operating_system"`
-	Machine         string     `json:"machine"`
-	Time            CustomTime `json:"time" gorm:"type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time,idx_time_user"`
-	Hash            string     `json:"-" gorm:"type:varchar(17); uniqueIndex"`
-	languageRegex   *regexp.Regexp
+	ID              uint           `gorm:"primary_key" hash:"ignore"`
+	User            *User          `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" hash:"ignore"`
+	UserID          string         `json:"-" gorm:"not null; index:idx_time_user"`
+	Entity          string         `json:"entity" gorm:"not null; index:idx_entity"`
+	Type            string         `json:"type"`
+	Category        string         `json:"category"`
+	Project         string         `json:"project"`
+	Branch          string         `json:"branch"`
+	Language        string         `json:"language" gorm:"index:idx_language"`
+	IsWrite         bool           `json:"is_write"`
+	Editor          string         `json:"editor"`
+	OperatingSystem string         `json:"operating_system"`
+	Machine         string         `json:"machine"`
+	Time            CustomTime     `json:"time" gorm:"type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time,idx_time_user"`
+	Hash            string         `json:"-" gorm:"type:varchar(17); uniqueIndex"`
+	languageRegex   *regexp.Regexp `hash:"ignore"`
 }
 
 func (h *Heartbeat) Valid() bool {
@@ -92,7 +92,7 @@ func (h *Heartbeat) String() string {
 // essentially double the space required for heartbeats, so we decided to go this way.
 
 func (h *Heartbeat) Hashed() *Heartbeat {
-	hash, err := hashstructure.Hash(h.String(), hashstructure.FormatV2, nil)
+	hash, err := hashstructure.Hash(h, hashstructure.FormatV2, nil)
 	if err != nil {
 		logbuch.Error("CRITICAL ERROR: failed to hash struct – %v", err)
 	}
