@@ -2,13 +2,12 @@ package routes
 
 import (
 	"encoding/json"
+	"github.com/emvi/logbuch"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
-	"net/http"
-	"os"
-
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
+	"net/http"
 
 	"github.com/muety/wakapi/models"
 )
@@ -68,7 +67,7 @@ func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.heartbeatSrvc.InsertBatch(heartbeats); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		os.Stderr.WriteString(err.Error())
+		logbuch.Error(err.Error())
 		return
 	}
 

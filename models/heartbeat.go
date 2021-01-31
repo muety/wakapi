@@ -67,6 +67,24 @@ func (h *Heartbeat) GetKey(t uint8) (key string) {
 	return key
 }
 
+func (h *Heartbeat) String() string {
+	return fmt.Sprintf(
+		"Heartbeat {user=%s, entity=%s, type=%s, category=%s, project=%s, branch=%s, language=%s, iswrite=%v, editor=%s, os=%s, machine=%s, time=%d}",
+		h.UserID,
+		h.Entity,
+		h.Type,
+		h.Category,
+		h.Project,
+		h.Branch,
+		h.Language,
+		h.IsWrite,
+		h.Editor,
+		h.OperatingSystem,
+		h.Machine,
+		(time.Time(h.Time)).UnixNano(),
+	)
+}
+
 // Hash is used to prevent duplicate heartbeats
 // Using a UNIQUE INDEX over all relevant columns would be more straightforward,
 // whereas manually computing this kind of hash is quite cumbersome. However,
@@ -74,7 +92,7 @@ func (h *Heartbeat) GetKey(t uint8) (key string) {
 // essentially double the space required for heartbeats, so we decided to go this way.
 
 func (h *Heartbeat) Hashed() *Heartbeat {
-	hash, err := hashstructure.Hash(h, hashstructure.FormatV2, nil)
+	hash, err := hashstructure.Hash(h.String(), hashstructure.FormatV2, nil)
 	if err != nil {
 		logbuch.Error("CRITICAL ERROR: failed to hash struct – %v", err)
 	}
