@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
 	"github.com/muety/wakapi/services"
+	"github.com/muety/wakapi/utils"
 	"net/http"
 	"time"
 )
@@ -76,14 +76,13 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: depending on middleware package here is a hack
-	if !middlewares.CheckAndMigratePassword(user, &login, h.config.Security.PasswordSalt, &h.userSrvc) {
+	if !utils.CompareBcrypt(user.Password, login.Password, h.config.Security.PasswordSalt) {
 		w.WriteHeader(http.StatusUnauthorized)
 		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r).WithError("invalid credentials"))
 		return
 	}
 
-	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, login)
+	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, login.Username)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))

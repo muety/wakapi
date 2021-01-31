@@ -113,7 +113,7 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 		Username: user.ID,
 		Password: user.Password,
 	}
-	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, login)
+	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, login.Username)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))

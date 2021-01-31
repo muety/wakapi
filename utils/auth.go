@@ -1,9 +1,7 @@
 package utils
 
 import (
-	"crypto/md5"
 	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -46,32 +44,23 @@ func ExtractBearerAuth(r *http.Request) (key string, err error) {
 	return string(keyBytes), err
 }
 
-func ExtractCookieAuth(r *http.Request, config *config.Config) (login *models.Login, err error) {
+func ExtractCookieAuth(r *http.Request, config *config.Config) (username *string, err error) {
 	cookie, err := r.Cookie(models.AuthCookieKey)
 	if err != nil {
 		return nil, errors.New("missing authentication")
 	}
 
-	if err := config.Security.SecureCookie.Decode(models.AuthCookieKey, cookie.Value, &login); err != nil {
-		return nil, errors.New("invalid parameters")
+	if err := config.Security.SecureCookie.Decode(models.AuthCookieKey, cookie.Value, &username); err != nil {
+		return nil, errors.New("cookie is invalid")
 	}
 
-	return login, nil
-}
-
-func IsMd5(hash string) bool {
-	return md5Regex.Match([]byte(hash))
+	return username, nil
 }
 
 func CompareBcrypt(wanted, actual, pepper string) bool {
 	plainPassword := []byte(strings.TrimSpace(actual) + pepper)
 	err := bcrypt.CompareHashAndPassword([]byte(wanted), plainPassword)
 	return err == nil
-}
-
-// deprecated, only here for backwards compatibility
-func CompareMd5(wanted, actual, pepper string) bool {
-	return HashMd5(actual, pepper) == wanted
 }
 
 func HashBcrypt(plain, pepper string) (string, error) {
@@ -81,11 +70,4 @@ func HashBcrypt(plain, pepper string) (string, error) {
 		return string(bytes), nil
 	}
 	return "", err
-}
-
-func HashMd5(plain, pepper string) string {
-	plainPepperedPassword := []byte(strings.TrimSpace(plain) + pepper)
-	hash := md5.Sum(plainPepperedPassword)
-	hashStr := hex.EncodeToString(hash[:])
-	return hashStr
 }
