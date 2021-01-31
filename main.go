@@ -9,7 +9,9 @@ import (
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/migrations/common"
 	"github.com/muety/wakapi/repositories"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -140,7 +142,10 @@ func main() {
 
 	// Middlewares
 	recoveryMiddleware := handlers.RecoveryHandler()
-	loggingMiddleware := middlewares.NewLoggingMiddleware().Handler
+	loggingMiddleware := middlewares.NewLoggingMiddleware(
+		// Use logbuch here once https://github.com/emvi/logbuch/issues/4 is realized
+		log.New(os.Stdout, "", 0),
+	)
 	corsMiddleware := handlers.CORS()
 	authenticateMiddleware := middlewares.NewAuthenticateMiddleware(
 		userService,
