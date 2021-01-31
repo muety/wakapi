@@ -130,7 +130,9 @@ Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime
 1. **Set up WakaTime** for your specific IDE or editor. Please refer to the respective [plugin guide](https://wakatime.com/plugins)
 2. **Editing your local `~/.wakatime.cfg`** file as follows
 
-```
+```ini
+[settings]
+
 # Your Wakapi server URL or 'https://wakapi.dev/api/heartbeat' when using the cloud server
 api_url = http://localhost:3000/api/heartbeat
 
