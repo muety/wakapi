@@ -24,6 +24,18 @@ const (
 	IntervalPast30Days   string = "30_days"
 	IntervalPast12Months string = "12_months"
 	IntervalAny          string = "any"
+
+	// https://wakatime.com/developers/#summaries
+	IntervalWakatimeToday              string = "Today"
+	IntervalWakatimeYesterday          string = "Yesterday"
+	IntervalWakatimeLast7Days          string = "Last 7 Days"
+	IntervalWakatimeLast7DaysYesterday string = "Last 7 Days from Yesterday"
+	IntervalWakatimeLast14Days         string = "Last 14 Days"
+	IntervalWakatimeLast30Days         string = "Last 30 Days"
+	IntervalWakatimeThisWeek           string = "This Week"
+	IntervalWakatimeLastWeek           string = "Last Week"
+	IntervalWakatimeThisMonth          string = "This Month"
+	IntervalWakatimeLastMonth          string = "Last Month"
 )
 
 func Intervals() []string {
@@ -188,11 +200,12 @@ func (s *Summary) TotalTimeByKey(entityType uint8, key string) (timeSum time.Dur
 	return timeSum
 }
 
-func (s *Summary) TotalTimeByFilters(filter *Filters) (timeSum time.Duration) {
-	for _, f := range filter.All() {
-		timeSum += s.TotalTimeByKey(f.Type, f.Key)
+func (s *Summary) TotalTimeByFilters(filters *Filters) (timeSum time.Duration) {
+	do, typeId, key := filters.One()
+	if do {
+		return s.TotalTimeByKey(typeId, key)
 	}
-	return timeSum
+	return s.TotalTime()
 }
 
 func (s *Summary) WithResolvedAliases(resolve AliasResolver) *Summary {

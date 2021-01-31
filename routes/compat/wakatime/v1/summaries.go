@@ -31,11 +31,10 @@ func (h *SummariesHandler) RegisterAPIRoutes(router *mux.Router) {
 	router.Path("/summaries").Methods(http.MethodGet).HandlerFunc(h.ApiGet)
 }
 
-/*
-TODO: support parameters: project, branches, timeout, writes_only, timezone
-https://wakatime.com/developers#summaries
-timezone can be specified via an offset suffix (e.g. +02:00) in date strings
-*/
+// TODO: Support parameters: project, branches, timeout, writes_only, timezone
+// See https://wakatime.com/developers#summaries.
+// Timezone can be specified via an offset suffix (e.g. +02:00) in date strings.
+// Requires https://github.com/muety/wakapi/issues/108.
 
 func (h *SummariesHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -54,28 +53,36 @@ func (h *SummariesHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vm := v1.NewSummariesFrom(summaries, &models.Filters{})
+	filters := &models.Filters{}
+	if projectQuery := r.URL.Query().Get("project"); projectQuery != "" {
+		filters.Project = projectQuery
+	}
+
+	vm := v1.NewSummariesFrom(summaries, filters)
 	utils.RespondJSON(w, http.StatusOK, vm)
 }
 
 func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary, error, int) {
 	user := r.Context().Value(models.UserKey).(*models.User)
 	params := r.URL.Query()
+	rangeParam, startParam, endParam := params.Get("range"), params.Get("start"), params.Get("end")
 
 	var start, end time.Time
-	// TODO: find out what other special dates are supported by wakatime (e.g. tomorrow, yesterday, ...?)
-	if startKey, endKey := params.Get("start"), params.Get("end"); startKey == "today" && startKey == endKey {
-		start = utils.StartOfToday()
-		end = time.Now()
+	if rangeParam != "" {
+		if err, parsedFrom, parsedTo := utils.ResolveInterval(rangeParam); err == nil {
+			start, end = parsedFrom, parsedTo
+		} else {
+			return nil, errors.New("invalid 'range' parameter"), http.StatusBadRequest
+		}
 	} else {
 		var err error
 
-		start, err = time.Parse(time.RFC3339, strings.Replace(startKey, " ", "+", 1))
+		start, err = time.Parse(time.RFC3339, strings.Replace(startParam, " ", "+", 1))
 		if err != nil {
 			return nil, errors.New("missing required 'start' parameter"), http.StatusBadRequest
 		}
 
-		end, err = time.Parse(time.RFC3339, strings.Replace(endKey, " ", "+", 1))
+		end, err = time.Parse(time.RFC3339, strings.Replace(endParam, " ", "+", 1))
 		if err != nil {
 			return nil, errors.New("missing required 'end' parameter"), http.StatusBadRequest
 		}

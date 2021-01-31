@@ -29,7 +29,7 @@ func NewFiltersWith(entity uint8, key string) *Filters {
 	return &Filters{}
 }
 
-func (f *Filters) First() (bool, uint8, string) {
+func (f *Filters) One() (bool, uint8, string) {
 	if f.Project != "" {
 		return true, SummaryProject, f.Project
 	} else if f.OS != "" {
@@ -42,26 +42,4 @@ func (f *Filters) First() (bool, uint8, string) {
 		return true, SummaryMachine, f.Machine
 	}
 	return false, 0, ""
-}
-
-func (f *Filters) All() []*FilterElement {
-	all := make([]*FilterElement, 0)
-
-	if f.Project != "" {
-		all = append(all, &FilterElement{Type: SummaryProject, Key: f.Project})
-	}
-	if f.Editor != "" {
-		all = append(all, &FilterElement{Type: SummaryEditor, Key: f.Editor})
-	}
-	if f.Language != "" {
-		all = append(all, &FilterElement{Type: SummaryLanguage, Key: f.Language})
-	}
-	if f.Machine != "" {
-		all = append(all, &FilterElement{Type: SummaryMachine, Key: f.Machine})
-	}
-	if f.OS != "" {
-		all = append(all, &FilterElement{Type: SummaryOS, Key: f.OS})
-	}
-
-	return all
 }

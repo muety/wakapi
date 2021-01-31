@@ -11,21 +11,33 @@ func ResolveInterval(interval string) (err error, from, to time.Time) {
 	to = time.Now()
 
 	switch interval {
-	case models.IntervalToday:
+	case models.IntervalToday, models.IntervalWakatimeToday:
 		from = StartOfToday()
-	case models.IntervalYesterday:
+	case models.IntervalYesterday, models.IntervalWakatimeYesterday:
 		from = StartOfToday().Add(-24 * time.Hour)
 		to = StartOfToday()
-	case models.IntervalThisWeek:
+	case models.IntervalThisWeek, models.IntervalWakatimeThisWeek:
 		from = StartOfWeek()
-	case models.IntervalThisMonth:
+	case models.IntervalWakatimeLastWeek:
+		from = StartOfWeek().AddDate(0, 0, -7)
+		to = StartOfWeek()
+	case models.IntervalThisMonth, models.IntervalWakatimeThisMonth:
 		from = StartOfMonth()
+	case models.IntervalWakatimeLastMonth:
+		from = StartOfMonth().AddDate(0, -1, 0)
+		to = StartOfMonth()
 	case models.IntervalThisYear:
 		from = StartOfYear()
-	case models.IntervalPast7Days:
+	case models.IntervalPast7Days, models.IntervalWakatimeLast7Days:
 		from = StartOfToday().AddDate(0, 0, -7)
-	case models.IntervalPast30Days:
+	case models.IntervalWakatimeLast7DaysYesterday:
+		from = StartOfToday().AddDate(0, 0, -1).AddDate(0, 0, -7)
+		to = StartOfToday().AddDate(0, 0, -1)
+	case models.IntervalWakatimeLast14Days:
+		from = StartOfToday().AddDate(0, 0, -14)
+	case models.IntervalPast30Days, models.IntervalWakatimeLast30Days:
 		from = StartOfToday().AddDate(0, 0, -30)
+		from = StartOfToday().AddDate(0, -6, 0)
 	case models.IntervalPast12Months:
 		from = StartOfToday().AddDate(0, -12, 0)
 	case models.IntervalAny:

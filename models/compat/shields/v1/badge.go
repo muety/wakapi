@@ -22,7 +22,7 @@ type BadgeData struct {
 
 func NewBadgeDataFrom(summary *models.Summary, filters *models.Filters) *BadgeData {
 	var total time.Duration
-	if hasFilter, _, _ := filters.First(); hasFilter {
+	if hasFilter, _, _ := filters.One(); hasFilter {
 		total = summary.TotalTimeByFilters(filters)
 	} else {
 		total = summary.TotalTime()
