@@ -200,12 +200,12 @@ func (s *Summary) TotalTimeByKey(entityType uint8, key string) (timeSum time.Dur
 	return timeSum
 }
 
-func (s *Summary) TotalTimeByFilters(filters *Filters) (timeSum time.Duration) {
+func (s *Summary) TotalTimeByFilters(filters *Filters) time.Duration {
 	do, typeId, key := filters.One()
 	if do {
 		return s.TotalTimeByKey(typeId, key)
 	}
-	return s.TotalTime()
+	return 0
 }
 
 func (s *Summary) WithResolvedAliases(resolve AliasResolver) *Summary {
