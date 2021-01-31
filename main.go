@@ -9,6 +9,7 @@ import (
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/migrations/common"
 	"github.com/muety/wakapi/repositories"
+	"gorm.io/gorm/logger"
 	"log"
 	"net/http"
 	"os"
@@ -65,9 +66,19 @@ func main() {
 		logbuch.SetLevel(logbuch.LevelInfo)
 	}
 
+	// Set up GORM
+	gormLogger := logger.New(
+		log.New(os.Stdout, "", log.LstdFlags),
+		logger.Config{
+			SlowThreshold: time.Minute,
+			Colorful:      false,
+			LogLevel:      logger.Silent,
+		},
+	)
+
 	// Connect to database
 	var err error
-	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{})
+	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{Logger: gormLogger})
 	if config.Db.Dialect == "sqlite3" {
 		db.Raw("PRAGMA foreign_keys = ON;")
 	}
@@ -144,7 +155,7 @@ func main() {
 	recoveryMiddleware := handlers.RecoveryHandler()
 	loggingMiddleware := middlewares.NewLoggingMiddleware(
 		// Use logbuch here once https://github.com/emvi/logbuch/issues/4 is realized
-		log.New(os.Stdout, "", 0),
+		log.New(os.Stdout, "", log.LstdFlags),
 	)
 	corsMiddleware := handlers.CORS()
 	authenticateMiddleware := middlewares.NewAuthenticateMiddleware(
