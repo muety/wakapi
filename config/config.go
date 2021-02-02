@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	defaultConfigPath          = "config.yml"
+	defaultConfigPath = "config.yml"
 
 	SQLDialectMysql    = "mysql"
 	SQLDialectPostgres = "postgres"
@@ -310,6 +310,10 @@ func Load() *Config {
 
 	if config.Server.ListenIpV4 == "" && config.Server.ListenIpV6 == "" {
 		logbuch.Fatal("either of listen_ipv4 or listen_ipv6 must be set")
+	}
+
+	if config.Db.MaxConn <= 0 {
+		logbuch.Fatal("you must allow at least one database connection")
 	}
 
 	Set(config)
