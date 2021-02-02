@@ -103,3 +103,8 @@ func (srv *UserService) MigrateMd5Password(user *models.User, login *models.Logi
 	}
 	return srv.repository.UpdateField(user, "password", user.Password)
 }
+
+func (srv *UserService) Delete(user *models.User) error {
+	srv.cache.Flush()
+	return srv.repository.Delete(user)
+}

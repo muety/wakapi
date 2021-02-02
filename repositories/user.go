@@ -33,7 +33,7 @@ func (r *UserRepository) GetByApiKey(key string) (*models.User, error) {
 func (r *UserRepository) GetAll() ([]*models.User, error) {
 	var users []*models.User
 	if err := r.db.
-		Table("users").
+		Where(&models.User{}).
 		Find(&users).Error; err != nil {
 		return nil, err
 	}
@@ -77,4 +77,8 @@ func (r *UserRepository) UpdateField(user *models.User, key string, value interf
 	}
 
 	return user, nil
+}
+
+func (r *UserRepository) Delete(user *models.User) error {
+	return r.db.Delete(user).Error
 }

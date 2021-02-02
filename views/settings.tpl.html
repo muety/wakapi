@@ -389,11 +389,29 @@
                     case heartbeats were deleted after the respective summaries had been generated.
                 </p>
             </div>
-            <div class="mt-10 flex justify-center">
+            <div class="mt-6 flex justify-center">
                 <form action="settings/regenerate" method="post" id="form-regenerate-summaries">
                     <button type="button" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm"
                             id="btn-regenerate-summaries">
                         Clear & Regenerate
+                    </button>
+                </form>
+            </div>
+
+            <div class="mt-10 text-gray-300 text-sm">
+                <h3 class="font-semibold text-md mb-4 border-b border-green-700 inline-block">
+                    Delete Account
+                </h3>
+                <p>
+                    Deleting your account will cause all data, including all your heartbeats, to be erased from the
+                    server immediately. This action is irreversible. <strong>Be careful!</strong>
+                </p>
+            </div>
+            <div class="mt-6 flex justify-center">
+                <form action="settings/user/delete" method="post" id="form-delete-user">
+                    <button type="button" onclick="console.log('boom')" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm"
+                            id="btn-confirm-delete-user">
+                        Delete my Account
                     </button>
                 </form>
             </div>
@@ -417,6 +435,14 @@
     btnRegenerate.addEventListener('click', () => {
         if (confirm('Are you sure?')) {
             formRegenerate.submit()
+        }
+    })
+
+    const btnDelete = document.querySelector('#btn-confirm-delete-user')
+    const formDelete = document.querySelector('#form-delete-user')
+    btnDelete.addEventListener('click', () => {
+        if (confirm('Are you sure? This can not be undone!')) {
+            formDelete.submit()
         }
     })
 </script>

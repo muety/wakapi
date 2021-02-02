@@ -61,6 +61,7 @@ type IUserService interface {
 	GetAll() ([]*models.User, error)
 	CreateOrGet(*models.Signup) (*models.User, bool, error)
 	Update(*models.User) (*models.User, error)
+	Delete(*models.User) error
 	ResetApiKey(*models.User) (*models.User, error)
 	ToggleBadges(*models.User) (*models.User, error)
 	SetWakatimeApiKey(*models.User, string) (*models.User, error)

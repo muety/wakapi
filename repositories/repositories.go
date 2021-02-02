@@ -49,4 +49,5 @@ type IUserRepository interface {
 	InsertOrGet(*models.User) (*models.User, bool, error)
 	Update(*models.User) (*models.User, error)
 	UpdateField(*models.User, string, interface{}) (*models.User, error)
+	Delete(*models.User) error
 }

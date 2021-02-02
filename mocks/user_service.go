@@ -34,6 +34,11 @@ func (m *UserServiceMock) Update(user *models.User) (*models.User, error) {
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
+func (m *UserServiceMock) Delete(user *models.User) error {
+	args := m.Called(user)
+	return args.Error(0)
+}
+
 func (m *UserServiceMock) ResetApiKey(user *models.User) (*models.User, error) {
 	args := m.Called(user)
 	return args.Get(0).(*models.User), args.Error(1)

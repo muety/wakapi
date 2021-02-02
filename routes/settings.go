@@ -49,6 +49,7 @@ func (h *SettingsHandler) RegisterRoutes(router *mux.Router) {
 	router.Path("/language_mappings/delete").Methods(http.MethodPost).HandlerFunc(h.DeleteLanguageMapping)
 	router.Path("/reset").Methods(http.MethodPost).HandlerFunc(h.PostResetApiKey)
 	router.Path("/badges").Methods(http.MethodPost).HandlerFunc(h.PostToggleBadges)
+	router.Path("/user/delete").Methods(http.MethodPost).HandlerFunc(h.DeleteUser)
 	router.Path("/wakatime_integration").Methods(http.MethodPost).HandlerFunc(h.PostSetWakatimeApiKey)
 	router.Path("/regenerate").Methods(http.MethodPost).HandlerFunc(h.PostRegenerateSummaries)
 }
@@ -289,6 +290,26 @@ func (h *SettingsHandler) PostToggleBadges(w http.ResponseWriter, r *http.Reques
 	}
 
 	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r))
+}
+
+func (h *SettingsHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	user := r.Context().Value(models.UserKey).(*models.User)
+	go func(user *models.User) {
+		logbuch.Info("deleting user '%s' shortly", user.ID)
+		time.Sleep(5 * time.Minute)
+		if err := h.userSrvc.Delete(user); err != nil {
+			logbuch.Error("failed to delete user '%s' – %v", user.ID, err)
+		} else {
+			logbuch.Info("successfully deleted user '%s'", user.ID)
+		}
+	}(user)
+
+	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey, "/"))
+	http.Redirect(w, r, fmt.Sprintf("%s/?success=%s", h.config.Server.BasePath, "Your account will be deleted in a few minutes. Sorry to you go."), http.StatusFound)
 }
 
 func (h *SettingsHandler) PostRegenerateSummaries(w http.ResponseWriter, r *http.Request) {
