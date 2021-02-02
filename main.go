@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/markbates/pkger"
 	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/migrations/common"
+	"github.com/muety/wakapi/migrations"
 	"github.com/muety/wakapi/repositories"
 	"gorm.io/gorm/logger"
 	"log"
@@ -96,9 +96,9 @@ func main() {
 	defer sqlDb.Close()
 
 	// Migrate database schema
-	common.RunCustomPreMigrations(db, config)
+	migrations.RunPreMigrations(db, config)
 	runDatabaseMigrations()
-	common.RunCustomPostMigrations(db, config)
+	migrations.RunCustomPostMigrations(db, config)
 
 	// Repositories
 	aliasRepository = repositories.NewAliasRepository(db)
