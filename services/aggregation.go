@@ -97,10 +97,10 @@ func (srv *AggregationService) trigger(jobs chan<- *AggregationJob, userIds map[
 		logbuch.Error(err.Error())
 		return err
 	} else if userIds != nil && len(userIds) > 0 {
-		users = make([]*models.User, len(userIds))
-		for i, u := range allUsers {
+		users = make([]*models.User, 0)
+		for _, u := range allUsers {
 			if yes, ok := userIds[u.ID]; yes && ok {
-				users[i] = u
+				users = append(users, u)
 			}
 		}
 	} else {
