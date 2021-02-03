@@ -42,16 +42,7 @@ func NewSettingsHandler(userService services.IUserService, summaryService servic
 
 func (h *SettingsHandler) RegisterRoutes(router *mux.Router) {
 	router.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
-	router.Path("/credentials").Methods(http.MethodPost).HandlerFunc(h.PostCredentials)
-	router.Path("/aliases").Methods(http.MethodPost).HandlerFunc(h.PostAlias)
-	router.Path("/aliases/delete").Methods(http.MethodPost).HandlerFunc(h.DeleteAlias)
-	router.Path("/language_mappings").Methods(http.MethodPost).HandlerFunc(h.PostLanguageMapping)
-	router.Path("/language_mappings/delete").Methods(http.MethodPost).HandlerFunc(h.DeleteLanguageMapping)
-	router.Path("/reset").Methods(http.MethodPost).HandlerFunc(h.PostResetApiKey)
-	router.Path("/badges").Methods(http.MethodPost).HandlerFunc(h.PostToggleBadges)
-	router.Path("/user/delete").Methods(http.MethodPost).HandlerFunc(h.DeleteUser)
-	router.Path("/wakatime_integration").Methods(http.MethodPost).HandlerFunc(h.PostSetWakatimeApiKey)
-	router.Path("/regenerate").Methods(http.MethodPost).HandlerFunc(h.PostRegenerateSummaries)
+	router.Methods(http.MethodPost).HandlerFunc(h.PostIndex)
 }
 
 func (h *SettingsHandler) RegisterAPIRoutes(router *mux.Router) {}
@@ -64,7 +55,73 @@ func (h *SettingsHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r))
 }
 
-func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request) {
+func (h *SettingsHandler) PostIndex(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	if err := r.ParseForm(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("missing form values"))
+		return
+	}
+
+	action := r.PostForm.Get("action")
+	r.PostForm.Del("action")
+
+	actionFunc := h.dispatchAction(action)
+	if actionFunc == nil {
+		logbuch.Warn("failed to dispatch action '%s'", action)
+		w.WriteHeader(http.StatusBadRequest)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("unknown action requests"))
+		return
+	}
+
+	status, successMsg, errorMsg := actionFunc(w, r)
+
+	// action responded itself
+	if status == -1 {
+		return
+	}
+
+	if errorMsg != "" {
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError(errorMsg))
+		return
+	}
+	if successMsg != "" {
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess(successMsg))
+		return
+	}
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r))
+}
+
+func (h *SettingsHandler) dispatchAction(action string) action {
+	switch action {
+	case "change_password":
+		return h.actionChangePassword
+	case "reset_apikey":
+		return h.actionResetApiKey
+	case "delete_alias":
+		return h.actionDeleteAlias
+	case "add_alias":
+		return h.actionAddAlias
+	case "delete_mapping":
+		return h.actionDeleteLanguageMapping
+	case "add_mapping":
+		return h.actionAddLanguageMapping
+	case "toggle_badges":
+		return h.actionToggleBadges
+	case "toggle_wakatime":
+		return h.actionSetWakatimeApiKey
+	case "regenerate_summaries":
+		return h.actionRegenerateSummaries
+	case "delete_account":
+		return h.actionDeleteUser
+	}
+	return nil
+}
+
+func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Request) (int, string, string) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -73,41 +130,29 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 
 	var credentials models.CredentialsReset
 	if err := r.ParseForm(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("missing parameters"))
-		return
+		return http.StatusBadRequest, "", "missing parameters"
 	}
 	if err := credentialsDecoder.Decode(&credentials, r.PostForm); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("missing parameters"))
-		return
+		return http.StatusBadRequest, "", "missing parameters"
 	}
 
 	if !utils.CompareBcrypt(user.Password, credentials.PasswordOld, h.config.Security.PasswordSalt) {
-		w.WriteHeader(http.StatusUnauthorized)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("invalid credentials"))
-		return
+		return http.StatusUnauthorized, "", "invalid credentials"
 	}
 
 	if !credentials.IsValid() {
-		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("invalid parameters"))
-		return
+		return http.StatusBadRequest, "", "invalid parameters"
 	}
 
 	user.Password = credentials.PasswordNew
 	if hash, err := utils.HashBcrypt(user.Password, h.config.Security.PasswordSalt); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))
-		return
+		return http.StatusInternalServerError, "", "internal server error"
 	} else {
 		user.Password = hash
 	}
 
 	if _, err := h.userSrvc.Update(user); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))
-		return
+		return http.StatusInternalServerError, "", "internal server error"
 	}
 
 	login := &models.Login{
@@ -116,75 +161,28 @@ func (h *SettingsHandler) PostCredentials(w http.ResponseWriter, r *http.Request
 	}
 	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, login.Username)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))
-		return
+		return http.StatusInternalServerError, "", "internal server error"
 	}
 
 	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded, "/"))
-	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("password was updated successfully"))
+	return http.StatusOK, "password was updated successfully", ""
 }
 
-func (h *SettingsHandler) DeleteLanguageMapping(w http.ResponseWriter, r *http.Request) {
+func (h *SettingsHandler) actionResetApiKey(w http.ResponseWriter, r *http.Request) (int, string, string) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
 
 	user := r.Context().Value(models.UserKey).(*models.User)
-	id, err := strconv.Atoi(r.PostFormValue("mapping_id"))
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("could not delete mapping"))
-		return
+	if _, err := h.userSrvc.ResetApiKey(user); err != nil {
+		return http.StatusInternalServerError, "", "internal server error"
 	}
 
-	if mapping, err := h.languageMappingSrvc.GetById(uint(id)); err != nil || mapping == nil {
-		w.WriteHeader(http.StatusNotFound)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("mapping not found"))
-		return
-	} else if mapping.UserID != user.ID {
-		w.WriteHeader(http.StatusForbidden)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("not allowed to delete mapping"))
-		return
-	}
-
-	if err := h.languageMappingSrvc.Delete(&models.LanguageMapping{ID: uint(id)}); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("could not delete mapping"))
-		return
-	}
-
-	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("mapping deleted successfully"))
+	msg := fmt.Sprintf("your new api key is: %s", user.ApiKey)
+	return http.StatusOK, msg, ""
 }
 
-func (h *SettingsHandler) PostLanguageMapping(w http.ResponseWriter, r *http.Request) {
-	if h.config.IsDev() {
-		loadTemplates()
-	}
-	user := r.Context().Value(models.UserKey).(*models.User)
-	extension := r.PostFormValue("extension")
-	language := r.PostFormValue("language")
-
-	if extension[0] == '.' {
-		extension = extension[1:]
-	}
-
-	mapping := &models.LanguageMapping{
-		UserID:    user.ID,
-		Extension: extension,
-		Language:  language,
-	}
-
-	if _, err := h.languageMappingSrvc.Create(mapping); err != nil {
-		w.WriteHeader(http.StatusConflict)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("mapping already exists"))
-		return
-	}
-
-	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("mapping added successfully"))
-}
-
-func (h *SettingsHandler) DeleteAlias(w http.ResponseWriter, r *http.Request) {
+func (h *SettingsHandler) actionDeleteAlias(w http.ResponseWriter, r *http.Request) (int, string, string) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -197,19 +195,15 @@ func (h *SettingsHandler) DeleteAlias(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if aliases, err := h.aliasSrvc.GetByUserAndKeyAndType(user.ID, aliasKey, uint8(aliasType)); err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("aliases not found"))
-		return
+		return http.StatusNotFound, "", "aliases not found"
 	} else if err := h.aliasSrvc.DeleteMulti(aliases); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("could not delete aliases"))
-		return
+		return http.StatusInternalServerError, "", "could not delete aliases"
 	}
 
-	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("aliases deleted successfully"))
+	return http.StatusOK, "aliases deleted successfully", ""
 }
 
-func (h *SettingsHandler) PostAlias(w http.ResponseWriter, r *http.Request) {
+func (h *SettingsHandler) actionAddAlias(w http.ResponseWriter, r *http.Request) (int, string, string) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -229,32 +223,76 @@ func (h *SettingsHandler) PostAlias(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := h.aliasSrvc.Create(alias); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
 		// TODO: distinguish between bad request, conflict and server error
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("invalid input"))
-		return
+		return http.StatusBadRequest, "", "invalid input"
 	}
 
-	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("alias added successfully"))
+	return http.StatusOK, "alias added successfully", ""
 }
 
-func (h *SettingsHandler) PostResetApiKey(w http.ResponseWriter, r *http.Request) {
+func (h *SettingsHandler) actionDeleteLanguageMapping(w http.ResponseWriter, r *http.Request) (int, string, string) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
 
 	user := r.Context().Value(models.UserKey).(*models.User)
-	if _, err := h.userSrvc.ResetApiKey(user); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))
-		return
+	id, err := strconv.Atoi(r.PostFormValue("mapping_id"))
+	if err != nil {
+		return http.StatusInternalServerError, "", "could not delete mapping"
 	}
 
-	msg := fmt.Sprintf("your new api key is: %s", user.ApiKey)
-	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess(msg))
+	if mapping, err := h.languageMappingSrvc.GetById(uint(id)); err != nil || mapping == nil {
+		return http.StatusNotFound, "", "mapping not found"
+	} else if mapping.UserID != user.ID {
+		return http.StatusForbidden, "", "not allowed to delete mapping"
+	}
+
+	if err := h.languageMappingSrvc.Delete(&models.LanguageMapping{ID: uint(id)}); err != nil {
+		return http.StatusInternalServerError, "", "could not delete mapping"
+	}
+
+	return http.StatusOK, "mapping deleted successfully", ""
 }
 
-func (h *SettingsHandler) PostSetWakatimeApiKey(w http.ResponseWriter, r *http.Request) {
+func (h *SettingsHandler) actionAddLanguageMapping(w http.ResponseWriter, r *http.Request) (int, string, string) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+	user := r.Context().Value(models.UserKey).(*models.User)
+	extension := r.PostFormValue("extension")
+	language := r.PostFormValue("language")
+
+	if extension[0] == '.' {
+		extension = extension[1:]
+	}
+
+	mapping := &models.LanguageMapping{
+		UserID:    user.ID,
+		Extension: extension,
+		Language:  language,
+	}
+
+	if _, err := h.languageMappingSrvc.Create(mapping); err != nil {
+		return http.StatusConflict, "", "mapping already exists"
+	}
+
+	return http.StatusOK, "mapping added successfully", ""
+}
+
+func (h *SettingsHandler) actionToggleBadges(w http.ResponseWriter, r *http.Request) (int, string, string) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	user := r.Context().Value(models.UserKey).(*models.User)
+	if _, err := h.userSrvc.ToggleBadges(user); err != nil {
+		return http.StatusInternalServerError, "", "internal server error"
+	}
+
+	return http.StatusOK, "", ""
+}
+
+func (h *SettingsHandler) actionSetWakatimeApiKey(w http.ResponseWriter, r *http.Request) (int, string, string) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -264,35 +302,39 @@ func (h *SettingsHandler) PostSetWakatimeApiKey(w http.ResponseWriter, r *http.R
 
 	// Healthcheck, if a new API key is set, i.e. the feature is activated
 	if (user.WakatimeApiKey == "" && apiKey != "") && !h.validateWakatimeKey(apiKey) {
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("failed to connect to WakaTime, API key invalid?"))
-		return
+		return http.StatusBadRequest, "", "failed to connect to WakaTime, API key invalid?"
 	}
 
 	if _, err := h.userSrvc.SetWakatimeApiKey(user, apiKey); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))
-		return
+		return http.StatusInternalServerError, "", "internal server error"
 	}
 
-	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("Wakatime API Key updated successfully"))
+	return http.StatusOK, "Wakatime API Key updated successfully", ""
 }
 
-func (h *SettingsHandler) PostToggleBadges(w http.ResponseWriter, r *http.Request) {
+func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *http.Request) (int, string, string) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
 
 	user := r.Context().Value(models.UserKey).(*models.User)
-	if _, err := h.userSrvc.ToggleBadges(user); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))
-		return
+
+	logbuch.Info("clearing summaries for user '%s'", user.ID)
+	if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
+		logbuch.Error("failed to clear summaries: %v", err)
+		return http.StatusInternalServerError, "", "failed to delete old summaries"
 	}
 
-	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r))
+	if err := h.aggregationSrvc.Run(map[string]bool{user.ID: true}); err != nil {
+		logbuch.Error("failed to regenerate summaries: %v", err)
+		return http.StatusInternalServerError, "", "failed to generate aggregations"
+
+	}
+
+	return http.StatusOK, "summaries are being regenerated – this may take a few seconds", ""
 }
 
-func (h *SettingsHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Request) (int, string, string) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -310,31 +352,7 @@ func (h *SettingsHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey, "/"))
 	http.Redirect(w, r, fmt.Sprintf("%s/?success=%s", h.config.Server.BasePath, "Your account will be deleted in a few minutes. Sorry to you go."), http.StatusFound)
-}
-
-func (h *SettingsHandler) PostRegenerateSummaries(w http.ResponseWriter, r *http.Request) {
-	if h.config.IsDev() {
-		loadTemplates()
-	}
-
-	user := r.Context().Value(models.UserKey).(*models.User)
-
-	logbuch.Info("clearing summaries for user '%s'", user.ID)
-	if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
-		logbuch.Error("failed to clear summaries: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("failed to delete old summaries"))
-		return
-	}
-
-	if err := h.aggregationSrvc.Run(map[string]bool{user.ID: true}); err != nil {
-		logbuch.Error("failed to regenerate summaries: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("failed to generate aggregations"))
-		return
-	}
-
-	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess("summaries are being regenerated – this may take a few seconds"))
+	return -1, "", ""
 }
 
 func (h *SettingsHandler) validateWakatimeKey(apiKey string) bool {

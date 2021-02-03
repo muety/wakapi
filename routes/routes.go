@@ -8,6 +8,7 @@ import (
 	"github.com/muety/wakapi/utils"
 	"html/template"
 	"io/ioutil"
+	"net/http"
 	"path"
 	"strings"
 )
@@ -15,6 +16,8 @@ import (
 func Init() {
 	loadTemplates()
 }
+
+type action func(w http.ResponseWriter, r *http.Request) (int, string, string)
 
 var templates map[string]*template.Template
 

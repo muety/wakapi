@@ -64,7 +64,8 @@
                 Change Password
             </h2>
 
-            <form class="mt-10" action="settings/credentials" method="post">
+            <form class="mt-10" action="" method="post">
+                <input type="hidden" name="action" value="change_password">
                 <div class="mb-8">
                     <label class="inline-block text-sm mb-1 text-gray-500" for="password_old">Current Password</label>
                     <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
@@ -96,7 +97,8 @@
                 Reset API Key
             </h2>
 
-            <form class="mt-6" action="settings/reset" method="post">
+            <form class="mt-6" action="" method="post">
+                <input type="hidden" name="action" value="reset_apikey">
                 <div class="text-gray-300 text-sm mb-4">
                     <strong>⚠️ Caution:</strong> Resetting your API key requires you to update your <span
                         class="font-mono">.wakatime.cfg</span> files on all of your computers to make the WakaTime
@@ -141,7 +143,8 @@
                     are mapped to <span class="underline">{{ $alias.Type | typeName }}</span> <span
                         class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono">{{ $alias.Key }}</span>.
                 </div>
-                <form class="float-right" action="settings/aliases/delete" method="post">
+                <form class="float-right" action="" method="post">
+                    <input type="hidden" name="action" value="delete_alias">
                     <input type="hidden" id="delete_alias_key" name="key" required value="{{ $alias.Key }}">
                     <input type="hidden" id="delete_alias_type" name="type" required value="{{ $alias.Type }}">
                     <button type="submit"
@@ -155,7 +158,8 @@
             {{end}}
 
             <h3 class="inline-block font-semibold text-md border-b border-green-700 text-white mb-2">Add Rule</h3>
-            <form action="settings/aliases" method="post">
+            <form action="" method="post">
+                <input type="hidden" name="action" value="add_alias">
                 <div class="flex items-center mt-2 w-full text-gray-500 text-sm">
                     <span class="mr-2">Map</span>
                     <select name="type" id="select-type"
@@ -203,7 +207,8 @@
                     then change the <span class="underline">language</span> to <span
                         class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono mr-1">{{ $mapping.Language }}</span>
                 </div>
-                <form class="float-right" action="settings/language_mappings/delete" method="post">
+                <form class="float-right" action="" method="post">
+                    <input type="hidden" name="action" value="delete_mapping">
                     <input type="hidden" id="mapping_id" name="mapping_id" required value="{{ $mapping.ID }}">
                     <button type="submit"
                             class="py-1 px-3 rounded border border-red-500 hover:border-red-600 text-gray-400 text-sm">
@@ -216,7 +221,8 @@
             {{end}}
 
             <h3 class="inline-block font-semibold text-md border-b border-green-700 text-white">Add Rule</h3>
-            <form action="settings/language_mappings" method="post">
+            <form action="" method="post">
+                <input type="hidden" name="action" value="add_mapping">
                 <div class="flex items-center w-full text-gray-500 text-sm">
                     <span class="mr-2">When filename ends in</span>
                     <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
@@ -241,7 +247,8 @@
                 Badges
             </div>
 
-            <form class="mt-6" action="settings/badges" method="post">
+            <form class="mt-6" action="" method="post">
+                <input type="hidden" name="action" value="toggle_badges">
                 <div class="text-gray-300 text-sm mb-4">
                     {{ if .User.BadgesEnabled }}
                     <p>Badges are currently enabled. You can disable the feature by deactivating the respective API
@@ -328,7 +335,8 @@
                                                           target="_blank">get your API key</a> and paste it here.</p>
                 </div>
 
-                <form action="settings/wakatime_integration" method="post">
+                <form action="" method="post">
+                    <input type="hidden" name="action" value="toggle_wakatime">
 
                     {{ $placeholderText := "Paste your WakaTime API key here ..." }}
                     {{ if .User.WakatimeApiKey }}
@@ -390,7 +398,8 @@
                 </p>
             </div>
             <div class="mt-6 flex justify-center">
-                <form action="settings/regenerate" method="post" id="form-regenerate-summaries">
+                <form action="" method="post" id="form-regenerate-summaries">
+                    <input type="hidden" name="action" value="regenerate_summaries">
                     <button type="button" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm"
                             id="btn-regenerate-summaries">
                         Clear & Regenerate
@@ -408,8 +417,9 @@
                 </p>
             </div>
             <div class="mt-6 flex justify-center">
-                <form action="settings/user/delete" method="post" id="form-delete-user">
-                    <button type="button" onclick="console.log('boom')" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm"
+                <form action="" method="post" id="form-delete-user">
+                    <input type="hidden" name="action" value="delete_account">
+                    <button type="button" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm"
                             id="btn-confirm-delete-user">
                         Delete my Account
                     </button>
