@@ -22,7 +22,8 @@ func NewSummaryApiHandler(summaryService services.ISummaryService) *SummaryApiHa
 }
 
 func (h *SummaryApiHandler) RegisterRoutes(router *mux.Router) {
-	router.Methods(http.MethodGet).HandlerFunc(h.Get)
+	r := router.PathPrefix("/summary").Subrouter()
+	r.Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
 func (h *SummaryApiHandler) Get(w http.ResponseWriter, r *http.Request) {
