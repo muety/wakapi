@@ -1,10 +1,11 @@
-package routes
+package api
 
 import (
 	"encoding/json"
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
+	customMiddleware "github.com/muety/wakapi/middlewares/custom"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
@@ -12,14 +13,14 @@ import (
 	"github.com/muety/wakapi/models"
 )
 
-type HeartbeatHandler struct {
+type HeartbeatApiHandler struct {
 	config              *conf.Config
 	heartbeatSrvc       services.IHeartbeatService
 	languageMappingSrvc services.ILanguageMappingService
 }
 
-func NewHeartbeatHandler(heartbeatService services.IHeartbeatService, languageMappingService services.ILanguageMappingService) *HeartbeatHandler {
-	return &HeartbeatHandler{
+func NewHeartbeatApiHandler(heartbeatService services.IHeartbeatService, languageMappingService services.ILanguageMappingService) *HeartbeatApiHandler {
+	return &HeartbeatApiHandler{
 		config:              conf.Get(),
 		heartbeatSrvc:       heartbeatService,
 		languageMappingSrvc: languageMappingService,
@@ -30,13 +31,15 @@ type heartbeatResponseVm struct {
 	Responses [][]interface{} `json:"responses"`
 }
 
-func (h *HeartbeatHandler) RegisterRoutes(router *mux.Router) {}
-
-func (h *HeartbeatHandler) RegisterAPIRoutes(router *mux.Router) {
-	router.Methods(http.MethodPost).HandlerFunc(h.ApiPost)
+func (h *HeartbeatApiHandler) RegisterRoutes(router *mux.Router) {
+	r := router.PathPrefix("/heartbeat").Subrouter()
+	r.Use(
+		customMiddleware.NewWakatimeRelayMiddleware().Handler,
+	)
+	router.Methods(http.MethodPost).HandlerFunc(h.Post)
 }
 
-func (h *HeartbeatHandler) ApiPost(w http.ResponseWriter, r *http.Request) {
+func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	var heartbeats []*models.Heartbeat
 	user := r.Context().Value(models.UserKey).(*models.User)
 	opSys, editor, _ := utils.ParseUserAgent(r.Header.Get("User-Agent"))

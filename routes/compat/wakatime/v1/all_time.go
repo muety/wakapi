@@ -24,13 +24,11 @@ func NewAllTimeHandler(summaryService services.ISummaryService) *AllTimeHandler 
 	}
 }
 
-func (h *AllTimeHandler) RegisterRoutes(router *mux.Router) {}
-
-func (h *AllTimeHandler) RegisterAPIRoutes(router *mux.Router) {
-	router.Path("/all_time_since_today").Methods(http.MethodGet).HandlerFunc(h.ApiGet)
+func (h *AllTimeHandler) RegisterRoutes(router *mux.Router) {
+	router.Path("/wakatime/v1/users/{user}/all_time_since_today").Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
-func (h *AllTimeHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
+func (h *AllTimeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	values, _ := url.ParseQuery(r.URL.RawQuery)
 

@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
 	"github.com/muety/wakapi/services"
@@ -41,11 +42,13 @@ func NewSettingsHandler(userService services.IUserService, summaryService servic
 }
 
 func (h *SettingsHandler) RegisterRoutes(router *mux.Router) {
-	router.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
-	router.Methods(http.MethodPost).HandlerFunc(h.PostIndex)
+	r := router.PathPrefix("/settings").Subrouter()
+	r.Use(
+		middlewares.NewAuthenticateMiddleware(h.userSrvc, []string{}).Handler,
+	)
+	r.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
+	r.Methods(http.MethodPost).HandlerFunc(h.PostIndex)
 }
-
-func (h *SettingsHandler) RegisterAPIRoutes(router *mux.Router) {}
 
 func (h *SettingsHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {

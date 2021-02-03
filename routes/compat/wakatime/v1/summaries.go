@@ -25,10 +25,8 @@ func NewSummariesHandler(summaryService services.ISummaryService) *SummariesHand
 	}
 }
 
-func (h *SummariesHandler) RegisterRoutes(router *mux.Router) {}
-
-func (h *SummariesHandler) RegisterAPIRoutes(router *mux.Router) {
-	router.Path("/summaries").Methods(http.MethodGet).HandlerFunc(h.ApiGet)
+func (h *SummariesHandler) RegisterRoutes(router *mux.Router) {
+	router.Path("/wakatime/v1/users/{user}/summaries").Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
 // TODO: Support parameters: project, branches, timeout, writes_only, timezone
@@ -36,7 +34,7 @@ func (h *SummariesHandler) RegisterAPIRoutes(router *mux.Router) {
 // Timezone can be specified via an offset suffix (e.g. +02:00) in date strings.
 // Requires https://github.com/muety/wakapi/issues/108.
 
-func (h *SummariesHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
+func (h *SummariesHandler) Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	requestedUser := vars["user"]
 	authorizedUser := r.Context().Value(models.UserKey).(*models.User)

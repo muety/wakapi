@@ -3,8 +3,10 @@ package routes
 import (
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
+	su "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
@@ -12,33 +14,24 @@ import (
 
 type SummaryHandler struct {
 	config      *conf.Config
+	userSrvc    services.IUserService
 	summarySrvc services.ISummaryService
 }
 
-func NewSummaryHandler(summaryService services.ISummaryService) *SummaryHandler {
+func NewSummaryHandler(summaryService services.ISummaryService, userService services.IUserService) *SummaryHandler {
 	return &SummaryHandler{
 		summarySrvc: summaryService,
+		userSrvc:    userService,
 		config:      conf.Get(),
 	}
 }
 
 func (h *SummaryHandler) RegisterRoutes(router *mux.Router) {
-	router.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
-}
-
-func (h *SummaryHandler) RegisterAPIRoutes(router *mux.Router) {
-	router.Methods(http.MethodGet).HandlerFunc(h.ApiGet)
-}
-
-func (h *SummaryHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
-	summary, err, status := h.loadUserSummary(r)
-	if err != nil {
-		w.WriteHeader(status)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	utils.RespondJSON(w, http.StatusOK, summary)
+	r := router.PathPrefix("/summary").Subrouter()
+	r.Use(
+		middlewares.NewAuthenticateMiddleware(h.userSrvc, []string{}).Handler,
+	)
+	r.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
 }
 
 func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +45,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		r.URL.RawQuery = q.Encode()
 	}
 
-	summary, err, status := h.loadUserSummary(r)
+	summary, err, status := su.LoadUserSummary(h.summarySrvc, r)
 	if err != nil {
 		w.WriteHeader(status)
 		templates[conf.SummaryTemplate].Execute(w, h.buildViewModel(r).WithError(err.Error()))
@@ -75,25 +68,6 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	templates[conf.SummaryTemplate].Execute(w, vm)
-}
-
-func (h *SummaryHandler) loadUserSummary(r *http.Request) (*models.Summary, error, int) {
-	summaryParams, err := utils.ParseSummaryParams(r)
-	if err != nil {
-		return nil, err, http.StatusBadRequest
-	}
-
-	var retrieveSummary services.SummaryRetriever = h.summarySrvc.Retrieve
-	if summaryParams.Recompute {
-		retrieveSummary = h.summarySrvc.Summarize
-	}
-
-	summary, err := h.summarySrvc.Aliased(summaryParams.From, summaryParams.To, summaryParams.User, retrieveSummary)
-	if err != nil {
-		return nil, err, http.StatusInternalServerError
-	}
-
-	return summary, nil, http.StatusOK
 }
 
 func (h *SummaryHandler) buildViewModel(r *http.Request) *view.SummaryViewModel {

@@ -9,6 +9,7 @@ import (
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/migrations"
 	"github.com/muety/wakapi/repositories"
+	"github.com/muety/wakapi/routes/api"
 	"gorm.io/gorm/logger"
 	"log"
 	"net/http"
@@ -18,7 +19,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/muety/wakapi/middlewares"
-	customMiddleware "github.com/muety/wakapi/middlewares/custom"
 	"github.com/muety/wakapi/routes"
 	shieldsV1Routes "github.com/muety/wakapi/routes/compat/shields/v1"
 	wtV1Routes "github.com/muety/wakapi/routes/compat/wakatime/v1"
@@ -122,69 +122,57 @@ func main() {
 	go aggregationService.Schedule()
 	go miscService.ScheduleCountTotalTime()
 
-	// TODO: move endpoint registration to the respective routes files
-
 	routes.Init()
 
-	// Handlers
-	summaryHandler := routes.NewSummaryHandler(summaryService)
-	healthHandler := routes.NewHealthHandler(db)
-	heartbeatHandler := routes.NewHeartbeatHandler(heartbeatService, languageMappingService)
-	settingsHandler := routes.NewSettingsHandler(userService, summaryService, aliasService, aggregationService, languageMappingService)
-	homeHandler := routes.NewHomeHandler(keyValueService)
-	loginHandler := routes.NewLoginHandler(userService)
-	imprintHandler := routes.NewImprintHandler(keyValueService)
+	// API Handlers
+	healthApiHandler := api.NewHealthApiHandler(db)
+	heartbeatApiHandler := api.NewHeartbeatApiHandler(heartbeatService, languageMappingService)
+	summaryApiHandler := api.NewSummaryApiHandler(summaryService)
+
+	// Compat Handlers
 	wakatimeV1AllHandler := wtV1Routes.NewAllTimeHandler(summaryService)
 	wakatimeV1SummariesHandler := wtV1Routes.NewSummariesHandler(summaryService)
 	shieldV1BadgeHandler := shieldsV1Routes.NewBadgeHandler(summaryService, userService)
 
+	// MVC Handlers
+	summaryHandler := routes.NewSummaryHandler(summaryService, userService)
+	settingsHandler := routes.NewSettingsHandler(userService, summaryService, aliasService, aggregationService, languageMappingService)
+	homeHandler := routes.NewHomeHandler(keyValueService)
+	loginHandler := routes.NewLoginHandler(userService)
+	imprintHandler := routes.NewImprintHandler(keyValueService)
+
 	// Setup Routers
 	router := mux.NewRouter()
-	publicRouter := router.PathPrefix("/").Subrouter()
-	settingsRouter := publicRouter.PathPrefix("/settings").Subrouter()
-	summaryRouter := publicRouter.PathPrefix("/summary").Subrouter()
+	rootRouter := router.PathPrefix("/").Subrouter()
 	apiRouter := router.PathPrefix("/api").Subrouter()
-	summaryApiRouter := apiRouter.PathPrefix("/summary").Subrouter()
-	heartbeatApiRouter := apiRouter.PathPrefix("/heartbeat").Subrouter()
-	healthApiRouter := apiRouter.PathPrefix("/health").Subrouter()
-	compatRouter := apiRouter.PathPrefix("/compat").Subrouter()
-	wakatimeV1Router := compatRouter.PathPrefix("/wakatime/v1/users/{user}").Subrouter()
-	shieldsV1Router := compatRouter.PathPrefix("/shields/v1/{user}").Subrouter()
+	compatApiRouter := apiRouter.PathPrefix("/compat").Subrouter()
 
-	// Middlewares
+	// Globally used middlewares
 	recoveryMiddleware := handlers.RecoveryHandler()
-	loggingMiddleware := middlewares.NewLoggingMiddleware(
-		// Use logbuch here once https://github.com/emvi/logbuch/issues/4 is realized
-		log.New(os.Stdout, "", log.LstdFlags),
-	)
+	loggingMiddleware := middlewares.NewLoggingMiddleware(log.New(os.Stdout, "", log.LstdFlags))
 	corsMiddleware := handlers.CORS()
-	authenticateMiddleware := middlewares.NewAuthenticateMiddleware(
-		userService,
-		[]string{"/api/health", "/api/compat/shields/v1"},
-	).Handler
-	wakatimeRelayMiddleware := customMiddleware.NewWakatimeRelayMiddleware().Handler
+	authenticateMiddleware := middlewares.NewAuthenticateMiddleware(userService, []string{"/api/health", "/api/compat/shields/v1"}).Handler
 
 	// Router configs
 	router.Use(loggingMiddleware, recoveryMiddleware)
-	summaryRouter.Use(authenticateMiddleware)
-	settingsRouter.Use(authenticateMiddleware)
 	apiRouter.Use(corsMiddleware, authenticateMiddleware)
-	heartbeatApiRouter.Use(wakatimeRelayMiddleware)
 
 	// Route registrations
-	homeHandler.RegisterRoutes(publicRouter)
-	loginHandler.RegisterRoutes(publicRouter)
-	imprintHandler.RegisterRoutes(publicRouter)
-	summaryHandler.RegisterRoutes(summaryRouter)
-	settingsHandler.RegisterRoutes(settingsRouter)
+	homeHandler.RegisterRoutes(rootRouter)
+	loginHandler.RegisterRoutes(rootRouter)
+	imprintHandler.RegisterRoutes(rootRouter)
+	summaryHandler.RegisterRoutes(rootRouter)
+	settingsHandler.RegisterRoutes(rootRouter)
 
-	// API Route registrations
-	summaryHandler.RegisterAPIRoutes(summaryApiRouter)
-	healthHandler.RegisterAPIRoutes(healthApiRouter)
-	heartbeatHandler.RegisterAPIRoutes(heartbeatApiRouter)
-	wakatimeV1AllHandler.RegisterAPIRoutes(wakatimeV1Router)
-	wakatimeV1SummariesHandler.RegisterAPIRoutes(wakatimeV1Router)
-	shieldV1BadgeHandler.RegisterAPIRoutes(shieldsV1Router)
+	// API route registrations
+	summaryApiHandler.RegisterRoutes(apiRouter)
+	healthApiHandler.RegisterRoutes(apiRouter)
+	heartbeatApiHandler.RegisterRoutes(apiRouter)
+
+	// Compat route registrations
+	wakatimeV1AllHandler.RegisterRoutes(compatApiRouter)
+	wakatimeV1SummariesHandler.RegisterRoutes(compatApiRouter)
+	shieldV1BadgeHandler.RegisterRoutes(compatApiRouter)
 
 	// Static Routes
 	router.PathPrefix("/assets").Handler(http.FileServer(pkger.Dir("/static")))

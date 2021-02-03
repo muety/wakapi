@@ -32,8 +32,6 @@ func (h *LoginHandler) RegisterRoutes(router *mux.Router) {
 	router.Path("/signup").Methods(http.MethodPost).HandlerFunc(h.PostSignup)
 }
 
-func (h *LoginHandler) RegisterAPIRoutes(router *mux.Router) {}
-
 func (h *LoginHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()

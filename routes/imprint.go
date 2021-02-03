@@ -25,8 +25,6 @@ func (h *ImprintHandler) RegisterRoutes(router *mux.Router) {
 	router.Path("/imprint").Methods(http.MethodGet).HandlerFunc(h.GetImprint)
 }
 
-func (h *ImprintHandler) RegisterAPIRoutes(router *mux.Router) {}
-
 func (h *ImprintHandler) GetImprint(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()

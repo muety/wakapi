@@ -32,8 +32,6 @@ func (h *HomeHandler) RegisterRoutes(router *mux.Router) {
 	router.Path("/").Methods(http.MethodGet).HandlerFunc(h.GetIndex)
 }
 
-func (h *HomeHandler) RegisterAPIRoutes(router *mux.Router) {}
-
 func (h *HomeHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()

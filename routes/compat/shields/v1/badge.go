@@ -31,13 +31,12 @@ func NewBadgeHandler(summaryService services.ISummaryService, userService servic
 	}
 }
 
-func (h *BadgeHandler) RegisterRoutes(router *mux.Router) {}
-
-func (h *BadgeHandler) RegisterAPIRoutes(router *mux.Router) {
-	router.Methods(http.MethodGet).HandlerFunc(h.ApiGet)
+func (h *BadgeHandler) RegisterRoutes(router *mux.Router) {
+	r := router.PathPrefix("/shields/v1/{user}").Subrouter()
+	r.Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
-func (h *BadgeHandler) ApiGet(w http.ResponseWriter, r *http.Request) {
+func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	intervalReg := regexp.MustCompile(intervalPattern)
 	entityFilterReg := regexp.MustCompile(entityFilterPattern)
 
