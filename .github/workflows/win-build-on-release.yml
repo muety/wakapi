@@ -2,10 +2,11 @@ name: Build Wakapi on Windows
 
 on:
   push:
+    branches:
   pull_request:
   release:
     types:
-      - created
+      - published
 
 jobs:
   build-and-release:
