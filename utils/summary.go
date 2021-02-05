@@ -37,7 +37,6 @@ func ResolveInterval(interval string) (err error, from, to time.Time) {
 		from = StartOfToday().AddDate(0, 0, -14)
 	case models.IntervalPast30Days, models.IntervalWakatimeLast30Days:
 		from = StartOfToday().AddDate(0, 0, -30)
-		from = StartOfToday().AddDate(0, -6, 0)
 	case models.IntervalPast12Months:
 		from = StartOfToday().AddDate(0, -12, 0)
 	case models.IntervalAny:
