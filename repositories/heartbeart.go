@@ -3,6 +3,7 @@ package repositories
 import (
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"time"
 )
 
@@ -15,7 +16,11 @@ func NewHeartbeatRepository(db *gorm.DB) *HeartbeatRepository {
 }
 
 func (r *HeartbeatRepository) InsertBatch(heartbeats []*models.Heartbeat) error {
-	if err := r.db.Create(&heartbeats).Error; err != nil {
+	if err := r.db.
+		Clauses(clause.OnConflict{
+			DoNothing: true,
+		}).
+		Create(&heartbeats).Error; err != nil {
 		return err
 	}
 	return nil
