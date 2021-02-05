@@ -68,7 +68,7 @@ I'd love to get some community feedback from active Wakapi users. If you want, p
 Plans for the near future mainly include, besides usual improvements and bug fixes, a UI redesign as well as additional types of charts and statistics (see [#101](https://github.com/muety/wakapi/issues/101), [#80](https://github.com/muety/wakapi/issues/80), [#76](https://github.com/muety/wakapi/issues/76), [#12](https://github.com/muety/wakapi/issues/12)). If you have feature requests or any kind of improvement proposals feel free to open an issue or share them in our [user survey](https://github.com/muety/wakapi/issues/82). 
 
 ## ⌨️ How to use?
-There are different options for how to use Wakapi, ranging from out hosted cloud service to self-hosting it. Regardless of which option choose, you will always have to do the [client setup](#-client-setup) in addition. 
+There are different options for how to use Wakapi, ranging from our hosted cloud service to self-hosting it. Regardless of which option choose, you will always have to do the [client setup](#-client-setup) in addition. 
 
 ### ☁️ Option 1: Use [wakapi.dev](https://wakapi.dev)
 If you want to you out free, hosted cloud service, all you need to do is create an account and the set up your client-side tooling (see below).

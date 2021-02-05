@@ -17,9 +17,8 @@ import (
 	"time"
 )
 
-const (
-	maxWorkers = 6
-)
+const OriginWakatime = "wakatime"
+const maxWorkers = 6
 
 type WakatimeHeartbeatImporter struct {
 	ApiKey string
@@ -31,7 +30,7 @@ func NewWakatimeHeartbeatImporter(apiKey string) *WakatimeHeartbeatImporter {
 	}
 }
 
-func (w *WakatimeHeartbeatImporter) Import(user *models.User) <-chan *models.Heartbeat {
+func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time, maxTo time.Time) <-chan *models.Heartbeat {
 	out := make(chan *models.Heartbeat)
 
 	go func(user *models.User, out chan *models.Heartbeat) {
@@ -39,6 +38,13 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User) <-chan *models.Hea
 		if err != nil {
 			logbuch.Error("failed to fetch date range while importing wakatime heartbeats for user '%s' – %v", user.ID, err)
 			return
+		}
+
+		if startDate.Before(minFrom) {
+			startDate = minFrom
+		}
+		if endDate.After(maxTo) {
+			endDate = maxTo
 		}
 
 		userAgents, err := w.fetchUserAgents()
@@ -80,6 +86,10 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User) <-chan *models.Hea
 	}(user, out)
 
 	return out
+}
+
+func (w *WakatimeHeartbeatImporter) ImportAll(user *models.User) <-chan *models.Heartbeat {
+	return w.Import(user, time.Time{}, time.Now())
 }
 
 // https://wakatime.com/api/v1/users/current/heartbeats?date=2021-02-05
@@ -211,7 +221,8 @@ func mapHeartbeat(
 		OperatingSystem: ua.Os,
 		Machine:         entry.MachineNameId, // TODO
 		Time:            entry.Time,
-		Origin:          fmt.Sprintf("wt@%s", entry.Id),
+		Origin:          OriginWakatime,
+		OriginId:        entry.Id,
 	}).Hashed()
 }
 

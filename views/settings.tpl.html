@@ -474,7 +474,9 @@
     const btnImportWakatime = document.querySelector('#btn-import-wakatime')
     const formImportWakatime = document.querySelector('#form-import-wakatime')
     btnImportWakatime.addEventListener('click', () => {
-        formImportWakatime.submit()
+        if (confirm('Are you sure? The import can not be undone.')) {
+            formImportWakatime.submit()
+        }
     })
 </script>
 

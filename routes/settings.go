@@ -362,10 +362,18 @@ func (h *SettingsHandler) actionImportWaktime(w http.ResponseWriter, r *http.Req
 			println(err)
 		}
 
+		var stream <-chan *models.Heartbeat
+		if latest, err := h.heartbeatSrvc.GetLatestByOriginAndUser(imports.OriginWakatime, user); latest == nil || err != nil {
+			stream = importer.ImportAll(user)
+		} else {
+			// if an import has happened before, only import heartbeats newer than the latest of the last import
+			stream = importer.Import(user, latest.Time.T(), time.Now())
+		}
+
 		count := 0
 		batch := make([]*models.Heartbeat, 0)
 
-		for hb := range importer.Import(user) {
+		for hb := range stream {
 			count++
 			batch = append(batch, hb)
 
@@ -389,7 +397,7 @@ func (h *SettingsHandler) actionImportWaktime(w http.ResponseWriter, r *http.Req
 		Value: time.Now().Format(time.RFC822),
 	})
 
-	return http.StatusAccepted, "Import started. This may take a few minutes.", ""
+	return http.StatusAccepted, "ImportAll started. This may take a few minutes.", ""
 }
 
 func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *http.Request) (int, string, string) {
