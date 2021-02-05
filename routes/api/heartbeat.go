@@ -36,7 +36,7 @@ func (h *HeartbeatApiHandler) RegisterRoutes(router *mux.Router) {
 	r.Use(
 		customMiddleware.NewWakatimeRelayMiddleware().Handler,
 	)
-	router.Methods(http.MethodPost).HandlerFunc(h.Post)
+	r.Methods(http.MethodPost).HandlerFunc(h.Post)
 }
 
 func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
