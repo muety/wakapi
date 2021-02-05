@@ -48,7 +48,7 @@ type appConfig struct {
 	AggregationTime  string                       `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
 	CountingTime     string                       `yaml:"counting_time" default:"05:15" env:"WAKAPI_COUNTING_TIME"`
 	ImportBackoffMin int                          `yaml:"import_backoff_min" default:"5" env:"WAKAPI_IMPORT_BACKOFF_MIN"`
-	ImportBatchSize  int                          `yaml:"import_batch_size" default:"25" env:"WAKAPI_IMPORT_BATCH_SIZE"`
+	ImportBatchSize  int                          `yaml:"import_batch_size" default:"100" env:"WAKAPI_IMPORT_BATCH_SIZE"`
 	CustomLanguages  map[string]string            `yaml:"custom_languages"`
 	Colors           map[string]map[string]string `yaml:"-"`
 }

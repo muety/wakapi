@@ -39,10 +39,12 @@
 ## Table of Contents
 * [User Survey](#-user-survey)
 * [Features](#-features)
+* [Roadmap](#-roadmap)
 * [How to use](#-how-to-use)
 * [Configuration Options](#-configuration-options)
 * [API Endpoints](#-api-endpoints)
-* [Prometheus Export](#-prometheus-export)
+* [Prometheus Export](#%EF%B8%8F-prometheus-export)
+* [WakaTime Integration](#%EF%B8%8F-wakatime-integration)
 * [Best Practices](#-best-practices)
 * [Developer Notes](#-developer-notes)
 * [Support](#-support)
@@ -58,9 +60,12 @@ I'd love to get some community feedback from active Wakapi users. If you want, p
 * ✅ Badges
 * ✅ REST API
 * ✅ Partially compatible with WakaTime
-* ✅ WakaTime relay to use both
+* ✅ WakaTime integration
 * ✅ Support for [Prometheus](https://github.com/muety/wakapi#%EF%B8%8F-prometheus-export) exports
 * ✅ Self-hosted
+
+## 🚧 Roadmap
+Plans for the near future mainly include, besides usual improvements and bug fixes, a UI redesign as well as additional types of charts and statistics (see [#101](https://github.com/muety/wakapi/issues/101), [#80](https://github.com/muety/wakapi/issues/80), [#76](https://github.com/muety/wakapi/issues/76), [#12](https://github.com/muety/wakapi/issues/12)). If you have feature requests or any kind of improvement proposals feel free to open an issue or share them in our [user survey](https://github.com/muety/wakapi/issues/82). 
 
 ## ⌨️ How to use?
 There are different options for how to use Wakapi, ranging from out hosted cloud service to self-hosting it. Regardless of which option choose, you will always have to do the [client setup](#-client-setup) in addition. 
@@ -198,6 +203,9 @@ If you want to export your Wakapi statistics to Prometheus to view them in a Gra
 It is a standalone webserver that connects to your Wakapi instance and exposes the data as Prometheus metrics. Although originally developed to scrape data from WakaTime, it will mostly for with Wakapi as well, as the APIs are partially compatible.
 
 Simply configure the exporter with `WAKA_SCRAPE_URI` to equal `"https://wakapi.your-server.com/api/compat/wakatime/v1"` and set your API key accordingly.
+
+## ⤵️ WakaTime Integration
+Wakapi plays well together with [WakaTime](https://wakatime.com). For one thing, you can **forward heartbeats** from Wakapi to WakaTime to effectively use both services simultaneously. In addition, there is the option to **import historic data** from WakaTime for consistency between both services. Both features can be enabled in the _Integrations_ section of your Wakapi instance's settings page.     
 
 ## 👍 Best Practices
 It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or _nginx_ to enable **TLS encryption** (HTTPS).
