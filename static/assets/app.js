@@ -28,6 +28,9 @@ let charts = []
 let showTopN = []
 let resizeCount = 0
 
+Chart.defaults.global.defaultFontColor = "#E2E8F0"
+Chart.defaults.global.defaultColor = "#E2E8F0"
+
 String.prototype.toHHMMSS = function () {
     var sec_num = parseInt(this, 10)
     var hours = Math.floor(sec_num / 3600)
@@ -47,13 +50,12 @@ String.prototype.toHHMMSS = function () {
 }
 
 function draw(subselection) {
-    function getTooltipOptions(key, type) {
+    function getTooltipOptions(key) {
         return {
             mode: 'single',
             callbacks: {
                 label: (item) => {
-                    let idx = type === 'pie' ? item.index : item.datasetIndex
-                    let d = wakapiData[key][idx]
+                    let d = wakapiData[key][item.index]
                     return `${d.key}: ${d.total.toString().toHHMMSS()}`
                 },
                 title: () => 'Total Time'
@@ -73,18 +75,29 @@ function draw(subselection) {
         ? new Chart(projectsCanvas.getContext('2d'), {
             type: 'horizontalBar',
             data: {
-                datasets: wakapiData.projects
+                datasets: [{
+                    data: wakapiData.projects
+                        .slice(0, Math.min(showTopN[0], wakapiData.projects.length))
+                        .map(p => parseInt(p.total)),
+                    backgroundColor: wakapiData.projects.map(p => {
+                        const c = hexToRgb(getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.6)`
+                    }),
+                    hoverBackgroundColor: wakapiData.projects.map(p => {
+                        const c = hexToRgb(getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
+                    }),
+                    borderColor: wakapiData.projects.map(p => {
+                        const c = hexToRgb(getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
+                    }),
+                    borderWidth: 2
+                }],
+                labels: wakapiData.projects
                     .slice(0, Math.min(showTopN[0], wakapiData.projects.length))
-                    .map(p => {
-                        return {
-                            label: p.key,
-                            data: [parseInt(p.total) / 60],
-                            backgroundColor: getRandomColor(p.key)
-                        }
-                    })
+                    .map(p => p.key)
             },
             options: {
-                tooltips: getTooltipOptions('projects', 'bar'),
                 legend: {
                     display: false
                 },
@@ -96,6 +109,7 @@ function draw(subselection) {
                         }
                     }]
                 },
+                tooltips: getTooltipOptions('projects'),
                 maintainAspectRatio: false,
                 onResize: onChartResize
             }
@@ -110,14 +124,25 @@ function draw(subselection) {
                     data: wakapiData.operatingSystems
                         .slice(0, Math.min(showTopN[1], wakapiData.operatingSystems.length))
                         .map(p => parseInt(p.total)),
-                    backgroundColor: wakapiData.operatingSystems.map(p => osColors[p.key.toLowerCase()] || getRandomColor(p.key))
+                    backgroundColor: wakapiData.operatingSystems.map(p => {
+                        const c = hexToRgb(osColors[p.key.toLowerCase()] || getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.6)`
+                    }),
+                    hoverBackgroundColor: wakapiData.operatingSystems.map(p => {
+                        const c = hexToRgb(osColors[p.key.toLowerCase()] || getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
+                    }),
+                    borderColor: wakapiData.operatingSystems.map(p => {
+                        const c = hexToRgb(osColors[p.key.toLowerCase()] || getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
+                    }),
                 }],
                 labels: wakapiData.operatingSystems
                     .slice(0, Math.min(showTopN[1], wakapiData.operatingSystems.length))
                     .map(p => p.key)
             },
             options: {
-                tooltips: getTooltipOptions('operatingSystems', 'pie'),
+                tooltips: getTooltipOptions('operatingSystems'),
                 maintainAspectRatio: false,
                 onResize: onChartResize
             }
@@ -132,14 +157,25 @@ function draw(subselection) {
                     data: wakapiData.editors
                         .slice(0, Math.min(showTopN[2], wakapiData.editors.length))
                         .map(p => parseInt(p.total)),
-                    backgroundColor: wakapiData.editors.map(p => editorColors[p.key.toLowerCase()] || getRandomColor(p.key))
+                    backgroundColor: wakapiData.editors.map(p => {
+                        const c = hexToRgb(editorColors[p.key.toLowerCase()] || getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.6)`
+                    }),
+                    hoverBackgroundColor: wakapiData.editors.map(p => {
+                        const c = hexToRgb(editorColors[p.key.toLowerCase()] || getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
+                    }),
+                    borderColor: wakapiData.editors.map(p => {
+                        const c = hexToRgb(editorColors[p.key.toLowerCase()] || getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
+                    }),
                 }],
                 labels: wakapiData.editors
                     .slice(0, Math.min(showTopN[2], wakapiData.editors.length))
                     .map(p => p.key)
             },
             options: {
-                tooltips: getTooltipOptions('editors', 'pie'),
+                tooltips: getTooltipOptions('editors'),
                 maintainAspectRatio: false,
                 onResize: onChartResize
             }
@@ -154,14 +190,25 @@ function draw(subselection) {
                     data: wakapiData.languages
                         .slice(0, Math.min(showTopN[3], wakapiData.languages.length))
                         .map(p => parseInt(p.total)),
-                    backgroundColor: wakapiData.languages.map(p => languageColors[p.key.toLowerCase()] || getRandomColor(p.key))
+                    backgroundColor: wakapiData.languages.map(p => {
+                        const c = hexToRgb(languageColors[p.key.toLowerCase()] || getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.6)`
+                    }),
+                    hoverBackgroundColor: wakapiData.languages.map(p => {
+                        const c = hexToRgb(languageColors[p.key.toLowerCase()] || getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
+                    }),
+                    borderColor: wakapiData.languages.map(p => {
+                        const c = hexToRgb(languageColors[p.key.toLowerCase()] || getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
+                    }),
                 }],
                 labels: wakapiData.languages
                     .slice(0, Math.min(showTopN[3], wakapiData.languages.length))
                     .map(p => p.key)
             },
             options: {
-                tooltips: getTooltipOptions('languages', 'pie'),
+                tooltips: getTooltipOptions('languages'),
                 maintainAspectRatio: false,
                 onResize: onChartResize
             }
@@ -176,14 +223,25 @@ function draw(subselection) {
                     data: wakapiData.machines
                         .slice(0, Math.min(showTopN[4], wakapiData.machines.length))
                         .map(p => parseInt(p.total)),
-                    backgroundColor: wakapiData.machines.map(p => getRandomColor(p.key))
+                    backgroundColor: wakapiData.machines.map(p => {
+                        const c = hexToRgb(getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.6)`
+                    }),
+                    hoverBackgroundColor: wakapiData.machines.map(p => {
+                        const c = hexToRgb(getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
+                    }),
+                    borderColor: wakapiData.machines.map(p => {
+                        const c = hexToRgb(getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
+                    }),
                 }],
                 labels: wakapiData.machines
                     .slice(0, Math.min(showTopN[4], wakapiData.machines.length))
                     .map(p => p.key)
             },
             options: {
-                tooltips: getTooltipOptions('machines', 'pie'),
+                tooltips: getTooltipOptions('machines'),
                 maintainAspectRatio: false,
                 onResize: onChartResize
             }
@@ -272,6 +330,20 @@ function getRandomColor(seed) {
         color += letters[Math.floor(Math.random() * 16)]
     }
     return color
+}
+
+// https://stackoverflow.com/a/5624139/3112139
+function hexToRgb(hex) {
+    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+        return r + r + g + g + b + b;
+    });
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
 }
 
 function showApiKeyPopup(event) {

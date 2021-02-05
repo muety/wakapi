@@ -31,7 +31,7 @@
 </div>
 
 <p align="center">
-  <img src="https://anchr.io/i/bxQ69.png" width="500px">
+  <img src="static/assets/images/screenshot.png" width="500px">
 </p>
 
 ## Table of Contents
