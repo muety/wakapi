@@ -21,6 +21,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	go.uber.org/atomic v1.6.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 	gorm.io/driver/mysql v1.0.3

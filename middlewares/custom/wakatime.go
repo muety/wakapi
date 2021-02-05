@@ -63,7 +63,7 @@ func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	go m.send(
 		http.MethodPost,
-		config.WakatimeApiUrl+config.WakatimeApiHeartbeatsEndpoint,
+		config.WakatimeApiUrl+config.WakatimeApiHeartbeatsBulkUrl,
 		bytes.NewReader(body),
 		headers,
 	)

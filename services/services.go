@@ -26,7 +26,9 @@ type IAliasService interface {
 }
 
 type IHeartbeatService interface {
+	Insert(*models.Heartbeat) error
 	InsertBatch([]*models.Heartbeat) error
+	CountByUser(*models.User) (int64, error)
 	GetAllWithin(time.Time, time.Time, *models.User) ([]*models.Heartbeat, error)
 	GetFirstByUsers() ([]*models.TimeByUser, error)
 	DeleteBefore(time.Time) error
@@ -34,6 +36,7 @@ type IHeartbeatService interface {
 
 type IKeyValueService interface {
 	GetString(string) (*models.KeyStringValue, error)
+	MustGetString(string) *models.KeyStringValue
 	PutString(*models.KeyStringValue) error
 	DeleteString(string) error
 }

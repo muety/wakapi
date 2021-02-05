@@ -17,6 +17,7 @@ type IAliasRepository interface {
 
 type IHeartbeatRepository interface {
 	InsertBatch([]*models.Heartbeat) error
+	CountByUser(*models.User) (int64, error)
 	GetAllWithin(time.Time, time.Time, *models.User) ([]*models.Heartbeat, error)
 	GetFirstByUsers() ([]*models.TimeByUser, error)
 	DeleteBefore(time.Time) error

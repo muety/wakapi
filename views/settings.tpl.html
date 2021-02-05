@@ -356,17 +356,32 @@
                             </button>
                             {{ else }}
                             <button type="submit"
-                                    class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm">Disconnect
+                                    class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm"
+                                    style="width: 130px">Disconnect
                             </button>
                             {{ end }}
                         </div>
                     </div>
+
+                    {{ if .User.WakatimeApiKey }}
+                    <div class="flex justify-end">
+                        <button id="btn-import-wakatime" type="button" style="width: 130px"
+                                class="py-1 px-3 my-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                            ⤵ Import Data
+                        </button>
+                    </div>
+                    {{ end }}
+                </form>
+
+                <form action="" method="post" id="form-import-wakatime" class="mt-6">
+                    <input type="hidden" name="action" value="import_wakatime">
                 </form>
 
                 <p class="mt-6">
                     <span class="font-semibold">👉 Please note:</span>
                     <span>When enabling this feature, the operators of this server will, in theory (!), have unlimited access to your data stored in WakaTime. If you are concerned about your privacy, please do not enable this integration or wait for OAuth 2 authentication (<a
-                            class="underline" target="_blank" href="https://github.com/muety/wakapi/issues/94" rel="noopener noreferrer">#94</a>) to be implemented.</span>
+                            class="underline" target="_blank" href="https://github.com/muety/wakapi/issues/94"
+                            rel="noopener noreferrer">#94</a>) to be implemented.</span>
                 </p>
             </div>
         </div>
@@ -454,6 +469,12 @@
         if (confirm('Are you sure? This can not be undone!')) {
             formDelete.submit()
         }
+    })
+
+    const btnImportWakatime = document.querySelector('#btn-import-wakatime')
+    const formImportWakatime = document.querySelector('#form-import-wakatime')
+    btnImportWakatime.addEventListener('click', () => {
+        formImportWakatime.submit()
     })
 </script>
 

@@ -26,6 +26,17 @@ func (r *HeartbeatRepository) InsertBatch(heartbeats []*models.Heartbeat) error 
 	return nil
 }
 
+func (r *HeartbeatRepository) CountByUser(user *models.User) (int64, error) {
+	var count int64
+	if err := r.db.
+		Model(&models.Heartbeat{}).
+		Where(&models.Heartbeat{UserID: user.ID}).
+		Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func (r *HeartbeatRepository) GetAllWithin(from, to time.Time, user *models.User) ([]*models.Heartbeat, error) {
 	var heartbeats []*models.Heartbeat
 	if err := r.db.

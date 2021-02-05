@@ -19,11 +19,12 @@ type Heartbeat struct {
 	Branch          string         `json:"branch"`
 	Language        string         `json:"language" gorm:"index:idx_language"`
 	IsWrite         bool           `json:"is_write"`
-	Editor          string         `json:"editor"`
-	OperatingSystem string         `json:"operating_system"`
-	Machine         string         `json:"machine"`
+	Editor          string         `json:"editor" hash:"ignore"`           // ignored because editor might be parsed differently by wakatime
+	OperatingSystem string         `json:"operating_system" hash:"ignore"` // ignored because os might be parsed differently by wakatime
+	Machine         string         `json:"machine" hash:"ignore"`          // ignored because wakatime api doesn't return machines currently
 	Time            CustomTime     `json:"time" gorm:"type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time,idx_time_user"`
 	Hash            string         `json:"-" gorm:"type:varchar(17); uniqueIndex"`
+	Origin          string         `json:"-" hash:"ignore"`
 	languageRegex   *regexp.Regexp `hash:"ignore"`
 }
 
