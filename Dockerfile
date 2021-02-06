@@ -6,6 +6,9 @@ WORKDIR /src
 ADD ./go.mod .
 RUN go mod download && go get github.com/markbates/pkger/cmd/pkger
 
+RUN curl "https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh" -o wait-for-it.sh && \
+    chmod +x wait-for-it.sh
+
 ADD . .
 RUN go generate && go build -o wakapi
 
@@ -13,7 +16,8 @@ WORKDIR /app
 RUN cp /src/wakapi . && \
     cp /src/config.default.yml config.yml && \
     sed -i 's/listen_ipv6: ::1/listen_ipv6: /g' config.yml && \
-    cp /src/wait-for-it.sh .
+    cp /src/wait-for-it.sh . && \
+    cp /src/entrypoint.sh .
 
 # Run Stage
 
@@ -41,4 +45,4 @@ COPY --from=build-env /app .
 
 VOLUME /data
 
-ENTRYPOINT ./wait-for-it.sh
+ENTRYPOINT ./entrypoint.sh
