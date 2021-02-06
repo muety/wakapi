@@ -28,7 +28,7 @@ func NewAllTimeHandler(userService services.IUserService, summaryService service
 }
 
 func (h *AllTimeHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/wakatime/v1/users/{user}/all_time_since_today").Subrouter()
+	r := router.PathPrefix("/compat/wakatime/v1/users/{user}/all_time_since_today").Subrouter()
 	r.Use(
 		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
 	)

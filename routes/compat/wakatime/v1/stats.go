@@ -27,11 +27,12 @@ func NewStatsHandler(userService services.IUserService, summaryService services.
 }
 
 func (h *StatsHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/wakatime/v1/users/{user}/stats/{range}").Subrouter()
+	r := router.PathPrefix("").Subrouter()
 	r.Use(
 		middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalFor([]string{"/"}).Handler,
 	)
-	r.Methods(http.MethodGet).HandlerFunc(h.Get)
+	r.Path("/v1/users/{user}/stats/{range}").Methods(http.MethodGet).HandlerFunc(h.Get)
+	r.Path("/compat/wakatime/v1/users/{user}/stats/{range}").Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
 // TODO: support filtering (requires https://github.com/muety/wakapi/issues/108)

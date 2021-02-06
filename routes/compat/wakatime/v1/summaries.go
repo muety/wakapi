@@ -29,7 +29,7 @@ func NewSummariesHandler(userService services.IUserService, summaryService servi
 }
 
 func (h *SummariesHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/wakatime/v1/users/{user}/summaries").Subrouter()
+	r := router.PathPrefix("/compat/wakatime/v1/users/{user}/summaries").Subrouter()
 	r.Use(
 		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
 	)

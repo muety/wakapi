@@ -146,7 +146,6 @@ func main() {
 	router := mux.NewRouter()
 	rootRouter := router.PathPrefix("/").Subrouter()
 	apiRouter := router.PathPrefix("/api").Subrouter()
-	compatApiRouter := apiRouter.PathPrefix("/compat").Subrouter()
 
 	// Globally used middlewares
 	recoveryMiddleware := handlers.RecoveryHandler()
@@ -168,12 +167,10 @@ func main() {
 	summaryApiHandler.RegisterRoutes(apiRouter)
 	healthApiHandler.RegisterRoutes(apiRouter)
 	heartbeatApiHandler.RegisterRoutes(apiRouter)
-
-	// Compat route registrations
-	wakatimeV1AllHandler.RegisterRoutes(compatApiRouter)
-	wakatimeV1SummariesHandler.RegisterRoutes(compatApiRouter)
-	wakatimeV1StatsHandler.RegisterRoutes(compatApiRouter)
-	shieldV1BadgeHandler.RegisterRoutes(compatApiRouter)
+	wakatimeV1AllHandler.RegisterRoutes(apiRouter)
+	wakatimeV1SummariesHandler.RegisterRoutes(apiRouter)
+	wakatimeV1StatsHandler.RegisterRoutes(apiRouter)
+	shieldV1BadgeHandler.RegisterRoutes(apiRouter)
 
 	// Static Routes
 	router.PathPrefix("/assets").Handler(http.FileServer(pkger.Dir("/static")))
