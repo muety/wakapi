@@ -416,6 +416,24 @@
                         access to the respective endpoint. See <a href="settings#public_data" class="underline">Public Data</a> setting.</p>
                     {{ end }}
                 </div>
+
+                <div class="mt-10 text-gray-300 text-sm">
+                    <h3 class="inline-block font-semibold text-md mb-4 border-b border-green-700">
+                        GitHub Readme Stats
+                    </h3>
+
+                    <p class="mb-4">Wakapi intregrates with <a href="https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats" class="underline" target="_blank" rel="noopener noreferrer">GitHub Readme Stats</a> to generate fancy cards for you.</p>
+
+                    {{ if gt .User.ShareDataMaxDays 0 }}
+                    <h3 class="font-semibold mb-2">Example</h3>
+                    <div class="flex flex-col mb-4">
+                        <img src="https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&layout=compact&api_domain=%s" class="with-url-src-no-scheme">
+                        <p class="mt-2"><strong>Source URL:</strong>
+                            <span class="break-words text-xs bg-gray-900 rounded py-1 px-2 font-mono with-url-inner-no-scheme">https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&layout=compact&api_domain=%s</span>
+                        </p>
+                    </div>
+                    {{ end }}
+                </div>
             </div>
         </details>
 
@@ -513,8 +531,18 @@
         e.setAttribute('src', e.getAttribute('src').replace('%s', baseUrl))
         e.classList.remove('hidden')
     })
+    document.querySelectorAll('.with-url-src-no-scheme').forEach(e => {
+        const strippedUrl = baseUrl.replace(/https?:\/\//, '')
+        e.setAttribute('src', e.getAttribute('src').replace('%s', strippedUrl))
+        e.classList.remove('hidden')
+    })
     document.querySelectorAll('.with-url-inner').forEach(e => {
         e.innerHTML = e.innerHTML.replace('%s', baseUrl)
+        e.classList.remove('hidden')
+    })
+    document.querySelectorAll('.with-url-inner-no-scheme').forEach(e => {
+        const strippedUrl = baseUrl.replace(/https?:\/\//, '')
+        e.innerHTML = e.innerHTML.replace('%s', strippedUrl)
         e.classList.remove('hidden')
     })
 
