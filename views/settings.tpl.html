@@ -380,7 +380,7 @@
                         Badges (Shields.io)
                     </h3>
 
-                    {{ if gt .User.ShareDataMaxDays 0 }}
+                    {{ if ne .User.ShareDataMaxDays 0 }}
                     <div class="flex space-x-1">
                         <h3 class="font-semibold">Examples:</h3>
                         <span class="text-xs text-gray-500">(Only available on public instances, not on localhost)</span>
@@ -427,7 +427,7 @@
 
                     <p class="mb-4">Wakapi intregrates with <a href="https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats" class="underline" target="_blank" rel="noopener noreferrer">GitHub Readme Stats</a> to generate fancy cards for you.</p>
 
-                    {{ if gt .User.ShareDataMaxDays 0 }}
+                    {{ if ne .User.ShareDataMaxDays 0 }}
                     <div class="flex space-x-1">
                         <h3 class="font-semibold">Example:</h3>
                         <span class="text-xs text-gray-500">(Only available on public instances, not on localhost)</span>
