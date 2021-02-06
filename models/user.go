@@ -6,7 +6,7 @@ type User struct {
 	Password         string     `json:"-"`
 	CreatedAt        CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP"`
 	LastLoggedInAt   CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP"`
-	ShareDataMaxDays uint       `json:"-" gorm:"default:0"`
+	ShareDataMaxDays int        `json:"-" gorm:"default:0"`
 	ShareEditors     bool       `json:"-" gorm:"default:false; type:bool"`
 	ShareLanguages   bool       `json:"-" gorm:"default:false; type:bool"`
 	ShareProjects    bool       `json:"-" gorm:"default:false; type:bool"`

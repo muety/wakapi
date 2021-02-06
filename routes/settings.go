@@ -2,7 +2,6 @@ package routes
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/mux"
@@ -218,11 +217,7 @@ func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Req
 	user.ShareEditors, err = strconv.ParseBool(r.PostFormValue("share_editors"))
 	user.ShareOSs, err = strconv.ParseBool(r.PostFormValue("share_oss"))
 	user.ShareMachines, err = strconv.ParseBool(r.PostFormValue("share_machines"))
-	if v, e := strconv.Atoi(r.PostFormValue("max_days")); e == nil && v >= 0 {
-		user.ShareDataMaxDays = uint(v)
-	} else {
-		err = errors.New("")
-	}
+	user.ShareDataMaxDays, err = strconv.Atoi(r.PostFormValue("max_days"))
 
 	if err != nil {
 		return http.StatusBadRequest, "", "invalid input"

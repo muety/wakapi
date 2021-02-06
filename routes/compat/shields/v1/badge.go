@@ -68,7 +68,8 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	_, rangeFrom, rangeTo := utils.ResolveInterval(interval)
 	minStart := utils.StartOfDay(rangeTo.Add(-24 * time.Hour * time.Duration(user.ShareDataMaxDays)))
-	if rangeFrom.Before(minStart) {
+	// negative value means no limit
+	if rangeFrom.Before(minStart) && user.ShareDataMaxDays >= 0 {
 		w.WriteHeader(http.StatusForbidden)
 		w.Write([]byte("requested time range too broad"))
 		return

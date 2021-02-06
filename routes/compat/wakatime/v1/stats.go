@@ -65,7 +65,7 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	minStart := utils.StartOfDay(rangeTo.Add(-24 * time.Hour * time.Duration(requestedUser.ShareDataMaxDays)))
 	if (authorizedUser == nil || requestedUser.ID != authorizedUser.ID) &&
-		(requestedUser.ShareDataMaxDays == 0 || rangeFrom.Before(minStart)) {
+		rangeFrom.Before(minStart) && requestedUser.ShareDataMaxDays >= 0 {
 		w.WriteHeader(http.StatusForbidden)
 		w.Write([]byte("requested time range too broad"))
 		return

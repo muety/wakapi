@@ -223,10 +223,10 @@
                 <form action="" method="post" class="mt-8">
                     <input type="hidden" name="action" value="update_sharing">
                     <div class="flex items-center w-full text-gray-300 text-sm justify-between my-2">
-                        <span class="mr-2">Publicly accessible data range:<br><span class="text-xs text-gray-500">(in days; 0 = not public)</span></span>
+                        <span class="mr-2">Publicly accessible data range:<br><span class="text-xs text-gray-500">(in days; 0 = not public, -1 = unlimited)</span></span>
                         <div>
                             <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
-                                   style="width: 70px;" type="number" id="max_days" name="max_days" min="0" max="365" required value="{{ .User.ShareDataMaxDays }}">
+                                   style="width: 70px;" type="number" id="max_days" name="max_days" min="-1" required value="{{ .User.ShareDataMaxDays }}">
                         </div>
                     </div>
                     <div class="flex items-center w-full text-gray-300 text-sm justify-between my-2">
