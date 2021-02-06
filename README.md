@@ -1,4 +1,6 @@
-<h1 align="center">📊 Wakapi</h1>
+<p align="center">
+  <img src="static/assets/images/logo-gh.svg" width="350">
+</p>
 
 <p align="center">
   <img src="https://badges.fw-web.space/github/license/muety/wakapi">
