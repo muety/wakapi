@@ -121,6 +121,12 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
+	if !h.config.IsDev() && !h.config.Security.AllowSignup {
+		w.WriteHeader(http.StatusForbidden)
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r).WithError("registration is disabled on this server"))
+		return
+	}
+
 	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
 		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 		return

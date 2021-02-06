@@ -48,6 +48,7 @@ type appConfig struct {
 }
 
 type securityConfig struct {
+	AllowSignup bool `yaml:"allow_signup" default:"true" env:"WAKAPI_ALLOW_SIGNUP"`
 	// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
 	PasswordSalt    string                     `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
 	InsecureCookies bool                       `yaml:"insecure_cookies" default:"false" env:"WAKAPI_INSECURE_COOKIES"`
