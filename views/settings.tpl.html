@@ -381,8 +381,11 @@
                     </h3>
 
                     {{ if gt .User.ShareDataMaxDays 0 }}
-                    <h3 class="font-semibold mb-2">Examples</h3>
-                    <div class="flex flex-col mb-4">
+                    <div class="flex space-x-1">
+                        <h3 class="font-semibold">Examples:</h3>
+                        <span class="text-xs text-gray-500">(Only available on public instances, not on localhost)</span>
+                    </div>
+                    <div class="flex flex-col mb-4 mt-2">
                         <div class="flex justify-between my-2">
                             <div>
                                 <img class="with-url-src"
@@ -425,8 +428,11 @@
                     <p class="mb-4">Wakapi intregrates with <a href="https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats" class="underline" target="_blank" rel="noopener noreferrer">GitHub Readme Stats</a> to generate fancy cards for you.</p>
 
                     {{ if gt .User.ShareDataMaxDays 0 }}
-                    <h3 class="font-semibold mb-2">Example</h3>
-                    <div class="flex flex-col mb-4">
+                    <div class="flex space-x-1">
+                        <h3 class="font-semibold">Example:</h3>
+                        <span class="text-xs text-gray-500">(Only available on public instances, not on localhost)</span>
+                    </div>
+                    <div class="flex flex-col mb-4 mt-2">
                         <img src="https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&layout=compact&api_domain=%s" class="with-url-src-no-scheme">
                         <p class="mt-2"><strong>Source URL:</strong>
                             <span class="break-words text-xs bg-gray-900 rounded py-1 px-2 font-mono with-url-inner-no-scheme">https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&layout=compact&api_domain=%s</span>
