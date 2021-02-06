@@ -29,22 +29,28 @@ const (
 
 	KeyLatestTotalTime  = "latest_total_time"
 	KeyLatestTotalUsers = "latest_total_users"
+	KeyLastImportImport = "last_import"
 )
 
 const (
-	WakatimeApiUrl                = "https://wakatime.com/api/v1"
-	WakatimeApiHeartbeatsEndpoint = "/users/current/heartbeats.bulk"
-	WakatimeApiUserEndpoint       = "/users/current"
+	WakatimeApiUrl               = "https://wakatime.com/api/v1"
+	WakatimeApiUserUrl           = "/users/current"
+	WakatimeApiAllTimeUrl        = "/users/current/all_time_since_today"
+	WakatimeApiHeartbeatsUrl     = "/users/current/heartbeats"
+	WakatimeApiHeartbeatsBulkUrl = "/users/current/heartbeats.bulk"
+	WakatimeApiUserAgentsUrl     = "/users/current/user_agents"
 )
 
 var cfg *Config
 var cFlag = flag.String("config", defaultConfigPath, "config file location")
 
 type appConfig struct {
-	AggregationTime string                       `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
-	CountingTime    string                       `yaml:"counting_time" default:"05:15" env:"WAKAPI_COUNTING_TIME"`
-	CustomLanguages map[string]string            `yaml:"custom_languages"`
-	Colors          map[string]map[string]string `yaml:"-"`
+	AggregationTime  string                       `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
+	CountingTime     string                       `yaml:"counting_time" default:"05:15" env:"WAKAPI_COUNTING_TIME"`
+	ImportBackoffMin int                          `yaml:"import_backoff_min" default:"5" env:"WAKAPI_IMPORT_BACKOFF_MIN"`
+	ImportBatchSize  int                          `yaml:"import_batch_size" default:"100" env:"WAKAPI_IMPORT_BATCH_SIZE"`
+	CustomLanguages  map[string]string            `yaml:"custom_languages"`
+	Colors           map[string]map[string]string `yaml:"-"`
 }
 
 type securityConfig struct {

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 )
 
 const (
@@ -32,7 +33,8 @@ func NewBadgeHandler(summaryService services.ISummaryService, userService servic
 }
 
 func (h *BadgeHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/shields/v1/{user}").Subrouter()
+	// no auth middleware here, handler itself resolves the user
+	r := router.PathPrefix("/compat/shields/v1/{user}").Subrouter()
 	r.Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
@@ -45,13 +47,6 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestedUserId := mux.Vars(r)["user"]
-	user, err := h.userSrvc.GetUserById(requestedUserId)
-	if err != nil || !user.BadgesEnabled {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
 	var filterEntity, filterKey string
 	if groups := entityFilterReg.FindStringSubmatch(r.URL.Path); len(groups) > 2 {
 		filterEntity, filterKey = groups[1], groups[2]
@@ -59,7 +54,25 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	var interval = models.IntervalPast30Days
 	if groups := intervalReg.FindStringSubmatch(r.URL.Path); len(groups) > 1 {
-		interval = groups[1]
+		if i, err := utils.ParseInterval(groups[1]); err == nil {
+			interval = i
+		}
+	}
+
+	requestedUserId := mux.Vars(r)["user"]
+	user, err := h.userSrvc.GetUserById(requestedUserId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	_, rangeFrom, rangeTo := utils.ResolveInterval(interval)
+	minStart := utils.StartOfDay(rangeTo.Add(-24 * time.Hour * time.Duration(user.ShareDataMaxDays)))
+	// negative value means no limit
+	if rangeFrom.Before(minStart) && user.ShareDataMaxDays >= 0 {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte("requested time range too broad"))
+		return
 	}
 
 	var filters *models.Filters
@@ -89,7 +102,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	utils.RespondJSON(w, http.StatusOK, vm)
 }
 
-func (h *BadgeHandler) loadUserSummary(user *models.User, interval string) (*models.Summary, error, int) {
+func (h *BadgeHandler) loadUserSummary(user *models.User, interval *models.IntervalKey) (*models.Summary, error, int) {
 	err, from, to := utils.ResolveInterval(interval)
 	if err != nil {
 		return nil, err, http.StatusBadRequest

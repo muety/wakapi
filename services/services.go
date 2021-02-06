@@ -26,14 +26,18 @@ type IAliasService interface {
 }
 
 type IHeartbeatService interface {
+	Insert(*models.Heartbeat) error
 	InsertBatch([]*models.Heartbeat) error
+	CountByUser(*models.User) (int64, error)
 	GetAllWithin(time.Time, time.Time, *models.User) ([]*models.Heartbeat, error)
 	GetFirstByUsers() ([]*models.TimeByUser, error)
+	GetLatestByOriginAndUser(string, *models.User) (*models.Heartbeat, error)
 	DeleteBefore(time.Time) error
 }
 
 type IKeyValueService interface {
 	GetString(string) (*models.KeyStringValue, error)
+	MustGetString(string) *models.KeyStringValue
 	PutString(*models.KeyStringValue) error
 	DeleteString(string) error
 }
@@ -63,7 +67,7 @@ type IUserService interface {
 	Update(*models.User) (*models.User, error)
 	Delete(*models.User) error
 	ResetApiKey(*models.User) (*models.User, error)
-	ToggleBadges(*models.User) (*models.User, error)
 	SetWakatimeApiKey(*models.User, string) (*models.User, error)
 	MigrateMd5Password(*models.User, *models.Login) (*models.User, error)
+	FlushCache()
 }

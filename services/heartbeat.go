@@ -22,8 +22,16 @@ func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, langua
 	}
 }
 
+func (srv *HeartbeatService) Insert(heartbeat *models.Heartbeat) error {
+	return srv.repository.InsertBatch([]*models.Heartbeat{heartbeat})
+}
+
 func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {
 	return srv.repository.InsertBatch(heartbeats)
+}
+
+func (srv *HeartbeatService) CountByUser(user *models.User) (int64, error) {
+	return srv.repository.CountByUser(user)
 }
 
 func (srv *HeartbeatService) GetAllWithin(from, to time.Time, user *models.User) ([]*models.Heartbeat, error) {
@@ -32,6 +40,10 @@ func (srv *HeartbeatService) GetAllWithin(from, to time.Time, user *models.User)
 		return nil, err
 	}
 	return srv.augmented(heartbeats, user.ID)
+}
+
+func (srv *HeartbeatService) GetLatestByOriginAndUser(origin string, user *models.User) (*models.Heartbeat, error) {
+	return srv.repository.GetLatestByOriginAndUser(origin, user)
 }
 
 func (srv *HeartbeatService) GetFirstByUsers() ([]*models.TimeByUser, error) {

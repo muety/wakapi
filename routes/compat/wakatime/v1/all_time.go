@@ -3,6 +3,7 @@ package v1
 import (
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	"github.com/muety/wakapi/services"
@@ -14,18 +15,24 @@ import (
 
 type AllTimeHandler struct {
 	config      *conf.Config
+	userSrvc    services.IUserService
 	summarySrvc services.ISummaryService
 }
 
-func NewAllTimeHandler(summaryService services.ISummaryService) *AllTimeHandler {
+func NewAllTimeHandler(userService services.IUserService, summaryService services.ISummaryService) *AllTimeHandler {
 	return &AllTimeHandler{
+		userSrvc:    userService,
 		summarySrvc: summaryService,
 		config:      conf.Get(),
 	}
 }
 
 func (h *AllTimeHandler) RegisterRoutes(router *mux.Router) {
-	router.Path("/wakatime/v1/users/{user}/all_time_since_today").Methods(http.MethodGet).HandlerFunc(h.Get)
+	r := router.PathPrefix("/compat/wakatime/v1/users/{user}/all_time_since_today").Subrouter()
+	r.Use(
+		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
+	)
+	r.Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
 func (h *AllTimeHandler) Get(w http.ResponseWriter, r *http.Request) {

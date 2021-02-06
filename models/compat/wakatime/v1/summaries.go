@@ -13,24 +13,24 @@ import (
 // https://pastr.de/v/736450
 
 type SummariesViewModel struct {
-	Data  []*summariesData `json:"data"`
+	Data  []*SummariesData `json:"data"`
 	End   time.Time        `json:"end"`
 	Start time.Time        `json:"start"`
 }
 
-type summariesData struct {
-	Categories       []*summariesEntry    `json:"categories"`
-	Dependencies     []*summariesEntry    `json:"dependencies"`
-	Editors          []*summariesEntry    `json:"editors"`
-	Languages        []*summariesEntry    `json:"languages"`
-	Machines         []*summariesEntry    `json:"machines"`
-	OperatingSystems []*summariesEntry    `json:"operating_systems"`
-	Projects         []*summariesEntry    `json:"projects"`
-	GrandTotal       *summariesGrandTotal `json:"grand_total"`
-	Range            *summariesRange      `json:"range"`
+type SummariesData struct {
+	Categories       []*SummariesEntry    `json:"categories"`
+	Dependencies     []*SummariesEntry    `json:"dependencies"`
+	Editors          []*SummariesEntry    `json:"editors"`
+	Languages        []*SummariesEntry    `json:"languages"`
+	Machines         []*SummariesEntry    `json:"machines"`
+	OperatingSystems []*SummariesEntry    `json:"operating_systems"`
+	Projects         []*SummariesEntry    `json:"projects"`
+	GrandTotal       *SummariesGrandTotal `json:"grand_total"`
+	Range            *SummariesRange      `json:"range"`
 }
 
-type summariesEntry struct {
+type SummariesEntry struct {
 	Digital      string  `json:"digital"`
 	Hours        int     `json:"hours"`
 	Minutes      int     `json:"minutes"`
@@ -41,7 +41,7 @@ type summariesEntry struct {
 	TotalSeconds float64 `json:"total_seconds"`
 }
 
-type summariesGrandTotal struct {
+type SummariesGrandTotal struct {
 	Digital      string  `json:"digital"`
 	Hours        int     `json:"hours"`
 	Minutes      int     `json:"minutes"`
@@ -49,7 +49,7 @@ type summariesGrandTotal struct {
 	TotalSeconds float64 `json:"total_seconds"`
 }
 
-type summariesRange struct {
+type SummariesRange struct {
 	Date     string    `json:"date"`
 	End      time.Time `json:"end"`
 	Start    time.Time `json:"start"`
@@ -58,7 +58,7 @@ type summariesRange struct {
 }
 
 func NewSummariesFrom(summaries []*models.Summary, filters *models.Filters) *SummariesViewModel {
-	data := make([]*summariesData, len(summaries))
+	data := make([]*SummariesData, len(summaries))
 	minDate, maxDate := time.Now().Add(1*time.Second), time.Time{}
 
 	for i, s := range summaries {
@@ -79,27 +79,27 @@ func NewSummariesFrom(summaries []*models.Summary, filters *models.Filters) *Sum
 	}
 }
 
-func newDataFrom(s *models.Summary) *summariesData {
+func newDataFrom(s *models.Summary) *SummariesData {
 	zone, _ := time.Now().Zone()
 	total := s.TotalTime()
 	totalHrs, totalMins := int(total.Hours()), int((total - time.Duration(total.Hours())*time.Hour).Minutes())
 
-	data := &summariesData{
-		Categories:       make([]*summariesEntry, 0),
-		Dependencies:     make([]*summariesEntry, 0),
-		Editors:          make([]*summariesEntry, len(s.Editors)),
-		Languages:        make([]*summariesEntry, len(s.Languages)),
-		Machines:         make([]*summariesEntry, len(s.Machines)),
-		OperatingSystems: make([]*summariesEntry, len(s.OperatingSystems)),
-		Projects:         make([]*summariesEntry, len(s.Projects)),
-		GrandTotal: &summariesGrandTotal{
+	data := &SummariesData{
+		Categories:       make([]*SummariesEntry, 0),
+		Dependencies:     make([]*SummariesEntry, 0),
+		Editors:          make([]*SummariesEntry, len(s.Editors)),
+		Languages:        make([]*SummariesEntry, len(s.Languages)),
+		Machines:         make([]*SummariesEntry, len(s.Machines)),
+		OperatingSystems: make([]*SummariesEntry, len(s.OperatingSystems)),
+		Projects:         make([]*SummariesEntry, len(s.Projects)),
+		GrandTotal: &SummariesGrandTotal{
 			Digital:      fmt.Sprintf("%d:%d", totalHrs, totalMins),
 			Hours:        totalHrs,
 			Minutes:      totalMins,
 			Text:         utils.FmtWakatimeDuration(total),
 			TotalSeconds: total.Seconds(),
 		},
-		Range: &summariesRange{
+		Range: &SummariesRange{
 			Date:     time.Now().Format(time.RFC3339),
 			End:      s.ToTime.T(),
 			Start:    s.FromTime.T(),
@@ -111,21 +111,21 @@ func newDataFrom(s *models.Summary) *summariesData {
 	var wg sync.WaitGroup
 	wg.Add(5)
 
-	go func(data *summariesData) {
+	go func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.Projects {
 			data.Projects[i] = convertEntry(e, s.TotalTimeBy(models.SummaryProject))
 		}
 	}(data)
 
-	go func(data *summariesData) {
+	go func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.Editors {
 			data.Editors[i] = convertEntry(e, s.TotalTimeBy(models.SummaryEditor))
 		}
 	}(data)
 
-	go func(data *summariesData) {
+	go func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.Languages {
 			data.Languages[i] = convertEntry(e, s.TotalTimeBy(models.SummaryLanguage))
@@ -133,14 +133,14 @@ func newDataFrom(s *models.Summary) *summariesData {
 		}
 	}(data)
 
-	go func(data *summariesData) {
+	go func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.OperatingSystems {
 			data.OperatingSystems[i] = convertEntry(e, s.TotalTimeBy(models.SummaryOS))
 		}
 	}(data)
 
-	go func(data *summariesData) {
+	go func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.Machines {
 			data.Machines[i] = convertEntry(e, s.TotalTimeBy(models.SummaryMachine))
@@ -151,7 +151,7 @@ func newDataFrom(s *models.Summary) *summariesData {
 	return data
 }
 
-func convertEntry(e *models.SummaryItem, entityTotal time.Duration) *summariesEntry {
+func convertEntry(e *models.SummaryItem, entityTotal time.Duration) *SummariesEntry {
 	// this is a workaround, since currently, the total time of a summary item is mistakenly represented in seconds
 	// TODO: fix some day, while migrating persisted summary items
 	total := e.Total * time.Second
@@ -163,7 +163,7 @@ func convertEntry(e *models.SummaryItem, entityTotal time.Duration) *summariesEn
 		percentage = 0
 	}
 
-	return &summariesEntry{
+	return &SummariesEntry{
 		Digital:      fmt.Sprintf("%d:%d:%d", hrs, mins, secs),
 		Hours:        hrs,
 		Minutes:      mins,

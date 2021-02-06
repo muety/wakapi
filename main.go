@@ -126,17 +126,18 @@ func main() {
 
 	// API Handlers
 	healthApiHandler := api.NewHealthApiHandler(db)
-	heartbeatApiHandler := api.NewHeartbeatApiHandler(heartbeatService, languageMappingService)
-	summaryApiHandler := api.NewSummaryApiHandler(summaryService)
+	heartbeatApiHandler := api.NewHeartbeatApiHandler(userService, heartbeatService, languageMappingService)
+	summaryApiHandler := api.NewSummaryApiHandler(userService, summaryService)
 
 	// Compat Handlers
-	wakatimeV1AllHandler := wtV1Routes.NewAllTimeHandler(summaryService)
-	wakatimeV1SummariesHandler := wtV1Routes.NewSummariesHandler(summaryService)
+	wakatimeV1AllHandler := wtV1Routes.NewAllTimeHandler(userService, summaryService)
+	wakatimeV1SummariesHandler := wtV1Routes.NewSummariesHandler(userService, summaryService)
+	wakatimeV1StatsHandler := wtV1Routes.NewStatsHandler(userService, summaryService)
 	shieldV1BadgeHandler := shieldsV1Routes.NewBadgeHandler(summaryService, userService)
 
 	// MVC Handlers
 	summaryHandler := routes.NewSummaryHandler(summaryService, userService)
-	settingsHandler := routes.NewSettingsHandler(userService, summaryService, aliasService, aggregationService, languageMappingService)
+	settingsHandler := routes.NewSettingsHandler(userService, heartbeatService, summaryService, aliasService, aggregationService, languageMappingService, keyValueService)
 	homeHandler := routes.NewHomeHandler(keyValueService)
 	loginHandler := routes.NewLoginHandler(userService)
 	imprintHandler := routes.NewImprintHandler(keyValueService)
@@ -145,17 +146,15 @@ func main() {
 	router := mux.NewRouter()
 	rootRouter := router.PathPrefix("/").Subrouter()
 	apiRouter := router.PathPrefix("/api").Subrouter()
-	compatApiRouter := apiRouter.PathPrefix("/compat").Subrouter()
 
 	// Globally used middlewares
 	recoveryMiddleware := handlers.RecoveryHandler()
 	loggingMiddleware := middlewares.NewLoggingMiddleware(log.New(os.Stdout, "", log.LstdFlags))
 	corsMiddleware := handlers.CORS()
-	authenticateMiddleware := middlewares.NewAuthenticateMiddleware(userService, []string{"/api/health", "/api/compat/shields/v1"}).Handler
 
 	// Router configs
 	router.Use(loggingMiddleware, recoveryMiddleware)
-	apiRouter.Use(corsMiddleware, authenticateMiddleware)
+	apiRouter.Use(corsMiddleware)
 
 	// Route registrations
 	homeHandler.RegisterRoutes(rootRouter)
@@ -168,11 +167,10 @@ func main() {
 	summaryApiHandler.RegisterRoutes(apiRouter)
 	healthApiHandler.RegisterRoutes(apiRouter)
 	heartbeatApiHandler.RegisterRoutes(apiRouter)
-
-	// Compat route registrations
-	wakatimeV1AllHandler.RegisterRoutes(compatApiRouter)
-	wakatimeV1SummariesHandler.RegisterRoutes(compatApiRouter)
-	shieldV1BadgeHandler.RegisterRoutes(compatApiRouter)
+	wakatimeV1AllHandler.RegisterRoutes(apiRouter)
+	wakatimeV1SummariesHandler.RegisterRoutes(apiRouter)
+	wakatimeV1StatsHandler.RegisterRoutes(apiRouter)
+	shieldV1BadgeHandler.RegisterRoutes(apiRouter)
 
 	// Static Routes
 	router.PathPrefix("/assets").Handler(http.FileServer(pkger.Dir("/static")))

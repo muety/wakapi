@@ -12,17 +12,22 @@ import (
 )
 
 type AuthenticateMiddleware struct {
-	config         *conf.Config
-	userSrvc       services.IUserService
-	whitelistPaths []string
+	config           *conf.Config
+	userSrvc         services.IUserService
+	optionalForPaths []string
 }
 
-func NewAuthenticateMiddleware(userService services.IUserService, whitelistPaths []string) *AuthenticateMiddleware {
+func NewAuthenticateMiddleware(userService services.IUserService) *AuthenticateMiddleware {
 	return &AuthenticateMiddleware{
-		config:         conf.Get(),
-		userSrvc:       userService,
-		whitelistPaths: whitelistPaths,
+		config:           conf.Get(),
+		userSrvc:         userService,
+		optionalForPaths: []string{},
 	}
+}
+
+func (m *AuthenticateMiddleware) WithOptionalFor(paths []string) *AuthenticateMiddleware {
+	m.optionalForPaths = paths
+	return m
 }
 
 func (m *AuthenticateMiddleware) Handler(h http.Handler) http.Handler {
@@ -32,13 +37,6 @@ func (m *AuthenticateMiddleware) Handler(h http.Handler) http.Handler {
 }
 
 func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	for _, p := range m.whitelistPaths {
-		if strings.HasPrefix(r.URL.Path, p) || r.URL.Path == p {
-			next(w, r)
-			return
-		}
-	}
-
 	var user *models.User
 	user, err := m.tryGetUserByCookie(r)
 
@@ -46,7 +44,12 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		user, err = m.tryGetUserByApiKey(r)
 	}
 
-	if err != nil {
+	if err != nil || user == nil {
+		if m.isOptional(r.URL.Path) {
+			next(w, r)
+			return
+		}
+
 		if strings.HasPrefix(r.URL.Path, "/api") {
 			w.WriteHeader(http.StatusUnauthorized)
 		} else {
@@ -58,6 +61,15 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 
 	ctx := context.WithValue(r.Context(), models.UserKey, user)
 	next(w, r.WithContext(ctx))
+}
+
+func (m *AuthenticateMiddleware) isOptional(requestPath string) bool {
+	for _, p := range m.optionalForPaths {
+		if strings.HasPrefix(requestPath, p) || requestPath == p {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *AuthenticateMiddleware) tryGetUserByApiKey(r *http.Request) (*models.User, error) {

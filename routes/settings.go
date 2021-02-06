@@ -11,6 +11,7 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
 	"github.com/muety/wakapi/services"
+	"github.com/muety/wakapi/services/imports"
 	"github.com/muety/wakapi/utils"
 	"net/http"
 	"strconv"
@@ -21,15 +22,25 @@ type SettingsHandler struct {
 	config              *conf.Config
 	userSrvc            services.IUserService
 	summarySrvc         services.ISummaryService
+	heartbeatSrvc       services.IHeartbeatService
 	aliasSrvc           services.IAliasService
 	aggregationSrvc     services.IAggregationService
 	languageMappingSrvc services.ILanguageMappingService
+	keyValueSrvc        services.IKeyValueService
 	httpClient          *http.Client
 }
 
 var credentialsDecoder = schema.NewDecoder()
 
-func NewSettingsHandler(userService services.IUserService, summaryService services.ISummaryService, aliasService services.IAliasService, aggregationService services.IAggregationService, languageMappingService services.ILanguageMappingService) *SettingsHandler {
+func NewSettingsHandler(
+	userService services.IUserService,
+	heartbeatService services.IHeartbeatService,
+	summaryService services.ISummaryService,
+	aliasService services.IAliasService,
+	aggregationService services.IAggregationService,
+	languageMappingService services.ILanguageMappingService,
+	keyValueService services.IKeyValueService,
+) *SettingsHandler {
 	return &SettingsHandler{
 		config:              conf.Get(),
 		summarySrvc:         summaryService,
@@ -37,6 +48,8 @@ func NewSettingsHandler(userService services.IUserService, summaryService servic
 		aggregationSrvc:     aggregationService,
 		languageMappingSrvc: languageMappingService,
 		userSrvc:            userService,
+		heartbeatSrvc:       heartbeatService,
+		keyValueSrvc:        keyValueService,
 		httpClient:          &http.Client{Timeout: 10 * time.Second},
 	}
 }
@@ -44,7 +57,7 @@ func NewSettingsHandler(userService services.IUserService, summaryService servic
 func (h *SettingsHandler) RegisterRoutes(router *mux.Router) {
 	r := router.PathPrefix("/settings").Subrouter()
 	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc, []string{}).Handler,
+		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
 	)
 	r.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
 	r.Methods(http.MethodPost).HandlerFunc(h.PostIndex)
@@ -88,10 +101,12 @@ func (h *SettingsHandler) PostIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if errorMsg != "" {
+		w.WriteHeader(status)
 		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError(errorMsg))
 		return
 	}
 	if successMsg != "" {
+		w.WriteHeader(status)
 		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess(successMsg))
 		return
 	}
@@ -112,10 +127,12 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 		return h.actionDeleteLanguageMapping
 	case "add_mapping":
 		return h.actionAddLanguageMapping
-	case "toggle_badges":
-		return h.actionToggleBadges
+	case "update_sharing":
+		return h.actionUpdateSharing
 	case "toggle_wakatime":
 		return h.actionSetWakatimeApiKey
+	case "import_wakatime":
+		return h.actionImportWaktime
 	case "regenerate_summaries":
 		return h.actionRegenerateSummaries
 	case "delete_account":
@@ -183,6 +200,34 @@ func (h *SettingsHandler) actionResetApiKey(w http.ResponseWriter, r *http.Reque
 
 	msg := fmt.Sprintf("your new api key is: %s", user.ApiKey)
 	return http.StatusOK, msg, ""
+}
+
+func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Request) (int, string, string) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	var err error
+	user := r.Context().Value(models.UserKey).(*models.User)
+
+	defer h.userSrvc.FlushCache()
+
+	user.ShareProjects, err = strconv.ParseBool(r.PostFormValue("share_projects"))
+	user.ShareLanguages, err = strconv.ParseBool(r.PostFormValue("share_languages"))
+	user.ShareEditors, err = strconv.ParseBool(r.PostFormValue("share_editors"))
+	user.ShareOSs, err = strconv.ParseBool(r.PostFormValue("share_oss"))
+	user.ShareMachines, err = strconv.ParseBool(r.PostFormValue("share_machines"))
+	user.ShareDataMaxDays, err = strconv.Atoi(r.PostFormValue("max_days"))
+
+	if err != nil {
+		return http.StatusBadRequest, "", "invalid input"
+	}
+
+	if _, err := h.userSrvc.Update(user); err != nil {
+		return http.StatusInternalServerError, "", "internal sever error"
+	}
+
+	return http.StatusOK, "settings updated", ""
 }
 
 func (h *SettingsHandler) actionDeleteAlias(w http.ResponseWriter, r *http.Request) (int, string, string) {
@@ -282,19 +327,6 @@ func (h *SettingsHandler) actionAddLanguageMapping(w http.ResponseWriter, r *htt
 	return http.StatusOK, "mapping added successfully", ""
 }
 
-func (h *SettingsHandler) actionToggleBadges(w http.ResponseWriter, r *http.Request) (int, string, string) {
-	if h.config.IsDev() {
-		loadTemplates()
-	}
-
-	user := r.Context().Value(models.UserKey).(*models.User)
-	if _, err := h.userSrvc.ToggleBadges(user); err != nil {
-		return http.StatusInternalServerError, "", "internal server error"
-	}
-
-	return http.StatusOK, "", ""
-}
-
 func (h *SettingsHandler) actionSetWakatimeApiKey(w http.ResponseWriter, r *http.Request) (int, string, string) {
 	if h.config.IsDev() {
 		loadTemplates()
@@ -315,6 +347,74 @@ func (h *SettingsHandler) actionSetWakatimeApiKey(w http.ResponseWriter, r *http
 	return http.StatusOK, "Wakatime API Key updated successfully", ""
 }
 
+func (h *SettingsHandler) actionImportWaktime(w http.ResponseWriter, r *http.Request) (int, string, string) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	user := r.Context().Value(models.UserKey).(*models.User)
+	if user.WakatimeApiKey == "" {
+		return http.StatusForbidden, "", "not connected to wakatime"
+	}
+
+	kvKey := fmt.Sprintf("%s_%s", conf.KeyLastImportImport, user.ID)
+
+	if !h.config.IsDev() {
+		lastImportKv := h.keyValueSrvc.MustGetString(kvKey)
+		lastImport, _ := time.Parse(time.RFC822, lastImportKv.Value)
+		if time.Now().Sub(lastImport) < time.Duration(h.config.App.ImportBackoffMin)*time.Minute {
+			return http.StatusTooManyRequests,
+				"",
+				fmt.Sprintf("Too many data imports. You are only allowed to request an import every %d minutes.", h.config.App.ImportBackoffMin)
+		}
+	}
+
+	go func(user *models.User) {
+		importer := imports.NewWakatimeHeartbeatImporter(user.WakatimeApiKey)
+
+		countBefore, err := h.heartbeatSrvc.CountByUser(user)
+		if err != nil {
+			println(err)
+		}
+
+		var stream <-chan *models.Heartbeat
+		if latest, err := h.heartbeatSrvc.GetLatestByOriginAndUser(imports.OriginWakatime, user); latest == nil || err != nil {
+			stream = importer.ImportAll(user)
+		} else {
+			// if an import has happened before, only import heartbeats newer than the latest of the last import
+			stream = importer.Import(user, latest.Time.T(), time.Now())
+		}
+
+		count := 0
+		batch := make([]*models.Heartbeat, 0)
+
+		for hb := range stream {
+			count++
+			batch = append(batch, hb)
+
+			if len(batch) == h.config.App.ImportBatchSize {
+				if err := h.heartbeatSrvc.InsertBatch(batch); err != nil {
+					logbuch.Warn("failed to insert imported heartbeat, already existing? – %v", err)
+				}
+
+				batch = make([]*models.Heartbeat, 0)
+			}
+		}
+
+		countAfter, _ := h.heartbeatSrvc.CountByUser(user)
+		logbuch.Info("downloaded %d heartbeats for user '%s' (%d actually imported)", count, user.ID, countAfter-countBefore)
+
+		h.regenerateSummaries(user)
+	}(user)
+
+	h.keyValueSrvc.PutString(&models.KeyStringValue{
+		Key:   kvKey,
+		Value: time.Now().Format(time.RFC822),
+	})
+
+	return http.StatusAccepted, "ImportAll started. This may take a few minutes.", ""
+}
+
 func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *http.Request) (int, string, string) {
 	if h.config.IsDev() {
 		loadTemplates()
@@ -322,16 +422,8 @@ func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *ht
 
 	user := r.Context().Value(models.UserKey).(*models.User)
 
-	logbuch.Info("clearing summaries for user '%s'", user.ID)
-	if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
-		logbuch.Error("failed to clear summaries: %v", err)
-		return http.StatusInternalServerError, "", "failed to delete old summaries"
-	}
-
-	if err := h.aggregationSrvc.Run(map[string]bool{user.ID: true}); err != nil {
-		logbuch.Error("failed to regenerate summaries: %v", err)
-		return http.StatusInternalServerError, "", "failed to generate aggregations"
-
+	if err := h.regenerateSummaries(user); err != nil {
+		return http.StatusInternalServerError, "", "failed to regenerate summaries"
 	}
 
 	return http.StatusOK, "summaries are being regenerated – this may take a few seconds", ""
@@ -368,7 +460,7 @@ func (h *SettingsHandler) validateWakatimeKey(apiKey string) bool {
 
 	request, err := http.NewRequest(
 		http.MethodGet,
-		conf.WakatimeApiUrl+conf.WakatimeApiUserEndpoint,
+		conf.WakatimeApiUrl+conf.WakatimeApiUserUrl,
 		nil,
 	)
 	if err != nil {
@@ -383,6 +475,21 @@ func (h *SettingsHandler) validateWakatimeKey(apiKey string) bool {
 	}
 
 	return true
+}
+
+func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
+	logbuch.Info("clearing summaries for user '%s'", user.ID)
+	if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
+		logbuch.Error("failed to clear summaries: %v", err)
+		return err
+	}
+
+	if err := h.aggregationSrvc.Run(map[string]bool{user.ID: true}); err != nil {
+		logbuch.Error("failed to regenerate summaries: %v", err)
+		return err
+	}
+
+	return nil
 }
 
 func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewModel {

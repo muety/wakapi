@@ -7,35 +7,52 @@ import (
 	"time"
 )
 
-func ResolveInterval(interval string) (err error, from, to time.Time) {
+func ParseInterval(interval string) (*models.IntervalKey, error) {
+	for _, i := range models.AllIntervals {
+		if i.HasAlias(interval) {
+			return i, nil
+		}
+	}
+	return nil, errors.New("not a valid interval")
+}
+
+func ResolveIntervalRaw(interval string) (err error, from, to time.Time) {
+	parsed, err := ParseInterval(interval)
+	if err != nil {
+		return err, time.Time{}, time.Time{}
+	}
+	return ResolveInterval(parsed)
+}
+
+func ResolveInterval(interval *models.IntervalKey) (err error, from, to time.Time) {
 	to = time.Now()
 
 	switch interval {
-	case models.IntervalToday, models.IntervalWakatimeToday:
+	case models.IntervalToday:
 		from = StartOfToday()
-	case models.IntervalYesterday, models.IntervalWakatimeYesterday:
+	case models.IntervalYesterday:
 		from = StartOfToday().Add(-24 * time.Hour)
 		to = StartOfToday()
-	case models.IntervalThisWeek, models.IntervalWakatimeThisWeek:
+	case models.IntervalThisWeek:
 		from = StartOfWeek()
-	case models.IntervalWakatimeLastWeek:
+	case models.IntervalLastWeek:
 		from = StartOfWeek().AddDate(0, 0, -7)
 		to = StartOfWeek()
-	case models.IntervalThisMonth, models.IntervalWakatimeThisMonth:
+	case models.IntervalThisMonth:
 		from = StartOfMonth()
-	case models.IntervalWakatimeLastMonth:
+	case models.IntervalLastMonth:
 		from = StartOfMonth().AddDate(0, -1, 0)
 		to = StartOfMonth()
 	case models.IntervalThisYear:
 		from = StartOfYear()
-	case models.IntervalPast7Days, models.IntervalWakatimeLast7Days:
+	case models.IntervalPast7Days:
 		from = StartOfToday().AddDate(0, 0, -7)
-	case models.IntervalWakatimeLast7DaysYesterday:
+	case models.IntervalPast7DaysYesterday:
 		from = StartOfToday().AddDate(0, 0, -1).AddDate(0, 0, -7)
 		to = StartOfToday().AddDate(0, 0, -1)
-	case models.IntervalWakatimeLast14Days:
+	case models.IntervalPast14Days:
 		from = StartOfToday().AddDate(0, 0, -14)
-	case models.IntervalPast30Days, models.IntervalWakatimeLast30Days:
+	case models.IntervalPast30Days:
 		from = StartOfToday().AddDate(0, 0, -30)
 	case models.IntervalPast12Months:
 		from = StartOfToday().AddDate(0, -12, 0)
@@ -56,7 +73,7 @@ func ParseSummaryParams(r *http.Request) (*models.SummaryParams, error) {
 	var from, to time.Time
 
 	if interval := params.Get("interval"); interval != "" {
-		err, from, to = ResolveInterval(interval)
+		err, from, to = ResolveIntervalRaw(interval)
 	} else {
 		from, err = ParseDate(params.Get("from"))
 		if err != nil {
