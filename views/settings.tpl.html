@@ -433,9 +433,11 @@
                         <span class="text-xs text-gray-500">(Only available on public instances, not on localhost)</span>
                     </div>
                     <div class="flex flex-col mb-4 mt-2">
-                        <img src="https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&layout=compact&api_domain=%s" class="with-url-src-no-scheme">
+                        <img src="https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact" class="with-url-src-no-scheme">
                         <p class="mt-2"><strong>Source URL:</strong>
-                            <span class="break-words text-xs bg-gray-900 rounded py-1 px-2 font-mono with-url-inner-no-scheme">https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&layout=compact&api_domain=%s</span>
+                        <span class="break-words text-xs bg-gray-900 rounded py-1 px-2 font-mono with-url-inner-no-scheme">
+                            https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact
+                        </span>
                         </p>
                     </div>
                     {{ end }}

@@ -199,7 +199,7 @@ The following API endpoints are available. A more detailed Swagger documentation
 ### Prometheus Export
 If you want to export your Wakapi statistics to Prometheus to view them in a Grafana dashboard or so please refer to an excellent tool called **[wakatime_exporter](https://github.com/MacroPower/wakatime_exporter)**.
 
-[![](https://github-readme-stats.vercel.app/api/pin/?username=MacroPower&repo=wakatime_exporter&show_owner=true)](https://github.com/MacroPower/wakatime_exporter)
+[![](https://github-readme-stats.vercel.app/api/pin/?username=MacroPower&repo=wakatime_exporter&show_owner=true&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff)](https://github.com/MacroPower/wakatime_exporter)
 
 It is a standalone webserver that connects to your Wakapi instance and exposes the data as Prometheus metrics. Although originally developed to scrape data from WakaTime, it will mostly for with Wakapi as well, as the APIs are partially compatible.
 
@@ -210,7 +210,8 @@ Wakapi plays well together with [WakaTime](https://wakatime.com). For one thing,
 
 ### GitHub Readme Stats Integrations
 Wakapi also integrates with [GitHub Readme Stats](https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats) to generate fancy cards for you. Here is an example.
-![](https://github-readme-stats.vercel.app/api/wakatime?username=n1try&layout=compact&api_domain=wakapi.dev)
+
+![](https://github-readme-stats.vercel.app/api/wakatime?username=n1try&api_domain=wakapi.dev&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact)
 
 ## 👍 Best Practices
 It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or _nginx_ to enable **TLS encryption** (HTTPS).
