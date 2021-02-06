@@ -33,237 +33,355 @@
 
 <main class="mt-4 flex-grow flex justify-center w-full">
     <div class="flex flex-col flex-grow max-w-xl mt-8">
-        <div class="text-gray-500 text-xs mb-8">
-            <ul class="flex justify-center flex-wrap space-x-1 inline-bullet-list px-12">
-                <li class="hover:text-gray-400 mb-1">
-                    <a href="settings#password">Change Password</a>
-                </li>
-                <li class="hover:text-gray-400 mb-1">
-                    <a href="settings#apikey">Reset API Key</a>
-                </li>
-                <li class="hover:text-gray-400 mb-1">
-                    <a href="settings#aliases">Aliases</a>
-                </li>
-                <li class="hover:text-gray-400 mb-1">
-                    <a href="settings#languages">Languages & File Extensions</a>
-                </li>
-                <li class="hover:text-gray-400 mb-1">
-                    <a href="settings#badges">Badges</a>
-                </li>
-                <li class="hover:text-gray-400 mb-1">
-                    <a href="settings#integrations">Integrations</a>
-                </li>
-                <li class="hover:text-gray-400 mb-1">
-                    <a href="settings#danger">Danger Zone</a>
-                </li>
-            </ul>
-        </div>
 
-        <div class="w-full my-8 pb-8 border-b border-gray-700">
-            <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="password">
-                Change Password
-            </h2>
-
-            <form class="mt-10" action="" method="post">
-                <input type="hidden" name="action" value="change_password">
-                <div class="mb-8">
-                    <label class="inline-block text-sm mb-1 text-gray-500" for="password_old">Current Password</label>
-                    <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
-                           type="password" id="password_old"
-                           name="password_old" placeholder="Enter your old password" minlength="6" required>
-                </div>
-                <div class="mb-8">
-                    <label class="inline-block text-sm mb-1 text-gray-500" for="password_new">New Password</label>
-                    <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
-                           type="password" id="password_new"
-                           name="password_new" placeholder="Choose a password" minlength="6" required>
-                </div>
-                <div class="mb-8">
-                    <label class="inline-block text-sm mb-1 text-gray-500" for="password_repeat">And again ...</label>
-                    <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
-                           type="password" id="password_repeat"
-                           name="password_repeat" placeholder="Repeat your password" minlength="6" required>
-                </div>
-                <div class="flex justify-between float-right">
-                    <button type="submit" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
-                        Save
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700">
-            <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="apikey">
-                Reset API Key
-            </h2>
-
-            <form class="mt-6" action="" method="post">
-                <input type="hidden" name="action" value="reset_apikey">
-                <div class="text-gray-300 text-sm mb-4">
-                    <strong>⚠️ Caution:</strong> Resetting your API key requires you to update your <span
-                        class="font-mono">.wakatime.cfg</span> files on all of your computers to make the WakaTime
-                    client send heartbeats again.
-                </div>
-
-                <div class="flex justify-between float-right">
-                    <button type="submit" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm">
-                        Reset
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700" id="aliases">
-            <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
-                Aliases
-            </h2>
-
-            <div class="text-gray-300 text-sm mb-4 mt-6">
-                You can specify aliases for any type of entity. For instance, you can define a rule, that both <span
-                    class="inline-block mb-1 text-gray-500 italic">myapp-frontend</span> and <span
-                    class="inline-block mb-1 text-gray-500 italic">myapp-backend</span> are combined under a
-                project called <span class="inline-block mb-1 text-gray-500 italic">myapp</span>.
-            </div>
-
-            {{ if .Aliases }}
-            <h3 class="inline-block font-semibold text-md border-b border-green-700 text-white">Rules</h3>
-            {{ range $i, $alias := .Aliases }}
-            <div class="flex items-center">
-                <div class="text-gray-500 border-1 w-full border-green-700 inline-block my-1 py-1 text-align text-sm"
-                     style="line-height: 1.8">
-                    &#9656;&nbsp; All <span class="underline">{{ $alias.Type | typeName }}s</span> named
-                    {{ range $j, $value := $alias.Values }}
-                    <span class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono">{{- $value -}}</span>
-                    {{ if lt $j (add (len $alias.Values) -2) }}
-                    <span class="-ml-1">{{- ", " | capitalize -}}</span>
-                    {{ else if lt $j (add (len $alias.Values) -1) }}
-                    <span>{{- "or" -}}</span>
-                    {{ end }}
-                    {{ end }}
-                    are mapped to <span class="underline">{{ $alias.Type | typeName }}</span> <span
-                        class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono">{{ $alias.Key }}</span>.
-                </div>
-                <form class="float-right" action="" method="post">
-                    <input type="hidden" name="action" value="delete_alias">
-                    <input type="hidden" id="delete_alias_key" name="key" required value="{{ $alias.Key }}">
-                    <input type="hidden" id="delete_alias_type" name="type" required value="{{ $alias.Type }}">
-                    <button type="submit"
-                            class="py-1 px-3 rounded border border-red-500 hover:border-red-600 text-gray-400 text-sm">
-                        ✕
-                    </button>
+        <details class="my-8 pb-8 border-b border-gray-700">
+            <summary class="cursor-pointer">
+                <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="password">
+                    Change Password
+                </h2>
+            </summary>
+            <div class="w-full">
+                <form class="mt-10" action="" method="post">
+                    <input type="hidden" name="action" value="change_password">
+                    <div class="mb-8">
+                        <label class="inline-block text-sm mb-1 text-gray-500" for="password_old">Current Password</label>
+                        <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
+                               type="password" id="password_old"
+                               name="password_old" placeholder="Enter your old password" minlength="6" required>
+                    </div>
+                    <div class="mb-8">
+                        <label class="inline-block text-sm mb-1 text-gray-500" for="password_new">New Password</label>
+                        <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
+                               type="password" id="password_new"
+                               name="password_new" placeholder="Choose a password" minlength="6" required>
+                    </div>
+                    <div class="mb-8">
+                        <label class="inline-block text-sm mb-1 text-gray-500" for="password_repeat">And again ...</label>
+                        <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
+                               type="password" id="password_repeat"
+                               name="password_repeat" placeholder="Repeat your password" minlength="6" required>
+                    </div>
+                    <div class="flex justify-between float-right">
+                        <button type="submit" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                            Save
+                        </button>
+                    </div>
                 </form>
             </div>
-            {{end}}
-            <div class="mb-8"></div>
-            {{end}}
+        </details>
 
-            <h3 class="inline-block font-semibold text-md border-b border-green-700 text-white mb-2">Add Rule</h3>
-            <form action="" method="post">
-                <input type="hidden" name="action" value="add_alias">
-                <div class="flex items-center mt-2 w-full text-gray-500 text-sm">
-                    <span class="mr-2">Map</span>
-                    <select name="type" id="select-type"
-                            class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3 cursor-pointer">
-                        {{ range $i, $t := entityTypes }}
-                        <option value="{{ $t }}">{{ $t | typeName | capitalize }}</option>
+        <details class="mb-8 pb-8 border-b border-gray-700">
+            <summary class="cursor-pointer">
+                <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
+                    Aliases
+                </h2>
+            </summary>
+            <div class="w-full" id="aliases">
+                <div class="text-gray-300 text-sm mb-4 mt-6">
+                    You can specify aliases for any type of entity. For instance, you can define a rule, that both <span
+                        class="inline-block mb-1 text-gray-500 italic">myapp-frontend</span> and <span
+                        class="inline-block mb-1 text-gray-500 italic">myapp-backend</span> are combined under a
+                    project called <span class="inline-block mb-1 text-gray-500 italic">myapp</span>.
+                </div>
+
+                {{ if .Aliases }}
+                <h3 class="inline-block font-semibold text-md border-b border-green-700 text-white">Rules</h3>
+                {{ range $i, $alias := .Aliases }}
+                <div class="flex items-center">
+                    <div class="text-gray-500 border-1 w-full border-green-700 inline-block my-1 py-1 text-align text-sm"
+                         style="line-height: 1.8">
+                        &#9656;&nbsp; All <span class="underline">{{ $alias.Type | typeName }}s</span> named
+                        {{ range $j, $value := $alias.Values }}
+                        <span class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono">{{- $value -}}</span>
+                        {{ if lt $j (add (len $alias.Values) -2) }}
+                        <span class="-ml-1">{{- ", " | capitalize -}}</span>
+                        {{ else if lt $j (add (len $alias.Values) -1) }}
+                        <span>{{- "or" -}}</span>
                         {{ end }}
-                    </select>
-                    <span class="mx-2">named</span>
-                    <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
-                           type="text" id="alias-value" style="width: 130px;"
-                           name="value" placeholder="myapp-frontend" minlength="1" required>
-                    <span class="mx-2">to</span>
-                    <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
-                           type="text" id="alias-key" style="width: 100px"
-                           name="key" placeholder="myapp" minlength="1" required>
-                    <div class="flex-grow flex justify-end">
-                        <button type="submit"
-                                class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
-                            Add
-                        </button>
+                        {{ end }}
+                        are mapped to <span class="underline">{{ $alias.Type | typeName }}</span> <span
+                            class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono">{{ $alias.Key }}</span>.
                     </div>
+                    <form class="float-right" action="" method="post">
+                        <input type="hidden" name="action" value="delete_alias">
+                        <input type="hidden" id="delete_alias_key" name="key" required value="{{ $alias.Key }}">
+                        <input type="hidden" id="delete_alias_type" name="type" required value="{{ $alias.Type }}">
+                        <button type="submit"
+                                class="py-1 px-3 rounded border border-red-500 hover:border-red-600 text-gray-400 text-sm">
+                            ✕
+                        </button>
+                    </form>
                 </div>
-            </form>
-        </div>
+                {{end}}
+                <div class="mb-8"></div>
+                {{end}}
 
-        <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700">
-            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="languages">
-                Languages & File Extensions
-            </div>
-
-            <div class="text-gray-300 text-sm mb-4 mt-6">
-                You can specify custom mapping from file extensions to programming languages, for instance a <span
-                    class="inline-block mb-1 text-gray-500 italic">.jsx</span> file could be mapped to the <span
-                    class="inline-block mb-1 text-gray-500 italic">React</span> language.
-            </div>
-
-            {{ if .LanguageMappings }}
-            <h3 class="inline-block font-semibold text-md border-b border-green-700 text-white">Rules</h3>
-            {{ range $i, $mapping := .LanguageMappings }}
-            <div class="flex items-center">
-                <div class="text-gray-500 border-1 w-full border-green-700 inline-block my-1 py-1 text-align text-sm">
-                    &#9656;&nbsp; When filename ends in <span
-                        class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono mr-1">{{ $mapping.Extension }}</span>
-                    then change the <span class="underline">language</span> to <span
-                        class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono mr-1">{{ $mapping.Language }}</span>
-                </div>
-                <form class="float-right" action="" method="post">
-                    <input type="hidden" name="action" value="delete_mapping">
-                    <input type="hidden" id="mapping_id" name="mapping_id" required value="{{ $mapping.ID }}">
-                    <button type="submit"
-                            class="py-1 px-3 rounded border border-red-500 hover:border-red-600 text-gray-400 text-sm">
-                        ✕
-                    </button>
+                <h3 class="inline-block font-semibold text-md border-b border-green-700 text-white mb-2">Add Rule</h3>
+                <form action="" method="post">
+                    <input type="hidden" name="action" value="add_alias">
+                    <div class="flex items-center mt-2 w-full text-gray-500 text-sm">
+                        <span class="mr-2">Map</span>
+                        <select name="type" id="select-type"
+                                class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3 cursor-pointer">
+                            {{ range $i, $t := entityTypes }}
+                            <option value="{{ $t }}">{{ $t | typeName | capitalize }}</option>
+                            {{ end }}
+                        </select>
+                        <span class="mx-2">named</span>
+                        <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
+                               type="text" id="alias-value" style="width: 130px;"
+                               name="value" placeholder="myapp-frontend" minlength="1" required>
+                        <span class="mx-2">to</span>
+                        <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
+                               type="text" id="alias-key" style="width: 100px"
+                               name="key" placeholder="myapp" minlength="1" required>
+                        <div class="flex-grow flex justify-end">
+                            <button type="submit"
+                                    class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                                Add
+                            </button>
+                        </div>
+                    </div>
                 </form>
             </div>
-            {{end}}
-            <div class="mb-8"></div>
-            {{end}}
+        </details>
 
-            <h3 class="inline-block font-semibold text-md border-b border-green-700 text-white">Add Rule</h3>
-            <form action="" method="post">
-                <input type="hidden" name="action" value="add_mapping">
-                <div class="flex items-center w-full text-gray-500 text-sm">
-                    <span class="mr-2">When filename ends in</span>
-                    <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
-                           type="text" id="extension" style="width: 70px"
-                           name="extension" placeholder=".py" minlength="1" required>
-                    <span class="mx-2">change language to</span>
-                    <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
-                           type="text" id="language" style="width: 100px"
-                           name="language" placeholder="Python" minlength="1" required>
-                    <div class="flex-grow flex justify-end">
-                        <button type="submit"
-                                class="py-1 px-3 my-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
-                            Add
-                        </button>
-                    </div>
+        <details class="mb-8 pb-8 border-b border-gray-700">
+            <summary class="cursor-pointer">
+                <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block"
+                    id="languages">
+                    Custom Mappings
+                </h2>
+            </summary>
+            <div class="w-full">
+                <div class="text-gray-300 text-sm mb-4 mt-6">
+                    You can specify custom mapping from file extensions to programming languages, for instance a <span
+                        class="inline-block mb-1 text-gray-500 italic">.jsx</span> file could be mapped to the <span
+                        class="inline-block mb-1 text-gray-500 italic">React</span> language.
                 </div>
-            </form>
-        </div>
 
-        <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700">
-            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="badges">
-                Badges
-            </div>
-
-            <form class="mt-6" action="" method="post">
-                <input type="hidden" name="action" value="toggle_badges">
-                <div class="text-gray-300 text-sm mb-4">
-                    {{ if .User.BadgesEnabled }}
-                    <p>Badges are currently enabled. You can disable the feature by deactivating the respective API
-                        endpoint.</p>
-
-                    <div class="flex justify-around mt-4">
-                        <span class="font-mono font-normal bg-gray-900 p-1 rounded whitespace-no-wrap">GET /api/compat/shields/v1</span>
+                {{ if .LanguageMappings }}
+                <h3 class="inline-block font-semibold text-md border-b border-green-700 text-white">Rules</h3>
+                {{ range $i, $mapping := .LanguageMappings }}
+                <div class="flex items-center">
+                    <div class="text-gray-500 border-1 w-full border-green-700 inline-block my-1 py-1 text-align text-sm">
+                        &#9656;&nbsp; When filename ends in <span
+                            class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono mr-1">{{ $mapping.Extension }}</span>
+                        then change the <span class="underline">language</span> to <span
+                            class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono mr-1">{{ $mapping.Language }}</span>
+                    </div>
+                    <form class="float-right" action="" method="post">
+                        <input type="hidden" name="action" value="delete_mapping">
+                        <input type="hidden" id="mapping_id" name="mapping_id" required value="{{ $mapping.ID }}">
                         <button type="submit"
-                                class="py-1 px-2 rounded bg-orange-700 hover:bg-orange-800 text-white text-xs"
-                                title="Disable support for badges to secure endpoint">
-                            Status: public
+                                class="py-1 px-3 rounded border border-red-500 hover:border-red-600 text-gray-400 text-sm">
+                            ✕
                         </button>
+                    </form>
+                </div>
+                {{end}}
+                <div class="mb-8"></div>
+                {{end}}
+
+                <h3 class="inline-block font-semibold text-md border-b border-green-700 text-white">Add Rule</h3>
+                <form action="" method="post">
+                    <input type="hidden" name="action" value="add_mapping">
+                    <div class="flex items-center w-full text-gray-500 text-sm">
+                        <span class="mr-2">When filename ends in</span>
+                        <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
+                               type="text" id="extension" style="width: 70px"
+                               name="extension" placeholder=".py" minlength="1" required>
+                        <span class="mx-2">change language to</span>
+                        <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
+                               type="text" id="language" style="width: 100px"
+                               name="language" placeholder="Python" minlength="1" required>
+                        <div class="flex-grow flex justify-end">
+                            <button type="submit"
+                                    class="py-1 px-3 my-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </details>
+
+        <details class="mb-8 pb-8 border-b border-gray-700" id="public_data">
+            <summary class="cursor-pointer">
+                <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
+                    Public Data
+                </h2>
+            </summary>
+
+            <div>
+                <p class="text-gray-300 text-sm mb-4 mt-6">Some features require public access to your data without authentication. This mainly includes <strong>Badges</strong> and the integration with <strong>GitHub Readme Stats</strong>, corresponding to these API endpoints:</p>
+                <ul class="list-disc list-inside text-gray-300">
+                    <li class="ml-2"><span class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono">/api/compat/shields/v1/{user}</span></li>
+                    <li class="ml-2"><span class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono">/api/v1/users/{user}/stats/{range}</span></li>
+                </ul>
+
+                <form action="" method="post" class="mt-8">
+                    <input type="hidden" name="action" value="update_sharing">
+                    <div class="flex items-center w-full text-gray-300 text-sm justify-between my-2">
+                        <span class="mr-2">Publicly accessible data range:<br><span class="text-xs text-gray-500">(in days; 0 = not public)</span></span>
+                        <div>
+                            <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
+                                   style="width: 70px;" type="number" id="max_days" name="max_days" min="0" max="365" required value="{{ .User.ShareDataMaxDays }}">
+                        </div>
+                    </div>
+                    <div class="flex items-center w-full text-gray-300 text-sm justify-between my-2">
+                        <div class="flex justify-start">
+                            <span class="mr-2">Share projects: </span>
+                        </div>
+                        <div class="flex justify-end">
+                            <select autocomplete="off" name="share_projects" class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareProjects }} selected {{ end }}>No</option>
+                                <option value="true" class="cursor-pointer" {{ if .User.ShareProjects }} selected {{ end }}>Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center w-full text-gray-300 text-sm justify-between my-2">
+                        <div class="flex justify-start">
+                            <span class="mr-2">Share languages: </span>
+                        </div>
+                        <div class="flex justify-end">
+                            <select autocomplete="off" name="share_languages" class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareLanguages }} selected {{ end }}>No</option>
+                                <option value="true" class="cursor-pointer" {{ if .User.ShareLanguages }} selected {{ end }}>Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center w-full text-gray-300 text-sm justify-between my-2">
+                        <div class="flex justify-start">
+                            <span class="mr-2">Share editors: </span>
+                        </div>
+                        <div class="flex justify-end">
+                            <select autocomplete="off" name="share_editors" class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareEditors }} selected {{ end }}>No</option>
+                                <option value="true" class="cursor-pointer" {{ if .User.ShareEditors }} selected {{ end }}>Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center w-full text-gray-300 text-sm justify-between my-2">
+                        <div class="flex justify-start">
+                            <span class="mr-2">Share operating systems: </span>
+                        </div>
+                        <div class="flex justify-end">
+                            <select autocomplete="off" name="share_oss" class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareOSs }} selected {{ end }}>No</option>
+                                <option value="true" class="cursor-pointer" {{ if .User.ShareOSs }} selected {{ end }}>Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center w-full text-gray-300 text-sm justify-between my-2">
+                        <div class="flex justify-start">
+                            <span class="mr-2">Share machines: </span>
+                        </div>
+                        <div class="flex justify-end">
+                            <select autocomplete="off" name="share_machines" class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareMachines }} selected {{ end }}>No</option>
+                                <option value="true" class="cursor-pointer" {{ if .User.ShareMachines }} selected {{ end }}>Yes</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <h3 class="font-semibold mb-2 mt-8">Examples</h3>
+                    <div class="flex justify-between float-right mt-4">
+                        <button type="submit" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm" style="width: 100px;">
+                            Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </details>
+
+        <details class="mb-8 pb-8 border-b border-gray-700">
+            <summary class="cursor-pointer">
+                <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block"
+                    id="integrations">
+                    Integrations
+                </h2>
+            </summary>
+            <div class="w-full">
+                <div class="mt-8 text-gray-300 text-sm">
+                    <h3 class="inline-block font-semibold text-md mb-4 border-b border-green-700">
+                        WakaTime
+                    </h3>
+
+                    <div class="flex space-x-4">
+                        <img alt="WakaTime Logo"
+                             width="55px"
+                             src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzQwIiBoZWlnaHQ9IjM0MCIgdmlld0JveD0iMCAwIDM0MCAzNDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMTcwIDIwQzg3LjE1NiAyMCAyMCA4Ny4xNTYgMjAgMTcwQzIwIDI1Mi44NDQgODcuMTU2IDMyMCAxNzAgMzIwQzI1Mi44NDQgMzIwIDMyMCAyNTIuODQ0IDMyMCAxNzBDMzIwIDg3LjE1NiAyNTIuODQ0IDIwIDE3MCAyMFYyMFYyMFoiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iNDAiLz4KPHBhdGggZD0iTTE5MC4xODMgMjEzLjU0MUMxODguNzQgMjE1LjQ0MyAxODYuNTc2IDIxNi42NjcgMTg0LjE1MSAyMTYuNjY3QzE4My45MTMgMjE2LjY2NyAxODMuNjc3IDIxNi42NTEgMTgzLjQ0MyAyMTYuNjI3QzE4My4wNDIgMjE2LjU3OSAxODIuODIzIDIxNi41NDUgMTgyLjYwNiAyMTYuNDk3QzE4Mi4zMzcgMjE2LjQzNCAxODIuMTM3IDIxNi4zNzUgMTgxLjk0IDIxNi4zMDhDMTgxLjU2MSAyMTYuMTc2IDE4MS4zOTIgMjE2LjEwOSAxODEuMjI4IDIxNi4wMzVDMTgwLjg0MyAyMTUuODQ5IDE4MC43MDcgMjE1Ljc3OCAxODAuNTcyIDIxNS43MDFDMTgwLjIwNSAyMTUuNDc4IDE4MC4xMDkgMjE1LjQxMiAxODAuMDE0IDIxNS4zNDVDMTc5Ljg1NiAyMTUuMjMzIDE3OS42OTggMjE1LjExNyAxNzkuNTQ3IDIxNC45OTJDMTc5LjI1MSAyMTQuNzQ2IDE3OS4xNDcgMjE0LjY1IDE3OS4wNDQgMjE0LjU1MkMxNzguNzMxIDIxNC4yNDEgMTc4LjUzMSAyMTQuMDE4IDE3OC4zNDEgMjEzLjc4NUMxNzcuOTgyIDIxMy4zMzEgMTc3LjY5IDIxMi44ODggMTc3LjQzOCAyMTIuNDE1TDE2OC42IDE5OC4yMTRMMTU5Ljc2NiAyMTIuNDE1QzE1OC4zOCAyMTQuOTM5IDE1NS44NzQgMjE2LjY2NyAxNTIuOTk1IDIxNi42NjdDMTUwLjEwNiAyMTYuNjY3IDE0Ny41ODggMjE0LjkyNiAxNDYuMjQzIDIxMi4zNDZMMTA3LjYwNyAxNTYuMDYxQzEwNi4zMzcgMTU0LjUyOSAxMDUuNTU2IDE1Mi40OTkgMTA1LjU1NiAxNTAuMjU4QzEwNS41NTYgMTQ1LjUxNCAxMDkuMDQzIDE0MS42NjUgMTEzLjM0NCAxNDEuNjY1QzExNi4xMjcgMTQxLjY2NSAxMTguNTY0IDE0My4yODIgMTE5Ljk0MiAxNDUuNzA4TDE1Mi41NTUgMTkzLjlMMTYxLjczNSAxNzguOTUyQzE2My4wNTggMTc2LjI4OCAxNjUuNjI2IDE3NC40NzggMTY4LjU3NSAxNzQuNDc4QzE3MS4yNzMgMTc0LjQ3OCAxNzMuNjUyIDE3NS45OTYgMTc1LjA0OSAxNzguMjk4TDE4NC41MTcgMTkzLjgzOUwyMzUuNjg0IDEyMC41ODNDMjM3LjA3NSAxMTguMjI2IDIzOS40NzUgMTE2LjY2NyAyNDIuMjEzIDExNi42NjdDMjQ2LjUxNCAxMTYuNjY3IDI1MCAxMjAuNTE0IDI1MCAxMjUuMjU4QzI1MCAxMjcuMzMyIDI0OS4zMzcgMTI5LjIzMiAyNDguMjMgMTMwLjcxNUwxOTAuMTgzIDIxMy41NDFWMjEzLjU0MVoiIGZpbGw9IndoaXRlIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjEwIi8+Cjwvc3ZnPgo=">
+                        <p class="text-sm">You can connect Wakapi with the official <a class="underline"
+                                                                                       href="https://wakatime.com"
+                                                                                       rel="noopener noreferrer"
+                                                                                       target="_blank">WakaTime</a> in a
+                            way
+                            that all heartbeats sent to Wakapi are relayed. This way, you can use both services
+                            at
+                            the same time. To get started, <a class="underline"
+                                                              href="https://wakatime.com/developers#authentication"
+                                                              rel="noopener noreferrer"
+                                                              target="_blank">get your API key</a> and paste it here.
+                        </p>
+                    </div>
+
+                    <form action="" method="post">
+                        <input type="hidden" name="action" value="toggle_wakatime">
+
+                        {{ $placeholderText := "Paste your WakaTime API key here ..." }}
+                        {{ if .User.WakatimeApiKey }}
+                        {{ $placeholderText = "********" }}
+                        {{ end }}
+
+                        <div class="flex items-center mt-8 space-x-2">
+                            <label class="text-gray-500 font-semibold">API Key:</label>
+                            <input type="password" name="api_key" id="wakatime_api_key"
+                                   class="flex-grow shadow appearance-nonshadow appearance-none bg-gray-800 text-gray-300 border-green-700 border rounded py-1 px-3 {{ if not .User.WakatimeApiKey }}focus:bg-gray-700 focus:border-gray-500{{ end }}"
+                                   placeholder="{{ $placeholderText }}" {{ if .User.WakatimeApiKey }}readonly{{ end }}>
+                            <div class="flex-grow flex justify-end">
+                                {{ if not .User.WakatimeApiKey }}
+                                <button type="submit"
+                                        class="py-1 px-3 my-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                                    Connect
+                                </button>
+                                {{ else }}
+                                <button type="submit"
+                                        class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm"
+                                        style="width: 130px">Disconnect
+                                </button>
+                                {{ end }}
+                            </div>
+                        </div>
+
+                        {{ if .User.WakatimeApiKey }}
+                        <div class="flex justify-end">
+                            <button id="btn-import-wakatime" type="button" style="width: 130px"
+                                    class="py-1 px-3 my-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                                ⤵ Import Data
+                            </button>
+                        </div>
+                        {{ end }}
+                    </form>
+
+                    <form action="" method="post" id="form-import-wakatime" class="mt-6">
+                        <input type="hidden" name="action" value="import_wakatime">
+                    </form>
+
+                    <p class="mt-6">
+                        <span class="font-semibold">👉 Please note:</span>
+                        <span>When enabling this feature, the operators of this server will, in theory (!), have unlimited access to your data stored in WakaTime. If you are concerned about your privacy, please do not enable this integration or wait for OAuth 2 authentication (<a
+                                class="underline" target="_blank" href="https://github.com/muety/wakapi/issues/94"
+                                rel="noopener noreferrer">#94</a>) to be implemented.</span>
+                    </p>
+                </div>
+
+                <div class="mt-10 text-gray-300 text-sm">
+                    <h3 class="inline-block font-semibold text-md mb-4 border-b border-green-700">
+                        Badges (Shields.io)
+                    </h3>
+
+                    {{ if gt .User.ShareDataMaxDays 0 }}
+                    <h3 class="font-semibold mb-2">Examples</h3>
                     <div class="flex flex-col mb-4">
                         <div class="flex justify-between my-2">
                             <div>
@@ -295,152 +413,97 @@
                     <p>You have the ability to create badges from your coding statistics using <a
                             href="https://shields.io" target="_blank" class="border-b border-green-800"
                             rel="noopener noreferrer">Shields.io</a>. To do so, you need to grant public, unauthorized
-                        access to the respective endpoint.</p>
-                    <div class="flex justify-around mt-4">
-                        <span class="font-mono font-normal bg-gray-900 p-1 rounded whitespace-no-wrap">GET /api/compat/shields/v1</span>
-                        <button type="submit"
-                                class="py-1 px-2 rounded bg-green-700 hover:bg-green-800 text-white text-xs"
-                                title="Make endpoint public to enable badges">
-                            Status: protected
+                        access to the respective endpoint. See <a href="settings#public_data" class="underline">Public Data</a> setting.</p>
+                    {{ end }}
+                </div>
+            </div>
+        </details>
+
+        <details class="mb-8 pb-8">
+            <summary class="cursor-pointer">
+                <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="danger">
+                    ⚠️ Danger Zone
+                </h2>
+            </summary>
+            <div class="w-full">
+                <div class="mt-10 text-gray-300 text-sm">
+                    <h3 class="font-semibold text-md mb-4 border-b border-green-700 inline-block">
+                        Regenerate summaries
+                    </h3>
+                    <p>
+                        Wakapi improves its efficiency and speed by automatically aggregating individual heartbeats to
+                        summaries on a per-day basis.
+                        That is, historic summaries, i.e. such from past days, are generated once and only fetched from
+                        the
+                        database in a static fashion afterwards, unless you pass <span
+                            class="font-mono font-normal bg-gray-900 p-1 rounded whitespace-no-wrap">&recompute=true</span>
+                        with your request.
+                    </p>
+                    <p class="mt-2">
+                        If, for some reason, these aggregated summaries are faulty or preconditions have change (e.g.
+                        you
+                        modified language mappings retrospectively), you may want to re-generate them from raw
+                        heartbeats.
+                    </p>
+                    <p class="mt-2">
+                        <strong>Note:</strong> Only run this action if you know what you are doing. Data might be lost
+                        is
+                        case heartbeats were deleted after the respective summaries had been generated.
+                    </p>
+                </div>
+                <div class="mt-6 flex justify-center">
+                    <form action="" method="post" id="form-regenerate-summaries">
+                        <input type="hidden" name="action" value="regenerate_summaries">
+                        <button type="button" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm"
+                                id="btn-regenerate-summaries">
+                            Clear & Regenerate
                         </button>
-                    </div>
-                    {{ end }}
-                </div>
-            </form>
-        </div>
-
-        <div class="w-full mt-4 mb-8 pb-8 border-b border-gray-700">
-            <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="integrations">
-                Integrations
-            </h2>
-
-            <div class="mt-10 text-gray-300 text-sm">
-                <h3 class="inline-block font-semibold text-md mb-4 border-b border-green-700">
-                    WakaTime
-                </h3>
-
-                <div class="flex space-x-4">
-                    <img alt="WakaTime Logo"
-                         width="55px"
-                         src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzQwIiBoZWlnaHQ9IjM0MCIgdmlld0JveD0iMCAwIDM0MCAzNDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMTcwIDIwQzg3LjE1NiAyMCAyMCA4Ny4xNTYgMjAgMTcwQzIwIDI1Mi44NDQgODcuMTU2IDMyMCAxNzAgMzIwQzI1Mi44NDQgMzIwIDMyMCAyNTIuODQ0IDMyMCAxNzBDMzIwIDg3LjE1NiAyNTIuODQ0IDIwIDE3MCAyMFYyMFYyMFoiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iNDAiLz4KPHBhdGggZD0iTTE5MC4xODMgMjEzLjU0MUMxODguNzQgMjE1LjQ0MyAxODYuNTc2IDIxNi42NjcgMTg0LjE1MSAyMTYuNjY3QzE4My45MTMgMjE2LjY2NyAxODMuNjc3IDIxNi42NTEgMTgzLjQ0MyAyMTYuNjI3QzE4My4wNDIgMjE2LjU3OSAxODIuODIzIDIxNi41NDUgMTgyLjYwNiAyMTYuNDk3QzE4Mi4zMzcgMjE2LjQzNCAxODIuMTM3IDIxNi4zNzUgMTgxLjk0IDIxNi4zMDhDMTgxLjU2MSAyMTYuMTc2IDE4MS4zOTIgMjE2LjEwOSAxODEuMjI4IDIxNi4wMzVDMTgwLjg0MyAyMTUuODQ5IDE4MC43MDcgMjE1Ljc3OCAxODAuNTcyIDIxNS43MDFDMTgwLjIwNSAyMTUuNDc4IDE4MC4xMDkgMjE1LjQxMiAxODAuMDE0IDIxNS4zNDVDMTc5Ljg1NiAyMTUuMjMzIDE3OS42OTggMjE1LjExNyAxNzkuNTQ3IDIxNC45OTJDMTc5LjI1MSAyMTQuNzQ2IDE3OS4xNDcgMjE0LjY1IDE3OS4wNDQgMjE0LjU1MkMxNzguNzMxIDIxNC4yNDEgMTc4LjUzMSAyMTQuMDE4IDE3OC4zNDEgMjEzLjc4NUMxNzcuOTgyIDIxMy4zMzEgMTc3LjY5IDIxMi44ODggMTc3LjQzOCAyMTIuNDE1TDE2OC42IDE5OC4yMTRMMTU5Ljc2NiAyMTIuNDE1QzE1OC4zOCAyMTQuOTM5IDE1NS44NzQgMjE2LjY2NyAxNTIuOTk1IDIxNi42NjdDMTUwLjEwNiAyMTYuNjY3IDE0Ny41ODggMjE0LjkyNiAxNDYuMjQzIDIxMi4zNDZMMTA3LjYwNyAxNTYuMDYxQzEwNi4zMzcgMTU0LjUyOSAxMDUuNTU2IDE1Mi40OTkgMTA1LjU1NiAxNTAuMjU4QzEwNS41NTYgMTQ1LjUxNCAxMDkuMDQzIDE0MS42NjUgMTEzLjM0NCAxNDEuNjY1QzExNi4xMjcgMTQxLjY2NSAxMTguNTY0IDE0My4yODIgMTE5Ljk0MiAxNDUuNzA4TDE1Mi41NTUgMTkzLjlMMTYxLjczNSAxNzguOTUyQzE2My4wNTggMTc2LjI4OCAxNjUuNjI2IDE3NC40NzggMTY4LjU3NSAxNzQuNDc4QzE3MS4yNzMgMTc0LjQ3OCAxNzMuNjUyIDE3NS45OTYgMTc1LjA0OSAxNzguMjk4TDE4NC41MTcgMTkzLjgzOUwyMzUuNjg0IDEyMC41ODNDMjM3LjA3NSAxMTguMjI2IDIzOS40NzUgMTE2LjY2NyAyNDIuMjEzIDExNi42NjdDMjQ2LjUxNCAxMTYuNjY3IDI1MCAxMjAuNTE0IDI1MCAxMjUuMjU4QzI1MCAxMjcuMzMyIDI0OS4zMzcgMTI5LjIzMiAyNDguMjMgMTMwLjcxNUwxOTAuMTgzIDIxMy41NDFWMjEzLjU0MVoiIGZpbGw9IndoaXRlIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjEwIi8+Cjwvc3ZnPgo=">
-                    <p class="text-sm">You can connect Wakapi with the official <a class="underline"
-                                                                                   href="https://wakatime.com"
-                                                                                   rel="noopener noreferrer"
-                                                                                   target="_blank">WakaTime</a> in a way
-                        that all heartbeats sent to Wakapi are relayed. This way, you can use both services
-                        at
-                        the same time. To get started, <a class="underline"
-                                                          href="https://wakatime.com/developers#authentication"
-                                                          rel="noopener noreferrer"
-                                                          target="_blank">get your API key</a> and paste it here.</p>
+                    </form>
                 </div>
 
-                <form action="" method="post">
-                    <input type="hidden" name="action" value="toggle_wakatime">
+                <div class="mt-10 text-gray-300 text-sm">
+                    <h3 class="font-semibold text-md mb-4 border-b border-green-700 inline-block" id="apikey">
+                        Reset API Key
+                    </h3>
 
-                    {{ $placeholderText := "Paste your WakaTime API key here ..." }}
-                    {{ if .User.WakatimeApiKey }}
-                    {{ $placeholderText = "********" }}
-                    {{ end }}
-
-                    <div class="flex items-center mt-8 space-x-2">
-                        <label class="text-gray-500 font-semibold">API Key:</label>
-                        <input type="password" name="api_key" id="wakatime_api_key"
-                               class="flex-grow shadow appearance-nonshadow appearance-none bg-gray-800 text-gray-300 border-green-700 border rounded py-1 px-3 {{ if not .User.WakatimeApiKey }}focus:bg-gray-700 focus:border-gray-500{{ end }}"
-                               placeholder="{{ $placeholderText }}" {{ if .User.WakatimeApiKey }}readonly{{ end }}>
-                        <div class="flex-grow flex justify-end">
-                            {{ if not .User.WakatimeApiKey }}
-                            <button type="submit"
-                                    class="py-1 px-3 my-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
-                                Connect
-                            </button>
-                            {{ else }}
-                            <button type="submit"
-                                    class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm"
-                                    style="width: 130px">Disconnect
-                            </button>
-                            {{ end }}
+                    <form class="mt-2" action="" method="post">
+                        <input type="hidden" name="action" value="reset_apikey">
+                        <div class="text-gray-300 text-sm mb-4">
+                            <strong>⚠️ Caution:</strong> Resetting your API key requires you to update your <span
+                                class="font-mono">.wakatime.cfg</span> files on all of your computers to make the
+                            WakaTime
+                            client send heartbeats again.
                         </div>
-                    </div>
 
-                    {{ if .User.WakatimeApiKey }}
-                    <div class="flex justify-end">
-                        <button id="btn-import-wakatime" type="button" style="width: 130px"
-                                class="py-1 px-3 my-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
-                            ⤵ Import Data
+                        <div class="flex justify-center">
+                            <button type="submit"
+                                    class="mt-2 py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm">
+                                Reset API Key
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="mt-10 text-gray-300 text-sm">
+                    <h3 class="font-semibold text-md mb-4 border-b border-green-700 inline-block">
+                        Delete Account
+                    </h3>
+                    <p>
+                        Deleting your account will cause all data, including all your heartbeats, to be erased from the
+                        server immediately. This action is irreversible. <strong>Be careful!</strong>
+                    </p>
+                </div>
+                <div class="mt-6 flex justify-center">
+                    <form action="" method="post" id="form-delete-user">
+                        <input type="hidden" name="action" value="delete_account">
+                        <button type="button" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm"
+                                id="btn-confirm-delete-user">
+                            Delete my Account
                         </button>
-                    </div>
-                    {{ end }}
-                </form>
-
-                <form action="" method="post" id="form-import-wakatime" class="mt-6">
-                    <input type="hidden" name="action" value="import_wakatime">
-                </form>
-
-                <p class="mt-6">
-                    <span class="font-semibold">👉 Please note:</span>
-                    <span>When enabling this feature, the operators of this server will, in theory (!), have unlimited access to your data stored in WakaTime. If you are concerned about your privacy, please do not enable this integration or wait for OAuth 2 authentication (<a
-                            class="underline" target="_blank" href="https://github.com/muety/wakapi/issues/94"
-                            rel="noopener noreferrer">#94</a>) to be implemented.</span>
-                </p>
+                    </form>
+                </div>
             </div>
-        </div>
-
-
-        <div class="w-full mt-4 mb-8 pb-8">
-            <div class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="danger">
-                ⚠️ Danger Zone
-            </div>
-            <div class="mt-10 text-gray-300 text-sm">
-                <h3 class="font-semibold text-md mb-4 border-b border-green-700 inline-block">
-                    Regenerate summaries
-                </h3>
-                <p>
-                    Wakapi improves its efficiency and speed by automatically aggregating individual heartbeats to
-                    summaries on a per-day basis.
-                    That is, historic summaries, i.e. such from past days, are generated once and only fetched from the
-                    database in a static fashion afterwards, unless you pass <span
-                        class="font-mono font-normal bg-gray-900 p-1 rounded whitespace-no-wrap">&recompute=true</span>
-                    with your request.
-                </p>
-                <p class="mt-2">
-                    If, for some reason, these aggregated summaries are faulty or preconditions have change (e.g. you
-                    modified language mappings retrospectively), you may want to re-generate them from raw heartbeats.
-                </p>
-                <p class="mt-2">
-                    <strong>Note:</strong> Only run this action if you know what you are doing. Data might be lost is
-                    case heartbeats were deleted after the respective summaries had been generated.
-                </p>
-            </div>
-            <div class="mt-6 flex justify-center">
-                <form action="" method="post" id="form-regenerate-summaries">
-                    <input type="hidden" name="action" value="regenerate_summaries">
-                    <button type="button" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm"
-                            id="btn-regenerate-summaries">
-                        Clear & Regenerate
-                    </button>
-                </form>
-            </div>
-
-            <div class="mt-10 text-gray-300 text-sm">
-                <h3 class="font-semibold text-md mb-4 border-b border-green-700 inline-block">
-                    Delete Account
-                </h3>
-                <p>
-                    Deleting your account will cause all data, including all your heartbeats, to be erased from the
-                    server immediately. This action is irreversible. <strong>Be careful!</strong>
-                </p>
-            </div>
-            <div class="mt-6 flex justify-center">
-                <form action="" method="post" id="form-delete-user">
-                    <input type="hidden" name="action" value="delete_account">
-                    <button type="button" class="py-1 px-3 rounded bg-red-500 hover:bg-red-600 text-white text-sm"
-                            id="btn-confirm-delete-user">
-                        Delete my Account
-                    </button>
-                </form>
-            </div>
-        </div>
+        </details>
     </div>
 </main>
 

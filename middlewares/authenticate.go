@@ -25,8 +25,9 @@ func NewAuthenticateMiddleware(userService services.IUserService) *AuthenticateM
 	}
 }
 
-func (m *AuthenticateMiddleware) WithOptionalFor(paths []string) {
+func (m *AuthenticateMiddleware) WithOptionalFor(paths []string) *AuthenticateMiddleware {
 	m.optionalForPaths = paths
+	return m
 }
 
 func (m *AuthenticateMiddleware) Handler(h http.Handler) http.Handler {

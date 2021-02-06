@@ -58,3 +58,7 @@ func (m *UserServiceMock) MigrateMd5Password(user *models.User, login *models.Lo
 	args := m.Called(user, login)
 	return args.Get(0).(*models.User), args.Error(1)
 }
+
+func (m *UserServiceMock) FlushCache() {
+	m.Called()
+}

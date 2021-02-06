@@ -24,7 +24,7 @@ func TestAuthenticateMiddleware_tryGetUserByApiKey_Success(t *testing.T) {
 	userServiceMock := new(mocks.UserServiceMock)
 	userServiceMock.On("GetUserByKey", testApiKey).Return(testUser, nil)
 
-	sut := NewAuthenticateMiddleware(userServiceMock, []string{})
+	sut := NewAuthenticateMiddleware(userServiceMock)
 
 	result, err := sut.tryGetUserByApiKey(mockRequest)
 
@@ -45,7 +45,7 @@ func TestAuthenticateMiddleware_tryGetUserByApiKey_InvalidHeader(t *testing.T) {
 
 	userServiceMock := new(mocks.UserServiceMock)
 
-	sut := NewAuthenticateMiddleware(userServiceMock, []string{})
+	sut := NewAuthenticateMiddleware(userServiceMock)
 
 	result, err := sut.tryGetUserByApiKey(mockRequest)
 

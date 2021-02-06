@@ -54,7 +54,20 @@ func (r *UserRepository) InsertOrGet(user *models.User) (*models.User, bool, err
 }
 
 func (r *UserRepository) Update(user *models.User) (*models.User, error) {
-	result := r.db.Model(user).Updates(user)
+	updateMap := map[string]interface{}{
+		"api_key":             user.ApiKey,
+		"password":            user.Password,
+		"last_logged_in_at":   user.LastLoggedInAt,
+		"share_data_max_days": user.ShareDataMaxDays,
+		"share_editors":       user.ShareEditors,
+		"share_languages":     user.ShareLanguages,
+		"share_oss":           user.ShareOSs,
+		"share_projects":      user.ShareProjects,
+		"share_machines":      user.ShareMachines,
+		"wakatime_api_key":    user.WakatimeApiKey,
+	}
+
+	result := r.db.Model(user).Updates(updateMap)
 	if err := result.Error; err != nil {
 		return nil, err
 	}

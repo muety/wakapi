@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/mux"
@@ -127,8 +128,8 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 		return h.actionDeleteLanguageMapping
 	case "add_mapping":
 		return h.actionAddLanguageMapping
-	case "toggle_badges":
-		return h.actionToggleBadges
+	case "update_sharing":
+		return h.actionUpdateSharing
 	case "toggle_wakatime":
 		return h.actionSetWakatimeApiKey
 	case "import_wakatime":
@@ -200,6 +201,38 @@ func (h *SettingsHandler) actionResetApiKey(w http.ResponseWriter, r *http.Reque
 
 	msg := fmt.Sprintf("your new api key is: %s", user.ApiKey)
 	return http.StatusOK, msg, ""
+}
+
+func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Request) (int, string, string) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	var err error
+	user := r.Context().Value(models.UserKey).(*models.User)
+
+	defer h.userSrvc.FlushCache()
+
+	user.ShareProjects, err = strconv.ParseBool(r.PostFormValue("share_projects"))
+	user.ShareLanguages, err = strconv.ParseBool(r.PostFormValue("share_languages"))
+	user.ShareEditors, err = strconv.ParseBool(r.PostFormValue("share_editors"))
+	user.ShareOSs, err = strconv.ParseBool(r.PostFormValue("share_oss"))
+	user.ShareMachines, err = strconv.ParseBool(r.PostFormValue("share_machines"))
+	if v, e := strconv.Atoi(r.PostFormValue("max_days")); e == nil && v >= 0 {
+		user.ShareDataMaxDays = uint(v)
+	} else {
+		err = errors.New("")
+	}
+
+	if err != nil {
+		return http.StatusBadRequest, "", "invalid input"
+	}
+
+	if _, err := h.userSrvc.Update(user); err != nil {
+		return http.StatusInternalServerError, "", "internal sever error"
+	}
+
+	return http.StatusOK, "settings updated", ""
 }
 
 func (h *SettingsHandler) actionDeleteAlias(w http.ResponseWriter, r *http.Request) (int, string, string) {
@@ -297,19 +330,6 @@ func (h *SettingsHandler) actionAddLanguageMapping(w http.ResponseWriter, r *htt
 	}
 
 	return http.StatusOK, "mapping added successfully", ""
-}
-
-func (h *SettingsHandler) actionToggleBadges(w http.ResponseWriter, r *http.Request) (int, string, string) {
-	if h.config.IsDev() {
-		loadTemplates()
-	}
-
-	user := r.Context().Value(models.UserKey).(*models.User)
-	if _, err := h.userSrvc.ToggleBadges(user); err != nil {
-		return http.StatusInternalServerError, "", "internal server error"
-	}
-
-	return http.StatusOK, "", ""
 }
 
 func (h *SettingsHandler) actionSetWakatimeApiKey(w http.ResponseWriter, r *http.Request) (int, string, string) {

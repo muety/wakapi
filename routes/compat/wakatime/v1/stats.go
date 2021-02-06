@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"errors"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -30,7 +29,7 @@ func NewStatsHandler(userService services.IUserService, summaryService services.
 func (h *StatsHandler) RegisterRoutes(router *mux.Router) {
 	r := router.PathPrefix("/wakatime/v1/users/{user}/stats/{range}").Subrouter()
 	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
+		middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalFor([]string{"/"}).Handler,
 	)
 	r.Methods(http.MethodGet).HandlerFunc(h.Get)
 }
@@ -38,42 +37,69 @@ func (h *StatsHandler) RegisterRoutes(router *mux.Router) {
 // TODO: support filtering (requires https://github.com/muety/wakapi/issues/108)
 
 func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	requestedUser := vars["user"]
-	requestedRange := vars["range"]
+	var vars = mux.Vars(r)
+	var authorizedUser, requestedUser *models.User
 
-	user := r.Context().Value(models.UserKey).(*models.User)
+	if u := r.Context().Value(models.UserKey); u != nil {
+		authorizedUser = u.(*models.User)
+	}
 
-	if requestedUser != user.ID && requestedUser != "current" {
-		w.WriteHeader(http.StatusForbidden)
+	if authorizedUser != nil && vars["user"] == "current" {
+		vars["user"] = authorizedUser.ID
+	}
+
+	requestedUser, err := h.userSrvc.GetUserById(vars["user"])
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("user not found"))
 		return
 	}
 
-	summary, err, status := h.loadUserSummary(user, requestedRange)
+	err, rangeFrom, rangeTo := utils.ResolveIntervalRaw(vars["range"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid range"))
+		return
+	}
+
+	minStart := utils.StartOfDay(rangeTo.Add(-24 * time.Hour * time.Duration(requestedUser.ShareDataMaxDays)))
+	if (authorizedUser == nil || requestedUser.ID != authorizedUser.ID) &&
+		(requestedUser.ShareDataMaxDays == 0 || rangeFrom.Before(minStart)) {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte("requested time range too broad"))
+		return
+	}
+
+	summary, err, status := h.loadUserSummary(requestedUser, rangeFrom, rangeTo)
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	filters := &models.Filters{}
-	if projectQuery := r.URL.Query().Get("project"); projectQuery != "" {
-		filters.Project = projectQuery
+	stats := v1.NewStatsFrom(summary, &models.Filters{})
+
+	// post filter stats according to user's given sharing permissions
+	if !requestedUser.ShareEditors {
+		stats.Data.Editors = nil
+	}
+	if !requestedUser.ShareLanguages {
+		stats.Data.Languages = nil
+	}
+	if !requestedUser.ShareProjects {
+		stats.Data.Projects = nil
+	}
+	if !requestedUser.ShareOSs {
+		stats.Data.OperatingSystems = nil
+	}
+	if !requestedUser.ShareMachines {
+		stats.Data.Machines = nil
 	}
 
-	vm := v1.NewStatsFrom(summary, filters)
-	utils.RespondJSON(w, http.StatusOK, vm)
+	utils.RespondJSON(w, http.StatusOK, stats)
 }
 
-func (h *StatsHandler) loadUserSummary(user *models.User, rangeKey string) (*models.Summary, error, int) {
-	var start, end time.Time
-
-	if err, parsedFrom, parsedTo := utils.ResolveIntervalRaw(rangeKey); err == nil {
-		start, end = parsedFrom, parsedTo
-	} else {
-		return nil, errors.New("invalid 'range' parameter"), http.StatusBadRequest
-	}
-
+func (h *StatsHandler) loadUserSummary(user *models.User, start, end time.Time) (*models.Summary, error, int) {
 	overallParams := &models.SummaryParams{
 		From:      start,
 		To:        end,

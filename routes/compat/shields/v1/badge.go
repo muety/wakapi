@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 )
 
 const (
@@ -46,13 +47,6 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestedUserId := mux.Vars(r)["user"]
-	user, err := h.userSrvc.GetUserById(requestedUserId)
-	if err != nil || !user.BadgesEnabled {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
 	var filterEntity, filterKey string
 	if groups := entityFilterReg.FindStringSubmatch(r.URL.Path); len(groups) > 2 {
 		filterEntity, filterKey = groups[1], groups[2]
@@ -63,6 +57,21 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 		if i, err := utils.ParseInterval(groups[1]); err == nil {
 			interval = i
 		}
+	}
+
+	requestedUserId := mux.Vars(r)["user"]
+	user, err := h.userSrvc.GetUserById(requestedUserId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	_, rangeFrom, rangeTo := utils.ResolveInterval(interval)
+	minStart := utils.StartOfDay(rangeTo.Add(-24 * time.Hour * time.Duration(user.ShareDataMaxDays)))
+	if rangeFrom.Before(minStart) {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte("requested time range too broad"))
+		return
 	}
 
 	var filters *models.Filters

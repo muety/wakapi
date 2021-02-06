@@ -83,11 +83,6 @@ func (srv *UserService) ResetApiKey(user *models.User) (*models.User, error) {
 	return srv.Update(user)
 }
 
-func (srv *UserService) ToggleBadges(user *models.User) (*models.User, error) {
-	srv.cache.Flush()
-	return srv.repository.UpdateField(user, "badges_enabled", !user.BadgesEnabled)
-}
-
 func (srv *UserService) SetWakatimeApiKey(user *models.User, apiKey string) (*models.User, error) {
 	srv.cache.Flush()
 	return srv.repository.UpdateField(user, "wakatime_api_key", apiKey)
@@ -107,4 +102,8 @@ func (srv *UserService) MigrateMd5Password(user *models.User, login *models.Logi
 func (srv *UserService) Delete(user *models.User) error {
 	srv.cache.Flush()
 	return srv.repository.Delete(user)
+}
+
+func (srv *UserService) FlushCache() {
+	srv.cache.Flush()
 }
