@@ -59,7 +59,9 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	var interval = models.IntervalPast30Days
 	if groups := intervalReg.FindStringSubmatch(r.URL.Path); len(groups) > 1 {
-		interval = groups[1]
+		if i, err := utils.ParseInterval(groups[1]); err == nil {
+			interval = i
+		}
 	}
 
 	var filters *models.Filters
@@ -89,7 +91,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	utils.RespondJSON(w, http.StatusOK, vm)
 }
 
-func (h *BadgeHandler) loadUserSummary(user *models.User, interval string) (*models.Summary, error, int) {
+func (h *BadgeHandler) loadUserSummary(user *models.User, interval *models.IntervalKey) (*models.Summary, error, int) {
 	err, from, to := utils.ResolveInterval(interval)
 	if err != nil {
 		return nil, err, http.StatusBadRequest

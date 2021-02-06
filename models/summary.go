@@ -14,34 +14,38 @@ const (
 	SummaryMachine  uint8 = 4
 )
 
-const (
-	IntervalToday        string = "today"
-	IntervalYesterday    string = "yesterday"
-	IntervalThisWeek     string = "week"
-	IntervalThisMonth    string = "month"
-	IntervalThisYear     string = "year"
-	IntervalPast7Days    string = "last_7_days"
-	IntervalPast30Days   string = "last_30_days"
-	IntervalPast12Months string = "last_12_months"
-	IntervalAny          string = "any"
-
-	// https://wakatime.com/developers/#summaries
-	IntervalWakatimeToday              string = "Today"
-	IntervalWakatimeYesterday          string = "Yesterday"
-	IntervalWakatimeLast7Days          string = "Last 7 Days"
-	IntervalWakatimeLast7DaysYesterday string = "Last 7 Days from Yesterday"
-	IntervalWakatimeLast14Days         string = "Last 14 Days"
-	IntervalWakatimeLast30Days         string = "Last 30 Days"
-	IntervalWakatimeThisWeek           string = "This Week"
-	IntervalWakatimeLastWeek           string = "Last Week"
-	IntervalWakatimeThisMonth          string = "This Month"
-	IntervalWakatimeLastMonth          string = "Last Month"
+// Support Wakapi and WakaTime range / interval identifiers
+// See https://wakatime.com/developers/#summaries
+var (
+	IntervalToday              = &IntervalKey{"today", "Today"}
+	IntervalYesterday          = &IntervalKey{"day", "yesterday", "Yesterday"}
+	IntervalThisWeek           = &IntervalKey{"week", "This Week"}
+	IntervalLastWeek           = &IntervalKey{"Last Week"}
+	IntervalThisMonth          = &IntervalKey{"month", "This Month"}
+	IntervalLastMonth          = &IntervalKey{"Last Month"}
+	IntervalThisYear           = &IntervalKey{"year"}
+	IntervalPast7Days          = &IntervalKey{"7_days", "last_7_days", "Last 7 Days"}
+	IntervalPast7DaysYesterday = &IntervalKey{"Last 7 Days from Yesterday"}
+	IntervalPast14Days         = &IntervalKey{"Last 14 Days"}
+	IntervalPast30Days         = &IntervalKey{"30_days", "last_30_days", "Last 30 Days"}
+	IntervalPast12Months       = &IntervalKey{"12_months", "last_12_months"}
+	IntervalAny                = &IntervalKey{"any"}
 )
 
-func Intervals() []string {
-	return []string{
-		IntervalToday, IntervalYesterday, IntervalThisWeek, IntervalThisMonth, IntervalThisYear, IntervalPast7Days, IntervalPast30Days, IntervalPast12Months, IntervalAny,
-	}
+var AllIntervals = []*IntervalKey{
+	IntervalToday,
+	IntervalYesterday,
+	IntervalThisWeek,
+	IntervalLastWeek,
+	IntervalThisMonth,
+	IntervalLastMonth,
+	IntervalThisYear,
+	IntervalPast7Days,
+	IntervalPast7DaysYesterday,
+	IntervalPast14Days,
+	IntervalPast30Days,
+	IntervalPast12Months,
+	IntervalAny,
 }
 
 const UnknownSummaryKey = "unknown"

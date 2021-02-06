@@ -68,12 +68,12 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary
 	var start, end time.Time
 	if rangeParam != "" {
 		// range param takes precedence
-		if err, parsedFrom, parsedTo := utils.ResolveInterval(rangeParam); err == nil {
+		if err, parsedFrom, parsedTo := utils.ResolveIntervalRaw(rangeParam); err == nil {
 			start, end = parsedFrom, parsedTo
 		} else {
 			return nil, errors.New("invalid 'range' parameter"), http.StatusBadRequest
 		}
-	} else if err, parsedFrom, parsedTo := utils.ResolveInterval(startParam); err == nil && startParam == endParam {
+	} else if err, parsedFrom, parsedTo := utils.ResolveIntervalRaw(startParam); err == nil && startParam == endParam {
 		// also accept start param to be a range param
 		start, end = parsedFrom, parsedTo
 	} else {

@@ -61,7 +61,7 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *StatsHandler) loadUserSummary(user *models.User, rangeKey string) (*models.Summary, error, int) {
 	var start, end time.Time
 
-	if err, parsedFrom, parsedTo := utils.ResolveInterval(rangeKey); err == nil {
+	if err, parsedFrom, parsedTo := utils.ResolveIntervalRaw(rangeKey); err == nil {
 		start, end = parsedFrom, parsedTo
 	} else {
 		return nil, errors.New("invalid 'range' parameter"), http.StatusBadRequest
