@@ -132,6 +132,7 @@ func main() {
 	// Compat Handlers
 	wakatimeV1AllHandler := wtV1Routes.NewAllTimeHandler(summaryService)
 	wakatimeV1SummariesHandler := wtV1Routes.NewSummariesHandler(summaryService)
+	wakatimeV1StatsHandler := wtV1Routes.NewStatsHandler(summaryService)
 	shieldV1BadgeHandler := shieldsV1Routes.NewBadgeHandler(summaryService, userService)
 
 	// MVC Handlers
@@ -172,6 +173,7 @@ func main() {
 	// Compat route registrations
 	wakatimeV1AllHandler.RegisterRoutes(compatApiRouter)
 	wakatimeV1SummariesHandler.RegisterRoutes(compatApiRouter)
+	wakatimeV1StatsHandler.RegisterRoutes(compatApiRouter)
 	shieldV1BadgeHandler.RegisterRoutes(compatApiRouter)
 
 	// Static Routes

@@ -5,8 +5,8 @@ type UserAgentsViewModel struct {
 }
 
 type UserAgentEntry struct {
-	Id     string
-	Editor string
-	Os     string
-	Value  string
+	Id     string `json:"id"`
+	Editor string `json:"editor"`
+	Os     string `json:"os"`
+	Value  string `json:"value"`
 }

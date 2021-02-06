@@ -10,16 +10,16 @@ type HeartbeatsViewModel struct {
 // that is actually required for the import
 
 type HeartbeatEntry struct {
-	Id            string
-	Branch        string
-	Category      string
-	Entity        string
-	IsWrite       bool `json:"is_write"`
-	Language      string
-	Project       string
-	Time          models.CustomTime
-	Type          string
-	UserId        string `json:"user_id"`
-	MachineNameId string `json:"machine_name_id"`
-	UserAgentId   string `json:"user_agent_id"`
+	Id            string            `json:"id"`
+	Branch        string            `json:"branch"`
+	Category      string            `json:"category"`
+	Entity        string            `json:"entity"`
+	IsWrite       bool              `json:"is_write"`
+	Language      string            `json:"language"`
+	Project       string            `json:"project"`
+	Time          models.CustomTime `json:"time"`
+	Type          string            `json:"type"`
+	UserId        string            `json:"user_id"`
+	MachineNameId string            `json:"machine_name_id"`
+	UserAgentId   string            `json:"user_agent_id"`
 }

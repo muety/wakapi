@@ -16,13 +16,13 @@ const (
 
 const (
 	IntervalToday        string = "today"
-	IntervalYesterday    string = "day"
+	IntervalYesterday    string = "yesterday"
 	IntervalThisWeek     string = "week"
 	IntervalThisMonth    string = "month"
 	IntervalThisYear     string = "year"
-	IntervalPast7Days    string = "7_days"
-	IntervalPast30Days   string = "30_days"
-	IntervalPast12Months string = "12_months"
+	IntervalPast7Days    string = "last_7_days"
+	IntervalPast30Days   string = "last_30_days"
+	IntervalPast12Months string = "last_12_months"
 	IntervalAny          string = "any"
 
 	// https://wakatime.com/developers/#summaries
