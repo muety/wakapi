@@ -32,6 +32,7 @@ func NewBadgeHandler(summaryService services.ISummaryService, userService servic
 }
 
 func (h *BadgeHandler) RegisterRoutes(router *mux.Router) {
+	// no auth middleware here, handler itself resolves the user
 	r := router.PathPrefix("/shields/v1/{user}").Subrouter()
 	r.Methods(http.MethodGet).HandlerFunc(h.Get)
 }

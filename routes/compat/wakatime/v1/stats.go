@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	"github.com/muety/wakapi/services"
@@ -14,18 +15,24 @@ import (
 
 type StatsHandler struct {
 	config      *conf.Config
+	userSrvc    services.IUserService
 	summarySrvc services.ISummaryService
 }
 
-func NewStatsHandler(summaryService services.ISummaryService) *StatsHandler {
+func NewStatsHandler(userService services.IUserService, summaryService services.ISummaryService) *StatsHandler {
 	return &StatsHandler{
+		userSrvc:    userService,
 		summarySrvc: summaryService,
 		config:      conf.Get(),
 	}
 }
 
 func (h *StatsHandler) RegisterRoutes(router *mux.Router) {
-	router.Path("/wakatime/v1/users/{user}/stats/{range}").Methods(http.MethodGet).HandlerFunc(h.Get)
+	r := router.PathPrefix("/wakatime/v1/users/{user}/stats/{range}").Subrouter()
+	r.Use(
+		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
+	)
+	r.Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
 // TODO: support filtering (requires https://github.com/muety/wakapi/issues/108)

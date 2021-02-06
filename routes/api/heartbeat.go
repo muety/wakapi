@@ -5,6 +5,7 @@ import (
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/middlewares"
 	customMiddleware "github.com/muety/wakapi/middlewares/custom"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
@@ -15,13 +16,15 @@ import (
 
 type HeartbeatApiHandler struct {
 	config              *conf.Config
+	userSrvc            services.IUserService
 	heartbeatSrvc       services.IHeartbeatService
 	languageMappingSrvc services.ILanguageMappingService
 }
 
-func NewHeartbeatApiHandler(heartbeatService services.IHeartbeatService, languageMappingService services.ILanguageMappingService) *HeartbeatApiHandler {
+func NewHeartbeatApiHandler(userService services.IUserService, heartbeatService services.IHeartbeatService, languageMappingService services.ILanguageMappingService) *HeartbeatApiHandler {
 	return &HeartbeatApiHandler{
 		config:              conf.Get(),
+		userSrvc:            userService,
 		heartbeatSrvc:       heartbeatService,
 		languageMappingSrvc: languageMappingService,
 	}
@@ -34,6 +37,7 @@ type heartbeatResponseVm struct {
 func (h *HeartbeatApiHandler) RegisterRoutes(router *mux.Router) {
 	r := router.PathPrefix("/heartbeat").Subrouter()
 	r.Use(
+		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
 		customMiddleware.NewWakatimeRelayMiddleware().Handler,
 	)
 	r.Methods(http.MethodPost).HandlerFunc(h.Post)

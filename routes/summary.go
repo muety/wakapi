@@ -29,7 +29,7 @@ func NewSummaryHandler(summaryService services.ISummaryService, userService serv
 func (h *SummaryHandler) RegisterRoutes(router *mux.Router) {
 	r := router.PathPrefix("/summary").Subrouter()
 	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc, []string{}).Handler,
+		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
 	)
 	r.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
 }
