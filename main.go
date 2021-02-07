@@ -10,6 +10,7 @@ import (
 	"github.com/muety/wakapi/migrations"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/routes/api"
+	"github.com/muety/wakapi/utils"
 	"gorm.io/gorm/logger"
 	"log"
 	"net/http"
@@ -170,11 +171,9 @@ func main() {
 	// Globally used middlewares
 	recoveryMiddleware := handlers.RecoveryHandler()
 	loggingMiddleware := middlewares.NewLoggingMiddleware(log.New(os.Stdout, "", log.LstdFlags))
-	corsMiddleware := handlers.CORS()
 
 	// Router configs
 	router.Use(loggingMiddleware, recoveryMiddleware)
-	apiRouter.Use(corsMiddleware)
 
 	// Route registrations
 	homeHandler.RegisterRoutes(rootRouter)
@@ -193,10 +192,12 @@ func main() {
 	shieldV1BadgeHandler.RegisterRoutes(apiRouter)
 
 	// Static Routes
-	fileServer := http.FileServer(pkger.Dir("/static"))
+	fileServer := http.FileServer(utils.NeuteredFileSystem{Fs: pkger.Dir("/static")})
 	router.PathPrefix("/assets").Handler(fileServer)
 	router.PathPrefix("/swagger-ui").Handler(fileServer)
-	router.PathPrefix("/docs").Handler(fileServer)
+	router.PathPrefix("/docs").Handler(
+		middlewares.NewFileTypeFilterMiddleware([]string{".go"})(fileServer),
+	)
 
 	// Listen HTTP
 	listen(router)
