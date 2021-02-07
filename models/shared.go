@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"gorm.io/gorm"
@@ -30,6 +31,10 @@ type Interval struct {
 }
 
 type CustomTime time.Time
+
+func (j *CustomTime) MarshalJSON() ([]byte, error) {
+	return json.Marshal(j.String())
+}
 
 func (j *CustomTime) UnmarshalJSON(b []byte) error {
 	s := strings.Replace(strings.Trim(string(b), "\""), ".", "", 1)
