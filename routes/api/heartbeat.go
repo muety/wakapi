@@ -43,6 +43,14 @@ func (h *HeartbeatApiHandler) RegisterRoutes(router *mux.Router) {
 	r.Methods(http.MethodPost).HandlerFunc(h.Post)
 }
 
+// @Summary Push a new heartbeat
+// @ID post-heartbeat
+// @Tags heartbeat
+// @Accept json
+// @Param heartbeat body models.Heartbeat true "A heartbeat"
+// @Security ApiKeyAuth
+// @Success 201
+// @Router /heartbeat [post]
 func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	var heartbeats []*models.Heartbeat
 	user := r.Context().Value(models.UserKey).(*models.User)

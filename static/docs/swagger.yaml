@@ -1,0 +1,488 @@
+basePath: /api
+definitions:
+  models.Heartbeat:
+    properties:
+      branch:
+        type: string
+      category:
+        type: string
+      editor:
+        description: ignored because editor might be parsed differently by wakatime
+        type: string
+      entity:
+        type: string
+      id:
+        type: integer
+      is_write:
+        type: boolean
+      language:
+        type: string
+      machine:
+        description: ignored because wakatime api doesn't return machines currently
+        type: string
+      operating_system:
+        description: ignored because os might be parsed differently by wakatime
+        type: string
+      project:
+        type: string
+      time:
+        type: number
+      type:
+        type: string
+    type: object
+  models.Summary:
+    properties:
+      editors:
+        items:
+          $ref: '#/definitions/models.SummaryItem'
+        type: array
+      from:
+        example: "2006-01-02 15:04:05.000"
+        format: date
+        type: string
+      languages:
+        items:
+          $ref: '#/definitions/models.SummaryItem'
+        type: array
+      machines:
+        items:
+          $ref: '#/definitions/models.SummaryItem'
+        type: array
+      operating_systems:
+        items:
+          $ref: '#/definitions/models.SummaryItem'
+        type: array
+      projects:
+        items:
+          $ref: '#/definitions/models.SummaryItem'
+        type: array
+      to:
+        example: "2006-01-02 15:04:05.000"
+        format: date
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.SummaryItem:
+    properties:
+      key:
+        type: string
+      total:
+        type: integer
+    type: object
+  v1.AllTimeData:
+    properties:
+      is_up_to_date:
+        description: true if the stats are up to date; when false, a 202 response
+          code is returned and stats will be refreshed soon>
+        type: boolean
+      text:
+        description: total time logged since account created as human readable string>
+        type: string
+      total_seconds:
+        description: total number of seconds logged since account created
+        type: number
+    type: object
+  v1.AllTimeViewModel:
+    properties:
+      data:
+        $ref: '#/definitions/v1.AllTimeData'
+    type: object
+  v1.BadgeData:
+    properties:
+      color:
+        type: string
+      label:
+        type: string
+      message:
+        type: string
+      schemaVersion:
+        type: integer
+    type: object
+  v1.StatsData:
+    properties:
+      daily_average:
+        type: number
+      days_including_holidays:
+        type: integer
+      editors:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
+      end:
+        type: string
+      languages:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
+      machines:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
+      operating_systems:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
+      projects:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
+      start:
+        type: string
+      total_seconds:
+        type: number
+      user_id:
+        type: string
+      username:
+        type: string
+    type: object
+  v1.StatsViewModel:
+    properties:
+      data:
+        $ref: '#/definitions/v1.StatsData'
+    type: object
+  v1.SummariesData:
+    properties:
+      categories:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
+      dependencies:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
+      editors:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
+      grand_total:
+        $ref: '#/definitions/v1.SummariesGrandTotal'
+      languages:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
+      machines:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
+      operating_systems:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
+      projects:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
+      range:
+        $ref: '#/definitions/v1.SummariesRange'
+    type: object
+  v1.SummariesEntry:
+    properties:
+      digital:
+        type: string
+      hours:
+        type: integer
+      minutes:
+        type: integer
+      name:
+        type: string
+      percent:
+        type: number
+      seconds:
+        type: integer
+      text:
+        type: string
+      total_seconds:
+        type: number
+    type: object
+  v1.SummariesGrandTotal:
+    properties:
+      digital:
+        type: string
+      hours:
+        type: integer
+      minutes:
+        type: integer
+      text:
+        type: string
+      total_seconds:
+        type: number
+    type: object
+  v1.SummariesRange:
+    properties:
+      date:
+        type: string
+      end:
+        type: string
+      start:
+        type: string
+      text:
+        type: string
+      timezone:
+        type: string
+    type: object
+  v1.SummariesViewModel:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/v1.SummariesData'
+        type: array
+      end:
+        type: string
+      start:
+        type: string
+    type: object
+info:
+  contact:
+    email: ferdinand@muetsch.io
+    name: Ferdinand Mütsch
+    url: https://github.com/muety
+  description: |-
+    REST API to interact with [Wakapi](https://wakapi.dev)
+
+    ## Authentication
+    Set header `Authorization` to your API Key encoded as Base64 and prefixed with `Basic`
+    **Example:** `Basic ODY2NDhkNzQtMTljNS00NTJiLWJhMDEtZmIzZWM3MGQ0YzJmCg==`
+  license:
+    name: GPL-3.0
+    url: https://github.com/muety/wakapi/blob/master/LICENSE
+  title: Wakapi API
+  version: "1.0"
+paths:
+  /compat/shields/v1/{user}/{interval}/{filter}:
+    get:
+      description: Retrieve total time for a given entity (e.g. a project) within
+        a given range (e.g. one week) in a format compatible with [Shields.io](https://shields.io/endpoint).
+        Requires public data access to be allowed.
+      operationId: get-badge
+      parameters:
+      - description: User ID to fetch data for
+        in: path
+        name: user
+        required: true
+        type: string
+      - description: Interval to aggregate data for
+        enum:
+        - today
+        - yesterday
+        - week
+        - month
+        - year
+        - 7_days
+        - last_7_days
+        - 30_days
+        - last_30_days
+        - 12_months
+        - last_12_months
+        - any
+        in: path
+        name: interval
+        required: true
+        type: string
+      - description: Filter to apply (e.g. 'project:wakapi' or 'language:Go')
+        in: path
+        name: filter
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.BadgeData'
+      summary: Get badge data
+      tags:
+      - badges
+  /compat/wakatime/v1/users/{user}/all_time_since_today:
+    get:
+      description: Mimics https://wakatime.com/developers#all_time_since_today
+      operationId: get-all-time
+      parameters:
+      - description: User ID to fetch data for (or 'current')
+        in: path
+        name: user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AllTimeViewModel'
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieve summary for all time
+      tags:
+      - wakatime
+  /compat/wakatime/v1/users/{user}/summaries:
+    get:
+      description: Mimics https://wakatime.com/developers#summaries.
+      operationId: get-wakatime-summaries
+      parameters:
+      - description: User ID to fetch data for (or 'current')
+        in: path
+        name: user
+        required: true
+        type: string
+      - description: Range interval identifier
+        enum:
+        - today
+        - yesterday
+        - week
+        - month
+        - year
+        - 7_days
+        - last_7_days
+        - 30_days
+        - last_30_days
+        - 12_months
+        - last_12_months
+        - any
+        in: query
+        name: range
+        type: string
+      - description: Start date (e.g. '2021-02-07')
+        in: query
+        name: start
+        type: string
+      - description: End date (e.g. '2021-02-08')
+        in: query
+        name: end
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.SummariesViewModel'
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieve WakaTime-compatible summaries
+      tags:
+      - wakatime
+  /health:
+    get:
+      operationId: get-health
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Check the application's health status
+      tags:
+      - misc
+  /heartbeat:
+    post:
+      consumes:
+      - application/json
+      operationId: post-heartbeat
+      parameters:
+      - description: A heartbeat
+        in: body
+        name: heartbeat
+        required: true
+        schema:
+          $ref: '#/definitions/models.Heartbeat'
+      responses:
+        "201":
+          description: ""
+      security:
+      - ApiKeyAuth: []
+      summary: Push a new heartbeat
+      tags:
+      - heartbeat
+  /summary:
+    get:
+      operationId: get-summary
+      parameters:
+      - description: Interval identifier
+        enum:
+        - today
+        - yesterday
+        - week
+        - month
+        - year
+        - 7_days
+        - last_7_days
+        - 30_days
+        - last_30_days
+        - 12_months
+        - last_12_months
+        - any
+        in: query
+        name: interval
+        type: string
+      - description: Start date (e.g. '2021-02-07')
+        in: query
+        name: from
+        type: string
+      - description: End date (e.g. '2021-02-08')
+        in: query
+        name: to
+        type: string
+      - description: Whether to recompute the summary from raw heartbeat or use cache
+        in: query
+        name: recompute
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Summary'
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieve a summary
+      tags:
+      - summary
+  /v1/users/{user}/stats/{range}:
+    get:
+      description: Mimics https://wakatime.com/developers#stats. Requires public data
+        access to be allowed.
+      operationId: get-stats
+      parameters:
+      - description: User ID to fetch data for (or 'current')
+        in: path
+        name: user
+        required: true
+        type: string
+      - description: Range interval identifier
+        enum:
+        - today
+        - yesterday
+        - week
+        - month
+        - year
+        - 7_days
+        - last_7_days
+        - 30_days
+        - last_30_days
+        - 12_months
+        - last_12_months
+        - any
+        in: path
+        name: range
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.StatsViewModel'
+      summary: Retrieve stats
+      tags:
+      - wakatime
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

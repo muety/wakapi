@@ -186,14 +186,13 @@ Wakapi uses [GORM](https://gorm.io) as an ORM. As a consequence, a set of differ
 See the [advanced setup instructions](docs/advanced_setup.md).
 
 ## 🔧 API Endpoints
-The following API endpoints are available. A more detailed Swagger documentation is about to come ([#40](https://github.com/muety/wakapi/issues/40)).
+See our [Swagger API Documentation](https://wakapi.dev/swagger-ui).
 
-* `POST /api/heartbeat`
-* `GET /api/summary`
-  * `string` parameter `interval`: One of `today`, `day`, `week`, `month`, `year`, `any`
-* `GET /api/compat/wakatime/v1/users/current/all_time_since_today` (see [Wakatime API docs](https://wakatime.com/developers#all_time_since_today))
-* `GET /api/compat/wakatime/v1/users/current/summaries` (see [Wakatime API docs](https://wakatime.com/developers#summaries))
-* `GET /api/health`
+### Generating Swagger docs
+```bash
+$ go get -u github.com/swaggo/swag/cmd/swag
+$ swag init -o static/docs
+```
 
 ## 🤝 Integrations
 ### Prometheus Export

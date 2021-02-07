@@ -35,6 +35,15 @@ func (h *AllTimeHandler) RegisterRoutes(router *mux.Router) {
 	r.Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
+// @Summary Retrieve summary for all time
+// @Description Mimics https://wakatime.com/developers#all_time_since_today
+// @ID get-all-time
+// @Tags wakatime
+// @Produce json
+// @Param user path string true "User ID to fetch data for (or 'current')"
+// @Security ApiKeyAuth
+// @Success 200 {object} v1.AllTimeViewModel
+// @Router /compat/wakatime/v1/users/{user}/all_time_since_today [get]
 func (h *AllTimeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	values, _ := url.ParseQuery(r.URL.RawQuery)

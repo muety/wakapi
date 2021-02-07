@@ -32,6 +32,17 @@ func (h *SummaryApiHandler) RegisterRoutes(router *mux.Router) {
 	r.Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
+// @Summary Retrieve a summary
+// @ID get-summary
+// @Tags summary
+// @Produce json
+// @Param interval query string false "Interval identifier" Enums(today, yesterday, week, month, year, 7_days, last_7_days, 30_days, last_30_days, 12_months, last_12_months, any)
+// @Param from query string false "Start date (e.g. '2021-02-07')"
+// @Param to query string false "End date (e.g. '2021-02-08')"
+// @Param recompute query bool false "Whether to recompute the summary from raw heartbeat or use cache"
+// @Security ApiKeyAuth
+// @Success 200 {object} models.Summary
+// @Router /summary [get]
 func (h *SummaryApiHandler) Get(w http.ResponseWriter, r *http.Request) {
 	summary, err, status := su.LoadUserSummary(h.summarySrvc, r)
 	if err != nil {

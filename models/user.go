@@ -4,8 +4,8 @@ type User struct {
 	ID               string     `json:"id" gorm:"primary_key"`
 	ApiKey           string     `json:"api_key" gorm:"unique"`
 	Password         string     `json:"-"`
-	CreatedAt        CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP"`
-	LastLoggedInAt   CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP"`
+	CreatedAt        CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	LastLoggedInAt   CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	ShareDataMaxDays int        `json:"-" gorm:"default:0"`
 	ShareEditors     bool       `json:"-" gorm:"default:false; type:bool"`
 	ShareLanguages   bool       `json:"-" gorm:"default:false; type:bool"`
@@ -34,7 +34,7 @@ type CredentialsReset struct {
 
 type TimeByUser struct {
 	User string
-	Time CustomTime
+	Time CustomTime `swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 }
 
 func (c *CredentialsReset) IsValid() bool {

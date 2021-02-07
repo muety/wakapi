@@ -41,6 +41,18 @@ func (h *SummariesHandler) RegisterRoutes(router *mux.Router) {
 // Timezone can be specified via an offset suffix (e.g. +02:00) in date strings.
 // Requires https://github.com/muety/wakapi/issues/108.
 
+// @Summary Retrieve WakaTime-compatible summaries
+// @Description Mimics https://wakatime.com/developers#summaries.
+// @ID get-wakatime-summaries
+// @Tags wakatime
+// @Produce json
+// @Param user path string true "User ID to fetch data for (or 'current')"
+// @Param range query string false "Range interval identifier" Enums(today, yesterday, week, month, year, 7_days, last_7_days, 30_days, last_30_days, 12_months, last_12_months, any)
+// @Param start query string false "Start date (e.g. '2021-02-07')"
+// @Param end query string false "End date (e.g. '2021-02-08')"
+// @Security ApiKeyAuth
+// @Success 200 {object} v1.SummariesViewModel
+// @Router /compat/wakatime/v1/users/{user}/summaries [get]
 func (h *SummariesHandler) Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	requestedUser := vars["user"]

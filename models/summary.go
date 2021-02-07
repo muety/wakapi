@@ -14,48 +14,14 @@ const (
 	SummaryMachine  uint8 = 4
 )
 
-// Support Wakapi and WakaTime range / interval identifiers
-// See https://wakatime.com/developers/#summaries
-var (
-	IntervalToday              = &IntervalKey{"today", "Today"}
-	IntervalYesterday          = &IntervalKey{"day", "yesterday", "Yesterday"}
-	IntervalThisWeek           = &IntervalKey{"week", "This Week"}
-	IntervalLastWeek           = &IntervalKey{"Last Week"}
-	IntervalThisMonth          = &IntervalKey{"month", "This Month"}
-	IntervalLastMonth          = &IntervalKey{"Last Month"}
-	IntervalThisYear           = &IntervalKey{"year"}
-	IntervalPast7Days          = &IntervalKey{"7_days", "last_7_days", "Last 7 Days"}
-	IntervalPast7DaysYesterday = &IntervalKey{"Last 7 Days from Yesterday"}
-	IntervalPast14Days         = &IntervalKey{"Last 14 Days"}
-	IntervalPast30Days         = &IntervalKey{"30_days", "last_30_days", "Last 30 Days"}
-	IntervalPast12Months       = &IntervalKey{"12_months", "last_12_months"}
-	IntervalAny                = &IntervalKey{"any"}
-)
-
-var AllIntervals = []*IntervalKey{
-	IntervalToday,
-	IntervalYesterday,
-	IntervalThisWeek,
-	IntervalLastWeek,
-	IntervalThisMonth,
-	IntervalLastMonth,
-	IntervalThisYear,
-	IntervalPast7Days,
-	IntervalPast7DaysYesterday,
-	IntervalPast14Days,
-	IntervalPast30Days,
-	IntervalPast12Months,
-	IntervalAny,
-}
-
 const UnknownSummaryKey = "unknown"
 
 type Summary struct {
 	ID               uint         `json:"-" gorm:"primary_key"`
 	User             *User        `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	UserID           string       `json:"user_id" gorm:"not null; index:idx_time_summary_user"`
-	FromTime         CustomTime   `json:"from" gorm:"not null; type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time_summary_user"`
-	ToTime           CustomTime   `json:"to" gorm:"not null; type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time_summary_user"`
+	FromTime         CustomTime   `json:"from" gorm:"not null; type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time_summary_user" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	ToTime           CustomTime   `json:"to" gorm:"not null; type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time_summary_user" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	Projects         SummaryItems `json:"projects" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Languages        SummaryItems `json:"languages" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Editors          SummaryItems `json:"editors" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
@@ -71,7 +37,7 @@ type SummaryItem struct {
 	SummaryID uint          `json:"-"`
 	Type      uint8         `json:"-"`
 	Key       string        `json:"key"`
-	Total     time.Duration `json:"total"`
+	Total     time.Duration `json:"total" swaggertype:"primitive,integer"`
 }
 
 type SummaryItemContainer struct {

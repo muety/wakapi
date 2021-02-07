@@ -56,6 +56,26 @@ var (
 
 // TODO: Refactor entire project to be structured after business domains
 
+// @title Wakapi API
+// @version 1.0
+// @description REST API to interact with [Wakapi](https://wakapi.dev)
+// @description
+// @description ## Authentication
+// @description Set header `Authorization` to your API Key encoded as Base64 and prefixed with `Basic`
+// @description **Example:** `Basic ODY2NDhkNzQtMTljNS00NTJiLWJhMDEtZmIzZWM3MGQ0YzJmCg==`
+
+// @contact.name Ferdinand Mütsch
+// @contact.url https://github.com/muety
+// @contact.email ferdinand@muetsch.io
+
+// @license.name GPL-3.0
+// @license.url https://github.com/muety/wakapi/blob/master/LICENSE
+
+// @securitydefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+
+// @BasePath /api
 func main() {
 	config = conf.Load()
 
@@ -173,7 +193,10 @@ func main() {
 	shieldV1BadgeHandler.RegisterRoutes(apiRouter)
 
 	// Static Routes
-	router.PathPrefix("/assets").Handler(http.FileServer(pkger.Dir("/static")))
+	fileServer := http.FileServer(pkger.Dir("/static"))
+	router.PathPrefix("/assets").Handler(fileServer)
+	router.PathPrefix("/swagger-ui").Handler(fileServer)
+	router.PathPrefix("/docs").Handler(fileServer)
 
 	// Listen HTTP
 	listen(router)

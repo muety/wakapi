@@ -38,6 +38,16 @@ func (h *BadgeHandler) RegisterRoutes(router *mux.Router) {
 	r.Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
+// @Summary Get badge data
+// @Description Retrieve total time for a given entity (e.g. a project) within a given range (e.g. one week) in a format compatible with [Shields.io](https://shields.io/endpoint). Requires public data access to be allowed.
+// @ID get-badge
+// @Tags badges
+// @Produce json
+// @Param user path string true "User ID to fetch data for"
+// @Param interval path string true "Interval to aggregate data for" Enums(today, yesterday, week, month, year, 7_days, last_7_days, 30_days, last_30_days, 12_months, last_12_months, any)
+// @Param filter path string true "Filter to apply (e.g. 'project:wakapi' or 'language:Go')"
+// @Success 200 {object} v1.BadgeData
+// @Router /compat/shields/v1/{user}/{interval}/{filter} [get]
 func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	intervalReg := regexp.MustCompile(intervalPattern)
 	entityFilterReg := regexp.MustCompile(entityFilterPattern)
