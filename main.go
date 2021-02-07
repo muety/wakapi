@@ -170,7 +170,10 @@ func main() {
 
 	// Globally used middlewares
 	recoveryMiddleware := handlers.RecoveryHandler()
-	loggingMiddleware := middlewares.NewLoggingMiddleware(log.New(os.Stdout, "", log.LstdFlags))
+	loggingMiddleware := middlewares.NewLoggingMiddleware(
+		log.New(os.Stdout, "", log.LstdFlags),
+		[]string{"/assets"},
+	)
 
 	// Router configs
 	router.Use(loggingMiddleware, recoveryMiddleware)

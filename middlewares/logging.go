@@ -6,19 +6,22 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
 type LoggingMiddleware struct {
-	handler http.Handler
-	output  *log.Logger
+	handler         http.Handler
+	output          *log.Logger
+	excludePrefixes []string
 }
 
-func NewLoggingMiddleware(output *log.Logger) func(http.Handler) http.Handler {
+func NewLoggingMiddleware(output *log.Logger, excludePrefixes []string) func(http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return &LoggingMiddleware{
-			handler: h,
-			output:  output,
+			handler:         h,
+			output:          output,
+			excludePrefixes: excludePrefixes,
 		}
 	}
 }
@@ -30,6 +33,13 @@ func (lg *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	lg.handler.ServeHTTP(ww, r)
 	end := time.Now()
 	duration := end.Sub(start)
+
+	path := strings.ToLower(r.URL.Path)
+	for _, prefix := range lg.excludePrefixes {
+		if strings.HasPrefix(path, prefix) {
+			return
+		}
+	}
 
 	lg.output.Printf(
 		"%v status=%d, method=%s, uri=%s, duration=%v, bytes=%d, addr=%s\n",
