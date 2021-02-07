@@ -44,7 +44,6 @@
 * [Configuration Options](#-configuration-options)
 * [API Endpoints](#-api-endpoints)
 * [Integrations](#-integrations)
-* [WakaTime Integration](#%EF%B8%8F-wakatime-integration)
 * [Best Practices](#-best-practices)
 * [Developer Notes](#-developer-notes)
 * [Support](#-support)
