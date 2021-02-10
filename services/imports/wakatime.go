@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
@@ -53,6 +52,12 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 			return
 		}
 
+		machinesNames, err := w.fetchMachineNames()
+		if err != nil {
+			logbuch.Error("failed to fetch machine names while importing wakatime heartbeats for user '%s' – %v", user.ID, err)
+			return
+		}
+
 		days := generateDays(startDate, endDate)
 
 		c := atomic.NewUint32(uint32(len(days)))
@@ -75,7 +80,7 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 				}
 
 				for _, h := range heartbeats {
-					out <- mapHeartbeat(h, userAgents, user)
+					out <- mapHeartbeat(h, userAgents, machinesNames, user)
 				}
 
 				if c.Dec() == 0 {
@@ -134,27 +139,17 @@ func (w *WakatimeHeartbeatImporter) fetchRange() (time.Time, time.Time, error) {
 		return notime, notime, err
 	}
 
-	var allTimeData map[string]interface{}
+	var allTimeData wakatime.AllTimeViewModel
 	if err := json.NewDecoder(res.Body).Decode(&allTimeData); err != nil {
 		return notime, notime, err
 	}
 
-	data := allTimeData["data"].(map[string]interface{})
-	if data == nil {
-		return notime, notime, errors.New("invalid response")
-	}
-
-	dataRange := data["range"].(map[string]interface{})
-	if dataRange == nil {
-		return notime, notime, errors.New("invalid response")
-	}
-
-	startDate, err := time.Parse("2006-01-02", dataRange["start_date"].(string))
+	startDate, err := time.Parse("2006-01-02", allTimeData.Data.Range.StartDate)
 	if err != nil {
 		return notime, notime, err
 	}
 
-	endDate, err := time.Parse("2006-01-02", dataRange["end_date"].(string))
+	endDate, err := time.Parse("2006-01-02", allTimeData.Data.Range.EndDate)
 	if err != nil {
 		return notime, notime, err
 	}
@@ -189,6 +184,33 @@ func (w *WakatimeHeartbeatImporter) fetchUserAgents() (map[string]*wakatime.User
 	return userAgents, nil
 }
 
+// https://wakatime.com/api/v1/users/current/machine_names
+func (w *WakatimeHeartbeatImporter) fetchMachineNames() (map[string]*wakatime.MachineEntry, error) {
+	httpClient := &http.Client{Timeout: 10 * time.Second}
+
+	req, err := http.NewRequest(http.MethodGet, config.WakatimeApiUrl+config.WakatimeApiMachineNamesUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := httpClient.Do(w.withHeaders(req))
+	if err != nil {
+		return nil, err
+	}
+
+	var machineData wakatime.MachineViewModel
+	if err := json.NewDecoder(res.Body).Decode(&machineData); err != nil {
+		return nil, err
+	}
+
+	machines := make(map[string]*wakatime.MachineEntry)
+	for _, ma := range machineData.Data {
+		machines[ma.Id] = ma
+	}
+
+	return machines, nil
+}
+
 func (w *WakatimeHeartbeatImporter) withHeaders(req *http.Request) *http.Request {
 	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(w.ApiKey))))
 	return req
@@ -197,6 +219,7 @@ func (w *WakatimeHeartbeatImporter) withHeaders(req *http.Request) *http.Request
 func mapHeartbeat(
 	entry *wakatime.HeartbeatEntry,
 	userAgents map[string]*wakatime.UserAgentEntry,
+	machineNames map[string]*wakatime.MachineEntry,
 	user *models.User,
 ) *models.Heartbeat {
 	ua := userAgents[entry.UserAgentId]
@@ -204,6 +227,14 @@ func mapHeartbeat(
 		ua = &wakatime.UserAgentEntry{
 			Editor: "unknown",
 			Os:     "unknown",
+		}
+	}
+
+	ma := machineNames[entry.MachineNameId]
+	if ma == nil {
+		ma = &wakatime.MachineEntry{
+			Id:    entry.MachineNameId,
+			Value: entry.MachineNameId,
 		}
 	}
 
@@ -219,7 +250,7 @@ func mapHeartbeat(
 		IsWrite:         entry.IsWrite,
 		Editor:          ua.Editor,
 		OperatingSystem: ua.Os,
-		Machine:         entry.MachineNameId, // TODO
+		Machine:         ma.Value,
 		Time:            entry.Time,
 		Origin:          OriginWakatime,
 		OriginId:        entry.Id,

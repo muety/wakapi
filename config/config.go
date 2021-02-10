@@ -39,6 +39,7 @@ const (
 	WakatimeApiHeartbeatsUrl     = "/users/current/heartbeats"
 	WakatimeApiHeartbeatsBulkUrl = "/users/current/heartbeats.bulk"
 	WakatimeApiUserAgentsUrl     = "/users/current/user_agents"
+	WakatimeApiMachineNamesUrl   = "/users/current/machine_names"
 )
 
 var cfg *Config
