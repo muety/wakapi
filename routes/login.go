@@ -150,7 +150,9 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, created, err := h.userSrvc.CreateOrGet(&signup)
+	numUsers, _ := h.userSrvc.Count()
+
+	_, created, err := h.userSrvc.CreateOrGet(&signup, numUsers == 0)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r).WithError("failed to create new user"))
@@ -166,8 +168,11 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *LoginHandler) buildViewModel(r *http.Request) *view.LoginViewModel {
+	numUsers, _ := h.userSrvc.Count()
+
 	return &view.LoginViewModel{
-		Success: r.URL.Query().Get("success"),
-		Error:   r.URL.Query().Get("error"),
+		Success:    r.URL.Query().Get("success"),
+		Error:      r.URL.Query().Get("error"),
+		TotalUsers: int(numUsers),
 	}
 }

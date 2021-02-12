@@ -63,7 +63,8 @@ type IUserService interface {
 	GetUserById(string) (*models.User, error)
 	GetUserByKey(string) (*models.User, error)
 	GetAll() ([]*models.User, error)
-	CreateOrGet(*models.Signup) (*models.User, bool, error)
+	Count() (int64, error)
+	CreateOrGet(*models.Signup, bool) (*models.User, bool, error)
 	Update(*models.User) (*models.User, error)
 	Delete(*models.User) error
 	ResetApiKey(*models.User) (*models.User, error)

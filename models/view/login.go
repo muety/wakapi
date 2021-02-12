@@ -1,8 +1,9 @@
 package view
 
 type LoginViewModel struct {
-	Success string
-	Error   string
+	Success    string
+	Error      string
+	TotalUsers int
 }
 
 func (s *LoginViewModel) WithSuccess(m string) *LoginViewModel {

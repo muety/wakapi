@@ -24,8 +24,13 @@ func (m *UserServiceMock) GetAll() ([]*models.User, error) {
 	return args.Get(0).([]*models.User), args.Error(1)
 }
 
-func (m *UserServiceMock) CreateOrGet(signup *models.Signup) (*models.User, bool, error) {
-	args := m.Called(signup)
+func (m *UserServiceMock) Count() (int64, error) {
+	args := m.Called()
+	return int64(args.Int(0)), args.Error(1)
+}
+
+func (m *UserServiceMock) CreateOrGet(signup *models.Signup, isAdmin bool) (*models.User, bool, error) {
+	args := m.Called(signup, isAdmin)
 	return args.Get(0).(*models.User), args.Bool(1), args.Error(2)
 }
 

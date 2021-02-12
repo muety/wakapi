@@ -56,11 +56,16 @@ func (srv *UserService) GetAll() ([]*models.User, error) {
 	return srv.repository.GetAll()
 }
 
-func (srv *UserService) CreateOrGet(signup *models.Signup) (*models.User, bool, error) {
+func (srv *UserService) Count() (int64, error) {
+	return srv.repository.Count()
+}
+
+func (srv *UserService) CreateOrGet(signup *models.Signup, isAdmin bool) (*models.User, bool, error) {
 	u := &models.User{
 		ID:       signup.Username,
 		ApiKey:   uuid.NewV4().String(),
 		Password: signup.Password,
+		IsAdmin:  isAdmin,
 	}
 
 	if hash, err := utils.HashBcrypt(u.Password, srv.Config.Security.PasswordSalt); err != nil {

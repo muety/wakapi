@@ -49,6 +49,13 @@
                        type="password" id="password_repeat"
                        name="password_repeat" placeholder="Repeat your password" minlength="6" required>
             </div>
+
+            {{ if eq .TotalUsers 0 }}
+            <p class="text-sm text-gray-300 mt-4 mb-8">
+                ⚠️ <strong>Please note: </strong> Since there are no users registered in the system, yet, the first user will have administrative privileges, while additional users won't.
+            </p>
+            {{ end }}
+
             <div class="flex justify-between float-right">
                 <button type="submit" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
                     Create Account

@@ -40,6 +40,16 @@ func (r *UserRepository) GetAll() ([]*models.User, error) {
 	return users, nil
 }
 
+func (r *UserRepository) Count() (int64, error) {
+	var count int64
+	if err := r.db.
+		Model(&models.User{}).
+		Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func (r *UserRepository) InsertOrGet(user *models.User) (*models.User, bool, error) {
 	result := r.db.FirstOrCreate(user, &models.User{ID: user.ID})
 	if err := result.Error; err != nil {
