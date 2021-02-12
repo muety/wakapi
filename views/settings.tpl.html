@@ -534,26 +534,6 @@
 </main>
 
 <script type="text/javascript">
-    const baseUrl = location.href.substring(0, location.href.indexOf('/settings'))
-    document.querySelectorAll('.with-url-src').forEach(e => {
-        e.setAttribute('src', e.getAttribute('src').replace('%s', baseUrl))
-        e.classList.remove('hidden')
-    })
-    document.querySelectorAll('.with-url-src-no-scheme').forEach(e => {
-        const strippedUrl = baseUrl.replace(/https?:\/\//, '')
-        e.setAttribute('src', e.getAttribute('src').replace('%s', strippedUrl))
-        e.classList.remove('hidden')
-    })
-    document.querySelectorAll('.with-url-inner').forEach(e => {
-        e.innerHTML = e.innerHTML.replace('%s', baseUrl)
-        e.classList.remove('hidden')
-    })
-    document.querySelectorAll('.with-url-inner-no-scheme').forEach(e => {
-        const strippedUrl = baseUrl.replace(/https?:\/\//, '')
-        e.innerHTML = e.innerHTML.replace('%s', strippedUrl)
-        e.classList.remove('hidden')
-    })
-
     const btnRegenerate = document.querySelector('#btn-regenerate-summaries')
     const formRegenerate = document.querySelector('#form-regenerate-summaries')
     btnRegenerate.addEventListener('click', () => {

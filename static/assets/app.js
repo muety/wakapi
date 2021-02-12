@@ -317,8 +317,10 @@ function equalizeHeights() {
 }
 
 function getTotal(items) {
+    const el = document.getElementById('total-span')
+    if (!el) return
     let total = items.reduce((acc, d) => acc + d.total, 0)
-    document.getElementById('total-span').innerText = total.toString().toHHMMSS()
+    el.innerText = total.toString().toHHMMSS()
 }
 
 function getRandomColor(seed) {

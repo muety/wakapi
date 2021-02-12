@@ -10,3 +10,25 @@
         <a href="imprint" class="border-b border-green-700">Imprint, Cookies & Data Privacy</a>
     </div>
 </footer>
+
+<script type="text/javascript">
+    const baseUrl = location.href.substring(0, location.href.lastIndexOf('/'))
+    document.querySelectorAll('.with-url-src').forEach(e => {
+        e.setAttribute('src', e.getAttribute('src').replace('%s', baseUrl))
+        e.classList.remove('hidden')
+    })
+    document.querySelectorAll('.with-url-src-no-scheme').forEach(e => {
+        const strippedUrl = baseUrl.replace(/https?:\/\//, '')
+        e.setAttribute('src', e.getAttribute('src').replace('%s', strippedUrl))
+        e.classList.remove('hidden')
+    })
+    document.querySelectorAll('.with-url-inner').forEach(e => {
+        e.innerHTML = e.innerHTML.replace('%s', baseUrl)
+        e.classList.remove('hidden')
+    })
+    document.querySelectorAll('.with-url-inner-no-scheme').forEach(e => {
+        const strippedUrl = baseUrl.replace(/https?:\/\//, '')
+        e.innerHTML = e.innerHTML.replace('%s', strippedUrl)
+        e.classList.remove('hidden')
+    })
+</script>

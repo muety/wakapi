@@ -53,6 +53,7 @@ type SummaryViewModel struct {
 	Error          string
 	Success        string
 	ApiKey         string
+	RawQuery       string
 }
 
 type SummaryParams struct {

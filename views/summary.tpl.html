@@ -53,16 +53,27 @@
 
 {{ template "alerts.tpl.html" . }}
 
-<main class="mt-10 flex-grow">
+<main class="flex flex-col items-center mt-10 flex-grow">
+
     <div class="flex justify-center">
         <div class="p-1">
             <div class="flex justify-center p-4 bg-gray-900 border border-gray-700 text-gray-300 rounded-md shadow">
                 <p class="mx-2"><strong>▶️</strong> <span title="Start Time">{{ .FromTime.T | date }}</span></p>
                 <p class="mx-2"><strong>⏹️</strong> <span title="End Time">{{ .ToTime.T | date }}</span></p>
-                <p class="mx-2"><strong>⏱️</strong> <span id="total-span" title="Total Hours"></span></p>
+                <p class="mx-2">
+                    <strong>⏱️</strong>
+                    {{ if gt .Summary.TotalTime 0 }}
+                    <span id="total-span" title="Total Hours"></span>
+                    {{ else }}
+                    <span title="Total Hours">No Data</span>
+                    {{ end }}
+                </p>
             </div>
         </div>
     </div>
+
+    {{ if or (gt .Summary.TotalTime 0) (ne .RawQuery "") }}
+
     <div class="flex flex-wrap justify-center">
         <div class="w-full lg:w-1/2 p-1">
             <div class="p-4 pb-10 bg-gray-900 border border-gray-700 text-gray-300 rounded-md shadow m-2 flex flex-col" id="project-container" style="height: 300px">
@@ -76,8 +87,7 @@
                 </div>
                 <canvas id="chart-projects" class="mt-2"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                    <img src="assets/images/no_data.svg" class="w-20" alt="No data"/>
-                    <span class="text-sm mt-4">No data available ...</span>
+                    <span class="text-md font-semibold text-gray-500 mt-4">No data ...</span>
                 </div>
             </div>
         </div>
@@ -93,8 +103,7 @@
                 </div>
                 <canvas id="chart-os"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                    <img src="assets/images/no_data.svg" class="w-20" alt="No data"/>
-                    <span class="text-sm mt-4">No data available ...</span>
+                    <span class="text-md font-semibold text-gray-500 mt-4">No data ...</span>
                 </div>
             </div>
         </div>
@@ -110,8 +119,7 @@
                 </div>
                 <canvas id="chart-language"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                    <img src="assets/images/no_data.svg" class="w-20" alt="No data"/>
-                    <span class="text-sm mt-4">No data available ...</span>
+                    <span class="text-md font-semibold text-gray-500 mt-4">No data ...</span>
                 </div>
             </div>
         </div>
@@ -127,8 +135,7 @@
                 </div>
                 <canvas id="chart-editor"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                    <img src="assets/images/no_data.svg" class="w-20" alt="No data"/>
-                    <span class="text-sm mt-4">No data available ...</span>
+                    <span class="text-md font-semibold text-gray-500 mt-4">No data ...</span>
                 </div>
             </div>
         </div>
@@ -144,17 +151,54 @@
                 </div>
                 <canvas id="chart-machine"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                    <img src="assets/images/no_data.svg" class="w-20" alt="No data"/>
-                    <span class="text-sm mt-4">No data available ...</span>
+                    <span class="text-md font-semibold text-gray-500 mt-4">No data ...</span>
                 </div>
             </div>
         </div>
     </div>
+
+    {{ else }}
+
+    <div class="max-w-screen-sm flex flex-col items-center mt-12 space-y-8 text-gray-300 text-center">
+        <div class="pb-4">
+            <img src="assets/images/welcome.svg" width="200px">
+        </div>
+        <p class="text-sm">
+            <strong>Welcome to Wakapi! 👋</strong> It looks like there is no data available for the specified time range.<br>If you logged in to Wakapi for the first time, see the setup instructions below on how to get started.
+        </p>
+        <div class="w-full pt-10 flex flex-col space-y-4">
+            <div>
+                <h3 class="inline-block font-semibold text-md border-b border-green-700">Setup Instructions</h3>
+            </div>
+            <div class="w-full bg-gray-900 text-left rounded-md py-4 px-8 text-xs font-mono shadow-md">
+                # <strong>Step 1:</strong> Download WakaTime plugin for your IDE<br>
+                # See: https://wakatime.com/plugins<br><br>
+
+                # <strong>Step 2:</strong> Adapt your config<br>
+                $ vi ~/.wakatime.cfg<br>
+
+                # Set <i>api_url = <span class="with-url-inner">%s/api/heartbeat</span></i><br>
+                # Set <i>api_key = <span id="api-key-instruction"></span></i><br><br>
+
+                # <strong>Step 3:</strong> Start coding and then check back here!
+            </div>
+            <p class="pt-4 text-sm">
+                More at <a href="https://github.com/muety/wakapi" target="_blank" rel="noreferrer noopener" class="font-mono border-b border-green-700">github.com/muety/wakapi</a>.
+            </p>
+        </div>
+    </div>
+
+    {{ end }}
+
 </main>
 
 {{ template "footer.tpl.html" . }}
 
 {{ template "foot.tpl.html" . }}
+
+<script type="text/javascript">
+    document.querySelector('#api-key-instruction').innerHTML = document.querySelector('#api-key-container').value
+</script>
 
 <script>
     const languageColors = {{ .LanguageColors | json }}

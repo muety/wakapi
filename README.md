@@ -61,6 +61,7 @@ I'd love to get some community feedback from active Wakapi users. If you want, p
 * ✅ Partially compatible with WakaTime
 * ✅ WakaTime integration
 * ✅ Support for Prometheus exports
+* ✅ Lightning fast
 * ✅ Self-hosted
 
 ## 🚧 Roadmap

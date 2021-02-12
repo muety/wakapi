@@ -39,6 +39,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
+	rawQuery := r.URL.RawQuery
 	q := r.URL.Query()
 	if q.Get("interval") == "" && q.Get("from") == "" {
 		q.Set("interval", "today")
@@ -65,6 +66,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		EditorColors:   utils.FilterColors(h.config.App.GetEditorColors(), summary.Editors),
 		OSColors:       utils.FilterColors(h.config.App.GetOSColors(), summary.OperatingSystems),
 		ApiKey:         user.ApiKey,
+		RawQuery:       rawQuery,
 	}
 
 	templates[conf.SummaryTemplate].Execute(w, vm)
