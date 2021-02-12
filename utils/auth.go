@@ -36,7 +36,7 @@ func ExtractBasicAuth(r *http.Request) (username, password string, err error) {
 
 func ExtractBearerAuth(r *http.Request) (key string, err error) {
 	authHeader := strings.Split(r.Header.Get("Authorization"), " ")
-	if len(authHeader) != 2 || authHeader[0] != "Basic" {
+	if len(authHeader) != 2 || (authHeader[0] != "Basic" && authHeader[0] != "Bearer") {
 		return key, errors.New("failed to extract API key")
 	}
 
