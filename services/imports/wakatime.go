@@ -73,7 +73,7 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 			go func(day time.Time) {
 				defer sem.Release(1)
 
-				d := day.Format("2006-01-02")
+				d := day.Format(config.SimpleDateFormat)
 				heartbeats, err := w.fetchHeartbeats(d)
 				if err != nil {
 					logbuch.Error("failed to fetch heartbeats for day '%s' and user '%s' – &v", day, user.ID, err)
@@ -144,12 +144,12 @@ func (w *WakatimeHeartbeatImporter) fetchRange() (time.Time, time.Time, error) {
 		return notime, notime, err
 	}
 
-	startDate, err := time.Parse("2006-01-02", allTimeData.Data.Range.StartDate)
+	startDate, err := time.Parse(config.SimpleDateFormat, allTimeData.Data.Range.StartDate)
 	if err != nil {
 		return notime, notime, err
 	}
 
-	endDate, err := time.Parse("2006-01-02", allTimeData.Data.Range.EndDate)
+	endDate, err := time.Parse(config.SimpleDateFormat, allTimeData.Data.Range.EndDate)
 	if err != nil {
 		return notime, notime, err
 	}

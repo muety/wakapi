@@ -166,7 +166,7 @@ You can specify configuration options either via a config file (default: `config
 | `security.insecure_cookies` | `WAKAPI_INSECURE_COOKIES`   | `false`        | Whether or not to allow cookies over HTTP                           |
 | `security.cookie_max_age`   | `WAKAPI_COOKIE_MAX_AGE`     | `172800`       | Lifetime of authentication cookies in seconds or `0` to use [Session](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Define_the_lifetime_of_a_cookie) cookies |
 | `security.allow_signup`     | `WAKAPI_ALLOW_SIGNUP`       | `true`         | Whether to enable user registration                                 |
-| `security.expose_metrics`   | `WAKAPI_EXPOSE_METRICS`     | `false`        | Whether to expose Prometheus metrics under `/metrics`               |
+| `security.expose_metrics`   | `WAKAPI_EXPOSE_METRICS`     | `false`        | Whether to expose Prometheus metrics under `/api/metrics`               |
 | `db.host`                   | `WAKAPI_DB_HOST`            | -              | Database host                                                       |
 | `db.port`                   | `WAKAPI_DB_PORT`            | -              | Database port                                                       |
 | `db.user`                   | `WAKAPI_DB_USER`            | -              | Database user                                                       |

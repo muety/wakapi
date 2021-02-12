@@ -30,6 +30,11 @@ const (
 	KeyLatestTotalTime  = "latest_total_time"
 	KeyLatestTotalUsers = "latest_total_users"
 	KeyLastImportImport = "last_import"
+
+	SimpleDateFormat     = "2006-01-02"
+	SimpleDateTimeFormat = "2006-01-02 15:04:05"
+
+	ErrInternalServerError = "internal server error"
 )
 
 const (

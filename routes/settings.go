@@ -166,13 +166,13 @@ func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Re
 
 	user.Password = credentials.PasswordNew
 	if hash, err := utils.HashBcrypt(user.Password, h.config.Security.PasswordSalt); err != nil {
-		return http.StatusInternalServerError, "", "internal server error"
+		return http.StatusInternalServerError, "", conf.ErrInternalServerError
 	} else {
 		user.Password = hash
 	}
 
 	if _, err := h.userSrvc.Update(user); err != nil {
-		return http.StatusInternalServerError, "", "internal server error"
+		return http.StatusInternalServerError, "", conf.ErrInternalServerError
 	}
 
 	login := &models.Login{
@@ -181,7 +181,7 @@ func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Re
 	}
 	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, login.Username)
 	if err != nil {
-		return http.StatusInternalServerError, "", "internal server error"
+		return http.StatusInternalServerError, "", conf.ErrInternalServerError
 	}
 
 	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded, "/"))
@@ -195,7 +195,7 @@ func (h *SettingsHandler) actionResetApiKey(w http.ResponseWriter, r *http.Reque
 
 	user := r.Context().Value(models.UserKey).(*models.User)
 	if _, err := h.userSrvc.ResetApiKey(user); err != nil {
-		return http.StatusInternalServerError, "", "internal server error"
+		return http.StatusInternalServerError, "", conf.ErrInternalServerError
 	}
 
 	msg := fmt.Sprintf("your new api key is: %s", user.ApiKey)
@@ -341,7 +341,7 @@ func (h *SettingsHandler) actionSetWakatimeApiKey(w http.ResponseWriter, r *http
 	}
 
 	if _, err := h.userSrvc.SetWakatimeApiKey(user, apiKey); err != nil {
-		return http.StatusInternalServerError, "", "internal server error"
+		return http.StatusInternalServerError, "", conf.ErrInternalServerError
 	}
 
 	return http.StatusOK, "Wakatime API Key updated successfully", ""

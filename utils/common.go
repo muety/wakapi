@@ -2,16 +2,17 @@ package utils
 
 import (
 	"errors"
+	"github.com/muety/wakapi/config"
 	"regexp"
 	"time"
 )
 
 func ParseDate(date string) (time.Time, error) {
-	return time.Parse("2006-01-02 15:04:05", date)
+	return time.Parse(config.SimpleDateTimeFormat, date)
 }
 
 func FormatDate(date time.Time) string {
-	return date.Format("2006-01-02 15:04:05")
+	return date.Format(config.SimpleDateTimeFormat)
 }
 
 func FormatDateHuman(date time.Time) string {
