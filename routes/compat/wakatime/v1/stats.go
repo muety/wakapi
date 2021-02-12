@@ -33,6 +33,10 @@ func (h *StatsHandler) RegisterRoutes(router *mux.Router) {
 	)
 	r.Path("/v1/users/{user}/stats/{range}").Methods(http.MethodGet).HandlerFunc(h.Get)
 	r.Path("/compat/wakatime/v1/users/{user}/stats/{range}").Methods(http.MethodGet).HandlerFunc(h.Get)
+
+	// Also works without range, see https://github.com/anuraghazra/github-readme-stats/issues/865#issuecomment-776186592
+	r.Path("/v1/users/{user}/stats").Methods(http.MethodGet).HandlerFunc(h.Get)
+	r.Path("/compat/wakatime/v1/users/{user}/stats").Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
 // TODO: support filtering (requires https://github.com/muety/wakapi/issues/108)
@@ -56,7 +60,12 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err, rangeFrom, rangeTo := utils.ResolveIntervalRaw(vars["range"])
+	rangeParam := vars["range"]
+	if rangeParam == "" {
+		rangeParam = (*models.IntervalPast7Days)[0]
+	}
+
+	err, rangeFrom, rangeTo := utils.ResolveIntervalRaw(rangeParam)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("invalid range"))
