@@ -49,6 +49,7 @@ type IUserRepository interface {
 	GetById(string) (*models.User, error)
 	GetByApiKey(string) (*models.User, error)
 	GetAll() ([]*models.User, error)
+	GetByLoggedInAfter(time.Time) ([]*models.User, error)
 	Count() (int64, error)
 	InsertOrGet(*models.User) (*models.User, bool, error)
 	Update(*models.User) (*models.User, error)

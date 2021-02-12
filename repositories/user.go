@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"time"
 )
 
 type UserRepository struct {
@@ -34,6 +35,16 @@ func (r *UserRepository) GetAll() ([]*models.User, error) {
 	var users []*models.User
 	if err := r.db.
 		Where(&models.User{}).
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func (r *UserRepository) GetByLoggedInAfter(t time.Time) ([]*models.User, error) {
+	var users []*models.User
+	if err := r.db.
+		Where("last_logged_in_at >= ?", t).
 		Find(&users).Error; err != nil {
 		return nil, err
 	}

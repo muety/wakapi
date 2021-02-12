@@ -92,6 +92,10 @@ func (s *Summary) MappedItems() map[uint8]*SummaryItems {
 	}
 }
 
+func (s *Summary) ItemsByType(summaryType uint8) *SummaryItems {
+	return s.MappedItems()[summaryType]
+}
+
 /* Augments the summary in a way that at least one item is present for every type.
 If a summary has zero items for a given type, but one or more for any of the other types,
 the total summary duration can be derived from those and inserted as a dummy-item with key "unknown"

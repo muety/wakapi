@@ -64,6 +64,7 @@ type IUserService interface {
 	GetUserById(string) (*models.User, error)
 	GetUserByKey(string) (*models.User, error)
 	GetAll() ([]*models.User, error)
+	GetActive() ([]*models.User, error)
 	Count() (int64, error)
 	CreateOrGet(*models.Signup, bool) (*models.User, bool, error)
 	Update(*models.User) (*models.User, error)

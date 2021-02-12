@@ -10,7 +10,7 @@ server:
 
 app:
   aggregation_time: '02:15' # time at which to run daily aggregation batch jobs
-  counting_time: '05:15'    # time at which to run daily job to count total hours tracked in the system
+  inactive_days: 7          # time of previous days within a user must have logged in to be considered active
   custom_languages:
     vue: Vue
     jsx: JSX

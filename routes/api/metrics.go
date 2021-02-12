@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
@@ -10,15 +11,16 @@ import (
 	mm "github.com/muety/wakapi/models/metrics"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
+	"go.uber.org/atomic"
 	"net/http"
 	"sort"
-	"strconv"
 	"time"
 )
 
 const (
 	MetricsPrefix = "wakatime"
 
+	DescHeartbeats       = "Total number of tracked heartbeats."
 	DescAllTime          = "Total seconds (all time)."
 	DescTotal            = "Total seconds."
 	DescEditors          = "Total seconds for each editor."
@@ -27,9 +29,10 @@ const (
 	DescOperatingSystems = "Total seconds for each operating system."
 	DescMachines         = "Total seconds for each machine."
 
-	DescAdminTotalTime       = "Total seconds (all users, all time)"
-	DescAdminTotalHeartbeats = "Total number of tracked heartbeats (all users, all time)"
-	DescAdminTotalUser       = "Total number of registered users"
+	DescAdminTotalTime       = "Total seconds (all users, all time)."
+	DescAdminTotalHeartbeats = "Total number of tracked heartbeats (all time)."
+	DescAdminTotalUsers      = "Total number of registered users."
+	DescAdminActiveUsers     = "Number of active users."
 )
 
 type MetricsHandler struct {
@@ -65,26 +68,61 @@ func (h *MetricsHandler) RegisterRoutes(router *mux.Router) {
 }
 
 func (h *MetricsHandler) Get(w http.ResponseWriter, r *http.Request) {
-	var metrics mm.Metrics
-
-	user := r.Context().Value(models.UserKey).(*models.User)
-	if user == nil {
+	reqUser := r.Context().Value(models.UserKey).(*models.User)
+	if reqUser == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
+	var metrics mm.Metrics
+
+	if userMetrics, err := h.getUserMetrics(reqUser); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(conf.ErrInternalServerError))
+	} else {
+		for _, m := range *userMetrics {
+			metrics = append(metrics, m)
+		}
+	}
+
+	if reqUser.IsAdmin {
+		if adminMetrics, err := h.getAdminMetrics(reqUser); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(conf.ErrInternalServerError))
+		} else {
+			for _, m := range *adminMetrics {
+				metrics = append(metrics, m)
+			}
+		}
+	}
+
+	sort.Sort(metrics)
+
+	w.Header().Set("content-type", "text/plain; charset=utf-8")
+	w.Write([]byte(metrics.Print()))
+}
+
+func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) {
+	var metrics mm.Metrics
+
 	summaryAllTime, err := h.summarySrvc.Aliased(time.Time{}, time.Now(), user, h.summarySrvc.Retrieve)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		logbuch.Error("failed to retrieve all time summary for user '%s' for metric", user.ID)
+		return nil, err
 	}
 
 	from, to := utils.MustResolveIntervalRaw("today")
 
 	summaryToday, err := h.summarySrvc.Aliased(from, to, user, h.summarySrvc.Retrieve)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		logbuch.Error("failed to retrieve today's summary for user '%s' for metric", user.ID)
+		return nil, err
+	}
+
+	heartbeatCount, err := h.heartbeatSrvc.CountByUser(user)
+	if err != nil {
+		logbuch.Error("failed to count heartbeats for user '%s' for metric", user.ID)
+		return nil, err
 	}
 
 	// User Metrics
@@ -100,6 +138,13 @@ func (h *MetricsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		Name:   MetricsPrefix + "_seconds_total",
 		Desc:   DescTotal,
 		Value:  int(summaryToday.TotalTime().Seconds()),
+		Labels: []mm.Label{},
+	})
+
+	metrics = append(metrics, &mm.CounterMetric{
+		Name:   MetricsPrefix + "_heartbeats_total",
+		Desc:   DescHeartbeats,
+		Value:  int(heartbeatCount),
 		Labels: []mm.Label{},
 	})
 
@@ -148,61 +193,79 @@ func (h *MetricsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	// Admin metrics
+	return &metrics, nil
+}
 
-	if user.IsAdmin {
-		var (
-			totalSeconds    int
-			totalUsers      int
-			totalHeartbeats int
-		)
+func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error) {
+	var metrics mm.Metrics
 
-		if t, err := h.keyValueSrvc.GetString(conf.KeyLatestTotalTime); err == nil && t != nil && t.Value != "" {
-			if d, err := time.ParseDuration(t.Value); err == nil {
-				totalSeconds = int(d.Seconds())
+	if !user.IsAdmin {
+		return nil, errors.New("unauthorized")
+	}
+
+	var totalSeconds int
+	if t, err := h.keyValueSrvc.GetString(conf.KeyLatestTotalTime); err == nil && t != nil && t.Value != "" {
+		if d, err := time.ParseDuration(t.Value); err == nil {
+			totalSeconds = int(d.Seconds())
+		}
+	}
+
+	totalUsers, _ := h.userSrvc.Count()
+
+	activeUsers, err := h.userSrvc.GetActive()
+	if err != nil {
+		logbuch.Error("failed to retrieve active users for metric", err)
+		return nil, err
+	}
+
+	metrics = append(metrics, &mm.CounterMetric{
+		Name:   MetricsPrefix + "_admin_seconds_total",
+		Desc:   DescAdminTotalTime,
+		Value:  totalSeconds,
+		Labels: []mm.Label{},
+	})
+
+	metrics = append(metrics, &mm.CounterMetric{
+		Name:   MetricsPrefix + "_admin_users_total",
+		Desc:   DescAdminTotalUsers,
+		Value:  int(totalUsers),
+		Labels: []mm.Label{},
+	})
+
+	metrics = append(metrics, &mm.CounterMetric{
+		Name:   MetricsPrefix + "_admin_users_active_total",
+		Desc:   DescAdminActiveUsers,
+		Value:  len(activeUsers),
+		Labels: []mm.Label{},
+	})
+
+	// Count per-user heartbeats
+	type userCount struct {
+		user  string
+		count int64
+	}
+
+	i := atomic.NewUint32(uint32(len(activeUsers)))
+	c := make(chan *userCount, len(activeUsers))
+
+	for _, u := range activeUsers {
+		go func(u *models.User) {
+			count, _ := h.heartbeatSrvc.CountByUser(u)
+			c <- &userCount{user: u.ID, count: count}
+			if i.Dec() == 0 {
+				close(c)
 			}
-		}
+		}(u)
+	}
 
-		if t, err := h.keyValueSrvc.GetString(conf.KeyLatestTotalUsers); err == nil && t != nil && t.Value != "" {
-			if d, err := strconv.Atoi(t.Value); err == nil {
-				totalUsers = d
-			}
-		}
-
-		if t, err := h.keyValueSrvc.GetString(conf.KeyLatestTotalUsers); err == nil && t != nil && t.Value != "" {
-			if d, err := strconv.Atoi(t.Value); err == nil {
-				totalUsers = d
-			}
-		}
-
-		if t, err := h.heartbeatSrvc.Count(); err == nil {
-			totalHeartbeats = int(t)
-		}
-
-		metrics = append(metrics, &mm.CounterMetric{
-			Name:   MetricsPrefix + "_admin_seconds_total",
-			Desc:   DescAdminTotalTime,
-			Value:  totalSeconds,
-			Labels: []mm.Label{},
-		})
-
-		metrics = append(metrics, &mm.CounterMetric{
-			Name:   MetricsPrefix + "_admin_users_total",
-			Desc:   DescAdminTotalUser,
-			Value:  totalUsers,
-			Labels: []mm.Label{},
-		})
-
+	for uc := range c {
 		metrics = append(metrics, &mm.CounterMetric{
 			Name:   MetricsPrefix + "_admin_heartbeats_total",
 			Desc:   DescAdminTotalHeartbeats,
-			Value:  totalHeartbeats,
-			Labels: []mm.Label{},
+			Value:  int(uc.count),
+			Labels: []mm.Label{{Key: "user", Value: uc.user}},
 		})
 	}
 
-	sort.Sort(metrics)
-
-	w.Header().Set("content-type", "text/plain; charset=utf-8")
-	w.Write([]byte(metrics.Print()))
+	return &metrics, nil
 }

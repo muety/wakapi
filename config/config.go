@@ -34,7 +34,7 @@ const (
 	SimpleDateFormat     = "2006-01-02"
 	SimpleDateTimeFormat = "2006-01-02 15:04:05"
 
-	ErrInternalServerError = "internal server error"
+	ErrInternalServerError = "500 internal server error"
 )
 
 const (
@@ -54,6 +54,7 @@ type appConfig struct {
 	AggregationTime  string                       `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
 	ImportBackoffMin int                          `yaml:"import_backoff_min" default:"5" env:"WAKAPI_IMPORT_BACKOFF_MIN"`
 	ImportBatchSize  int                          `yaml:"import_batch_size" default:"100" env:"WAKAPI_IMPORT_BATCH_SIZE"`
+	InactiveDays     int                          `yaml:"inactive_days" default:"7" env:"WAKAPI_INACTIVE_DAYS"`
 	CustomLanguages  map[string]string            `yaml:"custom_languages"`
 	Colors           map[string]map[string]string `yaml:"-"`
 }
