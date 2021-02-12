@@ -57,7 +57,7 @@ func NewSettingsHandler(
 func (h *SettingsHandler) RegisterRoutes(router *mux.Router) {
 	r := router.PathPrefix("/settings").Subrouter()
 	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
+		middlewares.NewAuthenticateMiddleware(h.userSrvc).WithRedirectTarget(defaultErrorRedirectTarget()).Handler,
 	)
 	r.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
 	r.Methods(http.MethodPost).HandlerFunc(h.PostIndex)

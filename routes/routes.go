@@ -102,3 +102,7 @@ func typeName(t uint8) string {
 	}
 	return "unknown"
 }
+
+func defaultErrorRedirectTarget() string {
+	return fmt.Sprintf("%s/?error=unauthorized", config.Get().Server.BasePath)
+}

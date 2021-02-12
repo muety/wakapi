@@ -164,7 +164,9 @@ You can specify configuration options either via a config file (default: `config
 | `server.base_path`          | `WAKAPI_BASE_PATH`          | `/`            | Web base path (change when running behind a proxy under a sub-path) |
 | `security.password_salt`    | `WAKAPI_PASSWORD_SALT`      | -              | Pepper to use for password hashing                                  |
 | `security.insecure_cookies` | `WAKAPI_INSECURE_COOKIES`   | `false`        | Whether or not to allow cookies over HTTP                           |
-| `security.cookie_max_age`   | `WAKAPI_COOKIE_MAX_AGE  `   | `172800`       | Lifetime of authentication cookies in seconds or `0` to use [Session](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Define_the_lifetime_of_a_cookie) cookies |
+| `security.cookie_max_age`   | `WAKAPI_COOKIE_MAX_AGE`     | `172800`       | Lifetime of authentication cookies in seconds or `0` to use [Session](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Define_the_lifetime_of_a_cookie) cookies |
+| `security.allow_signup`     | `WAKAPI_ALLOW_SIGNUP`       | `true`         | Whether to enable user registration                                 |
+| `security.expose_metrics`   | `WAKAPI_EXPOSE_METRICS`     | `false`        | Whether to expose Prometheus metrics under `/metrics`               |
 | `db.host`                   | `WAKAPI_DB_HOST`            | -              | Database host                                                       |
 | `db.port`                   | `WAKAPI_DB_PORT`            | -              | Database port                                                       |
 | `db.user`                   | `WAKAPI_DB_USER`            | -              | Database user                                                       |
@@ -196,13 +198,37 @@ $ swag init -o static/docs
 
 ## 🤝 Integrations
 ### Prometheus Export
-If you want to export your Wakapi statistics to Prometheus to view them in a Grafana dashboard or so please refer to an excellent tool called **[wakatime_exporter](https://github.com/MacroPower/wakatime_exporter)**.
+You can export your Wakapi statistics to Prometheus to view them in a Grafana dashboard or so. Here is how.
 
-[![](https://github-readme-stats.vercel.app/api/pin/?username=MacroPower&repo=wakatime_exporter&show_owner=true&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff)](https://github.com/MacroPower/wakatime_exporter)
+```bash
+# 1. Start Wakapi with the feature enabled
+$ export WAKAPI_EXPOSE_METRICS=true
+$ ./wakapi
 
-It is a standalone webserver that connects to your Wakapi instance and exposes the data as Prometheus metrics. Although originally developed to scrape data from WakaTime, it will mostly for with Wakapi as well, as the APIs are partially compatible.
+# 2. Get your API key and hash it
+$ echo "<YOUR_API_KEY>" | base64
 
-Simply configure the exporter with `WAKA_SCRAPE_URI` to equal `"https://wakapi.your-server.com/api/compat/wakatime/v1"` and set your API key accordingly.
+# 3. Add a Prometheus scrape config to your prometheus.yml (see below)
+```
+
+#### Scrape config example
+```yml
+# prometheus.yml
+# (assuming your Wakapi instance listens at localhost, port 3000)
+
+scrape_configs:
+  - job_name: 'wakapi'
+    scrape_interval: 1m
+    metrics_path: '/api/metrics'
+    bearer_token: '<YOUR_BASE64_HASHED_TOKEN>'
+    static_configs:
+      - targets: ['localhost:3000']
+```
+
+#### Grafana 
+There is also a [nice Grafana dashboard](https://grafana.com/grafana/dashboards/12790), provided by the author of [wakatime_exporter](https://github.com/MacroPower/wakatime_exporter).
+
+![](https://grafana.com/api/dashboards/12790/images/8741/image)
 
 ### WakaTime Integration
 Wakapi plays well together with [WakaTime](https://wakatime.com). For one thing, you can **forward heartbeats** from Wakapi to WakaTime to effectively use both services simultaneously. In addition, there is the option to **import historic data** from WakaTime for consistency between both services. Both features can be enabled in the _Integrations_ section of your Wakapi instance's settings page.     

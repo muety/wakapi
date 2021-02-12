@@ -16,6 +16,11 @@ func ParseInterval(interval string) (*models.IntervalKey, error) {
 	return nil, errors.New("not a valid interval")
 }
 
+func MustResolveIntervalRaw(interval string) (from, to time.Time) {
+	_, from, to = ResolveIntervalRaw(interval)
+	return from, to
+}
+
 func ResolveIntervalRaw(interval string) (err error, from, to time.Time) {
 	parsed, err := ParseInterval(interval)
 	if err != nil {
@@ -74,6 +79,8 @@ func ParseSummaryParams(r *http.Request) (*models.SummaryParams, error) {
 
 	if interval := params.Get("interval"); interval != "" {
 		err, from, to = ResolveIntervalRaw(interval)
+	} else if start := params.Get("start"); start != "" {
+		err, from, to = ResolveIntervalRaw(start)
 	} else {
 		from, err = ParseDate(params.Get("from"))
 		if err != nil {

@@ -30,6 +30,10 @@ func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {
 	return srv.repository.InsertBatch(heartbeats)
 }
 
+func (srv *HeartbeatService) Count() (int64, error) {
+	return srv.repository.Count()
+}
+
 func (srv *HeartbeatService) CountByUser(user *models.User) (int64, error) {
 	return srv.repository.CountByUser(user)
 }

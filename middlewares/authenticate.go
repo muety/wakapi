@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"context"
-	"fmt"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
@@ -15,6 +14,7 @@ type AuthenticateMiddleware struct {
 	config           *conf.Config
 	userSrvc         services.IUserService
 	optionalForPaths []string
+	redirectTarget   string // optional
 }
 
 func NewAuthenticateMiddleware(userService services.IUserService) *AuthenticateMiddleware {
@@ -27,6 +27,11 @@ func NewAuthenticateMiddleware(userService services.IUserService) *AuthenticateM
 
 func (m *AuthenticateMiddleware) WithOptionalFor(paths []string) *AuthenticateMiddleware {
 	m.optionalForPaths = paths
+	return m
+}
+
+func (m *AuthenticateMiddleware) WithRedirectTarget(path string) *AuthenticateMiddleware {
+	m.redirectTarget = path
 	return m
 }
 
@@ -50,11 +55,12 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		if strings.HasPrefix(r.URL.Path, "/api") {
+		if m.redirectTarget == "" {
 			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("401 unauthorized"))
 		} else {
 			http.SetCookie(w, m.config.GetClearCookie(models.AuthCookieKey, "/"))
-			http.Redirect(w, r, fmt.Sprintf("%s/?error=unauthorized", m.config.Server.BasePath), http.StatusFound)
+			http.Redirect(w, r, m.redirectTarget, http.StatusFound)
 		}
 		return
 	}

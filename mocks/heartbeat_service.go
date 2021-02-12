@@ -20,6 +20,11 @@ func (m *HeartbeatServiceMock) InsertBatch(heartbeats []*models.Heartbeat) error
 	return args.Error(0)
 }
 
+func (m *HeartbeatServiceMock) Count() (int64, error) {
+	args := m.Called()
+	return int64(args.Int(0)), args.Error(1)
+}
+
 func (m *HeartbeatServiceMock) CountByUser(user *models.User) (int64, error) {
 	args := m.Called(user)
 	return args.Get(0).(int64), args.Error(0)

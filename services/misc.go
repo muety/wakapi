@@ -46,7 +46,7 @@ func (srv *MiscService) ScheduleCountTotalTime() {
 	}
 
 	s := gocron.NewScheduler(time.Local)
-	s.Every(1).Day().At(srv.config.App.CountingTime).Do(srv.runCountTotalTime)
+	s.Every(1).Hour().Do(srv.runCountTotalTime)
 	s.StartBlocking()
 }
 

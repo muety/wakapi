@@ -47,7 +47,6 @@ var cFlag = flag.String("config", defaultConfigPath, "config file location")
 
 type appConfig struct {
 	AggregationTime  string                       `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
-	CountingTime     string                       `yaml:"counting_time" default:"05:15" env:"WAKAPI_COUNTING_TIME"`
 	ImportBackoffMin int                          `yaml:"import_backoff_min" default:"5" env:"WAKAPI_IMPORT_BACKOFF_MIN"`
 	ImportBatchSize  int                          `yaml:"import_batch_size" default:"100" env:"WAKAPI_IMPORT_BATCH_SIZE"`
 	CustomLanguages  map[string]string            `yaml:"custom_languages"`
@@ -55,7 +54,8 @@ type appConfig struct {
 }
 
 type securityConfig struct {
-	AllowSignup bool `yaml:"allow_signup" default:"true" env:"WAKAPI_ALLOW_SIGNUP"`
+	AllowSignup   bool `yaml:"allow_signup" default:"true" env:"WAKAPI_ALLOW_SIGNUP"`
+	ExposeMetrics bool `yaml:"expose_metrics" default:"false" env:"WAKAPI_EXPOSE_METRICS"`
 	// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
 	PasswordSalt    string                     `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
 	InsecureCookies bool                       `yaml:"insecure_cookies" default:"false" env:"WAKAPI_INSECURE_COOKIES"`

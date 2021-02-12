@@ -27,11 +27,11 @@
         <p class="text-center text-gray-500 text-xl my-4">
             <span class="mr-1">💡 The system has tracked a total of </span>
             {{ range $d := .TotalHours | printf "%d" | toRunes }}
-            <span class="bg-gray-900 rounded-sm p-1 border border-gray-700 font-mono" style="margin: auto -2px;" title="{{ $.TotalHours }} hours (updated once a day)">{{ $d }}</span>
+            <span class="bg-gray-900 rounded-sm p-1 border border-gray-700 font-mono" style="margin: auto -2px;" title="{{ $.TotalHours }} hours (updated every hour)">{{ $d }}</span>
             {{ end }}
             <span class="mx-1">hours of coding from</span>
             {{ range $d := .TotalUsers | printf "%d" | toRunes }}
-            <span class="bg-gray-900 rounded-sm p-1 border border-gray-700 font-mono" style="margin: auto -2px;" title="{{ $.TotalUsers }} users (updated once a day)">{{ $d }}</span>
+            <span class="bg-gray-900 rounded-sm p-1 border border-gray-700 font-mono" style="margin: auto -2px;" title="{{ $.TotalUsers }} users (updated every hour)">{{ $d }}</span>
             {{ end }}
             <span class="ml-1">users.</span>
         </p>
