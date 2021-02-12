@@ -30,7 +30,8 @@ const (
 	DescMachines         = "Total seconds for each machine."
 
 	DescAdminTotalTime       = "Total seconds (all users, all time)."
-	DescAdminTotalHeartbeats = "Total number of tracked heartbeats (all time)."
+	DescAdminTotalHeartbeats = "Total number of tracked heartbeats (all users, all time)"
+	DescAdminUserHeartbeats  = "Total number of tracked heartbeats by user (all time)."
 	DescAdminTotalUsers      = "Total number of registered users."
 	DescAdminActiveUsers     = "Number of active users."
 )
@@ -211,6 +212,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 	}
 
 	totalUsers, _ := h.userSrvc.Count()
+	totalHeartbeats, _ := h.heartbeatSrvc.Count()
 
 	activeUsers, err := h.userSrvc.GetActive()
 	if err != nil {
@@ -222,6 +224,13 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 		Name:   MetricsPrefix + "_admin_seconds_total",
 		Desc:   DescAdminTotalTime,
 		Value:  totalSeconds,
+		Labels: []mm.Label{},
+	})
+
+	metrics = append(metrics, &mm.CounterMetric{
+		Name:   MetricsPrefix + "_admin_heartbeats_total",
+		Desc:   DescAdminTotalHeartbeats,
+		Value:  int(totalHeartbeats),
 		Labels: []mm.Label{},
 	})
 
@@ -260,8 +269,8 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 
 	for uc := range c {
 		metrics = append(metrics, &mm.CounterMetric{
-			Name:   MetricsPrefix + "_admin_heartbeats_total",
-			Desc:   DescAdminTotalHeartbeats,
+			Name:   MetricsPrefix + "_admin_user_heartbeats_total",
+			Desc:   DescAdminUserHeartbeats,
 			Value:  int(uc.count),
 			Labels: []mm.Label{{Key: "user", Value: uc.user}},
 		})
