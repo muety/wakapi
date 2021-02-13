@@ -5,3 +5,8 @@ body {
 .bg-gray-850 {
     background-color: #242b3a;
 }
+
+::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}

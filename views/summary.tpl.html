@@ -36,43 +36,56 @@
 </div>
 
 <div class="flex items-center justify-center">
-    <h1 class="font-semibold text-2xl text-white m-0 border-b-4 border-green-700">Your Coding Statistics 🤓</h1>
+    <h1 class="font-semibold text-2xl text-white m-0 border-b-4 border-green-700">Summary</h1>
 </div>
 
-<div class="text-white text-sm flex items-center justify-center mt-4 self-center max-w-lg flex-wrap">
-    <a href="summary?interval=today" class="mx-2 my-1 border-b border-green-700">Today</a>
-    <a href="summary?interval=yesterday" class="mx-2 my-1 border-b border-green-700">Yesterday</a>
-    <a href="summary?interval=week" class="mx-2 my-1 border-b border-green-700">This Week</a>
-    <a href="summary?interval=month" class="mx-2 my-1 border-b border-green-700">This Month</a>
-    <a href="summary?interval=year" class="mx-2 my-1 border-b border-green-700">This Year</a>
-    <a href="summary?interval=last_7_days" class="mx-2 my-1 border-b border-green-700">Past 7 Days</a>
-    <a href="summary?interval=last_30_days" class="mx-2 my-1 border-b border-green-700">Past 30 Days</a>
-    <a href="summary?interval=last_12_months" class="mx-2 my-1 border-b border-green-700">Past 12 Months</a>
-    <a href="summary?interval=any" class="mx-2 my-1 border-b border-green-700">All Time</a>
+{{ if .User.HasData }}
+
+<div class="self-center border border-gray-700 shadow mt-8 rounded-md p-4 bg-gray-900">
+    <form class="text-white flex flex-nowrap items-center justify-center self-center max-w-xl flex-wrap space-x-8">
+        <div class="flex space-x-1">
+            <label for="from-date-picker" class="text-gray-300 pl-1">▶️ Start:</label>
+            <input id="from-date-picker" type="date" name="from" class="text-sm text-gray-300 bg-gray-800 rounded-md text-center cursor-pointer"
+                   value="{{ .FromTime.T | simpledate }}" required>
+        </div>
+        <div class="flex space-x-1">
+            <label for="to-date-picker" class="text-gray-300 pl-1">⏹️ End:</label>
+            <input id="to-date-picker" type="date" name="to" class="text-sm text-gray-300 bg-gray-800 rounded-md text-center cursor-pointer"
+                   value="{{ .ToTime.T | simpledate }}" required>
+        </div>
+        <div>
+            <button type="submit" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">Show</button>
+        </div>
+    </form>
+
+    <div class="text-gray-300 text-sm flex items-center justify-center mt-4 self-center max-w-lg flex-wrap">
+        <a href="summary?interval=today" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">Today</a>
+        <a href="summary?interval=yesterday" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">Yesterday</a>
+        <a href="summary?interval=week" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">This Week</a>
+        <a href="summary?interval=month" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">This Month</a>
+        <a href="summary?interval=year" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">This Year</a>
+        <a href="summary?interval=last_7_days" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">Past 7 Days</a>
+        <a href="summary?interval=last_30_days" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">Past 30 Days</a>
+        <a href="summary?interval=last_12_months" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">Past 12 Months</a>
+        <a href="summary?interval=any" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">All Time</a>
+    </div>
 </div>
+
+{{ end }}
 
 {{ template "alerts.tpl.html" . }}
 
 <main class="flex flex-col items-center mt-10 flex-grow">
 
-    <div class="flex justify-center">
-        <div class="p-1">
-            <div class="flex justify-center p-4 bg-gray-900 border border-gray-700 text-gray-300 rounded-md shadow">
-                <p class="mx-2"><strong>▶️</strong> <span title="Start Time">{{ .FromTime.T | date }}</span></p>
-                <p class="mx-2"><strong>⏹️</strong> <span title="End Time">{{ .ToTime.T | date }}</span></p>
-                <p class="mx-2">
-                    <strong>⏱️</strong>
-                    {{ if gt .Summary.TotalTime 0 }}
-                    <span id="total-span" title="Total Hours"></span>
-                    {{ else }}
-                    <span title="Total Hours">No Data</span>
-                    {{ end }}
-                </p>
-            </div>
-        </div>
-    </div>
+    {{ if .User.HasData }}
 
-    {{ if or (gt .Summary.TotalTime 0) (ne .RawQuery "") }}
+    <span class="text-white text-lg text-gray-300 text-center mb-4">
+        <span class="text-xl">⏱️&nbsp;</span>
+        Showing a total of <span id="total-span" title="Total Hours" class="text-white text-xl font-semibold border-b-2 border-green-700"></span>
+        <span class="text-sm my-2">
+            (from <span title="Start Time" class="border-b border-gray-700">{{ .FromTime.T | date }}</span> to <span title="End Time" class="border-b border-gray-700">{{ .ToTime.T | date }}</span>)
+        </span>
+    </span>
 
     <div class="flex flex-wrap justify-center">
         <div class="w-full lg:w-1/2 p-1">
@@ -87,7 +100,7 @@
                 </div>
                 <canvas id="chart-projects" class="mt-2"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                    <span class="text-md font-semibold text-gray-500 mt-4">No data ...</span>
+                    <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                 </div>
             </div>
         </div>
@@ -103,7 +116,7 @@
                 </div>
                 <canvas id="chart-os"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                    <span class="text-md font-semibold text-gray-500 mt-4">No data ...</span>
+                    <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                 </div>
             </div>
         </div>
@@ -119,7 +132,7 @@
                 </div>
                 <canvas id="chart-language"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                    <span class="text-md font-semibold text-gray-500 mt-4">No data ...</span>
+                    <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                 </div>
             </div>
         </div>
@@ -135,7 +148,7 @@
                 </div>
                 <canvas id="chart-editor"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                    <span class="text-md font-semibold text-gray-500 mt-4">No data ...</span>
+                    <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                 </div>
             </div>
         </div>
@@ -151,7 +164,7 @@
                 </div>
                 <canvas id="chart-machine"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                    <span class="text-md font-semibold text-gray-500 mt-4">No data ...</span>
+                    <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                 </div>
             </div>
         </div>

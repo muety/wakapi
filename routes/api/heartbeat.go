@@ -73,7 +73,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 
 		if !hb.Valid() {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Invalid heartbeat object."))
+			w.Write([]byte("invalid heartbeat object"))
 			return
 		}
 
@@ -82,8 +82,19 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.heartbeatSrvc.InsertBatch(heartbeats); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		logbuch.Error(err.Error())
+		w.Write([]byte(conf.ErrInternalServerError))
+		logbuch.Error("failed to batch-insert heartbeats – %v", err)
 		return
+	}
+
+	if !user.HasData {
+		user.HasData = true
+		if _, err := h.userSrvc.Update(user); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(conf.ErrInternalServerError))
+			logbuch.Error("failed to update user – %v", err)
+			return
+		}
 	}
 
 	utils.RespondJSON(w, http.StatusCreated, constructSuccessResponse(len(heartbeats)))

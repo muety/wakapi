@@ -8,10 +8,18 @@ import (
 )
 
 func ParseDate(date string) (time.Time, error) {
+	return time.Parse(config.SimpleDateFormat, date)
+}
+
+func ParseDateTime(date string) (time.Time, error) {
 	return time.Parse(config.SimpleDateTimeFormat, date)
 }
 
 func FormatDate(date time.Time) string {
+	return date.Format(config.SimpleDateFormat)
+}
+
+func FormatDateTime(date time.Time) string {
 	return date.Format(config.SimpleDateTimeFormat)
 }
 

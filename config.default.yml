@@ -27,7 +27,7 @@ db:
 
 security:
   password_salt:            # CHANGE !
-  insecure_cookies: false
+  insecure_cookies: false   # You need to set this to 'true' when on localhost
   cookie_max_age: 172800
   allow_signup: true
   expose_metrics: false

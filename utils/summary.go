@@ -82,14 +82,20 @@ func ParseSummaryParams(r *http.Request) (*models.SummaryParams, error) {
 	} else if start := params.Get("start"); start != "" {
 		err, from, to = ResolveIntervalRaw(start)
 	} else {
-		from, err = ParseDate(params.Get("from"))
+		from, err = ParseDateTime(params.Get("from"))
 		if err != nil {
-			return nil, errors.New("missing 'from' parameter")
+			from, err = ParseDate(params.Get("from"))
+			if err != nil {
+				return nil, errors.New("missing 'from' parameter")
+			}
 		}
 
-		to, err = ParseDate(params.Get("to"))
+		to, err = ParseDateTime(params.Get("to"))
 		if err != nil {
-			return nil, errors.New("missing 'to' parameter")
+			to, err = ParseDate(params.Get("to"))
+			if err != nil {
+				return nil, errors.New("missing 'to' parameter")
+			}
 		}
 	}
 

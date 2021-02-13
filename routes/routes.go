@@ -24,15 +24,17 @@ var templates map[string]*template.Template
 func loadTemplates() {
 	const tplPath = "/views"
 	tpls := template.New("").Funcs(template.FuncMap{
-		"json":        utils.Json,
-		"date":        utils.FormatDateHuman,
-		"title":       strings.Title,
-		"join":        strings.Join,
-		"add":         utils.Add,
-		"capitalize":  utils.Capitalize,
-		"toRunes":     utils.ToRunes,
-		"entityTypes": models.SummaryTypes,
-		"typeName":    typeName,
+		"json":           utils.Json,
+		"date":           utils.FormatDateHuman,
+		"simpledate":     utils.FormatDate,
+		"simpledatetime": utils.FormatDateTime,
+		"title":          strings.Title,
+		"join":           strings.Join,
+		"add":            utils.Add,
+		"capitalize":     utils.Capitalize,
+		"toRunes":        utils.ToRunes,
+		"entityTypes":    models.SummaryTypes,
+		"typeName":       typeName,
 		"getBasePath": func() string {
 			return config.Get().Server.BasePath
 		},

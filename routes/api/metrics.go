@@ -218,7 +218,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 
 	activeUsers, err := h.userSrvc.GetActive()
 	if err != nil {
-		logbuch.Error("failed to retrieve active users for metric", err)
+		logbuch.Error("failed to retrieve active users for metric – %v", err)
 		return nil, err
 	}
 
