@@ -11,7 +11,6 @@ import (
 	mm "github.com/muety/wakapi/models/metrics"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"go.uber.org/atomic"
 	"net/http"
 	"sort"
 	"time"
@@ -72,6 +71,7 @@ func (h *MetricsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	reqUser := r.Context().Value(models.UserKey).(*models.User)
 	if reqUser == nil {
 		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(conf.ErrUnauthorized))
 		return
 	}
 
@@ -80,6 +80,7 @@ func (h *MetricsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	if userMetrics, err := h.getUserMetrics(reqUser); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(conf.ErrInternalServerError))
+		return
 	} else {
 		for _, m := range *userMetrics {
 			metrics = append(metrics, m)
@@ -90,6 +91,7 @@ func (h *MetricsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		if adminMetrics, err := h.getAdminMetrics(reqUser); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(conf.ErrInternalServerError))
+			return
 		} else {
 			for _, m := range *adminMetrics {
 				metrics = append(metrics, m)
@@ -249,30 +251,19 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 	})
 
 	// Count per-user heartbeats
-	type userCount struct {
-		user  string
-		count int64
+
+	userCounts, err := h.heartbeatSrvc.CountByUsers(activeUsers)
+	if err != nil {
+		logbuch.Error("failed to count heartbeats for active users", err.Error())
+		return nil, err
 	}
 
-	i := atomic.NewUint32(uint32(len(activeUsers)))
-	c := make(chan *userCount, len(activeUsers))
-
-	for _, u := range activeUsers {
-		go func(u *models.User) {
-			count, _ := h.heartbeatSrvc.CountByUser(u)
-			c <- &userCount{user: u.ID, count: count}
-			if i.Dec() == 0 {
-				close(c)
-			}
-		}(u)
-	}
-
-	for uc := range c {
+	for _, uc := range userCounts {
 		metrics = append(metrics, &mm.CounterMetric{
 			Name:   MetricsPrefix + "_admin_user_heartbeats_total",
 			Desc:   DescAdminUserHeartbeats,
-			Value:  int(uc.count),
-			Labels: []mm.Label{{Key: "user", Value: uc.user}},
+			Value:  int(uc.Count),
+			Labels: []mm.Label{{Key: "user", Value: uc.User}},
 		})
 	}
 

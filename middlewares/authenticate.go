@@ -57,7 +57,7 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 
 		if m.redirectTarget == "" {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("401 unauthorized"))
+			w.Write([]byte(conf.ErrUnauthorized))
 		} else {
 			http.SetCookie(w, m.config.GetClearCookie(models.AuthCookieKey, "/"))
 			http.Redirect(w, r, m.redirectTarget, http.StatusFound)

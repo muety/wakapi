@@ -38,6 +38,10 @@ func (srv *HeartbeatService) CountByUser(user *models.User) (int64, error) {
 	return srv.repository.CountByUser(user)
 }
 
+func (srv *HeartbeatService) CountByUsers(users []*models.User) ([]*models.CountByUser, error) {
+	return srv.repository.CountByUsers(users)
+}
+
 func (srv *HeartbeatService) GetAllWithin(from, to time.Time, user *models.User) ([]*models.Heartbeat, error) {
 	heartbeats, err := srv.repository.GetAllWithin(from, to, user)
 	if err != nil {

@@ -23,6 +23,17 @@ func (r *UserRepository) GetById(userId string) (*models.User, error) {
 	return u, nil
 }
 
+func (r *UserRepository) GetByIds(userIds []string) ([]*models.User, error) {
+	var users []*models.User
+	if err := r.db.
+		Model(&models.User{}).
+		Where("id in ?", userIds).
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func (r *UserRepository) GetByApiKey(key string) (*models.User, error) {
 	u := &models.User{}
 	if err := r.db.Where(&models.User{ApiKey: key}).First(u).Error; err != nil {
@@ -49,6 +60,26 @@ func (r *UserRepository) GetByLoggedInAfter(t time.Time) ([]*models.User, error)
 		return nil, err
 	}
 	return users, nil
+}
+
+// Returns a list of user ids, whose last heartbeat is not older than t
+// NOTE: Only ID field will be populated
+func (r *UserRepository) GetByLastActiveAfter(t time.Time) ([]*models.User, error) {
+	subQuery1 := r.db.Model(&models.User{}).
+		Select("users.id as user, max(time) as time").
+		Joins("left join heartbeats on users.id = heartbeats.user_id").
+		Group("user")
+
+	var userIds []string
+	if err := r.db.
+		Select("user as id").
+		Table("(?) as q", subQuery1).
+		Where("time >= ?", t).
+		Scan(&userIds).Error; err != nil {
+		return nil, err
+	}
+
+	return r.GetByIds(userIds)
 }
 
 func (r *UserRepository) Count() (int64, error) {

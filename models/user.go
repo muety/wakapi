@@ -38,6 +38,11 @@ type TimeByUser struct {
 	Time CustomTime
 }
 
+type CountByUser struct {
+	User  string
+	Count int64
+}
+
 func (c *CredentialsReset) IsValid() bool {
 	return validatePassword(c.PasswordNew) &&
 		c.PasswordNew == c.PasswordRepeat

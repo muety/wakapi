@@ -57,9 +57,8 @@ func (srv *UserService) GetAll() ([]*models.User, error) {
 }
 
 func (srv *UserService) GetActive() ([]*models.User, error) {
-	// a user is considered active if she has logged in to the web interface at least once within the last x days
 	minDate := time.Now().Add(-24 * time.Hour * time.Duration(srv.Config.App.InactiveDays))
-	return srv.repository.GetByLoggedInAfter(minDate)
+	return srv.repository.GetByLastActiveAfter(minDate)
 }
 
 func (srv *UserService) Count() (int64, error) {

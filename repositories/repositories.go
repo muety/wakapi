@@ -17,11 +17,13 @@ type IAliasRepository interface {
 
 type IHeartbeatRepository interface {
 	InsertBatch([]*models.Heartbeat) error
-	Count() (int64, error)
-	CountByUser(*models.User) (int64, error)
 	GetAllWithin(time.Time, time.Time, *models.User) ([]*models.Heartbeat, error)
 	GetFirstByUsers() ([]*models.TimeByUser, error)
+	GetLastByUsers() ([]*models.TimeByUser, error)
 	GetLatestByOriginAndUser(string, *models.User) (*models.Heartbeat, error)
+	Count() (int64, error)
+	CountByUser(*models.User) (int64, error)
+	CountByUsers([]*models.User) ([]*models.CountByUser, error)
 	DeleteBefore(time.Time) error
 }
 
@@ -47,9 +49,11 @@ type ISummaryRepository interface {
 
 type IUserRepository interface {
 	GetById(string) (*models.User, error)
+	GetByIds([]string) ([]*models.User, error)
 	GetByApiKey(string) (*models.User, error)
 	GetAll() ([]*models.User, error)
 	GetByLoggedInAfter(time.Time) ([]*models.User, error)
+	GetByLastActiveAfter(time.Time) ([]*models.User, error)
 	Count() (int64, error)
 	InsertOrGet(*models.User) (*models.User, bool, error)
 	Update(*models.User) (*models.User, error)

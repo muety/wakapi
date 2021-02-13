@@ -30,6 +30,11 @@ func (m *HeartbeatServiceMock) CountByUser(user *models.User) (int64, error) {
 	return args.Get(0).(int64), args.Error(0)
 }
 
+func (m *HeartbeatServiceMock) CountByUsers(users []*models.User) ([]*models.CountByUser, error) {
+	args := m.Called(users)
+	return args.Get(0).([]*models.CountByUser), args.Error(0)
+}
+
 func (m *HeartbeatServiceMock) GetAllWithin(time time.Time, time2 time.Time, user *models.User) ([]*models.Heartbeat, error) {
 	args := m.Called(time, time2, user)
 	return args.Get(0).([]*models.Heartbeat), args.Error(1)

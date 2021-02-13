@@ -34,6 +34,7 @@ const (
 	SimpleDateFormat     = "2006-01-02"
 	SimpleDateTimeFormat = "2006-01-02 15:04:05"
 
+	ErrUnauthorized        = "401 unauthorized"
 	ErrInternalServerError = "500 internal server error"
 )
 
