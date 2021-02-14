@@ -4,23 +4,24 @@ package middlewares
 
 import (
 	"io"
-	"log"
 	"net/http"
 	"strings"
 	"time"
 )
 
+type logFunc func(string, ...interface{})
+
 type LoggingMiddleware struct {
 	handler         http.Handler
-	output          *log.Logger
+	logFunc         logFunc
 	excludePrefixes []string
 }
 
-func NewLoggingMiddleware(output *log.Logger, excludePrefixes []string) func(http.Handler) http.Handler {
+func NewLoggingMiddleware(logFunc logFunc, excludePrefixes []string) func(http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return &LoggingMiddleware{
 			handler:         h,
-			output:          output,
+			logFunc:         logFunc,
 			excludePrefixes: excludePrefixes,
 		}
 	}
@@ -41,9 +42,8 @@ func (lg *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	lg.output.Printf(
-		"%v status=%d, method=%s, uri=%s, duration=%v, bytes=%d, addr=%s\n",
-		time.Now().Format(time.RFC3339Nano),
+	lg.logFunc(
+		"[request] status=%d, method=%s, uri=%s, duration=%v, bytes=%d, addr=%s, user=%s\n",
 		ww.Status(),
 		r.Method,
 		r.URL.String(),
