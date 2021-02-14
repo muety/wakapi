@@ -14,7 +14,7 @@ func init() {
 			migrator := db.Migrator()
 
 			if !migrator.HasColumn(&models.User{}, "badges_enabled") {
-				// empty database, nothing to migrate
+				// empty database or already migrated, nothing to migrate
 				return nil
 			}
 
