@@ -37,11 +37,18 @@ func init() {
 				return err
 			}
 
+			// do not drop column for sqlite, fixes #128:
+			// [ERROR] migration '20210206_drop_badges_column_add_sharing_flags' failed – table users already exists
+			// https://stackoverflow.com/a/8442173
+			if cfg.Db.Dialect == config.SQLDialectSqlite {
+				logbuch.Info("not attempting to drop and regenerate constraints on sqlite")
+				return nil
+			}
+
 			if err := migrator.DropColumn(&models.User{}, "badges_enabled"); err != nil {
 				return err
-			} else {
-				logbuch.Info("dropped column 'badges_enabled' after substituting it by sharing indicators")
 			}
+			logbuch.Info("dropped column 'badges_enabled' after substituting it by sharing indicators")
 
 			return nil
 		},
