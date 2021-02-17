@@ -85,7 +85,7 @@ def post_data_sync(data: List[Heartbeat], url: str, api_key: str):
 
 
 def randomword(length: int) -> str:
-    letters = string.ascii_lowercase
+    letters = string.ascii_lowercase + 'äöü💩'  # test utf8 and utf8mb4 characters as well
     return ''.join(random.choice(letters) for _ in range(length))
 
 

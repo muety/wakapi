@@ -77,6 +77,7 @@ type dbConfig struct {
 	Password string `env:"WAKAPI_DB_PASSWORD"`
 	Name     string `default:"wakapi_db.db" env:"WAKAPI_DB_NAME"`
 	Dialect  string `yaml:"-"`
+	Charset  string `default:"utf8mb4" env:"WAKAPI_DB_CHARSET"`
 	Type     string `yaml:"dialect" default:"sqlite3" env:"WAKAPI_DB_TYPE"`
 	MaxConn  uint   `yaml:"max_conn" default:"2" env:"WAKAPI_DB_MAX_CONNECTIONS"`
 	Ssl      bool   `default:"false" env:"WAKAPI_DB_SSL"`
@@ -181,12 +182,13 @@ func (c *dbConfig) GetDialector() gorm.Dialector {
 
 func mysqlConnectionString(config *dbConfig) string {
 	//location, _ := time.LoadLocation("Local")
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
 		config.User,
 		config.Password,
 		config.Host,
 		config.Port,
 		config.Name,
+		config.Charset,
 		"Local",
 	)
 }

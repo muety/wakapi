@@ -22,6 +22,7 @@ db:
   password:                 # leave blank when using sqlite3
   name: wakapi_db.db        # database name for mysql / postgres or file path for sqlite (e.g. /tmp/wakapi.db)
   dialect: sqlite3          # mysql, postgres, sqlite3
+  charset: utf8mb4          # only used for mysql connections
   max_conn: 2               # maximum number of concurrent connections to maintain
   ssl: false                # whether to use tls for db connection (must be true for cockroachdb) (ignored for mysql and sqlite)
 

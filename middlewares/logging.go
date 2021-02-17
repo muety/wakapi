@@ -43,7 +43,7 @@ func (lg *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	lg.logFunc(
-		"[request] status=%d, method=%s, uri=%s, duration=%v, bytes=%d, addr=%s, user=%s\n",
+		"[request] status=%d, method=%s, uri=%s, duration=%v, bytes=%d, addr=%s",
 		ww.Status(),
 		r.Method,
 		r.URL.String(),
