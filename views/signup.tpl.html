@@ -3,7 +3,7 @@
 
 {{ template "head.tpl.html" . }}
 
-<body class="bg-gray-800 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
+<body class="bg-gray-850 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
 <div class="w-full flex justify-center">
     <div class="flex items-center justify-between max-w-4xl flex-grow">
         <div><a href="" class="text-gray-500 text-sm">&larr; Go back</a></div>
@@ -36,6 +36,13 @@
                 <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
                        type="text" id="username"
                        name="username" placeholder="Choose a username" minlength="1" required autofocus>
+            </div>
+            <div class="mb-8">
+                <label class="inline-block text-sm mb-1 text-gray-500" for="email">E-Mail</label>
+                <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
+                       type="email" id="email"
+                       name="email" placeholder="Optionally add your e-mail address">
+                <div class="text-xs text-gray-500 mt-2 italic">E-Mail address is optional, but required for some features that you cannot use else. Also, if you do not add an e-mail address, you will not be able to reset your password in case you forget it.</div>
             </div>
             <div class="mb-8">
                 <label class="inline-block text-sm mb-1 text-gray-500" for="password">Password</label>

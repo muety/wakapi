@@ -8,26 +8,31 @@ import (
 	"time"
 )
 
+var languageRegex *regexp.Regexp
+
+func init() {
+	languageRegex = regexp.MustCompile(`^.+\.(.+)$`)
+}
+
 type Heartbeat struct {
-	ID              uint           `gorm:"primary_key" hash:"ignore"`
-	User            *User          `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" hash:"ignore"`
-	UserID          string         `json:"-" gorm:"not null; index:idx_time_user"`
-	Entity          string         `json:"entity" gorm:"not null; index:idx_entity"`
-	Type            string         `json:"type"`
-	Category        string         `json:"category"`
-	Project         string         `json:"project"`
-	Branch          string         `json:"branch"`
-	Language        string         `json:"language" gorm:"index:idx_language"`
-	IsWrite         bool           `json:"is_write"`
-	Editor          string         `json:"editor" hash:"ignore"`           // ignored because editor might be parsed differently by wakatime
-	OperatingSystem string         `json:"operating_system" hash:"ignore"` // ignored because os might be parsed differently by wakatime
-	Machine         string         `json:"machine" hash:"ignore"`          // ignored because wakatime api doesn't return machines currently
-	Time            CustomTime     `json:"time" gorm:"type:timestamp; index:idx_time,idx_time_user" swaggertype:"primitive,number"`
-	Hash            string         `json:"-" gorm:"type:varchar(17); uniqueIndex"`
-	Origin          string         `json:"-" hash:"ignore"`
-	OriginId        string         `json:"-" hash:"ignore"`
-	CreatedAt       CustomTime     `json:"created_at" gorm:"type:timestamp" swaggertype:"primitive,number"` // https://gorm.io/docs/conventions.html#CreatedAt
-	languageRegex   *regexp.Regexp `hash:"ignore"`
+	ID              uint       `gorm:"primary_key" hash:"ignore"`
+	User            *User      `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" hash:"ignore"`
+	UserID          string     `json:"-" gorm:"not null; index:idx_time_user"`
+	Entity          string     `json:"entity" gorm:"not null; index:idx_entity"`
+	Type            string     `json:"type"`
+	Category        string     `json:"category"`
+	Project         string     `json:"project"`
+	Branch          string     `json:"branch"`
+	Language        string     `json:"language" gorm:"index:idx_language"`
+	IsWrite         bool       `json:"is_write"`
+	Editor          string     `json:"editor" hash:"ignore"`           // ignored because editor might be parsed differently by wakatime
+	OperatingSystem string     `json:"operating_system" hash:"ignore"` // ignored because os might be parsed differently by wakatime
+	Machine         string     `json:"machine" hash:"ignore"`          // ignored because wakatime api doesn't return machines currently
+	Time            CustomTime `json:"time" gorm:"type:timestamp; index:idx_time,idx_time_user" swaggertype:"primitive,number"`
+	Hash            string     `json:"-" gorm:"type:varchar(17); uniqueIndex"`
+	Origin          string     `json:"-" hash:"ignore"`
+	OriginId        string     `json:"-" hash:"ignore"`
+	CreatedAt       CustomTime `json:"created_at" gorm:"type:timestamp" swaggertype:"primitive,number"` // https://gorm.io/docs/conventions.html#CreatedAt
 }
 
 func (h *Heartbeat) Valid() bool {
@@ -35,10 +40,7 @@ func (h *Heartbeat) Valid() bool {
 }
 
 func (h *Heartbeat) Augment(languageMappings map[string]string) {
-	if h.languageRegex == nil {
-		h.languageRegex = regexp.MustCompile(`^.+\.(.+)$`)
-	}
-	groups := h.languageRegex.FindAllStringSubmatch(h.Entity, -1)
+	groups := languageRegex.FindAllStringSubmatch(h.Entity, -1)
 	if len(groups) == 0 || len(groups[0]) != 2 {
 		return
 	}

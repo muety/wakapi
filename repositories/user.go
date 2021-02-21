@@ -109,6 +109,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 	updateMap := map[string]interface{}{
 		"api_key":             user.ApiKey,
 		"password":            user.Password,
+		"email":               user.Email,
 		"last_logged_in_at":   user.LastLoggedInAt,
 		"share_data_max_days": user.ShareDataMaxDays,
 		"share_editors":       user.ShareEditors,

@@ -35,6 +35,9 @@ func loadTemplates() {
 		"toRunes":        utils.ToRunes,
 		"entityTypes":    models.SummaryTypes,
 		"typeName":       typeName,
+		"isDev": func() bool {
+			return config.Get().IsDev()
+		},
 		"getBasePath": func() string {
 			return config.Get().Server.BasePath
 		},

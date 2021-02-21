@@ -22,11 +22,12 @@ func Test_mysqlConnectionString(t *testing.T) {
 		Password: "test_password",
 		Name:     "test_name",
 		Dialect:  "mysql",
+		Charset:  "utf8mb4",
 		MaxConn:  10,
 	}
 
 	assert.Equal(t, fmt.Sprintf(
-		"%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
+		"%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
 		c.User,
 		c.Password,
 		c.Host,

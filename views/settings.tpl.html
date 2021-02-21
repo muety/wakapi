@@ -36,6 +36,32 @@
 
         <details class="my-8 pb-8 border-b border-gray-700">
             <summary class="cursor-pointer">
+                <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block"
+                    id="email-heading">
+                    Change E-Mail Address
+                </h2>
+            </summary>
+            <div class="w-full">
+                <form class="mt-10" action="" method="post">
+                    <input type="hidden" name="action" value="update_user">
+                    <div class="mb-8 flex justify-between items-center space-x-4">
+                        <label class="inline-block text-sm text-gray-500" for="password_old">E-Mail Address</label>
+                        <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded flex-grow py-1 px-3"
+                               type="email" id="email"
+                               name="email" placeholder="Enter your e-mail address"
+                               value="{{ .User.Email }}">
+                        <button type="submit"
+                                class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                            Save
+                        </button>
+                    </div>
+                    <div class="text-gray-300 text-sm">E-Mail address is optional, but required for some features that you cannot use else. Also, if you do not add an e-mail address, you will not be able to reset your password in case you forget it.</div>
+                </form>
+            </div>
+        </details>
+
+        <details class="mb-8 pb-8 border-b border-gray-700">
+            <summary class="cursor-pointer">
                 <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="password">
                     Change Password
                 </h2>

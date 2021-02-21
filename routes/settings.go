@@ -117,6 +117,8 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 	switch action {
 	case "change_password":
 		return h.actionChangePassword
+	case "update_user":
+		return h.actionUpdateUser
 	case "reset_apikey":
 		return h.actionResetApiKey
 	case "delete_alias":
@@ -139,6 +141,34 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 		return h.actionDeleteUser
 	}
 	return nil
+}
+
+func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Request) (int, string, string) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	user := r.Context().Value(models.UserKey).(*models.User)
+
+	var payload models.UserDataUpdate
+	if err := r.ParseForm(); err != nil {
+		return http.StatusBadRequest, "", "missing parameters"
+	}
+	if err := credentialsDecoder.Decode(&payload, r.PostForm); err != nil {
+		return http.StatusBadRequest, "", "missing parameters"
+	}
+
+	if !payload.IsValid() {
+		return http.StatusBadRequest, "", "invalid parameters"
+	}
+
+	user.Email = payload.Email
+
+	if _, err := h.userSrvc.Update(user); err != nil {
+		return http.StatusInternalServerError, "", conf.ErrInternalServerError
+	}
+
+	return http.StatusOK, "alias added successfully", ""
 }
 
 func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Request) (int, string, string) {
