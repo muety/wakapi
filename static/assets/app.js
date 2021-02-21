@@ -112,7 +112,7 @@ function draw(subselection) {
                     xAxes: [{
                         scaleLabel: {
                             display: true,
-                            labelString: 'Minutes'
+                            labelString: 'Seconds'
                         }
                     }]
                 },
