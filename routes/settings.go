@@ -168,7 +168,7 @@ func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Reques
 		return http.StatusInternalServerError, "", conf.ErrInternalServerError
 	}
 
-	return http.StatusOK, "alias added successfully", ""
+	return http.StatusOK, "user updated successfully", ""
 }
 
 func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Request) (int, string, string) {
