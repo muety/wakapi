@@ -90,6 +90,8 @@ $ docker run -d \
 
 **Note:** By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres, see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile) and [config.default.yml](https://github.com/muety/wakapi/blob/master/config.default.yml) for further options.
 
+If you want to run Wakapi on **Kubernetes**, there is [wakapi-helm-chart](https://github.com/andreymaznyak/wakapi-helm-chart) for quick and easy deployment.
+
 ### 📦 Option 3: Run a release
 ```bash
 # Download the release and unpack it
@@ -253,9 +255,7 @@ CGO_FLAGS="-g -O2 -Wno-return-local-addr" go test -json -coverprofile=coverage/c
 To keep things minimal, Wakapi does not contain a `package.json`, `node_modules` or any sort of frontend build step. Instead, all JS and CSS assets are included as static files and checked in to Git. This way we can avoid requiring NodeJS to build Wakapi. However, for [TailwindCSS](https://tailwindcss.com/docs/installation#building-for-production) it makes sense to run it through a "build" step to benefit from purging and significantly reduce it in size. To only require this at the time of development, the compiled asset is checked in to Git as well. 
 
 ```bash
-$ npm install -g tailwindcss-cli
-$ wget -O /tmp/tailwind.css https://unpkg.com/tailwindcss@^2/dist/tailwind.css
-$ tailwindcss-cli build /tmp/tailwind.css -o static/assets/vendor/tailwind.dist.css
+$ tailwindcss-cli build static/assets/vendor/tailwind.css -o static/assets/vendor/tailwind.dist.css
 ```
 
 ## 🙏 Support
