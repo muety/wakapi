@@ -117,9 +117,7 @@ func main() {
 	defer sqlDb.Close()
 
 	// Migrate database schema
-	migrations.RunPreMigrations(db, config)
-	runDatabaseMigrations()
-	migrations.RunCustomPostMigrations(db, config)
+	migrations.Run(db, config)
 
 	// Repositories
 	aliasRepository = repositories.NewAliasRepository(db)
@@ -267,10 +265,4 @@ func listen(handler http.Handler) {
 	}
 
 	<-make(chan interface{}, 1)
-}
-
-func runDatabaseMigrations() {
-	if err := config.GetMigrationFunc(config.Db.Dialect)(db); err != nil {
-		logbuch.Fatal(err.Error())
-	}
 }

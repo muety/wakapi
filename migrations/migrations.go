@@ -28,9 +28,17 @@ func registerPostMigration(f migrationFunc) {
 	postMigrations = append(postMigrations, f)
 }
 
-// NOTE: Currently, migrations themselves keep track
-// of whether they have run, yet or not, because some
-// simply run on every start.
+func Run(db *gorm.DB, cfg *config.Config) {
+	RunPreMigrations(db, cfg)
+	RunSchemaMigrations(db, cfg)
+	RunPostMigrations(db, cfg)
+}
+
+func RunSchemaMigrations(db *gorm.DB, cfg *config.Config) {
+	if err := cfg.GetMigrationFunc(cfg.Db.Dialect)(db); err != nil {
+		logbuch.Fatal(err.Error())
+	}
+}
 
 func RunPreMigrations(db *gorm.DB, cfg *config.Config) {
 	sort.Sort(preMigrations)
@@ -43,7 +51,7 @@ func RunPreMigrations(db *gorm.DB, cfg *config.Config) {
 	}
 }
 
-func RunCustomPostMigrations(db *gorm.DB, cfg *config.Config) {
+func RunPostMigrations(db *gorm.DB, cfg *config.Config) {
 	sort.Sort(postMigrations)
 
 	for _, m := range postMigrations {

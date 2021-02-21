@@ -22,10 +22,11 @@ type Heartbeat struct {
 	Editor          string         `json:"editor" hash:"ignore"`           // ignored because editor might be parsed differently by wakatime
 	OperatingSystem string         `json:"operating_system" hash:"ignore"` // ignored because os might be parsed differently by wakatime
 	Machine         string         `json:"machine" hash:"ignore"`          // ignored because wakatime api doesn't return machines currently
-	Time            CustomTime     `json:"time" gorm:"type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time,idx_time_user" swaggertype:"primitive,number"`
+	Time            CustomTime     `json:"time" gorm:"type:timestamp; index:idx_time,idx_time_user" swaggertype:"primitive,number"`
 	Hash            string         `json:"-" gorm:"type:varchar(17); uniqueIndex"`
 	Origin          string         `json:"-" hash:"ignore"`
 	OriginId        string         `json:"-" hash:"ignore"`
+	CreatedAt       CustomTime     `json:"created_at" gorm:"type:timestamp" swaggertype:"primitive,number"` // https://gorm.io/docs/conventions.html#CreatedAt
 	languageRegex   *regexp.Regexp `hash:"ignore"`
 }
 
