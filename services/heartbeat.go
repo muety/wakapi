@@ -27,7 +27,18 @@ func (srv *HeartbeatService) Insert(heartbeat *models.Heartbeat) error {
 }
 
 func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {
-	return srv.repository.InsertBatch(heartbeats)
+	hashes := make(map[string]bool)
+
+	// https://github.com/muety/wakapi/issues/139
+	filteredHeartbeats := make([]*models.Heartbeat, 0, len(heartbeats))
+	for _, hb := range heartbeats {
+		if _, ok := hashes[hb.Hash]; !ok {
+			filteredHeartbeats = append(filteredHeartbeats, hb)
+			hashes[hb.Hash] = true
+		}
+	}
+
+	return srv.repository.InsertBatch(filteredHeartbeats)
 }
 
 func (srv *HeartbeatService) Count() (int64, error) {

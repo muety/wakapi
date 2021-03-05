@@ -32,7 +32,7 @@ type Heartbeat struct {
 	Hash            string     `json:"-" gorm:"type:varchar(17); uniqueIndex"`
 	Origin          string     `json:"-" hash:"ignore"`
 	OriginId        string     `json:"-" hash:"ignore"`
-	CreatedAt       CustomTime `json:"created_at" gorm:"type:timestamp" swaggertype:"primitive,number"` // https://gorm.io/docs/conventions.html#CreatedAt
+	CreatedAt       CustomTime `json:"created_at" gorm:"type:timestamp" swaggertype:"primitive,number" hash:"ignore"` // https://gorm.io/docs/conventions.html#CreatedAt
 }
 
 func (h *Heartbeat) Valid() bool {
