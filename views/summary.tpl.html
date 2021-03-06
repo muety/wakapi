@@ -45,12 +45,12 @@
     <form class="text-white flex flex-nowrap items-center justify-center self-center max-w-xl flex-wrap space-x-8">
         <div class="flex space-x-1">
             <label for="from-date-picker" class="text-gray-300 pl-1">▶️ Start:</label>
-            <input id="from-date-picker" type="date" name="from" class="text-sm text-gray-300 bg-gray-800 rounded-md text-center cursor-pointer"
+            <input id="from-date-picker" type="date" name="from" max="{{ .ToTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-800 rounded-md text-center cursor-pointer"
                    value="{{ .FromTime.T | simpledate }}" required>
         </div>
         <div class="flex space-x-1">
             <label for="to-date-picker" class="text-gray-300 pl-1">⏹️ End:</label>
-            <input id="to-date-picker" type="date" name="to" class="text-sm text-gray-300 bg-gray-800 rounded-md text-center cursor-pointer"
+            <input id="to-date-picker" type="date" name="to" min="{{ .FromTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-800 rounded-md text-center cursor-pointer"
                    value="{{ .ToTime.T | simpledate }}" required>
         </div>
         <div>
@@ -224,6 +224,17 @@
     wakapiData.editors = {{ .Editors | json }}
     wakapiData.languages = {{ .Languages | json }}
     wakapiData.machines = {{ .Machines | json }}
+
+    document.getElementById("to-date-picker").onchange = function () {
+        var input = document.getElementById("from-date-picker");
+        input.setAttribute("max", this.value);
+    }
+
+    document.getElementById("from-date-picker").onchange = function () {
+        var input = document.getElementById("to-date-picker");
+        input.setAttribute("min", this.value);
+    }
+
 </script>
 <script src="assets/app.js"></script>
 
