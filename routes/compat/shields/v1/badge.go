@@ -9,7 +9,6 @@ import (
 	"github.com/muety/wakapi/utils"
 	"net/http"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -51,11 +50,6 @@ func (h *BadgeHandler) RegisterRoutes(router *mux.Router) {
 func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	intervalReg := regexp.MustCompile(intervalPattern)
 	entityFilterReg := regexp.MustCompile(entityFilterPattern)
-
-	if userAgent := r.Header.Get("user-agent"); !strings.HasPrefix(userAgent, "Shields.io/") && !h.config.IsDev() {
-		w.WriteHeader(http.StatusForbidden)
-		return
-	}
 
 	var filterEntity, filterKey string
 	if groups := entityFilterReg.FindStringSubmatch(r.URL.Path); len(groups) > 2 {
