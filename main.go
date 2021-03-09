@@ -165,7 +165,7 @@ func main() {
 	// Setup Routers
 	router := mux.NewRouter()
 	rootRouter := router.PathPrefix("/").Subrouter()
-	apiRouter := router.PathPrefix("/api").Subrouter()
+	apiRouter := router.PathPrefix("/api").Subrouter().StrictSlash(true)
 
 	// Globally used middlewares
 	recoveryMiddleware := handlers.RecoveryHandler()
