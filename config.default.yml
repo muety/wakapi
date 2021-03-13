@@ -14,6 +14,7 @@ app:
   custom_languages:
     vue: Vue
     jsx: JSX
+    svelte: Svelte
 
 db:
   host:                     # leave blank when using sqlite3
