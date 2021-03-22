@@ -319,13 +319,14 @@ func (h *SettingsHandler) actionDeleteLanguageMapping(w http.ResponseWriter, r *
 		return http.StatusInternalServerError, "", "could not delete mapping"
 	}
 
-	if mapping, err := h.languageMappingSrvc.GetById(uint(id)); err != nil || mapping == nil {
+	mapping, err := h.languageMappingSrvc.GetById(uint(id))
+	if err != nil || mapping == nil {
 		return http.StatusNotFound, "", "mapping not found"
 	} else if mapping.UserID != user.ID {
 		return http.StatusForbidden, "", "not allowed to delete mapping"
 	}
 
-	if err := h.languageMappingSrvc.Delete(&models.LanguageMapping{ID: uint(id)}); err != nil {
+	if err := h.languageMappingSrvc.Delete(mapping); err != nil {
 		return http.StatusInternalServerError, "", "could not delete mapping"
 	}
 
