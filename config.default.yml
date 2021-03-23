@@ -33,3 +33,9 @@ security:
   cookie_max_age: 172800
   allow_signup: true
   expose_metrics: false
+
+sentry:
+  dsn:                        # leave blank to disable sentry integration
+  enable_tracing: true        # whether to use performance monitoring
+  sample_rate: 0.75           # probability of tracing a request
+  sample_rate_heartbeats: 0.1 # probability of tracing a heartbeat request

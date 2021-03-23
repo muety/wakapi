@@ -178,6 +178,10 @@ You can specify configuration options either via a config file (default: `config
 | `db.charset`                | `WAKAPI_DB_CHARSET`         | `utf8mb4`      | Database connection charset (for MySQL only)                        |
 | `db.max_conn`               | `WAKAPI_DB_MAX_CONNECTIONS` | `2`            | Maximum number of database connections                              |
 | `db.ssl`                    | `WAKAPI_DB_SSL`             | `false`        | Whether to use TLS encryption for database connection (Postgres and CockroachDB only) |
+| `sentry.dsn`                | `WAKAPI_SENTRY_DSN`         | –              | DSN for to integrate [Sentry](https://sentry.io) for error logging and tracing (leave empty to disable) |
+| `sentry.enable_tracing`     | `WAKAPI_SENTRY_TRACING`     | `false`        | Whether to enable Sentry request tracing                           |
+| `sentry.sample_rate`        | `WAKAPI_SENTRY_SAMPLE_RATE` | `0.75`         | Probability of tracing a request in Sentry                         |
+| `sentry.sample_rate_heartbats` | `WAKAPI_SENTRY_SAMPLE_RATE_HEARTBEATS` | `0.1` | Probability of tracing a heartbeats request in Sentry         |
 
 ### Supported databases
 Wakapi uses [GORM](https://gorm.io) as an ORM. As a consequence, a set of different relational databases is supported.

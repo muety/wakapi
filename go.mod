@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/emvi/logbuch v1.1.1
+	github.com/getsentry/sentry-go v0.10.0
 	github.com/go-co-op/gocron v0.3.3
 	github.com/go-openapi/spec v0.20.2 // indirect
 	github.com/gorilla/handlers v1.4.2

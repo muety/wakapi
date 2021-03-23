@@ -168,11 +168,11 @@ func main() {
 	apiRouter := router.PathPrefix("/api").Subrouter().StrictSlash(true)
 
 	// Globally used middlewares
-	recoveryMiddleware := handlers.RecoveryHandler()
-	loggingMiddleware := middlewares.NewLoggingMiddleware(logbuch.Info, []string{"/assets"})
-
-	// Router configs
-	router.Use(loggingMiddleware, recoveryMiddleware)
+	router.Use(middlewares.NewLoggingMiddleware(logbuch.Info, []string{"/assets"}))
+	if config.Sentry.Dsn != "" {
+		router.Use(middlewares.NewSentryMiddleware())
+	}
+	router.Use(handlers.RecoveryHandler())
 
 	// Route registrations
 	homeHandler.RegisterRoutes(rootRouter)

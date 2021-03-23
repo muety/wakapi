@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/emvi/logbuch"
+	"github.com/getsentry/sentry-go"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
 	"github.com/markbates/pkger"
@@ -92,6 +93,13 @@ type serverConfig struct {
 	TlsKeyPath  string `yaml:"tls_key_path" default:"" env:"WAKAPI_TLS_KEY_PATH"`
 }
 
+type sentryConfig struct {
+	Dsn                  string  `env:"WAKAPI_SENTRY_DSN"`
+	EnableTracing        bool    `yaml:"enable_tracing" env:"WAKAPI_SENTRY_TRACING"`
+	SampleRate           float32 `yaml:"sample_rate" default:"0.75" env:"WAKAPI_SENTRY_SAMPLE_RATE"`
+	SampleRateHeartbeats float32 `yaml:"sample_rate_heartbeats" default:"0.1" env:"WAKAPI_SENTRY_SAMPLE_RATE_HEARTBEATS"`
+}
+
 type Config struct {
 	Env      string `default:"dev" env:"ENVIRONMENT"`
 	Version  string `yaml:"-"`
@@ -99,6 +107,7 @@ type Config struct {
 	Security securityConfig
 	Db       dbConfig
 	Server   serverConfig
+	Sentry   sentryConfig
 }
 
 func (c *Config) CreateCookie(name, value, path string) *http.Cookie {
@@ -290,6 +299,31 @@ func resolveDbDialect(dbType string) string {
 	return dbType
 }
 
+func initSentry(config sentryConfig, debug bool) {
+	if err := sentry.Init(sentry.ClientOptions{
+		Dsn:   config.Dsn,
+		Debug: debug,
+		TracesSampler: sentry.TracesSamplerFunc(func(ctx sentry.SamplingContext) sentry.Sampled {
+			if !config.EnableTracing {
+				return sentry.SampledFalse
+			}
+
+			hub := sentry.GetHubFromContext(ctx.Span.Context())
+			txName := hub.Scope().Transaction()
+
+			if strings.HasPrefix(txName, "GET /assets") {
+				return sentry.SampledFalse
+			}
+			if txName == "POST /api/heartbeat" {
+				return sentry.UniformTracesSampler(config.SampleRateHeartbeats).Sample(ctx)
+			}
+			return sentry.UniformTracesSampler(config.SampleRate).Sample(ctx)
+		}),
+	}); err != nil {
+		logbuch.Fatal("failed to initialized sentry – %v", err)
+	}
+}
+
 func Set(config *Config) {
 	cfg = config
 }
@@ -331,6 +365,11 @@ func Load() *Config {
 
 	if config.Db.MaxConn <= 0 {
 		logbuch.Fatal("you must allow at least one database connection")
+	}
+
+	if config.Sentry.Dsn != "" {
+		logbuch.Info("enabling sentry integration")
+		initSentry(config.Sentry, config.IsDev())
 	}
 
 	Set(config)
