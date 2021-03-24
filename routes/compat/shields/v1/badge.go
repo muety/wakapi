@@ -1,12 +1,14 @@
 package v1
 
 import (
+	"fmt"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/shields/v1"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
+	"github.com/patrickmn/go-cache"
 	"net/http"
 	"regexp"
 	"time"
@@ -21,12 +23,14 @@ type BadgeHandler struct {
 	config      *conf.Config
 	userSrvc    services.IUserService
 	summarySrvc services.ISummaryService
+	cache       *cache.Cache
 }
 
 func NewBadgeHandler(summaryService services.ISummaryService, userService services.IUserService) *BadgeHandler {
 	return &BadgeHandler{
 		summarySrvc: summaryService,
 		userSrvc:    userService,
+		cache:       cache.New(time.Hour, time.Hour),
 		config:      conf.Get(),
 	}
 }
@@ -95,6 +99,12 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 		filters = &models.Filters{}
 	}
 
+	cacheKey := fmt.Sprintf("%s_%v_%s_%s", user.ID, *interval, filterEntity, filterKey)
+	if cacheResult, ok := h.cache.Get(cacheKey); ok {
+		utils.RespondJSON(w, http.StatusOK, cacheResult.(*v1.BadgeData))
+		return
+	}
+
 	summary, err, status := h.loadUserSummary(user, interval)
 	if err != nil {
 		w.WriteHeader(status)
@@ -103,6 +113,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vm := v1.NewBadgeDataFrom(summary, filters)
+	h.cache.SetDefault(cacheKey, vm)
 	utils.RespondJSON(w, http.StatusOK, vm)
 }
 

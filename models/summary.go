@@ -35,7 +35,7 @@ type SummaryItem struct {
 	ID        uint          `json:"-" gorm:"primary_key"`
 	Summary   *Summary      `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	SummaryID uint          `json:"-"`
-	Type      uint8         `json:"-"`
+	Type      uint8         `json:"-" gorm:"index:idx_type"`
 	Key       string        `json:"key"`
 	Total     time.Duration `json:"total" swaggertype:"primitive,integer"`
 }
