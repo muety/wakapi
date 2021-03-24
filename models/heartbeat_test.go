@@ -26,17 +26,24 @@ func TestHeartbeat_Valid_MissingUser(t *testing.T) {
 
 func TestHeartbeat_Augment(t *testing.T) {
 	testMappings := map[string]string{
-		"py": "Python3",
+		"py":        "Python3",
+		"foo":       "Foo Script",
+		"blade.php": "Blade",
 	}
 
-	sut := &Heartbeat{
+	sut1, sut2 := &Heartbeat{
 		Entity:   "~/dev/file.py",
 		Language: "Python",
+	}, &Heartbeat{
+		Entity:   "~/dev/file.blade.php",
+		Language: "unknown",
 	}
 
-	sut.Augment(testMappings)
+	sut1.Augment(testMappings)
+	sut2.Augment(testMappings)
 
-	assert.Equal(t, "Python3", sut.Language)
+	assert.Equal(t, "Python3", sut1.Language)
+	assert.Equal(t, "Blade", sut2.Language)
 }
 
 func TestHeartbeat_GetKey(t *testing.T) {
