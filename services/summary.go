@@ -36,10 +36,10 @@ func NewSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatSer
 
 // Public summary generation methods
 
-func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f SummaryRetriever) (*models.Summary, error) {
+func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f SummaryRetriever, skipCache bool) (*models.Summary, error) {
 	// Check cache
 	cacheKey := srv.getHash(from.String(), to.String(), user.ID, "--aliased")
-	if cacheResult, ok := srv.cache.Get(cacheKey); ok {
+	if cacheResult, ok := srv.cache.Get(cacheKey); ok && !skipCache {
 		return cacheResult.(*models.Summary), nil
 	}
 

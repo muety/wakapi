@@ -80,7 +80,7 @@ func (h *AllTimeHandler) loadUserSummary(user *models.User) (*models.Summary, er
 		retrieveSummary = h.summarySrvc.Summarize
 	}
 
-	summary, err := h.summarySrvc.Aliased(summaryParams.From, summaryParams.To, summaryParams.User, retrieveSummary)
+	summary, err := h.summarySrvc.Aliased(summaryParams.From, summaryParams.To, summaryParams.User, retrieveSummary, summaryParams.Recompute)
 	if err != nil {
 		return nil, err, http.StatusInternalServerError
 	}

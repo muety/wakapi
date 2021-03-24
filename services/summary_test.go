@@ -253,7 +253,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
 	suite.AliasService.On("GetAliasOrDefault", TestUserId, models.SummaryProject, TestProject1).Return(TestProject2, nil)
 	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, mock.Anything).Return("", nil)
 
-	result, err = sut.Aliased(from, to, suite.TestUser, sut.Summarize)
+	result, err = sut.Aliased(from, to, suite.TestUser, sut.Summarize, false)
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), result)

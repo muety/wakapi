@@ -18,7 +18,7 @@ func LoadUserSummary(ss services.ISummaryService, r *http.Request) (*models.Summ
 		retrieveSummary = ss.Summarize
 	}
 
-	summary, err := ss.Aliased(summaryParams.From, summaryParams.To, summaryParams.User, retrieveSummary)
+	summary, err := ss.Aliased(summaryParams.From, summaryParams.To, summaryParams.User, retrieveSummary, summaryParams.Recompute)
 	if err != nil {
 		return nil, err, http.StatusInternalServerError
 	}

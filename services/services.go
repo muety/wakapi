@@ -53,7 +53,7 @@ type ILanguageMappingService interface {
 }
 
 type ISummaryService interface {
-	Aliased(time.Time, time.Time, *models.User, SummaryRetriever) (*models.Summary, error)
+	Aliased(time.Time, time.Time, *models.User, SummaryRetriever, bool) (*models.Summary, error)
 	Retrieve(time.Time, time.Time, *models.User) (*models.Summary, error)
 	Summarize(time.Time, time.Time, *models.User) (*models.Summary, error)
 	GetLatestByUser() ([]*models.TimeByUser, error)

@@ -108,7 +108,7 @@ func (h *MetricsHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) {
 	var metrics mm.Metrics
 
-	summaryAllTime, err := h.summarySrvc.Aliased(time.Time{}, time.Now(), user, h.summarySrvc.Retrieve)
+	summaryAllTime, err := h.summarySrvc.Aliased(time.Time{}, time.Now(), user, h.summarySrvc.Retrieve, false)
 	if err != nil {
 		logbuch.Error("failed to retrieve all time summary for user '%s' for metric", user.ID)
 		return nil, err
@@ -116,7 +116,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 
 	from, to := utils.MustResolveIntervalRaw("today")
 
-	summaryToday, err := h.summarySrvc.Aliased(from, to, user, h.summarySrvc.Retrieve)
+	summaryToday, err := h.summarySrvc.Aliased(from, to, user, h.summarySrvc.Retrieve, false)
 	if err != nil {
 		logbuch.Error("failed to retrieve today's summary for user '%s' for metric", user.ID)
 		return nil, err

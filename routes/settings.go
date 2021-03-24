@@ -451,13 +451,13 @@ func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *ht
 		loadTemplates()
 	}
 
-	user := r.Context().Value(models.UserKey).(*models.User)
+	go func(user *models.User) {
+		if err := h.regenerateSummaries(user); err != nil {
+			logbuch.Error("failed to regenerate summaries for user '%s' – %v", user.ID, err)
+		}
+	}(r.Context().Value(models.UserKey).(*models.User))
 
-	if err := h.regenerateSummaries(user); err != nil {
-		return http.StatusInternalServerError, "", "failed to regenerate summaries"
-	}
-
-	return http.StatusOK, "summaries are being regenerated – this may take a few seconds", ""
+	return http.StatusAccepted, "summaries are being regenerated – this may take a up to a couple of minutes, please come back later", ""
 }
 
 func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Request) (int, string, string) {
