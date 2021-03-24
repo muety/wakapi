@@ -4,15 +4,9 @@ import (
 	"fmt"
 	"github.com/emvi/logbuch"
 	"github.com/mitchellh/hashstructure/v2"
-	"regexp"
+	"strings"
 	"time"
 )
-
-var languageRegex *regexp.Regexp
-
-func init() {
-	languageRegex = regexp.MustCompile(`^.+\.(.+)$`)
-}
 
 type Heartbeat struct {
 	ID              uint       `gorm:"primary_key" hash:"ignore"`
@@ -40,15 +34,12 @@ func (h *Heartbeat) Valid() bool {
 }
 
 func (h *Heartbeat) Augment(languageMappings map[string]string) {
-	groups := languageRegex.FindAllStringSubmatch(h.Entity, -1)
-	if len(groups) == 0 || len(groups[0]) != 2 {
-		return
+	for ending, value := range languageMappings {
+		if strings.HasSuffix(h.Entity, "."+ending) {
+			h.Language = value
+			return
+		}
 	}
-	ending := groups[0][1]
-	if _, ok := languageMappings[ending]; !ok {
-		return
-	}
-	h.Language, _ = languageMappings[ending]
 }
 
 func (h *Heartbeat) GetKey(t uint8) (key string) {
