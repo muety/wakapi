@@ -1,0 +1,346 @@
+{
+	"info": {
+		"_postman_id": "3dcc346d-a9a8-4699-8a52-459eb978b382",
+		"name": "Wakapi",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Misc",
+			"item": [
+				{
+					"name": "Get health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/health",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get metrics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic {{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/metrics",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"metrics"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Heartbeats",
+			"item": [
+				{
+					"name": "Create heartbeat",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic {{TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Machine-Name",
+								"value": "devmachine",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "wakatime/13.0.7 (Linux-4.15.0-91-generic-x86_64-with-glibc2.4) Python3.8.0.final.0 generator/1.42.1 generator-wakatime/4.0.0",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\n    \"entity\": \"/home/user1/dev/proejct1/main.go\",\n    \"project\": \"Project 1\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": 1616680499.113417\n}]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/heartbeat",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"heartbeat"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Summary",
+			"item": [
+				{
+					"name": "Get summary",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic {{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/summary?interval=last_7_days",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "interval",
+									"value": "last_7_days"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Shields",
+			"item": [
+				{
+					"name": "Get Shields data",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic {{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/shields/v1/n1try/interval:today/language:Go",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"shields",
+								"v1",
+								"n1try",
+								"interval:today",
+								"language:Go"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "WakaTime",
+			"item": [
+				{
+					"name": "Get all time",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic {{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/current/all_time_since_today",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"current",
+								"all_time_since_today"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic {{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/current/stats",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"current",
+								"stats"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get stats with range",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic {{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/current/stats/last_7_days",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"current",
+								"stats",
+								"last_7_days"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get summaries",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic {{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/current/summaries?start=2020-03-01T15:04:05Z&end=2020-03-31T15:04:05Z",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"current",
+								"summaries"
+							],
+							"query": [
+								{
+									"key": "start",
+									"value": "2020-03-01T15:04:05Z"
+								},
+								{
+									"key": "end",
+									"value": "2020-03-31T15:04:05Z"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"const apiKey = pm.variables.get('API_KEY')",
+					"",
+					"if (!apiKey) {",
+					"    throw new Error('no api key given')",
+					"}",
+					"",
+					"const token = base64encode(apiKey)",
+					"pm.variables.set('TOKEN', token)",
+					"",
+					"function base64encode(str) {",
+					"    return Buffer.from(str, 'utf-8').toString('base64')",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "http://localhost:3000"
+		},
+		{
+			"key": "API_KEY",
+			"value": ""
+		}
+	]
+}
