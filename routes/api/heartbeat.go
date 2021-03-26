@@ -53,7 +53,7 @@ func (h *HeartbeatApiHandler) RegisterRoutes(router *mux.Router) {
 // @Router /heartbeat [post]
 func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	var heartbeats []*models.Heartbeat
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 	opSys, editor, _ := utils.ParseUserAgent(r.Header.Get("User-Agent"))
 	machineName := r.Header.Get("X-Machine-Name")
 

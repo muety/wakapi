@@ -71,7 +71,7 @@ func ResolveInterval(interval *models.IntervalKey) (err error, from, to time.Tim
 }
 
 func ParseSummaryParams(r *http.Request) (*models.SummaryParams, error) {
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := extractUser(r)
 	params := r.URL.Query()
 
 	var err error
@@ -107,4 +107,14 @@ func ParseSummaryParams(r *http.Request) (*models.SummaryParams, error) {
 		User:      user,
 		Recompute: recompute,
 	}, nil
+}
+
+func extractUser(r *http.Request) *models.User {
+	type principalGetter interface {
+		GetPrincipal() *models.User
+	}
+	if p := r.Context().Value("principal"); p != nil {
+		return p.(principalGetter).GetPrincipal()
+	}
+	return nil
 }

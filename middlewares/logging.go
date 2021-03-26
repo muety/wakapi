@@ -43,13 +43,14 @@ func (lg *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	lg.logFunc(
-		"[request] status=%d, method=%s, uri=%s, duration=%v, bytes=%d, addr=%s",
+		"[request] status=%d, method=%s, uri=%s, duration=%v, bytes=%d, addr=%s, user=%s",
 		ww.Status(),
 		r.Method,
 		r.URL.String(),
 		duration,
 		ww.BytesWritten(),
 		readUserIP(r),
+		readUserID(r),
 	)
 }
 
@@ -62,6 +63,13 @@ func readUserIP(r *http.Request) string {
 		ip = r.RemoteAddr
 	}
 	return ip
+}
+
+func readUserID(r *http.Request) string {
+	if user := GetPrincipal(r); user != nil {
+		return user.ID
+	}
+	return "-"
 }
 
 // The below writer-wrapping code has been lifted from

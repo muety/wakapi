@@ -68,7 +68,7 @@ func (h *MetricsHandler) RegisterRoutes(router *mux.Router) {
 }
 
 func (h *MetricsHandler) Get(w http.ResponseWriter, r *http.Request) {
-	reqUser := r.Context().Value(models.UserKey).(*models.User)
+	reqUser := middlewares.GetPrincipal(r)
 	if reqUser == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte(conf.ErrUnauthorized))

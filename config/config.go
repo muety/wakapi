@@ -319,6 +319,19 @@ func initSentry(config sentryConfig, debug bool) {
 			}
 			return sentry.UniformTracesSampler(config.SampleRate).Sample(ctx)
 		}),
+		BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
+			type principalGetter interface {
+				GetPrincipal() *models.User
+			}
+			if hint.Context != nil {
+				if req, ok := hint.Context.Value(sentry.RequestContextKey).(*http.Request); ok {
+					if p := req.Context().Value("principal"); p != nil {
+						event.User.ID = p.(principalGetter).GetPrincipal().ID
+					}
+				}
+			}
+			return event
+		},
 	}); err != nil {
 		logbuch.Fatal("failed to initialized sentry – %v", err)
 	}

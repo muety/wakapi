@@ -56,7 +56,7 @@ func (h *SummariesHandler) RegisterRoutes(router *mux.Router) {
 func (h *SummariesHandler) Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	requestedUser := vars["user"]
-	authorizedUser := r.Context().Value(models.UserKey).(*models.User)
+	authorizedUser := middlewares.GetPrincipal(r)
 
 	if requestedUser != authorizedUser.ID && requestedUser != "current" {
 		w.WriteHeader(http.StatusForbidden)
@@ -80,7 +80,7 @@ func (h *SummariesHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary, error, int) {
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 	params := r.URL.Query()
 	rangeParam, startParam, endParam := params.Get("range"), params.Get("start"), params.Get("end")
 

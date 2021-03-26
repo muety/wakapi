@@ -53,7 +53,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 	if user == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		templates[conf.SummaryTemplate].Execute(w, h.buildViewModel(r).WithError("unauthorized"))

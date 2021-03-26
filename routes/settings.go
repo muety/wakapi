@@ -148,7 +148,7 @@ func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Reques
 		loadTemplates()
 	}
 
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 
 	var payload models.UserDataUpdate
 	if err := r.ParseForm(); err != nil {
@@ -176,7 +176,7 @@ func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Re
 		loadTemplates()
 	}
 
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 
 	var credentials models.CredentialsReset
 	if err := r.ParseForm(); err != nil {
@@ -223,7 +223,7 @@ func (h *SettingsHandler) actionResetApiKey(w http.ResponseWriter, r *http.Reque
 		loadTemplates()
 	}
 
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 	if _, err := h.userSrvc.ResetApiKey(user); err != nil {
 		return http.StatusInternalServerError, "", conf.ErrInternalServerError
 	}
@@ -238,7 +238,7 @@ func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Req
 	}
 
 	var err error
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 
 	defer h.userSrvc.FlushCache()
 
@@ -265,7 +265,7 @@ func (h *SettingsHandler) actionDeleteAlias(w http.ResponseWriter, r *http.Reque
 		loadTemplates()
 	}
 
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 	aliasKey := r.PostFormValue("key")
 	aliasType, err := strconv.Atoi(r.PostFormValue("type"))
 	if err != nil {
@@ -285,7 +285,7 @@ func (h *SettingsHandler) actionAddAlias(w http.ResponseWriter, r *http.Request)
 	if h.config.IsDev() {
 		loadTemplates()
 	}
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 	aliasKey := r.PostFormValue("key")
 	aliasValue := r.PostFormValue("value")
 	aliasType, err := strconv.Atoi(r.PostFormValue("type"))
@@ -313,7 +313,7 @@ func (h *SettingsHandler) actionDeleteLanguageMapping(w http.ResponseWriter, r *
 		loadTemplates()
 	}
 
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 	id, err := strconv.Atoi(r.PostFormValue("mapping_id"))
 	if err != nil {
 		return http.StatusInternalServerError, "", "could not delete mapping"
@@ -337,7 +337,7 @@ func (h *SettingsHandler) actionAddLanguageMapping(w http.ResponseWriter, r *htt
 	if h.config.IsDev() {
 		loadTemplates()
 	}
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 	extension := r.PostFormValue("extension")
 	language := r.PostFormValue("language")
 
@@ -363,7 +363,7 @@ func (h *SettingsHandler) actionSetWakatimeApiKey(w http.ResponseWriter, r *http
 		loadTemplates()
 	}
 
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 	apiKey := r.PostFormValue("api_key")
 
 	// Healthcheck, if a new API key is set, i.e. the feature is activated
@@ -383,7 +383,7 @@ func (h *SettingsHandler) actionImportWaktime(w http.ResponseWriter, r *http.Req
 		loadTemplates()
 	}
 
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 	if user.WakatimeApiKey == "" {
 		return http.StatusForbidden, "", "not connected to wakatime"
 	}
@@ -455,7 +455,7 @@ func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *ht
 		if err := h.regenerateSummaries(user); err != nil {
 			logbuch.Error("failed to regenerate summaries for user '%s' – %v", user.ID, err)
 		}
-	}(r.Context().Value(models.UserKey).(*models.User))
+	}(middlewares.GetPrincipal(r))
 
 	return http.StatusAccepted, "summaries are being regenerated – this may take a up to a couple of minutes, please come back later", ""
 }
@@ -465,7 +465,7 @@ func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Reques
 		loadTemplates()
 	}
 
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 	go func(user *models.User) {
 		logbuch.Info("deleting user '%s' shortly", user.ID)
 		time.Sleep(5 * time.Minute)
@@ -524,7 +524,7 @@ func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
 }
 
 func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewModel {
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 	mappings, _ := h.languageMappingSrvc.GetByUser(user.ID)
 	aliases, _ := h.aliasSrvc.GetByUser(user.ID)
 	aliasMap := make(map[string][]*models.Alias)

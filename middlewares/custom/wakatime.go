@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/middlewares"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -39,7 +39,7 @@ func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	user := r.Context().Value(models.UserKey).(*models.User)
+	user := middlewares.GetPrincipal(r)
 	if user == nil || user.WakatimeApiKey == "" {
 		return
 	}

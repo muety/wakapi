@@ -49,7 +49,7 @@ func (h *AllTimeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	values, _ := url.ParseQuery(r.URL.RawQuery)
 
 	requestedUser := vars["user"]
-	authorizedUser := r.Context().Value(models.UserKey).(*models.User)
+	authorizedUser := middlewares.GetPrincipal(r)
 
 	if requestedUser != authorizedUser.ID && requestedUser != "current" {
 		w.WriteHeader(http.StatusForbidden)

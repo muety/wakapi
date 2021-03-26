@@ -45,10 +45,7 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	var vars = mux.Vars(r)
 	var authorizedUser, requestedUser *models.User
 
-	if u := r.Context().Value(models.UserKey); u != nil {
-		authorizedUser = u.(*models.User)
-	}
-
+	authorizedUser = middlewares.GetPrincipal(r)
 	if authorizedUser != nil && vars["user"] == "current" {
 		vars["user"] = authorizedUser.ID
 	}

@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"context"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
@@ -65,8 +64,8 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	ctx := context.WithValue(r.Context(), models.UserKey, user)
-	next(w, r.WithContext(ctx))
+	SetPrincipal(r, user)
+	next(w, r)
 }
 
 func (m *AuthenticateMiddleware) isOptional(requestPath string) bool {
