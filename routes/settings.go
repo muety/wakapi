@@ -419,17 +419,24 @@ func (h *SettingsHandler) actionImportWaktime(w http.ResponseWriter, r *http.Req
 		count := 0
 		batch := make([]*models.Heartbeat, 0)
 
+		insert := func(batch []*models.Heartbeat) {
+			if err := h.heartbeatSrvc.InsertBatch(batch); err != nil {
+				logbuch.Warn("failed to insert imported heartbeat, already existing? – %v", err)
+			}
+		}
+
 		for hb := range stream {
 			count++
 			batch = append(batch, hb)
 
 			if len(batch) == h.config.App.ImportBatchSize {
-				if err := h.heartbeatSrvc.InsertBatch(batch); err != nil {
-					logbuch.Warn("failed to insert imported heartbeat, already existing? – %v", err)
-				}
-
+				insert(batch)
 				batch = make([]*models.Heartbeat, 0)
 			}
+		}
+
+		if len(batch) > 0 {
+			insert(batch)
 		}
 
 		countAfter, _ := h.heartbeatSrvc.CountByUser(user)

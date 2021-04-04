@@ -76,7 +76,7 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 				d := day.Format(config.SimpleDateFormat)
 				heartbeats, err := w.fetchHeartbeats(d)
 				if err != nil {
-					logbuch.Error("failed to fetch heartbeats for day '%s' and user '%s' – &v", day, user.ID, err)
+					logbuch.Error("failed to fetch heartbeats for day '%s' and user '%s' – &v", d, user.ID, err)
 				}
 
 				for _, h := range heartbeats {
