@@ -49,6 +49,8 @@
 * [Support](#-support)
 * [FAQs](#-faqs)
 
+Further instructions can be found in the [Wiki](https://github.com/muety/wakapi/wiki).
+
 ## 📬 **User Survey**
 I'd love to get some community feedback from active Wakapi users. If you want, please participate in the recent [user survey](https://github.com/muety/wakapi/issues/82). Thanks a lot!
 
@@ -149,7 +151,7 @@ api_url = http://localhost:3000/api/heartbeat
 api_key = 406fe41f-6d69-4183-a4cc-121e0c524c2b
 ```
 
-Optionally, you can set up a [client-side proxy](docs/advanced_setup.md) in addition.
+Optionally, you can set up a [client-side proxy](https://github.com/muety/wakapi/wiki/Advanced-Setup:-Client-side-proxy) in addition.
 
 ## 🔧 Configuration Options
 You can specify configuration options either via a config file (default: `config.yml`, customziable through the `-c` argument) or via environment variables. Here is an overview of all options.
