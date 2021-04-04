@@ -92,7 +92,7 @@
             <div class="p-4 pb-10 bg-gray-900 border border-gray-700 text-gray-300 rounded-md shadow m-2 flex flex-col" id="project-container" style="height: 300px">
                 <div class="flex justify-between">
                     <div class="w-1/4 flex-1"></div>
-                    <span class="font-semibold w-1/2 text-center flex-1">Projects</span>
+                    <span class="font-semibold w-1/2 text-center flex-1 whitespace-no-wrap">Projects</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
                         <label for="project-top-picker" class="mr-1">Show:&nbsp;</label>
                         <input type="number" min="1" id="project-top-picker" data-entity="0" class="w-1/4 top-picker bg-gray-800 rounded-md text-center" value="10">
@@ -108,7 +108,7 @@
             <div class="p-4 pb-10 bg-gray-900 border border-gray-700 text-gray-300 rounded-md shadow m-2 flex flex-col" id="os-container" style="height: 300px">
                 <div class="flex justify-between">
                     <div class="w-1/4 flex-1"></div>
-                    <span class="font-semibold w-1/2 text-center flex-1">Operating Systems</span>
+                    <span class="font-semibold w-1/2 text-center flex-1 whitespace-no-wrap">Operating Systems</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
                         <label for="os-top-picker" class="mr-1">Show:&nbsp;</label>
                         <input type="number" min="1" id="os-top-picker" data-entity="1" class="w-1/4 top-picker bg-gray-800 rounded-md text-center" value="10">
@@ -124,7 +124,7 @@
             <div class="p-4 pb-10 bg-gray-900 border border-gray-700 text-gray-300 rounded-md shadow m-2 flex flex-col relative" id="language-container" style="height: 300px">
                 <div class="flex justify-between">
                     <div class="w-1/4 flex-1"></div>
-                    <span class="font-semibold w-1/2 text-center flex-1">Languages</span>
+                    <span class="font-semibold w-1/2 text-center flex-1 whitespace-no-wrap">Languages</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
                         <label for="language-top-picker" class="mr-1">Show:&nbsp;</label>
                         <input type="number" min="1" id="language-top-picker" data-entity="3" class="w-1/4 top-picker bg-gray-800 rounded-md text-center" value="10">
@@ -140,7 +140,7 @@
             <div class="p-4 pb-10 bg-gray-900 border border-gray-700 text-gray-300 rounded-md shadow m-2 flex flex-col" id="editor-container" style="height: 300px">
                 <div class="flex justify-between">
                     <div class="w-1/4 flex-1"></div>
-                    <span class="font-semibold w-1/2 text-center flex-1">Editors</span>
+                    <span class="font-semibold w-1/2 text-center flex-1 whitespace-no-wrap">Editors</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
                         <label for="editor-top-picker" class="mr-1">Show:&nbsp;</label>
                         <input type="number" min="1" id="editor-top-picker" data-entity="2" class="w-1/4 top-picker bg-gray-800 rounded-md text-center" value="10">
@@ -156,7 +156,7 @@
             <div class="p-4 pb-10 bg-gray-900 border border-gray-700 text-gray-300 rounded-md shadow m-2 flex flex-col" id="machine-container" style="height: 300px">
                 <div class="flex justify-between">
                     <div class="w-1/4 flex-1"></div>
-                    <span class="font-semibold w-1/2 text-center flex-1">Machines</span>
+                    <span class="font-semibold w-1/2 text-center flex-1 whitespace-no-wrap">Machines</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
                         <label for="machine-top-picker" class="mr-1">Show:&nbsp;</label>
                         <input type="number" min="1" id="machine-top-picker" data-entity="4" class="w-1/4 top-picker bg-gray-800 rounded-md text-center" value="10">
@@ -209,8 +209,10 @@
 
 {{ template "foot.tpl.html" . }}
 
-<script type="text/javascript">
-    document.querySelector('#api-key-instruction').innerHTML = document.querySelector('#api-key-container').value
+<script>
+    document.addEventListener('load', function() {
+        document.getElementById('api-key-instruction').innerHTML = document.getElementById('api-key-container').value
+    })
 </script>
 
 <script>
