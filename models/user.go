@@ -30,6 +30,7 @@ type User struct {
 	IsAdmin          bool       `json:"-" gorm:"default:false; type:bool"`
 	HasData          bool       `json:"-" gorm:"default:false; type:bool"`
 	WakatimeApiKey   string     `json:"-"`
+	ResetToken       string     `json:"-"`
 }
 
 type Login struct {
@@ -42,6 +43,16 @@ type Signup struct {
 	Email          string `schema:"email"`
 	Password       string `schema:"password"`
 	PasswordRepeat string `schema:"password_repeat"`
+}
+
+type SetPasswordRequest struct {
+	Password       string `schema:"password"`
+	PasswordRepeat string `schema:"password_repeat"`
+	Token          string `schema:"token"`
+}
+
+type ResetPasswordRequest struct {
+	Email string `schema:"email"`
 }
 
 type CredentialsReset struct {
@@ -67,6 +78,11 @@ type CountByUser struct {
 func (c *CredentialsReset) IsValid() bool {
 	return ValidatePassword(c.PasswordNew) &&
 		c.PasswordNew == c.PasswordRepeat
+}
+
+func (c *SetPasswordRequest) IsValid() bool {
+	return ValidatePassword(c.Password) &&
+		c.Password == c.PasswordRepeat
 }
 
 func (s *Signup) IsValid() bool {

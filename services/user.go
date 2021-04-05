@@ -52,6 +52,14 @@ func (srv *UserService) GetUserByKey(key string) (*models.User, error) {
 	return u, nil
 }
 
+func (srv *UserService) GetUserByEmail(email string) (*models.User, error) {
+	return srv.repository.GetByEmail(email)
+}
+
+func (srv *UserService) GetUserByResetToken(resetToken string) (*models.User, error) {
+	return srv.repository.GetByResetToken(resetToken)
+}
+
 func (srv *UserService) GetAll() ([]*models.User, error) {
 	return srv.repository.GetAll()
 }
@@ -108,6 +116,10 @@ func (srv *UserService) MigrateMd5Password(user *models.User, login *models.Logi
 		user.Password = hash
 	}
 	return srv.repository.UpdateField(user, "password", user.Password)
+}
+
+func (srv *UserService) GenerateResetToken(user *models.User) (*models.User, error) {
+	return srv.repository.UpdateField(user, "reset_token", uuid.NewV4())
 }
 
 func (srv *UserService) Delete(user *models.User) error {

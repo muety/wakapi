@@ -6,6 +6,11 @@ type LoginViewModel struct {
 	TotalUsers int
 }
 
+type SetPasswordViewModel struct {
+	LoginViewModel
+	Token string
+}
+
 func (s *LoginViewModel) WithSuccess(m string) *LoginViewModel {
 	s.Success = m
 	return s

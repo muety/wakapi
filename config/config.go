@@ -49,7 +49,13 @@ const (
 	WakatimeApiMachineNamesUrl   = "/users/current/machine_names"
 )
 
-var emailProviders = []string{"mailwhale"}
+const (
+	MailProviderMailWhale = "mailwhale"
+)
+
+var emailProviders = []string{
+	MailProviderMailWhale,
+}
 
 var cfg *Config
 var cFlag = flag.String("config", defaultConfigPath, "config file location")

@@ -10,6 +10,7 @@ import (
 	"github.com/muety/wakapi/migrations"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/routes/api"
+	"github.com/muety/wakapi/services/mail"
 	"github.com/muety/wakapi/utils"
 	"gorm.io/gorm/logger"
 	"log"
@@ -51,6 +52,7 @@ var (
 	languageMappingService services.ILanguageMappingService
 	summaryService         services.ISummaryService
 	aggregationService     services.IAggregationService
+	mailService            services.IMailService
 	keyValueService        services.IKeyValueService
 	miscService            services.IMiscService
 )
@@ -134,6 +136,7 @@ func main() {
 	heartbeatService = services.NewHeartbeatService(heartbeatRepository, languageMappingService)
 	summaryService = services.NewSummaryService(summaryRepository, heartbeatService, aliasService)
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
+	mailService = mail.NewMailService()
 	keyValueService = services.NewKeyValueService(keyValueRepository)
 	miscService = services.NewMiscService(userService, summaryService, keyValueService)
 
@@ -159,7 +162,7 @@ func main() {
 	summaryHandler := routes.NewSummaryHandler(summaryService, userService)
 	settingsHandler := routes.NewSettingsHandler(userService, heartbeatService, summaryService, aliasService, aggregationService, languageMappingService, keyValueService)
 	homeHandler := routes.NewHomeHandler(keyValueService)
-	loginHandler := routes.NewLoginHandler(userService)
+	loginHandler := routes.NewLoginHandler(userService, mailService)
 	imprintHandler := routes.NewImprintHandler(keyValueService)
 
 	// Setup Routers
