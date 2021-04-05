@@ -75,3 +75,7 @@ type IUserService interface {
 	MigrateMd5Password(*models.User, *models.Login) (*models.User, error)
 	FlushCache()
 }
+
+type IMailService interface {
+	SendPasswordResetMail(recipient *models.User, resetLink string) error
+}
