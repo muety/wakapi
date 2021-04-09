@@ -50,10 +50,12 @@ const (
 )
 
 const (
+	MailProviderSmtp      = "smtp"
 	MailProviderMailWhale = "mailwhale"
 )
 
 var emailProviders = []string{
+	MailProviderSmtp,
 	MailProviderMailWhale,
 }
 
@@ -97,7 +99,7 @@ type serverConfig struct {
 	ListenIpV4  string `yaml:"listen_ipv4" default:"127.0.0.1" env:"WAKAPI_LISTEN_IPV4"`
 	ListenIpV6  string `yaml:"listen_ipv6" default:"::1" env:"WAKAPI_LISTEN_IPV6"`
 	BasePath    string `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
-	PublicUrl   string `yaml:"public_url" default:"https://wakapi.dev/" env:"WAKAPI_PUBLIC_URL"`
+	PublicUrl   string `yaml:"public_url" default:"http://localhost:3000" env:"WAKAPI_PUBLIC_URL"`
 	TlsCertPath string `yaml:"tls_cert_path" default:"" env:"WAKAPI_TLS_CERT_PATH"`
 	TlsKeyPath  string `yaml:"tls_key_path" default:"" env:"WAKAPI_TLS_KEY_PATH"`
 }
@@ -110,14 +112,25 @@ type sentryConfig struct {
 }
 
 type mailConfig struct {
-	Provider  string               `env:"WAKAPI_MAIL_PROVIDER"`
+	Enabled   bool                 `env:"WAKAPI_MAIL_ENABLED" default:"true"`
+	Provider  string               `env:"WAKAPI_MAIL_PROVIDER" default:"smtp"`
 	MailWhale *MailwhaleMailConfig `yaml:"mailwhale"`
+	Smtp      *SMTPMailConfig      `yaml:"smtp"`
 }
 
 type MailwhaleMailConfig struct {
 	Url          string `env:"WAKAPI_MAIL_MAILWHALE_URL"`
 	ClientId     string `yaml:"client_id" env:"WAKAPI_MAIL_MAILWHALE_CLIENT_ID"`
 	ClientSecret string `yaml:"client_secret" env:"WAKAPI_MAIL_MAILWHALE_CLIENT_SECRET"`
+}
+
+type SMTPMailConfig struct {
+	Host     string `env:"WAKAPI_MAIL_SMTP_HOST"`
+	Port     uint   `env:"WAKAPI_MAIL_SMTP_PORT"`
+	Username string `env:"WAKAPI_MAIL_SMTP_USER"`
+	Password string `env:"WAKAPI_MAIL_SMTP_PASS"`
+	TLS      bool   `env:"WAKAPI_MAIL_SMTP_TLS"`
+	Sender   string `env:"WAKAPI_MAIL_SMTP_SENDER"`
 }
 
 type Config struct {
@@ -261,6 +274,10 @@ func (c *appConfig) GetOSColors() map[string]string {
 
 func (c *serverConfig) GetPublicUrl() string {
 	return strings.TrimSuffix(c.PublicUrl, "/")
+}
+
+func (c *SMTPMailConfig) ConnStr() string {
+	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
 
 func IsDev(env string) bool {

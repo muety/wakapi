@@ -234,6 +234,7 @@ func (h *LoginHandler) PostSetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user.Password = setRequest.Password
+	user.ResetToken = ""
 	if hash, err := utils.HashBcrypt(user.Password, h.config.Security.PasswordSalt); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("failed to set new password"))
@@ -254,6 +255,12 @@ func (h *LoginHandler) PostSetPassword(w http.ResponseWriter, r *http.Request) {
 func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
+	}
+
+	if !h.config.Mail.Enabled {
+		w.WriteHeader(http.StatusNotImplemented)
+		templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("mailing is disabled on this server"))
+		return
 	}
 
 	var resetRequest models.ResetPasswordRequest
@@ -277,7 +284,7 @@ func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request)
 			go func(user *models.User) {
 				link := fmt.Sprintf("%s/set-password?token=%s", h.config.Server.GetPublicUrl(), user.ResetToken)
 				if err := h.mailSrvc.SendPasswordResetMail(user, link); err != nil {
-					logbuch.Error("%v", err)
+					logbuch.Error("failed to send password reset mail to %s – %v", user.ID, err)
 				} else {
 					logbuch.Info("sent password reset mail to %s", user.ID)
 				}

@@ -40,3 +40,18 @@ sentry:
   enable_tracing: true        # whether to use performance monitoring
   sample_rate: 0.75           # probability of tracing a request
   sample_rate_heartbeats: 0.1 # probability of tracing a heartbeat request
+
+mail:
+  enabled: true                         # whether to enable mails (used for password resets, reports, etc.)
+  provider: smtp                        # method for sending mails, currently one of ['smtp', 'mailwhale']
+  smtp:                                 # smtp settings when sending mails via smtp
+    host:
+    port:
+    username:
+    password:
+    tls:
+    sender: Wakapi <noreply@wakapi.dev>
+  mailwhale:                            # mailwhale.dev settings when using mailwhale as sending service
+    url:
+    client_id:
+    client_secret:

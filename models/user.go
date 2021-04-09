@@ -2,14 +2,6 @@ package models
 
 import "regexp"
 
-const (
-	MailPattern = "[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+"
-)
-
-var (
-	mailRegex *regexp.Regexp
-)
-
 func init() {
 	mailRegex = regexp.MustCompile(MailPattern)
 }
@@ -17,7 +9,7 @@ func init() {
 type User struct {
 	ID               string     `json:"id" gorm:"primary_key"`
 	ApiKey           string     `json:"api_key" gorm:"unique"`
-	Email            string     `json:"email"`
+	Email            string     `json:"email" gorm:"uniqueIndex:idx_user_email"`
 	Password         string     `json:"-"`
 	CreatedAt        CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	LastLoggedInAt   CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`

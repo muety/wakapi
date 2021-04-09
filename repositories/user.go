@@ -141,6 +141,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"share_machines":      user.ShareMachines,
 		"wakatime_api_key":    user.WakatimeApiKey,
 		"has_data":            user.HasData,
+		"reset_token":         user.ResetToken,
 	}
 
 	result := r.db.Model(user).Updates(updateMap)

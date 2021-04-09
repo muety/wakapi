@@ -180,6 +180,10 @@ You can specify configuration options either via a config file (default: `config
 | `db.charset`                | `WAKAPI_DB_CHARSET`         | `utf8mb4`      | Database connection charset (for MySQL only)                        |
 | `db.max_conn`               | `WAKAPI_DB_MAX_CONNECTIONS` | `2`            | Maximum number of database connections                              |
 | `db.ssl`                    | `WAKAPI_DB_SSL`             | `false`        | Whether to use TLS encryption for database connection (Postgres and CockroachDB only) |
+| `mail.enabled`              | `WAKAPI_MAIL_ENABLED`       | `true`         | Whether to allow Wakapi to send e-mail (e.g. for password resets) |
+| `mail.provider`             | `WAKAPI_MAIL_PROVIDER`      | `smtp`         | Implementation to use for sending mails (one of [`smtp`, `mailwhale`]) |
+| `mail.smtp.*`               | `WAKAPI_MAIL_SMTP_*`        | `-`            | Various options to configure SMTP. See [default config](config.default.yaml) for details |
+| `mail.mailwhale.*`          | `WAKAPI_MAIL_MAILWHALE_*`   | `-`            | Various options to configure [MailWhale](https://mailwhale.dev) sending service. See [default config](config.default.yaml) for details |
 | `sentry.dsn`                | `WAKAPI_SENTRY_DSN`         | –              | DSN for to integrate [Sentry](https://sentry.io) for error logging and tracing (leave empty to disable) |
 | `sentry.enable_tracing`     | `WAKAPI_SENTRY_TRACING`     | `false`        | Whether to enable Sentry request tracing                           |
 | `sentry.sample_rate`        | `WAKAPI_SENTRY_SAMPLE_RATE` | `0.75`         | Probability of tracing a request in Sentry                         |
