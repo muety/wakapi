@@ -2,14 +2,6 @@ package models
 
 import "regexp"
 
-const (
-	MailPattern = "[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+"
-)
-
-var (
-	mailRegex *regexp.Regexp
-)
-
 func init() {
 	mailRegex = regexp.MustCompile(MailPattern)
 }
@@ -17,7 +9,7 @@ func init() {
 type User struct {
 	ID               string     `json:"id" gorm:"primary_key"`
 	ApiKey           string     `json:"api_key" gorm:"unique"`
-	Email            string     `json:"email"`
+	Email            string     `json:"email" gorm:"uniqueIndex:idx_user_email"`
 	Password         string     `json:"-"`
 	CreatedAt        CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	LastLoggedInAt   CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
@@ -30,6 +22,7 @@ type User struct {
 	IsAdmin          bool       `json:"-" gorm:"default:false; type:bool"`
 	HasData          bool       `json:"-" gorm:"default:false; type:bool"`
 	WakatimeApiKey   string     `json:"-"`
+	ResetToken       string     `json:"-"`
 }
 
 type Login struct {
@@ -42,6 +35,16 @@ type Signup struct {
 	Email          string `schema:"email"`
 	Password       string `schema:"password"`
 	PasswordRepeat string `schema:"password_repeat"`
+}
+
+type SetPasswordRequest struct {
+	Password       string `schema:"password"`
+	PasswordRepeat string `schema:"password_repeat"`
+	Token          string `schema:"token"`
+}
+
+type ResetPasswordRequest struct {
+	Email string `schema:"email"`
 }
 
 type CredentialsReset struct {
@@ -67,6 +70,11 @@ type CountByUser struct {
 func (c *CredentialsReset) IsValid() bool {
 	return ValidatePassword(c.PasswordNew) &&
 		c.PasswordNew == c.PasswordRepeat
+}
+
+func (c *SetPasswordRequest) IsValid() bool {
+	return ValidatePassword(c.Password) &&
+		c.Password == c.PasswordRepeat
 }
 
 func (s *Signup) IsValid() bool {

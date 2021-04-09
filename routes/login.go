@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/emvi/logbuch"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -9,18 +10,21 @@ import (
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
+	"net/url"
 	"time"
 )
 
 type LoginHandler struct {
 	config   *conf.Config
 	userSrvc services.IUserService
+	mailSrvc services.IMailService
 }
 
-func NewLoginHandler(userService services.IUserService) *LoginHandler {
+func NewLoginHandler(userService services.IUserService, mailService services.IMailService) *LoginHandler {
 	return &LoginHandler{
 		config:   conf.Get(),
 		userSrvc: userService,
+		mailSrvc: mailService,
 	}
 }
 
@@ -30,6 +34,10 @@ func (h *LoginHandler) RegisterRoutes(router *mux.Router) {
 	router.Path("/logout").Methods(http.MethodPost).HandlerFunc(h.PostLogout)
 	router.Path("/signup").Methods(http.MethodGet).HandlerFunc(h.GetSignup)
 	router.Path("/signup").Methods(http.MethodPost).HandlerFunc(h.PostSignup)
+	router.Path("/set-password").Methods(http.MethodGet).HandlerFunc(h.GetSetPassword)
+	router.Path("/set-password").Methods(http.MethodPost).HandlerFunc(h.PostSetPassword)
+	router.Path("/reset-password").Methods(http.MethodGet).HandlerFunc(h.GetResetPassword)
+	router.Path("/reset-password").Methods(http.MethodPost).HandlerFunc(h.PostResetPassword)
 }
 
 func (h *LoginHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
@@ -165,6 +173,128 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("%s/?success=%s", h.config.Server.BasePath, "account created successfully"), http.StatusFound)
+}
+
+func (h *LoginHandler) GetResetPassword(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+	templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r))
+}
+
+func (h *LoginHandler) GetSetPassword(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	values, _ := url.ParseQuery(r.URL.RawQuery)
+	token := values.Get("token")
+	if token == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("invalid or missing token"))
+		return
+	}
+
+	vm := &view.SetPasswordViewModel{
+		LoginViewModel: *h.buildViewModel(r),
+		Token:          token,
+	}
+
+	templates[conf.SetPasswordTemplate].Execute(w, vm)
+}
+
+func (h *LoginHandler) PostSetPassword(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	var setRequest models.SetPasswordRequest
+	if err := r.ParseForm(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("missing parameters"))
+		return
+	}
+	if err := signupDecoder.Decode(&setRequest, r.PostForm); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("missing parameters"))
+		return
+	}
+
+	user, err := h.userSrvc.GetUserByResetToken(setRequest.Token)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("invalid token"))
+		return
+	}
+
+	if !setRequest.IsValid() {
+		w.WriteHeader(http.StatusBadRequest)
+		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("invalid parameters"))
+		return
+	}
+
+	user.Password = setRequest.Password
+	user.ResetToken = ""
+	if hash, err := utils.HashBcrypt(user.Password, h.config.Security.PasswordSalt); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("failed to set new password"))
+		return
+	} else {
+		user.Password = hash
+	}
+
+	if _, err := h.userSrvc.Update(user); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("failed to save new password"))
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("%s/login?success=%s", h.config.Server.BasePath, "password updated successfully"), http.StatusFound)
+}
+
+func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	if !h.config.Mail.Enabled {
+		w.WriteHeader(http.StatusNotImplemented)
+		templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("mailing is disabled on this server"))
+		return
+	}
+
+	var resetRequest models.ResetPasswordRequest
+	if err := r.ParseForm(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("missing parameters"))
+		return
+	}
+	if err := resetPasswordDecoder.Decode(&resetRequest, r.PostForm); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("missing parameters"))
+		return
+	}
+
+	if user, err := h.userSrvc.GetUserByEmail(resetRequest.Email); user != nil && err == nil {
+		if u, err := h.userSrvc.GenerateResetToken(user); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("failed to generate password reset token"))
+			return
+		} else {
+			go func(user *models.User) {
+				link := fmt.Sprintf("%s/set-password?token=%s", h.config.Server.GetPublicUrl(), user.ResetToken)
+				if err := h.mailSrvc.SendPasswordResetMail(user, link); err != nil {
+					logbuch.Error("failed to send password reset mail to %s – %v", user.ID, err)
+				} else {
+					logbuch.Info("sent password reset mail to %s", user.ID)
+				}
+			}(u)
+		}
+	} else {
+		logbuch.Warn("password reset requested for unregistered address '%s'", resetRequest.Email)
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("%s/?success=%s", h.config.Server.BasePath, "an e-mail was sent to you in case your e-mail address was registered"), http.StatusFound)
 }
 
 func (h *LoginHandler) buildViewModel(r *http.Request) *view.LoginViewModel {

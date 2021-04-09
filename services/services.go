@@ -64,6 +64,8 @@ type ISummaryService interface {
 type IUserService interface {
 	GetUserById(string) (*models.User, error)
 	GetUserByKey(string) (*models.User, error)
+	GetUserByEmail(string) (*models.User, error)
+	GetUserByResetToken(string) (*models.User, error)
 	GetAll() ([]*models.User, error)
 	GetActive() ([]*models.User, error)
 	Count() (int64, error)
@@ -73,5 +75,10 @@ type IUserService interface {
 	ResetApiKey(*models.User) (*models.User, error)
 	SetWakatimeApiKey(*models.User, string) (*models.User, error)
 	MigrateMd5Password(*models.User, *models.Login) (*models.User, error)
+	GenerateResetToken(*models.User) (*models.User, error)
 	FlushCache()
+}
+
+type IMailService interface {
+	SendPasswordResetMail(recipient *models.User, resetLink string) error
 }

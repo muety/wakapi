@@ -4,6 +4,8 @@ go 1.13
 
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
+	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
+	github.com/emersion/go-smtp v0.15.0
 	github.com/emvi/logbuch v1.1.1
 	github.com/getsentry/sentry-go v0.10.0
 	github.com/go-co-op/gocron v0.3.3

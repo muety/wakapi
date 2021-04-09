@@ -7,8 +7,12 @@
 
 {{ template "header.tpl.html" . }}
 
-<div class="flex items-center justify-center">
-    <h1 class="font-semibold text-xl text-white m-0 border-b-4 border-green-700">Login</h1>
+<div class="w-full flex justify-center">
+    <div class="flex items-center justify-between max-w-lg flex-grow">
+        <div><a onclick="window.history.back()" class="text-gray-500 text-sm cursor-pointer">&larr; Go back</a></div>
+        <div><h1 class="font-semibold text-2xl text-white m-0 border-b-4 border-green-700">Login</h1></div>
+        <div></div>
+    </div>
 </div>
 
 {{ template "alerts.tpl.html" . }}
@@ -28,11 +32,16 @@
                        type="password" id="password"
                        name="password" placeholder="******" minlength="6" required>
             </div>
-            <div class="flex justify-between">
-                <a href="signup">
-                    <button type="button" class="py-1 px-3 rounded border border-green-700 text-white text-sm">Sign up</button>
+            <div class="flex justify-between items-center">
+                <a href="reset-password" class="text-gray-500 text-sm">
+                    Forgot password?
                 </a>
-                <button type="submit" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">Log in</button>
+                <div class="flex space-x-2">
+                    <a href="signup">
+                        <button type="button" class="py-1 px-3 rounded border border-green-700 text-white text-sm">Sign up</button>
+                    </a>
+                    <button type="submit" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">Log in</button>
+                </div>
             </div>
         </form>
     </div>

@@ -42,6 +42,28 @@ func (r *UserRepository) GetByApiKey(key string) (*models.User, error) {
 	return u, nil
 }
 
+func (r *UserRepository) GetByResetToken(resetToken string) (*models.User, error) {
+	if resetToken == "" {
+		return nil, errors.New("invalid input")
+	}
+	u := &models.User{}
+	if err := r.db.Where(&models.User{ResetToken: resetToken}).First(u).Error; err != nil {
+		return u, err
+	}
+	return u, nil
+}
+
+func (r *UserRepository) GetByEmail(email string) (*models.User, error) {
+	if email == "" {
+		return nil, errors.New("invalid input")
+	}
+	u := &models.User{}
+	if err := r.db.Where(&models.User{Email: email}).First(u).Error; err != nil {
+		return u, err
+	}
+	return u, nil
+}
+
 func (r *UserRepository) GetAll() ([]*models.User, error) {
 	var users []*models.User
 	if err := r.db.
@@ -119,6 +141,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"share_machines":      user.ShareMachines,
 		"wakatime_api_key":    user.WakatimeApiKey,
 		"has_data":            user.HasData,
+		"reset_token":         user.ResetToken,
 	}
 
 	result := r.db.Model(user).Updates(updateMap)

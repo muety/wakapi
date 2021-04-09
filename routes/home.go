@@ -20,6 +20,7 @@ type HomeHandler struct {
 
 var loginDecoder = schema.NewDecoder()
 var signupDecoder = schema.NewDecoder()
+var resetPasswordDecoder = schema.NewDecoder()
 
 func NewHomeHandler(keyValueService services.IKeyValueService) *HomeHandler {
 	return &HomeHandler{

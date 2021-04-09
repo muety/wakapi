@@ -19,6 +19,16 @@ func (m *UserServiceMock) GetUserByKey(s string) (*models.User, error) {
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
+func (m *UserServiceMock) GetUserByEmail(s string) (*models.User, error) {
+	args := m.Called(s)
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
+func (m *UserServiceMock) GetUserByResetToken(s string) (*models.User, error) {
+	args := m.Called(s)
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
 func (m *UserServiceMock) GetAll() ([]*models.User, error) {
 	args := m.Called()
 	return args.Get(0).([]*models.User), args.Error(1)
@@ -66,6 +76,11 @@ func (m *UserServiceMock) SetWakatimeApiKey(user *models.User, s string) (*model
 
 func (m *UserServiceMock) MigrateMd5Password(user *models.User, login *models.Login) (*models.User, error) {
 	args := m.Called(user, login)
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
+func (m *UserServiceMock) GenerateResetToken(user *models.User) (*models.User, error) {
+	args := m.Called(user)
 	return args.Get(0).(*models.User), args.Error(1)
 }
 

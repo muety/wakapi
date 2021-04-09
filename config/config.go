@@ -49,6 +49,16 @@ const (
 	WakatimeApiMachineNamesUrl   = "/users/current/machine_names"
 )
 
+const (
+	MailProviderSmtp      = "smtp"
+	MailProviderMailWhale = "mailwhale"
+)
+
+var emailProviders = []string{
+	MailProviderSmtp,
+	MailProviderMailWhale,
+}
+
 var cfg *Config
 var cFlag = flag.String("config", defaultConfigPath, "config file location")
 
@@ -89,6 +99,7 @@ type serverConfig struct {
 	ListenIpV4  string `yaml:"listen_ipv4" default:"127.0.0.1" env:"WAKAPI_LISTEN_IPV4"`
 	ListenIpV6  string `yaml:"listen_ipv6" default:"::1" env:"WAKAPI_LISTEN_IPV6"`
 	BasePath    string `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
+	PublicUrl   string `yaml:"public_url" default:"http://localhost:3000" env:"WAKAPI_PUBLIC_URL"`
 	TlsCertPath string `yaml:"tls_cert_path" default:"" env:"WAKAPI_TLS_CERT_PATH"`
 	TlsKeyPath  string `yaml:"tls_key_path" default:"" env:"WAKAPI_TLS_KEY_PATH"`
 }
@@ -100,6 +111,28 @@ type sentryConfig struct {
 	SampleRateHeartbeats float32 `yaml:"sample_rate_heartbeats" default:"0.1" env:"WAKAPI_SENTRY_SAMPLE_RATE_HEARTBEATS"`
 }
 
+type mailConfig struct {
+	Enabled   bool                 `env:"WAKAPI_MAIL_ENABLED" default:"true"`
+	Provider  string               `env:"WAKAPI_MAIL_PROVIDER" default:"smtp"`
+	MailWhale *MailwhaleMailConfig `yaml:"mailwhale"`
+	Smtp      *SMTPMailConfig      `yaml:"smtp"`
+}
+
+type MailwhaleMailConfig struct {
+	Url          string `env:"WAKAPI_MAIL_MAILWHALE_URL"`
+	ClientId     string `yaml:"client_id" env:"WAKAPI_MAIL_MAILWHALE_CLIENT_ID"`
+	ClientSecret string `yaml:"client_secret" env:"WAKAPI_MAIL_MAILWHALE_CLIENT_SECRET"`
+}
+
+type SMTPMailConfig struct {
+	Host     string `env:"WAKAPI_MAIL_SMTP_HOST"`
+	Port     uint   `env:"WAKAPI_MAIL_SMTP_PORT"`
+	Username string `env:"WAKAPI_MAIL_SMTP_USER"`
+	Password string `env:"WAKAPI_MAIL_SMTP_PASS"`
+	TLS      bool   `env:"WAKAPI_MAIL_SMTP_TLS"`
+	Sender   string `env:"WAKAPI_MAIL_SMTP_SENDER"`
+}
+
 type Config struct {
 	Env      string `default:"dev" env:"ENVIRONMENT"`
 	Version  string `yaml:"-"`
@@ -108,6 +141,7 @@ type Config struct {
 	Db       dbConfig
 	Server   serverConfig
 	Sentry   sentryConfig
+	Mail     mailConfig
 }
 
 func (c *Config) CreateCookie(name, value, path string) *http.Cookie {
@@ -238,6 +272,14 @@ func (c *appConfig) GetOSColors() map[string]string {
 	return cloneStringMap(c.Colors["operating_systems"], true)
 }
 
+func (c *serverConfig) GetPublicUrl() string {
+	return strings.TrimSuffix(c.PublicUrl, "/")
+}
+
+func (c *SMTPMailConfig) ConnStr() string {
+	return fmt.Sprintf("%s:%d", c.Host, c.Port)
+}
+
 func IsDev(env string) bool {
 	return env == "dev" || env == "development"
 }
@@ -337,6 +379,15 @@ func initSentry(config sentryConfig, debug bool) {
 	}
 }
 
+func findString(needle string, haystack []string, defaultVal string) string {
+	for _, s := range haystack {
+		if s == needle {
+			return s
+		}
+	}
+	return defaultVal
+}
+
 func Set(config *Config) {
 	cfg = config
 }
@@ -383,6 +434,10 @@ func Load() *Config {
 	if config.Sentry.Dsn != "" {
 		logbuch.Info("enabling sentry integration")
 		initSentry(config.Sentry, config.IsDev())
+	}
+
+	if config.Mail.Provider != "" && findString(config.Mail.Provider, emailProviders, "") == "" {
+		logbuch.Fatal("unknown mail provider '%s'", config.Mail.Provider)
 	}
 
 	Set(config)
