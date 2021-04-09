@@ -311,7 +311,7 @@ func initSentry(config sentryConfig, debug bool) {
 			hub := sentry.GetHubFromContext(ctx.Span.Context())
 			txName := hub.Scope().Transaction()
 
-			if strings.HasPrefix(txName, "GET /assets") {
+			if strings.HasPrefix(txName, "GET /assets") || strings.HasPrefix(txName, "GET /api/health") {
 				return sentry.SampledFalse
 			}
 			if txName == "POST /api/heartbeat" {
