@@ -1,12 +1,13 @@
 env: development
 
 server:
-  listen_ipv4: 127.0.0.1    # leave blank to disable ipv4
-  listen_ipv6: ::1          # leave blank to disable ipv6
-  tls_cert_path:            # leave blank to not use https
-  tls_key_path:             # leave blank to not use https
+  listen_ipv4: 127.0.0.1            # leave blank to disable ipv4
+  listen_ipv6: ::1                  # leave blank to disable ipv6
+  tls_cert_path:                    # leave blank to not use https
+  tls_key_path:                     # leave blank to not use https
   port: 3000
   base_path: /
+  public_url: http://localhost:3000 # required for links (e.g. password reset) in e-mail
 
 app:
   aggregation_time: '02:15' # time at which to run daily aggregation batch jobs

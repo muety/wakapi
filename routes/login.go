@@ -277,7 +277,7 @@ func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request)
 			go func(user *models.User) {
 				link := fmt.Sprintf("%s/set-password?token=%s", h.config.Server.GetPublicUrl(), user.ResetToken)
 				if err := h.mailSrvc.SendPasswordResetMail(user, link); err != nil {
-					logbuch.Error("failed to send password reset mail to %s", user.ID)
+					logbuch.Error("%v", err)
 				} else {
 					logbuch.Info("sent password reset mail to %s", user.ID)
 				}
