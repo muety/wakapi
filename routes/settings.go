@@ -450,7 +450,7 @@ func (h *SettingsHandler) actionImportWaktime(w http.ResponseWriter, r *http.Req
 		Value: time.Now().Format(time.RFC822),
 	})
 
-	return http.StatusAccepted, "ImportAll started. This may take a few minutes.", ""
+	return http.StatusAccepted, "Import started. This will take several minutes. Please check back later.", ""
 }
 
 func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *http.Request) (int, string, string) {
