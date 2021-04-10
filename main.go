@@ -1,5 +1,7 @@
 package main
 
+//go:generate $GOPATH/bin/pkger
+
 import (
 	"embed"
 	"io/fs"
