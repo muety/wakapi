@@ -55,3 +55,12 @@ func (m MailAddresses) RawStrings() []string {
 	}
 	return out
 }
+
+func (m MailAddresses) AllValid() bool {
+	for _, a := range m {
+		if !a.Valid() {
+			return false
+		}
+	}
+	return true
+}

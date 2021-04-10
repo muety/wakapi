@@ -80,5 +80,6 @@ type IUserService interface {
 }
 
 type IMailService interface {
-	SendPasswordResetMail(recipient *models.User, resetLink string) error
+	SendPasswordReset(*models.User, string) error
+	SendImportNotification(*models.User, time.Duration, int) error
 }

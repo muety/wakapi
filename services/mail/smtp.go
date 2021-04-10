@@ -2,21 +2,25 @@ package mail
 
 import (
 	"errors"
+	"fmt"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"io"
+	"time"
 )
 
 type SMTPMailService struct {
-	config *conf.SMTPMailConfig
-	auth   sasl.Client
+	publicUrl string
+	config    *conf.SMTPMailConfig
+	auth      sasl.Client
 }
 
-func NewSMTPMailService(config *conf.SMTPMailConfig) *SMTPMailService {
+func NewSMTPMailService(config *conf.SMTPMailConfig, publicUrl string) *SMTPMailService {
 	return &SMTPMailService{
-		config: config,
+		publicUrl: publicUrl,
+		config:    config,
 		auth: sasl.NewPlainClient(
 			"",
 			config.Username,
@@ -25,8 +29,8 @@ func NewSMTPMailService(config *conf.SMTPMailConfig) *SMTPMailService {
 	}
 }
 
-func (s *SMTPMailService) SendPasswordResetMail(recipient *models.User, resetLink string) error {
-	template, err := getPasswordResetTemplate(passwordResetLinkTplData{ResetLink: resetLink})
+func (s *SMTPMailService) SendPasswordReset(recipient *models.User, resetLink string) error {
+	template, err := getPasswordResetTemplate(PasswordResetTplData{ResetLink: resetLink})
 	if err != nil {
 		return err
 	}
@@ -38,14 +42,27 @@ func (s *SMTPMailService) SendPasswordResetMail(recipient *models.User, resetLin
 	}
 	mail.WithHTML(template.String())
 
-	return s.send(
-		s.config.ConnStr(),
-		s.config.TLS,
-		s.auth,
-		mail.From.Raw(),
-		mail.To.RawStrings(),
-		mail.Reader(),
-	)
+	return s.send(s.config.ConnStr(), s.config.TLS, s.auth, mail.From.Raw(), mail.To.RawStrings(), mail.Reader())
+}
+
+func (s *SMTPMailService) SendImportNotification(recipient *models.User, duration time.Duration, numHeartbeats int) error {
+	template, err := getImportNotificationTemplate(ImportNotificationTplData{
+		PublicUrl:     s.publicUrl,
+		Duration:      fmt.Sprintf("%.0f seconds", duration.Seconds()),
+		NumHeartbeats: numHeartbeats,
+	})
+	if err != nil {
+		return err
+	}
+
+	mail := &models.Mail{
+		From:    models.MailAddress(s.config.Sender),
+		To:      models.MailAddresses([]models.MailAddress{models.MailAddress(recipient.Email)}),
+		Subject: subjectImportNotification,
+	}
+	mail.WithHTML(template.String())
+
+	return s.send(s.config.ConnStr(), s.config.TLS, s.auth, mail.From.Raw(), mail.To.RawStrings(), mail.Reader())
 }
 
 func (s *SMTPMailService) send(addr string, tls bool, a sasl.Client, from string, to []string, r io.Reader) error {

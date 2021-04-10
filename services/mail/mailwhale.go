@@ -12,6 +12,7 @@ import (
 )
 
 type MailWhaleMailService struct {
+	publicUrl  string
 	config     *conf.MailwhaleMailConfig
 	httpClient *http.Client
 }
@@ -25,26 +26,39 @@ type MailWhaleSendRequest struct {
 	TemplateVars map[string]string `json:"template_vars"`
 }
 
-func NewMailWhaleService(config *conf.MailwhaleMailConfig) *MailWhaleMailService {
+func NewMailWhaleService(config *conf.MailwhaleMailConfig, publicUrl string) *MailWhaleMailService {
 	return &MailWhaleMailService{
-		config: config,
+		publicUrl: publicUrl,
+		config:    config,
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},
 	}
 }
 
-func (s *MailWhaleMailService) SendPasswordResetMail(recipient *models.User, resetLink string) error {
-	template, err := getPasswordResetTemplate(passwordResetLinkTplData{ResetLink: resetLink})
+func (s *MailWhaleMailService) SendPasswordReset(recipient *models.User, resetLink string) error {
+	template, err := getPasswordResetTemplate(PasswordResetTplData{ResetLink: resetLink})
 	if err != nil {
 		return err
 	}
 	return s.send(recipient.Email, subjectPasswordReset, template.String(), true)
 }
 
+func (s *MailWhaleMailService) SendImportNotification(recipient *models.User, duration time.Duration, numHeartbeats int) error {
+	template, err := getImportNotificationTemplate(ImportNotificationTplData{
+		PublicUrl:     s.publicUrl,
+		Duration:      fmt.Sprintf("%.0f seconds", duration.Seconds()),
+		NumHeartbeats: numHeartbeats,
+	})
+	if err != nil {
+		return err
+	}
+	return s.send(recipient.Email, subjectImportNotification, template.String(), true)
+}
+
 func (s *MailWhaleMailService) send(to, subject, body string, isHtml bool) error {
 	if to == "" {
-		return errors.New("no recipient mail address set, cannot send password reset link")
+		return errors.New("not sending mail as recipient mail address seems to be invalid")
 	}
 
 	sendRequest := &MailWhaleSendRequest{

@@ -27,6 +27,7 @@ type SettingsHandler struct {
 	aggregationSrvc     services.IAggregationService
 	languageMappingSrvc services.ILanguageMappingService
 	keyValueSrvc        services.IKeyValueService
+	mailSrvc            services.IMailService
 	httpClient          *http.Client
 }
 
@@ -40,6 +41,7 @@ func NewSettingsHandler(
 	aggregationService services.IAggregationService,
 	languageMappingService services.ILanguageMappingService,
 	keyValueService services.IKeyValueService,
+	mailService services.IMailService,
 ) *SettingsHandler {
 	return &SettingsHandler{
 		config:              conf.Get(),
@@ -50,6 +52,7 @@ func NewSettingsHandler(
 		userSrvc:            userService,
 		heartbeatSrvc:       heartbeatService,
 		keyValueSrvc:        keyValueService,
+		mailSrvc:            mailService,
 		httpClient:          &http.Client{Timeout: 10 * time.Second},
 	}
 }
@@ -401,6 +404,7 @@ func (h *SettingsHandler) actionImportWaktime(w http.ResponseWriter, r *http.Req
 	}
 
 	go func(user *models.User) {
+		start := time.Now()
 		importer := imports.NewWakatimeHeartbeatImporter(user.WakatimeApiKey)
 
 		countBefore, err := h.heartbeatSrvc.CountByUser(user)
@@ -443,6 +447,14 @@ func (h *SettingsHandler) actionImportWaktime(w http.ResponseWriter, r *http.Req
 		logbuch.Info("downloaded %d heartbeats for user '%s' (%d actually imported)", count, user.ID, countAfter-countBefore)
 
 		h.regenerateSummaries(user)
+
+		if user.Email != "" {
+			if err := h.mailSrvc.SendImportNotification(user, time.Now().Sub(start), int(countAfter-countBefore)); err != nil {
+				logbuch.Error("failed to send import notification mail to %s – %v", user.ID, err)
+			} else {
+				logbuch.Info("sent import notification mail to %s", user.ID)
+			}
+		}
 	}(user)
 
 	h.keyValueSrvc.PutString(&models.KeyStringValue{
