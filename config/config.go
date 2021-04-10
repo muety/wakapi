@@ -1,24 +1,27 @@
 package config
 
 import (
+	_ "embed"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"strings"
+
 	"github.com/emvi/logbuch"
 	"github.com/getsentry/sentry-go"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
 	"github.com/markbates/pkger"
+	data "github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/models"
 	migrate "github.com/rubenv/sql-migrate"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"strings"
 )
 
 const (
@@ -309,18 +312,7 @@ func readColors() map[string]map[string]string {
 	// – $x('//span[@class="editor-icon tip"]/@data-original-title').map(e => e.nodeValue)
 	// – $x('//span[@class="editor-icon tip"]/div[1]/text()').map(e => e.nodeValue)
 	var colors = make(map[string]map[string]string)
-
-	file, err := pkger.Open("/data/colors.json")
-	if err != nil {
-		logbuch.Fatal(err.Error())
-	}
-	defer file.Close()
-	bytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		logbuch.Fatal(err.Error())
-	}
-
-	if err := json.Unmarshal(bytes, &colors); err != nil {
+	if err := json.Unmarshal(data.ColorsFile, &colors); err != nil {
 		logbuch.Fatal(err.Error())
 	}
 
