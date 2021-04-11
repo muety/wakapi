@@ -2,15 +2,17 @@ package routes
 
 import (
 	"fmt"
-	"github.com/markbates/pkger"
-	"github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/models"
-	"github.com/muety/wakapi/utils"
 	"html/template"
+	"io/fs"
 	"io/ioutil"
 	"net/http"
 	"path"
 	"strings"
+
+	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
+	"github.com/muety/wakapi/views"
 )
 
 func Init() {
@@ -53,12 +55,7 @@ func loadTemplates() {
 	})
 	templates = make(map[string]*template.Template)
 
-	dir, err := pkger.Open(tplPath)
-	if err != nil {
-		panic(err)
-	}
-	defer dir.Close()
-	files, err := dir.Readdir(0)
+	files, err := fs.ReadDir(views.TemplateFiles, ".")
 	if err != nil {
 		panic(err)
 	}
@@ -69,7 +66,7 @@ func loadTemplates() {
 			continue
 		}
 
-		templateFile, err := pkger.Open(fmt.Sprintf("%s/%s", tplPath, tplName))
+		templateFile, err := views.TemplateFiles.Open(tplName)
 		if err != nil {
 			panic(err)
 		}

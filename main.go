@@ -1,11 +1,16 @@
 package main
 
-//go:generate $GOPATH/bin/pkger
-
 import (
+	"embed"
+	"io/fs"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/handlers"
-	"github.com/markbates/pkger"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/migrations"
 	"github.com/muety/wakapi/repositories"
@@ -13,11 +18,6 @@ import (
 	"github.com/muety/wakapi/services/mail"
 	"github.com/muety/wakapi/utils"
 	"gorm.io/gorm/logger"
-	"log"
-	"net/http"
-	"os"
-	"strconv"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/muety/wakapi/middlewares"
@@ -30,6 +30,14 @@ import (
 	_ "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
+
+// Embed version.txt
+//go:embed version.txt
+var version string
+
+// Embed static files
+//go:embed static
+var staticFiles embed.FS
 
 var (
 	db     *gorm.DB
@@ -80,7 +88,7 @@ var (
 
 // @BasePath /api
 func main() {
-	config = conf.Load()
+	config = conf.Load(version)
 
 	// Set log level
 	if config.IsDev() {
@@ -196,7 +204,9 @@ func main() {
 	shieldV1BadgeHandler.RegisterRoutes(apiRouter)
 
 	// Static Routes
-	fileServer := http.FileServer(utils.NeuteredFileSystem{Fs: pkger.Dir("/static")})
+	// https://github.com/golang/go/issues/43431
+	static, _ := fs.Sub(staticFiles, "static")
+	fileServer := http.FileServer(utils.NeuteredFileSystem{Fs: http.FS(static)})
 	router.PathPrefix("/assets").Handler(fileServer)
 	router.PathPrefix("/swagger-ui").Handler(fileServer)
 	router.PathPrefix("/docs").Handler(

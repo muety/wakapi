@@ -1,6 +1,6 @@
 module github.com/muety/wakapi
 
-go 1.13
+go 1.16
 
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
@@ -16,11 +16,9 @@ require (
 	github.com/gorilla/securecookie v1.1.1
 	github.com/jinzhu/configor v1.2.0
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/markbates/pkger v0.17.1
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/rubenv/sql-migrate v0.0.0-20200402132117-435005d389bc
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.6.1
 	github.com/swaggo/swag v1.7.0

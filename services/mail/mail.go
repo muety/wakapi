@@ -3,15 +3,15 @@ package mail
 import (
 	"bytes"
 	"fmt"
-	"github.com/markbates/pkger"
-	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/services"
 	"io/ioutil"
 	"text/template"
+
+	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/services"
+	"github.com/muety/wakapi/views"
 )
 
 const (
-	tplPath                   = "/views/mail"
 	tplNamePasswordReset      = "reset_password"
 	tplNameImportNotification = "import_finished"
 	subjectPasswordReset      = "Wakapi – Password Reset"
@@ -66,7 +66,7 @@ func getImportNotificationTemplate(data ImportNotificationTplData) (*bytes.Buffe
 }
 
 func loadTemplate(tplName string) (*template.Template, error) {
-	tplFile, err := pkger.Open(fmt.Sprintf("%s/%s.tpl.html", tplPath, tplName))
+	tplFile, err := views.TemplateFiles.Open(fmt.Sprintf("mail/%s.tpl.html", tplName))
 	if err != nil {
 		return nil, err
 	}

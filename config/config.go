@@ -4,21 +4,20 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"net/http"
+	"os"
+	"strings"
+
 	"github.com/emvi/logbuch"
 	"github.com/getsentry/sentry-go"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
-	"github.com/markbates/pkger"
+	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/models"
-	migrate "github.com/rubenv/sql-migrate"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"strings"
 )
 
 const (
@@ -188,24 +187,6 @@ func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
 	}
 }
 
-func (c *Config) GetFixturesFunc(dbDialect string) models.MigrationFunc {
-	return func(db *gorm.DB) error {
-		migrations := &migrate.HttpFileSystemMigrationSource{
-			FileSystem: pkger.Dir("/migrations"),
-		}
-
-		migrate.SetIgnoreUnknown(true)
-		sqlDb, _ := db.DB()
-		n, err := migrate.Exec(sqlDb, dbDialect, migrations, migrate.Up)
-		if err != nil {
-			return err
-		}
-
-		logbuch.Info("applied %d fixtures", n)
-		return nil
-	}
-}
-
 func (c *dbConfig) GetDialector() gorm.Dialector {
 	switch c.Dialect {
 	case SQLDialectMysql:
@@ -284,21 +265,6 @@ func IsDev(env string) bool {
 	return env == "dev" || env == "development"
 }
 
-func readVersion() string {
-	file, err := pkger.Open("/version.txt")
-	if err != nil {
-		logbuch.Fatal(err.Error())
-	}
-	defer file.Close()
-
-	bytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		logbuch.Fatal(err.Error())
-	}
-
-	return strings.TrimSpace(string(bytes))
-}
-
 func readColors() map[string]map[string]string {
 	// Read language colors
 	// Source:
@@ -309,18 +275,7 @@ func readColors() map[string]map[string]string {
 	// – $x('//span[@class="editor-icon tip"]/@data-original-title').map(e => e.nodeValue)
 	// – $x('//span[@class="editor-icon tip"]/div[1]/text()').map(e => e.nodeValue)
 	var colors = make(map[string]map[string]string)
-
-	file, err := pkger.Open("/data/colors.json")
-	if err != nil {
-		logbuch.Fatal(err.Error())
-	}
-	defer file.Close()
-	bytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		logbuch.Fatal(err.Error())
-	}
-
-	if err := json.Unmarshal(bytes, &colors); err != nil {
+	if err := json.Unmarshal(data.ColorsFile, &colors); err != nil {
 		logbuch.Fatal(err.Error())
 	}
 
@@ -396,7 +351,7 @@ func Get() *Config {
 	return cfg
 }
 
-func Load() *Config {
+func Load(version string) *Config {
 	config := &Config{}
 
 	flag.Parse()
@@ -405,7 +360,7 @@ func Load() *Config {
 		logbuch.Fatal("failed to read config: %v", err)
 	}
 
-	config.Version = readVersion()
+	config.Version = strings.TrimSpace(version)
 	config.App.Colors = readColors()
 	config.Db.Dialect = resolveDbDialect(config.Db.Type)
 	config.Security.SecureCookie = securecookie.New(
