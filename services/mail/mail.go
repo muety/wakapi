@@ -12,7 +12,6 @@ import (
 )
 
 const (
-	tplPath                   = "/mail"
 	tplNamePasswordReset      = "reset_password"
 	tplNameImportNotification = "import_finished"
 	subjectPasswordReset      = "Wakapi – Password Reset"
