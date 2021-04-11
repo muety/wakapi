@@ -33,6 +33,10 @@ import (
 	"gorm.io/gorm"
 )
 
+// Embed version.txt
+//go:embed version.txt
+var version string
+
 // Embed static files
 //go:embed static
 var staticFiles embed.FS
@@ -86,7 +90,7 @@ var (
 
 // @BasePath /api
 func main() {
-	config = conf.Load()
+	config = conf.Load(version)
 
 	// Set log level
 	if config.IsDev() {

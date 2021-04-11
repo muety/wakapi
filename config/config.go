@@ -1,11 +1,9 @@
 package config
 
 import (
-	_ "embed"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -287,21 +285,6 @@ func IsDev(env string) bool {
 	return env == "dev" || env == "development"
 }
 
-func readVersion() string {
-	file, err := pkger.Open("/version.txt")
-	if err != nil {
-		logbuch.Fatal(err.Error())
-	}
-	defer file.Close()
-
-	bytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		logbuch.Fatal(err.Error())
-	}
-
-	return strings.TrimSpace(string(bytes))
-}
-
 func readColors() map[string]map[string]string {
 	// Read language colors
 	// Source:
@@ -388,7 +371,7 @@ func Get() *Config {
 	return cfg
 }
 
-func Load() *Config {
+func Load(version string) *Config {
 	config := &Config{}
 
 	flag.Parse()
@@ -397,7 +380,7 @@ func Load() *Config {
 		logbuch.Fatal("failed to read config: %v", err)
 	}
 
-	config.Version = readVersion()
+	config.Version = strings.TrimSpace(version)
 	config.App.Colors = readColors()
 	config.Db.Dialect = resolveDbDialect(config.Db.Type)
 	config.Security.SecureCookie = securecookie.New(
