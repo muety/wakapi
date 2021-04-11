@@ -25,9 +25,7 @@ jobs:
 
     - name: Get dependencies
       run: |
-        go get github.com/markbates/pkger/cmd/pkger
         go get
-        go generate
 
     - name: Build
       run: GO111MODULE=on go build -v .

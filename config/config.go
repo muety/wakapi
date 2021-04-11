@@ -12,10 +12,8 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
-	"github.com/markbates/pkger"
 	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/models"
-	migrate "github.com/rubenv/sql-migrate"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
@@ -186,24 +184,6 @@ func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
 			db.AutoMigrate(&models.LanguageMapping{})
 			return nil
 		}
-	}
-}
-
-func (c *Config) GetFixturesFunc(dbDialect string) models.MigrationFunc {
-	return func(db *gorm.DB) error {
-		migrations := &migrate.HttpFileSystemMigrationSource{
-			FileSystem: pkger.Dir("/migrations"),
-		}
-
-		migrate.SetIgnoreUnknown(true)
-		sqlDb, _ := db.DB()
-		n, err := migrate.Exec(sqlDb, dbDialect, migrations, migrate.Up)
-		if err != nil {
-			return err
-		}
-
-		logbuch.Info("applied %d fixtures", n)
-		return nil
 	}
 }
 

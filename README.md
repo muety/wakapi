@@ -109,7 +109,7 @@ $ ./wakapi
 
 ### 🧑‍💻 Option 4: Run from source
 #### Prerequisites
-* Go >= 1.13 (with `$GOPATH` properly set)
+* Go >= 1.16 (with `$GOPATH` properly set)
 * gcc (to compile [go-sqlite3](https://github.com/mattn/go-sqlite3))
     * Fedora / RHEL: `dnf install @development-tools`
     * Ubuntu / Debian: `apt install build-essential`
@@ -121,12 +121,7 @@ $ ./wakapi
 $ cp config.default.yml config.yml
 $ vi config.yml
 
-# Install packaging tool
-$ export GO111MODULE=on
-$ go get github.com/markbates/pkger/cmd/pkger
-
 # Build the executable
-$ go generate
 $ go build -o wakapi
 
 # Run it

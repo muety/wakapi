@@ -1,16 +1,16 @@
 # Build Stage
 
-FROM golang:1.15 AS build-env
+FROM golang:1.16 AS build-env
 WORKDIR /src
 
 ADD ./go.mod .
-RUN go mod download && go get github.com/markbates/pkger/cmd/pkger
+RUN go mod download
 
 RUN curl "https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh" -o wait-for-it.sh && \
     chmod +x wait-for-it.sh
 
 ADD . .
-RUN go generate && go build -o wakapi
+RUN go build -o wakapi
 
 WORKDIR /app
 RUN cp /src/wakapi . && \
@@ -31,6 +31,7 @@ WORKDIR /app
 RUN apt update && \
     apt install -y ca-certificates
 
+# See README.md and config.default.yml for all config options
 ENV ENVIRONMENT prod
 ENV WAKAPI_DB_TYPE sqlite3
 ENV WAKAPI_DB_USER ''
