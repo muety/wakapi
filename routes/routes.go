@@ -12,7 +12,7 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
-	views "github.com/muety/wakapi/views"
+	"github.com/muety/wakapi/views"
 )
 
 func Init() {

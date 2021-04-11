@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
 	"github.com/markbates/pkger"
-	data "github.com/muety/wakapi/data"
+	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/models"
 	migrate "github.com/rubenv/sql-migrate"
 	"gorm.io/driver/mysql"

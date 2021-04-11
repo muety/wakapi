@@ -8,11 +8,11 @@ import (
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/services"
-	views "github.com/muety/wakapi/views"
+	"github.com/muety/wakapi/views"
 )
 
 const (
-	tplPath                   = "/views/mail"
+	tplPath                   = "/mail"
 	tplNamePasswordReset      = "reset_password"
 	tplNameImportNotification = "import_finished"
 	subjectPasswordReset      = "Wakapi – Password Reset"
@@ -67,7 +67,7 @@ func getImportNotificationTemplate(data ImportNotificationTplData) (*bytes.Buffe
 }
 
 func loadTemplate(tplName string) (*template.Template, error) {
-	tplFile, err := views.TemplateFiles.Open(fmt.Sprintf("%s.tpl.html", tplName))
+	tplFile, err := views.TemplateFiles.Open(fmt.Sprintf("mail/%s.tpl.html", tplName))
 	if err != nil {
 		return nil, err
 	}
