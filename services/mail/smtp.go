@@ -13,11 +13,11 @@ import (
 
 type SMTPMailService struct {
 	publicUrl string
-	config    *conf.SMTPMailConfig
+	config    conf.SMTPMailConfig
 	auth      sasl.Client
 }
 
-func NewSMTPMailService(config *conf.SMTPMailConfig, publicUrl string) *SMTPMailService {
+func NewSMTPMailService(config conf.SMTPMailConfig, publicUrl string) *SMTPMailService {
 	return &SMTPMailService{
 		publicUrl: publicUrl,
 		config:    config,

@@ -13,7 +13,7 @@ import (
 
 type MailWhaleMailService struct {
 	publicUrl  string
-	config     *conf.MailwhaleMailConfig
+	config     conf.MailwhaleMailConfig
 	httpClient *http.Client
 }
 
@@ -26,7 +26,7 @@ type MailWhaleSendRequest struct {
 	TemplateVars map[string]string `json:"template_vars"`
 }
 
-func NewMailWhaleService(config *conf.MailwhaleMailConfig, publicUrl string) *MailWhaleMailService {
+func NewMailWhaleService(config conf.MailwhaleMailConfig, publicUrl string) *MailWhaleMailService {
 	return &MailWhaleMailService{
 		publicUrl: publicUrl,
 		config:    config,

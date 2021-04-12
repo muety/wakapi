@@ -111,10 +111,10 @@ type sentryConfig struct {
 }
 
 type mailConfig struct {
-	Enabled   bool                 `env:"WAKAPI_MAIL_ENABLED" default:"true"`
-	Provider  string               `env:"WAKAPI_MAIL_PROVIDER" default:"smtp"`
-	MailWhale *MailwhaleMailConfig `yaml:"mailwhale"`
-	Smtp      *SMTPMailConfig      `yaml:"smtp"`
+	Enabled   bool                `env:"WAKAPI_MAIL_ENABLED" default:"true"`
+	Provider  string              `env:"WAKAPI_MAIL_PROVIDER" default:"smtp"`
+	MailWhale MailwhaleMailConfig `yaml:"mailwhale"`
+	Smtp      SMTPMailConfig      `yaml:"smtp"`
 }
 
 type MailwhaleMailConfig struct {
