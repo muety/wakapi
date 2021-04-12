@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/emvi/logbuch"
-	"github.com/getsentry/sentry-go"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
 	"github.com/muety/wakapi/data"
@@ -294,44 +293,6 @@ func resolveDbDialect(dbType string) string {
 		return "postgres"
 	}
 	return dbType
-}
-
-func initSentry(config sentryConfig, debug bool) {
-	if err := sentry.Init(sentry.ClientOptions{
-		Dsn:   config.Dsn,
-		Debug: debug,
-		TracesSampler: sentry.TracesSamplerFunc(func(ctx sentry.SamplingContext) sentry.Sampled {
-			if !config.EnableTracing {
-				return sentry.SampledFalse
-			}
-
-			hub := sentry.GetHubFromContext(ctx.Span.Context())
-			txName := hub.Scope().Transaction()
-
-			if strings.HasPrefix(txName, "GET /assets") || strings.HasPrefix(txName, "GET /api/health") {
-				return sentry.SampledFalse
-			}
-			if txName == "POST /api/heartbeat" {
-				return sentry.UniformTracesSampler(config.SampleRateHeartbeats).Sample(ctx)
-			}
-			return sentry.UniformTracesSampler(config.SampleRate).Sample(ctx)
-		}),
-		BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
-			type principalGetter interface {
-				GetPrincipal() *models.User
-			}
-			if hint.Context != nil {
-				if req, ok := hint.Context.Value(sentry.RequestContextKey).(*http.Request); ok {
-					if p := req.Context().Value("principal"); p != nil {
-						event.User.ID = p.(principalGetter).GetPrincipal().ID
-					}
-				}
-			}
-			return event
-		},
-	}); err != nil {
-		logbuch.Fatal("failed to initialized sentry – %v", err)
-	}
 }
 
 func findString(needle string, haystack []string, defaultVal string) string {
