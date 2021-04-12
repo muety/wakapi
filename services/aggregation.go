@@ -38,6 +38,11 @@ type AggregationJob struct {
 
 // Schedule a job to (re-)generate summaries every day shortly after midnight
 func (srv *AggregationService) Schedule() {
+	// Run once initially
+	if err := srv.Run(nil); err != nil {
+		logbuch.Fatal("failed to run AggregationJob: %v", err)
+	}
+
 	s := gocron.NewScheduler(time.Local)
 	s.Every(1).Day().At(srv.config.App.AggregationTime).Do(srv.Run, map[string]bool{})
 	s.StartBlocking()
@@ -144,7 +149,7 @@ func generateUserJobs(userId string, from time.Time, jobs chan<- *AggregationJob
 	var to time.Time
 
 	// Go to next day of either user's first heartbeat or latest aggregation
-	from.Add(-1 * time.Second)
+	from = from.Add(-1 * time.Second)
 	from = time.Date(
 		from.Year(),
 		from.Month(),
