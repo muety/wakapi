@@ -312,8 +312,17 @@ func (srv *SummaryService) getMissingIntervals(from, to time.Time, summaries []*
 		}
 
 		// round to end of day / start of day, assuming that summaries are always generated on a per-day basis
+		// we assume that, if summary for any time range within a day is present, no further heartbeats exist on that day before 'from' and after 'to' time of that summary
+		// this requires that a summary exists for every single day in a year and none is skipped, which shouldn't ever happen
 		td1 := time.Date(t1.Year(), t1.Month(), t1.Day()+1, 0, 0, 0, 0, t1.Location())
 		td2 := time.Date(t2.Year(), t2.Month(), t2.Day(), 0, 0, 0, 0, t2.Location())
+
+		// we always want to jump to beginning of next day
+		// however, if left summary ends already at midnight, we would instead jump to beginning of second-next day -> go back again
+		if td1.Sub(t1) == 24*time.Hour {
+			td1 = td1.Add(-1 * time.Hour)
+		}
+
 		// one or more day missing in between?
 		if td1.Before(td2) {
 			intervals = append(intervals, &models.Interval{summaries[i].ToTime.T(), summaries[i+1].FromTime.T()})

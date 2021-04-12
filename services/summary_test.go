@@ -235,6 +235,60 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve() {
 	assert.Equal(suite.T(), 150*time.Second+90*time.Minute, result.TotalTime())
 	assert.Equal(suite.T(), 150*time.Second+45*time.Minute, result.TotalTimeByKey(models.SummaryProject, TestProject1))
 	assert.Equal(suite.T(), 45*time.Minute, result.TotalTimeByKey(models.SummaryProject, TestProject2))
+	suite.HeartbeatService.AssertNumberOfCalls(suite.T(), "GetAllWithin", 2+1)
+
+	/* TEST 3 */
+	from = time.Date(suite.TestStartTime.Year(), suite.TestStartTime.Month(), suite.TestStartTime.Day()+1, 0, 0, 0, 0, suite.TestStartTime.Location()) // start of next day
+	to = time.Date(from.Year(), from.Month(), from.Day()+2, 13, 30, 0, 0, from.Location())                                                             // noon of third-next day
+	summaries = []*models.Summary{
+		{
+			ID:       uint(rand.Uint32()),
+			UserID:   TestUserId,
+			FromTime: models.CustomTime(from),
+			ToTime:   models.CustomTime(from.Add(24 * time.Hour)),
+			Projects: []*models.SummaryItem{
+				{
+					Type:  models.SummaryProject,
+					Key:   TestProject1,
+					Total: 45 * time.Minute / time.Second, // hack
+				},
+			},
+			Languages:        []*models.SummaryItem{},
+			Editors:          []*models.SummaryItem{},
+			OperatingSystems: []*models.SummaryItem{},
+			Machines:         []*models.SummaryItem{},
+		},
+		{
+			ID:       uint(rand.Uint32()),
+			UserID:   TestUserId,
+			FromTime: models.CustomTime(to.Add(-2 * time.Hour)),
+			ToTime:   models.CustomTime(to),
+			Projects: []*models.SummaryItem{
+				{
+					Type:  models.SummaryProject,
+					Key:   TestProject2,
+					Total: 45 * time.Minute / time.Second, // hack
+				},
+			},
+			Languages:        []*models.SummaryItem{},
+			Editors:          []*models.SummaryItem{},
+			OperatingSystems: []*models.SummaryItem{},
+			Machines:         []*models.SummaryItem{},
+		},
+	}
+
+	suite.SummaryRepository.On("GetByUserWithin", suite.TestUser, from, to).Return(summaries, nil)
+	suite.HeartbeatService.On("GetAllWithin", summaries[0].ToTime.T(), summaries[1].FromTime.T(), suite.TestUser).Return(filter(summaries[0].ToTime.T(), summaries[1].FromTime.T(), suite.TestHeartbeats), nil)
+
+	result, err = sut.Retrieve(from, to, suite.TestUser)
+
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), result)
+	assert.Len(suite.T(), result.Projects, 2)
+	assert.Equal(suite.T(), 90*time.Minute, result.TotalTime())
+	assert.Equal(suite.T(), 45*time.Minute, result.TotalTimeByKey(models.SummaryProject, TestProject1))
+	assert.Equal(suite.T(), 45*time.Minute, result.TotalTimeByKey(models.SummaryProject, TestProject2))
+	suite.HeartbeatService.AssertNumberOfCalls(suite.T(), "GetAllWithin", 2+1+1)
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
