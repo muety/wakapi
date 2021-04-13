@@ -34,10 +34,11 @@ func (h *Heartbeat) Valid() bool {
 }
 
 func (h *Heartbeat) Augment(languageMappings map[string]string) {
+	maxPrec := -1 // precision / mapping complexity -> more concrete ones shall take precedence
 	for ending, value := range languageMappings {
-		if strings.HasSuffix(h.Entity, "."+ending) {
+		if ok, prec := strings.HasSuffix(h.Entity, "."+ending), strings.Count(ending, "."); ok && prec > maxPrec {
 			h.Language = value
-			return
+			maxPrec = prec
 		}
 	}
 }

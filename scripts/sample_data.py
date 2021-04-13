@@ -17,7 +17,10 @@ LANGUAGES = {
     'Go': 'go',
     'Java': 'java',
     'JavaScript': 'js',
-    'Python': 'py'
+    'Python': 'py',
+    # https://github.com/muety/wakapi/issues/172
+    'PHP': 'php',
+    'Blade': 'blade.php'
 }
 
 

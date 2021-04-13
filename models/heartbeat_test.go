@@ -28,22 +28,28 @@ func TestHeartbeat_Augment(t *testing.T) {
 	testMappings := map[string]string{
 		"py":        "Python3",
 		"foo":       "Foo Script",
+		"php":       "PHP 8",
 		"blade.php": "Blade",
 	}
 
-	sut1, sut2 := &Heartbeat{
+	sut1, sut2, sut3 := &Heartbeat{
 		Entity:   "~/dev/file.py",
 		Language: "Python",
 	}, &Heartbeat{
 		Entity:   "~/dev/file.blade.php",
 		Language: "unknown",
+	}, &Heartbeat{
+		Entity:   "~/dev/file.php",
+		Language: "PHP",
 	}
 
 	sut1.Augment(testMappings)
 	sut2.Augment(testMappings)
+	sut3.Augment(testMappings)
 
 	assert.Equal(t, "Python3", sut1.Language)
 	assert.Equal(t, "Blade", sut2.Language)
+	assert.Equal(t, "PHP 8", sut3.Language)
 }
 
 func TestHeartbeat_GetKey(t *testing.T) {
