@@ -207,6 +207,7 @@ func main() {
 	// https://github.com/golang/go/issues/43431
 	static, _ := fs.Sub(staticFiles, "static")
 	fileServer := http.FileServer(utils.NeuteredFileSystem{Fs: http.FS(static)})
+	router.PathPrefix("/contribute.json").Handler(fileServer)
 	router.PathPrefix("/assets").Handler(fileServer)
 	router.PathPrefix("/swagger-ui").Handler(fileServer)
 	router.PathPrefix("/docs").Handler(

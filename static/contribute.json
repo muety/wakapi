@@ -1,0 +1,25 @@
+{
+  "name": "wakapi",
+  "description": "A minimalist, self-hosted WakaTime-compatible backend for coding statistics",
+  "repository": {
+    "url": "https://github.com/muety/wakapi",
+    "license": "GPL-3.0"
+  },
+  "urls": {
+    "prod": "https://wakapi.dev"
+  },
+  "bugs": {
+    "list": "https://github.com/muety/wakapi/issues",
+    "report": "https://github.com/muety/wakapi/issues/new"
+  },
+  "keywords": [
+    "go",
+    "golang",
+    "html5",
+    "sql",
+    "productivity",
+    "timetracking",
+    "selfhosted",
+    "devtools"
+  ]
+}
