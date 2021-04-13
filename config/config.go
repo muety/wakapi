@@ -174,13 +174,27 @@ func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
 	switch dbDialect {
 	default:
 		return func(db *gorm.DB) error {
-			db.AutoMigrate(&models.User{})
-			db.AutoMigrate(&models.KeyStringValue{})
-			db.AutoMigrate(&models.Alias{})
-			db.AutoMigrate(&models.Heartbeat{})
-			db.AutoMigrate(&models.Summary{})
-			db.AutoMigrate(&models.SummaryItem{})
-			db.AutoMigrate(&models.LanguageMapping{})
+			if err := db.AutoMigrate(&models.User{}); err != nil {
+				return err
+			}
+			if err := db.AutoMigrate(&models.KeyStringValue{}); err != nil {
+				return err
+			}
+			if err := db.AutoMigrate(&models.Alias{}); err != nil {
+				return err
+			}
+			if err := db.AutoMigrate(&models.Heartbeat{}); err != nil {
+				return err
+			}
+			if err := db.AutoMigrate(&models.Summary{}); err != nil {
+				return err
+			}
+			if err := db.AutoMigrate(&models.SummaryItem{}); err != nil {
+				return err
+			}
+			if err := db.AutoMigrate(&models.LanguageMapping{}); err != nil {
+				return err
+			}
 			return nil
 		}
 	}
