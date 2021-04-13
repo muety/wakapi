@@ -9,7 +9,7 @@ func init() {
 type User struct {
 	ID               string     `json:"id" gorm:"primary_key"`
 	ApiKey           string     `json:"api_key" gorm:"unique"`
-	Email            string     `json:"email" gorm:"uniqueIndex:idx_user_email; size:255"`
+	Email            string     `json:"email" gorm:"index:idx_user_email; size:255"`
 	Password         string     `json:"-"`
 	CreatedAt        CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	LastLoggedInAt   CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
