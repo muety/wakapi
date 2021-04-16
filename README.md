@@ -256,12 +256,21 @@ However, if you want to expose your wakapi instance to the public anyway, you ne
 CGO_FLAGS="-g -O2 -Wno-return-local-addr" go test -json -coverprofile=coverage/coverage.out ./... -run ./...
 ```
 
-### Building Tailwind
-To keep things minimal, Wakapi does not contain a `package.json`, `node_modules` or any sort of frontend build step. Instead, all JS and CSS assets are included as static files and checked in to Git. This way we can avoid requiring NodeJS to build Wakapi. However, for [TailwindCSS](https://tailwindcss.com/docs/installation#building-for-production) it makes sense to run it through a "build" step to benefit from purging and significantly reduce it in size. To only require this at the time of development, the compiled asset is checked in to Git as well. 
+### Building web assets
+To keep things minimal, Wakapi does not contain a `package.json`, `node_modules` or any sort of frontend build step. Instead, all JS and CSS assets are included as static files and checked in to Git. This way we can avoid requiring NodeJS to build Wakapi. However, for [TailwindCSS](https://tailwindcss.com/docs/installation#building-for-production) it makes sense to run it through a "build" step to benefit from purging and significantly reduce it in size. To only require this at the time of development, the compiled asset is checked in to Git as well. Similarly, [Iconify](https://iconify.design/docs/icon-bundles/) bundles are also created at development time and checked in to the repo. 
 
+#### TailwindCSS
 ```bash
 $ tailwindcss-cli build static/assets/vendor/tailwind.css -o static/assets/vendor/tailwind.dist.css
 ```
+
+#### Iconify
+```bash
+$ yarn add -D @iconify/json-tools @iconify/json
+$ node scripts/bundle_icons.js
+```
+
+New icons can be added by editing the `icons` array in [scripts/bundle_icons.js](scripts/bundle_icons.js).
 
 ## 🙏 Support
 If you like this project, please consider supporting it 🙂. You can donate either through [buying me a coffee](https://buymeacoff.ee/n1try) or becoming a GitHub sponsor. Every little donation is highly appreciated and boosts the developers' motivation to keep improving Wakapi!

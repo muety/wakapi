@@ -8,3 +8,7 @@ build
 config*.yml
 !config.default.yml
 pkged.go
+package.json
+yarn.lock
+package-lock.json
+node_modules

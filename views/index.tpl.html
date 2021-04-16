@@ -11,21 +11,21 @@
 
 <div class="absolute flex top-0 right-0 mr-8 mt-10 py-2">
     <div class="mx-1">
-        <a href="login" class="py-1 px-3 h-8 block rounded border border-green-700 text-white text-sm">🔑
-            &nbsp;Login️</a>
+        <a href="login" class="py-1 px-3 h-8 block rounded border border-green-700 text-white text-sm">
+            <span class="iconify inline" data-icon="fxemoji:key"></span> &nbsp;Login️</a>
     </div>
 </div>
 
 <main class="mt-10 flex-grow flex justify-center w-full">
     <div class="flex flex-col text-white">
         <h1 class="text-4xl font-semibold antialiased text-center mb-2">Keep Track of <span
-                class="text-green-700">Your</span> Coding Time 🕓</h1>
+                class="text-green-700">Your</span> Coding Time <span class="iconify inline" data-icon="flat-color-icons:clock"></span></h1>
         <p class="text-center text-gray-500 text-xl my-2">Wakapi is an open-source tool that helps you keep track of the
             time you have spent coding on different projects in different programming languages and more. Ideal for
             statistics freaks and anyone else.</p>
 
         <p class="text-center text-gray-500 text-xl my-4">
-            <span class="mr-1">💡 The system has tracked a total of </span>
+            <span class="mr-1"><span class="iconify inline" data-icon="twemoji:light-bulb"></span> The system has tracked a total of </span>
             {{ range $d := .TotalHours | printf "%d" | toRunes }}
             <span class="bg-gray-900 rounded-sm p-1 border border-gray-700 font-mono" style="margin: auto -2px;" title="{{ $.TotalHours }} hours (updated every hour)">{{ $d }}</span>
             {{ end }}
@@ -39,20 +39,20 @@
         <div class="flex justify-center mt-4 mb-8 space-x-2">
             <a href="login">
                 <button type="button"
-                        class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white font-semibold">🚀 Try it!
+                        class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white font-semibold"><span class="iconify inline" data-icon="fxemoji:rocket"></span> Try it!
                 </button>
             </a>
             <a href="https://github.com/muety/wakapi#%EF%B8%8F-how-to-use" target="_blank" rel="noopener noreferrer">
-                <button type="button" class="py-1 px-3 h-8 rounded border border-green-700 text-white">📡 Host it
+                <button type="button" class="py-1 px-3 h-8 rounded border border-green-700 text-white"><span class="iconify inline" data-icon="fxemoji:satelliteantenna"></span> Host it
                 </button>
             </a>
             <a href="https://liberapay.com/muety" target="_blank" rel="noopener noreferrer">
-                <button type="button" class="py-1 px-3 h-8 rounded border border-green-700 text-white">🙏 Support it
+                <button type="button" class="py-1 px-3 h-8 rounded border border-green-700 text-white"><span class="iconify inline" data-icon="flat-color-icons:donate"></span> Support it
                 </button>
             </a>
             <a href="https://github.com/muety/wakapi" target="_blank" rel="noopener noreferrer">
                 <button type="button" class="py-1 px-3 h-8 rounded border border-green-700 text-white">
-                    <img alt="GitHub Icon" src="assets/images/ghicon.svg" width="22px">
+                    <span class="iconify inline text-white" data-icon="codicon:github-inverted"></span>
                 </button>
             </a>
         </div>
@@ -65,19 +65,19 @@
             <h1 class="font-semibold text-xl text-white m-0 border-b-4 border-green-700">Features</h1>
             <div class="mt-4 text-lg">
                 <ul>
-                    <li>✅ &nbsp; 100 % free and open-source</li>
-                    <li>✅ &nbsp; Built by developers for developers</li>
-                    <li>✅ &nbsp; Fancy statistics and plots</li>
-                    <li>✅ &nbsp; Cool badges for readmes</li>
-                    <li>✅ &nbsp; Intuitive REST API</li>
-                    <li>✅ &nbsp; Compatible with <a href="https://wakatime.com" target="_blank"
+                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; 100 % free and open-source</li>
+                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; Built by developers for developers</li>
+                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; Fancy statistics and plots</li>
+                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; Cool badges for readmes</li>
+                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; Intuitive REST API</li>
+                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; Compatible with <a href="https://wakatime.com" target="_blank"
                                                     rel="noopener noreferrer" class="underline">Wakatime</a></li>
-                    <li>✅ &nbsp; <a href="https://prometheus.io" target="_blank" rel="noopener noreferrer"
+                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; <a href="https://prometheus.io" target="_blank" rel="noopener noreferrer"
                                     class="underline">Prometheus</a> metrics via <a
                             href="https://github.com/MacroPower/wakatime_exporter" target="_blank"
                             rel="noopener noreferrer" class="underline">exporter</a></li>
-                    <li>✅ &nbsp; Lightning fast</li>
-                    <li>✅ &nbsp; Self-hosted</li>
+                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; Lightning fast</li>
+                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; Self-hosted</li>
                 </ul>
             </div>
         </div>

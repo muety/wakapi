@@ -15,18 +15,20 @@
                value="{{ .ApiKey }}" style="min-width: 330px">
     </div>
     <div class="flex items-center px-2 border-l border-gray-700">
-        <button title="Copy to clipboard" onclick="copyApiKey(event)">📋</button>
+        <button title="Copy to clipboard" onclick="copyApiKey(event)"><span class="iconify inline" data-icon="fxemoji:clipboard"></span></button>
     </div>
 </div>
 
 <div class="absolute flex top-0 right-0 mr-8 mt-10 py-2">
     <div class="mx-1">
         <button type="button" class="py-1 px-3 h-8 rounded border border-green-700 text-white text-sm"
-                onclick="showApiKeyPopup(event)">🔐
+                onclick="showApiKeyPopup(event)"><span class="iconify inline" data-icon="fxemoji:lockandkey"></span>
         </button>
     </div>
     <div class="mx-1">
-        <a href="settings" class="py-1 px-3 h-8 block rounded border border-green-700 text-white text-sm">⚙️</a>
+        <a href="settings" class="py-1 px-3 h-8 block rounded border border-green-700 text-white text-sm">
+            <span class="iconify inline" data-icon="twemoji:gear"></span>
+        </a>
     </div>
     <div class="mx-1">
         <form action="logout" method="post">
@@ -44,12 +46,12 @@
 <div class="self-center border border-gray-700 shadow mt-8 rounded-md p-4 bg-gray-900">
     <form class="text-white flex flex-nowrap items-center justify-center self-center max-w-xl flex-wrap space-x-8">
         <div class="flex space-x-1">
-            <label for="from-date-picker" class="text-gray-300 pl-1">▶️ Start:</label>
+            <label for="from-date-picker" class="text-gray-300 pl-1"><span class="iconify inline" data-icon="noto:play-button"></span> Start:</label>
             <input id="from-date-picker" type="date" name="from" max="{{ .ToTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-800 rounded-md text-center cursor-pointer"
                    value="{{ .From | simpledate }}" required>
         </div>
         <div class="flex space-x-1">
-            <label for="to-date-picker" class="text-gray-300 pl-1">⏹️ End:</label>
+            <label for="to-date-picker" class="text-gray-300 pl-1"><span class="iconify inline" data-icon="noto:stop-button"></span> End:</label>
             <input id="to-date-picker" type="date" name="to" min="{{ .FromTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-800 rounded-md text-center cursor-pointer"
                    value="{{ .To | ceildate | simpledate }}" required>
         </div>
@@ -80,7 +82,7 @@
     {{ if .User.HasData }}
 
     <span class="text-white text-lg text-gray-300 text-center mb-4">
-        <span class="text-xl">⏱️&nbsp;</span>
+        <span class="text-xl"><span class="iconify inline" data-icon="emojione-v1:alarm-clock"></span>️&nbsp;</span>
         Showing a total of <span id="total-span" title="Total Hours" class="text-white text-xl font-semibold border-b-2 border-green-700"></span>
         <span class="text-sm my-2">
             (from <span title="Start Time" class="border-b border-gray-700">{{ .FromTime.T | date }}</span> to <span title="End Time" class="border-b border-gray-700">{{ .ToTime.T | date }}</span>)
