@@ -24,7 +24,6 @@ type action func(w http.ResponseWriter, r *http.Request) (int, string, string)
 var templates map[string]*template.Template
 
 func loadTemplates() {
-	const tplPath = "/views"
 	tpls := template.New("").Funcs(template.FuncMap{
 		"json":           utils.Json,
 		"date":           utils.FormatDateHuman,
@@ -57,7 +56,10 @@ func loadTemplates() {
 	})
 	templates = make(map[string]*template.Template)
 
-	files, err := fs.ReadDir(views.TemplateFiles, ".")
+	// Use local file system when in 'dev' environment, go embed file system otherwise
+	templateFs := config.ChooseFS("views", views.TemplateFiles)
+
+	files, err := fs.ReadDir(templateFs, ".")
 	if err != nil {
 		panic(err)
 	}
@@ -68,7 +70,7 @@ func loadTemplates() {
 			continue
 		}
 
-		templateFile, err := views.TemplateFiles.Open(tplName)
+		templateFile, err := templateFs.Open(tplName)
 		if err != nil {
 			panic(err)
 		}

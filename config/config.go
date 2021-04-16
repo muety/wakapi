@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -59,6 +60,7 @@ var emailProviders = []string{
 
 var cfg *Config
 var cFlag = flag.String("config", defaultConfigPath, "config file location")
+var env string
 
 type appConfig struct {
 	AggregationTime  string                       `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
@@ -287,8 +289,14 @@ func readColors() map[string]map[string]string {
 	// Extracted from Wakatime website with XPath (see below) and did a bit of regex magic after.
 	// – $x('//span[@class="editor-icon tip"]/@data-original-title').map(e => e.nodeValue)
 	// – $x('//span[@class="editor-icon tip"]/div[1]/text()').map(e => e.nodeValue)
+
+	raw := data.ColorsFile
+	if IsDev(env) {
+		raw, _ = ioutil.ReadFile("data/colors.json")
+	}
+
 	var colors = make(map[string]map[string]string)
-	if err := json.Unmarshal(data.ColorsFile, &colors); err != nil {
+	if err := json.Unmarshal(raw, &colors); err != nil {
 		logbuch.Fatal(err.Error())
 	}
 
@@ -335,6 +343,7 @@ func Load(version string) *Config {
 		logbuch.Fatal("failed to read config: %v", err)
 	}
 
+	env = config.Env
 	config.Version = strings.TrimSpace(version)
 	config.App.Colors = readColors()
 	config.Db.Dialect = resolveDbDialect(config.Db.Type)

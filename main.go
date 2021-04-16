@@ -205,7 +205,8 @@ func main() {
 
 	// Static Routes
 	// https://github.com/golang/go/issues/43431
-	static, _ := fs.Sub(staticFiles, "static")
+	embeddedStatic, _ := fs.Sub(staticFiles, "static")
+	static := conf.ChooseFS("static", embeddedStatic)
 	fileServer := http.FileServer(utils.NeuteredFileSystem{Fs: http.FS(static)})
 	router.PathPrefix("/contribute.json").Handler(fileServer)
 	router.PathPrefix("/assets").Handler(fileServer)
