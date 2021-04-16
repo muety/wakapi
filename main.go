@@ -185,6 +185,7 @@ func main() {
 	if config.Sentry.Dsn != "" {
 		router.Use(middlewares.NewSentryMiddleware())
 	}
+	rootRouter.Use(middlewares.NewSecurityMiddleware())
 
 	// Route registrations
 	homeHandler.RegisterRoutes(rootRouter)
