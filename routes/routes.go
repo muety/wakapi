@@ -30,6 +30,8 @@ func loadTemplates() {
 		"date":           utils.FormatDateHuman,
 		"simpledate":     utils.FormatDate,
 		"simpledatetime": utils.FormatDateTime,
+		"floordate":      utils.FloorDate,
+		"ceildate":       utils.CeilDate,
 		"title":          strings.Title,
 		"join":           strings.Join,
 		"add":            utils.Add,

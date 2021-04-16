@@ -46,12 +46,12 @@
         <div class="flex space-x-1">
             <label for="from-date-picker" class="text-gray-300 pl-1">▶️ Start:</label>
             <input id="from-date-picker" type="date" name="from" max="{{ .ToTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-800 rounded-md text-center cursor-pointer"
-                   value="{{ .FromTime.T | simpledate }}" required>
+                   value="{{ .From | simpledate }}" required>
         </div>
         <div class="flex space-x-1">
             <label for="to-date-picker" class="text-gray-300 pl-1">⏹️ End:</label>
             <input id="to-date-picker" type="date" name="to" min="{{ .FromTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-800 rounded-md text-center cursor-pointer"
-                   value="{{ .ToTime.T | simpledate }}" required>
+                   value="{{ .To | ceildate | simpledate }}" required>
         </div>
         <div>
             <button type="submit" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">Show</button>

@@ -10,7 +10,7 @@ func StartOfToday() time.Time {
 }
 
 func StartOfDay(date time.Time) time.Time {
-	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	return FloorDate(date)
 }
 
 func StartOfWeek() time.Time {
@@ -27,6 +27,20 @@ func StartOfMonth() time.Time {
 func StartOfYear() time.Time {
 	ref := time.Now()
 	return time.Date(ref.Year(), time.January, 1, 0, 0, 0, 0, ref.Location())
+}
+
+// FloorDate rounds date down to the start of the day
+func FloorDate(date time.Time) time.Time {
+	return date.Truncate(24 * time.Hour)
+}
+
+// CeilDate rounds date up to the start of next day if date is not already a start (00:00:00)
+func CeilDate(date time.Time) time.Time {
+	floored := FloorDate(date)
+	if floored == date {
+		return floored
+	}
+	return floored.Add(24 * time.Hour)
 }
 
 func SplitRangeByDays(from time.Time, to time.Time) [][]time.Time {

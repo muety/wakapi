@@ -46,6 +46,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		r.URL.RawQuery = q.Encode()
 	}
 
+	summaryParams, _ := utils.ParseSummaryParams(r)
 	summary, err, status := su.LoadUserSummary(h.summarySrvc, r)
 	if err != nil {
 		w.WriteHeader(status)
@@ -62,6 +63,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 
 	vm := models.SummaryViewModel{
 		Summary:        summary,
+		SummaryParams:  summaryParams,
 		User:           user,
 		LanguageColors: utils.FilterColors(h.config.App.GetLanguageColors(), summary.Languages),
 		EditorColors:   utils.FilterColors(h.config.App.GetEditorColors(), summary.Editors),

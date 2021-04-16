@@ -47,6 +47,7 @@ type SummaryItemContainer struct {
 
 type SummaryViewModel struct {
 	*Summary
+	*SummaryParams
 	User           *User
 	LanguageColors map[string]string
 	EditorColors   map[string]string
