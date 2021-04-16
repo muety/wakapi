@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/emvi/logbuch"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -83,7 +82,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	if err := h.heartbeatSrvc.InsertBatch(heartbeats); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(conf.ErrInternalServerError))
-		logbuch.Error("failed to batch-insert heartbeats – %v", err)
+		conf.Log().Request(r).Error("failed to batch-insert heartbeats – %v", err)
 		return
 	}
 
@@ -92,7 +91,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 		if _, err := h.userSrvc.Update(user); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(conf.ErrInternalServerError))
-			logbuch.Error("failed to update user – %v", err)
+			conf.Log().Request(r).Error("failed to update user – %v", err)
 			return
 		}
 	}

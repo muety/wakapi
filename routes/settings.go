@@ -450,7 +450,7 @@ func (h *SettingsHandler) actionImportWaktime(w http.ResponseWriter, r *http.Req
 
 		if user.Email != "" {
 			if err := h.mailSrvc.SendImportNotification(user, time.Now().Sub(start), int(countAfter-countBefore)); err != nil {
-				logbuch.Error("failed to send import notification mail to %s – %v", user.ID, err)
+				conf.Log().Request(r).Error("failed to send import notification mail to %s – %v", user.ID, err)
 			} else {
 				logbuch.Info("sent import notification mail to %s", user.ID)
 			}
@@ -472,7 +472,7 @@ func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *ht
 
 	go func(user *models.User) {
 		if err := h.regenerateSummaries(user); err != nil {
-			logbuch.Error("failed to regenerate summaries for user '%s' – %v", user.ID, err)
+			conf.Log().Request(r).Error("failed to regenerate summaries for user '%s' – %v", user.ID, err)
 		}
 	}(middlewares.GetPrincipal(r))
 
@@ -489,7 +489,7 @@ func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Reques
 		logbuch.Info("deleting user '%s' shortly", user.ID)
 		time.Sleep(5 * time.Minute)
 		if err := h.userSrvc.Delete(user); err != nil {
-			logbuch.Error("failed to delete user '%s' – %v", user.ID, err)
+			conf.Log().Request(r).Error("failed to delete user '%s' – %v", user.ID, err)
 		} else {
 			logbuch.Info("successfully deleted user '%s'", user.ID)
 		}

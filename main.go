@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	sentryhttp "github.com/getsentry/sentry-go/http"
 	"io/fs"
 	"log"
 	"net/http"
@@ -183,7 +184,7 @@ func main() {
 	router.Use(middlewares.NewLoggingMiddleware(logbuch.Info, []string{"/assets"}))
 	router.Use(handlers.RecoveryHandler())
 	if config.Sentry.Dsn != "" {
-		router.Use(middlewares.NewSentryMiddleware())
+		router.Use(sentryhttp.New(sentryhttp.Options{Repanic: true}).Handle)
 	}
 	rootRouter.Use(middlewares.NewSecurityMiddleware())
 

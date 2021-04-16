@@ -42,7 +42,7 @@ type CountTotalTimeResult struct {
 func (srv *MiscService) ScheduleCountTotalTime() {
 	// Run once initially
 	if err := srv.runCountTotalTime(); err != nil {
-		logbuch.Error("failed to run CountTotalTimeJob: %v", err)
+		logbuch.Fatal("failed to run CountTotalTimeJob: %v", err)
 	}
 
 	s := gocron.NewScheduler(time.Local)
@@ -80,7 +80,7 @@ func (srv *MiscService) runCountTotalTime() error {
 func (srv *MiscService) countTotalTimeWorker(jobs <-chan *CountTotalTimeJob, results chan<- *CountTotalTimeResult) {
 	for job := range jobs {
 		if result, err := srv.summaryService.Aliased(time.Time{}, time.Now(), &models.User{ID: job.UserID}, srv.summaryService.Retrieve, false); err != nil {
-			logbuch.Error("failed to count total for user %s: %v", job.UserID, err)
+			config.Log().Error("failed to count total for user %s: %v", job.UserID, err)
 		} else {
 			logbuch.Info("successfully counted total for user %s", job.UserID)
 			results <- &CountTotalTimeResult{

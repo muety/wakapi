@@ -284,14 +284,14 @@ func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request)
 			go func(user *models.User) {
 				link := fmt.Sprintf("%s/set-password?token=%s", h.config.Server.GetPublicUrl(), user.ResetToken)
 				if err := h.mailSrvc.SendPasswordReset(user, link); err != nil {
-					logbuch.Error("failed to send password reset mail to %s – %v", user.ID, err)
+					conf.Log().Request(r).Error("failed to send password reset mail to %s – %v", user.ID, err)
 				} else {
 					logbuch.Info("sent password reset mail to %s", user.ID)
 				}
 			}(u)
 		}
 	} else {
-		logbuch.Warn("password reset requested for unregistered address '%s'", resetRequest.Email)
+		conf.Log().Request(r).Warn("password reset requested for unregistered address '%s'", resetRequest.Email)
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("%s/?success=%s", h.config.Server.BasePath, "an e-mail was sent to you in case your e-mail address was registered"), http.StatusFound)

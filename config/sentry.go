@@ -4,22 +4,100 @@ import (
 	"github.com/emvi/logbuch"
 	"github.com/getsentry/sentry-go"
 	"github.com/muety/wakapi/models"
+	"io"
 	"net/http"
 	"os"
 	"strings"
 )
 
-type SentryErrorWriter struct{}
+// How to: Logging
+// Use logbuch.[Debug|Info|Warn|Error|Fatal]() by default
+// Use config.Log().[Debug|Info|Warn|Error|Fatal]() when wanting the log to appear in Sentry as well
 
-// TODO: extend sentry error logging to include context and stacktrace
-// see https://github.com/muety/wakapi/issues/169
-func (s *SentryErrorWriter) Write(p []byte) (n int, err error) {
-	sentry.CaptureMessage(string(p))
-	return os.Stderr.Write(p)
+type capturingWriter struct {
+	Writer  io.Writer
+	Message string
 }
 
-func init() {
-	logbuch.SetOutput(os.Stdout, &SentryErrorWriter{})
+func (c *capturingWriter) Clear() {
+	c.Message = ""
+}
+
+func (c *capturingWriter) Write(p []byte) (n int, err error) {
+	c.Message = string(p)
+	return c.Writer.Write(p)
+}
+
+// SentryWrapperLogger is a wrapper around a logbuch.Logger that forwards events to Sentry in addition and optionally allows to attach a request context
+type SentryWrapperLogger struct {
+	*logbuch.Logger
+	req       *http.Request
+	outWriter *capturingWriter
+	errWriter *capturingWriter
+}
+
+func Log() *SentryWrapperLogger {
+	ow, ew := &capturingWriter{Writer: os.Stdout}, &capturingWriter{Writer: os.Stderr}
+	return &SentryWrapperLogger{
+		Logger:    logbuch.NewLogger(ow, ew),
+		outWriter: ow,
+		errWriter: ew,
+	}
+}
+
+func (l *SentryWrapperLogger) Request(req *http.Request) *SentryWrapperLogger {
+	l.req = req
+	return l
+}
+
+func (l *SentryWrapperLogger) Debug(msg string, params ...interface{}) {
+	l.outWriter.Clear()
+	l.Logger.Debug(msg, params...)
+	l.log(l.errWriter.Message, sentry.LevelDebug)
+}
+
+func (l *SentryWrapperLogger) Info(msg string, params ...interface{}) {
+	l.outWriter.Clear()
+	l.Logger.Info(msg, params...)
+	l.log(l.errWriter.Message, sentry.LevelInfo)
+}
+
+func (l *SentryWrapperLogger) Warn(msg string, params ...interface{}) {
+	l.outWriter.Clear()
+	l.Logger.Warn(msg, params...)
+	l.log(l.errWriter.Message, sentry.LevelWarning)
+}
+
+func (l *SentryWrapperLogger) Error(msg string, params ...interface{}) {
+	l.errWriter.Clear()
+	l.Logger.Error(msg, params...)
+	l.log(l.errWriter.Message, sentry.LevelError)
+}
+
+func (l *SentryWrapperLogger) Fatal(msg string, params ...interface{}) {
+	l.errWriter.Clear()
+	l.Logger.Fatal(msg, params...)
+	l.log(l.errWriter.Message, sentry.LevelFatal)
+}
+
+func (l *SentryWrapperLogger) log(msg string, level sentry.Level) {
+	event := sentry.NewEvent()
+	event.Level = level
+	event.Message = msg
+
+	if l.req != nil {
+		if h := l.req.Context().Value(sentry.HubContextKey); h != nil {
+			hub := h.(*sentry.Hub)
+			hub.Scope().SetRequest(l.req)
+			if u := getPrincipal(l.req); u != nil {
+				hub.Scope().SetUser(sentry.User{ID: u.ID})
+			}
+			hub.CaptureEvent(event)
+			return
+		}
+	}
+
+	sentry.CaptureEvent(event)
 }
 
 func initSentry(config sentryConfig, debug bool) {
@@ -43,13 +121,10 @@ func initSentry(config sentryConfig, debug bool) {
 			return sentry.UniformTracesSampler(config.SampleRate).Sample(ctx)
 		}),
 		BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
-			type principalGetter interface {
-				GetPrincipal() *models.User
-			}
 			if hint.Context != nil {
 				if req, ok := hint.Context.Value(sentry.RequestContextKey).(*http.Request); ok {
-					if p := req.Context().Value("principal"); p != nil {
-						event.User.ID = p.(principalGetter).GetPrincipal().ID
+					if u := getPrincipal(req); u != nil {
+						event.User.ID = u.ID
 					}
 				}
 			}
@@ -58,4 +133,14 @@ func initSentry(config sentryConfig, debug bool) {
 	}); err != nil {
 		logbuch.Fatal("failed to initialized sentry – %v", err)
 	}
+}
+
+func getPrincipal(r *http.Request) *models.User {
+	type principalGetter interface {
+		GetPrincipal() *models.User
+	}
+	if p := r.Context().Value("principal"); p != nil {
+		return p.(principalGetter).GetPrincipal()
+	}
+	return nil
 }
