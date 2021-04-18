@@ -5,7 +5,7 @@ Usage:
 ---
 1. Set up a MySQL instance (see docker_mysql.sh for example)
 2. Create config file (e.g. migrate.yml) as shown below
-3. go run sqlite2mysql.go
+3. go run sqlite2mysql.go -config migrate.yml
 
 Example: migrate.yml
 ---
