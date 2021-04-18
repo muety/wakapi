@@ -82,16 +82,17 @@ type securityConfig struct {
 }
 
 type dbConfig struct {
-	Host     string `env:"WAKAPI_DB_HOST"`
-	Port     uint   `env:"WAKAPI_DB_PORT"`
-	User     string `env:"WAKAPI_DB_USER"`
-	Password string `env:"WAKAPI_DB_PASSWORD"`
-	Name     string `default:"wakapi_db.db" env:"WAKAPI_DB_NAME"`
-	Dialect  string `yaml:"-"`
-	Charset  string `default:"utf8mb4" env:"WAKAPI_DB_CHARSET"`
-	Type     string `yaml:"dialect" default:"sqlite3" env:"WAKAPI_DB_TYPE"`
-	MaxConn  uint   `yaml:"max_conn" default:"2" env:"WAKAPI_DB_MAX_CONNECTIONS"`
-	Ssl      bool   `default:"false" env:"WAKAPI_DB_SSL"`
+	Host                    string `env:"WAKAPI_DB_HOST"`
+	Port                    uint   `env:"WAKAPI_DB_PORT"`
+	User                    string `env:"WAKAPI_DB_USER"`
+	Password                string `env:"WAKAPI_DB_PASSWORD"`
+	Name                    string `default:"wakapi_db.db" env:"WAKAPI_DB_NAME"`
+	Dialect                 string `yaml:"-"`
+	Charset                 string `default:"utf8mb4" env:"WAKAPI_DB_CHARSET"`
+	Type                    string `yaml:"dialect" default:"sqlite3" env:"WAKAPI_DB_TYPE"`
+	MaxConn                 uint   `yaml:"max_conn" default:"2" env:"WAKAPI_DB_MAX_CONNECTIONS"`
+	Ssl                     bool   `default:"false" env:"WAKAPI_DB_SSL"`
+	AutoMigrateFailSilently bool   `yaml:"automigrate_fail_silently" default:"false" env:"WAKAPI_DB_AUTOMIGRATE_FAIL_SILENTLY"`
 }
 
 type serverConfig struct {
@@ -176,25 +177,25 @@ func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
 	switch dbDialect {
 	default:
 		return func(db *gorm.DB) error {
-			if err := db.AutoMigrate(&models.User{}); err != nil {
+			if err := db.AutoMigrate(&models.User{}); err != nil && !c.Db.AutoMigrateFailSilently {
 				return err
 			}
-			if err := db.AutoMigrate(&models.KeyStringValue{}); err != nil {
+			if err := db.AutoMigrate(&models.KeyStringValue{}); err != nil && !c.Db.AutoMigrateFailSilently {
 				return err
 			}
-			if err := db.AutoMigrate(&models.Alias{}); err != nil {
+			if err := db.AutoMigrate(&models.Alias{}); err != nil && !c.Db.AutoMigrateFailSilently {
 				return err
 			}
-			if err := db.AutoMigrate(&models.Heartbeat{}); err != nil {
+			if err := db.AutoMigrate(&models.Heartbeat{}); err != nil && !c.Db.AutoMigrateFailSilently {
 				return err
 			}
-			if err := db.AutoMigrate(&models.Summary{}); err != nil {
+			if err := db.AutoMigrate(&models.Summary{}); err != nil && !c.Db.AutoMigrateFailSilently {
 				return err
 			}
-			if err := db.AutoMigrate(&models.SummaryItem{}); err != nil {
+			if err := db.AutoMigrate(&models.SummaryItem{}); err != nil && !c.Db.AutoMigrateFailSilently {
 				return err
 			}
-			if err := db.AutoMigrate(&models.LanguageMapping{}); err != nil {
+			if err := db.AutoMigrate(&models.LanguageMapping{}); err != nil && !c.Db.AutoMigrateFailSilently {
 				return err
 			}
 			return nil
