@@ -9,6 +9,7 @@ type IAliasRepository interface {
 	Insert(*models.Alias) (*models.Alias, error)
 	Delete(uint) error
 	DeleteBatch([]uint) error
+	GetAll() ([]*models.Alias, error)
 	GetByUser(string) ([]*models.Alias, error)
 	GetByUserAndKey(string, string) ([]*models.Alias, error)
 	GetByUserAndKeyAndType(string, string, uint8) ([]*models.Alias, error)
@@ -17,6 +18,7 @@ type IAliasRepository interface {
 
 type IHeartbeatRepository interface {
 	InsertBatch([]*models.Heartbeat) error
+	GetAll() ([]*models.Heartbeat, error)
 	GetAllWithin(time.Time, time.Time, *models.User) ([]*models.Heartbeat, error)
 	GetFirstByUsers() ([]*models.TimeByUser, error)
 	GetLastByUsers() ([]*models.TimeByUser, error)
@@ -28,12 +30,14 @@ type IHeartbeatRepository interface {
 }
 
 type IKeyValueRepository interface {
+	GetAll() ([]*models.KeyStringValue, error)
 	GetString(string) (*models.KeyStringValue, error)
 	PutString(*models.KeyStringValue) error
 	DeleteString(string) error
 }
 
 type ILanguageMappingRepository interface {
+	GetAll() ([]*models.LanguageMapping, error)
 	GetById(uint) (*models.LanguageMapping, error)
 	GetByUser(string) ([]*models.LanguageMapping, error)
 	Insert(*models.LanguageMapping) (*models.LanguageMapping, error)
@@ -42,6 +46,7 @@ type ILanguageMappingRepository interface {
 
 type ISummaryRepository interface {
 	Insert(*models.Summary) error
+	GetAll() ([]*models.Summary, error)
 	GetByUserWithin(*models.User, time.Time, time.Time) ([]*models.Summary, error)
 	GetLastByUser() ([]*models.TimeByUser, error)
 	DeleteByUser(string) error

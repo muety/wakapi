@@ -15,6 +15,15 @@ func NewHeartbeatRepository(db *gorm.DB) *HeartbeatRepository {
 	return &HeartbeatRepository{db: db}
 }
 
+// Use with caution!!
+func (r *HeartbeatRepository) GetAll() ([]*models.Heartbeat, error) {
+	var heartbeats []*models.Heartbeat
+	if err := r.db.Find(&heartbeats).Error; err != nil {
+		return nil, err
+	}
+	return heartbeats, nil
+}
+
 func (r *HeartbeatRepository) InsertBatch(heartbeats []*models.Heartbeat) error {
 	if err := r.db.
 		Clauses(clause.OnConflict{

@@ -14,6 +14,14 @@ func NewSummaryRepository(db *gorm.DB) *SummaryRepository {
 	return &SummaryRepository{db: db}
 }
 
+func (r *SummaryRepository) GetAll() ([]*models.Summary, error) {
+	var summaries []*models.Summary
+	if err := r.db.Find(&summaries).Error; err != nil {
+		return nil, err
+	}
+	return summaries, nil
+}
+
 func (r *SummaryRepository) Insert(summary *models.Summary) error {
 	if err := r.db.Create(summary).Error; err != nil {
 		return err

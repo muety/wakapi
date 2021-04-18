@@ -15,6 +15,11 @@ func (m *SummaryRepositoryMock) Insert(summary *models.Summary) error {
 	return args.Error(0)
 }
 
+func (m *SummaryRepositoryMock) GetAll() ([]*models.Summary, error) {
+	args := m.Called()
+	return args.Get(0).([]*models.Summary), args.Error(1)
+}
+
 func (m *SummaryRepositoryMock) GetByUserWithin(user *models.User, time time.Time, time2 time.Time) ([]*models.Summary, error) {
 	args := m.Called(user, time, time2)
 	return args.Get(0).([]*models.Summary), args.Error(1)

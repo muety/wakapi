@@ -14,6 +14,14 @@ func NewAliasRepository(db *gorm.DB) *AliasRepository {
 	return &AliasRepository{db: db}
 }
 
+func (r *AliasRepository) GetAll() ([]*models.Alias, error) {
+	var aliases []*models.Alias
+	if err := r.db.Find(&aliases).Error; err != nil {
+		return nil, err
+	}
+	return aliases, nil
+}
+
 func (r *AliasRepository) GetByUser(userId string) ([]*models.Alias, error) {
 	var aliases []*models.Alias
 	if err := r.db.

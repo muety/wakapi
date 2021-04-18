@@ -15,6 +15,14 @@ func NewKeyValueRepository(db *gorm.DB) *KeyValueRepository {
 	return &KeyValueRepository{db: db}
 }
 
+func (r *KeyValueRepository) GetAll() ([]*models.KeyStringValue, error) {
+	var keyValues []*models.KeyStringValue
+	if err := r.db.Find(&keyValues).Error; err != nil {
+		return nil, err
+	}
+	return keyValues, nil
+}
+
 func (r *KeyValueRepository) GetString(key string) (*models.KeyStringValue, error) {
 	kv := &models.KeyStringValue{}
 	if err := r.db.

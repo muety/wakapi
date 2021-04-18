@@ -16,6 +16,14 @@ func NewLanguageMappingRepository(db *gorm.DB) *LanguageMappingRepository {
 	return &LanguageMappingRepository{config: config.Get(), db: db}
 }
 
+func (r *LanguageMappingRepository) GetAll() ([]*models.LanguageMapping, error) {
+	var mappings []*models.LanguageMapping
+	if err := r.db.Find(&mappings).Error; err != nil {
+		return nil, err
+	}
+	return mappings, nil
+}
+
 func (r *LanguageMappingRepository) GetById(id uint) (*models.LanguageMapping, error) {
 	mapping := &models.LanguageMapping{}
 	if err := r.db.Where(&models.LanguageMapping{ID: id}).First(mapping).Error; err != nil {
