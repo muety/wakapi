@@ -16,7 +16,14 @@ func NewSummaryRepository(db *gorm.DB) *SummaryRepository {
 
 func (r *SummaryRepository) GetAll() ([]*models.Summary, error) {
 	var summaries []*models.Summary
-	if err := r.db.Find(&summaries).Error; err != nil {
+	if err := r.db.
+		Order("from_time asc").
+		Preload("Projects", "type = ?", models.SummaryProject).
+		Preload("Languages", "type = ?", models.SummaryLanguage).
+		Preload("Editors", "type = ?", models.SummaryEditor).
+		Preload("OperatingSystems", "type = ?", models.SummaryOS).
+		Preload("Machines", "type = ?", models.SummaryMachine).
+		Find(&summaries).Error; err != nil {
 		return nil, err
 	}
 	return summaries, nil
