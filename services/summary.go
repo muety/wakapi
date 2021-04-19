@@ -3,6 +3,7 @@ package services
 import (
 	"crypto/md5"
 	"errors"
+	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
@@ -236,7 +237,15 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 		Machines:         make([]*models.SummaryItem, 0),
 	}
 
+	var processed = map[int64]bool{}
+
 	for _, s := range summaries {
+		hash := s.FromTime.T().UnixNano() ^ s.ToTime.T().UnixNano()
+		if _, found := processed[hash]; found {
+			logbuch.Warn("summary from %v to %v (user '%s') was attempted to be processed more often than once", s.FromTime, s.ToTime, s.UserID)
+			continue
+		}
+
 		if s.UserID != finalSummary.UserID {
 			return nil, errors.New("users don't match")
 		}
@@ -254,6 +263,8 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 		finalSummary.Editors = srv.mergeSummaryItems(finalSummary.Editors, s.Editors)
 		finalSummary.OperatingSystems = srv.mergeSummaryItems(finalSummary.OperatingSystems, s.OperatingSystems)
 		finalSummary.Machines = srv.mergeSummaryItems(finalSummary.Machines, s.Machines)
+
+		processed[hash] = true
 	}
 
 	finalSummary.FromTime = models.CustomTime(minTime)

@@ -291,6 +291,52 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve() {
 	suite.HeartbeatService.AssertNumberOfCalls(suite.T(), "GetAllWithin", 2+1+1)
 }
 
+func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve_DuplicateSummaries() {
+	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.AliasService)
+
+	var (
+		summaries []*models.Summary
+		from      time.Time
+		to        time.Time
+		result    *models.Summary
+		err       error
+	)
+
+	from, to = suite.TestStartTime.Add(-12*time.Hour), suite.TestStartTime.Add(12*time.Hour)
+	summaries = []*models.Summary{
+		{
+			ID:       uint(rand.Uint32()),
+			UserID:   TestUserId,
+			FromTime: models.CustomTime(from.Add(10 * time.Minute)),
+			ToTime:   models.CustomTime(to.Add(-10 * time.Minute)),
+			Projects: []*models.SummaryItem{
+				{
+					Type:  models.SummaryProject,
+					Key:   TestProject1,
+					Total: 45 * time.Minute / time.Second, // hack
+				},
+			},
+			Languages:        []*models.SummaryItem{},
+			Editors:          []*models.SummaryItem{},
+			OperatingSystems: []*models.SummaryItem{},
+			Machines:         []*models.SummaryItem{},
+		},
+	}
+	summaries = append(summaries, &(*summaries[0])) // add same summary again -> mustn't be counted twice!
+
+	suite.SummaryRepository.On("GetByUserWithin", suite.TestUser, from, to).Return(summaries, nil)
+	suite.HeartbeatService.On("GetAllWithin", from, summaries[0].FromTime.T(), suite.TestUser).Return([]*models.Heartbeat{}, nil)
+	suite.HeartbeatService.On("GetAllWithin", summaries[0].ToTime.T(), to, suite.TestUser).Return([]*models.Heartbeat{}, nil)
+
+	result, err = sut.Retrieve(from, to, suite.TestUser)
+
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), result)
+	assert.Len(suite.T(), result.Projects, 1)
+	assert.Equal(suite.T(), summaries[0].Projects[0].Total*time.Second, result.TotalTime())
+	suite.HeartbeatService.AssertNumberOfCalls(suite.T(), "GetAllWithin", 2)
+}
+
 func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
 	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.AliasService)
 
