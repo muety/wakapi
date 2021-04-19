@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from typing import List, Union, Callable
 
 import requests
-from tqdm import tqdm
 
 MACHINE = "devmachine"
 UA = 'wakatime/13.0.7 (Linux-4.15.0-91-generic-x86_64-with-glibc2.4) Python3.8.0.final.0 generator/1.42.1 generator-wakatime/4.0.0'
@@ -53,6 +52,7 @@ class ConfigParams:
         self.n_projects = 0
         self.offset = 0
         self.seed = 0
+        self.batch = False
 
 
 def generate_data(n: int, n_projects: int = 5, n_past_hours: int = 24) -> List[Heartbeat]:
@@ -86,21 +86,21 @@ def generate_data(n: int, n_projects: int = 5, n_past_hours: int = 24) -> List[H
 def post_data_sync(data: List[Heartbeat], url: str, api_key: str):
     encoded_key: str = str(base64.b64encode(api_key.encode('utf-8')), 'utf-8')
 
-    for h in data:
-        r = requests.post(url, json=[h.__dict__], headers={
-            'User-Agent': UA,
-            'Authorization': f'Basic {encoded_key}',
-            'X-Machine-Name': MACHINE,
-        })
-        if r.status_code != 201:
-            print(r.text)
-            sys.exit(1)
+    r = requests.post(url, json=[h.__dict__ for h in data], headers={
+        'User-Agent': UA,
+        'Authorization': f'Basic {encoded_key}',
+        'X-Machine-Name': MACHINE,
+    })
+    if r.status_code != 201:
+        print(r.text)
+        sys.exit(1)
 
 
 def make_gui(callback: Callable[[ConfigParams, Callable[[int], None]], None]) -> ('QApplication', 'QWidget'):
+    # https://doc.qt.io/qt-5/qtwidgets-module.html
     from PyQt5.QtCore import Qt
     from PyQt5.QtWidgets import QApplication, QWidget, QFormLayout, QHBoxLayout, QVBoxLayout, QGroupBox, QLabel, \
-        QLineEdit, QSpinBox, QProgressBar, QPushButton
+        QLineEdit, QSpinBox, QProgressBar, QPushButton, QCheckBox
 
     # Main app
     app = QApplication([])
@@ -153,10 +153,14 @@ def make_gui(callback: Callable[[ConfigParams, Callable[[int], None]], None]) ->
     seed_input.setMaximum(2147483647)
     seed_input.setValue(1337)
 
+    batch_checkbox = QCheckBox('Batch Mode')
+    batch_checkbox.setTristate(False)
+
     form_layout_2.addRow(heartbeats_input_label, heartbeats_input)
     form_layout_2.addRow(projects_input_label, projects_input)
     form_layout_2.addRow(offset_input_label, offset_input)
     form_layout_2.addRow(seed_input_label, seed_input)
+    form_layout_2.addRow(batch_checkbox)
 
     # Bottom controls
     bottom_layout = QHBoxLayout()
@@ -195,6 +199,7 @@ def make_gui(callback: Callable[[ConfigParams, Callable[[int], None]], None]) ->
         params.n_projects = projects_input.value()
         params.offset = offset_input.value()
         params.seed = seed_input.value()
+        params.batch = batch_checkbox.isChecked()
         return params
 
     def update_progress(inc=1):
@@ -231,6 +236,7 @@ def parse_arguments():
                         help='negative time offset in hours from now for to be used as an interval within which to generate heartbeats for')
     parser.add_argument('-s', '--seed', type=int, default=2020,
                         help='a seed for initializing the pseudo-random number generator')
+    parser.add_argument('-b', '--batch', default=False, help='batch mode (push all heartbeats at once)', action='store_true')
     return parser.parse_args()
 
 
@@ -242,6 +248,7 @@ def args_to_params(parsed_args: argparse.Namespace) -> (ConfigParams, bool):
     params.seed = parsed_args.seed
     params.api_url = parsed_args.url
     params.api_key = parsed_args.apikey
+    params.batch = parsed_args.batch
     return params, not parsed_args.headless
 
 
@@ -258,9 +265,14 @@ def run(params: ConfigParams, update_progress: Callable[[int], None]):
         params.offset * -1 if params.offset < 0 else params.offset
     )
 
-    for d in data:
-        post_data_sync([d], f'{params.api_url}/heartbeats', params.api_key)
-        update_progress(1)
+    # batch-mode won't work when using sqlite backend
+    if params.batch:
+        post_data_sync(data, f'{params.api_url}/heartbeats', params.api_key)
+        update_progress(len(data))
+    else:
+        for d in data:
+            post_data_sync([d], f'{params.api_url}/heartbeats', params.api_key)
+            update_progress(len(data))
 
 
 if __name__ == '__main__':
@@ -270,5 +282,7 @@ if __name__ == '__main__':
         window.show()
         app.exec()
     else:
+        from tqdm import tqdm
+
         pbar = tqdm(total=params.n)
         run(params, pbar.update)
