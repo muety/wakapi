@@ -237,10 +237,10 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 		Machines:         make([]*models.SummaryItem, 0),
 	}
 
-	var processed = map[int64]bool{}
+	var processed = map[time.Time]bool{}
 
 	for _, s := range summaries {
-		hash := s.FromTime.T().UnixNano() ^ s.ToTime.T().UnixNano()
+		hash := s.FromTime.T()
 		if _, found := processed[hash]; found {
 			logbuch.Warn("summary from %v to %v (user '%s') was attempted to be processed more often than once", s.FromTime, s.ToTime, s.UserID)
 			continue
