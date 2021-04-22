@@ -4,10 +4,11 @@ package main
 Usage:
 ---
 1. Set up a MySQL instance (see docker_mysql.sh for example)
-2. Create config file (e.g. migrate.yml) as shown below
-3. go run sqlite2mysql.go -config migrate.yml
+2. Create config file (e.g. config.yml) as shown below
+3. go run sqlite2mysql.go -config config.yml
+4. For postgres check https://wiki.postgresql.org/wiki/Fixing_Sequences
 
-Example: migrate.yml
+Example: config.yml
 ---
 # SQLite
 source:
@@ -21,19 +22,22 @@ target:
   user:
   password:
   name:
+  dialect:
 */
 
 import (
 	"flag"
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/jinzhu/configor"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"log"
-	"os"
 )
 
 type config struct {
@@ -47,6 +51,7 @@ type dbConfig struct {
 	User     string
 	Password string
 	Name     string
+	Dialect  string `yaml:"-"`
 }
 
 var cfg *config
@@ -75,22 +80,37 @@ func init() {
 		dbSource = db
 	}
 
-	log.Println("attempting to open mysql database as Target")
-	if db, err := gorm.Open(mysql.New(mysql.Config{
-		DriverName: "mysql",
-		DSN: fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
+	if cfg.Target.Dialect == "postgres" {
+		log.Println("attempting to open postgresql database as Target")
+		if db, err := gorm.Open(postgres.Open(fmt.Sprintf("user=%s password=%s host=%s port=%d dbname=%s sslmode=disable timezone=Europe/Berlin",
 			cfg.Target.User,
 			cfg.Target.Password,
 			cfg.Target.Host,
 			cfg.Target.Port,
 			cfg.Target.Name,
-			"utf8mb4",
-			"Local",
-		),
-	}), &gorm.Config{}); err != nil {
-		log.Fatalln(err)
+		)), &gorm.Config{}); err != nil {
+			log.Fatalln(err)
+		} else {
+			dbTarget = db
+		}
 	} else {
-		dbTarget = db
+		log.Println("attempting to open mysql database as Target")
+		if db, err := gorm.Open(mysql.New(mysql.Config{
+			DriverName: "mysql",
+			DSN: fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
+				cfg.Target.User,
+				cfg.Target.Password,
+				cfg.Target.Host,
+				cfg.Target.Port,
+				cfg.Target.Name,
+				"utf8mb4",
+				"Local",
+			),
+		}), &gorm.Config{}); err != nil {
+			log.Fatalln(err)
+		} else {
+			dbTarget = db
+		}
 	}
 }
 
@@ -191,7 +211,25 @@ func main() {
 	log.Println("Migrating heartbeats ...")
 	if data, err := heartbeatSource.GetAll(); err == nil {
 		log.Printf("Got %d heartbeats loaded into memory. Batch-inserting them now ...\n", len(data))
-		if err := heartbeatTarget.InsertBatch(data); err != nil {
+
+		var slice = make([]*models.Heartbeat, len(data))
+		for i, heartbeat := range data {
+			heartbeat = heartbeat.Hashed()
+			log.Println(heartbeat.String())
+			slice[i] = heartbeat
+		}
+		left := 0
+		right := 100
+		size := len(slice)
+		for right < size {
+			log.Printf("Inserting batch from %d", left)
+			if err := heartbeatTarget.InsertBatch(slice[left:right]); err != nil {
+				log.Fatalln(err)
+			}
+			left += 100
+			right += 100
+		}
+		if err := heartbeatTarget.InsertBatch(slice[left:]); err != nil {
 			log.Fatalln(err)
 		}
 	} else {
