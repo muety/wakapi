@@ -1,21 +1,20 @@
 package main
 
 /*
+A script to migrate Wakapi data from SQLite to MySQL or Postgres.
+
 Usage:
 ---
-1. Set up a MySQL instance (see docker_mysql.sh for example)
-2. Create config file (e.g. config.yml) as shown below
+1. Set up an empty MySQL or Postgres database (see docker_[mysql|postgres].sh for example)
+2. Create a migration config file (e.g. config.yml) as shown below
 3. go run sqlite2mysql.go -config config.yml
-4. For postgres check https://wiki.postgresql.org/wiki/Fixing_Sequences
 
 Example: config.yml
 ---
-# SQLite
 source:
-  # Example: ../wakapi_db.db (relative to script path)
-  name:
+  name: ../wakapi_db.db
 
-# MySQL
+# MySQL / Postgres
 target:
   host:
   port:
@@ -23,6 +22,11 @@ target:
   password:
   name:
   dialect:
+
+Troubleshooting:
+---
+- Check https://wiki.postgresql.org/wiki/Fixing_Sequences in case of errors with Postgres
+- Check https://github.com/muety/wakapi/pull/181#issue-621585477 on further details about Postgres migration
 */
 
 import (
@@ -42,7 +46,7 @@ import (
 
 type config struct {
 	Source dbConfig // sqlite
-	Target dbConfig // mysql
+	Target dbConfig // mysql / postgres
 }
 
 type dbConfig struct {
@@ -51,8 +55,10 @@ type dbConfig struct {
 	User     string
 	Password string
 	Name     string
-	Dialect  string `yaml:"-"`
+	Dialect  string `default:"mysql"`
 }
+
+const InsertBatchSize = 100
 
 var cfg *config
 var dbSource, dbTarget *gorm.DB
@@ -73,7 +79,7 @@ func init() {
 		log.Fatalln("failed to read config", err)
 	}
 
-	log.Println("attempting to open sqlite database as Source")
+	log.Println("attempting to open sqlite database as source")
 	if db, err := gorm.Open(sqlite.Open(cfg.Source.Name), &gorm.Config{}); err != nil {
 		log.Fatalln(err)
 	} else {
@@ -81,7 +87,7 @@ func init() {
 	}
 
 	if cfg.Target.Dialect == "postgres" {
-		log.Println("attempting to open postgresql database as Target")
+		log.Println("attempting to open postgresql database as target")
 		if db, err := gorm.Open(postgres.Open(fmt.Sprintf("user=%s password=%s host=%s port=%d dbname=%s sslmode=disable timezone=Europe/Berlin",
 			cfg.Target.User,
 			cfg.Target.Password,
@@ -94,7 +100,7 @@ func init() {
 			dbTarget = db
 		}
 	} else {
-		log.Println("attempting to open mysql database as Target")
+		log.Println("attempting to open mysql database as target")
 		if db, err := gorm.Open(mysql.New(mysql.Config{
 			DriverName: "mysql",
 			DSN: fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
@@ -208,26 +214,26 @@ func main() {
 	}
 
 	// TODO: copy in mini-batches instead of loading all heartbeats into memory (potentially millions)
+
 	log.Println("Migrating heartbeats ...")
+
 	if data, err := heartbeatSource.GetAll(); err == nil {
 		log.Printf("Got %d heartbeats loaded into memory. Batch-inserting them now ...\n", len(data))
 
 		var slice = make([]*models.Heartbeat, len(data))
 		for i, heartbeat := range data {
 			heartbeat = heartbeat.Hashed()
-			log.Println(heartbeat.String())
 			slice[i] = heartbeat
 		}
-		left := 0
-		right := 100
-		size := len(slice)
+
+		left, right, size := 0, InsertBatchSize, len(slice)
 		for right < size {
 			log.Printf("Inserting batch from %d", left)
 			if err := heartbeatTarget.InsertBatch(slice[left:right]); err != nil {
 				log.Fatalln(err)
 			}
-			left += 100
-			right += 100
+			left += InsertBatchSize
+			right += InsertBatchSize
 		}
 		if err := heartbeatTarget.InsertBatch(slice[left:]); err != nil {
 			log.Fatalln(err)
