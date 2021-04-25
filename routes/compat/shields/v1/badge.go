@@ -74,7 +74,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, rangeFrom, rangeTo := utils.ResolveInterval(interval)
+	_, rangeFrom, rangeTo := utils.ResolveIntervalTZ(interval, user.TZ())
 	minStart := utils.StartOfDay(rangeTo.Add(-24 * time.Hour * time.Duration(user.ShareDataMaxDays)))
 	// negative value means no limit
 	if rangeFrom.Before(minStart) && user.ShareDataMaxDays >= 0 {
@@ -118,7 +118,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BadgeHandler) loadUserSummary(user *models.User, interval *models.IntervalKey) (*models.Summary, error, int) {
-	err, from, to := utils.ResolveInterval(interval)
+	err, from, to := utils.ResolveIntervalTZ(interval, user.TZ())
 	if err != nil {
 		return nil, err, http.StatusBadRequest
 	}

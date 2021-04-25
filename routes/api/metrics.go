@@ -116,7 +116,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 		return nil, err
 	}
 
-	from, to := utils.MustResolveIntervalRaw("today")
+	from, to := utils.MustResolveIntervalRawTZ("today", user.TZ())
 
 	summaryToday, err := h.summarySrvc.Aliased(from, to, user, h.summarySrvc.Retrieve, false)
 	if err != nil {

@@ -2,6 +2,7 @@
 <html lang="en">
 
 {{ template "head.tpl.html" . }}
+<script src="assets/timezones.js"></script>
 
 <body class="bg-gray-850 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
 
@@ -37,25 +38,37 @@
         <details class="my-8 pb-8 border-b border-gray-700">
             <summary class="cursor-pointer">
                 <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block"
-                    id="email-heading">
-                    Change E-Mail Address
+                    id="preferences-heading">
+                    Account Preferences
                 </h2>
             </summary>
             <div class="w-full">
                 <form class="mt-10" action="" method="post">
                     <input type="hidden" name="action" value="update_user">
                     <div class="mb-8 flex justify-between items-center space-x-4">
-                        <label class="inline-block text-sm text-gray-500" for="password_old">E-Mail Address</label>
+                        <label class="inline-block text-sm text-gray-500" for="select-timezone">Time Zone</label>
+                        <select name="location" id="select-timezone"
+                                class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded flex-grow py-1 px-3 cursor-pointer">
+                        </select>
+                    </div>
+                    <div class="mb-8 flex justify-between items-center space-x-4">
+                        <label class="inline-block text-sm text-gray-500" for="email">E-Mail Address</label>
                         <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded flex-grow py-1 px-3"
                                type="email" id="email"
                                name="email" placeholder="Enter your e-mail address"
                                value="{{ .User.Email }}">
+                    </div>
+                    <div class="text-gray-300 text-sm">E-Mail address is optional, but required for some features
+                        that you cannot use else. Also, if you do not add an e-mail address, you will not be able to
+                        reset your password in case you forget it.
+                    </div>
+
+                    <div class="flex justify-end mt-4">
                         <button type="submit"
-                                class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                                class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm self-end">
                             Save
                         </button>
                     </div>
-                    <div class="text-gray-300 text-sm">E-Mail address is optional, but required for some features that you cannot use else. Also, if you do not add an e-mail address, you will not be able to reset your password in case you forget it.</div>
                 </form>
             </div>
         </details>
@@ -70,7 +83,8 @@
                 <form class="mt-10" action="" method="post">
                     <input type="hidden" name="action" value="change_password">
                     <div class="mb-8">
-                        <label class="inline-block text-sm mb-1 text-gray-500" for="password_old">Current Password</label>
+                        <label class="inline-block text-sm mb-1 text-gray-500" for="password_old">Current
+                            Password</label>
                         <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
                                type="password" id="password_old"
                                name="password_old" placeholder="Enter your old password" minlength="6" required>
@@ -82,13 +96,15 @@
                                name="password_new" placeholder="Choose a password" minlength="6" required>
                     </div>
                     <div class="mb-8">
-                        <label class="inline-block text-sm mb-1 text-gray-500" for="password_repeat">And again ...</label>
+                        <label class="inline-block text-sm mb-1 text-gray-500" for="password_repeat">And again
+                            ...</label>
                         <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
                                type="password" id="password_repeat"
                                name="password_repeat" placeholder="Repeat your password" minlength="6" required>
                     </div>
                     <div class="flex justify-between float-right">
-                        <button type="submit" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                        <button type="submit"
+                                class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
                             Save
                         </button>
                     </div>
@@ -240,10 +256,14 @@
             </summary>
 
             <div>
-                <p class="text-gray-300 text-sm mb-4 mt-6">Some features require public access to your data without authentication. This mainly includes <strong>Badges</strong> and the integration with <strong>GitHub Readme Stats</strong>, corresponding to these API endpoints:</p>
+                <p class="text-gray-300 text-sm mb-4 mt-6">Some features require public access to your data without
+                    authentication. This mainly includes <strong>Badges</strong> and the integration with <strong>GitHub
+                        Readme Stats</strong>, corresponding to these API endpoints:</p>
                 <ul class="list-disc list-inside text-gray-300">
-                    <li class="ml-2"><span class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono">/api/compat/shields/v1/{user}</span></li>
-                    <li class="ml-2"><span class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono">/api/v1/users/{user}/stats/{range}</span></li>
+                    <li class="ml-2"><span class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono">/api/compat/shields/v1/{user}</span>
+                    </li>
+                    <li class="ml-2"><span class="text-white text-xs bg-gray-900 rounded py-1 px-2 font-mono">/api/v1/users/{user}/stats/{range}</span>
+                    </li>
                 </ul>
 
                 <form action="" method="post" class="mt-8">
@@ -252,7 +272,8 @@
                         <span class="mr-2">Publicly accessible data range:<br><span class="text-xs text-gray-500">(in days; 0 = not public, -1 = unlimited)</span></span>
                         <div>
                             <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
-                                   style="width: 70px;" type="number" id="max_days" name="max_days" min="-1" required value="{{ .User.ShareDataMaxDays }}">
+                                   style="width: 70px;" type="number" id="max_days" name="max_days" min="-1" required
+                                   value="{{ .User.ShareDataMaxDays }}">
                         </div>
                     </div>
                     <div class="flex items-center w-full text-gray-300 text-sm justify-between my-2">
@@ -260,9 +281,14 @@
                             <span class="mr-2">Share projects: </span>
                         </div>
                         <div class="flex justify-end">
-                            <select autocomplete="off" name="share_projects" class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
-                                <option value="false" class="cursor-pointer" {{ if not .User.ShareProjects }} selected {{ end }}>No</option>
-                                <option value="true" class="cursor-pointer" {{ if .User.ShareProjects }} selected {{ end }}>Yes</option>
+                            <select autocomplete="off" name="share_projects"
+                                    class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareProjects }} selected
+                                        {{ end }}>No
+                                </option>
+                                <option value="true" class="cursor-pointer" {{ if .User.ShareProjects }} selected {{ end
+                                        }}>Yes
+                                </option>
                             </select>
                         </div>
                     </div>
@@ -271,9 +297,14 @@
                             <span class="mr-2">Share languages: </span>
                         </div>
                         <div class="flex justify-end">
-                            <select autocomplete="off" name="share_languages" class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
-                                <option value="false" class="cursor-pointer" {{ if not .User.ShareLanguages }} selected {{ end }}>No</option>
-                                <option value="true" class="cursor-pointer" {{ if .User.ShareLanguages }} selected {{ end }}>Yes</option>
+                            <select autocomplete="off" name="share_languages"
+                                    class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareLanguages }} selected
+                                        {{ end }}>No
+                                </option>
+                                <option value="true" class="cursor-pointer" {{ if .User.ShareLanguages }} selected {{
+                                        end }}>Yes
+                                </option>
                             </select>
                         </div>
                     </div>
@@ -282,9 +313,14 @@
                             <span class="mr-2">Share editors: </span>
                         </div>
                         <div class="flex justify-end">
-                            <select autocomplete="off" name="share_editors" class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
-                                <option value="false" class="cursor-pointer" {{ if not .User.ShareEditors }} selected {{ end }}>No</option>
-                                <option value="true" class="cursor-pointer" {{ if .User.ShareEditors }} selected {{ end }}>Yes</option>
+                            <select autocomplete="off" name="share_editors"
+                                    class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareEditors }} selected {{
+                                        end }}>No
+                                </option>
+                                <option value="true" class="cursor-pointer" {{ if .User.ShareEditors }} selected {{ end
+                                        }}>Yes
+                                </option>
                             </select>
                         </div>
                     </div>
@@ -293,9 +329,14 @@
                             <span class="mr-2">Share operating systems: </span>
                         </div>
                         <div class="flex justify-end">
-                            <select autocomplete="off" name="share_oss" class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
-                                <option value="false" class="cursor-pointer" {{ if not .User.ShareOSs }} selected {{ end }}>No</option>
-                                <option value="true" class="cursor-pointer" {{ if .User.ShareOSs }} selected {{ end }}>Yes</option>
+                            <select autocomplete="off" name="share_oss"
+                                    class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareOSs }} selected {{ end
+                                        }}>No
+                                </option>
+                                <option value="true" class="cursor-pointer" {{ if .User.ShareOSs }} selected {{ end }}>
+                                    Yes
+                                </option>
                             </select>
                         </div>
                     </div>
@@ -304,15 +345,22 @@
                             <span class="mr-2">Share machines: </span>
                         </div>
                         <div class="flex justify-end">
-                            <select autocomplete="off" name="share_machines" class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
-                                <option value="false" class="cursor-pointer" {{ if not .User.ShareMachines }} selected {{ end }}>No</option>
-                                <option value="true" class="cursor-pointer" {{ if .User.ShareMachines }} selected {{ end }}>Yes</option>
+                            <select autocomplete="off" name="share_machines"
+                                    class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareMachines }} selected
+                                        {{ end }}>No
+                                </option>
+                                <option value="true" class="cursor-pointer" {{ if .User.ShareMachines }} selected {{ end
+                                        }}>Yes
+                                </option>
                             </select>
                         </div>
                     </div>
 
                     <div class="flex justify-between float-right mt-4">
-                        <button type="submit" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm" style="width: 100px;">
+                        <button type="submit"
+                                class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm"
+                                style="width: 100px;">
                             Save
                         </button>
                     </div>
@@ -394,7 +442,8 @@
                     </form>
 
                     <p class="mt-6">
-                        <span class="font-semibold"><span class="iconify inline" data-icon="emojione-v1:backhand-index-pointing-right"></span> Please note:</span>
+                        <span class="font-semibold"><span class="iconify inline"
+                                                          data-icon="emojione-v1:backhand-index-pointing-right"></span> Please note:</span>
                         <span>When enabling this feature, the operators of this server will, in theory (!), have unlimited access to your data stored in WakaTime. If you are concerned about your privacy, please do not enable this integration or wait for OAuth 2 authentication (<a
                                 class="underline" target="_blank" href="https://github.com/muety/wakapi/issues/94"
                                 rel="noopener noreferrer">#94</a>) to be implemented.</span>
@@ -442,7 +491,8 @@
                     <p>You have the ability to create badges from your coding statistics using <a
                             href="https://shields.io" target="_blank" class="border-b border-green-800"
                             rel="noopener noreferrer">Shields.io</a>. To do so, you need to grant public, unauthorized
-                        access to the respective endpoint. See <a href="settings#public_data" class="underline">Public Data</a> setting.</p>
+                        access to the respective endpoint. See <a href="settings#public_data" class="underline">Public
+                            Data</a> setting.</p>
                     {{ end }}
                 </div>
 
@@ -451,7 +501,10 @@
                         GitHub Readme Stats
                     </h3>
 
-                    <p class="mb-4">Wakapi intregrates with <a href="https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats" class="underline" target="_blank" rel="noopener noreferrer">GitHub Readme Stats</a> to generate fancy cards for you.</p>
+                    <p class="mb-4">Wakapi intregrates with <a
+                            href="https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats"
+                            class="underline" target="_blank" rel="noopener noreferrer">GitHub Readme Stats</a> to
+                        generate fancy cards for you.</p>
 
                     {{ if ne .User.ShareDataMaxDays 0 }}
                     <div class="flex space-x-1">
@@ -459,9 +512,10 @@
                         <span class="text-xs text-gray-500">(Only available on public instances, not on localhost)</span>
                     </div>
                     <div class="flex flex-col mb-4 mt-2">
-                        <img src="https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact" class="with-url-src-no-scheme">
+                        <img src="https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact"
+                             class="with-url-src-no-scheme">
                         <p class="mt-2"><strong>Source URL:</strong>
-                        <span class="break-words text-xs bg-gray-900 rounded py-1 px-2 font-mono with-url-inner-no-scheme">
+                            <span class="break-words text-xs bg-gray-900 rounded py-1 px-2 font-mono with-url-inner-no-scheme">
                             https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact
                         </span>
                         </p>
@@ -583,6 +637,29 @@
             formImportWakatime.submit()
         }
     })
+
+    // Time zone stuff
+
+    const userTimeZone = {{ .User.Location }}
+    const userTzOffset = {{ .User.TZOffset.Hours }}
+    const selectTimezone = document.getElementById('select-timezone')
+    const createTzOption = (tz) => {
+        if (!tz) tz = 'Local'
+        const option = document.createElement('option')
+        option.setAttribute('value', tz)
+        option.innerText = tz
+        if (tz === userTimeZone) option.setAttribute('selected', 'true')
+        return option
+    }
+
+    const defaultOption = createTzOption('Local')
+    defaultOption.value = 'Local'
+    defaultOption.innerText = `Local server time (UTC+${userTzOffset})`
+    selectTimezone.appendChild(defaultOption)
+
+    tzs.sort()
+        .map(createTzOption)
+        .forEach(o => selectTimezone.appendChild(o))
 </script>
 
 {{ template "footer.tpl.html" . }}

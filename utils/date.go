@@ -5,33 +5,42 @@ import (
 	"time"
 )
 
-func StartOfToday() time.Time {
-	return StartOfDay(time.Now())
-}
-
 func StartOfDay(date time.Time) time.Time {
 	return FloorDate(date)
 }
 
-func StartOfWeek() time.Time {
-	ref := time.Now()
-	year, week := ref.ISOWeek()
-	return firstDayOfISOWeek(year, week, ref.Location())
+func StartOfToday(tz *time.Location) time.Time {
+	return StartOfDay(FloorDate(time.Now().In(tz)))
 }
 
-func StartOfMonth() time.Time {
-	ref := time.Now()
-	return time.Date(ref.Year(), ref.Month(), 1, 0, 0, 0, 0, ref.Location())
+func StartOfThisWeek(tz *time.Location) time.Time {
+	return StartOfWeek(time.Now().In(tz))
 }
 
-func StartOfYear() time.Time {
-	ref := time.Now()
-	return time.Date(ref.Year(), time.January, 1, 0, 0, 0, 0, ref.Location())
+func StartOfWeek(date time.Time) time.Time {
+	year, week := date.ISOWeek()
+	return firstDayOfISOWeek(year, week, date.Location())
 }
 
-// FloorDate rounds date down to the start of the day
+func StartOfThisMonth(tz *time.Location) time.Time {
+	return StartOfMonth(time.Now().In(tz))
+}
+
+func StartOfMonth(date time.Time) time.Time {
+	return time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, date.Location())
+}
+
+func StartOfThisYear(tz *time.Location) time.Time {
+	return StartOfYear(time.Now().In(tz))
+}
+
+func StartOfYear(date time.Time) time.Time {
+	return time.Date(date.Year(), time.January, 1, 0, 0, 0, 0, date.Location())
+}
+
+// FloorDate rounds date down to the start of the day and keeps the time zone
 func FloorDate(date time.Time) time.Time {
-	return date.Truncate(24 * time.Hour)
+	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 }
 
 // CeilDate rounds date up to the start of next day if date is not already a start (00:00:00)
@@ -41,6 +50,20 @@ func CeilDate(date time.Time) time.Time {
 		return floored
 	}
 	return floored.Add(24 * time.Hour)
+}
+
+// SetLocation resets the time zone information of a date without converting it, i.e. 19:00 UTC will result in 19:00 CET, for instance
+func SetLocation(date time.Time, tz *time.Location) time.Time {
+	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, tz)
+}
+
+// WithOffset adds the time zone difference between Local and tz to a date, i.e. 19:00 UTC will result in 21:00 CET (or 22:00 CEST), for instance
+func WithOffset(date time.Time, tz *time.Location) time.Time {
+	now := time.Now()
+	_, localOffset := now.Zone()
+	_, targetOffset := now.In(tz).Zone()
+	dateTz := date.Add(time.Duration((targetOffset - localOffset) * int(time.Second)))
+	return time.Date(dateTz.Year(), dateTz.Month(), dateTz.Day(), dateTz.Hour(), dateTz.Minute(), dateTz.Second(), dateTz.Nanosecond(), dateTz.Location()).In(tz)
 }
 
 func SplitRangeByDays(from time.Time, to time.Time) [][]time.Time {

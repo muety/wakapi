@@ -1,6 +1,9 @@
 package models
 
-import "regexp"
+import (
+	"regexp"
+	"time"
+)
 
 func init() {
 	mailRegex = regexp.MustCompile(MailPattern)
@@ -10,6 +13,7 @@ type User struct {
 	ID               string     `json:"id" gorm:"primary_key"`
 	ApiKey           string     `json:"api_key" gorm:"unique"`
 	Email            string     `json:"email" gorm:"index:idx_user_email; size:255"`
+	Location         string     `json:"location"`
 	Password         string     `json:"-"`
 	CreatedAt        CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	LastLoggedInAt   CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
@@ -54,7 +58,8 @@ type CredentialsReset struct {
 }
 
 type UserDataUpdate struct {
-	Email string `schema:"email"`
+	Email    string `schema:"email"`
+	Location string `schema:"location"`
 }
 
 type TimeByUser struct {
@@ -65,6 +70,22 @@ type TimeByUser struct {
 type CountByUser struct {
 	User  string
 	Count int64
+}
+
+func (u *User) TZ() *time.Location {
+	if u.Location == "" {
+		u.Location = "Local"
+	}
+	tz, err := time.LoadLocation(u.Location)
+	if err != nil {
+		return time.Local
+	}
+	return tz
+}
+
+func (u *User) TZOffset() time.Duration {
+	_, offset := time.Now().In(u.TZ()).Zone()
+	return time.Duration(offset * int(time.Second))
 }
 
 func (c *CredentialsReset) IsValid() bool {
@@ -85,7 +106,7 @@ func (s *Signup) IsValid() bool {
 }
 
 func (r *UserDataUpdate) IsValid() bool {
-	return ValidateEmail(r.Email)
+	return ValidateEmail(r.Email) && ValidateTimezone(r.Location)
 }
 
 func ValidateUsername(username string) bool {
@@ -98,4 +119,9 @@ func ValidatePassword(password string) bool {
 
 func ValidateEmail(email string) bool {
 	return email == "" || mailRegex.Match([]byte(email))
+}
+
+func ValidateTimezone(tz string) bool {
+	_, err := time.LoadLocation(tz)
+	return err == nil
 }
