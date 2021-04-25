@@ -34,6 +34,8 @@
         </div>
 
         <form class="mt-10" action="signup" method="post">
+            <input type="hidden" name="location" id="input-location">
+
             <div class="mb-8">
                 <label class="inline-block text-sm mb-1 text-gray-500" for="username">Username</label>
                 <input class="shadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded w-full py-1 px-3"
@@ -78,6 +80,14 @@
 {{ template "footer.tpl.html" . }}
 
 {{ template "foot.tpl.html" . }}
+
+<script type="text/javascript">
+    function guessTimezone() {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone
+    }
+
+    document.getElementById('input-location').setAttribute('value', guessTimezone())
+</script>
 </body>
 
 </html>
