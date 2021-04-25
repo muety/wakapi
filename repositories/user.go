@@ -77,7 +77,7 @@ func (r *UserRepository) GetAll() ([]*models.User, error) {
 func (r *UserRepository) GetByLoggedInAfter(t time.Time) ([]*models.User, error) {
 	var users []*models.User
 	if err := r.db.
-		Where("last_logged_in_at >= ?", t).
+		Where("last_logged_in_at >= ?", t.Local()).
 		Find(&users).Error; err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (r *UserRepository) GetByLastActiveAfter(t time.Time) ([]*models.User, erro
 	if err := r.db.
 		Select("user as id").
 		Table("(?) as q", subQuery1).
-		Where("time >= ?", t).
+		Where("time >= ?", t.Local()).
 		Scan(&userIds).Error; err != nil {
 		return nil, err
 	}
@@ -142,6 +142,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"wakatime_api_key":    user.WakatimeApiKey,
 		"has_data":            user.HasData,
 		"reset_token":         user.ResetToken,
+		"location":            user.Location,
 	}
 
 	result := r.db.Model(user).Updates(updateMap)

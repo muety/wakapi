@@ -166,6 +166,7 @@ func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Reques
 	}
 
 	user.Email = payload.Email
+	user.Location = payload.Location
 
 	if _, err := h.userSrvc.Update(user); err != nil {
 		return http.StatusInternalServerError, "", conf.ErrInternalServerError

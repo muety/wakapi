@@ -40,8 +40,8 @@ func (r *SummaryRepository) GetByUserWithin(user *models.User, from, to time.Tim
 	var summaries []*models.Summary
 	if err := r.db.
 		Where(&models.Summary{UserID: user.ID}).
-		Where("from_time >= ?", from).
-		Where("to_time <= ?", to).
+		Where("from_time >= ?", from.Local()).
+		Where("to_time <= ?", to.Local()).
 		Order("from_time asc").
 		Preload("Projects", "type = ?", models.SummaryProject).
 		Preload("Languages", "type = ?", models.SummaryLanguage).

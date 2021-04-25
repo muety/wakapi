@@ -54,8 +54,8 @@ func (r *HeartbeatRepository) GetAllWithin(from, to time.Time, user *models.User
 	var heartbeats []*models.Heartbeat
 	if err := r.db.
 		Where(&models.Heartbeat{UserID: user.ID}).
-		Where("time >= ?", from).
-		Where("time < ?", to).
+		Where("time >= ?", from.Local()).
+		Where("time < ?", to.Local()).
 		Order("time asc").
 		Find(&heartbeats).Error; err != nil {
 		return nil, err
@@ -126,7 +126,7 @@ func (r *HeartbeatRepository) CountByUsers(users []*models.User) ([]*models.Coun
 
 func (r *HeartbeatRepository) DeleteBefore(t time.Time) error {
 	if err := r.db.
-		Where("time <= ?", t).
+		Where("time <= ?", t.Local()).
 		Delete(models.Heartbeat{}).Error; err != nil {
 		return err
 	}

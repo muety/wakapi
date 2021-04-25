@@ -62,7 +62,7 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		rangeParam = (*models.IntervalPast7Days)[0]
 	}
 
-	err, rangeFrom, rangeTo := utils.ResolveIntervalRaw(rangeParam)
+	err, rangeFrom, rangeTo := utils.ResolveIntervalRawTZ(rangeParam, requestedUser.TZ())
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("invalid range"))
