@@ -272,7 +272,7 @@ def run(params: ConfigParams, update_progress: Callable[[int], None]):
     else:
         for d in data:
             post_data_sync([d], f'{params.api_url}/heartbeats', params.api_key)
-            update_progress(len(d))
+            update_progress(1)
 
 
 if __name__ == '__main__':

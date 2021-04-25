@@ -117,12 +117,13 @@ $ ./wakapi
 
 #### Compile & Run
 ```bash
-# Adapt config to your needs
-$ cp config.default.yml config.yml
-$ vi config.yml
 
 # Build the executable
 $ go build -o wakapi
+
+# Adapt config to your needs
+$ cp config.default.yml config.yml
+$ vi config.yml
 
 # Run it
 $ ./wakapi
