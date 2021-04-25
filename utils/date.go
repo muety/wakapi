@@ -66,6 +66,7 @@ func WithOffset(date time.Time, tz *time.Location) time.Time {
 	return time.Date(dateTz.Year(), dateTz.Month(), dateTz.Day(), dateTz.Hour(), dateTz.Minute(), dateTz.Second(), dateTz.Nanosecond(), dateTz.Location()).In(tz)
 }
 
+// SplitRangeByDays creates a slice of intervals between from and to, each of which is at max of 24 hours length and has its split at midnight
 func SplitRangeByDays(from time.Time, to time.Time) [][]time.Time {
 	intervals := make([][]time.Time, 0)
 
