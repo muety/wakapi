@@ -76,8 +76,9 @@ func (srv *UserService) Count() (int64, error) {
 func (srv *UserService) CreateOrGet(signup *models.Signup, isAdmin bool) (*models.User, bool, error) {
 	u := &models.User{
 		ID:       signup.Username,
-		Email:    signup.Email,
 		ApiKey:   uuid.NewV4().String(),
+		Email:    signup.Email,
+		Location: signup.Location,
 		Password: signup.Password,
 		IsAdmin:  isAdmin,
 	}
