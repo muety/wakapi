@@ -103,7 +103,7 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		stats.Data.Machines = nil
 	}
 
-	utils.RespondJSON(w, http.StatusOK, stats)
+	utils.RespondJSON(w, r, http.StatusOK, stats)
 }
 
 func (h *StatsHandler) loadUserSummary(user *models.User, start, end time.Time) (*models.Summary, error, int) {

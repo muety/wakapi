@@ -64,7 +64,7 @@ func (h *AllTimeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vm := v1.NewAllTimeFrom(summary, models.NewFiltersWith(models.SummaryProject, values.Get("project")))
-	utils.RespondJSON(w, http.StatusOK, vm)
+	utils.RespondJSON(w, r, http.StatusOK, vm)
 }
 
 func (h *AllTimeHandler) loadUserSummary(user *models.User) (*models.Summary, error, int) {

@@ -129,7 +129,6 @@ func newDataFrom(s *models.Summary) *SummariesData {
 		defer wg.Done()
 		for i, e := range s.Languages {
 			data.Languages[i] = convertEntry(e, s.TotalTimeBy(models.SummaryLanguage))
-
 		}
 	}(data)
 
