@@ -101,7 +101,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	cacheKey := fmt.Sprintf("%s_%v_%s_%s", user.ID, *interval, filterEntity, filterKey)
 	if cacheResult, ok := h.cache.Get(cacheKey); ok {
-		utils.RespondJSON(w, http.StatusOK, cacheResult.(*v1.BadgeData))
+		utils.RespondJSON(w, r, http.StatusOK, cacheResult.(*v1.BadgeData))
 		return
 	}
 
@@ -114,7 +114,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	vm := v1.NewBadgeDataFrom(summary, filters)
 	h.cache.SetDefault(cacheKey, vm)
-	utils.RespondJSON(w, http.StatusOK, vm)
+	utils.RespondJSON(w, r, http.StatusOK, vm)
 }
 
 func (h *BadgeHandler) loadUserSummary(user *models.User, interval *models.IntervalKey) (*models.Summary, error, int) {

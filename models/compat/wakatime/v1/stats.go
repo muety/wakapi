@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/muety/wakapi/models"
+	"math"
 	"time"
 )
 
@@ -30,6 +31,9 @@ type StatsData struct {
 func NewStatsFrom(summary *models.Summary, filters *models.Filters) *StatsViewModel {
 	totalTime := summary.TotalTime()
 	numDays := int(summary.ToTime.T().Sub(summary.FromTime.T()).Hours() / 24)
+	if math.IsInf(float64(numDays), 0) {
+		numDays = 0
+	}
 
 	data := &StatsData{
 		Username:              summary.UserID,

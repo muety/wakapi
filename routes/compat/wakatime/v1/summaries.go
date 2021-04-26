@@ -76,7 +76,7 @@ func (h *SummariesHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vm := v1.NewSummariesFrom(summaries, filters)
-	utils.RespondJSON(w, http.StatusOK, vm)
+	utils.RespondJSON(w, r, http.StatusOK, vm)
 }
 
 func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary, error, int) {

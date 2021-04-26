@@ -632,11 +632,13 @@
 
     const btnImportWakatime = document.querySelector('#btn-import-wakatime')
     const formImportWakatime = document.querySelector('#form-import-wakatime')
-    btnImportWakatime.addEventListener('click', () => {
-        if (confirm('Are you sure? The import can not be undone.')) {
-            formImportWakatime.submit()
-        }
-    })
+    if (btnImportWakatime) {
+        btnImportWakatime.addEventListener('click', () => {
+            if (confirm('Are you sure? The import can not be undone.')) {
+                formImportWakatime.submit()
+            }
+        })
+    }
 
     // Time zone stuff
 

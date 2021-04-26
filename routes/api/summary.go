@@ -51,5 +51,5 @@ func (h *SummaryApiHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondJSON(w, http.StatusOK, summary)
+	utils.RespondJSON(w, r, http.StatusOK, summary)
 }
