@@ -118,7 +118,7 @@ func main() {
 	if config.IsDev() {
 		db = db.Debug()
 	}
-	sqlDb, _ := db.DB()
+	sqlDb, err := db.DB()
 	sqlDb.SetMaxIdleConns(int(config.Db.MaxConn))
 	sqlDb.SetMaxOpenConns(int(config.Db.MaxConn))
 	if err != nil {
