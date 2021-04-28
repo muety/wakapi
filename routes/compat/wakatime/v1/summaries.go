@@ -99,12 +99,12 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary
 		// eventually, consider start and end params a date
 		var err error
 
-		start, err = time.Parse(time.RFC3339, strings.Replace(startParam, " ", "+", 1))
+		start, err = utils.ParseDateTimeTZ(strings.Replace(startParam, " ", "+", 1), user.TZ())
 		if err != nil {
 			return nil, errors.New("missing required 'start' parameter"), http.StatusBadRequest
 		}
 
-		end, err = time.Parse(time.RFC3339, strings.Replace(endParam, " ", "+", 1))
+		end, err = utils.ParseDateTimeTZ(strings.Replace(endParam, " ", "+", 1), user.TZ())
 		if err != nil {
 			return nil, errors.New("missing required 'end' parameter"), http.StatusBadRequest
 		}
