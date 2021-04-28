@@ -1,58 +1,58 @@
-env: development
+env: production
 
 server:
-  listen_ipv4: 127.0.0.1            # leave blank to disable ipv4
-  listen_ipv6: ::1                  # leave blank to disable ipv6
-  tls_cert_path:                    # leave blank to not use https
-  tls_key_path:                     # leave blank to not use https
+  listen_ipv4: 127.0.0.1              # leave blank to disable ipv4
+  listen_ipv6: ::1                    # leave blank to disable ipv6
+  tls_cert_path:                      # leave blank to not use https
+  tls_key_path:                       # leave blank to not use https
   port: 3000
   base_path: /
-  public_url: http://localhost:3000 # required for links (e.g. password reset) in e-mail
+  public_url: http://localhost:3000   # required for links (e.g. password reset) in e-mail
 
 app:
-  aggregation_time: '02:15' # time at which to run daily aggregation batch jobs
-  inactive_days: 7          # time of previous days within a user must have logged in to be considered active
+  aggregation_time: '02:15'           # time at which to run daily aggregation batch jobs
+  inactive_days: 7                    # time of previous days within a user must have logged in to be considered active
   custom_languages:
     vue: Vue
     jsx: JSX
     svelte: Svelte
 
 db:
-  host:                             # leave blank when using sqlite3
-  port:                             # leave blank when using sqlite3
-  user:                             # leave blank when using sqlite3
-  password:                         # leave blank when using sqlite3
-  name: wakapi_db.db                # database name for mysql / postgres or file path for sqlite (e.g. /tmp/wakapi.db)
-  dialect: sqlite3                  # mysql, postgres, sqlite3
-  charset: utf8mb4                  # only used for mysql connections
-  max_conn: 2                       # maximum number of concurrent connections to maintain
-  ssl: false                        # whether to use tls for db connection (must be true for cockroachdb) (ignored for mysql and sqlite)
-  automgirate_fail_silently: false  # whether to ignore schema auto-migration failures when starting up
+  host:                               # leave blank when using sqlite3
+  port:                               # leave blank when using sqlite3
+  user:                               # leave blank when using sqlite3
+  password:                           # leave blank when using sqlite3
+  name: wakapi_db.db                  # database name for mysql / postgres or file path for sqlite (e.g. /tmp/wakapi.db)
+  dialect: sqlite3                    # mysql, postgres, sqlite3
+  charset: utf8mb4                    # only used for mysql connections
+  max_conn: 2                         # maximum number of concurrent connections to maintain
+  ssl: false                          # whether to use tls for db connection (must be true for cockroachdb) (ignored for mysql and sqlite)
+  automgirate_fail_silently: false    # whether to ignore schema auto-migration failures when starting up
 
 security:
-  password_salt:            # CHANGE !
-  insecure_cookies: false   # You need to set this to 'true' when on localhost
+  password_salt:                      # change this
+  insecure_cookies: true              # should be set to 'false', except when not running with HTTPS (e.g. on localhost)
   cookie_max_age: 172800
   allow_signup: true
   expose_metrics: false
 
 sentry:
-  dsn:                        # leave blank to disable sentry integration
-  enable_tracing: true        # whether to use performance monitoring
-  sample_rate: 0.75           # probability of tracing a request
-  sample_rate_heartbeats: 0.1 # probability of tracing a heartbeat request
+  dsn:                                # leave blank to disable sentry integration
+  enable_tracing: true                # whether to use performance monitoring
+  sample_rate: 0.75                   # probability of tracing a request
+  sample_rate_heartbeats: 0.1         # probability of tracing a heartbeat request
 
 mail:
-  enabled: true                         # whether to enable mails (used for password resets, reports, etc.)
-  provider: smtp                        # method for sending mails, currently one of ['smtp', 'mailwhale']
-  smtp:                                 # smtp settings when sending mails via smtp
+  enabled: true                       # whether to enable mails (used for password resets, reports, etc.)
+  provider: smtp                      # method for sending mails, currently one of ['smtp', 'mailwhale']
+smtp:                                 # smtp settings when sending mails via smtp
     host:
     port:
     username:
     password:
     tls:
     sender: Wakapi <noreply@wakapi.dev>
-  mailwhale:                            # mailwhale.dev settings when using mailwhale as sending service
+  mailwhale:                          # mailwhale.dev settings when using mailwhale as sending service
     url:
     client_id:
     client_secret:

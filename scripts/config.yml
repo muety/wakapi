@@ -1,0 +1,12 @@
+# SQLite
+source:
+  name: ../wakapi_db.db
+
+# MySQL
+target:
+  host: localhost
+  port: 5432
+  user: wakapi_user
+  password: wakapi
+  name: wakapi_local
+  dialect:
