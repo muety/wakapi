@@ -77,7 +77,12 @@ If you want to you out free, hosted cloud service, all you need to do is create 
 
 However, we do not guarantee data persistence, so you might potentially lose your data if the service is taken down some day ❕
 
-### 🐳 Option 2: Use Docker
+### 📦 Option 2: Quick-run a Release
+```bash
+$ curl -L https://wakapi.dev/get | bash
+```
+
+### 🐳 Option 3: Use Docker
 ```bash
 # Create a persistent volume
 $ docker volume create wakapi-data
@@ -94,20 +99,7 @@ $ docker run -d \
 
 If you want to run Wakapi on **Kubernetes**, there is [wakapi-helm-chart](https://github.com/andreymaznyak/wakapi-helm-chart) for quick and easy deployment.
 
-### 📦 Option 3: Run a release
-```bash
-# Download the release and unpack it
-$ wget https://github.com/muety/wakapi/releases/download/1.20.2/wakapi_linux_amd64.zip
-$ unzip wakapi_linux_amd64.zip
-
-# Optionally adapt config to your needs
-$ vi config.yml
-
-# Run it
-$ ./wakapi
-```
-
-### 🧑‍💻 Option 4: Run from source
+### 🧑‍💻 Option 4: Compile and run from source
 #### Prerequisites
 * Go >= 1.16 (with `$GOPATH` properly set)
 * gcc (to compile [go-sqlite3](https://github.com/mattn/go-sqlite3))
@@ -117,7 +109,6 @@ $ ./wakapi
 
 #### Compile & Run
 ```bash
-
 # Build the executable
 $ go build -o wakapi
 
@@ -129,7 +120,7 @@ $ vi config.yml
 $ ./wakapi
 ```
 
-**Note:** By default, the application is running in dev mode. However, it is recommended to set `ENV=production` for enhanced performance and security. To still be able to log in when using production mode, you either have to run Wakapi behind a reverse proxy, that enables for HTTPS encryption (see [best practices](#best-practices)) or set `security.insecure_cookies = true` in `config.yml`.
+**Note:** Check the comments `config.yml` for best practices regarding security configuration and more.
 
 ### 💻 Client Setup
 Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime) client tools. In order to collect statistics to Wakapi, you need to set them up.
