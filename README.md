@@ -239,6 +239,44 @@ Wakapi also integrates with [GitHub Readme Stats](https://github.com/anuraghazra
 
 ![](https://github-readme-stats.vercel.app/api/wakatime?username=n1try&api_domain=wakapi.dev&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact)
 
+<details>
+<summary>Click to view code</summary>
+
+```md
+![](https://github-readme-stats.vercel.app/api/wakatime?username={yourusername}&api_domain=wakapi.dev&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact)
+```
+
+</details>
+<br>
+
+
+### Github Readme Metrics Integration
+Theres a [Wakatime plugin](https://github.com/lowlighter/metrics/tree/master/source/plugins/wakatime) for github [metrics](https://github.com/lowlighter/metrics/) that is also compatible with Wakapi.
+
+Preview:
+
+![](https://raw.githubusercontent.com/lowlighter/lowlighter/master/metrics.plugin.wakatime.svg)
+
+<details>
+<summary>Click to view code</summary>
+
+```yml
+- uses: lowlighter/metrics@latest
+  with:
+    # ... other options
+    plugin_wakatime: yes
+    plugin_wakatime_token: ${{ secrets.WAKATIME_TOKEN }}      # Required
+    plugin_wakatime_days: 7                                   # Display last week stats
+    plugin_wakatime_sections: time, projects, projects-graphs # Display time and projects sections, along with projects graphs
+    plugin_wakatime_limit: 4                                  # Show 4 entries per graph
+    plugin_wakatime_url: http://wakapi.dev                  # Wakatime url endpoint
+    plugin_wakatime_user: .user.login                         # User
+
+```
+
+</details>
+<br>
+
 ## 👍 Best Practices
 It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or _nginx_ to enable **TLS encryption** (HTTPS).
 However, if you want to expose your wakapi instance to the public anyway, you need to set `server.listen_ipv4` to `0.0.0.0` in `config.yml`
