@@ -110,6 +110,12 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary
 		}
 	}
 
+	// wakatime iterprets end date as "inclusive", wakapi usually as "exclusive"
+	// i.e. for wakatime, an interval 2021-04-29 - 2021-04-29 is actually 2021-04-29 - 2021-04-30,
+	// while for wakapi it would be empty
+	// see https://github.com/muety/wakapi/issues/192
+	end = utils.EndOfDay(end).Add(-1 * time.Second)
+
 	overallParams := &models.SummaryParams{
 		From:      start,
 		To:        end,
@@ -125,6 +131,9 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary
 		if err != nil {
 			return nil, err, http.StatusInternalServerError
 		}
+		// wakatime returns requested instead of actual summary range
+		summary.FromTime = models.CustomTime(interval[0])
+		summary.ToTime = models.CustomTime(interval[1].Add(-1 * time.Second))
 		summaries[i] = summary
 	}
 

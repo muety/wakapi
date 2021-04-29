@@ -66,6 +66,28 @@ func TestDate_StartOfDay(t *testing.T) {
 	assert.Equal(t, tzCet, StartOfDay(d4).Location())
 }
 
+func TestDate_EndOfDay(t *testing.T) {
+	d1, _ := time.ParseInLocation(config.SimpleDateTimeFormat, "2021-04-25 20:25:00", tzLocal)
+	d2, _ := time.ParseInLocation(config.SimpleDateTimeFormat, "2021-04-25 20:25:00", tzUtc)
+	d3, _ := time.ParseInLocation(config.SimpleDateTimeFormat, "2021-04-25 20:25:00", tzPst)
+	d4, _ := time.ParseInLocation(config.SimpleDateTimeFormat, "2021-04-25 20:25:00", tzCet)
+
+	t1, _ := time.ParseInLocation(config.SimpleDateTimeFormat, "2021-04-26 00:00:00", tzLocal)
+	t2, _ := time.ParseInLocation(config.SimpleDateTimeFormat, "2021-04-26 00:00:00", tzUtc)
+	t3, _ := time.ParseInLocation(config.SimpleDateTimeFormat, "2021-04-26 00:00:00", tzPst)
+	t4, _ := time.ParseInLocation(config.SimpleDateTimeFormat, "2021-04-26 00:00:00", tzCet)
+
+	assert.Equal(t, t1, EndOfDay(d1))
+	assert.Equal(t, t2, EndOfDay(d2))
+	assert.Equal(t, t3, EndOfDay(d3))
+	assert.Equal(t, t4, EndOfDay(d4))
+
+	assert.Equal(t, tzLocal, EndOfDay(d1).Location())
+	assert.Equal(t, tzUtc, EndOfDay(d2).Location())
+	assert.Equal(t, tzPst, EndOfDay(d3).Location())
+	assert.Equal(t, tzCet, EndOfDay(d4).Location())
+}
+
 func TestDate_StartOfWeek(t *testing.T) {
 	d1, _ := time.ParseInLocation(config.SimpleDateTimeFormat, "2021-04-25 20:25:00", tzLocal)
 	d2, _ := time.ParseInLocation(config.SimpleDateTimeFormat, "2021-04-25 20:25:00", tzUtc)

@@ -58,6 +58,7 @@ type SummariesRange struct {
 }
 
 func NewSummariesFrom(summaries []*models.Summary, filters *models.Filters) *SummariesViewModel {
+	// TODO: implement filtering (https://github.com/muety/wakapi/issues/58)
 	data := make([]*SummariesData, len(summaries))
 	minDate, maxDate := time.Now().Add(1*time.Second), time.Time{}
 

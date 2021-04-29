@@ -13,6 +13,18 @@ func StartOfToday(tz *time.Location) time.Time {
 	return StartOfDay(FloorDate(time.Now().In(tz)))
 }
 
+func EndOfDay(date time.Time) time.Time {
+	floored := FloorDate(date)
+	if floored == date {
+		date = date.Add(1 * time.Second)
+	}
+	return CeilDate(date)
+}
+
+func EndOfToday(tz *time.Location) time.Time {
+	return EndOfDay(time.Now().In(tz))
+}
+
 func StartOfThisWeek(tz *time.Location) time.Time {
 	return StartOfWeek(time.Now().In(tz))
 }
