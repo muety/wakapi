@@ -251,7 +251,7 @@ Wakapi also integrates with [GitHub Readme Stats](https://github.com/anuraghazra
 
 
 ### Github Readme Metrics Integration
-Theres a [Wakatime plugin](https://github.com/lowlighter/metrics/tree/master/source/plugins/wakatime) for github [metrics](https://github.com/lowlighter/metrics/) that is also compatible with Wakapi.
+There is a [WakaTime plugin](https://github.com/lowlighter/metrics/tree/master/source/plugins/wakatime) for GitHub [metrics](https://github.com/lowlighter/metrics/) that is also compatible with Wakapi.
 
 Preview:
 
