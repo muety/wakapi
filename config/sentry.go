@@ -100,6 +100,13 @@ func (l *SentryWrapperLogger) log(msg string, level sentry.Level) {
 	sentry.CaptureEvent(event)
 }
 
+var excludedRoutes = []string{
+	"GET /assets",
+	"GET /api/health",
+	"GET /swagger-ui",
+	"GET /docs",
+}
+
 func initSentry(config sentryConfig, debug bool) {
 	if err := sentry.Init(sentry.ClientOptions{
 		Dsn:   config.Dsn,
@@ -112,8 +119,10 @@ func initSentry(config sentryConfig, debug bool) {
 			hub := sentry.GetHubFromContext(ctx.Span.Context())
 			txName := hub.Scope().Transaction()
 
-			if strings.HasPrefix(txName, "GET /assets") || strings.HasPrefix(txName, "GET /api/health") {
-				return sentry.SampledFalse
+			for _, ex := range excludedRoutes {
+				if strings.HasPrefix(txName, ex) {
+					return sentry.SampledFalse
+				}
 			}
 			if txName == "POST /api/heartbeat" {
 				return sentry.UniformTracesSampler(config.SampleRateHeartbeats).Sample(ctx)
