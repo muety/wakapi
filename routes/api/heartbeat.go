@@ -39,7 +39,7 @@ func (h *HeartbeatApiHandler) RegisterRoutes(router *mux.Router) {
 		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
 		customMiddleware.NewWakatimeRelayMiddleware().Handler,
 	)
-	r.Methods(http.MethodPost).HandlerFunc(h.Post)
+	r.Path("").Methods(http.MethodPost).HandlerFunc(h.Post)
 }
 
 // @Summary Push a new heartbeat

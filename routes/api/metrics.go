@@ -64,7 +64,7 @@ func (h *MetricsHandler) RegisterRoutes(router *mux.Router) {
 	r.Use(
 		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
 	)
-	r.Methods(http.MethodGet).HandlerFunc(h.Get)
+	r.Path("").Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
 func (h *MetricsHandler) Get(w http.ResponseWriter, r *http.Request) {

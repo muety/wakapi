@@ -32,7 +32,7 @@ func (h *AllTimeHandler) RegisterRoutes(router *mux.Router) {
 	r.Use(
 		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
 	)
-	r.Methods(http.MethodGet).HandlerFunc(h.Get)
+	r.Path("").Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
 // @Summary Retrieve summary for all time

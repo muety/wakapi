@@ -17,7 +17,7 @@ func NewHealthApiHandler(db *gorm.DB) *HealthApiHandler {
 
 func (h *HealthApiHandler) RegisterRoutes(router *mux.Router) {
 	r := router.PathPrefix("/health").Subrouter()
-	r.Methods(http.MethodGet).HandlerFunc(h.Get)
+	r.Path("").Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
 // @Summary Check the application's health status
