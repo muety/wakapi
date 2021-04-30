@@ -6,6 +6,7 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/routes"
 	"github.com/muety/wakapi/services"
+	"github.com/muety/wakapi/utils"
 	"html/template"
 	"io/ioutil"
 	"time"
@@ -18,9 +19,9 @@ const (
 	tplNamePasswordReset      = "reset_password"
 	tplNameImportNotification = "import_finished"
 	tplNameReport             = "report"
-	subjectPasswordReset      = "Wakapi – Password Reset"
-	subjectImportNotification = "Wakapi – Data Import Finished"
-	subjectReport             = "Wakapi – Your Latest Report"
+	subjectPasswordReset      = "Wakapi - Password Reset"
+	subjectImportNotification = "Wakapi - Data Import Finished"
+	subjectReport             = "Wakapi - Report from %s"
 )
 
 type SendingService interface {
@@ -89,7 +90,7 @@ func (m *MailService) SendReport(recipient *models.User, report *models.Report) 
 	mail := &models.Mail{
 		From:    models.MailAddress(m.config.Mail.Sender),
 		To:      models.MailAddresses([]models.MailAddress{models.MailAddress(recipient.Email)}),
-		Subject: subjectReport,
+		Subject: fmt.Sprintf(subjectReport, utils.FormatDateHuman(time.Now().In(recipient.TZ()))),
 	}
 	mail.WithHTML(tpl.String())
 	return m.sendingService.Send(mail)

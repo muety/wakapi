@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/emvi/logbuch"
 	"github.com/go-co-op/gocron"
+	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"sync"
@@ -13,6 +14,7 @@ var reportLock = sync.Mutex{}
 
 type ReportService struct {
 	config           *config.Config
+	eventBus         *hub.Hub
 	summaryService   ISummaryService
 	userService      IUserService
 	mailService      IMailService
@@ -20,13 +22,23 @@ type ReportService struct {
 }
 
 func NewReportService(summaryService ISummaryService, userService IUserService, mailService IMailService) *ReportService {
-	return &ReportService{
+	srv := &ReportService{
 		config:           config.Get(),
+		eventBus:         config.EventBus(),
 		summaryService:   summaryService,
 		userService:      userService,
 		mailService:      mailService,
 		schedulersWeekly: map[string]*gocron.Scheduler{},
 	}
+
+	sub := srv.eventBus.Subscribe(0, config.EventUserUpdate)
+	go func(sub *hub.Subscription) {
+		for m := range sub.Receiver {
+			srv.SyncSchedule(m.Fields[config.FieldPayload].(*models.User))
+		}
+	}(&sub)
+
+	return srv
 }
 
 func (srv *ReportService) Schedule() {
@@ -39,11 +51,13 @@ func (srv *ReportService) Schedule() {
 
 	logbuch.Info("scheduling reports for %d users", len(users))
 	for _, u := range users {
-		srv.UpdateUserSchedule(u)
+		srv.SyncSchedule(u)
 	}
 }
 
-func (srv *ReportService) UpdateUserSchedule(u *models.User) {
+// SyncSchedule syncs the currently active schedulers with the user's wish about whether or not to receive reports.
+// Returns whether a scheduler is active after this operation has run.
+func (srv *ReportService) SyncSchedule(u *models.User) bool {
 	reportLock.Lock()
 	defer reportLock.Unlock()
 
@@ -52,7 +66,7 @@ func (srv *ReportService) UpdateUserSchedule(u *models.User) {
 		s.Stop()
 		s.Clear()
 		delete(srv.schedulersWeekly, u.ID)
-		return
+		return false
 	}
 
 	// schedule
@@ -67,9 +81,20 @@ func (srv *ReportService) UpdateUserSchedule(u *models.User) {
 		s.StartAsync()
 		srv.schedulersWeekly[u.ID] = s
 	}
+
+	return u.ReportsWeekly
 }
 
 func (srv *ReportService) Run(user *models.User, duration time.Duration) error {
+	if user.Email == "" {
+		logbuch.Warn("not generating report for '%s' as no e-mail address is set")
+	}
+
+	if !srv.SyncSchedule(user) {
+		logbuch.Info("reports for user '%s' were turned off in the meanwhile since last report job ran")
+		return nil
+	}
+
 	end := time.Now().In(user.TZ())
 	start := time.Now().Add(-1 * duration)
 

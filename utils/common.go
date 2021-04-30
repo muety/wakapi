@@ -33,8 +33,12 @@ func FormatDateTime(date time.Time) string {
 	return date.Format(config.SimpleDateTimeFormat)
 }
 
-func FormatDateHuman(date time.Time) string {
+func FormatDateTimeHuman(date time.Time) string {
 	return date.Format("Mon, 02 Jan 2006 15:04")
+}
+
+func FormatDateHuman(date time.Time) string {
+	return date.Format("Mon, 02 Jan 2006")
 }
 
 func Add(i, j int) int {

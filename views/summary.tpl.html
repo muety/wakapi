@@ -85,7 +85,7 @@
         <span class="text-xl"><span class="iconify inline" data-icon="emojione-v1:alarm-clock"></span>️&nbsp;</span>
         Showing a total of <span id="total-span" title="Total Hours" class="text-white text-xl font-semibold border-b-2 border-green-700"></span>
         <span class="text-sm my-2">
-            (from <span title="Start Time" class="border-b border-gray-700">{{ .FromTime.T | date }}</span> to <span title="End Time" class="border-b border-gray-700">{{ .ToTime.T | date }}</span>)
+            (from <span title="Start Time" class="border-b border-gray-700">{{ .FromTime.T | datetime }}</span> to <span title="End Time" class="border-b border-gray-700">{{ .ToTime.T | datetime }}</span>)
         </span>
     </span>
 

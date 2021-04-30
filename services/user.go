@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
@@ -11,16 +12,18 @@ import (
 )
 
 type UserService struct {
-	Config     *config.Config
+	config     *config.Config
 	cache      *cache.Cache
+	eventBus   *hub.Hub
 	repository repositories.IUserRepository
 }
 
 func NewUserService(userRepo repositories.IUserRepository) *UserService {
 	return &UserService{
-		Config:     config.Get(),
-		repository: userRepo,
+		config:     config.Get(),
+		eventBus:   config.EventBus(),
 		cache:      cache.New(1*time.Hour, 2*time.Hour),
+		repository: userRepo,
 	}
 }
 
@@ -69,7 +72,7 @@ func (srv *UserService) GetAllByReports(reportsEnabled bool) ([]*models.User, er
 }
 
 func (srv *UserService) GetActive() ([]*models.User, error) {
-	minDate := time.Now().Add(-24 * time.Hour * time.Duration(srv.Config.App.InactiveDays))
+	minDate := time.Now().Add(-24 * time.Hour * time.Duration(srv.config.App.InactiveDays))
 	return srv.repository.GetByLastActiveAfter(minDate)
 }
 
@@ -87,7 +90,7 @@ func (srv *UserService) CreateOrGet(signup *models.Signup, isAdmin bool) (*model
 		IsAdmin:  isAdmin,
 	}
 
-	if hash, err := utils.HashBcrypt(u.Password, srv.Config.Security.PasswordSalt); err != nil {
+	if hash, err := utils.HashBcrypt(u.Password, srv.config.Security.PasswordSalt); err != nil {
 		return nil, false, err
 	} else {
 		u.Password = hash
@@ -98,6 +101,7 @@ func (srv *UserService) CreateOrGet(signup *models.Signup, isAdmin bool) (*model
 
 func (srv *UserService) Update(user *models.User) (*models.User, error) {
 	srv.cache.Flush()
+	srv.notifyUpdate(user)
 	return srv.repository.Update(user)
 }
 
@@ -115,7 +119,7 @@ func (srv *UserService) SetWakatimeApiKey(user *models.User, apiKey string) (*mo
 func (srv *UserService) MigrateMd5Password(user *models.User, login *models.Login) (*models.User, error) {
 	srv.cache.Flush()
 	user.Password = login.Password
-	if hash, err := utils.HashBcrypt(user.Password, srv.Config.Security.PasswordSalt); err != nil {
+	if hash, err := utils.HashBcrypt(user.Password, srv.config.Security.PasswordSalt); err != nil {
 		return nil, err
 	} else {
 		user.Password = hash
@@ -129,9 +133,20 @@ func (srv *UserService) GenerateResetToken(user *models.User) (*models.User, err
 
 func (srv *UserService) Delete(user *models.User) error {
 	srv.cache.Flush()
+
+	user.ReportsWeekly = false
+	srv.notifyUpdate(user)
+
 	return srv.repository.Delete(user)
 }
 
 func (srv *UserService) FlushCache() {
 	srv.cache.Flush()
+}
+
+func (srv *UserService) notifyUpdate(user *models.User) {
+	srv.eventBus.Publish(hub.Message{
+		Name:   config.EventUserUpdate,
+		Fields: map[string]interface{}{config.FieldPayload: user},
+	})
 }

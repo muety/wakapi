@@ -70,7 +70,7 @@ type ISummaryService interface {
 
 type IReportService interface {
 	Schedule()
-	UpdateUserSchedule(user *models.User)
+	SyncSchedule(user *models.User) bool
 	Run(*models.User, time.Duration) error
 }
 

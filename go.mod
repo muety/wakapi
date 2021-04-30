@@ -15,6 +15,7 @@ require (
 	github.com/gorilla/schema v1.1.0
 	github.com/gorilla/securecookie v1.1.1
 	github.com/jinzhu/configor v1.2.0
+	github.com/leandro-lugaresi/hub v1.1.1 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.1
