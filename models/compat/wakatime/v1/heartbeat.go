@@ -1,6 +1,8 @@
 package v1
 
-import "github.com/muety/wakapi/models"
+import (
+	"github.com/muety/wakapi/models"
+)
 
 type HeartbeatsViewModel struct {
 	Data []*HeartbeatEntry `json:"data"`
@@ -22,4 +24,6 @@ type HeartbeatEntry struct {
 	UserId        string            `json:"user_id"`
 	MachineNameId string            `json:"machine_name_id"`
 	UserAgentId   string            `json:"user_agent_id"`
+	CreatedAt     models.CustomTime `json:"created_at"`
+	ModifiedAt    models.CustomTime `json:"created_at"`
 }

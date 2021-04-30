@@ -90,6 +90,41 @@ var doc = `{
                 }
             }
         },
+        "/compat/wakatime/v1/users/{user}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Mimics https://wakatime.com/developers#users",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wakatime"
+                ],
+                "summary": "Retrieve the given user",
+                "operationId": "get-wakatime-user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID to fetch (or 'current')",
+                        "name": "user",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.UserViewModel"
+                        }
+                    }
+                }
+            }
+        },
         "/compat/wakatime/v1/users/{user}/all_time_since_today": {
             "get": {
                 "security": [
@@ -120,6 +155,61 @@ var doc = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/v1.AllTimeViewModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/compat/wakatime/v1/users/{user}/stats/{range}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Mimics https://wakatime.com/developers#stats",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wakatime"
+                ],
+                "summary": "Retrieve statistics for a given user",
+                "operationId": "get-wakatimes-tats",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID to fetch data for (or 'current')",
+                        "name": "user",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "today",
+                            "yesterday",
+                            "week",
+                            "month",
+                            "year",
+                            "7_days",
+                            "last_7_days",
+                            "30_days",
+                            "last_30_days",
+                            "12_months",
+                            "last_12_months",
+                            "any"
+                        ],
+                        "type": "string",
+                        "description": "Range interval identifier",
+                        "name": "range",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.StatsViewModel"
                         }
                     }
                 }
@@ -309,57 +399,6 @@ var doc = `{
                     }
                 }
             }
-        },
-        "/v1/users/{user}/stats/{range}": {
-            "get": {
-                "description": "Mimics https://wakatime.com/developers#stats. Requires public data access to be allowed.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "wakatime"
-                ],
-                "summary": "Retrieve stats",
-                "operationId": "get-stats",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID to fetch data for (or 'current')",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "enum": [
-                            "today",
-                            "yesterday",
-                            "week",
-                            "month",
-                            "year",
-                            "7_days",
-                            "last_7_days",
-                            "30_days",
-                            "last_30_days",
-                            "12_months",
-                            "last_12_months",
-                            "any"
-                        ],
-                        "type": "string",
-                        "description": "Range interval identifier",
-                        "name": "range",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.StatsViewModel"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -371,6 +410,10 @@ var doc = `{
                 },
                 "category": {
                     "type": "string"
+                },
+                "created_at": {
+                    "description": "https://gorm.io/docs/conventions.html#CreatedAt",
+                    "type": "number"
                 },
                 "editor": {
                     "description": "ignored because editor might be parsed differently by wakatime",
@@ -473,6 +516,9 @@ var doc = `{
                     "description": "true if the stats are up to date; when false, a 202 response code is returned and stats will be refreshed soon\u003e",
                     "type": "boolean"
                 },
+                "range": {
+                    "$ref": "#/definitions/v1.AllTimeRange"
+                },
                 "text": {
                     "description": "total time logged since account created as human readable string\u003e",
                     "type": "string"
@@ -480,6 +526,26 @@ var doc = `{
                 "total_seconds": {
                     "description": "total number of seconds logged since account created",
                     "type": "number"
+                }
+            }
+        },
+        "v1.AllTimeRange": {
+            "type": "object",
+            "properties": {
+                "end": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "start": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "timezone": {
+                    "type": "string"
                 }
             }
         },
@@ -708,6 +774,61 @@ var doc = `{
                 },
                 "start": {
                     "type": "string"
+                }
+            }
+        },
+        "v1.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_email_confirmed": {
+                    "type": "boolean"
+                },
+                "is_email_public": {
+                    "type": "boolean"
+                },
+                "last_heartbeat_at": {
+                    "type": "string"
+                },
+                "last_plugin_name": {
+                    "type": "string"
+                },
+                "last_project": {
+                    "type": "string"
+                },
+                "modified_at": {
+                    "type": "string"
+                },
+                "timezone": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "website": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.UserViewModel": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/v1.User"
                 }
             }
         }

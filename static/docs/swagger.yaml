@@ -6,6 +6,9 @@ definitions:
         type: string
       category:
         type: string
+      created_at:
+        description: https://gorm.io/docs/conventions.html#CreatedAt
+        type: number
       editor:
         description: ignored because editor might be parsed differently by wakatime
         type: string
@@ -76,12 +79,27 @@ definitions:
         description: true if the stats are up to date; when false, a 202 response
           code is returned and stats will be refreshed soon>
         type: boolean
+      range:
+        $ref: '#/definitions/v1.AllTimeRange'
       text:
         description: total time logged since account created as human readable string>
         type: string
       total_seconds:
         description: total number of seconds logged since account created
         type: number
+    type: object
+  v1.AllTimeRange:
+    properties:
+      end:
+        type: string
+      end_date:
+        type: string
+      start:
+        type: string
+      start_date:
+        type: string
+      timezone:
+        type: string
     type: object
   v1.AllTimeViewModel:
     properties:
@@ -232,6 +250,42 @@ definitions:
       start:
         type: string
     type: object
+  v1.User:
+    properties:
+      created_at:
+        type: string
+      display_name:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      is_email_confirmed:
+        type: boolean
+      is_email_public:
+        type: boolean
+      last_heartbeat_at:
+        type: string
+      last_plugin_name:
+        type: string
+      last_project:
+        type: string
+      modified_at:
+        type: string
+      timezone:
+        type: string
+      username:
+        type: string
+      website:
+        type: string
+    type: object
+  v1.UserViewModel:
+    properties:
+      data:
+        $ref: '#/definitions/v1.User'
+    type: object
 info:
   contact:
     email: ferdinand@muetsch.io
@@ -294,6 +348,28 @@ paths:
       summary: Get badge data
       tags:
       - badges
+  /compat/wakatime/v1/users/{user}:
+    get:
+      description: Mimics https://wakatime.com/developers#users
+      operationId: get-wakatime-user
+      parameters:
+      - description: User ID to fetch (or 'current')
+        in: path
+        name: user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.UserViewModel'
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieve the given user
+      tags:
+      - wakatime
   /compat/wakatime/v1/users/{user}/all_time_since_today:
     get:
       description: Mimics https://wakatime.com/developers#all_time_since_today
@@ -314,6 +390,45 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Retrieve summary for all time
+      tags:
+      - wakatime
+  /compat/wakatime/v1/users/{user}/stats/{range}:
+    get:
+      description: Mimics https://wakatime.com/developers#stats
+      operationId: get-wakatimes-tats
+      parameters:
+      - description: User ID to fetch data for (or 'current')
+        in: path
+        name: user
+        required: true
+        type: string
+      - description: Range interval identifier
+        enum:
+        - today
+        - yesterday
+        - week
+        - month
+        - year
+        - 7_days
+        - last_7_days
+        - 30_days
+        - last_30_days
+        - 12_months
+        - last_12_months
+        - any
+        in: query
+        name: range
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.StatsViewModel'
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieve statistics for a given user
       tags:
       - wakatime
   /compat/wakatime/v1/users/{user}/summaries:
@@ -441,45 +556,6 @@ paths:
       summary: Retrieve a summary
       tags:
       - summary
-  /v1/users/{user}/stats/{range}:
-    get:
-      description: Mimics https://wakatime.com/developers#stats. Requires public data
-        access to be allowed.
-      operationId: get-stats
-      parameters:
-      - description: User ID to fetch data for (or 'current')
-        in: path
-        name: user
-        required: true
-        type: string
-      - description: Range interval identifier
-        enum:
-        - today
-        - yesterday
-        - week
-        - month
-        - year
-        - 7_days
-        - last_7_days
-        - 30_days
-        - last_30_days
-        - 12_months
-        - last_12_months
-        - any
-        in: path
-        name: range
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.StatsViewModel'
-      summary: Retrieve stats
-      tags:
-      - wakatime
 securityDefinitions:
   ApiKeyAuth:
     in: header

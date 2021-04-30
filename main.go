@@ -164,6 +164,7 @@ func main() {
 	wakatimeV1AllHandler := wtV1Routes.NewAllTimeHandler(userService, summaryService)
 	wakatimeV1SummariesHandler := wtV1Routes.NewSummariesHandler(userService, summaryService)
 	wakatimeV1StatsHandler := wtV1Routes.NewStatsHandler(userService, summaryService)
+	wakatimeV1UsersHandler := wtV1Routes.NewUsersHandler(userService, heartbeatService)
 	shieldV1BadgeHandler := shieldsV1Routes.NewBadgeHandler(summaryService, userService)
 
 	// MVC Handlers
@@ -202,6 +203,7 @@ func main() {
 	wakatimeV1AllHandler.RegisterRoutes(apiRouter)
 	wakatimeV1SummariesHandler.RegisterRoutes(apiRouter)
 	wakatimeV1StatsHandler.RegisterRoutes(apiRouter)
+	wakatimeV1UsersHandler.RegisterRoutes(apiRouter)
 	shieldV1BadgeHandler.RegisterRoutes(apiRouter)
 
 	// Static Routes

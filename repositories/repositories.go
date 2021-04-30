@@ -22,6 +22,7 @@ type IHeartbeatRepository interface {
 	GetAllWithin(time.Time, time.Time, *models.User) ([]*models.Heartbeat, error)
 	GetFirstByUsers() ([]*models.TimeByUser, error)
 	GetLastByUsers() ([]*models.TimeByUser, error)
+	GetLatestByUser(*models.User) (*models.Heartbeat, error)
 	GetLatestByOriginAndUser(string, *models.User) (*models.Heartbeat, error)
 	Count() (int64, error)
 	CountByUser(*models.User) (int64, error)

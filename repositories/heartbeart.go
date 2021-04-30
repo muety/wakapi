@@ -35,6 +35,18 @@ func (r *HeartbeatRepository) InsertBatch(heartbeats []*models.Heartbeat) error 
 	return nil
 }
 
+func (r *HeartbeatRepository) GetLatestByUser(user *models.User) (*models.Heartbeat, error) {
+	var heartbeat models.Heartbeat
+	if err := r.db.
+		Model(&models.Heartbeat{}).
+		Where(&models.Heartbeat{UserID: user.ID}).
+		Order("time desc").
+		First(&heartbeat).Error; err != nil {
+		return nil, err
+	}
+	return &heartbeat, nil
+}
+
 func (r *HeartbeatRepository) GetLatestByOriginAndUser(origin string, user *models.User) (*models.Heartbeat, error) {
 	var heartbeat models.Heartbeat
 	if err := r.db.

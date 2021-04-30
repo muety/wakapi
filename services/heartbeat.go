@@ -61,6 +61,10 @@ func (srv *HeartbeatService) GetAllWithin(from, to time.Time, user *models.User)
 	return srv.augmented(heartbeats, user.ID)
 }
 
+func (srv *HeartbeatService) GetLatestByUser(user *models.User) (*models.Heartbeat, error) {
+	return srv.repository.GetLatestByUser(user)
+}
+
 func (srv *HeartbeatService) GetLatestByOriginAndUser(origin string, user *models.User) (*models.Heartbeat, error) {
 	return srv.repository.GetLatestByOriginAndUser(origin, user)
 }

@@ -45,6 +45,11 @@ func (m *HeartbeatServiceMock) GetFirstByUsers() ([]*models.TimeByUser, error) {
 	return args.Get(0).([]*models.TimeByUser), args.Error(1)
 }
 
+func (m *HeartbeatServiceMock) GetLatestByUser(user *models.User) (*models.Heartbeat, error) {
+	args := m.Called(user)
+	return args.Get(0).(*models.Heartbeat), args.Error(1)
+}
+
 func (m *HeartbeatServiceMock) GetLatestByOriginAndUser(s string, user *models.User) (*models.Heartbeat, error) {
 	args := m.Called(s, user)
 	return args.Get(0).(*models.Heartbeat), args.Error(1)

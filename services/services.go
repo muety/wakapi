@@ -33,6 +33,7 @@ type IHeartbeatService interface {
 	CountByUsers([]*models.User) ([]*models.CountByUser, error)
 	GetAllWithin(time.Time, time.Time, *models.User) ([]*models.Heartbeat, error)
 	GetFirstByUsers() ([]*models.TimeByUser, error)
+	GetLatestByUser(*models.User) (*models.Heartbeat, error)
 	GetLatestByOriginAndUser(string, *models.User) (*models.Heartbeat, error)
 	DeleteBefore(time.Time) error
 }
