@@ -82,7 +82,6 @@ func (srv *MiscService) countTotalTimeWorker(jobs <-chan *CountTotalTimeJob, res
 		if result, err := srv.summaryService.Aliased(time.Time{}, time.Now(), &models.User{ID: job.UserID}, srv.summaryService.Retrieve, false); err != nil {
 			config.Log().Error("failed to count total for user %s: %v", job.UserID, err)
 		} else {
-			logbuch.Info("successfully counted total for user %s", job.UserID)
 			results <- &CountTotalTimeResult{
 				UserId: job.UserID,
 				Total:  result.TotalTime(),
