@@ -11,8 +11,7 @@ import (
 	"time"
 )
 
-type MailWhaleMailService struct {
-	publicUrl  string
+type MailWhaleSendingService struct {
 	config     conf.MailwhaleMailConfig
 	httpClient *http.Client
 }
@@ -26,57 +25,28 @@ type MailWhaleSendRequest struct {
 	TemplateVars map[string]string `json:"template_vars"`
 }
 
-func NewMailWhaleService(config conf.MailwhaleMailConfig, publicUrl string) *MailWhaleMailService {
-	return &MailWhaleMailService{
-		publicUrl: publicUrl,
-		config:    config,
+func NewMailWhaleSendingService(config conf.MailwhaleMailConfig) *MailWhaleSendingService {
+	return &MailWhaleSendingService{
+		config: config,
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},
 	}
 }
 
-func (s *MailWhaleMailService) SendPasswordReset(recipient *models.User, resetLink string) error {
-	template, err := getPasswordResetTemplate(PasswordResetTplData{ResetLink: resetLink})
-	if err != nil {
-		return err
-	}
-	return s.send(recipient.Email, subjectPasswordReset, template.String(), true)
-}
-
-func (s *MailWhaleMailService) SendImportNotification(recipient *models.User, duration time.Duration, numHeartbeats int) error {
-	template, err := getImportNotificationTemplate(ImportNotificationTplData{
-		PublicUrl:     s.publicUrl,
-		Duration:      fmt.Sprintf("%.0f seconds", duration.Seconds()),
-		NumHeartbeats: numHeartbeats,
-	})
-	if err != nil {
-		return err
-	}
-	return s.send(recipient.Email, subjectImportNotification, template.String(), true)
-}
-
-func (s *MailWhaleMailService) SendReport(recipient *models.User, report *models.Report) error {
-	template, err := getReportTemplate(ReportTplData{report})
-	if err != nil {
-		return err
-	}
-	return s.send(recipient.Email, subjectReport, template.String(), true)
-}
-
-func (s *MailWhaleMailService) send(to, subject, body string, isHtml bool) error {
-	if to == "" {
+func (s *MailWhaleSendingService) Send(mail *models.Mail) error {
+	if len(mail.To) == 0 {
 		return errors.New("not sending mail as recipient mail address seems to be invalid")
 	}
 
 	sendRequest := &MailWhaleSendRequest{
-		To:      []string{to},
-		Subject: subject,
+		To:      mail.To.Strings(),
+		Subject: mail.Subject,
 	}
-	if isHtml {
-		sendRequest.Html = body
+	if mail.Type == models.HtmlType {
+		sendRequest.Html = mail.Body
 	} else {
-		sendRequest.Text = body
+		sendRequest.Text = mail.Body
 	}
 	payload, _ := json.Marshal(sendRequest)
 

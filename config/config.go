@@ -116,6 +116,7 @@ type mailConfig struct {
 	Provider  string              `env:"WAKAPI_MAIL_PROVIDER" default:"smtp"`
 	MailWhale MailwhaleMailConfig `yaml:"mailwhale"`
 	Smtp      SMTPMailConfig      `yaml:"smtp"`
+	Sender    string              `env:"WAKAPI_MAIL_SENDER" yaml:"sender"`
 }
 
 type MailwhaleMailConfig struct {
@@ -130,7 +131,6 @@ type SMTPMailConfig struct {
 	Username string `env:"WAKAPI_MAIL_SMTP_USER"`
 	Password string `env:"WAKAPI_MAIL_SMTP_PASS"`
 	TLS      bool   `env:"WAKAPI_MAIL_SMTP_TLS"`
-	Sender   string `env:"WAKAPI_MAIL_SMTP_SENDER"`
 }
 
 type Config struct {

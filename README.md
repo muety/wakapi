@@ -169,6 +169,7 @@ You can specify configuration options either via a config file (default: `config
 | `db.ssl`                    | `WAKAPI_DB_SSL`             | `false`        | Whether to use TLS encryption for database connection (Postgres and CockroachDB only) |
 | `db.automgirate_fail_silently` | `WAKAPI_DB_AUTOMIGRATE_FAIL_SILENTLY` | `false` | Whether to ignore schema auto-migration failures when starting up |
 | `mail.enabled`              | `WAKAPI_MAIL_ENABLED`       | `true`         | Whether to allow Wakapi to send e-mail (e.g. for password resets) |
+| `mail.sender`               | `WAKAPI_MAIL_SENDER`        | `noreply@wakapi.dev` | Default sender address for outgoing mails (ignored for MailWhale) |
 | `mail.provider`             | `WAKAPI_MAIL_PROVIDER`      | `smtp`         | Implementation to use for sending mails (one of [`smtp`, `mailwhale`]) |
 | `mail.smtp.*`               | `WAKAPI_MAIL_SMTP_*`        | `-`            | Various options to configure SMTP. See [default config](config.default.yaml) for details |
 | `mail.mailwhale.*`          | `WAKAPI_MAIL_MAILWHALE_*`   | `-`            | Various options to configure [MailWhale](https://mailwhale.dev) sending service. See [default config](config.default.yaml) for details |

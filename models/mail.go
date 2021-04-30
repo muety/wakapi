@@ -5,6 +5,9 @@ import (
 	"strings"
 )
 
+const HtmlType = "text/html; charset=UTF-8"
+const PlainType = "text/html; charset=UTF-8"
+
 type Mail struct {
 	From    MailAddress
 	To      MailAddresses
@@ -15,13 +18,13 @@ type Mail struct {
 
 func (m *Mail) WithText(text string) *Mail {
 	m.Body = text
-	m.Type = "text/plain; charset=UTF-8"
+	m.Type = PlainType
 	return m
 }
 
 func (m *Mail) WithHTML(html string) *Mail {
 	m.Body = html
-	m.Type = "text/html; charset=UTF-8"
+	m.Type = HtmlType
 	return m
 }
 

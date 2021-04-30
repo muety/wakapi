@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/routes"
+	"github.com/muety/wakapi/services"
 	"html/template"
 	"io/ioutil"
+	"time"
 
 	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/views"
 )
 
@@ -22,31 +23,76 @@ const (
 	subjectReport             = "Wakapi – Your Latest Report"
 )
 
-type PasswordResetTplData struct {
-	ResetLink string
+type SendingService interface {
+	Send(*models.Mail) error
 }
 
-type ImportNotificationTplData struct {
-	PublicUrl     string
-	Duration      string
-	NumHeartbeats int
+type MailService struct {
+	config         *conf.Config
+	sendingService SendingService
 }
 
-type ReportTplData struct {
-	Report *models.Report
-}
-
-// Factory
 func NewMailService() services.IMailService {
 	config := conf.Get()
+
+	var sendingService SendingService
+	sendingService = &NoopSendingService{}
+
 	if config.Mail.Enabled {
 		if config.Mail.Provider == conf.MailProviderMailWhale {
-			return NewMailWhaleService(config.Mail.MailWhale, config.Server.PublicUrl)
+			sendingService = NewMailWhaleSendingService(config.Mail.MailWhale)
 		} else if config.Mail.Provider == conf.MailProviderSmtp {
-			return NewSMTPMailService(config.Mail.Smtp, config.Server.PublicUrl)
+			sendingService = NewSMTPSendingService(config.Mail.Smtp)
 		}
 	}
-	return &NoopMailService{}
+
+	return &MailService{sendingService: sendingService, config: config}
+}
+
+func (m *MailService) SendPasswordReset(recipient *models.User, resetLink string) error {
+	tpl, err := getPasswordResetTemplate(PasswordResetTplData{ResetLink: resetLink})
+	if err != nil {
+		return err
+	}
+	mail := &models.Mail{
+		From:    models.MailAddress(m.config.Mail.Sender),
+		To:      models.MailAddresses([]models.MailAddress{models.MailAddress(recipient.Email)}),
+		Subject: subjectPasswordReset,
+	}
+	mail.WithHTML(tpl.String())
+	return m.sendingService.Send(mail)
+}
+
+func (m *MailService) SendImportNotification(recipient *models.User, duration time.Duration, numHeartbeats int) error {
+	tpl, err := getImportNotificationTemplate(ImportNotificationTplData{
+		PublicUrl:     m.config.Server.PublicUrl,
+		Duration:      fmt.Sprintf("%.0f seconds", duration.Seconds()),
+		NumHeartbeats: numHeartbeats,
+	})
+	if err != nil {
+		return err
+	}
+	mail := &models.Mail{
+		From:    models.MailAddress(m.config.Mail.Sender),
+		To:      models.MailAddresses([]models.MailAddress{models.MailAddress(recipient.Email)}),
+		Subject: subjectImportNotification,
+	}
+	mail.WithHTML(tpl.String())
+	return m.sendingService.Send(mail)
+}
+
+func (m *MailService) SendReport(recipient *models.User, report *models.Report) error {
+	tpl, err := getReportTemplate(ReportTplData{report})
+	if err != nil {
+		return err
+	}
+	mail := &models.Mail{
+		From:    models.MailAddress(m.config.Mail.Sender),
+		To:      models.MailAddresses([]models.MailAddress{models.MailAddress(recipient.Email)}),
+		Subject: subjectReport,
+	}
+	mail.WithHTML(tpl.String())
+	return m.sendingService.Send(mail)
 }
 
 func getPasswordResetTemplate(data PasswordResetTplData) (*bytes.Buffer, error) {

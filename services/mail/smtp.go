@@ -2,29 +2,21 @@ package mail
 
 import (
 	"errors"
-	"fmt"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"io"
-	"time"
 )
 
-type SMTPMailService struct {
-	publicUrl string
-	config    conf.SMTPMailConfig
-	auth      sasl.Client
+type SMTPSendingService struct {
+	config conf.SMTPMailConfig
+	auth   sasl.Client
 }
 
-func (s *SMTPMailService) SendReport(recipient *models.User, report *models.Report) error {
-	panic("implement me") // TODO
-}
-
-func NewSMTPMailService(config conf.SMTPMailConfig, publicUrl string) *SMTPMailService {
-	return &SMTPMailService{
-		publicUrl: publicUrl,
-		config:    config,
+func NewSMTPSendingService(config conf.SMTPMailConfig) *SMTPSendingService {
+	return &SMTPSendingService{
+		config: config,
 		auth: sasl.NewPlainClient(
 			"",
 			config.Username,
@@ -33,51 +25,15 @@ func NewSMTPMailService(config conf.SMTPMailConfig, publicUrl string) *SMTPMailS
 	}
 }
 
-func (s *SMTPMailService) SendPasswordReset(recipient *models.User, resetLink string) error {
-	template, err := getPasswordResetTemplate(PasswordResetTplData{ResetLink: resetLink})
-	if err != nil {
-		return err
-	}
-
-	mail := &models.Mail{
-		From:    models.MailAddress(s.config.Sender),
-		To:      models.MailAddresses([]models.MailAddress{models.MailAddress(recipient.Email)}),
-		Subject: subjectPasswordReset,
-	}
-	mail.WithHTML(template.String())
-
-	return s.send(s.config.ConnStr(), s.config.TLS, s.auth, mail.From.Raw(), mail.To.RawStrings(), mail.Reader())
-}
-
-func (s *SMTPMailService) SendImportNotification(recipient *models.User, duration time.Duration, numHeartbeats int) error {
-	template, err := getImportNotificationTemplate(ImportNotificationTplData{
-		PublicUrl:     s.publicUrl,
-		Duration:      fmt.Sprintf("%.0f seconds", duration.Seconds()),
-		NumHeartbeats: numHeartbeats,
-	})
-	if err != nil {
-		return err
-	}
-
-	mail := &models.Mail{
-		From:    models.MailAddress(s.config.Sender),
-		To:      models.MailAddresses([]models.MailAddress{models.MailAddress(recipient.Email)}),
-		Subject: subjectImportNotification,
-	}
-	mail.WithHTML(template.String())
-
-	return s.send(s.config.ConnStr(), s.config.TLS, s.auth, mail.From.Raw(), mail.To.RawStrings(), mail.Reader())
-}
-
-func (s *SMTPMailService) send(addr string, tls bool, a sasl.Client, from string, to []string, r io.Reader) error {
+func (s *SMTPSendingService) Send(mail *models.Mail) error {
 	dial := smtp.Dial
-	if tls {
+	if s.config.TLS {
 		dial = func(addr string) (*smtp.Client, error) {
 			return smtp.DialTLS(addr, nil)
 		}
 	}
 
-	c, err := dial(addr)
+	c, err := dial(s.config.ConnStr())
 	if err != nil {
 		return err
 	}
@@ -89,18 +45,18 @@ func (s *SMTPMailService) send(addr string, tls bool, a sasl.Client, from string
 			return err
 		}
 	}
-	if a != nil {
+	if s.auth != nil {
 		if ok, _ := c.Extension("AUTH"); !ok {
 			return errors.New("smtp: server doesn't support AUTH")
 		}
-		if err = c.Auth(a); err != nil {
+		if err = c.Auth(s.auth); err != nil {
 			return err
 		}
 	}
-	if err = c.Mail(from, nil); err != nil {
+	if err = c.Mail(mail.From.Raw(), nil); err != nil {
 		return err
 	}
-	for _, addr := range to {
+	for _, addr := range mail.To.RawStrings() {
 		if err = c.Rcpt(addr); err != nil {
 			return err
 		}
@@ -109,7 +65,7 @@ func (s *SMTPMailService) send(addr string, tls bool, a sasl.Client, from string
 	if err != nil {
 		return err
 	}
-	_, err = io.Copy(w, r)
+	_, err = io.Copy(w, mail.Reader())
 	if err != nil {
 		return err
 	}
