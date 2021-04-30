@@ -235,6 +235,12 @@ func (s *Summary) WithResolvedAliases(resolve AliasResolver) *Summary {
 	return s
 }
 
+func (s *SummaryItem) TotalFixed() time.Duration {
+	// this is a workaround, since currently, the total time of a summary item is mistakenly represented in seconds
+	// TODO: fix some day, while migrating persisted summary items
+	return s.Total * time.Second
+}
+
 func (s SummaryItems) Len() int {
 	return len(s)
 }

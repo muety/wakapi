@@ -152,9 +152,7 @@ func newDataFrom(s *models.Summary) *SummariesData {
 }
 
 func convertEntry(e *models.SummaryItem, entityTotal time.Duration) *SummariesEntry {
-	// this is a workaround, since currently, the total time of a summary item is mistakenly represented in seconds
-	// TODO: fix some day, while migrating persisted summary items
-	total := e.Total * time.Second
+	total := e.TotalFixed()
 	hrs := int(total.Hours())
 	mins := int((total - time.Duration(hrs)*time.Hour).Minutes())
 	secs := int((total - time.Duration(hrs)*time.Hour - time.Duration(mins)*time.Minute).Seconds())

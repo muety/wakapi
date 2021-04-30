@@ -34,6 +34,11 @@ func (m *UserServiceMock) GetAll() ([]*models.User, error) {
 	return args.Get(0).([]*models.User), args.Error(1)
 }
 
+func (m *UserServiceMock) GetAllByReports(b bool) ([]*models.User, error) {
+	args := m.Called(b)
+	return args.Get(0).([]*models.User), args.Error(1)
+}
+
 func (m *UserServiceMock) GetActive() ([]*models.User, error) {
 	args := m.Called()
 	return args.Get(0).([]*models.User), args.Error(1)

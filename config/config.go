@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/securecookie"
@@ -61,6 +62,7 @@ var env string
 
 type appConfig struct {
 	AggregationTime  string                       `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
+	ReportTimeWeekly string                       `yaml:"report_time_weekly" default:"fri,18:00" env:"WAKAPI_REPORT_TIME_WEEKLY"`
 	ImportBackoffMin int                          `yaml:"import_backoff_min" default:"5" env:"WAKAPI_IMPORT_BACKOFF_MIN"`
 	ImportBatchSize  int                          `yaml:"import_batch_size" default:"100" env:"WAKAPI_IMPORT_BATCH_SIZE"`
 	InactiveDays     int                          `yaml:"inactive_days" default:"7" env:"WAKAPI_INACTIVE_DAYS"`
@@ -216,6 +218,15 @@ func (c *appConfig) GetOSColors() map[string]string {
 	return cloneStringMap(c.Colors["operating_systems"], true)
 }
 
+func (c *appConfig) GetWeeklyReportDay() time.Weekday {
+	s := strings.Split(c.ReportTimeWeekly, ",")[0]
+	return parseWeekday(s)
+}
+
+func (c *appConfig) GetWeeklyReportTime() string {
+	return strings.Split(c.ReportTimeWeekly, ",")[1]
+}
+
 func (c *serverConfig) GetPublicUrl() string {
 	return strings.TrimSuffix(c.PublicUrl, "/")
 }
@@ -272,6 +283,26 @@ func findString(needle string, haystack []string, defaultVal string) string {
 		}
 	}
 	return defaultVal
+}
+
+func parseWeekday(s string) time.Weekday {
+	switch strings.ToLower(s) {
+	case "mon", strings.ToLower(time.Monday.String()):
+		return time.Monday
+	case "tue", strings.ToLower(time.Tuesday.String()):
+		return time.Tuesday
+	case "wed", strings.ToLower(time.Wednesday.String()):
+		return time.Wednesday
+	case "thu", strings.ToLower(time.Thursday.String()):
+		return time.Thursday
+	case "fri", strings.ToLower(time.Friday.String()):
+		return time.Friday
+	case "sat", strings.ToLower(time.Saturday.String()):
+		return time.Saturday
+	case "sun", strings.ToLower(time.Sunday.String()):
+		return time.Sunday
+	}
+	return time.Monday
 }
 
 func Set(config *Config) {

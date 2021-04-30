@@ -27,6 +27,7 @@ type User struct {
 	HasData          bool       `json:"-" gorm:"default:false; type:bool"`
 	WakatimeApiKey   string     `json:"-"`
 	ResetToken       string     `json:"-"`
+	ReportsWeekly    bool       `json:"-" gorm:"default:false; type:bool"`
 }
 
 type Login struct {

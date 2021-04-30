@@ -64,6 +64,10 @@ func (srv *UserService) GetAll() ([]*models.User, error) {
 	return srv.repository.GetAll()
 }
 
+func (srv *UserService) GetAllByReports(reportsEnabled bool) ([]*models.User, error) {
+	return srv.repository.GetAllByReports(reportsEnabled)
+}
+
 func (srv *UserService) GetActive() ([]*models.User, error) {
 	minDate := time.Now().Add(-24 * time.Hour * time.Duration(srv.Config.App.InactiveDays))
 	return srv.repository.GetByLastActiveAfter(minDate)

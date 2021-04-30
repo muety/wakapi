@@ -17,6 +17,10 @@ type SMTPMailService struct {
 	auth      sasl.Client
 }
 
+func (s *SMTPMailService) SendReport(recipient *models.User, report *models.Report) error {
+	panic("implement me") // TODO
+}
+
 func NewSMTPMailService(config conf.SMTPMailConfig, publicUrl string) *SMTPMailService {
 	return &SMTPMailService{
 		publicUrl: publicUrl,

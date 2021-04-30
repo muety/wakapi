@@ -62,6 +62,7 @@ var (
 	aggregationService     services.IAggregationService
 	mailService            services.IMailService
 	keyValueService        services.IKeyValueService
+	reportService          services.IReportService
 	miscService            services.IMiscService
 )
 
@@ -146,11 +147,13 @@ func main() {
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
 	mailService = mail.NewMailService()
 	keyValueService = services.NewKeyValueService(keyValueRepository)
+	reportService = services.NewReportService(summaryService, userService, mailService)
 	miscService = services.NewMiscService(userService, summaryService, keyValueService)
 
 	// Schedule background tasks
 	go aggregationService.Schedule()
 	go miscService.ScheduleCountTotalTime()
+	go reportService.Schedule()
 
 	routes.Init()
 

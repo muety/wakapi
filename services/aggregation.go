@@ -16,7 +16,7 @@ const (
 	aggregateIntervalDays int = 1
 )
 
-var lock = sync.Mutex{}
+var aggregationLock = sync.Mutex{}
 
 type AggregationService struct {
 	config           *config.Config
@@ -157,8 +157,8 @@ func (srv *AggregationService) trigger(jobs chan<- *AggregationJob, userIds map[
 }
 
 func (srv *AggregationService) lockUsers(userIds map[string]bool) error {
-	lock.Lock()
-	defer lock.Unlock()
+	aggregationLock.Lock()
+	defer aggregationLock.Unlock()
 	for uid := range userIds {
 		if _, ok := srv.inProgress[uid]; ok {
 			return errors.New("aggregation already in progress for at least of the request users")
@@ -171,8 +171,8 @@ func (srv *AggregationService) lockUsers(userIds map[string]bool) error {
 }
 
 func (srv *AggregationService) unlockUsers(userIds map[string]bool) {
-	lock.Lock()
-	defer lock.Unlock()
+	aggregationLock.Lock()
+	defer aggregationLock.Unlock()
 	for uid := range userIds {
 		delete(srv.inProgress, uid)
 	}

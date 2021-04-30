@@ -23,12 +23,13 @@ type action func(w http.ResponseWriter, r *http.Request) (int, string, string)
 
 var templates map[string]*template.Template
 
-func loadTemplates() {
-	tpls := template.New("").Funcs(template.FuncMap{
+func DefaultTemplateFuncs() template.FuncMap {
+	return template.FuncMap{
 		"json":           utils.Json,
 		"date":           utils.FormatDateHuman,
 		"simpledate":     utils.FormatDate,
 		"simpledatetime": utils.FormatDateTime,
+		"duration":       utils.FmtWakatimeDuration,
 		"floordate":      utils.FloorDate,
 		"ceildate":       utils.CeilDate,
 		"title":          strings.Title,
@@ -53,7 +54,11 @@ func loadTemplates() {
 		"htmlSafe": func(html string) template.HTML {
 			return template.HTML(html)
 		},
-	})
+	}
+}
+
+func loadTemplates() {
+	tpls := template.New("").Funcs(DefaultTemplateFuncs())
 	templates = make(map[string]*template.Template)
 
 	// Use local file system when in 'dev' environment, go embed file system otherwise

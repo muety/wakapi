@@ -56,6 +56,14 @@ func (s *MailWhaleMailService) SendImportNotification(recipient *models.User, du
 	return s.send(recipient.Email, subjectImportNotification, template.String(), true)
 }
 
+func (s *MailWhaleMailService) SendReport(recipient *models.User, report *models.Report) error {
+	template, err := getReportTemplate(ReportTplData{report})
+	if err != nil {
+		return err
+	}
+	return s.send(recipient.Email, subjectReport, template.String(), true)
+}
+
 func (s *MailWhaleMailService) send(to, subject, body string, isHtml bool) error {
 	if to == "" {
 		return errors.New("not sending mail as recipient mail address seems to be invalid")

@@ -3,8 +3,10 @@ package mail
 import (
 	"bytes"
 	"fmt"
+	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/routes"
+	"html/template"
 	"io/ioutil"
-	"text/template"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/services"
@@ -14,8 +16,10 @@ import (
 const (
 	tplNamePasswordReset      = "reset_password"
 	tplNameImportNotification = "import_finished"
+	tplNameReport             = "report"
 	subjectPasswordReset      = "Wakapi – Password Reset"
 	subjectImportNotification = "Wakapi – Data Import Finished"
+	subjectReport             = "Wakapi – Your Latest Report"
 )
 
 type PasswordResetTplData struct {
@@ -26,6 +30,10 @@ type ImportNotificationTplData struct {
 	PublicUrl     string
 	Duration      string
 	NumHeartbeats int
+}
+
+type ReportTplData struct {
+	Report *models.Report
 }
 
 // Factory
@@ -65,6 +73,18 @@ func getImportNotificationTemplate(data ImportNotificationTplData) (*bytes.Buffe
 	return &rendered, nil
 }
 
+func getReportTemplate(data ReportTplData) (*bytes.Buffer, error) {
+	tpl, err := loadTemplate(tplNameReport)
+	if err != nil {
+		return nil, err
+	}
+	var rendered bytes.Buffer
+	if err := tpl.Execute(&rendered, data); err != nil {
+		return nil, err
+	}
+	return &rendered, nil
+}
+
 func loadTemplate(tplName string) (*template.Template, error) {
 	tplFile, err := views.TemplateFiles.Open(fmt.Sprintf("mail/%s.tpl.html", tplName))
 	if err != nil {
@@ -77,5 +97,8 @@ func loadTemplate(tplName string) (*template.Template, error) {
 		return nil, err
 	}
 
-	return template.New(tplName).Parse(string(tplData))
+	return template.
+		New(tplName).
+		Funcs(routes.DefaultTemplateFuncs()).
+		Parse(string(tplData))
 }

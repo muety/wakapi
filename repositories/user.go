@@ -74,6 +74,14 @@ func (r *UserRepository) GetAll() ([]*models.User, error) {
 	return users, nil
 }
 
+func (r *UserRepository) GetAllByReports(reportsEnabled bool) ([]*models.User, error) {
+	var users []*models.User
+	if err := r.db.Where(&models.User{ReportsWeekly: reportsEnabled}).Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func (r *UserRepository) GetByLoggedInAfter(t time.Time) ([]*models.User, error) {
 	var users []*models.User
 	if err := r.db.
@@ -143,6 +151,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"has_data":            user.HasData,
 		"reset_token":         user.ResetToken,
 		"location":            user.Location,
+		"reports_weekly":      user.ReportsWeekly,
 	}
 
 	result := r.db.Model(user).Updates(updateMap)

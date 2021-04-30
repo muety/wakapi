@@ -60,6 +60,7 @@ type IUserRepository interface {
 	GetByEmail(string) (*models.User, error)
 	GetByResetToken(string) (*models.User, error)
 	GetAll() ([]*models.User, error)
+	GetAllByReports(bool) ([]*models.User, error)
 	GetByLoggedInAfter(time.Time) ([]*models.User, error)
 	GetByLastActiveAfter(time.Time) ([]*models.User, error)
 	Count() (int64, error)

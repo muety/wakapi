@@ -11,6 +11,7 @@ server:
 
 app:
   aggregation_time: '02:15'           # time at which to run daily aggregation batch jobs
+  report_time_weekly: 'fri,18:00'     # time at which to fan out weekly reports (format: '<weekday)>,<daytime>')
   inactive_days: 7                    # time of previous days within a user must have logged in to be considered active
   custom_languages:
     vue: Vue
@@ -45,14 +46,14 @@ sentry:
 mail:
   enabled: true                       # whether to enable mails (used for password resets, reports, etc.)
   provider: smtp                      # method for sending mails, currently one of ['smtp', 'mailwhale']
-smtp:                                 # smtp settings when sending mails via smtp
-    host:
-    port:
-    username:
-    password:
-    tls:
-    sender: Wakapi <noreply@wakapi.dev>
-  mailwhale:                          # mailwhale.dev settings when using mailwhale as sending service
+smtp: # smtp settings when sending mails via smtp
+  host:
+  port:
+  username:
+  password:
+  tls:
+  sender: Wakapi <noreply@wakapi.dev>
+  mailwhale: # mailwhale.dev settings when using mailwhale as sending service
     url:
     client_id:
     client_secret:

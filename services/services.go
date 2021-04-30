@@ -53,6 +53,12 @@ type ILanguageMappingService interface {
 	Delete(mapping *models.LanguageMapping) error
 }
 
+type IMailService interface {
+	SendPasswordReset(*models.User, string) error
+	SendImportNotification(*models.User, time.Duration, int) error
+	SendReport(*models.User, *models.Report) error
+}
+
 type ISummaryService interface {
 	Aliased(time.Time, time.Time, *models.User, SummaryRetriever, bool) (*models.Summary, error)
 	Retrieve(time.Time, time.Time, *models.User) (*models.Summary, error)
@@ -62,12 +68,19 @@ type ISummaryService interface {
 	Insert(*models.Summary) error
 }
 
+type IReportService interface {
+	Schedule()
+	UpdateUserSchedule(user *models.User)
+	Run(*models.User, time.Duration) error
+}
+
 type IUserService interface {
 	GetUserById(string) (*models.User, error)
 	GetUserByKey(string) (*models.User, error)
 	GetUserByEmail(string) (*models.User, error)
 	GetUserByResetToken(string) (*models.User, error)
 	GetAll() ([]*models.User, error)
+	GetAllByReports(bool) ([]*models.User, error)
 	GetActive() ([]*models.User, error)
 	Count() (int64, error)
 	CreateOrGet(*models.Signup, bool) (*models.User, bool, error)
@@ -78,9 +91,4 @@ type IUserService interface {
 	MigrateMd5Password(*models.User, *models.Login) (*models.User, error)
 	GenerateResetToken(*models.User) (*models.User, error)
 	FlushCache()
-}
-
-type IMailService interface {
-	SendPasswordReset(*models.User, string) error
-	SendImportNotification(*models.User, time.Duration, int) error
 }
