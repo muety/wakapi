@@ -3,7 +3,6 @@ package services
 import (
 	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
-	"go.uber.org/atomic"
 	"runtime"
 	"strconv"
 	"time"
@@ -17,7 +16,6 @@ type MiscService struct {
 	userService     IUserService
 	summaryService  ISummaryService
 	keyValueService IKeyValueService
-	jobCount        atomic.Uint32
 }
 
 func NewMiscService(userService IUserService, summaryService ISummaryService, keyValueService IKeyValueService) *MiscService {
@@ -51,27 +49,47 @@ func (srv *MiscService) ScheduleCountTotalTime() {
 }
 
 func (srv *MiscService) runCountTotalTime() error {
-	jobs := make(chan *CountTotalTimeJob)
-	results := make(chan *CountTotalTimeResult)
+	users, err := srv.userService.GetAll()
+	if err != nil {
+		return err
+	}
 
-	defer close(jobs)
+	jobs := make(chan *CountTotalTimeJob, len(users))
+	results := make(chan *CountTotalTimeResult, len(users))
+
+	for _, u := range users {
+		jobs <- &CountTotalTimeJob{
+			UserID:  u.ID,
+			NumJobs: len(users),
+		}
+	}
+	close(jobs)
 
 	for i := 0; i < runtime.NumCPU(); i++ {
 		go srv.countTotalTimeWorker(jobs, results)
 	}
 
-	go srv.persistTotalTimeWorker(results)
+	// persist
+	var i int
+	var total time.Duration
+	for i = 0; i < len(users); i++ {
+		result := <-results
+		total += result.Total
+	}
+	close(results)
 
-	// generate the jobs
-	if users, err := srv.userService.GetAll(); err == nil {
-		for _, u := range users {
-			jobs <- &CountTotalTimeJob{
-				UserID:  u.ID,
-				NumJobs: len(users),
-			}
-		}
-	} else {
-		return err
+	if err := srv.keyValueService.PutString(&models.KeyStringValue{
+		Key:   config.KeyLatestTotalTime,
+		Value: total.String(),
+	}); err != nil {
+		logbuch.Error("failed to save total time count: %v", err)
+	}
+
+	if err := srv.keyValueService.PutString(&models.KeyStringValue{
+		Key:   config.KeyLatestTotalUsers,
+		Value: strconv.Itoa(i),
+	}); err != nil {
+		logbuch.Error("failed to save total users count: %v", err)
 	}
 
 	return nil
@@ -87,32 +105,5 @@ func (srv *MiscService) countTotalTimeWorker(jobs <-chan *CountTotalTimeJob, res
 				Total:  result.TotalTime(),
 			}
 		}
-		if srv.jobCount.Inc() == uint32(job.NumJobs) {
-			srv.jobCount.Store(0)
-			close(results)
-		}
-	}
-}
-
-func (srv *MiscService) persistTotalTimeWorker(results <-chan *CountTotalTimeResult) {
-	var c int
-	var total time.Duration
-	for result := range results {
-		total += result.Total
-		c++
-	}
-
-	if err := srv.keyValueService.PutString(&models.KeyStringValue{
-		Key:   config.KeyLatestTotalTime,
-		Value: total.String(),
-	}); err != nil {
-		logbuch.Error("failed to save total time count: %v", err)
-	}
-
-	if err := srv.keyValueService.PutString(&models.KeyStringValue{
-		Key:   config.KeyLatestTotalUsers,
-		Value: strconv.Itoa(c),
-	}); err != nil {
-		logbuch.Error("failed to save total users count: %v", err)
 	}
 }
