@@ -117,6 +117,22 @@ definitions:
       schemaVersion:
         type: integer
     type: object
+  v1.Project:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      repository:
+        type: string
+    type: object
+  v1.ProjectsViewModel:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/v1.Project'
+        type: array
+    type: object
   v1.StatsData:
     properties:
       daily_average:
@@ -390,6 +406,33 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Retrieve summary for all time
+      tags:
+      - wakatime
+  /compat/wakatime/v1/users/{user}/projects:
+    get:
+      description: Mimics https://wakatime.com/developers#projects
+      operationId: get-wakatime-projects
+      parameters:
+      - description: User ID to fetch data for (or 'current')
+        in: path
+        name: user
+        required: true
+        type: string
+      - description: Query to filter projects by
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.ProjectsViewModel'
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieve and fitler the user's projects
       tags:
       - wakatime
   /compat/wakatime/v1/users/{user}/stats/{range}:

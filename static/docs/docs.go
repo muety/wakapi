@@ -160,6 +160,48 @@ var doc = `{
                 }
             }
         },
+        "/compat/wakatime/v1/users/{user}/projects": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Mimics https://wakatime.com/developers#projects",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wakatime"
+                ],
+                "summary": "Retrieve and fitler the user's projects",
+                "operationId": "get-wakatime-projects",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID to fetch data for (or 'current')",
+                        "name": "user",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Query to filter projects by",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ProjectsViewModel"
+                        }
+                    }
+                }
+            }
+        },
         "/compat/wakatime/v1/users/{user}/stats/{range}": {
             "get": {
                 "security": [
@@ -571,6 +613,31 @@ var doc = `{
                 },
                 "schemaVersion": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.Project": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "repository": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.ProjectsViewModel": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.Project"
+                    }
                 }
             }
         },

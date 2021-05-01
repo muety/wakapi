@@ -27,6 +27,7 @@ type IHeartbeatRepository interface {
 	Count() (int64, error)
 	CountByUser(*models.User) (int64, error)
 	CountByUsers([]*models.User) ([]*models.CountByUser, error)
+	GetEntitySetByUser(uint8, *models.User) ([]string, error)
 	DeleteBefore(time.Time) error
 }
 

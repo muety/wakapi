@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -134,6 +135,24 @@ func (r *HeartbeatRepository) CountByUsers(users []*models.User) ([]*models.Coun
 		return counts, err
 	}
 	return counts, nil
+}
+
+func (r HeartbeatRepository) GetEntitySetByUser(entityType uint8, user *models.User) ([]string, error) {
+	columns := []string{"project", "language", "editor", "operating_system", "machine"}
+	if int(entityType) >= len(columns) {
+		// invalid entity type
+		return nil, errors.New("invalid entity type")
+	}
+
+	var results []string
+	if err := r.db.
+		Model(&models.Heartbeat{}).
+		Distinct(columns[entityType]).
+		Where(&models.Heartbeat{UserID: user.ID}).
+		Find(&results).Error; err != nil {
+		return nil, err
+	}
+	return results, nil
 }
 
 func (r *HeartbeatRepository) DeleteBefore(t time.Time) error {
