@@ -36,7 +36,7 @@ func (h *SummariesHandler) RegisterRoutes(router *mux.Router) {
 	r.Path("").Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
-// TODO: Support parameters: project, branches, timeout, writes_only, timezone
+// TODO: Support parameters: project, branches, timeout, writes_only
 // See https://wakatime.com/developers#summaries.
 // Timezone can be specified via an offset suffix (e.g. +02:00) in date strings.
 // Requires https://github.com/muety/wakapi/issues/108.
@@ -82,35 +82,42 @@ func (h *SummariesHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary, error, int) {
 	user := middlewares.GetPrincipal(r)
 	params := r.URL.Query()
-	rangeParam, startParam, endParam := params.Get("range"), params.Get("start"), params.Get("end")
+	rangeParam, startParam, endParam, tzParam := params.Get("range"), params.Get("start"), params.Get("end"), params.Get("timezone")
+
+	timezone := user.TZ()
+	if tzParam != "" {
+		if tz, err := time.LoadLocation(tzParam); err == nil {
+			timezone = tz
+		}
+	}
 
 	var start, end time.Time
 	if rangeParam != "" {
 		// range param takes precedence
-		if err, parsedFrom, parsedTo := utils.ResolveIntervalRawTZ(rangeParam, user.TZ()); err == nil {
+		if err, parsedFrom, parsedTo := utils.ResolveIntervalRawTZ(rangeParam, timezone); err == nil {
 			start, end = parsedFrom, parsedTo
 		} else {
 			return nil, errors.New("invalid 'range' parameter"), http.StatusBadRequest
 		}
-	} else if err, parsedFrom, parsedTo := utils.ResolveIntervalRawTZ(startParam, user.TZ()); err == nil && startParam == endParam {
+	} else if err, parsedFrom, parsedTo := utils.ResolveIntervalRawTZ(startParam, timezone); err == nil && startParam == endParam {
 		// also accept start param to be a range param
 		start, end = parsedFrom, parsedTo
 	} else {
 		// eventually, consider start and end params a date
 		var err error
 
-		start, err = utils.ParseDateTimeTZ(strings.Replace(startParam, " ", "+", 1), user.TZ())
+		start, err = utils.ParseDateTimeTZ(strings.Replace(startParam, " ", "+", 1), timezone)
 		if err != nil {
 			return nil, errors.New("missing required 'start' parameter"), http.StatusBadRequest
 		}
 
-		end, err = utils.ParseDateTimeTZ(strings.Replace(endParam, " ", "+", 1), user.TZ())
+		end, err = utils.ParseDateTimeTZ(strings.Replace(endParam, " ", "+", 1), timezone)
 		if err != nil {
 			return nil, errors.New("missing required 'end' parameter"), http.StatusBadRequest
 		}
 	}
 
-	// wakatime iterprets end date as "inclusive", wakapi usually as "exclusive"
+	// wakatime interprets end date as "inclusive", wakapi usually as "exclusive"
 	// i.e. for wakatime, an interval 2021-04-29 - 2021-04-29 is actually 2021-04-29 - 2021-04-30,
 	// while for wakapi it would be empty
 	// see https://github.com/muety/wakapi/issues/192
