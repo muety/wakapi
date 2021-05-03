@@ -9,7 +9,7 @@ func StringsToSet(slice []string) map[string]bool {
 }
 
 func SetToStrings(set map[string]bool) []string {
-	slice := make([]string, len(set))
+	slice := make([]string, 0, len(set))
 	for k := range set {
 		slice = append(slice, k)
 	}

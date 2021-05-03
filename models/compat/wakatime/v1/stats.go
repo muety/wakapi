@@ -31,9 +31,6 @@ type StatsData struct {
 func NewStatsFrom(summary *models.Summary, filters *models.Filters) *StatsViewModel {
 	totalTime := summary.TotalTime()
 	numDays := int(summary.ToTime.T().Sub(summary.FromTime.T()).Hours() / 24)
-	if math.IsInf(float64(numDays), 0) {
-		numDays = 0
-	}
 
 	data := &StatsData{
 		Username:              summary.UserID,
@@ -43,6 +40,10 @@ func NewStatsFrom(summary *models.Summary, filters *models.Filters) *StatsViewMo
 		TotalSeconds:          totalTime.Seconds(),
 		DailyAverage:          totalTime.Seconds() / float64(numDays),
 		DaysIncludingHolidays: numDays,
+	}
+
+	if math.IsInf(data.DailyAverage, 0) || math.IsNaN(data.DailyAverage) {
+		data.DailyAverage = 0
 	}
 
 	editors := make([]*SummariesEntry, len(summary.Editors))
