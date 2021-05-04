@@ -6,30 +6,39 @@ import (
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"math/rand"
 	"sync"
 	"time"
 )
 
 var reportLock = sync.Mutex{}
 
+// range for random offset to add / subtract when scheduling a new job
+// to avoid all mails being sent at once, but distributed over 2*offsetIntervalMin minutes
+const offsetIntervalMin = 15
+
 type ReportService struct {
-	config           *config.Config
-	eventBus         *hub.Hub
-	summaryService   ISummaryService
-	userService      IUserService
-	mailService      IMailService
-	schedulersWeekly map[string]*gocron.Scheduler // user id -> scheduler
+	config         *config.Config
+	eventBus       *hub.Hub
+	summaryService ISummaryService
+	userService    IUserService
+	mailService    IMailService
+	scheduler      *gocron.Scheduler
+	rand           *rand.Rand
 }
 
 func NewReportService(summaryService ISummaryService, userService IUserService, mailService IMailService) *ReportService {
 	srv := &ReportService{
-		config:           config.Get(),
-		eventBus:         config.EventBus(),
-		summaryService:   summaryService,
-		userService:      userService,
-		mailService:      mailService,
-		schedulersWeekly: map[string]*gocron.Scheduler{},
+		config:         config.Get(),
+		eventBus:       config.EventBus(),
+		summaryService: summaryService,
+		userService:    userService,
+		mailService:    mailService,
+		scheduler:      gocron.NewScheduler(time.Local),
+		rand:           rand.New(rand.NewSource(time.Now().Unix())),
 	}
+
+	srv.scheduler.StartAsync()
 
 	sub := srv.eventBus.Subscribe(0, config.EventUserUpdate)
 	go func(sub *hub.Subscription) {
@@ -62,24 +71,24 @@ func (srv *ReportService) SyncSchedule(u *models.User) bool {
 	defer reportLock.Unlock()
 
 	// unschedule
-	if s, ok := srv.schedulersWeekly[u.ID]; ok && !u.ReportsWeekly {
-		s.Stop()
-		s.Clear()
-		delete(srv.schedulersWeekly, u.ID)
+	if !u.ReportsWeekly {
+		_ = srv.scheduler.RemoveByTag(u.ID)
 		return false
 	}
 
 	// schedule
-	if _, ok := srv.schedulersWeekly[u.ID]; !ok && u.ReportsWeekly {
-		s := gocron.NewScheduler(u.TZ())
-		s.
+	if j := srv.getJobByTag(u.ID); j == nil && u.ReportsWeekly {
+		t, _ := time.ParseInLocation("15:04", srv.config.App.GetWeeklyReportTime(), u.TZ())
+		t = t.Add(time.Duration(srv.rand.Intn(offsetIntervalMin)*srv.rand.Intn(2)) * time.Minute)
+		if _, err := srv.scheduler.
 			Every(1).
 			Week().
 			Weekday(srv.config.App.GetWeeklyReportDay()).
-			At(srv.config.App.GetWeeklyReportTime()).
-			Do(srv.Run, u, 7*24*time.Hour)
-		s.StartAsync()
-		srv.schedulersWeekly[u.ID] = s
+			At(t).
+			Tag(u.ID).
+			Do(srv.Run, u, 7*24*time.Hour); err != nil {
+			config.Log().Error("failed to schedule report job for user '%s' – %v", u.ID, err)
+		}
 	}
 
 	return u.ReportsWeekly
@@ -117,5 +126,16 @@ func (srv *ReportService) Run(user *models.User, duration time.Duration) error {
 	}
 
 	logbuch.Info("sent report to user '%s'", user.ID)
+	return nil
+}
+
+func (srv *ReportService) getJobByTag(tag string) *gocron.Job {
+	for _, j := range srv.scheduler.Jobs() {
+		for _, t := range j.Tags() {
+			if t == tag {
+				return j
+			}
+		}
+	}
 	return nil
 }

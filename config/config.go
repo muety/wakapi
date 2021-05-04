@@ -341,21 +341,26 @@ func Load(version string) *Config {
 		}
 	}
 
-	if config.Server.ListenIpV4 == "" && config.Server.ListenIpV6 == "" {
-		logbuch.Fatal("either of listen_ipv4 or listen_ipv6 must be set")
-	}
-
-	if config.Db.MaxConn <= 0 {
-		logbuch.Fatal("you must allow at least one database connection")
-	}
-
 	if config.Sentry.Dsn != "" {
 		logbuch.Info("enabling sentry integration")
 		initSentry(config.Sentry, config.IsDev())
 	}
 
+	// some validation checks
+	if config.Server.ListenIpV4 == "" && config.Server.ListenIpV6 == "" {
+		logbuch.Fatal("either of listen_ipv4 or listen_ipv6 must be set")
+	}
+	if config.Db.MaxConn <= 0 {
+		logbuch.Fatal("you must allow at least one database connection")
+	}
 	if config.Mail.Provider != "" && findString(config.Mail.Provider, emailProviders, "") == "" {
 		logbuch.Fatal("unknown mail provider '%s'", config.Mail.Provider)
+	}
+	if _, err := time.Parse("15:04", config.App.GetWeeklyReportTime()); err != nil {
+		logbuch.Fatal("invalid interval set for report_time_weekly")
+	}
+	if _, err := time.Parse("15:04", config.App.AggregationTime); err != nil {
+		logbuch.Fatal("invalid interval set for aggregation_time")
 	}
 
 	Set(config)
