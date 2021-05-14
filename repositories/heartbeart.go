@@ -64,6 +64,7 @@ func (r *HeartbeatRepository) GetLatestByOriginAndUser(origin string, user *mode
 }
 
 func (r *HeartbeatRepository) GetAllWithin(from, to time.Time, user *models.User) ([]*models.Heartbeat, error) {
+	// https://stackoverflow.com/a/20765152/3112139
 	var heartbeats []*models.Heartbeat
 	if err := r.db.
 		Where(&models.Heartbeat{UserID: user.ID}).
@@ -126,9 +127,8 @@ func (r *HeartbeatRepository) CountByUsers(users []*models.User) ([]*models.Coun
 	}
 
 	if err := r.db.
-		Model(&models.User{}).
-		Select("users.id as user, count(heartbeats.id) as count").
-		Joins("left join heartbeats on users.id = heartbeats.user_id").
+		Model(&models.Heartbeat{}).
+		Select("user_id as user, count(id) as count").
 		Where("user_id in ?", userIds).
 		Group("user").
 		Find(&counts).Error; err != nil {
