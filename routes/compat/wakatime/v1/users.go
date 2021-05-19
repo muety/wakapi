@@ -5,6 +5,7 @@ import (
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
@@ -42,18 +43,13 @@ func (h *UsersHandler) RegisterRoutes(router *mux.Router) {
 // @Success 200 {object} v1.UserViewModel
 // @Router /compat/wakatime/v1/users/{user} [get]
 func (h *UsersHandler) Get(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	requestedUser := vars["user"]
-	authorizedUser := middlewares.GetPrincipal(r)
-
-	if requestedUser != authorizedUser.ID && requestedUser != "current" {
-		w.WriteHeader(http.StatusForbidden)
-		return
+	wakapiUser, err := routeutils.CheckEffectiveUser(w, r, h.userSrvc, "current")
+	if err != nil {
+		return // response was already sent by util function
 	}
 
-	user := v1.NewFromUser(authorizedUser)
-	if hb, err := h.heartbeatSrvc.GetLatestByUser(authorizedUser); err == nil {
+	user := v1.NewFromUser(wakapiUser)
+	if hb, err := h.heartbeatSrvc.GetLatestByUser(wakapiUser); err == nil {
 		user = user.WithLatestHeartbeat(hb)
 	} else {
 		conf.Log().Request(r).Error("%v", err)

@@ -7,6 +7,7 @@ import (
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
@@ -54,13 +55,9 @@ func (h *SummariesHandler) RegisterRoutes(router *mux.Router) {
 // @Success 200 {object} v1.SummariesViewModel
 // @Router /compat/wakatime/v1/users/{user}/summaries [get]
 func (h *SummariesHandler) Get(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	requestedUser := vars["user"]
-	authorizedUser := middlewares.GetPrincipal(r)
-
-	if requestedUser != authorizedUser.ID && requestedUser != "current" {
-		w.WriteHeader(http.StatusForbidden)
-		return
+	_, err := routeutils.CheckEffectiveUser(w, r, h.userSrvc, "current")
+	if err != nil {
+		return // response was already sent by util function
 	}
 
 	summaries, err, status := h.loadUserSummaries(r)

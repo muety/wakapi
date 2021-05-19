@@ -6,6 +6,7 @@ import (
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	customMiddleware "github.com/muety/wakapi/middlewares/custom"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
@@ -34,12 +35,14 @@ type heartbeatResponseVm struct {
 }
 
 func (h *HeartbeatApiHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/heartbeat").Subrouter()
+	r := router.PathPrefix("").Subrouter()
 	r.Use(
 		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
 		customMiddleware.NewWakatimeRelayMiddleware().Handler,
 	)
-	r.Methods(http.MethodPost).HandlerFunc(h.Post)
+	r.PathPrefix("/heartbeat").Methods(http.MethodPost).HandlerFunc(h.Post)
+	r.PathPrefix("/v1/users/{user}/heartbeats").Methods(http.MethodPost).HandlerFunc(h.Post)
+	r.PathPrefix("/compat/wakatime/v1/users/{user}/heartbeats").Methods(http.MethodPost).HandlerFunc(h.Post)
 }
 
 // @Summary Push a new heartbeat
@@ -51,8 +54,12 @@ func (h *HeartbeatApiHandler) RegisterRoutes(router *mux.Router) {
 // @Success 201
 // @Router /heartbeat [post]
 func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
+	user, err := routeutils.CheckEffectiveUser(w, r, h.userSrvc, "current")
+	if err != nil {
+		return // response was already sent by util function
+	}
+
 	var heartbeats []*models.Heartbeat
-	user := middlewares.GetPrincipal(r)
 	opSys, editor, _ := utils.ParseUserAgent(r.Header.Get("User-Agent"))
 	machineName := r.Header.Get("X-Machine-Name")
 

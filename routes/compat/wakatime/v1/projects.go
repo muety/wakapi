@@ -6,6 +6,7 @@ import (
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
@@ -45,16 +46,12 @@ func (h *ProjectsHandler) RegisterRoutes(router *mux.Router) {
 // @Success 200 {object} v1.ProjectsViewModel
 // @Router /compat/wakatime/v1/users/{user}/projects [get]
 func (h *ProjectsHandler) Get(w http.ResponseWriter, r *http.Request) {
-	var vars = mux.Vars(r)
-	requestedUser := vars["user"]
-	authorizedUser := middlewares.GetPrincipal(r)
-
-	if requestedUser != authorizedUser.ID && requestedUser != "current" {
-		w.WriteHeader(http.StatusForbidden)
-		return
+	user, err := routeutils.CheckEffectiveUser(w, r, h.userSrvc, "current")
+	if err != nil {
+		return // response was already sent by util function
 	}
 
-	results, err := h.heartbeatSrvc.GetEntitySetByUser(models.SummaryProject, authorizedUser)
+	results, err := h.heartbeatSrvc.GetEntitySetByUser(models.SummaryProject, user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("something went wrong"))

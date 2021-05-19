@@ -6,6 +6,7 @@ import (
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
@@ -45,18 +46,14 @@ func (h *AllTimeHandler) RegisterRoutes(router *mux.Router) {
 // @Success 200 {object} v1.AllTimeViewModel
 // @Router /compat/wakatime/v1/users/{user}/all_time_since_today [get]
 func (h *AllTimeHandler) Get(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
 	values, _ := url.ParseQuery(r.URL.RawQuery)
 
-	requestedUser := vars["user"]
-	authorizedUser := middlewares.GetPrincipal(r)
-
-	if requestedUser != authorizedUser.ID && requestedUser != "current" {
-		w.WriteHeader(http.StatusForbidden)
-		return
+	user, err := routeutils.CheckEffectiveUser(w, r, h.userSrvc, "current")
+	if err != nil {
+		return // response was already sent by util function
 	}
 
-	summary, err, status := h.loadUserSummary(authorizedUser)
+	summary, err, status := h.loadUserSummary(user)
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))
