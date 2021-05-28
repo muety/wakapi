@@ -45,6 +45,7 @@
 * [API Endpoints](#-api-endpoints)
 * [Integrations](#-integrations)
 * [Best Practices](#-best-practices)
+* [Tests](#-tests)
 * [Developer Notes](#-developer-notes)
 * [Support](#-support)
 * [FAQs](#-faqs)
@@ -59,6 +60,7 @@ I'd love to get some community feedback from active Wakapi users. If you want, p
 * ✅ Built by developers for developers
 * ✅ Statistics for projects, languages, editors, hosts and operating systems
 * ✅ Badges
+* ✅ Weekly E-Mail Reports
 * ✅ REST API
 * ✅ Partially compatible with WakaTime
 * ✅ WakaTime integration
@@ -282,12 +284,40 @@ Preview:
 It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or _nginx_ to enable **TLS encryption** (HTTPS).
 However, if you want to expose your wakapi instance to the public anyway, you need to set `server.listen_ipv4` to `0.0.0.0` in `config.yml`
 
-## 🤓 Developer Notes
-### Running tests
+## 🧪 Tests
+### Unit Tests
+Unit tests are supposed to test business logic on a fine-grained level. They are implemented as part of the application, using Go's [testing](https://pkg.go.dev/testing?utm_source=godoc) package alongside [stretchr/testify](https://pkg.go.dev/github.com/stretchr/testify).
+
+#### How to run
 ```bash
-CGO_FLAGS="-g -O2 -Wno-return-local-addr" go test -json -coverprofile=coverage/coverage.out ./... -run ./...
+$ CGO_FLAGS="-g -O2 -Wno-return-local-addr" go test -json -coverprofile=coverage/coverage.out ./... -run ./...
 ```
 
+### API Tests
+API tests are implemented as black box tests, which interact with a fully-fledged, standalone Wakapi through HTTP requests. They are supposed to check Wakapi's web stack and endpoints, including response codes, headers and data on a syntactical level, rather than checking the actual content that is returned.
+
+Our API (or end-to-end, in some way) tests are implemented as a [Postman](https://www.postman.com/) collection and can be run either from inside Postman, or using [newman](https://www.npmjs.com/package/newman) as a command-line runner.
+
+To get a predictable environment, tests are run against a fresh and clean Wakapi instance with a SQLite database that is populated with nothing but some seed data (see [data.sql](testing/data.sql)). It is usually recommended for software tests to be [safe](https://www.restapitutorial.com/lessons/idempotency.html), stateless and without side effects. In contrary to that paradigm, our API tests strictly require a fixed execution order (which Postman assures) and their assertions may rely on specific previous tests having succeeded.
+
+#### Prerequisites (Linux only)
+```bash
+# 1. sqlite (cli)
+$ sudo apt install sqlite  # Fedora: sudo dnf install sqlite
+
+# 2. screen
+$ sudo apt install screen  # Fedora: sudo dnf install screen
+
+# 3. newman
+$ npm install -g newman
+```
+
+#### How to run (Linux only) 
+```bash
+$ ./testing/run_api_tests.sh
+```
+
+## 🤓 Developer Notes
 ### Building web assets
 To keep things minimal, Wakapi does not contain a `package.json`, `node_modules` or any sort of frontend build step. Instead, all JS and CSS assets are included as static files and checked in to Git. This way we can avoid requiring NodeJS to build Wakapi. However, for [TailwindCSS](https://tailwindcss.com/docs/installation#building-for-production) it makes sense to run it through a "build" step to benefit from purging and significantly reduce it in size. To only require this at the time of development, the compiled asset is checked in to Git as well. Similarly, [Iconify](https://iconify.design/docs/icon-bundles/) bundles are also created at development time and checked in to the repo. 
 

@@ -1,0 +1,879 @@
+{
+	"info": {
+		"_postman_id": "472dcea5-a8b1-4507-8480-61644295c35b",
+		"name": "Wakapi API Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Sign up user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Body matches string\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"Account created successfully\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "location",
+									"value": "{{TZ}}",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "testuser",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "testuser@wakapi.dev",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "testpassword",
+									"type": "text"
+								},
+								{
+									"key": "password_repeat",
+									"value": "testpassword",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/signup",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sign up existing user (conflict)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 409\", function () {",
+									"    pm.response.to.have.status(409);",
+									"});",
+									"",
+									"pm.test(\"Body matches string\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"User already existing\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "location",
+									"value": "{{TZ}}",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "testuser",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "testuser@wakapi.dev",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "testpassword",
+									"type": "text"
+								},
+								{
+									"key": "password_repeat",
+									"value": "testpassword",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/signup",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 302\", function () {",
+									"    pm.response.to.have.status(302);",
+									"});",
+									"",
+									"pm.test(\"Redirect to summary\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Location\")).to.eql(\"/summary\");",
+									"});",
+									"",
+									"pm.test(\"Sets cookie\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Set-Cookie\")).to.include(\"wakapi_auth=\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true,
+						"followRedirects": false
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "username",
+									"value": "testuser",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "testpassword",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login (wrong password)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"No redirect\", function () {",
+									"    pm.response.to.not.have.header(\"Location\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true,
+						"followRedirects": false
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "username",
+									"value": "testuser",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "wrongpassword",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Heartbeats",
+			"item": [
+				{
+					"name": "Create heartbeats",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response body is correct\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.responses.length).to.eql(2);",
+									"    pm.expect(jsonData.responses[0].length).to.eql(2);",
+									"    pm.expect(jsonData.responses[1].length).to.eql(2);",
+									"    pm.expect(jsonData.responses[0][1]).to.eql(201);",
+									"    pm.expect(jsonData.responses[1][1]).to.eql(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\n    \"entity\": \"/home/user1/dev/proejct1/main.go\",\n    \"project\": \"Project 1\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": {{tsNowMinus1Min}}\n},\n{\n    \"entity\": \"/home/user1/dev/proejct1/main.go\",\n    \"project\": \"Project 1\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": {{tsNowMinus2Min}}\n}]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/heartbeat",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"heartbeat"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create heartbeats (unauthorized)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\n    \"entity\": \"/home/user1/dev/proejct1/main.go\",\n    \"project\": \"Project 1\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": {{tsNowMinus1Min}}\n}]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/heartbeat",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"heartbeat"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Summary",
+			"item": [
+				{
+					"name": "Get summary (today)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const moment = require('moment')",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct user\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.user_id).to.eql(\"writeuser\");",
+									"});",
+									"",
+									"pm.test(\"Correct summary data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.projects.length).to.eql(1);",
+									"    pm.expect(jsonData.languages.length).to.eql(1);",
+									"    pm.expect(jsonData.editors.length).to.eql(1);",
+									"    pm.expect(jsonData.operating_systems.length).to.eql(1);",
+									"    pm.expect(jsonData.machines.length).to.eql(1);",
+									"});",
+									"",
+									"/*",
+									"// This is something the unit tests are supposed to check",
+									"pm.test(\"Correct summary range\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    const from = moment(jsonData.from)",
+									"    const to = moment(jsonData.to)",
+									"",
+									"    pm.expect(moment.duration(moment().diff(from.add(2, 'm'))).asSeconds()).to.lt(10); // first heartbeat is now minus 1 min minus some latency",
+									"    pm.expect(moment.duration(moment().diff(to.add(1, 'm'))).asSeconds()).to.lt(10); // first heartbeat is now minus 1 min minus some latency",
+									"});",
+									"*/"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"tlsPreferServerCiphers": true,
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/summary?interval=today",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "interval",
+									"value": "today"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get summary (last 7 days)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const moment = require('moment')",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct user\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.user_id).to.eql(\"writeuser\");",
+									"});",
+									"",
+									"pm.test(\"Correct summary data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.projects.length).to.eql(1);",
+									"    pm.expect(jsonData.languages.length).to.eql(1);",
+									"    pm.expect(jsonData.editors.length).to.eql(1);",
+									"    pm.expect(jsonData.operating_systems.length).to.eql(1);",
+									"    pm.expect(jsonData.machines.length).to.eql(1);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"tlsPreferServerCiphers": true,
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/summary?interval=last_7_days",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "interval",
+									"value": "last_7_days"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get summary (week)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const moment = require('moment')",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct user\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.user_id).to.eql(\"writeuser\");",
+									"});",
+									"",
+									"pm.test(\"Correct summary data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.projects.length).to.eql(1);",
+									"    pm.expect(jsonData.languages.length).to.eql(1);",
+									"    pm.expect(jsonData.editors.length).to.eql(1);",
+									"    pm.expect(jsonData.operating_systems.length).to.eql(1);",
+									"    pm.expect(jsonData.machines.length).to.eql(1);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"tlsPreferServerCiphers": true,
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/summary?start=week",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "start",
+									"value": "week"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get summary (range)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const moment = require('moment')",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct user\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.user_id).to.eql(\"writeuser\");",
+									"});",
+									"",
+									"pm.test(\"Correct summary data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.projects.length).to.eql(1);",
+									"    pm.expect(jsonData.languages.length).to.eql(1);",
+									"    pm.expect(jsonData.editors.length).to.eql(1);",
+									"    pm.expect(jsonData.operating_systems.length).to.eql(1);",
+									"    pm.expect(jsonData.machines.length).to.eql(1);",
+									"});",
+									"",
+									"pm.test(\"Correct dates\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(moment(jsonData.from).unix()).to.gt(moment(pm.variables.get('tsStartOfDayDate')).unix())",
+									"    pm.expect(moment(jsonData.to).unix()).to.gt(moment(pm.variables.get('tsEndOfDayDate')).unix())",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"tlsPreferServerCiphers": true,
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/summary?from={{tsStartOfDayDate}}&to={{tsEndOfTomorrowDate}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "{{tsStartOfDayDate}}"
+								},
+								{
+									"key": "to",
+									"value": "{{tsEndOfTomorrowDate}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get summary (default tz)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const moment = require('moment')",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct time zone\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    const targetDateTz = moment(`2021-05-28T00:00:00${pm.variables.get('TZ_OFFSET')}`)",
+									"    pm.expect(moment(jsonData.from).isSame(targetDateTz)).to.eql(true)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"tlsPreferServerCiphers": true,
+						"disableCookies": true,
+						"disableUrlEncoding": false
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/summary?from=2021-05-28&to=2021-05-28",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "2021-05-28"
+								},
+								{
+									"key": "to",
+									"value": "2021-05-28"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get summary (parse tz)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const moment = require('moment')",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct time zone\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    // when it was midnight in UTC+3, it was still 11 pm in Germany",
+									"    const targetDateTz = moment(`2021-05-28T00:00:00${pm.variables.get('TZ_OFFSET')}`).add(-1, 'h')",
+									"    pm.expect(moment(jsonData.from).isSame(targetDateTz)).to.eql(true)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"tlsPreferServerCiphers": true,
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/summary?from=2021-05-28T00:00:00%2B03:00&to=2021-05-28T00:00:00%2B03:00",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "2021-05-28T00:00:00%2B03:00"
+								},
+								{
+									"key": "to",
+									"value": "2021-05-28T00:00:00%2B03:00"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"const moment = require('moment')",
+					"",
+					"const now = moment()",
+					"const startOfDay = moment().startOf('day')",
+					"const endOfDay = moment().endOf('day')",
+					"const endOfTomorrow = moment().add(1, 'd').endOf('day')",
+					"",
+					"console.log(`Current timestamp is: ${now.format('x') / 1000}`)",
+					"",
+					"",
+					"// Auth stuff",
+					"const readApiKey = pm.variables.get('READUSER_API_KEY')",
+					"const writeApiKey = pm.variables.get('WRITEUSER_API_KEY')",
+					"",
+					"if (!readApiKey || !writeApiKey) {",
+					"    throw new Error('no api key given')",
+					"}",
+					"",
+					"pm.variables.set('READUSER_TOKEN', base64encode(readApiKey))",
+					"pm.variables.set('WRITEUSER_TOKEN', base64encode(writeApiKey))",
+					"",
+					"function base64encode(str) {",
+					"    return Buffer.from(str, 'utf-8').toString('base64')",
+					"}",
+					"",
+					"// Heartbeat stuff",
+					"pm.variables.set('tsNow', now.format('x') / 1000)",
+					"pm.variables.set('tsNowMinus1Min', now.add(-1, 'm').format('x') / 1000)",
+					"pm.variables.set('tsNowMinus2Min', now.add(-2, 'm').format('x') / 1000)",
+					"pm.variables.set('tsNowMinus3Min', now.add(-3, 'm').format('x') / 1000)",
+					"pm.variables.set('tsStartOfDay', startOfDay.format('x') / 1000)",
+					"pm.variables.set('tsEndOfDay', endOfDay.format('x') / 1000)",
+					"pm.variables.set('tsEndOfTomorrow', endOfTomorrow.format('x') / 1000)",
+					"pm.variables.set('tsStartOfDayIso', startOfDay.toISOString())",
+					"pm.variables.set('tsEndOfDayIso', endOfDay.toISOString())",
+					"pm.variables.set('tsEndOfTomorrowIso', endOfTomorrow.toISOString())",
+					"pm.variables.set('tsStartOfDayDate', startOfDay.format('YYYY-MM-DD'))",
+					"pm.variables.set('tsEndOfDayDate', endOfDay.format('YYYY-MM-DD'))",
+					"pm.variables.set('tsEndOfTomorrowDate', endOfTomorrow.format('YYYY-MM-DD'))"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "http://localhost:3000"
+		},
+		{
+			"key": "READUSER_API_KEY",
+			"value": "33e7f538-0dce-4eba-8ffe-53db6814ed42"
+		},
+		{
+			"key": "WRITEUSER_API_KEY",
+			"value": "f7aa255c-8647-4d0b-b90f-621c58fd580f"
+		},
+		{
+			"key": "TZ",
+			"value": "Europe/Berlin"
+		},
+		{
+			"key": "TZ_OFFSET",
+			"value": "+02:00"
+		}
+	]
+}

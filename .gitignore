@@ -7,6 +7,7 @@ build
 *.db
 config*.yml
 !config.default.yml
+!testing/config.testing.yml
 pkged.go
 package.json
 yarn.lock
