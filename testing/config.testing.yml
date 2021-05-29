@@ -35,7 +35,7 @@ security:
   insecure_cookies: true
   cookie_max_age: 172800
   allow_signup: true
-  expose_metrics: false
+  expose_metrics: true
 
 sentry:
   dsn:
