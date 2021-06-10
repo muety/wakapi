@@ -24,7 +24,7 @@
     <span> | </span>
     <a href="#-features">Features</a>
     <span> | </span>
-    <a href="#-how-to-use">How to use</a>
+    <a href="#%EF%B8%8F-how-to-use">How to use</a>
     <span> | </span>
     <a href="https://github.com/muety/wakapi/issues">Issues</a>
     <span> | </span>

@@ -450,6 +450,13 @@ func (h *SettingsHandler) actionImportWaktime(w http.ResponseWriter, r *http.Req
 
 		h.regenerateSummaries(user)
 
+		if !user.HasData {
+			user.HasData = true
+			if _, err := h.userSrvc.Update(user); err != nil {
+				conf.Log().Request(r).Error("failed to set 'has_data' flag for user %s – %v", user.ID, err)
+			}
+		}
+
 		if user.Email != "" {
 			if err := h.mailSrvc.SendImportNotification(user, time.Now().Sub(start), int(countAfter-countBefore)); err != nil {
 				conf.Log().Request(r).Error("failed to send import notification mail to %s – %v", user.ID, err)

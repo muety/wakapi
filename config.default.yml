@@ -13,6 +13,7 @@ app:
   aggregation_time: '02:15'           # time at which to run daily aggregation batch jobs
   report_time_weekly: 'fri,18:00'     # time at which to fan out weekly reports (format: '<weekday)>,<daytime>')
   inactive_days: 7                    # time of previous days within a user must have logged in to be considered active
+  import_batch_size: 50               # maximum number of heartbeats to insert into the database within one transaction
   custom_languages:
     vue: Vue
     jsx: JSX
