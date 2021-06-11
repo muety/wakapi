@@ -16,7 +16,7 @@ import (
 
 const (
 	intervalPattern     = `interval:([a-z0-9_]+)`
-	entityFilterPattern = `(project|os|editor|language|machine):([_a-zA-Z0-9-]+)`
+	entityFilterPattern = `(project|os|editor|language|machine):([_a-zA-Z0-9-\s]+)`
 )
 
 type BadgeHandler struct {
@@ -75,7 +75,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, rangeFrom, rangeTo := utils.ResolveIntervalTZ(interval, user.TZ())
-	minStart := utils.StartOfDay(rangeTo.Add(-24 * time.Hour * time.Duration(user.ShareDataMaxDays)))
+	minStart := rangeTo.Add(-24 * time.Hour * time.Duration(user.ShareDataMaxDays))
 	// negative value means no limit
 	if rangeFrom.Before(minStart) && user.ShareDataMaxDays >= 0 {
 		w.WriteHeader(http.StatusForbidden)
@@ -83,20 +83,33 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var permitEntity bool
 	var filters *models.Filters
 	switch filterEntity {
 	case "project":
+		permitEntity = user.ShareProjects
 		filters = models.NewFiltersWith(models.SummaryProject, filterKey)
 	case "os":
+		permitEntity = user.ShareOSs
 		filters = models.NewFiltersWith(models.SummaryOS, filterKey)
 	case "editor":
+		permitEntity = user.ShareEditors
 		filters = models.NewFiltersWith(models.SummaryEditor, filterKey)
 	case "language":
+		permitEntity = user.ShareLanguages
 		filters = models.NewFiltersWith(models.SummaryLanguage, filterKey)
 	case "machine":
+		permitEntity = user.ShareMachines
 		filters = models.NewFiltersWith(models.SummaryMachine, filterKey)
 	default:
+		permitEntity = true
 		filters = &models.Filters{}
+	}
+
+	if !permitEntity {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte("user did not opt in to share entity-specific data"))
+		return
 	}
 
 	cacheKey := fmt.Sprintf("%s_%v_%s_%s", user.ID, *interval, filterEntity, filterKey)

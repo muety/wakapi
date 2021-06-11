@@ -30,7 +30,8 @@ func ResolveIntervalRawTZ(interval string, tz *time.Location) (err error, from, 
 }
 
 func ResolveIntervalTZ(interval *models.IntervalKey, tz *time.Location) (err error, from, to time.Time) {
-	to = time.Now().In(tz)
+	now := time.Now().In(tz)
+	to = now
 
 	switch interval {
 	case models.IntervalToday:
@@ -51,16 +52,16 @@ func ResolveIntervalTZ(interval *models.IntervalKey, tz *time.Location) (err err
 	case models.IntervalThisYear:
 		from = StartOfThisYear(tz)
 	case models.IntervalPast7Days:
-		from = StartOfToday(tz).AddDate(0, 0, -7)
+		from = now.AddDate(0, 0, -7)
 	case models.IntervalPast7DaysYesterday:
 		from = StartOfToday(tz).AddDate(0, 0, -1).AddDate(0, 0, -7)
 		to = StartOfToday(tz).AddDate(0, 0, -1)
 	case models.IntervalPast14Days:
-		from = StartOfToday(tz).AddDate(0, 0, -14)
+		from = now.AddDate(0, 0, -14)
 	case models.IntervalPast30Days:
-		from = StartOfToday(tz).AddDate(0, 0, -30)
+		from = now.AddDate(0, 0, -30)
 	case models.IntervalPast12Months:
-		from = StartOfToday(tz).AddDate(0, -12, 0)
+		from = now.AddDate(0, -12, 0)
 	case models.IntervalAny:
 		from = time.Time{}
 	default:
