@@ -79,7 +79,7 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	minStart := utils.StartOfDay(rangeTo.Add(-24 * time.Hour * time.Duration(requestedUser.ShareDataMaxDays)))
+	minStart := rangeTo.Add(-24 * time.Hour * time.Duration(requestedUser.ShareDataMaxDays))
 	if (authorizedUser == nil || requestedUser.ID != authorizedUser.ID) &&
 		rangeFrom.Before(minStart) && requestedUser.ShareDataMaxDays >= 0 {
 		w.WriteHeader(http.StatusForbidden)
