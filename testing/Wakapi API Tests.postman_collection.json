@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "e7b925d5-501e-471c-abc7-eb29eec5279d",
+		"_postman_id": "7ce36cea-e702-40c6-8056-2cb6149f34f7",
 		"name": "Wakapi API Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -299,7 +299,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "[{\n    \"entity\": \"/home/user1/dev/proejct1/main.go\",\n    \"project\": \"wakapi\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": {{tsNowMinus1Min}}\n},\n{\n    \"entity\": \"/home/user1/dev/proejct1/main.go\",\n    \"project\": \"wakapi\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": {{tsNowMinus2Min}}\n}]",
+							"raw": "[{\n    \"entity\": \"/home/user1/dev/project1/main.go\",\n    \"project\": \"wakapi\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": {{tsNowMinus1Min}}\n},\n{\n    \"entity\": \"/home/user1/dev/project1/main.go\",\n    \"project\": \"wakapi\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": {{tsNowMinus2Min}}\n}]",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -314,6 +314,124 @@
 							"path": [
 								"api",
 								"heartbeat"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create heartbeats (alt 1)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    // only check if endpoint is present (non-404), 400 is fine because invalid body sent",
+									"    pm.response.to.have.status(400);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/users/current/heartbeats.bulk",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"current",
+								"heartbeats.bulk"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create heartbeats (alt 2)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    // only check if endpoint is present (non-404), 400 is fine because invalid body sent",
+									"    pm.response.to.have.status(400);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/current/heartbeats",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"current",
+								"heartbeats"
 							]
 						}
 					},
@@ -792,6 +910,50 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get summary (unauthenticated)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"tlsPreferServerCiphers": true,
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/summary?interval=today",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "interval",
+									"value": "today"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -971,14 +1133,7 @@
 					},
 					"request": {
 						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{WRITEUSER_TOKEN}}",
-									"type": "string"
-								}
-							]
+							"type": "noauth"
 						},
 						"method": "GET",
 						"header": [],
@@ -1025,14 +1180,7 @@
 					},
 					"request": {
 						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{WRITEUSER_TOKEN}}",
-									"type": "string"
-								}
-							]
+							"type": "noauth"
 						},
 						"method": "GET",
 						"header": [],
@@ -1075,14 +1223,7 @@
 					},
 					"request": {
 						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{WRITEUSER_TOKEN}}",
-									"type": "string"
-								}
-							]
+							"type": "noauth"
 						},
 						"method": "GET",
 						"header": [],
@@ -1129,7 +1270,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{BASE_URL}}/api/compat/shields/v1/readuser/interval:week",
+							"raw": "{{BASE_URL}}/api/compat/shields/v1/readuser/interval:today",
 							"host": [
 								"{{BASE_URL}}"
 							],
@@ -1139,11 +1280,1147 @@
 								"shields",
 								"v1",
 								"readuser",
-								"interval:week"
+								"interval:today"
 							]
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get shields (non-shared entity type)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/shields/v1/writeuser/interval:today/language:Go",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"shields",
+								"v1",
+								"writeuser",
+								"interval:today",
+								"language:Go"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "WakaTime",
+			"item": [
+				{
+					"name": "Get all time",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct content\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.text).to.eql('0 hrs 2 mins');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/current/all_time_since_today",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"current",
+								"all_time_since_today"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all time (unauthenticated)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/writeuser/all_time_since_today",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"writeuser",
+								"all_time_since_today"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get stats (current)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct content\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.languages).to.eql(null); // because share_languages is false",
+									"    pm.expect(jsonData.data.projects.length).to.eql(1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/current/stats",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"current",
+								"stats"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get stats (by user)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct content\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.projects.length).to.eql(1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/writeuser/stats",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"writeuser",
+								"stats"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get stats (current, alt 1)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct content\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.languages).to.eql(null); // because share_languages is false",
+									"    pm.expect(jsonData.data.projects.length).to.eql(1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v1/users/current/stats/today",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"current",
+								"stats",
+								"today"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get stats (range)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct content\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.projects.length).to.eql(1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/writeuser/stats/last_7_days",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"writeuser",
+								"stats",
+								"last_7_days"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get stats (out of range)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/writeuser/stats/30_days",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"writeuser",
+								"stats",
+								"30_days"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get stats (not sharing)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/readuser/stats/today",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"readuser",
+								"stats",
+								"today"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get projects",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct content\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.length).to.eql(1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/current/projects",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"current",
+								"projects"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get projects (unauthenticated)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/writeuser/projects",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"writeuser",
+								"projects"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get user (current)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct content\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.id).to.eql('writeuser');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/current",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"current"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get user (forbidden user)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/readuser",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"readuser"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get user (unauthenticated)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/writeuser",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"writeuser"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Settings",
+			"item": [
+				{
+					"name": "Use Case: Custom Mappings",
+					"item": [
+						{
+							"name": "1. Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Body contains string\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"Showing a total of\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableCookies": false,
+								"followRedirects": true
+							},
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "username",
+											"value": "writeuser",
+											"type": "text"
+										},
+										{
+											"key": "password",
+											"value": "{{WRITEUSER_PASSWORD}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "2. Add custom mapping",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Body contains string\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"Mapping added successfully\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableCookies": false,
+								"followRedirects": true
+							},
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "action",
+											"value": "add_mapping",
+											"type": "text"
+										},
+										{
+											"key": "extension",
+											"value": "go",
+											"type": "text"
+										},
+										{
+											"key": "language",
+											"value": "Gogo",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "3. Check summary",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Correct language\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.languages.length).to.eql(1);",
+											"    pm.expect(jsonData.languages[0].key).to.eql('Gogo');",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"tlsPreferServerCiphers": true,
+								"disableCookies": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{WRITEUSER_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/summary?interval=today",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"summary"
+									],
+									"query": [
+										{
+											"key": "interval",
+											"value": "today"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "4. Remove custom mapping",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Body contains string\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"Mapping deleted successfully\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableCookies": false,
+								"followRedirects": true
+							},
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "action",
+											"value": "delete_mapping",
+											"type": "text"
+										},
+										{
+											"key": "mapping_id",
+											"value": "0",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "5. Check summary again",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Correct language\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.languages.length).to.eql(1);",
+											"    pm.expect(jsonData.languages[0].key).to.eql('Go');",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"tlsPreferServerCiphers": true,
+								"disableCookies": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{WRITEUSER_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/summary?interval=today",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"summary"
+									],
+									"query": [
+										{
+											"key": "interval",
+											"value": "today"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Use Case: Change E-Mail",
+					"item": [
+						{
+							"name": "1. Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Body contains string\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"Showing a total of\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableCookies": false,
+								"followRedirects": true
+							},
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "username",
+											"value": "writeuser",
+											"type": "text"
+										},
+										{
+											"key": "password",
+											"value": "{{WRITEUSER_PASSWORD}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "2. Set e-mail",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Body contains string\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"User updated successfully\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableCookies": false,
+								"followRedirects": true
+							},
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "action",
+											"value": "update_user",
+											"type": "text"
+										},
+										{
+											"key": "location",
+											"value": "Europe/Berlin",
+											"type": "text"
+										},
+										{
+											"key": "email",
+											"value": "foo@example.org",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "3. Check e-mail",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Correct e-mail address\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.data.email).to.eql('foo@example.org');",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"tlsPreferServerCiphers": true,
+								"disableCookies": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{WRITEUSER_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/current",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"compat",
+										"wakatime",
+										"v1",
+										"users",
+										"current"
+									]
+								}
+							},
+							"response": []
+						}
+					]
 				}
 			]
 		}
@@ -1226,6 +2503,14 @@
 		{
 			"key": "TZ_OFFSET",
 			"value": "+02:00"
+		},
+		{
+			"key": "READUSER_PASSWORD",
+			"value": "testpw"
+		},
+		{
+			"key": "WRITEUSER_PASSWORD",
+			"value": "testpw"
 		}
 	]
 }

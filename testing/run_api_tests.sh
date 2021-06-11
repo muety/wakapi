@@ -1,8 +1,8 @@
 #!/bin/bash
 
 if [ ! -f "wakapi" ]; then
-    echo "Wakapi executable not found. Run 'go build' first."
-    exit 1
+    echo "Wakapi executable not found. Compiling."
+    go build
 fi
 
 if ! command -v newman &> /dev/null
