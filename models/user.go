@@ -23,6 +23,7 @@ type User struct {
 	ShareProjects    bool       `json:"-" gorm:"default:false; type:bool"`
 	ShareOSs         bool       `json:"-" gorm:"default:false; type:bool; column:share_oss"`
 	ShareMachines    bool       `json:"-" gorm:"default:false; type:bool"`
+	ShareLabels      bool       `json:"-" gorm:"default:false; type:bool"`
 	IsAdmin          bool       `json:"-" gorm:"default:false; type:bool"`
 	HasData          bool       `json:"-" gorm:"default:false; type:bool"`
 	WakatimeApiKey   string     `json:"-"`

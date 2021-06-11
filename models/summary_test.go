@@ -20,7 +20,7 @@ func TestSummary_FillUnknown(t *testing.T) {
 		},
 	}
 
-	sut.FillUnknown()
+	sut.FillMissing()
 
 	itemLists := [][]*SummaryItem{
 		sut.Machines,

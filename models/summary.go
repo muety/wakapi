@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"sort"
 	"time"
 )
@@ -12,9 +13,11 @@ const (
 	SummaryEditor   uint8 = 2
 	SummaryOS       uint8 = 3
 	SummaryMachine  uint8 = 4
+	SummaryLabel    uint8 = 5
 )
 
 const UnknownSummaryKey = "unknown"
+const DefaultProjectLabel = "default"
 
 type Summary struct {
 	ID               uint         `json:"-" gorm:"primary_key"`
@@ -27,6 +30,7 @@ type Summary struct {
 	Editors          SummaryItems `json:"editors" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	OperatingSystems SummaryItems `json:"operating_systems" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Machines         SummaryItems `json:"machines" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Labels           SummaryItems `json:"labels" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 type SummaryItems []*SummaryItem
@@ -68,6 +72,10 @@ type SummaryParams struct {
 type AliasResolver func(t uint8, k string) string
 
 func SummaryTypes() []uint8 {
+	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryLabel}
+}
+
+func NativeSummaryTypes() []uint8 {
 	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine}
 }
 
@@ -77,6 +85,7 @@ func (s *Summary) Sorted() *Summary {
 	sort.Sort(sort.Reverse(s.OperatingSystems))
 	sort.Sort(sort.Reverse(s.Languages))
 	sort.Sort(sort.Reverse(s.Editors))
+	sort.Sort(sort.Reverse(s.Labels))
 	return s
 }
 
@@ -91,6 +100,7 @@ func (s *Summary) MappedItems() map[uint8]*SummaryItems {
 		SummaryEditor:   &s.Editors,
 		SummaryOS:       &s.OperatingSystems,
 		SummaryMachine:  &s.Machines,
+		SummaryLabel:    &s.Labels,
 	}
 }
 
@@ -109,7 +119,7 @@ of time than the other ones.
 To avoid having to modify persisted data retrospectively, i.e. inserting a dummy SummaryItem for the new type,
 such is generated dynamically here, considering the "machine" for all old heartbeats "unknown".
 */
-func (s *Summary) FillUnknown() {
+func (s *Summary) FillMissing() {
 	types := s.Types()
 	typeItems := s.MappedItems()
 	missingTypes := make([]uint8, 0)
@@ -125,14 +135,38 @@ func (s *Summary) FillUnknown() {
 		return
 	}
 
-	timeSum := s.TotalTime()
-
 	// construct dummy item for all missing types
+	presentType, _ := s.findFirstPresentType()
 	for _, t := range missingTypes {
-		*typeItems[t] = append(*typeItems[t], &SummaryItem{
-			Type:  t,
-			Key:   UnknownSummaryKey,
-			Total: timeSum,
+		s.FillBy(presentType, t)
+	}
+}
+
+// inplace!
+func (s *Summary) FillBy(fromType uint8, toType uint8) {
+	typeItems := s.MappedItems()
+	totalWanted := s.TotalTimeBy(fromType) / time.Second
+	totalActual := s.TotalTimeBy(toType) / time.Second
+
+	key := UnknownSummaryKey
+	if toType == SummaryLabel {
+		key = DefaultProjectLabel
+	}
+
+	existingEntryIdx := -1
+	for i, item := range *typeItems[toType] {
+		if item.Key == key {
+			existingEntryIdx = i
+			break
+		}
+	}
+	if existingEntryIdx >= 0 {
+		(*typeItems[toType])[existingEntryIdx].Total = totalWanted - totalActual
+	} else {
+		*typeItems[toType] = append(*typeItems[toType], &SummaryItem{
+			Type:  toType,
+			Key:   key,
+			Total: totalWanted - totalActual,
 		})
 	}
 }
@@ -141,17 +175,24 @@ func (s *Summary) TotalTime() time.Duration {
 	var timeSum time.Duration
 
 	mappedItems := s.MappedItems()
-	// calculate total duration from any of the present sets of items
-	for _, t := range s.Types() {
-		if items := mappedItems[t]; len(*items) > 0 {
-			for _, item := range *items {
-				timeSum += item.Total
-			}
-			break
-		}
+	t, err := s.findFirstPresentType()
+	if err != nil {
+		return 0
+	}
+	for _, item := range *mappedItems[t] {
+		timeSum += item.Total
 	}
 
 	return timeSum * time.Second
+}
+
+func (s *Summary) findFirstPresentType() (uint8, error) {
+	for _, t := range s.Types() {
+		if s.TotalTimeBy(t) > 0 {
+			return t, nil
+		}
+	}
+	return 127, errors.New("no type present")
 }
 
 func (s *Summary) TotalTimeBy(entityType uint8) (timeSum time.Duration) {
@@ -231,6 +272,7 @@ func (s *Summary) WithResolvedAliases(resolve AliasResolver) *Summary {
 	s.Languages = processAliases(s.Languages)
 	s.OperatingSystems = processAliases(s.OperatingSystems)
 	s.Machines = processAliases(s.Machines)
+	s.Labels = processAliases(s.Labels)
 
 	return s
 }

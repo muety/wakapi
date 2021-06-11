@@ -46,6 +46,14 @@ type ILanguageMappingRepository interface {
 	Delete(uint) error
 }
 
+type IProjectLabelRepository interface {
+	GetAll() ([]*models.ProjectLabel, error)
+	GetById(uint) (*models.ProjectLabel, error)
+	GetByUser(string) ([]*models.ProjectLabel, error)
+	Insert(*models.ProjectLabel) (*models.ProjectLabel, error)
+	Delete(uint) error
+}
+
 type ISummaryRepository interface {
 	Insert(*models.Summary) error
 	GetAll() ([]*models.Summary, error)

@@ -49,6 +49,7 @@ var (
 	heartbeatRepository       repositories.IHeartbeatRepository
 	userRepository            repositories.IUserRepository
 	languageMappingRepository repositories.ILanguageMappingRepository
+	projectLabelRepository    repositories.IProjectLabelRepository
 	summaryRepository         repositories.ISummaryRepository
 	keyValueRepository        repositories.IKeyValueRepository
 )
@@ -58,6 +59,7 @@ var (
 	heartbeatService       services.IHeartbeatService
 	userService            services.IUserService
 	languageMappingService services.ILanguageMappingService
+	projectLabelService    services.IProjectLabelService
 	summaryService         services.ISummaryService
 	aggregationService     services.IAggregationService
 	mailService            services.IMailService
@@ -135,6 +137,7 @@ func main() {
 	heartbeatRepository = repositories.NewHeartbeatRepository(db)
 	userRepository = repositories.NewUserRepository(db)
 	languageMappingRepository = repositories.NewLanguageMappingRepository(db)
+	projectLabelRepository = repositories.NewProjectLabelRepository(db)
 	summaryRepository = repositories.NewSummaryRepository(db)
 	keyValueRepository = repositories.NewKeyValueRepository(db)
 
@@ -142,8 +145,9 @@ func main() {
 	aliasService = services.NewAliasService(aliasRepository)
 	userService = services.NewUserService(userRepository)
 	languageMappingService = services.NewLanguageMappingService(languageMappingRepository)
+	projectLabelService = services.NewProjectLabelService(projectLabelRepository)
 	heartbeatService = services.NewHeartbeatService(heartbeatRepository, languageMappingService)
-	summaryService = services.NewSummaryService(summaryRepository, heartbeatService, aliasService)
+	summaryService = services.NewSummaryService(summaryRepository, heartbeatService, aliasService, projectLabelService)
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
 	mailService = mail.NewMailService()
 	keyValueService = services.NewKeyValueService(keyValueRepository)

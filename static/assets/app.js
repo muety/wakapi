@@ -5,16 +5,18 @@ const osCanvas = document.getElementById('chart-os')
 const editorsCanvas = document.getElementById('chart-editor')
 const languagesCanvas = document.getElementById('chart-language')
 const machinesCanvas = document.getElementById('chart-machine')
+const labelsCanvas = document.getElementById('chart-label')
 
 const projectContainer = document.getElementById('project-container')
 const osContainer = document.getElementById('os-container')
 const editorContainer = document.getElementById('editor-container')
 const languageContainer = document.getElementById('language-container')
 const machineContainer = document.getElementById('machine-container')
+const labelContainer = document.getElementById('label-container')
 
-const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer]
-const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas]
-const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines]
+const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer]
+const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas]
+const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels]
 
 let topNPickers = [...document.getElementsByClassName('top-picker')]
 topNPickers.sort(((a, b) => parseInt(a.attributes['data-entity'].value) - parseInt(b.attributes['data-entity'].value)))
@@ -255,9 +257,42 @@ function draw(subselection) {
         })
         : null
 
+    let labelChart = !labelsCanvas.classList.contains('hidden') && shouldUpdate(5)
+        ? new Chart(labelsCanvas.getContext('2d'), {
+            type: 'pie',
+            data: {
+                datasets: [{
+                    data: wakapiData.labels
+                        .slice(0, Math.min(showTopN[5], wakapiData.labels.length))
+                        .map(p => parseInt(p.total)),
+                    backgroundColor: wakapiData.labels.map(p => {
+                        const c = hexToRgb(getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.6)`
+                    }),
+                    hoverBackgroundColor: wakapiData.labels.map(p => {
+                        const c = hexToRgb(getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
+                    }),
+                    borderColor: wakapiData.labels.map(p => {
+                        const c = hexToRgb(getRandomColor(p.key))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
+                    }),
+                }],
+                labels: wakapiData.labels
+                    .slice(0, Math.min(showTopN[5], wakapiData.labels.length))
+                    .map(p => p.key)
+            },
+            options: {
+                tooltips: getTooltipOptions('labels'),
+                maintainAspectRatio: false,
+                onResize: onChartResize
+            }
+        })
+        : null
+
     getTotal(wakapiData.operatingSystems)
 
-    charts = [projectChart, osChart, editorChart, languageChart, machineChart].filter(c => !!c)
+    charts = [projectChart, osChart, editorChart, languageChart, machineChart, labelChart].filter(c => !!c)
 
     if (!subselection) {
         charts.forEach(c => c.options.onResize(c.chart))

@@ -170,6 +170,22 @@
                 </div>
             </div>
         </div>
+        <div class="w-full lg:w-1/2 p-1" style="max-width: 100vw;">
+            <div class="p-4 pb-10 bg-gray-900 border border-gray-700 text-gray-300 rounded-md shadow m-2 flex flex-col" id="label-container" style="height: 300px">
+                <div class="flex justify-between">
+                    <div class="w-1/4 flex-1"></div>
+                    <span class="font-semibold w-1/2 text-center flex-1 whitespace-no-wrap">Labels</span>
+                    <div class="flex justify-end flex-1 text-xs items-center">
+                        <label for="label-top-picker" class="mr-1">Show:&nbsp;</label>
+                        <input type="number" min="1" id="label-top-picker" data-entity="5" class="w-1/4 top-picker bg-gray-800 rounded-md text-center" value="10">
+                    </div>
+                </div>
+                <canvas id="chart-label"></canvas>
+                <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
+                    <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     {{ else }}
@@ -228,6 +244,7 @@
     wakapiData.editors = {{ .Editors | json }}
     wakapiData.languages = {{ .Languages | json }}
     wakapiData.machines = {{ .Machines | json }}
+    wakapiData.labels = {{ .Labels | json }}
 
     document.getElementById("to-date-picker").onchange = function () {
         var input = document.getElementById("from-date-picker");

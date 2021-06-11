@@ -16,22 +16,24 @@ import (
 const HeartbeatDiffThreshold = 2 * time.Minute
 
 type SummaryService struct {
-	config           *config.Config
-	cache            *cache.Cache
-	repository       repositories.ISummaryRepository
-	heartbeatService IHeartbeatService
-	aliasService     IAliasService
+	config              *config.Config
+	cache               *cache.Cache
+	repository          repositories.ISummaryRepository
+	heartbeatService    IHeartbeatService
+	aliasService        IAliasService
+	projectLabelService IProjectLabelService
 }
 
 type SummaryRetriever func(f, t time.Time, u *models.User) (*models.Summary, error)
 
-func NewSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatService IHeartbeatService, aliasService IAliasService) *SummaryService {
+func NewSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatService IHeartbeatService, aliasService IAliasService, projectLabelService IProjectLabelService) *SummaryService {
 	return &SummaryService{
-		config:           config.Get(),
-		cache:            cache.New(24*time.Hour, 24*time.Hour),
-		repository:       summaryRepo,
-		heartbeatService: heartbeatService,
-		aliasService:     aliasService,
+		config:              config.Get(),
+		cache:               cache.New(24*time.Hour, 24*time.Hour),
+		repository:          summaryRepo,
+		heartbeatService:    heartbeatService,
+		aliasService:        aliasService,
+		projectLabelService: projectLabelService,
 	}
 }
 
@@ -63,6 +65,9 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f Summ
 
 	// Post-process summary and cache it
 	summary := s.WithResolvedAliases(resolve)
+	summary.FillBy(models.SummaryProject, models.SummaryLabel) // first fill up labels from projects
+	summary.FillMissing()                                      // then, full up types which are entirely missing
+
 	srv.cache.SetDefault(cacheKey, summary)
 	return summary.Sorted(), nil
 }
@@ -110,7 +115,7 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User) (*mo
 		return nil, err
 	}
 
-	types := models.SummaryTypes()
+	types := models.NativeSummaryTypes()
 
 	typedAggregations := make(chan models.SummaryItemContainer)
 	defer close(typedAggregations)
@@ -156,8 +161,7 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User) (*mo
 		OperatingSystems: osItems,
 		Machines:         machineItems,
 	}
-
-	//summary.FillUnknown()
+	summary = srv.withProjectLabels(summary)
 
 	return summary.Sorted(), nil
 }
@@ -220,6 +224,47 @@ func (srv *SummaryService) aggregateBy(heartbeats []*models.Heartbeat, summaryTy
 	c <- models.SummaryItemContainer{Type: summaryType, Items: items}
 }
 
+func (srv *SummaryService) withProjectLabels(summary *models.Summary) *models.Summary {
+	newEntry := func(key string, total time.Duration) *models.SummaryItem {
+		return &models.SummaryItem{
+			Type:  models.SummaryLabel,
+			Key:   key,
+			Total: total,
+		}
+	}
+
+	allLabels, err := srv.projectLabelService.GetByUser(summary.UserID)
+	if err != nil {
+		logbuch.Error("failed to retrieve project labels for user summary ('%s', '%s', '%s')", summary.UserID, summary.FromTime.String(), summary.ToTime.String())
+		return summary
+	}
+
+	mappedProjects := make(map[string]*models.SummaryItem, len(summary.Projects))
+	for _, p := range summary.Projects {
+		mappedProjects[p.Key] = p
+	}
+
+	var totalLabelTime time.Duration
+	labelMap := make(map[string]*models.SummaryItem, 0)
+	for _, l := range allLabels {
+		if p, ok := mappedProjects[l.ProjectKey]; ok {
+			if _, ok2 := labelMap[l.Label]; !ok2 {
+				labelMap[l.Label] = newEntry(l.Label, 0)
+			}
+			labelMap[l.Label].Total += p.Total
+			totalLabelTime += p.Total
+		}
+	}
+	//labelMap[models.DefaultProjectLabel] = newEntry(models.DefaultProjectLabel, summary.TotalTimeBy(models.SummaryProject) / time.Second-totalLabelTime)
+
+	labels := make([]*models.SummaryItem, 0, len(labelMap))
+	for _, v := range labelMap {
+		labels = append(labels, v)
+	}
+	summary.Labels = labels
+	return summary
+}
+
 func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.Summary, error) {
 	if len(summaries) < 1 {
 		return nil, errors.New("no summaries given")
@@ -235,6 +280,7 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 		Editors:          make([]*models.SummaryItem, 0),
 		OperatingSystems: make([]*models.SummaryItem, 0),
 		Machines:         make([]*models.SummaryItem, 0),
+		Labels:           make([]*models.SummaryItem, 0),
 	}
 
 	var processed = map[time.Time]bool{}
@@ -263,6 +309,7 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 		finalSummary.Editors = srv.mergeSummaryItems(finalSummary.Editors, s.Editors)
 		finalSummary.OperatingSystems = srv.mergeSummaryItems(finalSummary.OperatingSystems, s.OperatingSystems)
 		finalSummary.Machines = srv.mergeSummaryItems(finalSummary.Machines, s.Machines)
+		finalSummary.Labels = srv.mergeSummaryItems(finalSummary.Labels, s.Labels)
 
 		processed[hash] = true
 	}

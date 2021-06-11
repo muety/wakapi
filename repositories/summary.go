@@ -23,6 +23,7 @@ func (r *SummaryRepository) GetAll() ([]*models.Summary, error) {
 		Preload("Editors", "type = ?", models.SummaryEditor).
 		Preload("OperatingSystems", "type = ?", models.SummaryOS).
 		Preload("Machines", "type = ?", models.SummaryMachine).
+		Preload("Labels", "type = ?", models.SummaryLabel).
 		Find(&summaries).Error; err != nil {
 		return nil, err
 	}
@@ -48,6 +49,7 @@ func (r *SummaryRepository) GetByUserWithin(user *models.User, from, to time.Tim
 		Preload("Editors", "type = ?", models.SummaryEditor).
 		Preload("OperatingSystems", "type = ?", models.SummaryOS).
 		Preload("Machines", "type = ?", models.SummaryMachine).
+		Preload("Labels", "type = ?", models.SummaryLabel).
 		Find(&summaries).Error; err != nil {
 		return nil, err
 	}

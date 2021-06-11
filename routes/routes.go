@@ -112,6 +112,9 @@ func typeName(t uint8) string {
 	if t == models.SummaryMachine {
 		return "machine"
 	}
+	if t == models.SummaryLabel {
+		return "label"
+	}
 	return "unknown"
 }
 

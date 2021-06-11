@@ -27,6 +27,7 @@ const (
 	DescLanguages        = "Total seconds for each language."
 	DescOperatingSystems = "Total seconds for each operating system."
 	DescMachines         = "Total seconds for each machine."
+	DescLabels           = "Total seconds for each project label."
 
 	DescAdminTotalTime       = "Total seconds (all users, all time)."
 	DescAdminTotalHeartbeats = "Total number of tracked heartbeats (all users, all time)"
@@ -194,6 +195,15 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 			Name:   MetricsPrefix + "_machine_seconds_total",
 			Desc:   DescMachines,
 			Value:  int(summaryToday.TotalTimeByKey(models.SummaryMachine, m.Key).Seconds()),
+			Labels: []mm.Label{{Key: "name", Value: m.Key}},
+		})
+	}
+
+	for _, m := range summaryToday.Labels {
+		metrics = append(metrics, &mm.CounterMetric{
+			Name:   MetricsPrefix + "_label_seconds_total",
+			Desc:   DescLabels,
+			Value:  int(summaryToday.TotalTimeByKey(models.SummaryLabel, m.Key).Seconds()),
 			Labels: []mm.Label{{Key: "name", Value: m.Key}},
 		})
 	}

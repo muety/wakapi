@@ -6,6 +6,7 @@ type Filters struct {
 	Language string
 	Editor   string
 	Machine  string
+	Label    string
 }
 
 type FilterElement struct {
@@ -25,6 +26,8 @@ func NewFiltersWith(entity uint8, key string) *Filters {
 		return &Filters{Editor: key}
 	case SummaryMachine:
 		return &Filters{Machine: key}
+	case SummaryLabel:
+		return &Filters{Label: key}
 	}
 	return &Filters{}
 }
@@ -40,6 +43,8 @@ func (f *Filters) One() (bool, uint8, string) {
 		return true, SummaryEditor, f.Editor
 	} else if f.Machine != "" {
 		return true, SummaryMachine, f.Machine
+	} else if f.Machine != "" {
+		return true, SummaryLabel, f.Label
 	}
 	return false, 0, ""
 }

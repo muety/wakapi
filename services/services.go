@@ -54,6 +54,14 @@ type ILanguageMappingService interface {
 	Delete(mapping *models.LanguageMapping) error
 }
 
+type IProjectLabelService interface {
+	GetById(uint) (*models.ProjectLabel, error)
+	GetByUser(string) ([]*models.ProjectLabel, error)
+	ResolveByUser(string) (map[string]string, error)
+	Create(*models.ProjectLabel) (*models.ProjectLabel, error)
+	Delete(mapping *models.ProjectLabel) error
+}
+
 type IMailService interface {
 	SendPasswordReset(*models.User, string) error
 	SendImportNotification(*models.User, time.Duration, int) error

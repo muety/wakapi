@@ -101,6 +101,9 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	case "machine":
 		permitEntity = user.ShareMachines
 		filters = models.NewFiltersWith(models.SummaryMachine, filterKey)
+	case "label":
+		permitEntity = user.ShareLabels
+		filters = models.NewFiltersWith(models.SummaryLabel, filterKey)
 	default:
 		permitEntity = true
 		filters = &models.Filters{}
