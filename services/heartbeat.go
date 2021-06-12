@@ -6,6 +6,7 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
+	"strings"
 	"time"
 
 	"github.com/muety/wakapi/models"
@@ -90,8 +91,16 @@ func (srv *HeartbeatService) GetEntitySetByUser(entityType uint8, user *models.U
 	if err != nil {
 		return nil, err
 	}
-	srv.cache.Set(cacheKey, utils.StringsToSet(results), cache.DefaultExpiration)
-	return results, nil
+
+	filtered := make([]string, 0, len(results))
+	for _, r := range results {
+		if strings.TrimSpace(r) != "" {
+			filtered = append(filtered, r)
+		}
+	}
+
+	srv.cache.Set(cacheKey, utils.StringsToSet(filtered), cache.DefaultExpiration)
+	return filtered, nil
 }
 
 func (srv *HeartbeatService) DeleteBefore(t time.Time) error {

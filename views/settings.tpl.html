@@ -244,18 +244,24 @@
                 <h3 class="inline-block font-semibold text-md border-b border-green-700 text-white mb-2">Add Label</h3>
                 <form action="" method="post">
                     <input type="hidden" name="action" value="add_label">
-                    <div class="flex items-center mt-2 w-full text-gray-500 text-sm">
-                        <span class="mr-2">Project:</span>
-                        <select name="key" id="select-project"
-                                class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3 cursor-pointer">
-                            {{ range $i, $p := .Projects }}
-                            <option value="{{ $p }}">{{ $p }}</option>
-                            {{ end }}
-                        </select>
-                        <span class="ml-8 mr-2">Label:</span>
-                        <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
-                               type="text" id="label-value" style="width: 130px;"
-                               name="value" placeholder="work" minlength="1" required>
+                    <div class="flex flex-col space-y-4">
+                        <div class="flex justify-between items-center mt-2 w-full text-gray-500 text-sm space-x-4">
+                            <div class="w-1/2 flex flex-col flex-grow">
+                                <span>Project</span>
+                                <select name="key" id="select-project"
+                                        class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3 cursor-pointer">
+                                    {{ range $i, $p := .Projects }}
+                                    <option value="{{ $p }}">{{ $p }}</option>
+                                    {{ end }}
+                                </select>
+                            </div>
+                            <div class="w-1/2 flex flex-col flex-grow">
+                                <span>Label</span>
+                                <input class="shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3"
+                                       type="text" id="label-value"
+                                       name="value" placeholder="work" minlength="1" required>
+                            </div>
+                        </div>
                         <div class="flex-grow flex justify-end">
                             <button type="submit"
                                     class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">
