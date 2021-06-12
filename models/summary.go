@@ -148,8 +148,8 @@ func (s *Summary) FillMissing() {
 // inplace!
 func (s *Summary) FillBy(fromType uint8, toType uint8) {
 	typeItems := s.MappedItems()
-	totalWanted := s.TotalTimeBy(fromType) / time.Second
-	totalActual := s.TotalTimeBy(toType) / time.Second
+	totalWanted := s.TotalTimeBy(fromType)
+	totalActual := s.TotalTimeBy(toType)
 
 	key := UnknownSummaryKey
 	if toType == SummaryLabel {
@@ -164,12 +164,12 @@ func (s *Summary) FillBy(fromType uint8, toType uint8) {
 		}
 	}
 	if existingEntryIdx >= 0 {
-		(*typeItems[toType])[existingEntryIdx].Total = totalWanted - totalActual
+		(*typeItems[toType])[existingEntryIdx].Total = (totalWanted - totalActual) / time.Second // workaround
 	} else {
 		*typeItems[toType] = append(*typeItems[toType], &SummaryItem{
 			Type:  toType,
 			Key:   key,
-			Total: totalWanted - totalActual,
+			Total: (totalWanted - totalActual) / time.Second, // workaround
 		})
 	}
 }
@@ -187,15 +187,6 @@ func (s *Summary) TotalTime() time.Duration {
 	}
 
 	return timeSum * time.Second
-}
-
-func (s *Summary) findFirstPresentType() (uint8, error) {
-	for _, t := range s.Types() {
-		if s.TotalTimeBy(t) > 0 {
-			return t, nil
-		}
-	}
-	return 127, errors.New("no type present")
 }
 
 func (s *Summary) TotalTimeBy(entityType uint8) (timeSum time.Duration) {
@@ -278,6 +269,15 @@ func (s *Summary) WithResolvedAliases(resolve AliasResolver) *Summary {
 	s.Labels = processAliases(s.Labels)
 
 	return s
+}
+
+func (s *Summary) findFirstPresentType() (uint8, error) {
+	for _, t := range s.Types() {
+		if s.TotalTimeBy(t) != 0 {
+			return t, nil
+		}
+	}
+	return 127, errors.New("no type present")
 }
 
 func (s *SummaryItem) TotalFixed() time.Duration {

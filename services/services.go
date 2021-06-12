@@ -59,7 +59,7 @@ type IProjectLabelService interface {
 	GetByUser(string) ([]*models.ProjectLabel, error)
 	GetByUserGrouped(string) (map[string][]*models.ProjectLabel, error)
 	Create(*models.ProjectLabel) (*models.ProjectLabel, error)
-	Delete(mapping *models.ProjectLabel) error
+	Delete(*models.ProjectLabel) error
 }
 
 type IMailService interface {

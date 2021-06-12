@@ -31,7 +31,7 @@ func TestSummary_FillUnknown(t *testing.T) {
 	for _, l := range itemLists {
 		assert.Len(t, l, 1)
 		assert.Equal(t, UnknownSummaryKey, l[0].Key)
-		assert.Equal(t, testDuration, l[0].Total)
+		assert.Equal(t, testDuration, l[0].TotalFixed())
 	}
 }
 
