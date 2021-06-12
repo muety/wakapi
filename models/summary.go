@@ -163,14 +163,18 @@ func (s *Summary) FillBy(fromType uint8, toType uint8) {
 			break
 		}
 	}
-	if existingEntryIdx >= 0 {
-		(*typeItems[toType])[existingEntryIdx].Total = (totalWanted - totalActual) / time.Second // workaround
-	} else {
-		*typeItems[toType] = append(*typeItems[toType], &SummaryItem{
-			Type:  toType,
-			Key:   key,
-			Total: (totalWanted - totalActual) / time.Second, // workaround
-		})
+
+	total := (totalWanted - totalActual) / time.Second // workaround
+	if total > 0 {
+		if existingEntryIdx >= 0 {
+			(*typeItems[toType])[existingEntryIdx].Total = total
+		} else {
+			*typeItems[toType] = append(*typeItems[toType], &SummaryItem{
+				Type:  toType,
+				Key:   key,
+				Total: total,
+			})
+		}
 	}
 }
 
