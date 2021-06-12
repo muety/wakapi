@@ -1,7 +1,6 @@
 package services
 
 import (
-	"crypto/md5"
 	"errors"
 	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
@@ -10,6 +9,7 @@ import (
 	"github.com/patrickmn/go-cache"
 	"math"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -173,10 +173,12 @@ func (srv *SummaryService) GetLatestByUser() ([]*models.TimeByUser, error) {
 }
 
 func (srv *SummaryService) DeleteByUser(userId string) error {
+	srv.invalidateUserCache(userId)
 	return srv.repository.DeleteByUser(userId)
 }
 
 func (srv *SummaryService) Insert(summary *models.Summary) error {
+	srv.invalidateUserCache(summary.UserID)
 	return srv.repository.Insert(summary)
 }
 
@@ -396,9 +398,13 @@ func (srv *SummaryService) getMissingIntervals(from, to time.Time, summaries []*
 }
 
 func (srv *SummaryService) getHash(args ...string) string {
-	digest := md5.New()
-	for _, a := range args {
-		digest.Write([]byte(a))
+	return strings.Join(args, "__")
+}
+
+func (srv *SummaryService) invalidateUserCache(userId string) {
+	for key := range srv.cache.Items() {
+		if strings.Contains(key, userId) {
+			srv.cache.Delete(key)
+		}
 	}
-	return string(digest.Sum(nil))
 }
