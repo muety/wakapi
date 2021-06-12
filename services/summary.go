@@ -261,7 +261,9 @@ func (srv *SummaryService) withProjectLabels(summary *models.Summary) *models.Su
 
 	labels := make([]*models.SummaryItem, 0, len(labelMap))
 	for _, v := range labelMap {
-		labels = append(labels, v)
+		if v.Total > 0 {
+			labels = append(labels, v)
+		}
 	}
 	summary.Labels = labels
 	return summary
