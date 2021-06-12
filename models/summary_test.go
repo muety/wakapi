@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestSummary_FillUnknown(t *testing.T) {
+func TestSummary_FillMissing(t *testing.T) {
 	testDuration := 10 * time.Minute
 
 	sut := &Summary{
@@ -33,6 +33,10 @@ func TestSummary_FillUnknown(t *testing.T) {
 		assert.Equal(t, UnknownSummaryKey, l[0].Key)
 		assert.Equal(t, testDuration, l[0].TotalFixed())
 	}
+
+	assert.Len(t, sut.Labels, 1)
+	assert.Equal(t, DefaultProjectLabel, sut.Labels[0].Key)
+	assert.Equal(t, testDuration, sut.Labels[0].TotalFixed())
 }
 
 func TestSummary_TotalTimeBy(t *testing.T) {
