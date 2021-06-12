@@ -40,16 +40,21 @@ func (srv *ProjectLabelService) GetByUser(userId string) ([]*models.ProjectLabel
 	return labels, nil
 }
 
-func (srv *ProjectLabelService) ResolveByUser(userId string) (map[string]string, error) {
-	labels := make(map[string]string)
+func (srv *ProjectLabelService) GetByUserGrouped(userId string) (map[string][]*models.ProjectLabel, error) {
+	labels := make(map[string][]*models.ProjectLabel)
 	userLabels, err := srv.GetByUser(userId)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, m := range userLabels {
-		labels[m.ProjectKey] = m.Label
+	for _, l := range userLabels {
+		if _, ok := labels[l.ProjectKey]; !ok {
+			labels[l.ProjectKey] = []*models.ProjectLabel{l}
+		} else {
+			labels[l.ProjectKey] = append(labels[l.ProjectKey], l)
+		}
 	}
+
 	return labels, nil
 }
 

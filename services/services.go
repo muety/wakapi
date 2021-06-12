@@ -57,7 +57,7 @@ type ILanguageMappingService interface {
 type IProjectLabelService interface {
 	GetById(uint) (*models.ProjectLabel, error)
 	GetByUser(string) ([]*models.ProjectLabel, error)
-	ResolveByUser(string) (map[string]string, error)
+	GetByUserGrouped(string) (map[string][]*models.ProjectLabel, error)
 	Create(*models.ProjectLabel) (*models.ProjectLabel, error)
 	Delete(mapping *models.ProjectLabel) error
 }

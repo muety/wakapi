@@ -6,6 +6,8 @@ type SettingsViewModel struct {
 	User             *models.User
 	LanguageMappings []*models.LanguageMapping
 	Aliases          []*SettingsVMCombinedAlias
+	Labels           []*SettingsVMCombinedLabel
+	Projects         []string
 	Success          string
 	Error            string
 }
@@ -13,6 +15,11 @@ type SettingsViewModel struct {
 type SettingsVMCombinedAlias struct {
 	Key    string
 	Type   uint8
+	Values []string
+}
+
+type SettingsVMCombinedLabel struct {
+	Key    string
 	Values []string
 }
 

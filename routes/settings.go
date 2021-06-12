@@ -14,9 +14,13 @@ import (
 	"github.com/muety/wakapi/services/imports"
 	"github.com/muety/wakapi/utils"
 	"net/http"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
+
+const criticalError = "a critical error has occurred, sorry"
 
 type SettingsHandler struct {
 	config              *conf.Config
@@ -26,6 +30,7 @@ type SettingsHandler struct {
 	aliasSrvc           services.IAliasService
 	aggregationSrvc     services.IAggregationService
 	languageMappingSrvc services.ILanguageMappingService
+	projectLabelSrvc    services.IProjectLabelService
 	keyValueSrvc        services.IKeyValueService
 	mailSrvc            services.IMailService
 	httpClient          *http.Client
@@ -40,6 +45,7 @@ func NewSettingsHandler(
 	aliasService services.IAliasService,
 	aggregationService services.IAggregationService,
 	languageMappingService services.ILanguageMappingService,
+	projectLabelService services.IProjectLabelService,
 	keyValueService services.IKeyValueService,
 	mailService services.IMailService,
 ) *SettingsHandler {
@@ -49,6 +55,7 @@ func NewSettingsHandler(
 		aliasSrvc:           aliasService,
 		aggregationSrvc:     aggregationService,
 		languageMappingSrvc: languageMappingService,
+		projectLabelSrvc:    projectLabelService,
 		userSrvc:            userService,
 		heartbeatSrvc:       heartbeatService,
 		keyValueSrvc:        keyValueService,
@@ -70,7 +77,6 @@ func (h *SettingsHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
-
 	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r))
 }
 
@@ -128,6 +134,10 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 		return h.actionDeleteAlias
 	case "add_alias":
 		return h.actionAddAlias
+	case "add_label":
+		return h.actionAddLabel
+	case "delete_label":
+		return h.actionDeleteLabel
 	case "delete_mapping":
 		return h.actionDeleteLanguageMapping
 	case "add_mapping":
@@ -312,6 +322,59 @@ func (h *SettingsHandler) actionAddAlias(w http.ResponseWriter, r *http.Request)
 	}
 
 	return http.StatusOK, "alias added successfully", ""
+}
+
+func (h *SettingsHandler) actionAddLabel(w http.ResponseWriter, r *http.Request) (int, string, string) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+	user := middlewares.GetPrincipal(r)
+
+	label := &models.ProjectLabel{
+		UserID:     user.ID,
+		ProjectKey: r.PostFormValue("key"),
+		Label:      r.PostFormValue("value"),
+	}
+
+	if !label.IsValid() {
+		return http.StatusBadRequest, "", "invalid input"
+	}
+
+	if _, err := h.projectLabelSrvc.Create(label); err != nil {
+		// TODO: distinguish between bad request, conflict and server error
+		return http.StatusBadRequest, "", "invalid input"
+	}
+
+	return http.StatusOK, "label added successfully", ""
+}
+
+func (h *SettingsHandler) actionDeleteLabel(w http.ResponseWriter, r *http.Request) (int, string, string) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	user := middlewares.GetPrincipal(r)
+	labelKey := r.PostFormValue("key")
+	labelValue := r.PostFormValue("value")
+
+	labelMap, err := h.projectLabelSrvc.GetByUserGrouped(user.ID)
+	if err != nil {
+		return http.StatusInternalServerError, "", "could not delete label"
+	}
+
+	if projectLabels, ok := labelMap[labelKey]; ok {
+		for _, l := range projectLabels {
+			if l.Label == labelValue {
+				if err := h.projectLabelSrvc.Delete(l); err != nil {
+					return http.StatusInternalServerError, "", "could not delete label"
+				}
+				return http.StatusOK, "label deleted successfully", ""
+			}
+		}
+		return http.StatusNotFound, "", "label not found"
+	} else {
+		return http.StatusNotFound, "", "project not found"
+	}
 }
 
 func (h *SettingsHandler) actionDeleteLanguageMapping(w http.ResponseWriter, r *http.Request) (int, string, string) {
@@ -554,8 +617,16 @@ func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
 
 func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewModel {
 	user := middlewares.GetPrincipal(r)
+
+	// mappings
 	mappings, _ := h.languageMappingSrvc.GetByUser(user.ID)
-	aliases, _ := h.aliasSrvc.GetByUser(user.ID)
+
+	// aliases
+	aliases, err := h.aliasSrvc.GetByUser(user.ID)
+	if err != nil {
+		conf.Log().Request(r).Error("error while building alias map - %v", err)
+		return &view.SettingsViewModel{Error: criticalError}
+	}
 	aliasMap := make(map[string][]*models.Alias)
 	for _, a := range aliases {
 		k := fmt.Sprintf("%s_%d", a.Key, a.Type)
@@ -579,10 +650,42 @@ func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewMode
 		combinedAliases = append(combinedAliases, ca)
 	}
 
+	// labels
+	labelMap, err := h.projectLabelSrvc.GetByUserGrouped(user.ID)
+	if err != nil {
+		conf.Log().Request(r).Error("error while building settings project label map - %v", err)
+		return &view.SettingsViewModel{Error: criticalError}
+	}
+
+	combinedLabels := make([]*view.SettingsVMCombinedLabel, 0)
+	for _, l := range labelMap {
+		cl := &view.SettingsVMCombinedLabel{
+			Key:    l[0].ProjectKey,
+			Values: make([]string, len(l)),
+		}
+		for i, l1 := range l {
+			cl.Values[i] = l1.Label
+		}
+		combinedLabels = append(combinedLabels, cl)
+	}
+	sort.Slice(combinedLabels, func(i, j int) bool {
+		return strings.Compare(combinedLabels[i].Key, combinedLabels[j].Key) < 0
+	})
+
+	// projects
+	projects, err := h.heartbeatSrvc.GetEntitySetByUser(models.SummaryProject, user)
+	if err != nil {
+		conf.Log().Request(r).Error("error while fetching projects - %v", err)
+		return &view.SettingsViewModel{Error: criticalError}
+	}
+	sort.Strings(projects)
+
 	return &view.SettingsViewModel{
 		User:             user,
 		LanguageMappings: mappings,
 		Aliases:          combinedAliases,
+		Labels:           combinedLabels,
+		Projects:         projects,
 		Success:          r.URL.Query().Get("success"),
 		Error:            r.URL.Query().Get("error"),
 	}
