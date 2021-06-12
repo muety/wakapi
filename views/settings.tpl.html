@@ -298,11 +298,9 @@
                         <div class="flex justify-end">
                             <select autocomplete="off" name="share_projects"
                                     class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
-                                <option value="false" class="cursor-pointer" {{ if not .User.ShareProjects }} selected
-                                        {{ end }}>No
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareProjects }} selected {{ end }}>No
                                 </option>
-                                <option value="true" class="cursor-pointer" {{ if .User.ShareProjects }} selected {{ end
-                                        }}>Yes
+                                <option value="true" class="cursor-pointer" {{ if .User.ShareProjects }} selected {{ end }}>Yes
                                 </option>
                             </select>
                         </div>
@@ -314,11 +312,9 @@
                         <div class="flex justify-end">
                             <select autocomplete="off" name="share_languages"
                                     class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
-                                <option value="false" class="cursor-pointer" {{ if not .User.ShareLanguages }} selected
-                                        {{ end }}>No
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareLanguages }} selected {{ end }}>No
                                 </option>
-                                <option value="true" class="cursor-pointer" {{ if .User.ShareLanguages }} selected {{
-                                        end }}>Yes
+                                <option value="true" class="cursor-pointer" {{ if .User.ShareLanguages }} selected {{ end }}>Yes
                                 </option>
                             </select>
                         </div>
@@ -330,11 +326,9 @@
                         <div class="flex justify-end">
                             <select autocomplete="off" name="share_editors"
                                     class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
-                                <option value="false" class="cursor-pointer" {{ if not .User.ShareEditors }} selected {{
-                                        end }}>No
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareEditors }} selected {{ end }}>No
                                 </option>
-                                <option value="true" class="cursor-pointer" {{ if .User.ShareEditors }} selected {{ end
-                                        }}>Yes
+                                <option value="true" class="cursor-pointer" {{ if .User.ShareEditors }} selected {{ end }}>Yes
                                 </option>
                             </select>
                         </div>
@@ -346,8 +340,7 @@
                         <div class="flex justify-end">
                             <select autocomplete="off" name="share_oss"
                                     class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
-                                <option value="false" class="cursor-pointer" {{ if not .User.ShareOSs }} selected {{ end
-                                        }}>No
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareOSs }} selected {{ end }}>No
                                 </option>
                                 <option value="true" class="cursor-pointer" {{ if .User.ShareOSs }} selected {{ end }}>
                                     Yes
@@ -362,11 +355,23 @@
                         <div class="flex justify-end">
                             <select autocomplete="off" name="share_machines"
                                     class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
-                                <option value="false" class="cursor-pointer" {{ if not .User.ShareMachines }} selected
-                                        {{ end }}>No
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareMachines }} selected {{ end }}>No
                                 </option>
-                                <option value="true" class="cursor-pointer" {{ if .User.ShareMachines }} selected {{ end
-                                        }}>Yes
+                                <option value="true" class="cursor-pointer" {{ if .User.ShareMachines }} selected {{ end }}>Yes
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center w-full text-gray-300 text-sm justify-between my-2">
+                        <div class="flex justify-start">
+                            <span class="mr-2">Share project labels: </span>
+                        </div>
+                        <div class="flex justify-end">
+                            <select autocomplete="off" name="share_labels"
+                                    class="cursor-pointer shadow appearance-nonshadow appearance-none bg-gray-800 focus:bg-gray-700 text-gray-300 border-green-700 focus:border-gray-500 border rounded py-1 px-3">
+                                <option value="false" class="cursor-pointer" {{ if not .User.ShareLabels }} selected {{ end }}>No
+                                </option>
+                                <option value="true" class="cursor-pointer" {{ if .User.ShareLabels }} selected {{ end }}>Yes
                                 </option>
                             </select>
                         </div>
@@ -657,8 +662,16 @@
 
     // Time zone stuff
 
-    const userTimeZone = {{ .User.Location }}
-    const userTzOffset = {{ .User.TZOffset.Hours }}
+    const userTimeZone = {
+    { .
+        User.Location
+    }
+    }
+    const userTzOffset = {
+    { .
+        User.TZOffset.Hours
+    }
+    }
     const selectTimezone = document.getElementById('select-timezone')
     const createTzOption = (tz) => {
         if (!tz) tz = 'Local'

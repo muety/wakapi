@@ -136,7 +136,10 @@ func (s *Summary) FillMissing() {
 	}
 
 	// construct dummy item for all missing types
-	presentType, _ := s.findFirstPresentType()
+	presentType, err := s.findFirstPresentType()
+	if err != nil {
+		return // all types are either zero or missing entirely, nothing to fill
+	}
 	for _, t := range missingTypes {
 		s.FillBy(presentType, t)
 	}

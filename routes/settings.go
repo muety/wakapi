@@ -252,6 +252,7 @@ func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Req
 	user.ShareEditors, err = strconv.ParseBool(r.PostFormValue("share_editors"))
 	user.ShareOSs, err = strconv.ParseBool(r.PostFormValue("share_oss"))
 	user.ShareMachines, err = strconv.ParseBool(r.PostFormValue("share_machines"))
+	user.ShareLabels, err = strconv.ParseBool(r.PostFormValue("share_labels"))
 	user.ShareDataMaxDays, err = strconv.Atoi(r.PostFormValue("max_days"))
 
 	if err != nil {
