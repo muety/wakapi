@@ -35,7 +35,7 @@
 <main class="mt-4 flex-grow flex justify-center w-full">
     <div class="flex flex-col flex-grow max-w-2xl mt-8">
 
-        <details class="my-8 pb-8 border-b border-gray-700">
+        <details class="my-8 pb-8 border-b border-gray-700" id="details-account">
             <summary class="cursor-pointer">
                 <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block"
                     id="preferences-heading">
@@ -88,7 +88,7 @@
             </div>
         </details>
 
-        <details class="mb-8 pb-8 border-b border-gray-700">
+        <details class="mb-8 pb-8 border-b border-gray-700" id="details-password">
             <summary class="cursor-pointer">
                 <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="password">
                     Change Password
@@ -127,7 +127,7 @@
             </div>
         </details>
 
-        <details class="mb-8 pb-8 border-b border-gray-700">
+        <details class="mb-8 pb-8 border-b border-gray-700" id="details-aliases">
             <summary class="cursor-pointer">
                 <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
                     Aliases
@@ -203,7 +203,7 @@
             </div>
         </details>
 
-        <details class="mb-8 pb-8 border-b border-gray-700">
+        <details class="mb-8 pb-8 border-b border-gray-700" id="details-labels">
             <summary class="cursor-pointer">
                 <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
                     Project Labels
@@ -212,7 +212,7 @@
             <div class="w-full" id="project-labels">
                 <div class="text-gray-300 text-sm mb-4 mt-6">
                     You can assign labels (aka. tags) to projects to group them together, e.g. by <span class="inline-block mb-1 text-gray-500 italic">private</span> and <span
-                        class="inline-block mb-1 text-gray-500 italic">work</span>.
+                        class="inline-block mb-1 text-gray-500 italic">work</span>. Please note that labels are only applied to new data, not to existing summaries in retrospect. To label historic data, you will need to clear and regenerate your summaries (see down below).
                 </div>
 
                 {{ if .Labels }}
@@ -270,7 +270,7 @@
             </div>
         </details>
 
-        <details class="mb-8 pb-8 border-b border-gray-700">
+        <details class="mb-8 pb-8 border-b border-gray-700" id="details-mappings">
             <summary class="cursor-pointer">
                 <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block"
                     id="languages">
@@ -330,7 +330,7 @@
             </div>
         </details>
 
-        <details class="mb-8 pb-8 border-b border-gray-700" id="public_data">
+        <details class="mb-8 pb-8 border-b border-gray-700" id="details-public-data">
             <summary class="cursor-pointer">
                 <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block">
                     Public Data
@@ -455,7 +455,7 @@
             </div>
         </details>
 
-        <details class="mb-8 pb-8 border-b border-gray-700">
+        <details class="mb-8 pb-8 border-b border-gray-700" id="details-integrations">
             <summary class="cursor-pointer">
                 <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block"
                     id="integrations">
@@ -578,7 +578,7 @@
                     <p>You have the ability to create badges from your coding statistics using <a
                             href="https://shields.io" target="_blank" class="border-b border-green-800"
                             rel="noopener noreferrer">Shields.io</a>. To do so, you need to grant public, unauthorized
-                        access to the respective endpoint. See <a href="settings#public_data" class="underline">Public
+                        access to the respective endpoint. See <a href="settings#details-public-data" class="underline">Public
                             Data</a> setting.</p>
                     {{ end }}
                 </div>
@@ -612,7 +612,7 @@
             </div>
         </details>
 
-        <details class="mb-8 pb-8">
+        <details class="mb-8 pb-8" id="details-danger-zone">
             <summary class="cursor-pointer">
                 <h2 class="font-semibold text-lg text-white m-0 border-b-2 border-green-700 inline-block" id="danger">
                     <span class="iconify inline" data-icon="emojione-v1:warning"></span>&nbsp; Danger Zone
@@ -749,6 +749,12 @@
     tzs.sort()
         .map(createTzOption)
         .forEach(o => selectTimezone.appendChild(o))
+
+    const hash = location.hash.replace('#', '')
+    if (hash) {
+        const elem = document.getElementById(hash)
+        if (elem) elem.open = true
+    }
 </script>
 
 {{ template "footer.tpl.html" . }}
