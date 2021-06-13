@@ -115,6 +115,7 @@ func main() {
 	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{Logger: gormLogger})
 	if config.Db.Dialect == "sqlite3" {
 		db.Raw("PRAGMA foreign_keys = ON;")
+		db.DisableForeignKeyConstraintWhenMigrating = true
 	}
 
 	if config.IsDev() {

@@ -3,7 +3,7 @@ package models
 type ProjectLabel struct {
 	ID         uint   `json:"id" gorm:"primary_key"`
 	User       *User  `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	UserID     string `json:"-" gorm:"not null; index:idx_language_mapping_user; index:idx_project_label_user"`
+	UserID     string `json:"-" gorm:"not null; index:idx_project_label_user"`
 	ProjectKey string `json:"project"`
 	Label      string `json:"label" gorm:"type:varchar(64)"`
 }
