@@ -43,7 +43,7 @@ func (f *Filters) One() (bool, uint8, string) {
 		return true, SummaryEditor, f.Editor
 	} else if f.Machine != "" {
 		return true, SummaryMachine, f.Machine
-	} else if f.Machine != "" {
+	} else if f.Label != "" {
 		return true, SummaryLabel, f.Label
 	}
 	return false, 0, ""
