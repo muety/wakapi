@@ -121,17 +121,16 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary
 	end = utils.EndOfDay(end).Add(-1 * time.Second)
 
 	overallParams := &models.SummaryParams{
-		From:      start,
-		To:        end,
-		User:      user,
-		Recompute: false,
+		From: start,
+		To:   end,
+		User: user,
 	}
 
 	intervals := utils.SplitRangeByDays(overallParams.From, overallParams.To)
 	summaries := make([]*models.Summary, len(intervals))
 
 	for i, interval := range intervals {
-		summary, err := h.summarySrvc.Aliased(interval[0], interval[1], user, h.summarySrvc.Retrieve, false)
+		summary, err := h.summarySrvc.Aliased(interval[0], interval[1], user, h.summarySrvc.Retrieve, end.After(time.Now()))
 		if err != nil {
 			return nil, err, http.StatusInternalServerError
 		}

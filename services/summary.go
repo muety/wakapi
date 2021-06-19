@@ -73,12 +73,6 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f Summ
 }
 
 func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User) (*models.Summary, error) {
-	// Check cache
-	cacheKey := srv.getHash(from.String(), to.String(), user.ID)
-	if cacheResult, ok := srv.cache.Get(cacheKey); ok {
-		return cacheResult.(*models.Summary), nil
-	}
-
 	// Get all already existing, pre-generated summaries that fall into the requested interval
 	summaries, err := srv.repository.GetByUserWithin(user, from, to)
 	if err != nil {
@@ -101,8 +95,6 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User) (*mod
 		return nil, err
 	}
 
-	// Cache 'em
-	srv.cache.SetDefault(cacheKey, summary)
 	return summary.Sorted(), nil
 }
 
