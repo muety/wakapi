@@ -436,7 +436,7 @@ paths:
     post:
       consumes:
       - application/json
-      operationId: post-heartbeat-6
+      operationId: post-heartbeat-7
       parameters:
       - description: Multiple heartbeats
         in: body
@@ -604,7 +604,7 @@ paths:
     post:
       consumes:
       - application/json
-      operationId: post-heartbeat-4
+      operationId: post-heartbeat-5
       parameters:
       - description: Multiple heartbeats
         in: body
@@ -667,6 +667,48 @@ paths:
       summary: Retrieve a summary
       tags:
       - summary
+  /users/{user}/heartbeats:
+    post:
+      consumes:
+      - application/json
+      operationId: post-heartbeat-4
+      parameters:
+      - description: A single heartbeat
+        in: body
+        name: heartbeat
+        required: true
+        schema:
+          $ref: '#/definitions/models.Heartbeat'
+      responses:
+        "201":
+          description: ""
+      security:
+      - ApiKeyAuth: []
+      summary: Push a new heartbeat
+      tags:
+      - heartbeat
+  /users/{user}/heartbeats.bulk:
+    post:
+      consumes:
+      - application/json
+      operationId: post-heartbeat-8
+      parameters:
+      - description: Multiple heartbeats
+        in: body
+        name: heartbeat
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.Heartbeat'
+          type: array
+      responses:
+        "201":
+          description: ""
+      security:
+      - ApiKeyAuth: []
+      summary: Push new heartbeats
+      tags:
+      - heartbeat
   /v1/users/{user}/heartbeats:
     post:
       consumes:
@@ -691,7 +733,7 @@ paths:
     post:
       consumes:
       - application/json
-      operationId: post-heartbeat-5
+      operationId: post-heartbeat-6
       parameters:
       - description: Multiple heartbeats
         in: body

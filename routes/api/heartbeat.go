@@ -45,6 +45,8 @@ func (h *HeartbeatApiHandler) RegisterRoutes(router *mux.Router) {
 	// see https://github.com/muety/wakapi/issues/203
 	r.Path("/heartbeat").Methods(http.MethodPost).HandlerFunc(h.Post)
 	r.Path("/heartbeats").Methods(http.MethodPost).HandlerFunc(h.Post)
+	r.Path("/users/{user}/heartbeats").Methods(http.MethodPost).HandlerFunc(h.Post)
+	r.Path("/users/{user}/heartbeats.bulk").Methods(http.MethodPost).HandlerFunc(h.Post)
 	r.Path("/v1/users/{user}/heartbeats").Methods(http.MethodPost).HandlerFunc(h.Post)
 	r.Path("/v1/users/{user}/heartbeats.bulk").Methods(http.MethodPost).HandlerFunc(h.Post)
 	r.Path("/compat/wakatime/v1/users/{user}/heartbeats").Methods(http.MethodPost).HandlerFunc(h.Post)
@@ -149,9 +151,10 @@ func (h *HeartbeatApiHandler) tryParseSingle(r *http.Request) ([]*models.Heartbe
 
 // construct weird response format (see https://github.com/wakatime/wakatime/blob/2e636d389bf5da4e998e05d5285a96ce2c181e3d/wakatime/api.py#L288)
 // to make the cli consider all heartbeats to having been successfully saved
-// response looks like: { "responses": [ [ { "data": {...} }, 201 ], ... ] }
-// update: this was probably a temporary bug at wakatime, responses actually looks like so: https://pastr.de/p/nyf6kj2e6843fbw4xkj4h4pj
+// response looks like: { "responses": [ [ null, 201 ], ... ] }
+// this was probably a temporary bug at wakatime, responses actually looks like so: https://pastr.de/p/nyf6kj2e6843fbw4xkj4h4pj
 // TODO: adapt response format some time
+// however, wakatime-cli is still able to parse the response (see https://github.com/wakatime/wakatime-cli/blob/c2076c0e1abc1449baf5b7ac7db391b06041c719/pkg/api/heartbeat.go#L127), so no urgent need for action
 func constructSuccessResponse(n int) *heartbeatResponseVm {
 	responses := make([][]interface{}, n)
 
@@ -189,14 +192,14 @@ func (h *HeartbeatApiHandler) postAlias1() {}
 // @Router /compat/wakatime/v1/users/{user}/heartbeats [post]
 func (h *HeartbeatApiHandler) postAlias2() {}
 
-// @Summary Push new heartbeats
+// @Summary Push a new heartbeat
 // @ID post-heartbeat-4
 // @Tags heartbeat
 // @Accept json
-// @Param heartbeat body []models.Heartbeat true "Multiple heartbeats"
+// @Param heartbeat body models.Heartbeat true "A single heartbeat"
 // @Security ApiKeyAuth
 // @Success 201
-// @Router /heartbeats [post]
+// @Router /users/{user}/heartbeats [post]
 func (h *HeartbeatApiHandler) postAlias3() {}
 
 // @Summary Push new heartbeats
@@ -206,7 +209,7 @@ func (h *HeartbeatApiHandler) postAlias3() {}
 // @Param heartbeat body []models.Heartbeat true "Multiple heartbeats"
 // @Security ApiKeyAuth
 // @Success 201
-// @Router /v1/users/{user}/heartbeats.bulk [post]
+// @Router /heartbeats [post]
 func (h *HeartbeatApiHandler) postAlias4() {}
 
 // @Summary Push new heartbeats
@@ -216,5 +219,25 @@ func (h *HeartbeatApiHandler) postAlias4() {}
 // @Param heartbeat body []models.Heartbeat true "Multiple heartbeats"
 // @Security ApiKeyAuth
 // @Success 201
-// @Router /compat/wakatime/v1/users/{user}/heartbeats.bulk [post]
+// @Router /v1/users/{user}/heartbeats.bulk [post]
 func (h *HeartbeatApiHandler) postAlias5() {}
+
+// @Summary Push new heartbeats
+// @ID post-heartbeat-7
+// @Tags heartbeat
+// @Accept json
+// @Param heartbeat body []models.Heartbeat true "Multiple heartbeats"
+// @Security ApiKeyAuth
+// @Success 201
+// @Router /compat/wakatime/v1/users/{user}/heartbeats.bulk [post]
+func (h *HeartbeatApiHandler) postAlias6() {}
+
+// @Summary Push new heartbeats
+// @ID post-heartbeat-8
+// @Tags heartbeat
+// @Accept json
+// @Param heartbeat body []models.Heartbeat true "Multiple heartbeats"
+// @Security ApiKeyAuth
+// @Success 201
+// @Router /users/{user}/heartbeats.bulk [post]
+func (h *HeartbeatApiHandler) postAlias7() {}

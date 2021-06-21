@@ -207,7 +207,7 @@ var doc = `{
                     "heartbeat"
                 ],
                 "summary": "Push new heartbeats",
-                "operationId": "post-heartbeat-6",
+                "operationId": "post-heartbeat-7",
                 "parameters": [
                     {
                         "description": "Multiple heartbeats",
@@ -460,7 +460,7 @@ var doc = `{
                     "heartbeat"
                 ],
                 "summary": "Push new heartbeats",
-                "operationId": "post-heartbeat-4",
+                "operationId": "post-heartbeat-5",
                 "parameters": [
                     {
                         "description": "Multiple heartbeats",
@@ -547,6 +547,75 @@ var doc = `{
                 }
             }
         },
+        "/users/{user}/heartbeats": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "heartbeat"
+                ],
+                "summary": "Push a new heartbeat",
+                "operationId": "post-heartbeat-4",
+                "parameters": [
+                    {
+                        "description": "A single heartbeat",
+                        "name": "heartbeat",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Heartbeat"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/users/{user}/heartbeats.bulk": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "heartbeat"
+                ],
+                "summary": "Push new heartbeats",
+                "operationId": "post-heartbeat-8",
+                "parameters": [
+                    {
+                        "description": "Multiple heartbeats",
+                        "name": "heartbeat",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Heartbeat"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/v1/users/{user}/heartbeats": {
             "post": {
                 "security": [
@@ -594,7 +663,7 @@ var doc = `{
                     "heartbeat"
                 ],
                 "summary": "Push new heartbeats",
-                "operationId": "post-heartbeat-5",
+                "operationId": "post-heartbeat-6",
                 "parameters": [
                     {
                         "description": "Multiple heartbeats",
