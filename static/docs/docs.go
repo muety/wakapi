@@ -160,6 +160,75 @@ var doc = `{
                 }
             }
         },
+        "/compat/wakatime/v1/users/{user}/heartbeats": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "heartbeat"
+                ],
+                "summary": "Push a new heartbeat",
+                "operationId": "post-heartbeat-3",
+                "parameters": [
+                    {
+                        "description": "A single heartbeat",
+                        "name": "heartbeat",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Heartbeat"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/compat/wakatime/v1/users/{user}/heartbeats.bulk": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "heartbeat"
+                ],
+                "summary": "Push new heartbeats",
+                "operationId": "post-heartbeat-6",
+                "parameters": [
+                    {
+                        "description": "Multiple heartbeats",
+                        "name": "heartbeat",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Heartbeat"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/compat/wakatime/v1/users/{user}/projects": {
             "get": {
                 "security": [
@@ -361,12 +430,48 @@ var doc = `{
                 "operationId": "post-heartbeat",
                 "parameters": [
                     {
-                        "description": "A heartbeat",
+                        "description": "A single heartbeat",
                         "name": "heartbeat",
                         "in": "body",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/models.Heartbeat"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/heartbeats": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "heartbeat"
+                ],
+                "summary": "Push new heartbeats",
+                "operationId": "post-heartbeat-4",
+                "parameters": [
+                    {
+                        "description": "Multiple heartbeats",
+                        "name": "heartbeat",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Heartbeat"
+                            }
                         }
                     }
                 ],
@@ -441,6 +546,75 @@ var doc = `{
                     }
                 }
             }
+        },
+        "/v1/users/{user}/heartbeats": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "heartbeat"
+                ],
+                "summary": "Push a new heartbeat",
+                "operationId": "post-heartbeat-2",
+                "parameters": [
+                    {
+                        "description": "A single heartbeat",
+                        "name": "heartbeat",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Heartbeat"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/v1/users/{user}/heartbeats.bulk": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "heartbeat"
+                ],
+                "summary": "Push new heartbeats",
+                "operationId": "post-heartbeat-5",
+                "parameters": [
+                    {
+                        "description": "Multiple heartbeats",
+                        "name": "heartbeat",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Heartbeat"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -505,6 +679,12 @@ var doc = `{
                     "type": "string",
                     "format": "date",
                     "example": "2006-01-02 15:04:05.000"
+                },
+                "labels": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.SummaryItem"
+                    }
                 },
                 "languages": {
                     "type": "array",

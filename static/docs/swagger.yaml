@@ -43,6 +43,10 @@ definitions:
         example: "2006-01-02 15:04:05.000"
         format: date
         type: string
+      labels:
+        items:
+          $ref: '#/definitions/models.SummaryItem'
+        type: array
       languages:
         items:
           $ref: '#/definitions/models.SummaryItem'
@@ -408,6 +412,48 @@ paths:
       summary: Retrieve summary for all time
       tags:
       - wakatime
+  /compat/wakatime/v1/users/{user}/heartbeats:
+    post:
+      consumes:
+      - application/json
+      operationId: post-heartbeat-3
+      parameters:
+      - description: A single heartbeat
+        in: body
+        name: heartbeat
+        required: true
+        schema:
+          $ref: '#/definitions/models.Heartbeat'
+      responses:
+        "201":
+          description: ""
+      security:
+      - ApiKeyAuth: []
+      summary: Push a new heartbeat
+      tags:
+      - heartbeat
+  /compat/wakatime/v1/users/{user}/heartbeats.bulk:
+    post:
+      consumes:
+      - application/json
+      operationId: post-heartbeat-6
+      parameters:
+      - description: Multiple heartbeats
+        in: body
+        name: heartbeat
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.Heartbeat'
+          type: array
+      responses:
+        "201":
+          description: ""
+      security:
+      - ApiKeyAuth: []
+      summary: Push new heartbeats
+      tags:
+      - heartbeat
   /compat/wakatime/v1/users/{user}/projects:
     get:
       description: Mimics https://wakatime.com/developers#projects
@@ -540,7 +586,7 @@ paths:
       - application/json
       operationId: post-heartbeat
       parameters:
-      - description: A heartbeat
+      - description: A single heartbeat
         in: body
         name: heartbeat
         required: true
@@ -552,6 +598,28 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Push a new heartbeat
+      tags:
+      - heartbeat
+  /heartbeats:
+    post:
+      consumes:
+      - application/json
+      operationId: post-heartbeat-4
+      parameters:
+      - description: Multiple heartbeats
+        in: body
+        name: heartbeat
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.Heartbeat'
+          type: array
+      responses:
+        "201":
+          description: ""
+      security:
+      - ApiKeyAuth: []
+      summary: Push new heartbeats
       tags:
       - heartbeat
   /summary:
@@ -599,6 +667,48 @@ paths:
       summary: Retrieve a summary
       tags:
       - summary
+  /v1/users/{user}/heartbeats:
+    post:
+      consumes:
+      - application/json
+      operationId: post-heartbeat-2
+      parameters:
+      - description: A single heartbeat
+        in: body
+        name: heartbeat
+        required: true
+        schema:
+          $ref: '#/definitions/models.Heartbeat'
+      responses:
+        "201":
+          description: ""
+      security:
+      - ApiKeyAuth: []
+      summary: Push a new heartbeat
+      tags:
+      - heartbeat
+  /v1/users/{user}/heartbeats.bulk:
+    post:
+      consumes:
+      - application/json
+      operationId: post-heartbeat-5
+      parameters:
+      - description: Multiple heartbeats
+        in: body
+        name: heartbeat
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.Heartbeat'
+          type: array
+      responses:
+        "201":
+          description: ""
+      security:
+      - ApiKeyAuth: []
+      summary: Push new heartbeats
+      tags:
+      - heartbeat
 securityDefinitions:
   ApiKeyAuth:
     in: header
