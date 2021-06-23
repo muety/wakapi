@@ -3,6 +3,7 @@ env: production
 server:
   listen_ipv4: 127.0.0.1              # leave blank to disable ipv4
   listen_ipv6: ::1                    # leave blank to disable ipv6
+  listen_socket:                      # leave blank to disable unix sockets
   tls_cert_path:                      # leave blank to not use https
   tls_key_path:                       # leave blank to not use https
   port: 3000
