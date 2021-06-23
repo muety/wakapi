@@ -95,13 +95,14 @@ type dbConfig struct {
 }
 
 type serverConfig struct {
-	Port        int    `default:"3000" env:"WAKAPI_PORT"`
-	ListenIpV4  string `yaml:"listen_ipv4" default:"127.0.0.1" env:"WAKAPI_LISTEN_IPV4"`
-	ListenIpV6  string `yaml:"listen_ipv6" default:"::1" env:"WAKAPI_LISTEN_IPV6"`
-	BasePath    string `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
-	PublicUrl   string `yaml:"public_url" default:"http://localhost:3000" env:"WAKAPI_PUBLIC_URL"`
-	TlsCertPath string `yaml:"tls_cert_path" default:"" env:"WAKAPI_TLS_CERT_PATH"`
-	TlsKeyPath  string `yaml:"tls_key_path" default:"" env:"WAKAPI_TLS_KEY_PATH"`
+	Port         int    `default:"3000" env:"WAKAPI_PORT"`
+	ListenIpV4   string `yaml:"listen_ipv4" default:"127.0.0.1" env:"WAKAPI_LISTEN_IPV4"`
+	ListenIpV6   string `yaml:"listen_ipv6" default:"::1" env:"WAKAPI_LISTEN_IPV6"`
+	ListenSocket string `yaml:"listen_socket" default:"" env:"WAKAPI_LISTEN_SOCKET"`
+	BasePath     string `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
+	PublicUrl    string `yaml:"public_url" default:"http://localhost:3000" env:"WAKAPI_PUBLIC_URL"`
+	TlsCertPath  string `yaml:"tls_cert_path" default:"" env:"WAKAPI_TLS_CERT_PATH"`
+	TlsKeyPath   string `yaml:"tls_key_path" default:"" env:"WAKAPI_TLS_KEY_PATH"`
 }
 
 type sentryConfig struct {
@@ -350,8 +351,8 @@ func Load(version string) *Config {
 	}
 
 	// some validation checks
-	if config.Server.ListenIpV4 == "" && config.Server.ListenIpV6 == "" {
-		logbuch.Fatal("either of listen_ipv4 or listen_ipv6 must be set")
+	if config.Server.ListenIpV4 == "" && config.Server.ListenIpV6 == "" && config.Server.ListenSocket == "" {
+		logbuch.Fatal("either of listen_ipv4 or listen_ipv6 or listen_socket must be set")
 	}
 	if config.Db.MaxConn <= 0 {
 		logbuch.Fatal("you must allow at least one database connection")

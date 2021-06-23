@@ -151,6 +151,7 @@ You can specify configuration options either via a config file (default: `config
 | `server.port`               | `WAKAPI_PORT`               | `3000`         | Port to listen on                                                   |
 | `server.listen_ipv4`        | `WAKAPI_LISTEN_IPV4`        | `127.0.0.1`    | IPv4 network address to listen on (leave blank to disable IPv4)     |
 | `server.listen_ipv6`        | `WAKAPI_LISTEN_IPV6`        | `::1`          | IPv6 network address to listen on (leave blank to disable IPv6)     |
+| `server.listen_socket`      | `WAKAPI_LISTEN_SOCKET`      | -              | UNIX socket to listen on (leave blank to disable UNIX socket)       |
 | `server.tls_cert_path`      | `WAKAPI_TLS_CERT_PATH`      | -              | Path of SSL server certificate (leave blank to not use HTTPS)       |
 | `server.tls_key_path`       | `WAKAPI_TLS_KEY_PATH`       | -              | Path of SSL server private key (leave blank to not use HTTPS)       |
 | `server.base_path`          | `WAKAPI_BASE_PATH`          | `/`            | Web base path (change when running behind a proxy under a sub-path) |

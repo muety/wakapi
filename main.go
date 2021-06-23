@@ -4,6 +4,7 @@ import (
 	"embed"
 	"io/fs"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -233,7 +234,7 @@ func main() {
 }
 
 func listen(handler http.Handler) {
-	var s4, s6 *http.Server
+	var s4, s6, sSocket *http.Server
 
 	// IPv4
 	if config.Server.ListenIpV4 != "" {
@@ -257,6 +258,15 @@ func listen(handler http.Handler) {
 		}
 	}
 
+	// UNIX domain socket
+	if config.Server.ListenSocket != "" {
+		sSocket = &http.Server{
+			Handler: handler,
+			ReadTimeout:  10 * time.Second,
+			WriteTimeout: 10 * time.Second,
+		}
+	}
+
 	if config.UseTLS() {
 		if s4 != nil {
 			logbuch.Info("--> Listening for HTTPS on %s... ✅", s4.Addr)
@@ -274,6 +284,18 @@ func listen(handler http.Handler) {
 				}
 			}()
 		}
+		if sSocket != nil {
+			logbuch.Info("--> Listening for HTTPS on %s... ✅", config.Server.ListenSocket)
+			go func() {
+				unixListener, err := net.Listen("unix", config.Server.ListenSocket)
+				if err != nil {
+					logbuch.Fatal(err.Error())
+				}
+				if err := sSocket.ServeTLS(unixListener, config.Server.TlsCertPath, config.Server.TlsKeyPath); err != nil {
+					logbuch.Fatal(err.Error())
+				}
+			}()
+		}
 	} else {
 		if s4 != nil {
 			logbuch.Info("--> Listening for HTTP on %s... ✅", s4.Addr)
@@ -287,6 +309,18 @@ func listen(handler http.Handler) {
 			logbuch.Info("--> Listening for HTTP on %s... ✅", s6.Addr)
 			go func() {
 				if err := s6.ListenAndServe(); err != nil {
+					logbuch.Fatal(err.Error())
+				}
+			}()
+		}
+		if sSocket != nil {
+			logbuch.Info("--> Listening for HTTP on %s... ✅", config.Server.ListenSocket)
+			go func() {
+				unixListener, err := net.Listen("unix", config.Server.ListenSocket)
+				if err != nil {
+					logbuch.Fatal(err.Error())
+				}
+				if err := sSocket.Serve(unixListener); err != nil {
 					logbuch.Fatal(err.Error())
 				}
 			}()
