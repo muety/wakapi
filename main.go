@@ -189,6 +189,14 @@ func main() {
 	rootRouter := router.PathPrefix("/").Subrouter()
 	apiRouter := router.PathPrefix("/api").Subrouter().StrictSlash(true)
 
+	// https://github.com/gorilla/mux/issues/416
+	router.NotFoundHandler = router.NewRoute().BuildOnly().HandlerFunc(http.NotFound).GetHandler()
+	router.NotFoundHandler = middlewares.NewLoggingMiddleware(logbuch.Info, []string{
+		"/assets",
+		"/favicon",
+		"/service-worker.js",
+	})(router.NotFoundHandler)
+
 	// Globally used middlewares
 	router.Use(middlewares.NewPrincipalMiddleware())
 	router.Use(middlewares.NewLoggingMiddleware(logbuch.Info, []string{"/assets"}))
@@ -261,7 +269,7 @@ func listen(handler http.Handler) {
 	// UNIX domain socket
 	if config.Server.ListenSocket != "" {
 		sSocket = &http.Server{
-			Handler: handler,
+			Handler:      handler,
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
 		}
