@@ -250,8 +250,8 @@ func listen(handler http.Handler) {
 		s4 = &http.Server{
 			Handler:      handler,
 			Addr:         bindString4,
-			ReadTimeout:  10 * time.Second,
-			WriteTimeout: 10 * time.Second,
+			ReadTimeout:  time.Duration(config.Server.TimeoutSec) * time.Second,
+			WriteTimeout: time.Duration(config.Server.TimeoutSec) * time.Second,
 		}
 	}
 
@@ -261,8 +261,8 @@ func listen(handler http.Handler) {
 		s6 = &http.Server{
 			Handler:      handler,
 			Addr:         bindString6,
-			ReadTimeout:  10 * time.Second,
-			WriteTimeout: 10 * time.Second,
+			ReadTimeout:  time.Duration(config.Server.TimeoutSec) * time.Second,
+			WriteTimeout: time.Duration(config.Server.TimeoutSec) * time.Second,
 		}
 	}
 
@@ -270,8 +270,8 @@ func listen(handler http.Handler) {
 	if config.Server.ListenSocket != "" {
 		sSocket = &http.Server{
 			Handler:      handler,
-			ReadTimeout:  10 * time.Second,
-			WriteTimeout: 10 * time.Second,
+			ReadTimeout:  time.Duration(config.Server.TimeoutSec) * time.Second,
+			WriteTimeout: time.Duration(config.Server.TimeoutSec) * time.Second,
 		}
 	}
 

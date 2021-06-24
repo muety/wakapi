@@ -99,6 +99,7 @@ type serverConfig struct {
 	ListenIpV4   string `yaml:"listen_ipv4" default:"127.0.0.1" env:"WAKAPI_LISTEN_IPV4"`
 	ListenIpV6   string `yaml:"listen_ipv6" default:"::1" env:"WAKAPI_LISTEN_IPV6"`
 	ListenSocket string `yaml:"listen_socket" default:"" env:"WAKAPI_LISTEN_SOCKET"`
+	TimeoutSec   int    `yaml:"timeout_sec" default:"30" env:"WAKAPI_TIMEOUT_SEC"`
 	BasePath     string `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
 	PublicUrl    string `yaml:"public_url" default:"http://localhost:3000" env:"WAKAPI_PUBLIC_URL"`
 	TlsCertPath  string `yaml:"tls_cert_path" default:"" env:"WAKAPI_TLS_CERT_PATH"`
