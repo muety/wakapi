@@ -90,7 +90,7 @@ type IUserService interface {
 	GetUserByResetToken(string) (*models.User, error)
 	GetAll() ([]*models.User, error)
 	GetAllByReports(bool) ([]*models.User, error)
-	GetActive() ([]*models.User, error)
+	GetActive(bool) ([]*models.User, error)
 	Count() (int64, error)
 	CreateOrGet(*models.Signup, bool) (*models.User, bool, error)
 	Update(*models.User) (*models.User, error)

@@ -55,6 +55,11 @@ func FloorDate(date time.Time) time.Time {
 	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 }
 
+// FloorDateHour rounds date down to the start of the current hour and keeps the time zone
+func FloorDateHour(date time.Time) time.Time {
+	return time.Date(date.Year(), date.Month(), date.Day(), date.Hour(), 0, 0, 0, date.Location())
+}
+
 // CeilDate rounds date up to the start of next day if date is not already a start (00:00:00)
 func CeilDate(date time.Time) time.Time {
 	floored := FloorDate(date)

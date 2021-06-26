@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -51,7 +52,7 @@ func (srv *UserService) GetUserByKey(key string) (*models.User, error) {
 		return nil, err
 	}
 
-	srv.cache.Set(u.ID, u, cache.DefaultExpiration)
+	srv.cache.SetDefault(u.ID, u)
 	return u, nil
 }
 
@@ -71,9 +72,24 @@ func (srv *UserService) GetAllByReports(reportsEnabled bool) ([]*models.User, er
 	return srv.repository.GetAllByReports(reportsEnabled)
 }
 
-func (srv *UserService) GetActive() ([]*models.User, error) {
+func (srv *UserService) GetActive(exact bool) ([]*models.User, error) {
 	minDate := time.Now().Add(-24 * time.Hour * time.Duration(srv.config.App.InactiveDays))
-	return srv.repository.GetByLastActiveAfter(minDate)
+	if !exact {
+		minDate = utils.FloorDateHour(minDate)
+	}
+
+	cacheKey := fmt.Sprintf("%s--active", minDate.String())
+	if u, ok := srv.cache.Get(cacheKey); ok {
+		return u.([]*models.User), nil
+	}
+
+	results, err := srv.repository.GetByLastActiveAfter(minDate)
+	if err != nil {
+		return nil, err
+	}
+
+	srv.cache.SetDefault(cacheKey, results)
+	return results, nil
 }
 
 func (srv *UserService) Count() (int64, error) {

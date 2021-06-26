@@ -228,7 +228,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 	totalUsers, _ := h.userSrvc.Count()
 	totalHeartbeats, _ := h.heartbeatSrvc.Count()
 
-	activeUsers, err := h.userSrvc.GetActive()
+	activeUsers, err := h.userSrvc.GetActive(false)
 	if err != nil {
 		logbuch.Error("failed to retrieve active users for metric – %v", err)
 		return nil, err
