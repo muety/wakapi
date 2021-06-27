@@ -1,12 +1,15 @@
 # Build Stage
 
-FROM golang:1.16 AS build-env
+FROM golang:1.16-alpine AS build-env
 WORKDIR /src
+
+# Required for go-sqlite3
+RUN apk add gcc musl-dev
 
 ADD ./go.mod .
 RUN go mod download
 
-RUN curl "https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh" -o wait-for-it.sh && \
+RUN wget "https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh" -O wait-for-it.sh && \
     chmod +x wait-for-it.sh
 
 ADD . .
@@ -25,12 +28,10 @@ RUN cp /src/wakapi . && \
 # to override config values using `-e` syntax.
 # Available options can be found in [README.md#-configuration](README.md#-configuration)
 
-FROM debian
+FROM alpine:3
 WORKDIR /app
 
-RUN apt update && \
-    apt install -y ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
+RUN apk update && apk add bash ca-certificates && rm -rf /var/cache/apk
 
 # See README.md and config.default.yml for all config options
 ENV ENVIRONMENT prod
@@ -48,4 +49,4 @@ COPY --from=build-env /app .
 
 VOLUME /data
 
-ENTRYPOINT ./entrypoint.sh
+ENTRYPOINT /app/entrypoint.sh

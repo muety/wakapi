@@ -40,3 +40,14 @@ jobs:
             n1try/wakapi:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
+
+      - name: Build and push to Docker Hub (Alpine)
+        uses: docker/build-push-action@v2
+        with:
+          file: Dockerfile.alpine
+          push: true
+          tags: |
+            n1try/wakapi:${{ env.GIT_TAG }}-alpine
+            n1try/wakapi:latest-alpine
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
