@@ -13,11 +13,6 @@ import (
 	"github.com/muety/wakapi/models"
 )
 
-const (
-	// re-read heartbeat counters from database every 10 min, in between, rely on local state
-	countersTtl = 10 * time.Minute
-)
-
 type HeartbeatService struct {
 	config              *config.Config
 	cache               *cache.Cache
@@ -82,7 +77,7 @@ func (srv *HeartbeatService) Count() (int64, error) {
 	}
 	count, err := srv.repository.Count()
 	if err == nil {
-		srv.cache.Set(srv.countTotalCacheKey(), count, countersTtl)
+		srv.cache.Set(srv.countTotalCacheKey(), count, srv.countCacheTtl())
 	}
 	return count, err
 }
@@ -95,7 +90,7 @@ func (srv *HeartbeatService) CountByUser(user *models.User) (int64, error) {
 	}
 	count, err := srv.repository.CountByUser(user)
 	if err == nil {
-		srv.cache.Set(key, count, countersTtl)
+		srv.cache.Set(key, count, srv.countCacheTtl())
 	}
 	return count, err
 }
@@ -121,7 +116,7 @@ func (srv *HeartbeatService) CountByUsers(users []*models.User) ([]*models.Count
 
 	for _, uc := range counts {
 		key := srv.countByUserCacheKey(uc.User)
-		srv.cache.Set(key, uc.Count, countersTtl)
+		srv.cache.Set(key, uc.Count, srv.countCacheTtl())
 		userCounts = append(userCounts, uc)
 	}
 
@@ -225,4 +220,8 @@ func (srv *HeartbeatService) countByUserCacheKey(userId string) string {
 
 func (srv *HeartbeatService) countTotalCacheKey() string {
 	return "heartbeat-count"
+}
+
+func (srv *HeartbeatService) countCacheTtl() time.Duration {
+	return time.Duration(srv.config.App.CountCacheTTLMin) * time.Minute
 }
