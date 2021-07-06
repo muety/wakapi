@@ -174,8 +174,8 @@ You can specify configuration options either via a config file (default: `config
 | `mail.enabled`              | `WAKAPI_MAIL_ENABLED`       | `true`         | Whether to allow Wakapi to send e-mail (e.g. for password resets) |
 | `mail.sender`               | `WAKAPI_MAIL_SENDER`        | `noreply@wakapi.dev` | Default sender address for outgoing mails (ignored for MailWhale) |
 | `mail.provider`             | `WAKAPI_MAIL_PROVIDER`      | `smtp`         | Implementation to use for sending mails (one of [`smtp`, `mailwhale`]) |
-| `mail.smtp.*`               | `WAKAPI_MAIL_SMTP_*`        | `-`            | Various options to configure SMTP. See [default config](config.default.yaml) for details |
-| `mail.mailwhale.*`          | `WAKAPI_MAIL_MAILWHALE_*`   | `-`            | Various options to configure [MailWhale](https://mailwhale.dev) sending service. See [default config](config.default.yaml) for details |
+| `mail.smtp.*`               | `WAKAPI_MAIL_SMTP_*`        | `-`            | Various options to configure SMTP. See [default config](config.default.yml) for details |
+| `mail.mailwhale.*`          | `WAKAPI_MAIL_MAILWHALE_*`   | `-`            | Various options to configure [MailWhale](https://mailwhale.dev) sending service. See [default config](config.default.yml) for details |
 | `sentry.dsn`                | `WAKAPI_SENTRY_DSN`         | –              | DSN for to integrate [Sentry](https://sentry.io) for error logging and tracing (leave empty to disable) |
 | `sentry.enable_tracing`     | `WAKAPI_SENTRY_TRACING`     | `false`        | Whether to enable Sentry request tracing                           |
 | `sentry.sample_rate`        | `WAKAPI_SENTRY_SAMPLE_RATE` | `0.75`         | Probability of tracing a request in Sentry                         |
