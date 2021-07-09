@@ -14,6 +14,9 @@ jobs:
       - name: Get version
         run: echo "GIT_TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
@@ -38,6 +41,7 @@ jobs:
           tags: |
             n1try/wakapi:${{ env.GIT_TAG }}
             n1try/wakapi:latest
+          platforms: linux/amd64,linux/arm64
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
@@ -49,5 +53,6 @@ jobs:
           tags: |
             n1try/wakapi:${{ env.GIT_TAG }}-alpine
             n1try/wakapi:latest-alpine
+          platforms: linux/amd64,linux/arm64
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
