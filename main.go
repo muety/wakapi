@@ -268,6 +268,13 @@ func listen(handler http.Handler) {
 
 	// UNIX domain socket
 	if config.Server.ListenSocket != "" {
+		// Remove if exists
+		if _, err := os.Stat(config.Server.ListenSocket); err == nil {
+			logbuch.Info("--> Removing unix socket %s", config.Server.ListenSocket)
+			if err := os.Remove(config.Server.ListenSocket); err != nil {
+				logbuch.Fatal(err.Error())
+			}
+		}
 		sSocket = &http.Server{
 			Handler:      handler,
 			ReadTimeout:  time.Duration(config.Server.TimeoutSec) * time.Second,
