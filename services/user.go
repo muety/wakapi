@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"github.com/emvi/logbuch"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -13,19 +14,45 @@ import (
 )
 
 type UserService struct {
-	config     *config.Config
-	cache      *cache.Cache
-	eventBus   *hub.Hub
-	repository repositories.IUserRepository
+	config      *config.Config
+	cache       *cache.Cache
+	eventBus    *hub.Hub
+	mailService IMailService
+	repository  repositories.IUserRepository
 }
 
-func NewUserService(userRepo repositories.IUserRepository) *UserService {
-	return &UserService{
-		config:     config.Get(),
-		eventBus:   config.EventBus(),
-		cache:      cache.New(1*time.Hour, 2*time.Hour),
-		repository: userRepo,
+func NewUserService(mailService IMailService, userRepo repositories.IUserRepository) *UserService {
+	srv := &UserService{
+		config:      config.Get(),
+		eventBus:    config.EventBus(),
+		cache:       cache.New(1*time.Hour, 2*time.Hour),
+		mailService: mailService,
+		repository:  userRepo,
 	}
+
+	sub1 := srv.eventBus.Subscribe(0, config.EventWakatimeFailure)
+	go func(sub *hub.Subscription) {
+		for m := range sub.Receiver {
+			user := m.Fields[config.FieldUser].(*models.User)
+			n := m.Fields[config.FieldPayload].(int)
+
+			logbuch.Warn("resetting wakatime api key for user %s, because of too many failures (%d)", user.ID, n)
+
+			if _, err := srv.SetWakatimeApiKey(user, ""); err != nil {
+				logbuch.Error("failed to set wakatime api key for user %s", user.ID)
+			}
+
+			if user.Email != "" {
+				if err := mailService.SendWakatimeFailureNotification(user, n); err != nil {
+					logbuch.Error("failed to send wakatime failure notification mail to user %s", user.ID)
+				} else {
+					logbuch.Info("sent wakatime connection failure mail to %s", user.ID)
+				}
+			}
+		}
+	}(&sub1)
+
+	return srv
 }
 
 func (srv *UserService) GetUserById(userId string) (*models.User, error) {

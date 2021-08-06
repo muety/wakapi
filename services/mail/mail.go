@@ -16,12 +16,14 @@ import (
 )
 
 const (
-	tplNamePasswordReset      = "reset_password"
-	tplNameImportNotification = "import_finished"
-	tplNameReport             = "report"
-	subjectPasswordReset      = "Wakapi - Password Reset"
-	subjectImportNotification = "Wakapi - Data Import Finished"
-	subjectReport             = "Wakapi - Report from %s"
+	tplNamePasswordReset               = "reset_password"
+	tplNameImportNotification          = "import_finished"
+	tplNameWakatimeFailureNotification = "wakatime_connection_failure"
+	tplNameReport                      = "report"
+	subjectPasswordReset               = "Wakapi - Password Reset"
+	subjectImportNotification          = "Wakapi - Data Import Finished"
+	subjectWakatimeFailureNotification = "Wakapi - WakaTime Connection Failure"
+	subjectReport                      = "Wakapi - Report from %s"
 )
 
 type SendingService interface {
@@ -64,6 +66,23 @@ func (m *MailService) SendPasswordReset(recipient *models.User, resetLink string
 	return m.sendingService.Send(mail)
 }
 
+func (m *MailService) SendWakatimeFailureNotification(recipient *models.User, numFailures int) error {
+	tpl, err := getWakatimeFailureNotificationTemplate(WakatimeFailureNotificationNotificationTplData{
+		PublicUrl:   m.config.Server.PublicUrl,
+		NumFailures: numFailures,
+	})
+	if err != nil {
+		return err
+	}
+	mail := &models.Mail{
+		From:    models.MailAddress(m.config.Mail.Sender),
+		To:      models.MailAddresses([]models.MailAddress{models.MailAddress(recipient.Email)}),
+		Subject: subjectWakatimeFailureNotification,
+	}
+	mail.WithHTML(tpl.String())
+	return m.sendingService.Send(mail)
+}
+
 func (m *MailService) SendImportNotification(recipient *models.User, duration time.Duration, numHeartbeats int) error {
 	tpl, err := getImportNotificationTemplate(ImportNotificationTplData{
 		PublicUrl:     m.config.Server.PublicUrl,
@@ -98,6 +117,18 @@ func (m *MailService) SendReport(recipient *models.User, report *models.Report) 
 
 func getPasswordResetTemplate(data PasswordResetTplData) (*bytes.Buffer, error) {
 	tpl, err := loadTemplate(tplNamePasswordReset)
+	if err != nil {
+		return nil, err
+	}
+	var rendered bytes.Buffer
+	if err := tpl.Execute(&rendered, data); err != nil {
+		return nil, err
+	}
+	return &rendered, nil
+}
+
+func getWakatimeFailureNotificationTemplate(data WakatimeFailureNotificationNotificationTplData) (*bytes.Buffer, error) {
+	tpl, err := loadTemplate(tplNameWakatimeFailureNotification)
 	if err != nil {
 		return nil, err
 	}

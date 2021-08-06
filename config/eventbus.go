@@ -15,6 +15,7 @@ const (
 	EventHeartbeatCreate    = "heartbeat.create"
 	EventProjectLabelCreate = "project_label.create"
 	EventProjectLabelDelete = "project_label.delete"
+	EventWakatimeFailure    = "wakatime.failure"
 	FieldPayload            = "payload"
 	FieldUser               = "user"
 	FieldUserId             = "user.id"

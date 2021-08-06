@@ -64,6 +64,7 @@ type IProjectLabelService interface {
 
 type IMailService interface {
 	SendPasswordReset(*models.User, string) error
+	SendWakatimeFailureNotification(*models.User, int) error
 	SendImportNotification(*models.User, time.Duration, int) error
 	SendReport(*models.User, *models.Report) error
 }

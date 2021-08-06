@@ -145,14 +145,14 @@ func main() {
 	keyValueRepository = repositories.NewKeyValueRepository(db)
 
 	// Services
+	mailService = mail.NewMailService()
 	aliasService = services.NewAliasService(aliasRepository)
-	userService = services.NewUserService(userRepository)
+	userService = services.NewUserService(mailService, userRepository)
 	languageMappingService = services.NewLanguageMappingService(languageMappingRepository)
 	projectLabelService = services.NewProjectLabelService(projectLabelRepository)
 	heartbeatService = services.NewHeartbeatService(heartbeatRepository, languageMappingService)
 	summaryService = services.NewSummaryService(summaryRepository, heartbeatService, aliasService, projectLabelService)
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
-	mailService = mail.NewMailService()
 	keyValueService = services.NewKeyValueService(keyValueRepository)
 	reportService = services.NewReportService(summaryService, userService, mailService)
 	miscService = services.NewMiscService(userService, summaryService, keyValueService)
@@ -240,11 +240,13 @@ func main() {
 
 	// Miscellaneous
 	// Pre-warm projects cache
-	allUsers, err := userService.GetAll()
-	if err == nil {
-		logbuch.Info("pre-warming user project cache")
-		for _, u := range allUsers {
-			go heartbeatService.GetEntitySetByUser(models.SummaryProject, u)
+	if !config.IsDev() {
+		allUsers, err := userService.GetAll()
+		if err == nil {
+			logbuch.Info("pre-warming user project cache")
+			for _, u := range allUsers {
+				go heartbeatService.GetEntitySetByUser(models.SummaryProject, u)
+			}
 		}
 	}
 

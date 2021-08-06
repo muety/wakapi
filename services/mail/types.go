@@ -12,6 +12,11 @@ type ImportNotificationTplData struct {
 	NumHeartbeats int
 }
 
+type WakatimeFailureNotificationNotificationTplData struct {
+	PublicUrl   string
+	NumFailures int
+}
+
 type ReportTplData struct {
 	Report *models.Report
 }
