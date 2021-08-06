@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"fmt"
 	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -28,7 +29,7 @@ func init() {
 				logbuch.Error("failed to retrieve raw sql db instance")
 				return err
 			}
-			if _, err := rawDb.Exec("delete from summary_items where type = ?", models.SummaryLabel); err != nil {
+			if _, err := rawDb.Exec(fmt.Sprintf("delete from summary_items where type = %d", models.SummaryLabel)); err != nil {
 				logbuch.Error("failed to delete project label summary items")
 				return err
 			}
