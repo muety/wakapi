@@ -2,7 +2,9 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"github.com/emvi/logbuch"
+	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
@@ -18,6 +20,7 @@ const HeartbeatDiffThreshold = 2 * time.Minute
 type SummaryService struct {
 	config              *config.Config
 	cache               *cache.Cache
+	eventBus            *hub.Hub
 	repository          repositories.ISummaryRepository
 	heartbeatService    IHeartbeatService
 	aliasService        IAliasService
@@ -27,18 +30,34 @@ type SummaryService struct {
 type SummaryRetriever func(f, t time.Time, u *models.User) (*models.Summary, error)
 
 func NewSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatService IHeartbeatService, aliasService IAliasService, projectLabelService IProjectLabelService) *SummaryService {
-	return &SummaryService{
+	srv := &SummaryService{
 		config:              config.Get(),
 		cache:               cache.New(24*time.Hour, 24*time.Hour),
+		eventBus:            config.EventBus(),
 		repository:          summaryRepo,
 		heartbeatService:    heartbeatService,
 		aliasService:        aliasService,
 		projectLabelService: projectLabelService,
 	}
+
+	sub1 := srv.eventBus.Subscribe(0, config.TopicProjectLabel)
+	go func(sub *hub.Subscription) {
+		for m := range sub.Receiver {
+			userId := m.Fields[config.FieldUserId].(string)
+			for key := range srv.cache.Items() {
+				if strings.HasSuffix(key, fmt.Sprintf("__%s__--aliased", userId)) {
+					srv.cache.Delete(key)
+				}
+			}
+		}
+	}(&sub1)
+
+	return srv
 }
 
 // Public summary generation methods
 
+// Aliased retrieves or computes a new summary based on the given SummaryRetriever and augments it with entity aliases and project labels
 func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f SummaryRetriever, skipCache bool) (*models.Summary, error) {
 	// Check cache
 	cacheKey := srv.getHash(from.String(), to.String(), user.ID, "--aliased")
@@ -65,6 +84,7 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f Summ
 
 	// Post-process summary and cache it
 	summary := s.WithResolvedAliases(resolve)
+	summary = srv.withProjectLabels(summary)
 	summary.FillBy(models.SummaryProject, models.SummaryLabel) // first fill up labels from projects
 	summary.FillMissing()                                      // then, full up types which are entirely missing
 
@@ -94,7 +114,6 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User) (*mod
 	if err != nil {
 		return nil, err
 	}
-	summary = srv.withProjectLabels(summary)
 
 	return summary.Sorted(), nil
 }
@@ -154,7 +173,6 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User) (*mo
 		OperatingSystems: osItems,
 		Machines:         machineItems,
 	}
-	summary = srv.withProjectLabels(summary)
 
 	return summary.Sorted(), nil
 }

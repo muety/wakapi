@@ -8,11 +8,16 @@ type ApplicationEvent struct {
 }
 
 const (
-	TopicUser            = "user.*"
-	TopicHeartbeat       = "heartbeat.*"
-	EventUserUpdate      = "user.update"
-	EventHeartbeatCreate = "heartbeat.create"
-	FieldPayload         = "payload"
+	TopicUser               = "user.*"
+	TopicHeartbeat          = "heartbeat.*"
+	TopicProjectLabel       = "project_label.*"
+	EventUserUpdate         = "user.update"
+	EventHeartbeatCreate    = "heartbeat.create"
+	EventProjectLabelCreate = "project_label.create"
+	EventProjectLabelDelete = "project_label.delete"
+	FieldPayload            = "payload"
+	FieldUser               = "user"
+	FieldUserId             = "user.id"
 )
 
 var eventHub *hub.Hub

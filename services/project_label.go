@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
@@ -12,12 +13,14 @@ import (
 type ProjectLabelService struct {
 	config     *config.Config
 	cache      *cache.Cache
+	eventBus   *hub.Hub
 	repository repositories.IProjectLabelRepository
 }
 
 func NewProjectLabelService(projectLabelRepository repositories.IProjectLabelRepository) *ProjectLabelService {
 	return &ProjectLabelService{
 		config:     config.Get(),
+		eventBus:   config.EventBus(),
 		repository: projectLabelRepository,
 		cache:      cache.New(24*time.Hour, 24*time.Hour),
 	}
@@ -65,6 +68,7 @@ func (srv *ProjectLabelService) Create(label *models.ProjectLabel) (*models.Proj
 	}
 
 	srv.cache.Delete(result.UserID)
+	srv.notifyUpdate(label, false)
 	return result, nil
 }
 
@@ -74,5 +78,17 @@ func (srv *ProjectLabelService) Delete(label *models.ProjectLabel) error {
 	}
 	err := srv.repository.Delete(label.ID)
 	srv.cache.Delete(label.UserID)
+	srv.notifyUpdate(label, true)
 	return err
+}
+
+func (srv *ProjectLabelService) notifyUpdate(label *models.ProjectLabel, isDelete bool) {
+	name := config.EventProjectLabelCreate
+	if isDelete {
+		name = config.EventProjectLabelDelete
+	}
+	srv.eventBus.Publish(hub.Message{
+		Name:   name,
+		Fields: map[string]interface{}{config.FieldPayload: label, config.FieldUserId: label.UserID},
+	})
 }
