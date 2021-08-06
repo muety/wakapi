@@ -7,6 +7,7 @@ import (
 	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
+	"github.com/muety/wakapi/models"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -66,10 +67,11 @@ func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		config.WakatimeApiUrl+config.WakatimeApiHeartbeatsBulkUrl,
 		bytes.NewReader(body),
 		headers,
+		user,
 	)
 }
 
-func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, headers http.Header) {
+func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, headers http.Header, forUser *models.User) {
 	request, err := http.NewRequest(method, url, body)
 	if err != nil {
 		logbuch.Warn("error constructing relayed request – %v", err)
@@ -89,6 +91,6 @@ func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, heade
 	}
 
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		logbuch.Warn("failed to relay request, got status %d", response.StatusCode)
+		logbuch.Warn("failed to relay request for user %s, got status %d", forUser.ID, response.StatusCode)
 	}
 }
