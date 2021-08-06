@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"github.com/muety/wakapi/models"
 	"io/fs"
 	"log"
 	"net"
@@ -236,6 +237,16 @@ func main() {
 	router.PathPrefix("/docs").Handler(
 		middlewares.NewFileTypeFilterMiddleware([]string{".go"})(fileServer),
 	)
+
+	// Miscellaneous
+	// Pre-warm projects cache
+	allUsers, err := userService.GetAll()
+	if err == nil {
+		logbuch.Info("pre-warming user project cache")
+		for _, u := range allUsers {
+			go heartbeatService.GetEntitySetByUser(models.SummaryProject, u)
+		}
+	}
 
 	// Listen HTTP
 	listen(router)

@@ -16,6 +16,7 @@ import (
 type HeartbeatService struct {
 	config              *config.Config
 	cache               *cache.Cache
+	cache2              *cache.Cache
 	eventBus            *hub.Hub
 	repository          repositories.IHeartbeatRepository
 	languageMappingSrvc ILanguageMappingService
@@ -25,6 +26,7 @@ func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, langua
 	srv := &HeartbeatService{
 		config:              config.Get(),
 		cache:               cache.New(24*time.Hour, 24*time.Hour),
+		cache2:              cache.New(cache.NoExpiration, cache.NoExpiration),
 		eventBus:            config.EventBus(),
 		repository:          heartbeatRepo,
 		languageMappingSrvc: languageMappingService,
@@ -145,7 +147,7 @@ func (srv *HeartbeatService) GetFirstByUsers() ([]*models.TimeByUser, error) {
 
 func (srv *HeartbeatService) GetEntitySetByUser(entityType uint8, user *models.User) ([]string, error) {
 	cacheKey := srv.getEntityUserCacheKey(entityType, user)
-	if results, found := srv.cache.Get(cacheKey); found {
+	if results, found := srv.cache2.Get(cacheKey); found {
 		return utils.SetToStrings(results.(map[string]bool)), nil
 	}
 
@@ -161,7 +163,7 @@ func (srv *HeartbeatService) GetEntitySetByUser(entityType uint8, user *models.U
 		}
 	}
 
-	srv.cache.Set(cacheKey, utils.StringsToSet(filtered), cache.DefaultExpiration)
+	srv.cache2.Set(cacheKey, utils.StringsToSet(filtered), cache.DefaultExpiration)
 	return filtered, nil
 }
 
@@ -188,11 +190,11 @@ func (srv *HeartbeatService) getEntityUserCacheKey(entityType uint8, user *model
 
 func (srv *HeartbeatService) updateEntityUserCache(entityType uint8, entityKey string, user *models.User) {
 	cacheKey := srv.getEntityUserCacheKey(entityType, user)
-	if entities, found := srv.cache.Get(cacheKey); found {
+	if entities, found := srv.cache2.Get(cacheKey); found {
 		if _, ok := entities.(map[string]bool)[entityKey]; !ok {
 			// new project / language / ..., which is not yet present in cache, arrived as part of a heartbeats
 			// -> invalidate cache
-			srv.cache.Delete(cacheKey)
+			srv.cache2.Delete(cacheKey)
 		}
 	}
 }

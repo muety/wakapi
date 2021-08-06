@@ -147,7 +147,7 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 	case "toggle_wakatime":
 		return h.actionSetWakatimeApiKey
 	case "import_wakatime":
-		return h.actionImportWaktime
+		return h.actionImportWakatime
 	case "regenerate_summaries":
 		return h.actionRegenerateSummaries
 	case "delete_account":
@@ -447,7 +447,7 @@ func (h *SettingsHandler) actionSetWakatimeApiKey(w http.ResponseWriter, r *http
 	return http.StatusOK, "Wakatime API Key updated successfully", ""
 }
 
-func (h *SettingsHandler) actionImportWaktime(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Request) (int, string, string) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
