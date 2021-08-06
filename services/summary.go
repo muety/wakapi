@@ -94,6 +94,7 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User) (*mod
 	if err != nil {
 		return nil, err
 	}
+	summary = srv.withProjectLabels(summary)
 
 	return summary.Sorted(), nil
 }

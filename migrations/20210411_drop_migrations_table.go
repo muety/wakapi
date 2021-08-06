@@ -11,7 +11,7 @@ func init() {
 	f := migrationFunc{
 		name: name,
 		f: func(db *gorm.DB, cfg *config.Config) error {
-			if err := db.Migrator().DropTable("gorp_migrations"); err != nil {
+			if err := db.Migrator().DropTable("gorp_migrations"); err == nil {
 				logbuch.Info("dropped table 'gorp_migrations'")
 			}
 			return nil
