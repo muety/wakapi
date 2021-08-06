@@ -120,7 +120,6 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
 	/* TEST 1 */
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(-1*time.Minute)
 	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(filter(from, to, suite.TestHeartbeats), nil)
-	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return([]*models.ProjectLabel{}, nil).Once()
 
 	result, err = sut.Summarize(from, to, suite.TestUser)
 
@@ -134,7 +133,6 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
 	/* TEST 2 */
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Second)
 	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(filter(from, to, suite.TestHeartbeats), nil)
-	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return([]*models.ProjectLabel{}, nil).Once()
 
 	result, err = sut.Summarize(from, to, suite.TestUser)
 
@@ -148,7 +146,6 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
 	/* TEST 3 */
 	from, to = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
 	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(filter(from, to, suite.TestHeartbeats), nil)
-	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return(suite.TestLabels, nil).Once()
 
 	result, err = sut.Summarize(from, to, suite.TestUser)
 
@@ -159,16 +156,12 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
 	assert.Equal(suite.T(), 150*time.Second, result.TotalTime())
 	assert.Equal(suite.T(), 30*time.Second, result.TotalTimeByKey(models.SummaryEditor, TestEditorGoland))
 	assert.Equal(suite.T(), 120*time.Second, result.TotalTimeByKey(models.SummaryEditor, TestEditorVscode))
-	assert.Equal(suite.T(), 150*time.Second, result.TotalTimeByKey(models.SummaryLabel, TestProjectLabel1))
-	assert.Zero(suite.T(), result.TotalTimeByKey(models.SummaryLabel, TestProjectLabel3))
 	assert.Len(suite.T(), result.Editors, 2)
 	assertNumAllItems(suite.T(), 1, result, "e")
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve() {
 	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.AliasService, suite.ProjectLabelService)
-
-	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return([]*models.ProjectLabel{}, nil)
 
 	var (
 		summaries []*models.Summary
@@ -379,10 +372,25 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
 	)
 
 	from, to = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
-	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(filter(from, to, suite.TestHeartbeats), nil)
+
+	heartbeats := filter(from, to, suite.TestHeartbeats)
+	heartbeats = append(heartbeats, &models.Heartbeat{
+		ID:              uint(rand.Uint32()),
+		UserID:          TestUserId,
+		Project:         TestProject2,
+		Language:        TestLanguageGo,
+		Editor:          TestEditorGoland,
+		OperatingSystem: TestOsLinux,
+		Machine:         TestMachine1,
+		Time:            models.CustomTime(heartbeats[len(heartbeats)-1].Time.T().Add(10 * time.Second)),
+	})
+
+	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(heartbeats, nil)
 	suite.AliasService.On("InitializeUser", TestUserId).Return(nil)
-	suite.AliasService.On("GetAliasOrDefault", TestUserId, models.SummaryProject, TestProject1).Return(TestProject2, nil)
+	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, TestProject1).Return(TestProject2, nil)
+	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, TestProject2).Return(TestProject2, nil)
 	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, mock.Anything).Return("", nil)
+	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return(suite.TestLabels, nil).Once()
 
 	result, err = sut.Aliased(from, to, suite.TestUser, sut.Summarize, false)
 
@@ -390,6 +398,44 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
 	assert.NotNil(suite.T(), result)
 	assert.Zero(suite.T(), result.TotalTimeByKey(models.SummaryProject, TestProject1))
 	assert.NotZero(suite.T(), result.TotalTimeByKey(models.SummaryProject, TestProject2))
+}
+
+func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased_ProjectLabels() {
+	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.AliasService, suite.ProjectLabelService)
+
+	var (
+		from   time.Time
+		to     time.Time
+		result *models.Summary
+		err    error
+	)
+
+	from, to = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
+
+	heartbeats := filter(from, to, suite.TestHeartbeats)
+	heartbeats = append(heartbeats, &models.Heartbeat{
+		ID:              uint(rand.Uint32()),
+		UserID:          TestUserId,
+		Project:         TestProject2,
+		Language:        TestLanguageGo,
+		Editor:          TestEditorGoland,
+		OperatingSystem: TestOsLinux,
+		Machine:         TestMachine1,
+		Time:            models.CustomTime(heartbeats[len(heartbeats)-1].Time.T().Add(10 * time.Second)),
+	})
+
+	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return(suite.TestLabels, nil).Once()
+	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(heartbeats, nil)
+	suite.AliasService.On("InitializeUser", TestUserId).Return(nil)
+	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, TestProject1).Return(TestProject1, nil)
+	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, TestProject2).Return(TestProject1, nil)
+	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, mock.Anything).Return("", nil)
+
+	result, err = sut.Aliased(from, to, suite.TestUser, sut.Summarize, false)
+
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), result)
+	assert.Equal(suite.T(), 160*time.Second, result.TotalTimeByKey(models.SummaryLabel, TestProjectLabel1))
 }
 
 func filter(from, to time.Time, heartbeats []*models.Heartbeat) []*models.Heartbeat {
