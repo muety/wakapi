@@ -31,6 +31,10 @@ type IHeartbeatRepository interface {
 	DeleteBefore(time.Time) error
 }
 
+type IDiagnosticsRepository interface {
+	Insert(diagnostics *models.Diagnostics) (*models.Diagnostics, error)
+}
+
 type IKeyValueRepository interface {
 	GetAll() ([]*models.KeyStringValue, error)
 	GetString(string) (*models.KeyStringValue, error)

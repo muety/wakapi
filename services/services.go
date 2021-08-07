@@ -39,6 +39,10 @@ type IHeartbeatService interface {
 	DeleteBefore(time.Time) error
 }
 
+type IDiagnosticsService interface {
+	Create(*models.Diagnostics) (*models.Diagnostics, error)
+}
+
 type IKeyValueService interface {
 	GetString(string) (*models.KeyStringValue, error)
 	MustGetString(string) *models.KeyStringValue

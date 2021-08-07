@@ -1,5 +1,22 @@
 basePath: /api
 definitions:
+  models.Diagnostics:
+    properties:
+      architecture:
+        type: string
+      cli_version:
+        type: string
+      id:
+        type: integer
+      logs:
+        type: string
+      platform:
+        type: string
+      plugin:
+        type: string
+      stacktrace:
+        type: string
+    type: object
   models.Heartbeat:
     properties:
       branch:
@@ -44,6 +61,8 @@ definitions:
         format: date
         type: string
       labels:
+        description: labels are not persisted, but calculated at runtime, i.e. when
+          summary is retrieved
         items:
           $ref: '#/definitions/models.SummaryItem'
         type: array
@@ -622,6 +641,26 @@ paths:
       summary: Push new heartbeats
       tags:
       - heartbeat
+  /plugins/errors:
+    post:
+      consumes:
+      - application/json
+      operationId: post-diagnostics
+      parameters:
+      - description: A single diagnostics object sent by WakaTime CLI
+        in: body
+        name: diagnostics
+        required: true
+        schema:
+          $ref: '#/definitions/models.Diagnostics'
+      responses:
+        "201":
+          description: ""
+      security:
+      - ApiKeyAuth: []
+      summary: Push a new diagnostics object
+      tags:
+      - diagnostics
   /summary:
     get:
       operationId: get-summary

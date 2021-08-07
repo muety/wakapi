@@ -482,6 +482,39 @@ var doc = `{
                 }
             }
         },
+        "/plugins/errors": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "diagnostics"
+                ],
+                "summary": "Push a new diagnostics object",
+                "operationId": "post-diagnostics",
+                "parameters": [
+                    {
+                        "description": "A single diagnostics object sent by WakaTime CLI",
+                        "name": "diagnostics",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Diagnostics"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/summary": {
             "get": {
                 "security": [
@@ -687,6 +720,32 @@ var doc = `{
         }
     },
     "definitions": {
+        "models.Diagnostics": {
+            "type": "object",
+            "properties": {
+                "architecture": {
+                    "type": "string"
+                },
+                "cli_version": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "logs": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "plugin": {
+                    "type": "string"
+                },
+                "stacktrace": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Heartbeat": {
             "type": "object",
             "properties": {
@@ -750,6 +809,7 @@ var doc = `{
                     "example": "2006-01-02 15:04:05.000"
                 },
                 "labels": {
+                    "description": "labels are not persisted, but calculated at runtime, i.e. when summary is retrieved",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.SummaryItem"

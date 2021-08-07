@@ -54,6 +54,7 @@ var (
 	projectLabelRepository    repositories.IProjectLabelRepository
 	summaryRepository         repositories.ISummaryRepository
 	keyValueRepository        repositories.IKeyValueRepository
+	diagnosticsRepository     repositories.IDiagnosticsRepository
 )
 
 var (
@@ -67,6 +68,7 @@ var (
 	mailService            services.IMailService
 	keyValueService        services.IKeyValueService
 	reportService          services.IReportService
+	diagnosticsService     services.IDiagnosticsService
 	miscService            services.IMiscService
 )
 
@@ -143,6 +145,7 @@ func main() {
 	projectLabelRepository = repositories.NewProjectLabelRepository(db)
 	summaryRepository = repositories.NewSummaryRepository(db)
 	keyValueRepository = repositories.NewKeyValueRepository(db)
+	diagnosticsRepository = repositories.NewDiagnosticsRepository(db)
 
 	// Services
 	mailService = mail.NewMailService()
@@ -155,6 +158,7 @@ func main() {
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
 	keyValueService = services.NewKeyValueService(keyValueRepository)
 	reportService = services.NewReportService(summaryService, userService, mailService)
+	diagnosticsService = services.NewDiagnosticsService(diagnosticsRepository)
 	miscService = services.NewMiscService(userService, summaryService, keyValueService)
 
 	// Schedule background tasks
@@ -169,6 +173,7 @@ func main() {
 	heartbeatApiHandler := api.NewHeartbeatApiHandler(userService, heartbeatService, languageMappingService)
 	summaryApiHandler := api.NewSummaryApiHandler(userService, summaryService)
 	metricsHandler := api.NewMetricsHandler(userService, summaryService, heartbeatService, keyValueService)
+	diagnosticsHandler := api.NewDiagnosticsApiHandler(userService, diagnosticsService)
 
 	// Compat Handlers
 	wakatimeV1AllHandler := wtV1Routes.NewAllTimeHandler(userService, summaryService)
@@ -219,6 +224,7 @@ func main() {
 	healthApiHandler.RegisterRoutes(apiRouter)
 	heartbeatApiHandler.RegisterRoutes(apiRouter)
 	metricsHandler.RegisterRoutes(apiRouter)
+	diagnosticsHandler.RegisterRoutes(apiRouter)
 	wakatimeV1AllHandler.RegisterRoutes(apiRouter)
 	wakatimeV1SummariesHandler.RegisterRoutes(apiRouter)
 	wakatimeV1StatsHandler.RegisterRoutes(apiRouter)

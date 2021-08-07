@@ -33,6 +33,7 @@ const (
 	SimpleDateTimeFormat = "2006-01-02 15:04:05"
 
 	ErrUnauthorized        = "401 unauthorized"
+	ErrBadRequest          = "400 bad request"
 	ErrInternalServerError = "500 internal server error"
 )
 
@@ -201,6 +202,9 @@ func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
 				return err
 			}
 			if err := db.AutoMigrate(&models.ProjectLabel{}); err != nil && !c.Db.AutoMigrateFailSilently {
+				return err
+			}
+			if err := db.AutoMigrate(&models.Diagnostics{}); err != nil && !c.Db.AutoMigrateFailSilently {
 				return err
 			}
 			return nil

@@ -72,6 +72,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		heartbeats, err = h.tryParseSingle(r)
 		if err != nil {
+			conf.Log().Request(r).Error(err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
 			return
