@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "3dcc346d-a9a8-4699-8a52-459eb978b382",
+		"_postman_id": "46168002-34d8-48a5-95fa-4a8600450cbd",
 		"name": "Wakapi",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -45,6 +45,50 @@
 							"path": [
 								"api",
 								"metrics"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send diagnostics",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic {{TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Machine-Name",
+								"value": "devmachine",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "wakatime/13.0.7 (Linux-4.15.0-91-generic-x86_64-with-glibc2.4) Python3.8.0.final.0 generator/1.42.1 generator-wakatime/4.0.0",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"platform\": \"unset\",\n  \"architecture\": \"unset\",\n  \"plugin\": \"\",\n  \"cli_version\": \"unset\",\n  \"logs\": \"{\\\"caller\\\":\\\"/home/ferdinand/dev/wakatime-cli/cmd/legacy/run.go:189\\\",\\\"func\\\":\\\"runCmd\\\",\\\"level\\\":\\\"error\\\",\\\"message\\\":\\\"failed to run command: failed to send heartbeat(s) due to api error: failed to send heartbeats via api client: invalid response status from \\\\\\\"https://bin.muetsch.io/n7jnywu/users/current/heartbeats.bulk\\\\\\\". got: 404, want: 201/202. body: \\\\\\\"\\\\\\\"\\\",\\\"now\\\":\\\"2021-08-07T00:33:26+02:00\\\",\\\"version\\\":\\\"unset\\\"}\\n\",\n  \"stacktrace\": \"goroutine 1 [running]:\\nruntime/debug.Stack(0x0, 0xc0001f8680, 0x196)\\n\\t/opt/go/src/runtime/debug/stack.go:24 +0x9f\\ngithub.com/wakatime/wakatime-cli/cmd/legacy.runCmd(0xc000103680, 0xc33c60, 0x0)\\n\\t/home/ferdinand/dev/wakatime-cli/cmd/legacy/run.go:194 +0x26c\\ngithub.com/wakatime/wakatime-cli/cmd/legacy.RunCmdWithOfflineSync(0xc000103680, 0xc33c60)\\n\\t/home/ferdinand/dev/wakatime-cli/cmd/legacy/run.go:163 +0x35\\ngithub.com/wakatime/wakatime-cli/cmd/legacy.Run(0xc0000be2c0, 0xc000103680)\\n\\t/home/ferdinand/dev/wakatime-cli/cmd/legacy/run.go:90 +0x62e\\ngithub.com/wakatime/wakatime-cli/cmd.NewRootCMD.func1(0xc0000be2c0, 0xc00028bd40, 0x0, 0x2)\\n\\t/home/ferdinand/dev/wakatime-cli/cmd/root.go:31 +0x34\\ngithub.com/spf13/cobra.(*Command).execute(0xc0000be2c0, 0xc000020190, 0x2, 0x2, 0xc0000be2c0, 0xc000020190)\\n\\t/home/ferdinand/go/pkg/mod/github.com/spf13/cobra@v1.1.1/command.go:854 +0x2c2\\ngithub.com/spf13/cobra.(*Command).ExecuteC(0xc0000be2c0, 0xc000000180, 0xc0006bff78, 0x407d65)\\n\\t/home/ferdinand/go/pkg/mod/github.com/spf13/cobra@v1.1.1/command.go:958 +0x375\\ngithub.com/spf13/cobra.(*Command).Execute(...)\\n\\t/home/ferdinand/go/pkg/mod/github.com/spf13/cobra@v1.1.1/command.go:895\\ngithub.com/wakatime/wakatime-cli/cmd.Execute()\\n\\t/home/ferdinand/dev/wakatime-cli/cmd/root.go:227 +0x2b\\nmain.main()\\n\\t/home/ferdinand/dev/wakatime-cli/main.go:6 +0x25\\n\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/plugins/errors",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"plugins",
+								"errors"
 							]
 						}
 					},
