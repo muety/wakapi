@@ -205,7 +205,7 @@ func main() {
 
 	// Globally used middlewares
 	router.Use(middlewares.NewPrincipalMiddleware())
-	router.Use(middlewares.NewLoggingMiddleware(logbuch.Info, []string{"/assets"}))
+	router.Use(middlewares.NewLoggingMiddleware(logbuch.Info, []string{"/assets", "/api/health"}))
 	router.Use(handlers.RecoveryHandler())
 	if config.Sentry.Dsn != "" {
 		router.Use(middlewares.NewSentryMiddleware())
