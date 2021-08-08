@@ -2,26 +2,23 @@ package routes
 
 import (
 	"fmt"
+	"github.com/muety/wakapi/views"
 	"html/template"
-	"io/fs"
-	"io/ioutil"
 	"net/http"
-	"path"
 	"strings"
 
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
-	"github.com/muety/wakapi/views"
 )
-
-func Init() {
-	loadTemplates()
-}
 
 type action func(w http.ResponseWriter, r *http.Request) (int, string, string)
 
 var templates map[string]*template.Template
+
+func Init() {
+	loadTemplates()
+}
 
 func DefaultTemplateFuncs() template.FuncMap {
 	return template.FuncMap{
@@ -58,44 +55,6 @@ func DefaultTemplateFuncs() template.FuncMap {
 	}
 }
 
-func loadTemplates() {
-	tpls := template.New("").Funcs(DefaultTemplateFuncs())
-	templates = make(map[string]*template.Template)
-
-	// Use local file system when in 'dev' environment, go embed file system otherwise
-	templateFs := config.ChooseFS("views", views.TemplateFiles)
-
-	files, err := fs.ReadDir(templateFs, ".")
-	if err != nil {
-		panic(err)
-	}
-
-	for _, file := range files {
-		tplName := file.Name()
-		if file.IsDir() || path.Ext(tplName) != ".html" {
-			continue
-		}
-
-		templateFile, err := templateFs.Open(tplName)
-		if err != nil {
-			panic(err)
-		}
-		templateData, err := ioutil.ReadAll(templateFile)
-		if err != nil {
-			panic(err)
-		}
-
-		templateFile.Close()
-
-		tpl, err := tpls.New(tplName).Parse(string(templateData))
-		if err != nil {
-			panic(err)
-		}
-
-		templates[tplName] = tpl
-	}
-}
-
 func typeName(t uint8) string {
 	if t == models.SummaryProject {
 		return "project"
@@ -116,6 +75,16 @@ func typeName(t uint8) string {
 		return "label"
 	}
 	return "unknown"
+}
+
+func loadTemplates() {
+	// Use local file system when in 'dev' environment, go embed file system otherwise
+	templateFs := config.ChooseFS("views", views.TemplateFiles)
+	if tpls, err := utils.LoadTemplates(templateFs, DefaultTemplateFuncs()); err == nil {
+		templates = tpls
+	} else {
+		panic(err)
+	}
 }
 
 func defaultErrorRedirectTarget() string {

@@ -1,4 +1,4 @@
-package views
+package mail
 
 import "embed"
 

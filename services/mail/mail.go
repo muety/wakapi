@@ -7,12 +7,10 @@ import (
 	"github.com/muety/wakapi/routes"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"html/template"
-	"io/ioutil"
+	"github.com/muety/wakapi/views/mail"
 	"time"
 
 	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/views"
 )
 
 const (
@@ -33,6 +31,7 @@ type SendingService interface {
 type MailService struct {
 	config         *conf.Config
 	sendingService SendingService
+	templates      utils.TemplateMap
 }
 
 func NewMailService() services.IMailService {
@@ -49,11 +48,18 @@ func NewMailService() services.IMailService {
 		}
 	}
 
-	return &MailService{sendingService: sendingService, config: config}
+	// Use local file system when in 'dev' environment, go embed file system otherwise
+	templateFs := conf.ChooseFS("views/mail", mail.TemplateFiles)
+	templates, err := utils.LoadTemplates(templateFs, routes.DefaultTemplateFuncs())
+	if err != nil {
+		panic(err)
+	}
+
+	return &MailService{sendingService: sendingService, config: config, templates: templates}
 }
 
 func (m *MailService) SendPasswordReset(recipient *models.User, resetLink string) error {
-	tpl, err := getPasswordResetTemplate(PasswordResetTplData{ResetLink: resetLink})
+	tpl, err := m.getPasswordResetTemplate(PasswordResetTplData{ResetLink: resetLink})
 	if err != nil {
 		return err
 	}
@@ -67,7 +73,7 @@ func (m *MailService) SendPasswordReset(recipient *models.User, resetLink string
 }
 
 func (m *MailService) SendWakatimeFailureNotification(recipient *models.User, numFailures int) error {
-	tpl, err := getWakatimeFailureNotificationTemplate(WakatimeFailureNotificationNotificationTplData{
+	tpl, err := m.getWakatimeFailureNotificationTemplate(WakatimeFailureNotificationNotificationTplData{
 		PublicUrl:   m.config.Server.PublicUrl,
 		NumFailures: numFailures,
 	})
@@ -84,7 +90,7 @@ func (m *MailService) SendWakatimeFailureNotification(recipient *models.User, nu
 }
 
 func (m *MailService) SendImportNotification(recipient *models.User, duration time.Duration, numHeartbeats int) error {
-	tpl, err := getImportNotificationTemplate(ImportNotificationTplData{
+	tpl, err := m.getImportNotificationTemplate(ImportNotificationTplData{
 		PublicUrl:     m.config.Server.PublicUrl,
 		Duration:      fmt.Sprintf("%.0f seconds", duration.Seconds()),
 		NumHeartbeats: numHeartbeats,
@@ -102,7 +108,7 @@ func (m *MailService) SendImportNotification(recipient *models.User, duration ti
 }
 
 func (m *MailService) SendReport(recipient *models.User, report *models.Report) error {
-	tpl, err := getReportTemplate(ReportTplData{report})
+	tpl, err := m.getReportTemplate(ReportTplData{report})
 	if err != nil {
 		return err
 	}
@@ -115,68 +121,38 @@ func (m *MailService) SendReport(recipient *models.User, report *models.Report) 
 	return m.sendingService.Send(mail)
 }
 
-func getPasswordResetTemplate(data PasswordResetTplData) (*bytes.Buffer, error) {
-	tpl, err := loadTemplate(tplNamePasswordReset)
-	if err != nil {
-		return nil, err
-	}
+func (m *MailService) getPasswordResetTemplate(data PasswordResetTplData) (*bytes.Buffer, error) {
 	var rendered bytes.Buffer
-	if err := tpl.Execute(&rendered, data); err != nil {
+	if err := m.templates[m.fmtName(tplNamePasswordReset)].Execute(&rendered, data); err != nil {
 		return nil, err
 	}
 	return &rendered, nil
 }
 
-func getWakatimeFailureNotificationTemplate(data WakatimeFailureNotificationNotificationTplData) (*bytes.Buffer, error) {
-	tpl, err := loadTemplate(tplNameWakatimeFailureNotification)
-	if err != nil {
-		return nil, err
-	}
+func (m *MailService) getWakatimeFailureNotificationTemplate(data WakatimeFailureNotificationNotificationTplData) (*bytes.Buffer, error) {
 	var rendered bytes.Buffer
-	if err := tpl.Execute(&rendered, data); err != nil {
+	if err := m.templates[m.fmtName(tplNameWakatimeFailureNotification)].Execute(&rendered, data); err != nil {
 		return nil, err
 	}
 	return &rendered, nil
 }
 
-func getImportNotificationTemplate(data ImportNotificationTplData) (*bytes.Buffer, error) {
-	tpl, err := loadTemplate(tplNameImportNotification)
-	if err != nil {
-		return nil, err
-	}
+func (m *MailService) getImportNotificationTemplate(data ImportNotificationTplData) (*bytes.Buffer, error) {
 	var rendered bytes.Buffer
-	if err := tpl.Execute(&rendered, data); err != nil {
+	if err := m.templates[m.fmtName(tplNameImportNotification)].Execute(&rendered, data); err != nil {
 		return nil, err
 	}
 	return &rendered, nil
 }
 
-func getReportTemplate(data ReportTplData) (*bytes.Buffer, error) {
-	tpl, err := loadTemplate(tplNameReport)
-	if err != nil {
-		return nil, err
-	}
+func (m *MailService) getReportTemplate(data ReportTplData) (*bytes.Buffer, error) {
 	var rendered bytes.Buffer
-	if err := tpl.Execute(&rendered, data); err != nil {
+	if err := m.templates[m.fmtName(tplNameReport)].Execute(&rendered, data); err != nil {
 		return nil, err
 	}
 	return &rendered, nil
 }
 
-func loadTemplate(tplName string) (*template.Template, error) {
-	tplFile, err := views.TemplateFiles.Open(fmt.Sprintf("mail/%s.tpl.html", tplName))
-	if err != nil {
-		return nil, err
-	}
-	defer tplFile.Close()
-
-	tplData, err := ioutil.ReadAll(tplFile)
-	if err != nil {
-		return nil, err
-	}
-
-	return template.
-		New(tplName).
-		Funcs(routes.DefaultTemplateFuncs()).
-		Parse(string(tplData))
+func (m *MailService) fmtName(name string) string {
+	return fmt.Sprintf("%s.tpl.html", name)
 }
