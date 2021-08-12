@@ -412,7 +412,11 @@ Wakapi adds a "padding" of two minutes before the third heartbeat. This is why t
 </details>
 
 ## 🙏 Thanks
-I highly appreciate the efforts of [@alanhamlett](https://github.com/alanhamlett) and the WakaTime team and am thankful for their software being open source. 
+I highly appreciate the efforts of **[@alanhamlett](https://github.com/alanhamlett)** and the WakaTime team and am thankful for their software being open source. 
+
+Moreover, thanks to **[JetBrains](https://jb.gg/OpenSource)** for supporting this project as part of their open-source program.
+
+![](static/assets/images/jetbrains-logo.png)
 
 ## 📓 License
 GPL-v3 @ [Ferdinand Mütsch](https://muetsch.io)
