@@ -37,6 +37,12 @@ func TestCommon_ParseUserAgent(t *testing.T) {
 			"",
 			errors.New(""),
 		},
+		{
+			"wakatime/v1.18.11 (linux-5.13.8-200.fc34.x86_64-x86_64) go1.16.7 emacs-wakatime/1.0.2",
+			"linux",
+			"emacs",
+			nil,
+		},
 	}
 
 	for _, test := range tests {
