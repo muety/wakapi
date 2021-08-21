@@ -160,10 +160,6 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		return nil, err
 	}
 
-	if result.RowsAffected != 1 {
-		return nil, errors.New("nothing updated")
-	}
-
 	return user, nil
 }
 

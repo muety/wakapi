@@ -31,7 +31,7 @@ RUN cp /src/wakapi . && \
 FROM alpine:3
 WORKDIR /app
 
-RUN apk update && apk add bash ca-certificates && rm -rf /var/cache/apk
+RUN apk update && apk add bash ca-certificates tzdata && rm -rf /var/cache/apk
 
 # See README.md and config.default.yml for all config options
 ENV ENVIRONMENT prod
