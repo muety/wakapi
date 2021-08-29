@@ -34,10 +34,10 @@ Chart.defaults.global.defaultFontColor = "#E2E8F0"
 Chart.defaults.global.defaultColor = "#E2E8F0"
 
 String.prototype.toHHMMSS = function () {
-    var sec_num = parseInt(this, 10)
-    var hours = Math.floor(sec_num / 3600)
-    var minutes = Math.floor((sec_num - (hours * 3600)) / 60)
-    var seconds = sec_num - (hours * 3600) - (minutes * 60)
+    const sec_num = parseInt(this, 10)
+    let hours = Math.floor(sec_num / 3600)
+    let minutes = Math.floor((sec_num - (hours * 3600)) / 60)
+    let seconds = sec_num - (hours * 3600) - (minutes * 60)
 
     if (hours < 10) {
         hours = '0' + hours
@@ -48,14 +48,14 @@ String.prototype.toHHMMSS = function () {
     if (seconds < 10) {
         seconds = '0' + seconds
     }
-    return hours + ':' + minutes + ':' + seconds
+    return `${hours}:${minutes}:${seconds}`
 }
 
 String.prototype.toHHMM = function () {
     const sec_num = parseInt(this, 10)
     const hours = Math.floor(sec_num / 3600)
     const minutes = Math.floor((sec_num - (hours * 3600)) / 60)
-    return hours + ':' + minutes
+    return `${hours}:${minutes}`
 }
 
 function draw(subselection) {
@@ -114,7 +114,10 @@ function draw(subselection) {
                     xAxes: [{
                         scaleLabel: {
                             display: true,
-                            labelString: 'Seconds'
+                            labelString: 'Duration (hh:mm:ss)'
+                        },
+                        ticks: {
+                            callback: (label) => label.toString().toHHMMSS()
                         }
                     }]
                 },
