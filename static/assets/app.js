@@ -30,8 +30,11 @@ let charts = []
 let showTopN = []
 let resizeCount = 0
 
-Chart.defaults.global.defaultFontColor = "#E2E8F0"
-Chart.defaults.global.defaultColor = "#E2E8F0"
+//Chart.defaults.global.defaultFontColor = "#E2E8F0"
+//Chart.defaults.global.defaultColor = "#E2E8F0"
+charts.color = "#E2E8F0"
+charts.borderColor = "#E2E8F0"
+charts.backgroundColor = "#E2E8F0"
 
 String.prototype.toHHMMSS = function () {
     const sec_num = parseInt(this, 10)
@@ -58,6 +61,10 @@ String.prototype.toHHMM = function () {
     return `${hours}:${minutes}`
 }
 
+console.log(wakapiData.projects
+    .slice(0, Math.min(showTopN[0], wakapiData.projects.length))
+    .map(p => p.key))
+
 function draw(subselection) {
     function getTooltipOptions(key) {
         return {
@@ -82,7 +89,8 @@ function draw(subselection) {
 
     let projectChart = projectsCanvas && !projectsCanvas.classList.contains('hidden') && shouldUpdate(0)
         ? new Chart(projectsCanvas.getContext('2d'), {
-            type: 'horizontalBar',
+            //type: 'horizontalBar',
+            type: "bar",
             data: {
                 datasets: [{
                     data: wakapiData.projects
@@ -107,6 +115,7 @@ function draw(subselection) {
                     .map(p => p.key)
             },
             options: {
+                indexAxis: 'y',
                 legend: {
                     display: false
                 },
@@ -329,13 +338,16 @@ function getPresentDataMask() {
 }
 
 function getContainer(chart) {
-    return chart.canvas.parentNode
+    if ( chart.canvas != undefined) {
+        return chart.canvas.parentNode
+    }
 }
 
 function onChartResize(chart) {
     let container = getContainer(chart)
     let targetHeight = Math.min(chart.width, CHART_TARGET_SIZE)
-    let actualHeight = chart.height - chart.chartArea.top
+//    let actualHeight = chart.height - chart.chartArea.top
+    let actualHeight = chart.height - chart.top
     let containerTargetHeight = container.clientHeight += (targetHeight - actualHeight)
     container.style.height = parseInt(containerTargetHeight) + 'px'
 
