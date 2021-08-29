@@ -233,12 +233,6 @@
 {{ template "foot.tpl.html" . }}
 
 <script>
-    window.addEventListener('load', function() {
-        document.getElementById('api-key-instruction').innerHTML = document.getElementById('api-key-container').value
-    })
-</script>
-
-<script>
     const languageColors = {{ .LanguageColors | json }}
     const editorColors = {{ .EditorColors | json }}
     const osColors = {{ .OSColors | json }}
@@ -251,14 +245,18 @@
     wakapiData.machines = {{ .Machines | json }}
     wakapiData.labels = {{ .Labels | json }}
 
-    document.getElementById("to-date-picker").onchange = function () {
-        var input = document.getElementById("from-date-picker");
-        input.setAttribute("max", this.value);
-    }
+    if (document.getElementById('to-date-picker') !== null) {
+        document.getElementById("to-date-picker").onchange = function () {
+            var input = document.getElementById("from-date-picker");
+            input.setAttribute("max", this.value);
+        }
 
-    document.getElementById("from-date-picker").onchange = function () {
-        var input = document.getElementById("to-date-picker");
-        input.setAttribute("min", this.value);
+        document.getElementById("from-date-picker").onchange = function () {
+            var input = document.getElementById("to-date-picker");
+            input.setAttribute("min", this.value);
+        }
+    } else {
+        document.getElementById('api-key-instruction').innerHTML = document.getElementById('api-key-container').value
     }
 
 </script>

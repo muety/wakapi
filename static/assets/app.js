@@ -80,7 +80,7 @@ function draw(subselection) {
         .filter((c, i) => shouldUpdate(i))
         .forEach(c => c.destroy())
 
-    let projectChart = !projectsCanvas.classList.contains('hidden') && shouldUpdate(0)
+    let projectChart = projectsCanvas && !projectsCanvas.classList.contains('hidden') && shouldUpdate(0)
         ? new Chart(projectsCanvas.getContext('2d'), {
             type: 'horizontalBar',
             data: {
@@ -125,7 +125,7 @@ function draw(subselection) {
         })
         : null
 
-    let osChart = !osCanvas.classList.contains('hidden') && shouldUpdate(1)
+    let osChart = osCanvas && !osCanvas.classList.contains('hidden') && shouldUpdate(1)
         ? new Chart(osCanvas.getContext('2d'), {
             type: 'pie',
             data: {
@@ -158,7 +158,7 @@ function draw(subselection) {
         })
         : null
 
-    let editorChart = !editorsCanvas.classList.contains('hidden') && shouldUpdate(2)
+    let editorChart = editorsCanvas && !editorsCanvas.classList.contains('hidden') && shouldUpdate(2)
         ? new Chart(editorsCanvas.getContext('2d'), {
             type: 'pie',
             data: {
@@ -191,7 +191,7 @@ function draw(subselection) {
         })
         : null
 
-    let languageChart = !languagesCanvas.classList.contains('hidden') && shouldUpdate(3)
+    let languageChart = languagesCanvas && !languagesCanvas.classList.contains('hidden') && shouldUpdate(3)
         ? new Chart(languagesCanvas.getContext('2d'), {
             type: 'pie',
             data: {
@@ -224,7 +224,7 @@ function draw(subselection) {
         })
         : null
 
-    let machineChart = !machinesCanvas.classList.contains('hidden') && shouldUpdate(4)
+    let machineChart = machinesCanvas && !machinesCanvas.classList.contains('hidden') && shouldUpdate(4)
         ? new Chart(machinesCanvas.getContext('2d'), {
             type: 'pie',
             data: {
@@ -257,7 +257,7 @@ function draw(subselection) {
         })
         : null
 
-    let labelChart = !labelsCanvas.classList.contains('hidden') && shouldUpdate(5)
+    let labelChart = labelsCanvas && !labelsCanvas.classList.contains('hidden') && shouldUpdate(5)
         ? new Chart(labelsCanvas.getContext('2d'), {
             type: 'pie',
             data: {
@@ -305,9 +305,12 @@ function parseTopN() {
 }
 
 function togglePlaceholders(mask) {
-    const placeholderElements = containers.map(c => c.querySelector('.placeholder-container'))
+    const placeholderElements = containers.map(c => c ? c.querySelector('.placeholder-container'): null)
 
     for (let i = 0; i < mask.length; i++) {
+        if (placeholderElements[i] === null) {
+            continue;
+        }
         if (!mask[i]) {
             canvases[i].classList.add('hidden')
             placeholderElements[i].classList.remove('hidden')
