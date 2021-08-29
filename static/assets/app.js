@@ -61,9 +61,7 @@ String.prototype.toHHMM = function () {
     return `${hours}:${minutes}`
 }
 
-console.log(wakapiData.projects
-    .slice(0, Math.min(showTopN[0], wakapiData.projects.length))
-    .map(p => p.key))
+
 
 function draw(subselection) {
     function getTooltipOptions(key) {
@@ -338,9 +336,8 @@ function getPresentDataMask() {
 }
 
 function getContainer(chart) {
-    if ( chart.canvas != undefined) {
-        return chart.canvas.parentNode
-    }
+    // See https://github.com/muety/wakapi/issues/235#issuecomment-907762100
+    return chart.canvas.parentNode
 }
 
 function onChartResize(chart) {
