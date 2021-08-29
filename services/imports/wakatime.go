@@ -106,6 +106,7 @@ func (w *WakatimeHeartbeatImporter) ImportAll(user *models.User) <-chan *models.
 }
 
 // https://wakatime.com/api/v1/users/current/heartbeats?date=2021-02-05
+// https://pastr.de/p/b5p4od5s8w0pfntmwoi117jy
 func (w *WakatimeHeartbeatImporter) fetchHeartbeats(day string) ([]*wakatime.HeartbeatEntry, error) {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 
@@ -134,6 +135,7 @@ func (w *WakatimeHeartbeatImporter) fetchHeartbeats(day string) ([]*wakatime.Hea
 }
 
 // https://wakatime.com/api/v1/users/current/all_time_since_today
+// https://pastr.de/p/w8xb4biv575pu32pox7jj2gr
 func (w *WakatimeHeartbeatImporter) fetchRange() (time.Time, time.Time, error) {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 
@@ -168,6 +170,7 @@ func (w *WakatimeHeartbeatImporter) fetchRange() (time.Time, time.Time, error) {
 }
 
 // https://wakatime.com/api/v1/users/current/user_agents
+// https://pastr.de/p/05k5do8q108k94lic4lfl3pc
 func (w *WakatimeHeartbeatImporter) fetchUserAgents() (map[string]*wakatime.UserAgentEntry, error) {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 
@@ -195,6 +198,7 @@ func (w *WakatimeHeartbeatImporter) fetchUserAgents() (map[string]*wakatime.User
 }
 
 // https://wakatime.com/api/v1/users/current/machine_names
+// https://pastr.de/p/v58cv0xrupp3zvyyv8o6973j
 func (w *WakatimeHeartbeatImporter) fetchMachineNames() (map[string]*wakatime.MachineEntry, error) {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 
@@ -261,6 +265,7 @@ func mapHeartbeat(
 		Editor:          ua.Editor,
 		OperatingSystem: ua.Os,
 		Machine:         ma.Value,
+		UserAgent:       ua.Value,
 		Time:            entry.Time,
 		Origin:          OriginWakatime,
 		OriginId:        entry.Id,

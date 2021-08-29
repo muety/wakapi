@@ -79,7 +79,8 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	opSys, editor, _ := utils.ParseUserAgent(r.Header.Get("User-Agent"))
+	userAgent := r.Header.Get("User-Agent")
+	opSys, editor, _ := utils.ParseUserAgent(userAgent)
 	machineName := r.Header.Get("X-Machine-Name")
 
 	for _, hb := range heartbeats {
@@ -88,6 +89,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 		hb.Machine = machineName
 		hb.User = user
 		hb.UserID = user.ID
+		hb.UserAgent = userAgent
 
 		if !hb.Valid() {
 			w.WriteHeader(http.StatusBadRequest)
