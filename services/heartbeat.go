@@ -179,6 +179,7 @@ func (srv *HeartbeatService) augmented(heartbeats []*models.Heartbeat, userId st
 
 	for i := range heartbeats {
 		heartbeats[i].Augment(languageMapping)
+		heartbeats[i].Normalize()
 	}
 
 	return heartbeats, nil

@@ -34,6 +34,12 @@ func (h *Heartbeat) Valid() bool {
 	return h.User != nil && h.UserID != "" && h.User.ID == h.UserID && h.Time != CustomTime(time.Time{})
 }
 
+func (h *Heartbeat) Normalize() {
+	h.Language = strings.Title(strings.ToLower(h.Language))
+	h.OperatingSystem = strings.Title(strings.ToLower(h.OperatingSystem))
+	h.Editor = strings.Title(strings.ToLower(h.Editor))
+}
+
 func (h *Heartbeat) Augment(languageMappings map[string]string) {
 	maxPrec := -1 // precision / mapping complexity -> more concrete ones shall take precedence
 	for ending, value := range languageMappings {
