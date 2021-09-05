@@ -313,7 +313,7 @@ var doc = `{
                         "type": "string",
                         "description": "Range interval identifier",
                         "name": "range",
-                        "in": "query"
+                        "in": "path"
                     }
                 ],
                 "responses": {

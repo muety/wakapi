@@ -47,7 +47,7 @@ func (h *StatsHandler) RegisterRoutes(router *mux.Router) {
 // @Tags wakatime
 // @Produce json
 // @Param user path string true "User ID to fetch data for (or 'current')"
-// @Param range query string false "Range interval identifier" Enums(today, yesterday, week, month, year, 7_days, last_7_days, 30_days, last_30_days, 12_months, last_12_months, any)
+// @Param range path string false "Range interval identifier" Enums(today, yesterday, week, month, year, 7_days, last_7_days, 30_days, last_30_days, 12_months, last_12_months, any)
 // @Security ApiKeyAuth
 // @Success 200 {object} v1.StatsViewModel
 // @Router /compat/wakatime/v1/users/{user}/stats/{range} [get]
