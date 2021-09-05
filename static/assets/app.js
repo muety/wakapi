@@ -66,10 +66,9 @@ String.prototype.toHHMM = function () {
 function draw(subselection) {
     function getTooltipOptions(key) {
         return {
-            mode: 'single',
             callbacks: {
                 label: (item) => {
-                    let d = wakapiData[key][item.index]
+                    const d = wakapiData[key][item.dataIndex]
                     return `${d.key}: ${d.total.toString().toHHMMSS()}`
                 },
                 title: () => 'Total Time'
@@ -114,9 +113,6 @@ function draw(subselection) {
             },
             options: {
                 indexAxis: 'y',
-                legend: {
-                    display: false
-                },
                 scales: {
                     xAxes: [{
                         scaleLabel: {
@@ -128,7 +124,12 @@ function draw(subselection) {
                         }
                     }]
                 },
-                tooltips: getTooltipOptions('projects'),
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: getTooltipOptions('projects'),
+                },
                 maintainAspectRatio: false,
                 onResize: onChartResize
             }
@@ -161,7 +162,9 @@ function draw(subselection) {
                     .map(p => p.key)
             },
             options: {
-                tooltips: getTooltipOptions('operatingSystems'),
+                plugins: {
+                    tooltip: getTooltipOptions('operatingSystems'),
+                },
                 maintainAspectRatio: false,
                 onResize: onChartResize
             }
@@ -194,7 +197,9 @@ function draw(subselection) {
                     .map(p => p.key)
             },
             options: {
-                tooltips: getTooltipOptions('editors'),
+                plugins: {
+                    tooltip: getTooltipOptions('editors'),
+                },
                 maintainAspectRatio: false,
                 onResize: onChartResize
             }
@@ -227,7 +232,9 @@ function draw(subselection) {
                     .map(p => p.key)
             },
             options: {
-                tooltips: getTooltipOptions('languages'),
+                plugins: {
+                    tooltip: getTooltipOptions('languages'),
+                },
                 maintainAspectRatio: false,
                 onResize: onChartResize
             }
@@ -260,7 +267,9 @@ function draw(subselection) {
                     .map(p => p.key)
             },
             options: {
-                tooltips: getTooltipOptions('machines'),
+                plugins: {
+                    tooltip: getTooltipOptions('machines'),
+                },
                 maintainAspectRatio: false,
                 onResize: onChartResize
             }
@@ -293,7 +302,9 @@ function draw(subselection) {
                     .map(p => p.key)
             },
             options: {
-                tooltips: getTooltipOptions('labels'),
+                plugins: {
+                    tooltip: getTooltipOptions('labels'),
+                },
                 maintainAspectRatio: false,
                 onResize: onChartResize
             }
@@ -305,7 +316,7 @@ function draw(subselection) {
     charts = [projectChart, osChart, editorChart, languageChart, machineChart, labelChart].filter(c => !!c)
 
     if (!subselection) {
-        charts.forEach(c => c.options.onResize(c.chart))
+        charts.forEach(c => c.options.onResize(c))
         equalizeHeights()
     }
 }
