@@ -30,8 +30,6 @@ let charts = []
 let showTopN = []
 let resizeCount = 0
 
-//Chart.defaults.global.defaultFontColor = "#E2E8F0"
-//Chart.defaults.global.defaultColor = "#E2E8F0"
 charts.color = "#E2E8F0"
 charts.borderColor = "#E2E8F0"
 charts.backgroundColor = "#E2E8F0"
@@ -114,15 +112,15 @@ function draw(subselection) {
             options: {
                 indexAxis: 'y',
                 scales: {
-                    xAxes: [{
-                        scaleLabel: {
+                    xAxes: {
+                        title: {
                             display: true,
-                            labelString: 'Duration (hh:mm:ss)'
+                            text: 'Duration (hh:mm:ss)'
                         },
                         ticks: {
-                            callback: (label) => label.toString().toHHMMSS()
+                            callback: (label) => label.toString().toHHMMSS(),
                         }
-                    }]
+                    }
                 },
                 plugins: {
                     legend: {
@@ -313,7 +311,12 @@ function draw(subselection) {
 
     getTotal(wakapiData.operatingSystems)
 
-    charts = [projectChart, osChart, editorChart, languageChart, machineChart, labelChart].filter(c => !!c)
+    charts[0] = projectChart ? projectChart : charts[0]
+    charts[1] = osChart ? osChart : charts[1]
+    charts[2] = editorChart ? editorChart : charts[2]
+    charts[3] = languageChart ? languageChart : charts[3]
+    charts[4] = machineChart ? machineChart : charts[4]
+    charts[5] = labelChart ? labelChart : charts[5]
 
     if (!subselection) {
         charts.forEach(c => c.options.onResize(c))
