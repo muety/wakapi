@@ -524,7 +524,7 @@ paths:
         - 12_months
         - last_12_months
         - any
-        in: query
+        in: path
         name: range
         type: string
       produces:
