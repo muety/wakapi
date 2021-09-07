@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "46168002-34d8-48a5-95fa-4a8600450cbd",
+		"_postman_id": "728a2979-6cb3-4b46-9be9-3273f3d20a3d",
 		"name": "Wakapi",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -338,6 +338,36 @@
 									"key": "end",
 									"value": "2020-03-31T15:04:05Z"
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get statusbar",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic {{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/current/statusbar/today",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"current",
+								"statusbar",
+								"today"
 							]
 						}
 					},
