@@ -41,6 +41,7 @@ func (h *StatusBarHandler) RegisterRoutes(router *mux.Router) {
 	)
 	r.Path("/users/{user}/statusbar/{range}").Methods(http.MethodGet).HandlerFunc(h.Get)
 	r.Path("/v1/users/{user}/statusbar/{range}").Methods(http.MethodGet).HandlerFunc(h.Get)
+	r.Path("/compat/wakatime/v1/users/{user}/statusbar/{range}").Methods(http.MethodGet).HandlerFunc(h.Get)
 }
 
 // @Summary Retrieve summary for statusbar
@@ -61,7 +62,7 @@ func (h *StatusBarHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	rangeParam := vars["range"]
 	if rangeParam == "" {
-		rangeParam = (*models.IntervalPast7Days)[0]
+		rangeParam = (*models.IntervalToday)[0]
 	}
 
 	err, rangeFrom, rangeTo := utils.ResolveIntervalRawTZ(rangeParam, user.TZ())
@@ -86,8 +87,8 @@ func (h *StatusBarHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 func (h *StatusBarHandler) loadUserSummary(user *models.User, start, end time.Time) (*models.Summary, int, error) {
 	summaryParams := &models.SummaryParams{
-		From:      time.Time{},
-		To:        time.Now(),
+		From:      start,
+		To:        end,
 		User:      user,
 		Recompute: false,
 	}
