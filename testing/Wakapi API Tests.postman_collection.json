@@ -1870,7 +1870,7 @@
 					"response": []
 				},
 				{
-					"name": "Get statusbar (curent)",
+					"name": "Get statusbar (current)",
 					"event": [
 						{
 							"listen": "test",
