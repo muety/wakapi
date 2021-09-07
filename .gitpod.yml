@@ -1,0 +1,6 @@
+# List the start up tasks. Learn more https://www.gitpod.io/docs/config-start-tasks/
+tasks:
+  - before: printf "\n[settings]\napi_key = $WAKA_TIME_API_KEY\napi_url = $WAKA_TIME_API_URL\n" > ~/.wakatime.cfg
+ports:
+  - port: 3000
+    visibility: public
