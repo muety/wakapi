@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "7ce36cea-e702-40c6-8056-2cb6149f34f7",
+		"_postman_id": "36595622-81dc-4f4a-826e-345ae63fc83b",
 		"name": "Wakapi API Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -1864,6 +1864,62 @@
 								"users",
 								"current",
 								"stats"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get statusbar (curent)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct content\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.grand_total.text).to.contains(\"0 hrs\");",
+									"    pm.expect(jsonData.data.categories).to.instanceOf(Array);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/current/statusbar/today",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"current",
+								"statusbar",
+								"today"
 							]
 						}
 					},
