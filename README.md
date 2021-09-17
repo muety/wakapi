@@ -306,10 +306,7 @@ To get a predictable environment, tests are run against a fresh and clean Wakapi
 # 1. sqlite (cli)
 $ sudo apt install sqlite  # Fedora: sudo dnf install sqlite
 
-# 2. screen
-$ sudo apt install screen  # Fedora: sudo dnf install screen
-
-# 3. newman
+# 2. newman
 $ npm install -g newman
 ```
 
