@@ -1,4 +1,4 @@
-name: Build Wakapi on Windows
+name: Windows
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-and-release:
-    name: Build
+    name: Windows - Build & Release
     runs-on: windows-latest
     steps:
 

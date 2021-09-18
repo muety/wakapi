@@ -20,7 +20,8 @@ echo "Importing seed data ..."
 sqlite3 wakapi_testing.db < data.sql
 
 echo "Running Wakapi testing instance in background ..."
-screen -S wakapi_testing -dm bash -c "../wakapi -config config.testing.yml"
+../wakapi -config config.testing.yml &
+pid=$!
 
 echo "Waiting for Wakapi to come up ..."
 until $(curl --output /dev/null --silent --get --fail http://localhost:3000/api/health); do
@@ -32,9 +33,12 @@ echo ""
 
 echo "Running test collection ..."
 newman run "Wakapi API Tests.postman_collection.json"
+exit_code=$?
 
 echo "Shutting down Wakapi ..."
-screen -S wakapi_testing -X quit
+kill -TERM $pid
 
 echo "Deleting database ..."
 rm wakapi_testing.db
+
+exit $exit_code
