@@ -33,9 +33,12 @@ echo ""
 
 echo "Running test collection ..."
 newman run "Wakapi API Tests.postman_collection.json"
+exit_code=$?
 
 echo "Shutting down Wakapi ..."
 kill -TERM $pid
 
 echo "Deleting database ..."
 rm wakapi_testing.db
+
+exit $exit_code
