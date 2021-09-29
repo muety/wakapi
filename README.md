@@ -4,14 +4,11 @@
 
 <p align="center">
   <img src="https://badges.fw-web.space/github/license/muety/wakapi">
+  <a href="#-treeware"><img src="https://badges.fw-web.space:/treeware/trees/muety/wakapi?color=%234EC820&label=%F0%9F%8C%B3%20trees"></a>
   <a href="https://liberapay.com/muety/"><img src="https://badges.fw-web.space/liberapay/receives/muety.svg?logo=liberapay"></a>
   <img src="https://badges.fw-web.space/endpoint?url=https://wakapi.dev/api/compat/shields/v1/n1try/interval:any/project:wakapi&color=blue&label=wakapi">
   <img src="https://badges.fw-web.space/github/languages/code-size/muety/wakapi">
-</p>
-
-<p align="center">
   <a href="https://goreportcard.com/report/github.com/muety/wakapi"><img src="https://goreportcard.com/badge/github.com/muety/wakapi"></a>
-  <a href="https://sonarcloud.io/dashboard?id=muety_wakapi"><img src="https://sonarcloud.io/api/project_badges/measure?project=muety_wakapi&metric=sqale_index"></a>
   <a href="https://sonarcloud.io/dashboard?id=muety_wakapi"><img src="https://sonarcloud.io/api/project_badges/measure?project=muety_wakapi&metric=ncloc"></a>
 </p>
 
@@ -39,7 +36,7 @@
 * [User Survey](#-user-survey)
 * [Features](#-features)
 * [Roadmap](#-roadmap)
-* [How to use](#-how-to-use)
+* [How to use](#%EF%B8%8F-how-to-use)
 * [Configuration Options](#-configuration-options)
 * [API Endpoints](#-api-endpoints)
 * [Integrations](#-integrations)
@@ -332,9 +329,6 @@ $ node scripts/bundle_icons.js
 
 New icons can be added by editing the `icons` array in [scripts/bundle_icons.js](scripts/bundle_icons.js).
 
-## 🙏 Support
-If you like this project, please consider supporting it 🙂. You can donate either through [buying me a coffee](https://buymeacoff.ee/n1try) or becoming a GitHub sponsor. Every little donation is highly appreciated and boosts the developers' motivation to keep improving Wakapi!
-
 ## ❔ FAQs
 Since Wakapi heavily relies on the concepts provided by WakaTime, [their FAQs](https://wakatime.com/faq) apply to Wakapi for large parts as well. You might find answers there.
 
@@ -407,6 +401,12 @@ It is unclear how to handle the three minutes in between. Did the developer do a
 
 Wakapi adds a "padding" of two minutes before the third heartbeat. This is why total times will slightly vary between Wakapi and WakaTime.
 </details>
+
+## 🌳 Treeware
+This package is [Treeware](https://treeware.earth). If you use it in production, then we ask that you [**buy the world a tree**](https://plant.treeware.earth/muety/wakapi) to thank us for our work. By contributing to the Treeware forest you’ll be creating employment for local families and restoring wildlife habitats.
+
+## 👏 Support
+Coding in open source is my passion and I would love to do it on a full-time basis and make a living from it one day. So if you like this project, please consider supporting it 🙂. You can donate either through [buying me a coffee](https://buymeacoff.ee/n1try) or becoming a GitHub sponsor. Every little donation is highly appreciated and boosts my motivation to keep improving Wakapi!
 
 ## 🙏 Thanks
 I highly appreciate the efforts of **[@alanhamlett](https://github.com/alanhamlett)** and the WakaTime team and am thankful for their software being open source. 
