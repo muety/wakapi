@@ -1,12 +1,13 @@
 package middlewares
 
 import (
+	"net/http"
+	"strings"
+
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"net/http"
-	"strings"
 )
 
 type AuthenticateMiddleware struct {
@@ -47,6 +48,9 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		user, err = m.tryGetUserByApiKey(r)
 	}
+	if err != nil {
+		user, err = m.tryGetUserByQueryParameter(r)
+	}
 
 	if err != nil || user == nil {
 		if m.isOptional(r.URL.Path) {
@@ -86,6 +90,18 @@ func (m *AuthenticateMiddleware) tryGetUserByApiKey(r *http.Request) (*models.Us
 	var user *models.User
 	userKey := strings.TrimSpace(key)
 	user, err = m.userSrvc.GetUserByKey(userKey)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (m *AuthenticateMiddleware) tryGetUserByQueryParameter(r *http.Request) (*models.User, error) {
+	key := r.URL.Query().Get("token")
+
+	var user *models.User
+	userKey := strings.TrimSpace(key)
+	user, err := m.userSrvc.GetUserByKey(userKey)
 	if err != nil {
 		return nil, err
 	}
