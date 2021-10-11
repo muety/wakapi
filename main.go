@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/routes/relay"
 	"io/fs"
 	"log"
 	"net"
@@ -191,6 +192,9 @@ func main() {
 	loginHandler := routes.NewLoginHandler(userService, mailService)
 	imprintHandler := routes.NewImprintHandler(keyValueService)
 
+	// Other Handlers
+	relayHandler := relay.NewRelayHandler()
+
 	// Setup Routers
 	router := mux.NewRouter()
 	rootRouter := router.PathPrefix("/").Subrouter()
@@ -219,6 +223,7 @@ func main() {
 	imprintHandler.RegisterRoutes(rootRouter)
 	summaryHandler.RegisterRoutes(rootRouter)
 	settingsHandler.RegisterRoutes(rootRouter)
+	relayHandler.RegisterRoutes(rootRouter)
 
 	// API route registrations
 	summaryApiHandler.RegisterRoutes(apiRouter)

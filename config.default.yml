@@ -39,6 +39,7 @@ security:
   cookie_max_age: 172800
   allow_signup: true
   expose_metrics: false
+  enable_proxy: false                 # only intended for production instance at wakapi.dev
 
 sentry:
   dsn:                                # leave blank to disable sentry integration
