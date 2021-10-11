@@ -35,6 +35,9 @@ func (r *UserRepository) GetByIds(userIds []string) ([]*models.User, error) {
 }
 
 func (r *UserRepository) GetByApiKey(key string) (*models.User, error) {
+	if key == "" {
+		return nil, errors.New("invalid input")
+	}
 	u := &models.User{}
 	if err := r.db.Where(&models.User{ApiKey: key}).First(u).Error; err != nil {
 		return u, err

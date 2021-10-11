@@ -24,6 +24,9 @@ func (r *AliasRepository) GetAll() ([]*models.Alias, error) {
 
 func (r *AliasRepository) GetByUser(userId string) ([]*models.Alias, error) {
 	var aliases []*models.Alias
+	if userId == "" {
+		return aliases, nil
+	}
 	if err := r.db.
 		Where(&models.Alias{UserID: userId}).
 		Find(&aliases).Error; err != nil {
@@ -34,6 +37,9 @@ func (r *AliasRepository) GetByUser(userId string) ([]*models.Alias, error) {
 
 func (r *AliasRepository) GetByUserAndKey(userId, key string) ([]*models.Alias, error) {
 	var aliases []*models.Alias
+	if userId == "" {
+		return aliases, nil
+	}
 	if err := r.db.
 		Where(&models.Alias{
 			UserID: userId,
@@ -47,6 +53,9 @@ func (r *AliasRepository) GetByUserAndKey(userId, key string) ([]*models.Alias, 
 
 func (r *AliasRepository) GetByUserAndKeyAndType(userId, key string, summaryType uint8) ([]*models.Alias, error) {
 	var aliases []*models.Alias
+	if userId == "" {
+		return aliases, nil
+	}
 	if err := r.db.
 		Where(&models.Alias{
 			UserID: userId,
@@ -61,6 +70,9 @@ func (r *AliasRepository) GetByUserAndKeyAndType(userId, key string, summaryType
 
 func (r *AliasRepository) GetByUserAndTypeAndValue(userId string, summaryType uint8, value string) (*models.Alias, error) {
 	alias := &models.Alias{}
+	if userId == "" {
+		return nil, errors.New("invalid input")
+	}
 	if err := r.db.
 		Where(&models.Alias{
 			UserID: userId,

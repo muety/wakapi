@@ -34,6 +34,9 @@ func (r *LanguageMappingRepository) GetById(id uint) (*models.LanguageMapping, e
 
 func (r *LanguageMappingRepository) GetByUser(userId string) ([]*models.LanguageMapping, error) {
 	var mappings []*models.LanguageMapping
+	if userId == "" {
+		return mappings, nil
+	}
 	if err := r.db.
 		Where(&models.LanguageMapping{UserID: userId}).
 		Find(&mappings).Error; err != nil {

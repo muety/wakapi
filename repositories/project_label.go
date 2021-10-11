@@ -33,6 +33,9 @@ func (r *ProjectLabelRepository) GetById(id uint) (*models.ProjectLabel, error) 
 }
 
 func (r *ProjectLabelRepository) GetByUser(userId string) ([]*models.ProjectLabel, error) {
+	if userId == "" {
+		return []*models.ProjectLabel{}, nil
+	}
 	var labels []*models.ProjectLabel
 	if err := r.db.
 		Where(&models.ProjectLabel{UserID: userId}).
