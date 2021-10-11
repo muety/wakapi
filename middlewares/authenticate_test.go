@@ -59,9 +59,11 @@ func TestAuthenticateMiddleware_tryGetUserByApiKeyQuery_Success(t *testing.T) {
 	testApiKey := "z5uig69cn9ut93n"
 	testUser := &models.User{ApiKey: testApiKey}
 
+	params := url.Values{}
+	params.Add("api_key", testApiKey)
 	mockRequest := &http.Request{
 		URL: &url.URL{
-			RawQuery: fmt.Sprintf("api_token=%s", testApiKey),
+			RawQuery: params.Encode(),
 		},
 	}
 
@@ -79,10 +81,11 @@ func TestAuthenticateMiddleware_tryGetUserByApiKeyQuery_Success(t *testing.T) {
 func TestAuthenticateMiddleware_tryGetUserByApiKeyQuery_Invalid(t *testing.T) {
 	testApiKey := "z5uig69cn9ut93n"
 
+	params := url.Values{}
+	params.Add("token", testApiKey)
 	mockRequest := &http.Request{
 		URL: &url.URL{
-			// Use the wrong parameter name.
-			RawQuery: fmt.Sprintf("token=%s", testApiKey),
+			RawQuery: params.Encode(),
 		},
 	}
 
