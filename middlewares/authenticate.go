@@ -1,12 +1,23 @@
 package middlewares
 
 import (
+	"fmt"
+	"net/http"
+	"strings"
+
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"net/http"
-	"strings"
+)
+
+const (
+	// queryApiKey is the query parameter name for api key.
+	queryApiKey = "api_key"
+)
+
+var (
+	errEmptyKey = fmt.Errorf("the api_key is empty")
 )
 
 type AuthenticateMiddleware struct {
@@ -45,7 +56,10 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	user, err := m.tryGetUserByCookie(r)
 
 	if err != nil {
-		user, err = m.tryGetUserByApiKey(r)
+		user, err = m.tryGetUserByApiKeyHeader(r)
+	}
+	if err != nil {
+		user, err = m.tryGetUserByApiKeyQuery(r)
 	}
 
 	if err != nil || user == nil {
@@ -77,7 +91,7 @@ func (m *AuthenticateMiddleware) isOptional(requestPath string) bool {
 	return false
 }
 
-func (m *AuthenticateMiddleware) tryGetUserByApiKey(r *http.Request) (*models.User, error) {
+func (m *AuthenticateMiddleware) tryGetUserByApiKeyHeader(r *http.Request) (*models.User, error) {
 	key, err := utils.ExtractBearerAuth(r)
 	if err != nil {
 		return nil, err
@@ -86,6 +100,20 @@ func (m *AuthenticateMiddleware) tryGetUserByApiKey(r *http.Request) (*models.Us
 	var user *models.User
 	userKey := strings.TrimSpace(key)
 	user, err = m.userSrvc.GetUserByKey(userKey)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (m *AuthenticateMiddleware) tryGetUserByApiKeyQuery(r *http.Request) (*models.User, error) {
+	key := r.URL.Query().Get(queryApiKey)
+	var user *models.User
+	userKey := strings.TrimSpace(key)
+	if userKey == "" {
+		return nil, errEmptyKey
+	}
+	user, err := m.userSrvc.GetUserByKey(userKey)
 	if err != nil {
 		return nil, err
 	}
