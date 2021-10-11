@@ -11,6 +11,11 @@ import (
 	"github.com/muety/wakapi/utils"
 )
 
+const (
+	// queryApiKey is the query parameter name for api key.
+	queryApiKey = "api_key"
+)
+
 var (
 	errEmptyKey = fmt.Errorf("the api_key is empty")
 )
@@ -102,7 +107,7 @@ func (m *AuthenticateMiddleware) tryGetUserByApiKeyHeader(r *http.Request) (*mod
 }
 
 func (m *AuthenticateMiddleware) tryGetUserByApiKeyQuery(r *http.Request) (*models.User, error) {
-	key := r.URL.Query().Get("api_token")
+	key := r.URL.Query().Get(queryApiKey)
 	var user *models.User
 	userKey := strings.TrimSpace(key)
 	if userKey == "" {
