@@ -24,6 +24,11 @@ func (p *ProjectLabelServiceMock) GetByUserGrouped(s string) (map[string][]*mode
 	return args.Get(0).(map[string][]*models.ProjectLabel), args.Error(1)
 }
 
+func (p *ProjectLabelServiceMock) GetByUserGroupedInverted(s string) (map[string][]*models.ProjectLabel, error) {
+	args := p.Called(s)
+	return args.Get(0).(map[string][]*models.ProjectLabel), args.Error(1)
+}
+
 func (p *ProjectLabelServiceMock) Create(l *models.ProjectLabel) (*models.ProjectLabel, error) {
 	args := p.Called(l)
 	return args.Get(0).(*models.ProjectLabel), args.Error(1)
