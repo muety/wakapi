@@ -44,7 +44,7 @@ func (h *AllTimeHandler) RegisterRoutes(router *mux.Router) {
 // @Param user path string true "User ID to fetch data for (or 'current')"
 // @Security ApiKeyAuth
 // @Success 200 {object} v1.AllTimeViewModel
-// @Router /compat/wakatime/v1/users/{user}/all_time_since_today [get]
+// @Router /api/compat/wakatime/v1/users/{user}/all_time_since_today [get]
 func (h *AllTimeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	values, _ := url.ParseQuery(r.URL.RawQuery)
 

@@ -50,7 +50,7 @@ func (h *BadgeHandler) RegisterRoutes(router *mux.Router) {
 // @Param interval path string true "Interval to aggregate data for" Enums(today, yesterday, week, month, year, 7_days, last_7_days, 30_days, last_30_days, 12_months, last_12_months, any)
 // @Param filter path string true "Filter to apply (e.g. 'project:wakapi' or 'language:Go')"
 // @Success 200 {object} v1.BadgeData
-// @Router /compat/shields/v1/{user}/{interval}/{filter} [get]
+// @Router /api/compat/shields/v1/{user}/{interval}/{filter} [get]
 func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	intervalReg := regexp.MustCompile(intervalPattern)
 	entityFilterReg := regexp.MustCompile(entityFilterPattern)

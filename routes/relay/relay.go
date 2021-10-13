@@ -73,3 +73,48 @@ func (h *RelayHandler) Any(w http.ResponseWriter, r *http.Request) {
 
 	p.ServeHTTP(w, r)
 }
+
+// @Summary Proxy an GET API request to another Wakapi instance
+// @ID relay-get
+// @Tags relay
+// @Param X-Target-URL header string true "Original URL to perform the request to"
+// @Failure 403 {string} string "Returned if request path is not whitelisted"
+// @Failure 502 {string} string "Returned if upstream host is down"
+// @Router /relay [get]
+func (h *RelayHandler) alias1() {}
+
+// @Summary Proxy an POST API request to another Wakapi instance
+// @ID relay-post
+// @Tags relay
+// @Param X-Target-URL header string true "Original URL to perform the request to"
+// @Failure 403 {string} string "Returned if request path is not whitelisted"
+// @Failure 502 {string} string "Returned if upstream host is down"
+// @Router /relay [post]
+func (h *RelayHandler) alias2() {}
+
+// @Summary Proxy an PUT API request to another Wakapi instance
+// @ID relay-put
+// @Tags relay
+// @Param X-Target-URL header string true "Original URL to perform the request to"
+// @Failure 403 {string} string "Returned if request path is not whitelisted"
+// @Failure 502 {string} string "Returned if upstream host is down"
+// @Router /relay [put]
+func (h *RelayHandler) alias3() {}
+
+// @Summary Proxy an PATCH API request to another Wakapi instance
+// @ID relay-patch
+// @Tags relay
+// @Param X-Target-URL header string true "Original URL to perform the request to"
+// @Failure 403 {string} string "Returned if request path is not whitelisted"
+// @Failure 502 {string} string "Returned if upstream host is down"
+// @Router /relay [patch]
+func (h *RelayHandler) alias4() {}
+
+// @Summary Proxy an DELETE API request to another Wakapi instance
+// @ID relay-delete
+// @Tags relay
+// @Param X-Target-URL header string true "Original URL to perform the request to"
+// @Failure 403 {string} string "Returned if request path is not whitelisted"
+// @Failure 502 {string} string "Returned if upstream host is down"
+// @Router /relay [delete]
+func (h *RelayHandler) alias5() {}

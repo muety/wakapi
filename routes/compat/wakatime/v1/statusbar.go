@@ -51,8 +51,8 @@ func (h *StatusBarHandler) RegisterRoutes(router *mux.Router) {
 // @Produce json
 // @Param user path string true "User ID to fetch data for (or 'current')"
 // @Security ApiKeyAuth
-// @Success 200 {object} v1.StatusBarViewModel
-// @Router /users/{user}/statusbar/today [get]
+// @Success 200 {object} StatusBarViewModel
+// @Router /api/users/{user}/statusbar/today [get]
 func (h *StatusBarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	user, err := routeutils.CheckEffectiveUser(w, r, h.userSrvc, "current")
 	if err != nil {

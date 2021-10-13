@@ -49,6 +49,8 @@ definitions:
         type: number
       type:
         type: string
+      user_agent:
+        type: string
     type: object
   models.Summary:
     properties:
@@ -198,6 +200,13 @@ definitions:
       data:
         $ref: '#/definitions/v1.StatsData'
     type: object
+  v1.StatusBarViewModel:
+    properties:
+      cached_at:
+        type: string
+      data:
+        $ref: '#/definitions/v1.SummariesData'
+    type: object
   v1.SummariesData:
     properties:
       categories:
@@ -342,7 +351,7 @@ info:
   title: Wakapi API
   version: "1.0"
 paths:
-  /compat/shields/v1/{user}/{interval}/{filter}:
+  /api/compat/shields/v1/{user}/{interval}/{filter}:
     get:
       description: Retrieve total time for a given entity (e.g. a project) within
         a given range (e.g. one week) in a format compatible with [Shields.io](https://shields.io/endpoint).
@@ -387,7 +396,7 @@ paths:
       summary: Get badge data
       tags:
       - badges
-  /compat/wakatime/v1/users/{user}:
+  /api/compat/wakatime/v1/users/{user}:
     get:
       description: Mimics https://wakatime.com/developers#users
       operationId: get-wakatime-user
@@ -409,7 +418,7 @@ paths:
       summary: Retrieve the given user
       tags:
       - wakatime
-  /compat/wakatime/v1/users/{user}/all_time_since_today:
+  /api/compat/wakatime/v1/users/{user}/all_time_since_today:
     get:
       description: Mimics https://wakatime.com/developers#all_time_since_today
       operationId: get-all-time
@@ -431,7 +440,7 @@ paths:
       summary: Retrieve summary for all time
       tags:
       - wakatime
-  /compat/wakatime/v1/users/{user}/heartbeats:
+  /api/compat/wakatime/v1/users/{user}/heartbeats:
     post:
       consumes:
       - application/json
@@ -451,7 +460,7 @@ paths:
       summary: Push a new heartbeat
       tags:
       - heartbeat
-  /compat/wakatime/v1/users/{user}/heartbeats.bulk:
+  /api/compat/wakatime/v1/users/{user}/heartbeats.bulk:
     post:
       consumes:
       - application/json
@@ -473,7 +482,7 @@ paths:
       summary: Push new heartbeats
       tags:
       - heartbeat
-  /compat/wakatime/v1/users/{user}/projects:
+  /api/compat/wakatime/v1/users/{user}/projects:
     get:
       description: Mimics https://wakatime.com/developers#projects
       operationId: get-wakatime-projects
@@ -500,7 +509,7 @@ paths:
       summary: Retrieve and fitler the user's projects
       tags:
       - wakatime
-  /compat/wakatime/v1/users/{user}/stats/{range}:
+  /api/compat/wakatime/v1/users/{user}/stats/{range}:
     get:
       description: Mimics https://wakatime.com/developers#stats
       operationId: get-wakatimes-tats
@@ -539,7 +548,7 @@ paths:
       summary: Retrieve statistics for a given user
       tags:
       - wakatime
-  /compat/wakatime/v1/users/{user}/summaries:
+  /api/compat/wakatime/v1/users/{user}/summaries:
     get:
       description: Mimics https://wakatime.com/developers#summaries.
       operationId: get-wakatime-summaries
@@ -586,7 +595,7 @@ paths:
       summary: Retrieve WakaTime-compatible summaries
       tags:
       - wakatime
-  /health:
+  /api/health:
     get:
       operationId: get-health
       produces:
@@ -599,7 +608,7 @@ paths:
       summary: Check the application's health status
       tags:
       - misc
-  /heartbeat:
+  /api/heartbeat:
     post:
       consumes:
       - application/json
@@ -619,7 +628,7 @@ paths:
       summary: Push a new heartbeat
       tags:
       - heartbeat
-  /heartbeats:
+  /api/heartbeats:
     post:
       consumes:
       - application/json
@@ -641,7 +650,7 @@ paths:
       summary: Push new heartbeats
       tags:
       - heartbeat
-  /plugins/errors:
+  /api/plugins/errors:
     post:
       consumes:
       - application/json
@@ -661,7 +670,7 @@ paths:
       summary: Push a new diagnostics object
       tags:
       - diagnostics
-  /summary:
+  /api/summary:
     get:
       operationId: get-summary
       parameters:
@@ -706,7 +715,7 @@ paths:
       summary: Retrieve a summary
       tags:
       - summary
-  /users/{user}/heartbeats:
+  /api/users/{user}/heartbeats:
     post:
       consumes:
       - application/json
@@ -726,7 +735,7 @@ paths:
       summary: Push a new heartbeat
       tags:
       - heartbeat
-  /users/{user}/heartbeats.bulk:
+  /api/users/{user}/heartbeats.bulk:
     post:
       consumes:
       - application/json
@@ -748,7 +757,30 @@ paths:
       summary: Push new heartbeats
       tags:
       - heartbeat
-  /v1/users/{user}/heartbeats:
+  /api/users/{user}/statusbar/today:
+    get:
+      description: Mimics https://wakatime.com/api/v1/users/current/statusbar/today.
+        Have no official documentation
+      operationId: statusbar
+      parameters:
+      - description: User ID to fetch data for (or 'current')
+        in: path
+        name: user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.StatusBarViewModel'
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieve summary for statusbar
+      tags:
+      - wakatime
+  /api/v1/users/{user}/heartbeats:
     post:
       consumes:
       - application/json
@@ -768,7 +800,7 @@ paths:
       summary: Push a new heartbeat
       tags:
       - heartbeat
-  /v1/users/{user}/heartbeats.bulk:
+  /api/v1/users/{user}/heartbeats.bulk:
     post:
       consumes:
       - application/json
@@ -790,6 +822,107 @@ paths:
       summary: Push new heartbeats
       tags:
       - heartbeat
+  /relay:
+    delete:
+      operationId: relay-delete
+      parameters:
+      - description: Original URL to perform the request to
+        in: header
+        name: X-Target-URL
+        required: true
+        type: string
+      responses:
+        "403":
+          description: Returned if request path is not whitelisted
+          schema:
+            type: string
+        "502":
+          description: Returned if upstream host is down
+          schema:
+            type: string
+      summary: Proxy an DELETE API request to another Wakapi instance
+      tags:
+      - relay
+    get:
+      operationId: relay-get
+      parameters:
+      - description: Original URL to perform the request to
+        in: header
+        name: X-Target-URL
+        required: true
+        type: string
+      responses:
+        "403":
+          description: Returned if request path is not whitelisted
+          schema:
+            type: string
+        "502":
+          description: Returned if upstream host is down
+          schema:
+            type: string
+      summary: Proxy an GET API request to another Wakapi instance
+      tags:
+      - relay
+    patch:
+      operationId: relay-patch
+      parameters:
+      - description: Original URL to perform the request to
+        in: header
+        name: X-Target-URL
+        required: true
+        type: string
+      responses:
+        "403":
+          description: Returned if request path is not whitelisted
+          schema:
+            type: string
+        "502":
+          description: Returned if upstream host is down
+          schema:
+            type: string
+      summary: Proxy an PATCH API request to another Wakapi instance
+      tags:
+      - relay
+    post:
+      operationId: relay-post
+      parameters:
+      - description: Original URL to perform the request to
+        in: header
+        name: X-Target-URL
+        required: true
+        type: string
+      responses:
+        "403":
+          description: Returned if request path is not whitelisted
+          schema:
+            type: string
+        "502":
+          description: Returned if upstream host is down
+          schema:
+            type: string
+      summary: Proxy an POST API request to another Wakapi instance
+      tags:
+      - relay
+    put:
+      operationId: relay-put
+      parameters:
+      - description: Original URL to perform the request to
+        in: header
+        name: X-Target-URL
+        required: true
+        type: string
+      responses:
+        "403":
+          description: Returned if request path is not whitelisted
+          schema:
+            type: string
+        "502":
+          description: Returned if upstream host is down
+          schema:
+            type: string
+      summary: Proxy an PUT API request to another Wakapi instance
+      tags:
+      - relay
 securityDefinitions:
   ApiKeyAuth:
     in: header

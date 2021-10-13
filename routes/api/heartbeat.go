@@ -60,7 +60,7 @@ func (h *HeartbeatApiHandler) RegisterRoutes(router *mux.Router) {
 // @Param heartbeat body models.Heartbeat true "A single heartbeat"
 // @Security ApiKeyAuth
 // @Success 201
-// @Router /heartbeat [post]
+// @Router /api/heartbeat [post]
 func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	user, err := routeutils.CheckEffectiveUser(w, r, h.userSrvc, "current")
 	if err != nil {
@@ -182,7 +182,7 @@ func constructSuccessResponse(n int) *heartbeatResponseVm {
 // @Param heartbeat body models.Heartbeat true "A single heartbeat"
 // @Security ApiKeyAuth
 // @Success 201
-// @Router /v1/users/{user}/heartbeats [post]
+// @Router /api/v1/users/{user}/heartbeats [post]
 func (h *HeartbeatApiHandler) postAlias1() {}
 
 // @Summary Push a new heartbeat
@@ -192,7 +192,7 @@ func (h *HeartbeatApiHandler) postAlias1() {}
 // @Param heartbeat body models.Heartbeat true "A single heartbeat"
 // @Security ApiKeyAuth
 // @Success 201
-// @Router /compat/wakatime/v1/users/{user}/heartbeats [post]
+// @Router /api/compat/wakatime/v1/users/{user}/heartbeats [post]
 func (h *HeartbeatApiHandler) postAlias2() {}
 
 // @Summary Push a new heartbeat
@@ -202,7 +202,7 @@ func (h *HeartbeatApiHandler) postAlias2() {}
 // @Param heartbeat body models.Heartbeat true "A single heartbeat"
 // @Security ApiKeyAuth
 // @Success 201
-// @Router /users/{user}/heartbeats [post]
+// @Router /api/users/{user}/heartbeats [post]
 func (h *HeartbeatApiHandler) postAlias3() {}
 
 // @Summary Push new heartbeats
@@ -212,7 +212,7 @@ func (h *HeartbeatApiHandler) postAlias3() {}
 // @Param heartbeat body []models.Heartbeat true "Multiple heartbeats"
 // @Security ApiKeyAuth
 // @Success 201
-// @Router /heartbeats [post]
+// @Router /api/heartbeats [post]
 func (h *HeartbeatApiHandler) postAlias4() {}
 
 // @Summary Push new heartbeats
@@ -222,7 +222,7 @@ func (h *HeartbeatApiHandler) postAlias4() {}
 // @Param heartbeat body []models.Heartbeat true "Multiple heartbeats"
 // @Security ApiKeyAuth
 // @Success 201
-// @Router /v1/users/{user}/heartbeats.bulk [post]
+// @Router /api/v1/users/{user}/heartbeats.bulk [post]
 func (h *HeartbeatApiHandler) postAlias5() {}
 
 // @Summary Push new heartbeats
@@ -232,7 +232,7 @@ func (h *HeartbeatApiHandler) postAlias5() {}
 // @Param heartbeat body []models.Heartbeat true "Multiple heartbeats"
 // @Security ApiKeyAuth
 // @Success 201
-// @Router /compat/wakatime/v1/users/{user}/heartbeats.bulk [post]
+// @Router /api/compat/wakatime/v1/users/{user}/heartbeats.bulk [post]
 func (h *HeartbeatApiHandler) postAlias6() {}
 
 // @Summary Push new heartbeats
@@ -242,5 +242,5 @@ func (h *HeartbeatApiHandler) postAlias6() {}
 // @Param heartbeat body []models.Heartbeat true "Multiple heartbeats"
 // @Security ApiKeyAuth
 // @Success 201
-// @Router /users/{user}/heartbeats.bulk [post]
+// @Router /api/users/{user}/heartbeats.bulk [post]
 func (h *HeartbeatApiHandler) postAlias7() {}

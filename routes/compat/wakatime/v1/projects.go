@@ -44,7 +44,7 @@ func (h *ProjectsHandler) RegisterRoutes(router *mux.Router) {
 // @Param q query string true "Query to filter projects by"
 // @Security ApiKeyAuth
 // @Success 200 {object} v1.ProjectsViewModel
-// @Router /compat/wakatime/v1/users/{user}/projects [get]
+// @Router /api/compat/wakatime/v1/users/{user}/projects [get]
 func (h *ProjectsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	user, err := routeutils.CheckEffectiveUser(w, r, h.userSrvc, "current")
 	if err != nil {

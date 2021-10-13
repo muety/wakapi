@@ -25,7 +25,7 @@ func (h *HealthApiHandler) RegisterRoutes(router *mux.Router) {
 // @Tags misc
 // @Produce plain
 // @Success 200 {string} string
-// @Router /health [get]
+// @Router /api/health [get]
 func (h *HealthApiHandler) Get(w http.ResponseWriter, r *http.Request) {
 	var dbStatus int
 	if sqlDb, err := h.db.DB(); err == nil {

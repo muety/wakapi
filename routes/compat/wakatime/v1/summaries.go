@@ -53,7 +53,7 @@ func (h *SummariesHandler) RegisterRoutes(router *mux.Router) {
 // @Param end query string false "End date (e.g. '2021-02-08')"
 // @Security ApiKeyAuth
 // @Success 200 {object} v1.SummariesViewModel
-// @Router /compat/wakatime/v1/users/{user}/summaries [get]
+// @Router /api/compat/wakatime/v1/users/{user}/summaries [get]
 func (h *SummariesHandler) Get(w http.ResponseWriter, r *http.Request) {
 	_, err := routeutils.CheckEffectiveUser(w, r, h.userSrvc, "current")
 	if err != nil {

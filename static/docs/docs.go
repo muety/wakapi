@@ -32,7 +32,7 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/compat/shields/v1/{user}/{interval}/{filter}": {
+        "/api/compat/shields/v1/{user}/{interval}/{filter}": {
             "get": {
                 "description": "Retrieve total time for a given entity (e.g. a project) within a given range (e.g. one week) in a format compatible with [Shields.io](https://shields.io/endpoint). Requires public data access to be allowed.",
                 "produces": [
@@ -90,7 +90,7 @@ var doc = `{
                 }
             }
         },
-        "/compat/wakatime/v1/users/{user}": {
+        "/api/compat/wakatime/v1/users/{user}": {
             "get": {
                 "security": [
                     {
@@ -125,7 +125,7 @@ var doc = `{
                 }
             }
         },
-        "/compat/wakatime/v1/users/{user}/all_time_since_today": {
+        "/api/compat/wakatime/v1/users/{user}/all_time_since_today": {
             "get": {
                 "security": [
                     {
@@ -160,7 +160,7 @@ var doc = `{
                 }
             }
         },
-        "/compat/wakatime/v1/users/{user}/heartbeats": {
+        "/api/compat/wakatime/v1/users/{user}/heartbeats": {
             "post": {
                 "security": [
                     {
@@ -193,7 +193,7 @@ var doc = `{
                 }
             }
         },
-        "/compat/wakatime/v1/users/{user}/heartbeats.bulk": {
+        "/api/compat/wakatime/v1/users/{user}/heartbeats.bulk": {
             "post": {
                 "security": [
                     {
@@ -229,7 +229,7 @@ var doc = `{
                 }
             }
         },
-        "/compat/wakatime/v1/users/{user}/projects": {
+        "/api/compat/wakatime/v1/users/{user}/projects": {
             "get": {
                 "security": [
                     {
@@ -271,7 +271,7 @@ var doc = `{
                 }
             }
         },
-        "/compat/wakatime/v1/users/{user}/stats/{range}": {
+        "/api/compat/wakatime/v1/users/{user}/stats/{range}": {
             "get": {
                 "security": [
                     {
@@ -326,7 +326,7 @@ var doc = `{
                 }
             }
         },
-        "/compat/wakatime/v1/users/{user}/summaries": {
+        "/api/compat/wakatime/v1/users/{user}/summaries": {
             "get": {
                 "security": [
                     {
@@ -393,7 +393,7 @@ var doc = `{
                 }
             }
         },
-        "/health": {
+        "/api/health": {
             "get": {
                 "produces": [
                     "text/plain"
@@ -413,7 +413,7 @@ var doc = `{
                 }
             }
         },
-        "/heartbeat": {
+        "/api/heartbeat": {
             "post": {
                 "security": [
                     {
@@ -446,7 +446,7 @@ var doc = `{
                 }
             }
         },
-        "/heartbeats": {
+        "/api/heartbeats": {
             "post": {
                 "security": [
                     {
@@ -482,7 +482,7 @@ var doc = `{
                 }
             }
         },
-        "/plugins/errors": {
+        "/api/plugins/errors": {
             "post": {
                 "security": [
                     {
@@ -515,7 +515,7 @@ var doc = `{
                 }
             }
         },
-        "/summary": {
+        "/api/summary": {
             "get": {
                 "security": [
                     {
@@ -580,7 +580,7 @@ var doc = `{
                 }
             }
         },
-        "/users/{user}/heartbeats": {
+        "/api/users/{user}/heartbeats": {
             "post": {
                 "security": [
                     {
@@ -613,7 +613,7 @@ var doc = `{
                 }
             }
         },
-        "/users/{user}/heartbeats.bulk": {
+        "/api/users/{user}/heartbeats.bulk": {
             "post": {
                 "security": [
                     {
@@ -649,7 +649,42 @@ var doc = `{
                 }
             }
         },
-        "/v1/users/{user}/heartbeats": {
+        "/api/users/{user}/statusbar/today": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Mimics https://wakatime.com/api/v1/users/current/statusbar/today. Have no official documentation",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wakatime"
+                ],
+                "summary": "Retrieve summary for statusbar",
+                "operationId": "statusbar",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID to fetch data for (or 'current')",
+                        "name": "user",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.StatusBarViewModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{user}/heartbeats": {
             "post": {
                 "security": [
                     {
@@ -682,7 +717,7 @@ var doc = `{
                 }
             }
         },
-        "/v1/users/{user}/heartbeats.bulk": {
+        "/api/v1/users/{user}/heartbeats.bulk": {
             "post": {
                 "security": [
                     {
@@ -714,6 +749,158 @@ var doc = `{
                 "responses": {
                     "201": {
                         "description": ""
+                    }
+                }
+            }
+        },
+        "/relay": {
+            "get": {
+                "tags": [
+                    "relay"
+                ],
+                "summary": "Proxy an GET API request to another Wakapi instance",
+                "operationId": "relay-get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Original URL to perform the request to",
+                        "name": "X-Target-URL",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "403": {
+                        "description": "Returned if request path is not whitelisted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "502": {
+                        "description": "Returned if upstream host is down",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "relay"
+                ],
+                "summary": "Proxy an PUT API request to another Wakapi instance",
+                "operationId": "relay-put",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Original URL to perform the request to",
+                        "name": "X-Target-URL",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "403": {
+                        "description": "Returned if request path is not whitelisted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "502": {
+                        "description": "Returned if upstream host is down",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "relay"
+                ],
+                "summary": "Proxy an POST API request to another Wakapi instance",
+                "operationId": "relay-post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Original URL to perform the request to",
+                        "name": "X-Target-URL",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "403": {
+                        "description": "Returned if request path is not whitelisted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "502": {
+                        "description": "Returned if upstream host is down",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "relay"
+                ],
+                "summary": "Proxy an DELETE API request to another Wakapi instance",
+                "operationId": "relay-delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Original URL to perform the request to",
+                        "name": "X-Target-URL",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "403": {
+                        "description": "Returned if request path is not whitelisted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "502": {
+                        "description": "Returned if upstream host is down",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "relay"
+                ],
+                "summary": "Proxy an PATCH API request to another Wakapi instance",
+                "operationId": "relay-patch",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Original URL to perform the request to",
+                        "name": "X-Target-URL",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "403": {
+                        "description": "Returned if request path is not whitelisted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "502": {
+                        "description": "Returned if upstream host is down",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 }
             }
@@ -790,6 +977,9 @@ var doc = `{
                     "type": "number"
                 },
                 "type": {
+                    "type": "string"
+                },
+                "user_agent": {
                     "type": "string"
                 }
             }
@@ -1011,6 +1201,17 @@ var doc = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/v1.StatsData"
+                }
+            }
+        },
+        "v1.StatusBarViewModel": {
+            "type": "object",
+            "properties": {
+                "cached_at": {
+                    "type": "string"
+                },
+                "data": {
+                    "$ref": "#/definitions/v1.SummariesData"
                 }
             }
         },

@@ -41,7 +41,7 @@ func (h *DiagnosticsApiHandler) RegisterRoutes(router *mux.Router) {
 // @Param diagnostics body models.Diagnostics true "A single diagnostics object sent by WakaTime CLI"
 // @Security ApiKeyAuth
 // @Success 201
-// @Router /plugins/errors [post]
+// @Router /api/plugins/errors [post]
 func (h *DiagnosticsApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	var diagnostics models.Diagnostics
 

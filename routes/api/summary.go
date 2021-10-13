@@ -42,7 +42,7 @@ func (h *SummaryApiHandler) RegisterRoutes(router *mux.Router) {
 // @Param recompute query bool false "Whether to recompute the summary from raw heartbeat or use cache"
 // @Security ApiKeyAuth
 // @Success 200 {object} models.Summary
-// @Router /summary [get]
+// @Router /api/summary [get]
 func (h *SummaryApiHandler) Get(w http.ResponseWriter, r *http.Request) {
 	summary, err, status := su.LoadUserSummary(h.summarySrvc, r)
 	if err != nil {
