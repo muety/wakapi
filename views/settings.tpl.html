@@ -221,9 +221,9 @@
                 <div class="flex items-center" action="" method="post">
                     <div class="text-gray-500 border-1 w-full border-green-700 inline-block my-1 py-1 text-align text-sm"
                          style="line-height: 1.8">
-                        &#9656;&nbsp;<span class="font-semibold text-white">{{ $label.Key }}:</span>
+                        &#9656;&nbsp;<span class="font-semibold text-white font-mono">{{ $label.Key }}:</span>
                         {{ range $j, $value := $label.Values }}
-                        <form action="" method="post" class="text-white text-xs bg-gray-900 rounded-full py-1 px-2 font-mono inline-flex justify-between items-center space-x-2">
+                        <form action="" method="post" class="text-white text-xs bg-gray-900 rounded-full py-1 px-2 my-1 inline-flex justify-between items-center space-x-2">
                             <input type="hidden" name="action" value="delete_label">
                             <input type="hidden" name="key" value="{{ $label.Key }}">
                             <input type="hidden" name="value" value="{{ $value }}">

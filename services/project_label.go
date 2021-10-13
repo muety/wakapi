@@ -44,21 +44,37 @@ func (srv *ProjectLabelService) GetByUser(userId string) ([]*models.ProjectLabel
 }
 
 func (srv *ProjectLabelService) GetByUserGrouped(userId string) (map[string][]*models.ProjectLabel, error) {
-	labels := make(map[string][]*models.ProjectLabel)
+	labelsByProject := make(map[string][]*models.ProjectLabel)
 	userLabels, err := srv.GetByUser(userId)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, l := range userLabels {
-		if _, ok := labels[l.ProjectKey]; !ok {
-			labels[l.ProjectKey] = []*models.ProjectLabel{l}
+		if _, ok := labelsByProject[l.ProjectKey]; !ok {
+			labelsByProject[l.ProjectKey] = []*models.ProjectLabel{l}
 		} else {
-			labels[l.ProjectKey] = append(labels[l.ProjectKey], l)
+			labelsByProject[l.ProjectKey] = append(labelsByProject[l.ProjectKey], l)
 		}
 	}
+	return labelsByProject, nil
+}
 
-	return labels, nil
+func (srv *ProjectLabelService) GetByUserGroupedInverted(userId string) (map[string][]*models.ProjectLabel, error) {
+	projectsByLabel := make(map[string][]*models.ProjectLabel)
+	userLabels, err := srv.GetByUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, l := range userLabels {
+		if _, ok := projectsByLabel[l.Label]; !ok {
+			projectsByLabel[l.Label] = []*models.ProjectLabel{l}
+		} else {
+			projectsByLabel[l.Label] = append(projectsByLabel[l.Label], l)
+		}
+	}
+	return projectsByLabel, nil
 }
 
 func (srv *ProjectLabelService) Create(label *models.ProjectLabel) (*models.ProjectLabel, error) {

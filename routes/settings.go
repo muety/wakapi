@@ -354,27 +354,23 @@ func (h *SettingsHandler) actionDeleteLabel(w http.ResponseWriter, r *http.Reque
 	}
 
 	user := middlewares.GetPrincipal(r)
-	labelKey := r.PostFormValue("key")
-	labelValue := r.PostFormValue("value")
+	labelKey := r.PostFormValue("key")     // label key
+	labelValue := r.PostFormValue("value") // project key
 
-	labelMap, err := h.projectLabelSrvc.GetByUserGrouped(user.ID)
+	labels, err := h.projectLabelSrvc.GetByUser(user.ID)
 	if err != nil {
 		return http.StatusInternalServerError, "", "could not delete label"
 	}
 
-	if projectLabels, ok := labelMap[labelKey]; ok {
-		for _, l := range projectLabels {
-			if l.Label == labelValue {
-				if err := h.projectLabelSrvc.Delete(l); err != nil {
-					return http.StatusInternalServerError, "", "could not delete label"
-				}
-				return http.StatusOK, "label deleted successfully", ""
+	for _, l := range labels {
+		if l.Label == labelKey && l.ProjectKey == labelValue {
+			if err := h.projectLabelSrvc.Delete(l); err != nil {
+				return http.StatusInternalServerError, "", "could not delete label"
 			}
+			return http.StatusOK, "label deleted successfully", ""
 		}
-		return http.StatusNotFound, "", "label not found"
-	} else {
-		return http.StatusNotFound, "", "project not found"
 	}
+	return http.StatusNotFound, "", "label not found"
 }
 
 func (h *SettingsHandler) actionDeleteLanguageMapping(w http.ResponseWriter, r *http.Request) (int, string, string) {
@@ -651,7 +647,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewMode
 	}
 
 	// labels
-	labelMap, err := h.projectLabelSrvc.GetByUserGrouped(user.ID)
+	labelMap, err := h.projectLabelSrvc.GetByUserGroupedInverted(user.ID)
 	if err != nil {
 		conf.Log().Request(r).Error("error while building settings project label map - %v", err)
 		return &view.SettingsViewModel{Error: criticalError}
@@ -660,11 +656,11 @@ func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewMode
 	combinedLabels := make([]*view.SettingsVMCombinedLabel, 0)
 	for _, l := range labelMap {
 		cl := &view.SettingsVMCombinedLabel{
-			Key:    l[0].ProjectKey,
+			Key:    l[0].Label,
 			Values: make([]string, len(l)),
 		}
 		for i, l1 := range l {
-			cl.Values[i] = l1.Label
+			cl.Values[i] = l1.ProjectKey
 		}
 		combinedLabels = append(combinedLabels, cl)
 	}
