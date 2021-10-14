@@ -12,6 +12,7 @@ import (
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
+	"runtime"
 	"sort"
 	"time"
 )
@@ -34,6 +35,8 @@ const (
 	DescAdminUserHeartbeats  = "Total number of tracked heartbeats by user (all time)."
 	DescAdminTotalUsers      = "Total number of registered users."
 	DescAdminActiveUsers     = "Number of active users."
+
+	DescGoroutines = "Total number of running goroutines"
 )
 
 type MetricsHandler struct {
@@ -207,6 +210,13 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 			Labels: []mm.Label{{Key: "name", Value: m.Key}},
 		})
 	}
+
+	metrics = append(metrics, &mm.CounterMetric{
+		Name:   MetricsPrefix + "_goroutines_total",
+		Desc:   DescGoroutines,
+		Value:  runtime.NumGoroutine(),
+		Labels: []mm.Label{},
+	})
 
 	return &metrics, nil
 }
