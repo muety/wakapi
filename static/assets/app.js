@@ -420,6 +420,13 @@ function hexToRgb(hex) {
     } : null;
 }
 
+function showUserMenuPopup(event) {
+    const el = document.getElementById('user-menu-popup')
+    el.classList.remove('hidden')
+    el.classList.add('block')
+    event.stopPropagation()
+}
+
 function showApiKeyPopup(event) {
     const el = document.getElementById('api-key-popup')
     el.classList.remove('hidden')

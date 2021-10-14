@@ -32,6 +32,8 @@ let icons = [
     'twemoji:gear',
     'eva:corner-right-down-fill',
     'bi:heart-fill',
+    'fxemoji:running',
+    'ic:round-person'
 ]
 
 const output = path.normalize(path.join(__dirname, '../static/assets/icons.js'))

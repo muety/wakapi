@@ -19,6 +19,24 @@
     </div>
 </div>
 
+<div class="hidden flex bg-gray-800 shadow-md z-10 p-2 absolute top-0 right-0 mt-10 mr-8 border border-green-700 rounded popup mt-24"
+     id="user-menu-popup" style="min-width: 200px;">
+    <div class="flex-grow flex flex-col px-2">
+        <div class="flex flex-col text-xs text-gray-300 mx-1 mb-4 items-center">
+            <span class="font-semibold">{{ .User.ID }}</span>
+            {{ if .User.Email }}
+            <span>({{ .User.Email }})</span>
+            {{ end }}
+        </div>
+        <form action="logout" method="post" class="flex-grow">
+            <button type="submit" class="py-1 px-3 h-8 rounded bg-green-700 text-white text-sm w-full">
+                <span>Logout</span>
+                <span class="iconify inline" data-icon="fxemoji:running"></span>
+            </button>
+        </form>
+    </div>
+</div>
+
 <div class="absolute flex top-0 right-0 mr-8 mt-10 py-2">
     <div class="mx-1">
         <button type="button" class="py-1 px-3 h-8 rounded border border-green-700 text-white text-sm"
@@ -30,10 +48,12 @@
             <span class="iconify inline" data-icon="twemoji:gear"></span>
         </a>
     </div>
-    <div class="mx-1">
-        <form action="logout" method="post">
-            <button type="submit" class="py-1 px-3 h-8 rounded border border-green-700 text-white text-sm">Logout</button>
-        </form>
+    <div class="mx-1 flex items-center">
+        {{ if avatarUrlTemplate }}
+        <img src="{{ .User.AvatarURL avatarUrlTemplate }}" width="32px" class="rounded-full border-2 border-green-700 cursor-pointer" onclick="showUserMenuPopup(event)" alt="User Profile Avatar" title="Looks like you, doesn't it?"/>
+        {{ else }}
+        <span class="iconify inline cursor-pointer text-gray-500 rounded-full border-2 border-green-700" style="width: 32px; height: 32px" data-icon="ic:round-person" onclick="showUserMenuPopup(event)"></span>
+        {{ end }}
     </div>
 </div>
 

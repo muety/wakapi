@@ -62,14 +62,15 @@ var cFlag = flag.String("config", defaultConfigPath, "config file location")
 var env string
 
 type appConfig struct {
-	AggregationTime  string                       `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
-	ReportTimeWeekly string                       `yaml:"report_time_weekly" default:"fri,18:00" env:"WAKAPI_REPORT_TIME_WEEKLY"`
-	ImportBackoffMin int                          `yaml:"import_backoff_min" default:"5" env:"WAKAPI_IMPORT_BACKOFF_MIN"`
-	ImportBatchSize  int                          `yaml:"import_batch_size" default:"50" env:"WAKAPI_IMPORT_BATCH_SIZE"`
-	InactiveDays     int                          `yaml:"inactive_days" default:"7" env:"WAKAPI_INACTIVE_DAYS"`
-	CountCacheTTLMin int                          `yaml:"count_cache_ttl_min" default:"30" env:"WAKAPI_COUNT_CACHE_TTL_MIN"`
-	CustomLanguages  map[string]string            `yaml:"custom_languages"`
-	Colors           map[string]map[string]string `yaml:"-"`
+	AggregationTime   string                       `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
+	ReportTimeWeekly  string                       `yaml:"report_time_weekly" default:"fri,18:00" env:"WAKAPI_REPORT_TIME_WEEKLY"`
+	ImportBackoffMin  int                          `yaml:"import_backoff_min" default:"5" env:"WAKAPI_IMPORT_BACKOFF_MIN"`
+	ImportBatchSize   int                          `yaml:"import_batch_size" default:"50" env:"WAKAPI_IMPORT_BATCH_SIZE"`
+	InactiveDays      int                          `yaml:"inactive_days" default:"7" env:"WAKAPI_INACTIVE_DAYS"`
+	CountCacheTTLMin  int                          `yaml:"count_cache_ttl_min" default:"30" env:"WAKAPI_COUNT_CACHE_TTL_MIN"`
+	AvatarURLTemplate string                       `yaml:"avatar_url_template" default:"https://avatars.dicebear.com/api/pixel-art-neutral/{username_hash}.svg"`
+	CustomLanguages   map[string]string            `yaml:"custom_languages"`
+	Colors            map[string]map[string]string `yaml:"-"`
 }
 
 type securityConfig struct {

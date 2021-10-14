@@ -145,6 +145,7 @@ You can specify configuration options either via a config file (default: `config
 |---------------------------|---------------------------|--------------|---------------------------------------------------------------------|
 | `env`                       | `ENVIRONMENT`               | `dev`          | Whether to use development- or production settings                  |
 | `app.custom_languages`      | -                           | -              | Map from file endings to language names                             |
+| `app.avatar_url_template`   | -                           | (see [`config.default.yml`](config.default.yml)) | URL template for external user avatar images (e.g. from [Dicebear](https://dicebear.com) or [Gravatar](https://gravatar.com)) |
 | `server.port`               | `WAKAPI_PORT`               | `3000`         | Port to listen on                                                   |
 | `server.listen_ipv4`        | `WAKAPI_LISTEN_IPV4`        | `127.0.0.1`    | IPv4 network address to listen on (leave blank to disable IPv4)     |
 | `server.listen_ipv6`        | `WAKAPI_LISTEN_IPV6`        | `::1`          | IPv6 network address to listen on (leave blank to disable IPv6)     |

@@ -53,6 +53,7 @@ type SummaryViewModel struct {
 	*Summary
 	*SummaryParams
 	User           *User
+	AvatarURL      string
 	LanguageColors map[string]string
 	EditorColors   map[string]string
 	OSColors       map[string]string

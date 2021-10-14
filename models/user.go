@@ -1,7 +1,10 @@
 package models
 
 import (
+	"crypto/md5"
+	"fmt"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -90,6 +93,18 @@ func (u *User) TZ() *time.Location {
 func (u *User) TZOffset() time.Duration {
 	_, offset := time.Now().In(u.TZ()).Zone()
 	return time.Duration(offset * int(time.Second))
+}
+
+func (u *User) AvatarURL(urlTemplate string) string {
+	urlTemplate = strings.ReplaceAll(urlTemplate, "{username}", u.ID)
+	urlTemplate = strings.ReplaceAll(urlTemplate, "{email}", u.Email)
+	if strings.Contains(urlTemplate, "{username_hash}") {
+		urlTemplate = strings.ReplaceAll(urlTemplate, "{username_hash}", fmt.Sprintf("%x", md5.Sum([]byte(u.ID))))
+	}
+	if strings.Contains(urlTemplate, "{email_hash}") {
+		urlTemplate = strings.ReplaceAll(urlTemplate, "{email_hash}", fmt.Sprintf("%x", md5.Sum([]byte(u.Email))))
+	}
+	return urlTemplate
 }
 
 func (c *CredentialsReset) IsValid() bool {

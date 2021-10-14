@@ -52,6 +52,9 @@ func DefaultTemplateFuncs() template.FuncMap {
 		"htmlSafe": func(html string) template.HTML {
 			return template.HTML(html)
 		},
+		"avatarUrlTemplate": func() string {
+			return config.Get().App.AvatarURLTemplate
+		},
 	}
 }
 
