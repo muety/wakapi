@@ -36,7 +36,9 @@ const (
 	DescAdminTotalUsers      = "Total number of registered users."
 	DescAdminActiveUsers     = "Number of active users."
 
-	DescGoroutines = "Total number of running goroutines"
+	DescMemAllocTotal = "Total number of bytes allocated for heap"
+	DescMemSysTotal   = "Total number of bytes obtained from the OS"
+	DescGoroutines    = "Total number of running goroutines"
 )
 
 type MetricsHandler struct {
@@ -211,10 +213,28 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 		})
 	}
 
+	// Runtime metrics
+	var memStats runtime.MemStats
+	runtime.ReadMemStats(&memStats)
+
 	metrics = append(metrics, &mm.CounterMetric{
 		Name:   MetricsPrefix + "_goroutines_total",
 		Desc:   DescGoroutines,
 		Value:  runtime.NumGoroutine(),
+		Labels: []mm.Label{},
+	})
+
+	metrics = append(metrics, &mm.CounterMetric{
+		Name:   MetricsPrefix + "_mem_alloc_total",
+		Desc:   DescMemAllocTotal,
+		Value:  int(memStats.Alloc),
+		Labels: []mm.Label{},
+	})
+
+	metrics = append(metrics, &mm.CounterMetric{
+		Name:   MetricsPrefix + "_mem_sys_total",
+		Desc:   DescMemSysTotal,
+		Value:  int(memStats.Sys),
 		Labels: []mm.Label{},
 	})
 
