@@ -20,30 +20,37 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            n1try/wakapi
+            ghcr.io/${{ github.repository }}
+
       - name: Build and push to Docker Hub
         uses: docker/build-push-action@v2
         with:
           push: true
           tags: |
-            n1try/wakapi:${{ env.GIT_TAG }}
-            n1try/wakapi:latest
+            ${{ env.GIT_TAG }}
+            latest
           platforms: linux/amd64,linux/arm64
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          cache-from: type=registry,ref=n1try/wakapi:buildcache
+          cache-to: type=registry,ref=n1try/wakapi:buildcache,mode=max
 
       - name: Build and push to Docker Hub (Alpine)
         uses: docker/build-push-action@v2
@@ -51,8 +58,8 @@ jobs:
           file: Dockerfile.alpine
           push: true
           tags: |
-            n1try/wakapi:${{ env.GIT_TAG }}-alpine
-            n1try/wakapi:latest-alpine
+            ${{ env.GIT_TAG }}-alpine
+            latest-alpine
           platforms: linux/amd64,linux/arm64
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          cache-from: type=registry,ref=n1try/wakapi:buildcache-alpine
+          cache-to: type=registry,ref=n1try/wakapi:buildcache-alpine,mode=max
