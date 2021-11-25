@@ -187,9 +187,6 @@ Wakapi uses [GORM](https://gorm.io) as an ORM. As a consequence, a set of differ
 * [Postgres](https://hub.docker.com/_/postgres) (_open-source as well_)
 * [CockroachDB](https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html) (_cloud-native, distributed, Postgres-compatible API_)
 
-### Client-side proxy (`optional`)
-See the [advanced setup instructions](docs/advanced_setup.md).
-
 ## 🔧 API Endpoints
 See our [Swagger API Documentation](https://wakapi.dev/swagger-ui).
 
