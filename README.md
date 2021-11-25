@@ -32,21 +32,7 @@
   <img src="static/assets/images/screenshot.png" width="500px">
 </p>
 
-## Table of Contents
-* [User Survey](#-user-survey)
-* [Features](#-features)
-* [Roadmap](#-roadmap)
-* [How to use](#%EF%B8%8F-how-to-use)
-* [Configuration Options](#-configuration-options)
-* [API Endpoints](#-api-endpoints)
-* [Integrations](#-integrations)
-* [Best Practices](#-best-practices)
-* [Tests](#-tests)
-* [Developer Notes](#-developer-notes)
-* [Support](#-support)
-* [FAQs](#-faqs)
-
-Further instructions can be found in the [Wiki](https://github.com/muety/wakapi/wiki).
+Installation instructions can be found below and in the [Wiki](https://github.com/muety/wakapi/wiki).
 
 ## 📬 **User Survey**
 I'd love to get some community feedback from active Wakapi users. If you want, please participate in the recent [user survey](https://github.com/muety/wakapi/issues/82). Thanks a lot!
