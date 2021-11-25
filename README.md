@@ -57,7 +57,7 @@ Plans for the near future mainly include, besides usual improvements and bug fix
 There are different options for how to use Wakapi, ranging from our hosted cloud service to self-hosting it. Regardless of which option choose, you will always have to do the [client setup](#-client-setup) in addition. 
 
 ### ☁️ Option 1: Use [wakapi.dev](https://wakapi.dev)
-If you want to you out free, hosted cloud service, all you need to do is create an account and the set up your client-side tooling (see below).
+If you want to try out free, hosted cloud service, all you need to do is create an account and the set up your client-side tooling (see below).
 
 However, we do not guarantee data persistence, so you might potentially lose your data if the service is taken down some day ❕
 
