@@ -342,7 +342,7 @@ All data is cached locally on your machine and sent in batches once you're onlin
 <details>
 <summary><b>How did Wakapi come about?</b></summary>
 
-Wakapi was started when I was a student, who wanted to track detailed statistics about my coding time. Although I'm a big fan of WakaTime I didn't want to pay <a href="https://wakatime.com/pricing)">9 $ a month</a> back then. Luckily, most parts of WakaTime are open source!  
+Wakapi was started when I was a student, who wanted to track detailed statistics about my coding time. Although I'm a big fan of WakaTime I didn't want to pay <a href="https://wakatime.com/pricing">$9 a month</a> back then. Luckily, most parts of WakaTime are open source!  
 </details>
 
 <details>
