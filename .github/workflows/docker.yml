@@ -33,33 +33,29 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: |
-            n1try/wakapi
-            ghcr.io/${{ github.repository }}
-
-      - name: Build and push to Docker Hub
+      - name: Build and push
         uses: docker/build-push-action@v2
         with:
           push: true
           tags: |
-            ${{ env.GIT_TAG }}
-            latest
+            n1try/wakapi:latest
+            n1try/wakapi:${{ env.GIT_TAG }}
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ env.GIT_TAG }}
           platforms: linux/amd64,linux/arm64
           cache-from: type=registry,ref=n1try/wakapi:buildcache
           cache-to: type=registry,ref=n1try/wakapi:buildcache,mode=max
 
-      - name: Build and push to Docker Hub (Alpine)
+      - name: Build and push (Alpine)
         uses: docker/build-push-action@v2
         with:
           file: Dockerfile.alpine
           push: true
           tags: |
-            ${{ env.GIT_TAG }}-alpine
-            latest-alpine
+            n1try/wakapi:latest-alpine
+            n1try/wakapi:${{ env.GIT_TAG }}-alpine
+            ghcr.io/${{ github.repository }}:latest-alpine
+            ghcr.io/${{ github.repository }}:${{ env.GIT_TAG }}-alpine
           platforms: linux/amd64,linux/arm64
           cache-from: type=registry,ref=n1try/wakapi:buildcache-alpine
           cache-to: type=registry,ref=n1try/wakapi:buildcache-alpine,mode=max
