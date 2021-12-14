@@ -64,6 +64,7 @@ var (
 	userService            services.IUserService
 	languageMappingService services.ILanguageMappingService
 	projectLabelService    services.IProjectLabelService
+	durationService        services.IDurationService
 	summaryService         services.ISummaryService
 	aggregationService     services.IAggregationService
 	mailService            services.IMailService
@@ -154,7 +155,8 @@ func main() {
 	languageMappingService = services.NewLanguageMappingService(languageMappingRepository)
 	projectLabelService = services.NewProjectLabelService(projectLabelRepository)
 	heartbeatService = services.NewHeartbeatService(heartbeatRepository, languageMappingService)
-	summaryService = services.NewSummaryService(summaryRepository, heartbeatService, aliasService, projectLabelService)
+	durationService = services.NewDurationService(heartbeatService)
+	summaryService = services.NewSummaryService(summaryRepository, durationService, aliasService, projectLabelService)
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
 	keyValueService = services.NewKeyValueService(keyValueRepository)
 	reportService = services.NewReportService(summaryService, userService, mailService)

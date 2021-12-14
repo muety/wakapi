@@ -74,6 +74,10 @@ type IMailService interface {
 	SendReport(*models.User, *models.Report) error
 }
 
+type IDurationService interface {
+	Get(time.Time, time.Time, *models.User) ([]*models.Duration, error)
+}
+
 type ISummaryService interface {
 	Aliased(time.Time, time.Time, *models.User, SummaryRetriever, bool) (*models.Summary, error)
 	Retrieve(time.Time, time.Time, *models.User) (*models.Summary, error)
