@@ -239,6 +239,10 @@ func (c *appConfig) GetWeeklyReportTime() string {
 	return strings.Split(c.ReportTimeWeekly, ",")[1]
 }
 
+func (c *dbConfig) IsSQLite() bool {
+	return c.Dialect == "sqlite3"
+}
+
 func (c *serverConfig) GetPublicUrl() string {
 	return strings.TrimSuffix(c.PublicUrl, "/")
 }
@@ -364,6 +368,10 @@ func Load(version string) *Config {
 	}
 	if config.Db.MaxConn <= 0 {
 		logbuch.Fatal("you must allow at least one database connection")
+	}
+	if config.Db.MaxConn > 1 && config.Db.IsSQLite() {
+		logbuch.Warn("with sqlite, only a single connection is supported") // otherwise 'PRAGMA foreign_keys=ON' would somehow have to be set for every connection in the pool
+		config.Db.MaxConn = 1
 	}
 	if config.Mail.Provider != "" && findString(config.Mail.Provider, emailProviders, "") == "" {
 		logbuch.Fatal("unknown mail provider '%s'", config.Mail.Provider)

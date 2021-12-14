@@ -118,7 +118,7 @@ func main() {
 	// Connect to database
 	var err error
 	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{Logger: gormLogger})
-	if config.Db.Dialect == "sqlite3" {
+	if config.Db.IsSQLite() {
 		db.Exec("PRAGMA foreign_keys = ON;")
 		if !utils.IsCleanDB(db) && !utils.HasConstraints(db) {
 			db.DisableForeignKeyConstraintWhenMigrating = true
