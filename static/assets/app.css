@@ -1,5 +1,5 @@
 body {
-    font-family: 'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+    font-family: 'Source Sans 3', 'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
 }
 
 .bg-gray-850 {
@@ -22,4 +22,14 @@ body {
 
 .mt-14 {
     margin-top: 3.5rem;
+}
+
+.text-7xl {
+    font-size: 4.5rem;
+    line-height: 1.1;
+}
+
+.text-8xl {
+    font-size: 5rem;
+    line-height: 1.1;
 }

@@ -39,6 +39,7 @@ let resizeCount = 0
 
 Chart.defaults.color = "#E2E8F0"
 Chart.defaults.borderColor = "#242b3a"
+Chart.defaults.font.family = 'Source Sans 3, Roboto, Helvetica Neue, Arial, sens-serif'
 
 String.prototype.toHHMMSS = function () {
     const sec_num = parseInt(this, 10)
@@ -387,22 +388,8 @@ function hexToRgb(hex) {
     } : null;
 }
 
-function showUserMenuPopup(event) {
-    const el = document.getElementById('user-menu-popup')
-    el.classList.remove('hidden')
-    el.classList.add('block')
-    event.stopPropagation()
-}
-
-function hideUserMenuPopup(event) {
-    const el = document.getElementById('user-menu-popup')
-    el.classList.remove('block')
-    el.classList.add('hidden')
-    event.stopPropagation()
-}
-
-function toggleTimePickerPopup(event) {
-    const el = document.getElementById('time-picker-popup')
+function togglePopup(event, id) {
+    const el = document.getElementById(id)
     if (el.classList.contains('hidden')) {
         el.classList.remove('hidden')
         el.classList.add('block')
@@ -410,13 +397,6 @@ function toggleTimePickerPopup(event) {
         el.classList.add('hidden')
         el.classList.remove('block')
     }
-    event.stopPropagation()
-}
-
-function showApiKeyPopup(event) {
-    const el = document.getElementById('api-key-popup')
-    el.classList.remove('hidden')
-    el.classList.add('block')
     event.stopPropagation()
 }
 

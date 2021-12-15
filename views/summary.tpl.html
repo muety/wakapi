@@ -10,23 +10,23 @@
 {{ if .User.HasData }}
 
 <div class="flex justify-end mt-12 relative">
-    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer justify-end" onclick="toggleTimePickerPopup(event)">
+    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer justify-end" onclick="togglePopup(event, 'time-picker-dropdown')">
         <span class="iconify inline text-2xl text-gray-400 flex-grow" data-icon="fa-regular:calendar-alt"></span>
         <a id="current-time-selection" class="text-gray-300 -mb-1">{{ .From | datetime }} - {{ .To | ceildate | datetime }}</a>
         <span class="iconify inline text-2xl text-gray-400" data-icon="akar-icons:chevron-down"></span>
     </div>
 
-    <div class="hidden z-10 absolute top-0 right-0 popup mt-12 w-40" id="time-picker-popup">
+    <div class="hidden z-10 absolute top-0 right-0 popup mt-12 w-40" id="time-picker-dropdown">
         <div class="flex-grow flex flex-col flex bg-gray-850 shadow-md rounded w-40 p-1 ">
-            <a id="time-option-today" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=today" onclick="toggleTimePickerPopup(event)">Today</a>
-            <a id="time-option-yesterday" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=yesterday" onclick="toggleTimePickerPopup(event)">Yesterday</a>
-            <a id="time-option-week" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=week" onclick="toggleTimePickerPopup(event)">This Week</a>
-            <a id="time-option-month" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=month" onclick="toggleTimePickerPopup(event)">This Month</a>
-            <a id="time-option-year" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=year" onclick="toggleTimePickerPopup(event)">This Year</a>
-            <a id="time-option-last_7_days" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=last_7_days" onclick="toggleTimePickerPopup(event)">Past 7 Days</a>
-            <a id="time-option-last_30_days" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=last_30_days" onclick="toggleTimePickerPopup(event)">Past 30 Days</a>
-            <a id="time-option-last_12_months" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=last_12_months" onclick="toggleTimePickerPopup(event)">Past 12 Months</a>
-            <a id="time-option-any" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=any" onclick="toggleTimePickerPopup(event)">All Time</a>
+            <a id="time-option-today" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=today" onclick="togglePopup(event, 'time-picker-dropdown')">Today</a>
+            <a id="time-option-yesterday" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=yesterday" onclick="togglePopup(event, 'time-picker-dropdown')">Yesterday</a>
+            <a id="time-option-week" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=week" onclick="togglePopup(event, 'time-picker-dropdown')">This Week</a>
+            <a id="time-option-month" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=month" onclick="togglePopup(event, 'time-picker-dropdown')">This Month</a>
+            <a id="time-option-year" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=year" onclick="togglePopup(event, 'time-picker-dropdown')">This Year</a>
+            <a id="time-option-last_7_days" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=last_7_days" onclick="togglePopup(event, 'time-picker-dropdown')">Past 7 Days</a>
+            <a id="time-option-last_30_days" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=last_30_days" onclick="togglePopup(event, 'time-picker-dropdown')">Past 30 Days</a>
+            <a id="time-option-last_12_months" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=last_12_months" onclick="togglePopup(event, 'time-picker-dropdown')">Past 12 Months</a>
+            <a id="time-option-any" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=any" onclick="togglePopup(event, 'time-picker-dropdown')">All Time</a>
             <hr class="my-2">
             <form id="time-picker-form" class="flex flex-col space-y-1">
                 <div class="flex flex-col space-x-1 bg-gray-900 rounded p-1 border-2 border-gray-800">
@@ -82,7 +82,7 @@
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-no-wrap">Projects</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
-                        <input type="number" min="1" id="project-top-picker" data-entity="0" class="top-picker bg-gray-800 rounded-md text-center" value="10">
+                        <input type="number" min="1" id="project-top-picker" data-entity="0" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
                     </div>
                 </div>
                 <canvas id="chart-projects" class="mt-2"></canvas>
@@ -98,7 +98,7 @@
                     <div class="flex justify-between">
                         <span class="font-semibold text-lg w-1/2 flex-1 whitespace-no-wrap">Languages</span>
                         <div class="flex justify-end flex-1 text-xs items-center">
-                            <input type="number" min="1" id="language-top-picker" data-entity="3" class="top-picker bg-gray-800 rounded-md text-center" value="10">
+                            <input type="number" min="1" id="language-top-picker" data-entity="3" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
                         </div>
                     </div>
                     <canvas id="chart-language" class="mt-4"></canvas>
@@ -111,7 +111,7 @@
                     <div class="flex justify-between">
                         <span class="font-semibold text-lg w-1/2 flex-1 whitespace-no-wrap">Editors</span>
                         <div class="flex justify-end flex-1 text-xs items-center">
-                            <input type="number" min="1" id="editor-top-picker" data-entity="2" class="top-picker bg-gray-800 rounded-md text-center" value="10">
+                            <input type="number" min="1" id="editor-top-picker" data-entity="2" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
                         </div>
                     </div>
                     <canvas id="chart-editor" class="mt-4"></canvas>
@@ -131,7 +131,7 @@
                         <span class="font-semibold text-lg w-1/2 flex-1 whitespace-no-wrap ml-1 cursor-pointer text-gray-600" onclick="swapCharts('machine', 'os')">Machines</span>
                     </div>
                     <div class="flex justify-end flex-1 text-xs items-center">
-                        <input type="number" min="1" id="os-top-picker" data-entity="1" class="top-picker bg-gray-800 rounded-md text-center" value="10">
+                        <input type="number" min="1" id="os-top-picker" data-entity="1" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
                     </div>
                 </div>
                 <canvas id="chart-os" class="mt-4"></canvas>
@@ -148,7 +148,7 @@
                         <span class="font-semibold text-lg w-1/2 flex-1 whitespace-no-wrap ml-1 cursor-pointer">Machines</span>
                     </div>
                     <div class="flex justify-end flex-1 text-xs items-center">
-                        <input type="number" min="1" id="machine-top-picker" data-entity="4" class="top-picker bg-gray-800 rounded-md text-center" value="10">
+                        <input type="number" min="1" id="machine-top-picker" data-entity="4" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
                     </div>
                 </div>
                 <canvas id="chart-machine" class="mt-4"></canvas>
@@ -165,8 +165,7 @@
                         <span class="iconify inline" data-icon="twemoji:gear"></span>
                     </a>
                     <div class="flex justify-end flex-1 text-xs items-center">
-                        <label for="label-top-picker" class="mr-1">Show:&nbsp;</label>
-                        <input type="number" min="1" id="label-top-picker" data-entity="5" class="top-picker bg-gray-800 rounded-md text-center" value="10">
+                        <input type="number" min="1" id="label-top-picker" data-entity="5" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
                     </div>
                 </div>
                 <canvas id="chart-label" class="mt-4"></canvas>

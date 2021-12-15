@@ -24,10 +24,39 @@
         </a>
     </div>
 
-    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer">
+    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer relative" onclick="togglePopup(event, 'resources-menu-dropdown')">
         <span class="iconify inline text-2xl text-gray-400" data-icon="ph:books-bold"></span>
         <a class="text-gray-400">Resources</a>
         <span class="iconify inline text-xl text-gray-400" data-icon="akar-icons:chevron-down"></span>
+
+        <div class="hidden flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-12 w-full" id="resources-menu-dropdown">
+            <div class="flex-grow flex flex-col">
+                <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
+                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://github.com/muety/wakapi" rel="noreferrer noopener" onclick="togglePopup(event, 'resources-menu-dropdown')">
+                        <span class="text-sm">GitHub</span>
+                        <span class="iconify inline" data-icon="codicon:github-inverted"></span>
+                    </a>
+                </div>
+                <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
+                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="swagger-ui" onclick="togglePopup(event, 'resources-menu-dropdown')">
+                        <span class="text-sm">API Docs</span>
+                        <span class="iconify inline" data-icon="bx:bx-code-curly"></span>
+                    </a>
+                </div>
+                <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
+                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://wakatime.com" rel="noreferrer noopener" onclick="togglePopup(event, 'resources-menu-dropdown')">
+                        <span class="text-sm">WakaTime</span>
+                        <span class="iconify inline" data-icon="simple-icons:wakatime"></span>
+                    </a>
+                </div>
+                <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
+                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://github.com/sponsors/muety" rel="noreferrer noopener" onclick="togglePopup(event, 'resources-menu-dropdown')">
+                        <span class="text-sm">Donate</span>
+                        <span class="iconify inline" data-icon="bx:bxs-heart"></span>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer">
@@ -37,7 +66,7 @@
 
     <div class="flex-grow"></div>
 
-    <div class="menu-item flex items-center text-sm font-semibold space-x-3 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer" onclick="showUserMenuPopup(event)">
+    <div class="menu-item flex items-center text-sm font-semibold space-x-3 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer relative" onclick="togglePopup(event, 'user-menu-popup')">
         <div class="flex flex-col text-right">
             <a class="text-gray-300">{{ .User.ID }}</a>
             {{ if .User.Email }}
@@ -47,26 +76,25 @@
         {{ if avatarUrlTemplate }}
         <img src="{{ .User.AvatarURL avatarUrlTemplate }}" width="32px" class="rounded-full border-green-700" alt="User Profile Avatar" title="Looks like you, doesn't it?"/>
         {{ else }}
-        <span class="iconify inline cursor-pointer text-gray-500 rounded-full border-green-700" style="width: 32px; height: 32px" data-icon="ic:round-person" onclick="showUserMenuPopup(event)"></span>
+        <span class="iconify inline cursor-pointer text-gray-500 rounded-full border-green-700" style="width: 32px; height: 32px" data-icon="ic:round-person" onclick="togglePopup(event, 'user-menu-popup')"></span>
         {{ end }}
-    </div>
 
-    <div class="hidden flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-14"
-         id="user-menu-popup" style="min-width: 156px;">
-        <div class="flex-grow flex flex-col">
-            <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
-                <button class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" onclick="showApiKeyPopup(event); hideUserMenuPopup(event)">
-                    <span class="text-sm">Show API Key</span>
-                    <span class="iconify inline" data-icon="fluent:key-32-filled"></span>
-                </button>
-            </div>
-            <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
-                <form action="logout" method="post" class="flex-grow">
-                    <button type="submit" class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold">
-                        <span class="text-sm">Logout</span>
-                        <span class="iconify inline" data-icon="ls:logout"></span>
+        <div class="hidden flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-14 w-full" id="user-menu-popup" style="min-width: 156px;">
+            <div class="flex-grow flex flex-col">
+                <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
+                    <button class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" onclick="togglePopup(event, 'api-key-popup'); togglePopup(event, 'user-menu-popup')">
+                        <span class="text-sm">Show API Key</span>
+                        <span class="iconify inline" data-icon="fluent:key-32-filled"></span>
                     </button>
-                </form>
+                </div>
+                <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
+                    <form action="logout" method="post" class="flex-grow">
+                        <button type="submit" class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold">
+                            <span class="text-sm">Logout</span>
+                            <span class="iconify inline" data-icon="ls:logout"></span>
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

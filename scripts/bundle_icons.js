@@ -44,7 +44,16 @@ let icons = [
     'fluent:key-32-filled',
     'majesticons:clipboard-copy',
     'fa-regular:calendar-alt',
-    'ph:books-bold'
+    'ph:books-bold',
+    'fa-solid:external-link-alt',
+    'bx:bx-code-curly',
+    'simple-icons:wakatime',
+    'bx:bxs-heart',
+    'heroicons-solid:light-bulb',
+    'ion:rocket',
+    'heroicons-solid:server',
+    'eva:checkmark-circle-2-fill',
+    'fluent:key-24-filled'
 ]
 
 const output = path.normalize(path.join(__dirname, '../static/assets/icons.js'))

@@ -11,43 +11,31 @@
 
 <div class="absolute flex top-0 right-0 mr-8 mt-10 py-2">
     <div class="mx-1">
-        <a href="login" class="py-2 px-4 block rounded bg-green-700 hover:bg-green-800 text-white text-sm">
-            <span class="iconify inline" data-icon="fxemoji:key"></span> &nbsp;Login️</a>
+        <a href="login" class="py-2 px-4 block rounded bg-green-700 hover:bg-green-800 text-white text-sm font-semibold">
+            <span class="iconify inline" data-icon="fluent:key-24-filled"></span> &nbsp;Login️</a>
     </div>
 </div>
 
-<main class="mt-10 px-16 flex-grow flex justify-center w-full">
+<main class="mt-10 px-4 md:px-10 lg:px-24 flex-grow flex justify-center w-full">
     <div class="flex flex-col text-white">
-        <h1 class="text-4xl font-semibold antialiased text-center mb-2">Keep Track of <span
-                class="text-green-700">Your</span> Coding Time <span class="iconify inline" data-icon="flat-color-icons:clock"></span></h1>
+        <h1 class="text-8xl font-semibold antialiased text-center mb-10 leading-snug">Keep Track of<br><span
+                class="text-green-700">Your</span> Coding Time</h1>
         <p class="text-center text-gray-500 text-xl my-2">Wakapi is an open-source tool that helps you keep track of the
             time you have spent coding on different projects in different programming languages and more.<br>Ideal for
             statistics freaks and anyone else.</p>
 
-        <p class="text-center text-gray-500 text-xl my-4">
-            <span class="mr-1"><span class="iconify inline" data-icon="twemoji:light-bulb"></span> The system has tracked a total of </span>
-            {{ range $d := .TotalHours | printf "%d" | toRunes }}
-            <span class="bg-gray-900 rounded-sm p-1 border border-gray-700 font-mono" style="margin: auto -2px;" title="{{ $.TotalHours }} hours (updated every hour)">{{ $d }}</span>
-            {{ end }}
-            <span class="mx-1">hours of coding from</span>
-            {{ range $d := .TotalUsers | printf "%d" | toRunes }}
-            <span class="bg-gray-900 rounded-sm p-1 border border-gray-700 font-mono" style="margin: auto -2px;" title="{{ $.TotalUsers }} users (updated every hour)">{{ $d }}</span>
-            {{ end }}
-            <span class="ml-1">users.</span>
-        </p>
-
-        <div class="flex justify-center mt-4 mb-8 space-x-2">
+        <div class="flex justify-center mt-8 mb-4 space-x-2">
             <a href="login">
                 <button type="button"
-                        class="py-2 px-4 rounded bg-green-700 hover:bg-green-800 text-white font-semibold"><span class="iconify inline" data-icon="fxemoji:rocket"></span> Try it!
+                        class="py-2 px-4 rounded bg-green-700 hover:bg-green-800 text-white font-semibold"><span class="iconify inline" data-icon="ion:rocket"></span> Let's Go!
                 </button>
             </a>
             <a href="https://github.com/muety/wakapi#%EF%B8%8F-how-to-use" target="_blank" rel="noopener noreferrer">
-                <button type="button" class="py-2 px-4 rounded bg-gray-800 hover:bg-gray-850 text-white"><span class="iconify inline" data-icon="fxemoji:satelliteantenna"></span> Host it
+                <button type="button" class="py-2 px-4 rounded bg-gray-800 hover:bg-gray-850 text-white"><span class="iconify inline" data-icon="heroicons-solid:server"></span> Get Your Own
                 </button>
             </a>
             <a href="https://github.com/sponsors/muety" target="_blank" rel="noopener noreferrer">
-                <button type="button" class="py-2 px-4 rounded bg-gray-800 hover:bg-gray-850 text-white"><span class="iconify inline" data-icon="flat-color-icons:donate"></span> Support it
+                <button type="button" class="py-2 px-4 rounded bg-gray-800 hover:bg-gray-850 text-white"><span class="iconify inline" data-icon="bx:bxs-heart"></span> Support Us
                 </button>
             </a>
             <a href="https://github.com/muety/wakapi" target="_blank" rel="noopener noreferrer">
@@ -57,25 +45,37 @@
             </a>
         </div>
 
+        <p class="text-center text-gray-500 text-sm mb-4">
+            This system has tracked a total of </span>
+            {{ range $d := .TotalHours | printf "%d" | toRunes }}
+            <span class="bg-gray-900 rounded-sm p-1 border border-gray-700 font-mono text-gray-400" style="margin: auto -1px;" title="{{ $.TotalHours }} hours (updated every hour)">{{ $d }}</span>
+            {{ end }}
+            <span class="mx-1">hours of coding from</span>
+            {{ range $d := .TotalUsers | printf "%d" | toRunes }}
+            <span class="bg-gray-900 rounded-sm p-1 border border-gray-700 font-mono text-gray-400" style="margin: auto -1px;" title="{{ $.TotalUsers }} users (updated every hour)">{{ $d }}</span>
+            {{ end }}
+            <span class="ml-1">users.</span>
+        </p>
+
         <div class="flex justify-center my-8">
             <img alt="App screenshot" src="assets/images/screenshot.png">
         </div>
 
         <div class="flex flex-col items-center mt-10">
-            <h1 class="font-semibold text-xl text-white m-0 border-b-4 border-green-700">Features</h1>
-            <div class="mt-4 text-lg">
+            <h1 class="font-semibold text-3xl text-white m-0">Features</h1>
+            <div class="mt-4 text-lg text-gray-500">
                 <ul>
-                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; 100 % free and open-source</li>
-                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; Built by developers for developers</li>
-                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; Fancy statistics and plots</li>
-                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; Cool badges for readmes</li>
-                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; Weekly e-mail reports</li>
-                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; Intuitive REST API</li>
-                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; Compatible with <a href="https://wakatime.com" target="_blank" rel="noopener noreferrer" class="underline">Wakatime</a></li>
-                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; <a href="https://prometheus.io" target="_blank" rel="noopener noreferrer" class="underline">Prometheus</a> metrics</li>
-                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; Lightning fast</li>
-                    <li title="Wakapi.dev is hosted in Germany, none of your data will leave the EU"><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; GDPR-compliant</li>
-                    <li><span class="iconify inline text-green-700" data-icon="ant-design:check-square-filled"></span> &nbsp; Self-hosted</li>
+                    <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; 100 % free and open-source</li>
+                    <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; Built by developers for developers</li>
+                    <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; Fancy statistics and plots</li>
+                    <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; Cool badges for readmes</li>
+                    <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; Weekly e-mail reports</li>
+                    <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; Intuitive REST API</li>
+                    <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; Compatible with <a href="https://wakatime.com" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-gray-300">Wakatime</a></li>
+                    <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; <a href="https://prometheus.io" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-gray-300">Prometheus</a> metrics</li>
+                    <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; Lightning fast</li>
+                    <li title="Wakapi.dev is hosted in Germany, none of your data will leave the EU"><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; GDPR-compliant</li>
+                    <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; Self-hosted</li>
                 </ul>
             </div>
         </div>
