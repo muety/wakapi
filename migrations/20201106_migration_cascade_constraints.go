@@ -31,13 +31,7 @@ func init() {
 				return nil
 			}
 
-			condition := "key = ?"
-			if cfg.Db.Dialect == config.SQLDialectMysql {
-				condition = "`key` = ?"
-			}
-			lookupResult := db.Where(condition, name).First(&models.KeyStringValue{})
-			if lookupResult.Error == nil && lookupResult.RowsAffected > 0 {
-				logbuch.Info("no need to migrate '%s'", name)
+			if hasRun(name, db) {
 				return nil
 			}
 
@@ -64,13 +58,7 @@ func init() {
 				}
 			}
 
-			if err := db.Create(&models.KeyStringValue{
-				Key:   name,
-				Value: "done",
-			}).Error; err != nil {
-				return err
-			}
-
+			setHasRun(name, db)
 			return nil
 		},
 	}

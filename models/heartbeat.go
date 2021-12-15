@@ -9,7 +9,7 @@ import (
 )
 
 type Heartbeat struct {
-	ID              uint       `gorm:"primary_key" hash:"ignore"`
+	ID              uint64     `gorm:"primary_key" hash:"ignore"`
 	User            *User      `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" hash:"ignore"`
 	UserID          string     `json:"-" gorm:"not null; index:idx_time_user"`
 	Entity          string     `json:"entity" gorm:"not null; index:idx_entity"`

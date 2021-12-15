@@ -243,6 +243,14 @@ func (c *dbConfig) IsSQLite() bool {
 	return c.Dialect == "sqlite3"
 }
 
+func (c *dbConfig) IsMySQL() bool {
+	return c.Dialect == "mysql"
+}
+
+func (c *dbConfig) IsPostgres() bool {
+	return c.Dialect == "postgres"
+}
+
 func (c *serverConfig) GetPublicUrl() string {
 	return strings.TrimSuffix(c.PublicUrl, "/")
 }
@@ -288,6 +296,12 @@ func mustReadConfigLocation() string {
 func resolveDbDialect(dbType string) string {
 	if dbType == "cockroach" {
 		return "postgres"
+	}
+	if dbType == "sqlite" {
+		return "sqlite3"
+	}
+	if dbType == "mariadb" {
+		return "mysql"
 	}
 	return dbType
 }
