@@ -42,7 +42,7 @@ func (suite *DurationServiceTestSuite) SetupSuite() {
 	suite.TestStartTime = time.Unix(0, MinUnixTime1)
 	suite.TestHeartbeats = []*models.Heartbeat{
 		{
-			ID:              uint(rand.Uint32()),
+			ID:              rand.Uint64(),
 			UserID:          TestUserId,
 			Project:         TestProject1,
 			Language:        TestLanguageGo,
@@ -52,7 +52,7 @@ func (suite *DurationServiceTestSuite) SetupSuite() {
 			Time:            models.CustomTime(suite.TestStartTime), // 0:00
 		},
 		{
-			ID:              uint(rand.Uint32()),
+			ID:              rand.Uint64(),
 			UserID:          TestUserId,
 			Project:         TestProject1,
 			Language:        TestLanguageGo,
@@ -62,7 +62,7 @@ func (suite *DurationServiceTestSuite) SetupSuite() {
 			Time:            models.CustomTime(suite.TestStartTime.Add(30 * time.Second)), // 0:30
 		},
 		{
-			ID:              uint(rand.Uint32()),
+			ID:              rand.Uint64(),
 			UserID:          TestUserId,
 			Project:         TestProject1,
 			Language:        TestLanguageGo,
@@ -72,7 +72,7 @@ func (suite *DurationServiceTestSuite) SetupSuite() {
 			Time:            models.CustomTime(suite.TestStartTime.Add((30 + 130) * time.Second)), // 2:40
 		},
 		{
-			ID:              uint(rand.Uint32()),
+			ID:              rand.Uint64(),
 			UserID:          TestUserId,
 			Project:         TestProject1,
 			Language:        TestLanguageGo,
@@ -82,7 +82,7 @@ func (suite *DurationServiceTestSuite) SetupSuite() {
 			Time:            models.CustomTime(suite.TestStartTime.Add(3 * time.Minute)), // 3:00
 		},
 		{
-			ID:              uint(rand.Uint32()),
+			ID:              rand.Uint64(),
 			UserID:          TestUserId,
 			Project:         TestProject1,
 			Language:        TestLanguageGo,
@@ -92,7 +92,7 @@ func (suite *DurationServiceTestSuite) SetupSuite() {
 			Time:            models.CustomTime(suite.TestStartTime.Add(3*time.Minute + 10*time.Second)), // 3:10
 		},
 		{
-			ID:              uint(rand.Uint32()),
+			ID:              rand.Uint64(),
 			UserID:          TestUserId,
 			Project:         TestProject1,
 			Language:        TestLanguageGo,
