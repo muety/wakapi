@@ -50,7 +50,7 @@ func (suite *SummaryServiceTestSuite) SetupSuite() {
 	suite.TestStartTime = time.Unix(0, MinUnixTime1)
 	suite.TestHeartbeats = []*models.Heartbeat{
 		{
-			ID:              uint(rand.Uint32()),
+			ID:              rand.Uint64(),
 			UserID:          TestUserId,
 			Project:         TestProject1,
 			Language:        TestLanguageGo,
@@ -60,7 +60,7 @@ func (suite *SummaryServiceTestSuite) SetupSuite() {
 			Time:            models.CustomTime(suite.TestStartTime),
 		},
 		{
-			ID:              uint(rand.Uint32()),
+			ID:              rand.Uint64(),
 			UserID:          TestUserId,
 			Project:         TestProject1,
 			Language:        TestLanguageGo,
@@ -70,7 +70,7 @@ func (suite *SummaryServiceTestSuite) SetupSuite() {
 			Time:            models.CustomTime(suite.TestStartTime.Add(30 * time.Second)),
 		},
 		{
-			ID:              uint(rand.Uint32()),
+			ID:              rand.Uint64(),
 			UserID:          TestUserId,
 			Project:         TestProject1,
 			Language:        TestLanguageGo,
@@ -375,7 +375,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
 
 	heartbeats := filter(from, to, suite.TestHeartbeats)
 	heartbeats = append(heartbeats, &models.Heartbeat{
-		ID:              uint(rand.Uint32()),
+		ID:              rand.Uint64(),
 		UserID:          TestUserId,
 		Project:         TestProject2,
 		Language:        TestLanguageGo,
@@ -414,7 +414,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased_ProjectLabels()
 
 	heartbeats := filter(from, to, suite.TestHeartbeats)
 	heartbeats = append(heartbeats, &models.Heartbeat{
-		ID:              uint(rand.Uint32()),
+		ID:              rand.Uint64(),
 		UserID:          TestUserId,
 		Project:         TestProject2,
 		Language:        TestLanguageGo,

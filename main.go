@@ -120,10 +120,6 @@ func main() {
 	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{Logger: gormLogger})
 	if config.Db.IsSQLite() {
 		db.Exec("PRAGMA foreign_keys = ON;")
-		if !utils.IsCleanDB(db) && !utils.HasConstraints(db) {
-			db.DisableForeignKeyConstraintWhenMigrating = true
-			logbuch.Warn("using existing sqlite database without foreign key constraints and no ability to migrate, functionality may be limited")
-		}
 	}
 
 	if config.IsDev() {

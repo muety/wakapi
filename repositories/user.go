@@ -126,16 +126,16 @@ func (r *UserRepository) Count() (int64, error) {
 }
 
 func (r *UserRepository) InsertOrGet(user *models.User) (*models.User, bool, error) {
-	result := r.db.FirstOrCreate(user, &models.User{ID: user.ID})
+	if u, err := r.GetById(user.ID); err == nil && u != nil && u.ID != "" {
+		return u, false, nil
+	}
+
+	result := r.db.Create(user)
 	if err := result.Error; err != nil {
 		return nil, false, err
 	}
 
-	if result.RowsAffected == 1 {
-		return user, true, nil
-	}
-
-	return user, false, nil
+	return user, true, nil
 }
 
 func (r *UserRepository) Update(user *models.User) (*models.User, error) {

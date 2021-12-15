@@ -1,4 +1,16 @@
 BEGIN TRANSACTION;
+INSERT INTO "key_string_values" VALUES ('20210213-add_has_data_field','done');
+INSERT INTO "key_string_values" VALUES ('20210221-add_created_date_column','done');
+INSERT INTO "key_string_values" VALUES ('imprint','no content here');
+INSERT INTO "key_string_values" VALUES ('20210411-add_imprint_content','done');
+INSERT INTO "key_string_values" VALUES ('20210806-remove_persisted_project_labels','done');
+INSERT INTO "key_string_values" VALUES ('20211215-migrate_id_to_bigint-add_has_data_field','done');
+INSERT INTO "key_string_values" VALUES ('latest_total_time','0s');
+INSERT INTO "key_string_values" VALUES ('latest_total_users','0');
+COMMIT;
+
+
+BEGIN TRANSACTION;
 INSERT INTO "users" ("id", "api_key", "email", "location", "password", "created_at", "last_logged_in_at",
                      "share_data_max_days", "share_editors", "share_languages", "share_projects", "share_oss",
                      "share_machines", "is_admin", "has_data", "wakatime_api_key", "reset_token", "reports_weekly")
