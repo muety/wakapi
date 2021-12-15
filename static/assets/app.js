@@ -1,4 +1,11 @@
-const CHART_TARGET_SIZE = 200
+const LEGEND_MAX_ENTRIES = 9
+// dirty hack to vertically align legends across multiple charts
+// however, without monospace font, it's still not perfectly aligned
+// waiting for https://github.com/chartjs/Chart.js/discussions/9890
+const LEGEND_CHARACTERS = 20
+
+// https://hihayk.github.io/scale/#4/6/50/80/-51/67/20/14/276749/39/103/73/white
+const baseColors = [ '#112836', '#163B43', '#1C4F4D', '#215B4C', '#276749', '#437C57', '#5F9167', '#7DA67C', '#9FBA98', '#BFCEB5', '#DCE2D3' ]
 
 const projectsCanvas = document.getElementById('chart-projects')
 const osCanvas = document.getElementById('chart-os')
@@ -30,9 +37,8 @@ let charts = []
 let showTopN = []
 let resizeCount = 0
 
-charts.color = "#E2E8F0"
-charts.borderColor = "#E2E8F0"
-charts.backgroundColor = "#E2E8F0"
+Chart.defaults.color = "#E2E8F0"
+Chart.defaults.borderColor = "#242b3a"
 
 String.prototype.toHHMMSS = function () {
     const sec_num = parseInt(this, 10)
@@ -52,15 +58,6 @@ String.prototype.toHHMMSS = function () {
     return `${hours}:${minutes}:${seconds}`
 }
 
-String.prototype.toHHMM = function () {
-    const sec_num = parseInt(this, 10)
-    const hours = Math.floor(sec_num / 3600)
-    const minutes = Math.floor((sec_num - (hours * 3600)) / 60)
-    return `${hours}:${minutes}`
-}
-
-
-
 function draw(subselection) {
     function getTooltipOptions(key) {
         return {
@@ -72,6 +69,12 @@ function draw(subselection) {
                 title: () => 'Total Time'
             }
         }
+    }
+
+    function filterLegendItem(item) {
+        item.text = item.text.length > LEGEND_CHARACTERS ? item.text.slice(0, LEGEND_CHARACTERS - 3).padEnd(LEGEND_CHARACTERS, '.') : item.text
+        item.text = item.text.padEnd(LEGEND_CHARACTERS + 3)
+        return item.index < LEGEND_MAX_ENTRIES
     }
 
     function shouldUpdate(index) {
@@ -91,19 +94,14 @@ function draw(subselection) {
                     data: wakapiData.projects
                         .slice(0, Math.min(showTopN[0], wakapiData.projects.length))
                         .map(p => parseInt(p.total)),
-                    backgroundColor: wakapiData.projects.map(p => {
-                        const c = hexToRgb(getRandomColor(p.key))
-                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.6)`
-                    }),
-                    hoverBackgroundColor: wakapiData.projects.map(p => {
-                        const c = hexToRgb(getRandomColor(p.key))
-                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
-                    }),
-                    borderColor: wakapiData.projects.map(p => {
-                        const c = hexToRgb(getRandomColor(p.key))
+                    backgroundColor: wakapiData.projects.map((p, i) => {
+                        const c = hexToRgb(getColor(p.key, i % baseColors.length))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
                     }),
-                    borderWidth: 2
+                    hoverBackgroundColor: wakapiData.projects.map((p, i) => {
+                        const c = hexToRgb(getColor(p.key, i % baseColors.length))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
+                    }),
                 }],
                 labels: wakapiData.projects
                     .slice(0, Math.min(showTopN[0], wakapiData.projects.length))
@@ -115,7 +113,7 @@ function draw(subselection) {
                     xAxes: {
                         title: {
                             display: true,
-                            text: 'Duration (hh:mm:ss)'
+                            text: 'Duration (hh:mm:ss)',
                         },
                         ticks: {
                             callback: (label) => label.toString().toHHMMSS(),
@@ -124,12 +122,11 @@ function draw(subselection) {
                 },
                 plugins: {
                     legend: {
-                        display: false
+                        display: false,
                     },
                     tooltip: getTooltipOptions('projects'),
                 },
                 maintainAspectRatio: false,
-                onResize: onChartResize
             }
         })
         : null
@@ -142,18 +139,15 @@ function draw(subselection) {
                     data: wakapiData.operatingSystems
                         .slice(0, Math.min(showTopN[1], wakapiData.operatingSystems.length))
                         .map(p => parseInt(p.total)),
-                    backgroundColor: wakapiData.operatingSystems.map(p => {
-                        const c = hexToRgb(osColors[p.key.toLowerCase()] || getRandomColor(p.key))
-                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.6)`
-                    }),
-                    hoverBackgroundColor: wakapiData.operatingSystems.map(p => {
-                        const c = hexToRgb(osColors[p.key.toLowerCase()] || getRandomColor(p.key))
-                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
-                    }),
-                    borderColor: wakapiData.operatingSystems.map(p => {
-                        const c = hexToRgb(osColors[p.key.toLowerCase()] || getRandomColor(p.key))
+                    backgroundColor: wakapiData.operatingSystems.map((p, i) => {
+                        const c = hexToRgb(getColor(p.key, i))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
                     }),
+                    hoverBackgroundColor: wakapiData.operatingSystems.map((p, i) => {
+                        const c = hexToRgb(getColor(p.key, i))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
+                    }),
+                    borderWidth: 0
                 }],
                 labels: wakapiData.operatingSystems
                     .slice(0, Math.min(showTopN[1], wakapiData.operatingSystems.length))
@@ -162,9 +156,14 @@ function draw(subselection) {
             options: {
                 plugins: {
                     tooltip: getTooltipOptions('operatingSystems'),
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            filter: filterLegendItem
+                        },
+                    },
                 },
                 maintainAspectRatio: false,
-                onResize: onChartResize
             }
         })
         : null
@@ -177,18 +176,15 @@ function draw(subselection) {
                     data: wakapiData.editors
                         .slice(0, Math.min(showTopN[2], wakapiData.editors.length))
                         .map(p => parseInt(p.total)),
-                    backgroundColor: wakapiData.editors.map(p => {
-                        const c = hexToRgb(editorColors[p.key.toLowerCase()] || getRandomColor(p.key))
-                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.6)`
-                    }),
-                    hoverBackgroundColor: wakapiData.editors.map(p => {
-                        const c = hexToRgb(editorColors[p.key.toLowerCase()] || getRandomColor(p.key))
-                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
-                    }),
-                    borderColor: wakapiData.editors.map(p => {
-                        const c = hexToRgb(editorColors[p.key.toLowerCase()] || getRandomColor(p.key))
+                    backgroundColor: wakapiData.editors.map((p, i) => {
+                        const c = hexToRgb(getColor(p.key, i))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
                     }),
+                    hoverBackgroundColor: wakapiData.editors.map((p, i) => {
+                        const c = hexToRgb(getColor(p.key, i))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
+                    }),
+                    borderWidth: 0
                 }],
                 labels: wakapiData.editors
                     .slice(0, Math.min(showTopN[2], wakapiData.editors.length))
@@ -197,9 +193,14 @@ function draw(subselection) {
             options: {
                 plugins: {
                     tooltip: getTooltipOptions('editors'),
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            filter: filterLegendItem
+                        },
+                    },
                 },
                 maintainAspectRatio: false,
-                onResize: onChartResize
             }
         })
         : null
@@ -214,16 +215,13 @@ function draw(subselection) {
                         .map(p => parseInt(p.total)),
                     backgroundColor: wakapiData.languages.map(p => {
                         const c = hexToRgb(languageColors[p.key.toLowerCase()] || getRandomColor(p.key))
-                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.6)`
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
                     }),
                     hoverBackgroundColor: wakapiData.languages.map(p => {
                         const c = hexToRgb(languageColors[p.key.toLowerCase()] || getRandomColor(p.key))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
                     }),
-                    borderColor: wakapiData.languages.map(p => {
-                        const c = hexToRgb(languageColors[p.key.toLowerCase()] || getRandomColor(p.key))
-                        return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
-                    }),
+                    borderWidth: 0
                 }],
                 labels: wakapiData.languages
                     .slice(0, Math.min(showTopN[3], wakapiData.languages.length))
@@ -232,9 +230,17 @@ function draw(subselection) {
             options: {
                 plugins: {
                     tooltip: getTooltipOptions('languages'),
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            filter: filterLegendItem
+                        },
+                        title: {
+                            display: true,
+                        }
+                    },
                 },
                 maintainAspectRatio: false,
-                onResize: onChartResize
             }
         })
         : null
@@ -247,18 +253,15 @@ function draw(subselection) {
                     data: wakapiData.machines
                         .slice(0, Math.min(showTopN[4], wakapiData.machines.length))
                         .map(p => parseInt(p.total)),
-                    backgroundColor: wakapiData.machines.map(p => {
-                        const c = hexToRgb(getRandomColor(p.key))
-                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.6)`
-                    }),
-                    hoverBackgroundColor: wakapiData.machines.map(p => {
-                        const c = hexToRgb(getRandomColor(p.key))
-                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
-                    }),
-                    borderColor: wakapiData.machines.map(p => {
-                        const c = hexToRgb(getRandomColor(p.key))
+                    backgroundColor: wakapiData.machines.map((p, i) => {
+                        const c = hexToRgb(getColor(p.key, i))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
                     }),
+                    hoverBackgroundColor: wakapiData.machines.map((p, i) => {
+                        const c = hexToRgb(getColor(p.key, i))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
+                    }),
+                    borderWidth: 0
                 }],
                 labels: wakapiData.machines
                     .slice(0, Math.min(showTopN[4], wakapiData.machines.length))
@@ -267,9 +270,14 @@ function draw(subselection) {
             options: {
                 plugins: {
                     tooltip: getTooltipOptions('machines'),
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            filter: filterLegendItem
+                        },
+                    },
                 },
                 maintainAspectRatio: false,
-                onResize: onChartResize
             }
         })
         : null
@@ -282,18 +290,15 @@ function draw(subselection) {
                     data: wakapiData.labels
                         .slice(0, Math.min(showTopN[5], wakapiData.labels.length))
                         .map(p => parseInt(p.total)),
-                    backgroundColor: wakapiData.labels.map(p => {
-                        const c = hexToRgb(getRandomColor(p.key))
-                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.6)`
-                    }),
-                    hoverBackgroundColor: wakapiData.labels.map(p => {
-                        const c = hexToRgb(getRandomColor(p.key))
-                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
-                    }),
-                    borderColor: wakapiData.labels.map(p => {
-                        const c = hexToRgb(getRandomColor(p.key))
+                    backgroundColor: wakapiData.labels.map((p, i) => {
+                        const c = hexToRgb(getColor(p.key, i))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
                     }),
+                    hoverBackgroundColor: wakapiData.labels.map((p, i) => {
+                        const c = hexToRgb(getColor(p.key, i))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
+                    }),
+                    borderWidth: 0
                 }],
                 labels: wakapiData.labels
                     .slice(0, Math.min(showTopN[5], wakapiData.labels.length))
@@ -302,14 +307,17 @@ function draw(subselection) {
             options: {
                 plugins: {
                     tooltip: getTooltipOptions('labels'),
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            filter: filterLegendItem
+                        },
+                    },
                 },
                 maintainAspectRatio: false,
-                onResize: onChartResize
             }
         })
         : null
-
-    getTotal(wakapiData.operatingSystems)
 
     charts[0] = projectChart ? projectChart : charts[0]
     charts[1] = osChart ? osChart : charts[1]
@@ -317,11 +325,6 @@ function draw(subselection) {
     charts[3] = languageChart ? languageChart : charts[3]
     charts[4] = machineChart ? machineChart : charts[4]
     charts[5] = labelChart ? labelChart : charts[5]
-
-    if (!subselection) {
-        charts.forEach(c => c.options.onResize(c))
-        equalizeHeights()
-    }
 }
 
 function parseTopN() {
@@ -354,45 +357,9 @@ function getContainer(chart) {
     return chart.canvas.parentNode
 }
 
-function onChartResize(chart) {
-    let container = getContainer(chart)
-    let targetHeight = Math.min(chart.width, CHART_TARGET_SIZE)
-//    let actualHeight = chart.height - chart.chartArea.top
-    let actualHeight = chart.height - chart.top
-    let containerTargetHeight = container.clientHeight += (targetHeight - actualHeight)
-    container.style.height = parseInt(containerTargetHeight) + 'px'
-
-    resizeCount++
-    watchEqualize()
-}
-
-function watchEqualize() {
-    if (resizeCount === charts.length) {
-        equalizeHeights()
-        resizeCount = 0
-    }
-}
-
-function equalizeHeights() {
-    let maxHeight = 0
-    charts.forEach(c => {
-        let container = getContainer(c)
-        if (maxHeight < container.clientHeight) {
-            maxHeight = container.clientHeight
-        }
-    })
-    charts.forEach(c => {
-        let container = getContainer(c)
-        container.style.height = parseInt(maxHeight) + 'px'
-    })
-}
-
-function getTotal(items) {
-    const el = document.getElementById('total-span')
-    if (!el) return
-    const total = items.reduce((acc, d) => acc + d.total, 0)
-    const formatted = total.toString().toHHMM()
-    el.innerText = `${formatted.split(':')[0]} hours, ${formatted.split(':')[1]} minutes`
+function getColor(seed, index) {
+    if (index < baseColors.length) return baseColors[(index + 5) % baseColors.length]
+    return getRandomColor(seed)
 }
 
 function getRandomColor(seed) {
@@ -427,6 +394,25 @@ function showUserMenuPopup(event) {
     event.stopPropagation()
 }
 
+function hideUserMenuPopup(event) {
+    const el = document.getElementById('user-menu-popup')
+    el.classList.remove('block')
+    el.classList.add('hidden')
+    event.stopPropagation()
+}
+
+function toggleTimePickerPopup(event) {
+    const el = document.getElementById('time-picker-popup')
+    if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden')
+        el.classList.add('block')
+    } else {
+        el.classList.add('hidden')
+        el.classList.remove('block')
+    }
+    event.stopPropagation()
+}
+
 function showApiKeyPopup(event) {
     const el = document.getElementById('api-key-popup')
     el.classList.remove('hidden')
@@ -442,6 +428,27 @@ function copyApiKey(event) {
     event.stopPropagation()
 }
 
+function submitTimePicker(event) {
+    const el = document.getElementById('time-picker-form')
+    el.submit()
+}
+
+function swapCharts(showEntity, hideEntity) {
+    document.getElementById(`${showEntity}-container`).parentElement.classList.remove('hidden')
+    document.getElementById(`${hideEntity}-container`).parentElement.classList.add('hidden')
+}
+
+function updateTimeSelection() {
+    const query = new URLSearchParams(window.location.search)
+    if (query.has('interval')) {
+        const targetEl = document.getElementById('current-time-selection')
+        const refEl = document.getElementById(`time-option-${query.get('interval')}`)
+        targetEl.innerText = refEl ? refEl.innerText : 'Unknown'
+    }
+}
+
+
+
 // Click outside
 window.addEventListener('click', function (event) {
     if (event.target.classList.contains('popup')) {
@@ -454,6 +461,8 @@ window.addEventListener('click', function (event) {
 })
 
 window.addEventListener('load', function () {
+    updateTimeSelection()
+
     topNPickers.forEach(e => e.addEventListener('change', () => {
         parseTopN()
         draw([parseInt(e.attributes['data-entity'].value)])

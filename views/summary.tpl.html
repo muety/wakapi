@@ -3,93 +3,44 @@
 
 {{ template "head.tpl.html" . }}
 
-<body class="relative bg-gray-850 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
+<body class="relative bg-gray-900 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
 
-{{ template "header.tpl.html" . }}
-
-<div class="hidden flex bg-gray-800 shadow-md z-10 p-2 absolute top-0 right-0 mt-10 mr-8 border border-green-700 rounded popup"
-     id="api-key-popup">
-    <div class="flex-grow flex flex-col px-2">
-        <span class="text-xs text-gray-500 mx-1">API Key</span>
-        <input type="text" class="bg-transparent text-sm text-white mx-1 font-mono" id="api-key-container" readonly
-               value="{{ .ApiKey }}" style="min-width: 330px">
-    </div>
-    <div class="flex items-center px-2 border-l border-gray-700">
-        <button title="Copy to clipboard" onclick="copyApiKey(event)"><span class="iconify inline" data-icon="fxemoji:clipboard"></span></button>
-    </div>
-</div>
-
-<div class="hidden flex bg-gray-800 shadow-md z-10 p-2 absolute top-0 right-0 mt-10 mr-8 border border-green-700 rounded popup mt-24"
-     id="user-menu-popup" style="min-width: 200px;">
-    <div class="flex-grow flex flex-col px-2">
-        <div class="flex flex-col text-xs text-gray-300 mx-1 mb-4 items-center">
-            <span class="font-semibold">{{ .User.ID }}</span>
-            {{ if .User.Email }}
-            <span>({{ .User.Email }})</span>
-            {{ end }}
-        </div>
-        <form action="logout" method="post" class="flex-grow">
-            <button type="submit" class="py-1 px-3 h-8 rounded bg-green-700 text-white text-sm w-full">
-                <span>Logout</span>
-                <span class="iconify inline" data-icon="fxemoji:running"></span>
-            </button>
-        </form>
-    </div>
-</div>
-
-<div class="absolute flex top-0 right-0 mr-8 mt-10 py-2">
-    <div class="mx-1">
-        <button type="button" class="py-1 px-3 h-8 rounded border border-green-700 text-white text-sm"
-                onclick="showApiKeyPopup(event)"><span class="iconify inline" data-icon="fxemoji:lockandkey"></span>
-        </button>
-    </div>
-    <div class="mx-1">
-        <a href="settings" class="py-1 px-3 h-8 block rounded border border-green-700 text-white text-sm">
-            <span class="iconify inline" data-icon="twemoji:gear"></span>
-        </a>
-    </div>
-    <div class="mx-1 flex items-center">
-        {{ if avatarUrlTemplate }}
-        <img src="{{ .User.AvatarURL avatarUrlTemplate }}" width="32px" class="rounded-full border-2 border-green-700 cursor-pointer" onclick="showUserMenuPopup(event)" alt="User Profile Avatar" title="Looks like you, doesn't it?"/>
-        {{ else }}
-        <span class="iconify inline cursor-pointer text-gray-500 rounded-full border-2 border-green-700" style="width: 32px; height: 32px" data-icon="ic:round-person" onclick="showUserMenuPopup(event)"></span>
-        {{ end }}
-    </div>
-</div>
-
-<div class="flex items-center justify-center">
-    <h1 class="font-semibold text-2xl text-white m-0 border-b-4 border-green-700">Summary</h1>
-</div>
+{{ template "menu-main.tpl.html" . }}
 
 {{ if .User.HasData }}
 
-<div class="self-center border border-gray-700 shadow mt-8 rounded-md p-4 bg-gray-900">
-    <form class="text-white flex flex-nowrap items-center justify-center self-center max-w-xl flex-wrap space-x-8">
-        <div class="flex space-x-1">
-            <label for="from-date-picker" class="text-gray-300 pl-1"><span class="iconify inline" data-icon="noto:play-button"></span> Start:</label>
-            <input id="from-date-picker" type="date" name="from" max="{{ .ToTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-800 rounded-md text-center cursor-pointer"
-                   value="{{ .From | simpledate }}" required>
-        </div>
-        <div class="flex space-x-1">
-            <label for="to-date-picker" class="text-gray-300 pl-1"><span class="iconify inline" data-icon="noto:stop-button"></span> End:</label>
-            <input id="to-date-picker" type="date" name="to" min="{{ .FromTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-800 rounded-md text-center cursor-pointer"
-                   value="{{ .To | ceildate | simpledate }}" required>
-        </div>
-        <div>
-            <button type="submit" class="py-1 px-3 rounded bg-green-700 hover:bg-green-800 text-white text-sm">Show</button>
-        </div>
-    </form>
+<div class="flex justify-end mt-12 relative">
+    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer justify-end" onclick="toggleTimePickerPopup(event)">
+        <span class="iconify inline text-2xl text-gray-400 flex-grow" data-icon="fa-regular:calendar-alt"></span>
+        <a id="current-time-selection" class="text-gray-300 -mb-1">{{ .From | datetime }} - {{ .To | ceildate | datetime }}</a>
+        <span class="iconify inline text-2xl text-gray-400" data-icon="akar-icons:chevron-down"></span>
+    </div>
 
-    <div class="text-gray-300 text-sm flex items-center justify-center mt-4 self-center max-w-lg flex-wrap">
-        <a href="summary?interval=today" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">Today</a>
-        <a href="summary?interval=yesterday" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">Yesterday</a>
-        <a href="summary?interval=week" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">This Week</a>
-        <a href="summary?interval=month" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">This Month</a>
-        <a href="summary?interval=year" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">This Year</a>
-        <a href="summary?interval=last_7_days" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">Past 7 Days</a>
-        <a href="summary?interval=last_30_days" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">Past 30 Days</a>
-        <a href="summary?interval=last_12_months" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">Past 12 Months</a>
-        <a href="summary?interval=any" class="px-1 my-1 mx-1 border-b hover:border-b-2 border-gray-700 hover:bg-green-700 rounded hover:border-none">All Time</a>
+    <div class="hidden z-10 absolute top-0 right-0 popup mt-12 w-40" id="time-picker-popup">
+        <div class="flex-grow flex flex-col flex bg-gray-850 shadow-md rounded w-40 p-1 ">
+            <a id="time-option-today" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=today" onclick="toggleTimePickerPopup(event)">Today</a>
+            <a id="time-option-yesterday" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=yesterday" onclick="toggleTimePickerPopup(event)">Yesterday</a>
+            <a id="time-option-week" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=week" onclick="toggleTimePickerPopup(event)">This Week</a>
+            <a id="time-option-month" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=month" onclick="toggleTimePickerPopup(event)">This Month</a>
+            <a id="time-option-year" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=year" onclick="toggleTimePickerPopup(event)">This Year</a>
+            <a id="time-option-last_7_days" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=last_7_days" onclick="toggleTimePickerPopup(event)">Past 7 Days</a>
+            <a id="time-option-last_30_days" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=last_30_days" onclick="toggleTimePickerPopup(event)">Past 30 Days</a>
+            <a id="time-option-last_12_months" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=last_12_months" onclick="toggleTimePickerPopup(event)">Past 12 Months</a>
+            <a id="time-option-any" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=any" onclick="toggleTimePickerPopup(event)">All Time</a>
+            <hr class="my-2">
+            <form id="time-picker-form" class="flex flex-col space-y-1">
+                <div class="flex flex-col space-x-1 bg-gray-900 rounded p-1 border-2 border-gray-800">
+                    <label for="from-date-picker" class="text-gray-500 text-xs ml-2">Start:</label>
+                    <input id="from-date-picker" type="date" name="from" max="{{ .ToTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-900 cursor-pointer"
+                           value="{{ .From | simpledate }}" onclick="event.stopPropagation()" oninput="submitTimePicker(event)" required>
+                </div>
+                <div class="flex flex-col space-x-1 bg-gray-900 rounded p-1 border-2 border-gray-800">
+                    <label for="to-date-picker" class="text-gray-500 text-xs ml-2">End:</label>
+                    <input id="to-date-picker" type="date" name="to" min="{{ .FromTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-900 cursor-pointer"
+                           value="{{ .To | ceildate | simpledate }}" onclick="event.stopPropagation()" oninput="submitTimePicker(event)" required>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -101,23 +52,37 @@
 
     {{ if .User.HasData }}
 
-    <span class="text-white text-lg text-gray-300 text-center mb-4">
-        <span class="text-xl"><span class="iconify inline" data-icon="emojione-v1:alarm-clock"></span>️&nbsp;</span>
-        Showing a total of <span id="total-span" title="Total Hours" class="text-white text-xl font-semibold border-b-2 border-green-700"></span>
-        <span class="text-sm my-2">
-            (from <span title="Start Time" class="border-b border-gray-700">{{ .FromTime.T | datetime }}</span> to <span title="End Time" class="border-b border-gray-700">{{ .ToTime.T | datetime }}</span>)
-        </span>
-    </span>
+    <!-- KPIs -->
+    <div class="flex space-x-6 w-full mb-4 flex-wrap">
+        <div class="flex flex-col space-y-2 my-1 w-48 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+            <span class="text-xs text-gray-500 font-semibold">Total Time</span>
+            <span class="font-semibold text-xl truncate">{{ .TotalTime | duration }}</span>
+        </div>
+        <div class="flex flex-col space-y-2 my-1 w-48 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+            <span class="text-xs text-gray-500 font-semibold">Top Project</span>
+            <span class="font-semibold text-xl truncate">{{ .MaxByToString 0 }}</span>
+        </div>
+        <div class="flex flex-col space-y-2 my-1 w-48 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+            <span class="text-xs text-gray-500 font-semibold">Top Language</span>
+            <span class="font-semibold text-xl truncate">{{ .MaxByToString 1 }}</span>
+        </div>
+        <div class="flex flex-col space-y-2 my-1 w-48 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+            <span class="text-xs text-gray-500 font-semibold">Top OS</span>
+            <span class="font-semibold text-xl truncate">{{ .MaxByToString 3 }}</span>
+        </div>
+        <div class="flex flex-col space-y-2 my-1 w-48 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+            <span class="text-xs text-gray-500 font-semibold">Top Editor</span>
+            <span class="font-semibold text-xl truncate">{{ .MaxByToString 2 }}</span>
+        </div>
+    </div>
 
-    <div class="flex flex-wrap justify-center">
+    <div class="flex flex-wrap w-full justify-center mt-4">
         <div class="w-full lg:w-1/2 p-1" style="max-width: 100vw;">
-            <div class="p-4 pb-10 bg-gray-900 border border-gray-700 text-gray-300 rounded-md shadow m-2 flex flex-col" id="project-container" style="height: 300px">
+            <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="project-container" style="height: 608px">
                 <div class="flex justify-between">
-                    <div class="w-1/4 flex-1"></div>
-                    <span class="font-semibold w-1/2 text-center flex-1 whitespace-no-wrap">Projects</span>
+                    <span class="font-semibold text-lg w-1/2 flex-1 whitespace-no-wrap">Projects</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
-                        <label for="project-top-picker" class="mr-1">Show:&nbsp;</label>
-                        <input type="number" min="1" id="project-top-picker" data-entity="0" class="w-1/4 top-picker bg-gray-800 rounded-md text-center" value="10">
+                        <input type="number" min="1" id="project-top-picker" data-entity="0" class="top-picker bg-gray-800 rounded-md text-center" value="10">
                     </div>
                 </div>
                 <canvas id="chart-projects" class="mt-2"></canvas>
@@ -126,85 +91,85 @@
                 </div>
             </div>
         </div>
+
         <div class="w-full lg:w-1/2 p-1" style="max-width: 100vw;">
-            <div class="p-4 pb-10 bg-gray-900 border border-gray-700 text-gray-300 rounded-md shadow m-2 flex flex-col" id="os-container" style="height: 300px">
-                <div class="flex justify-between">
-                    <div class="w-1/4 flex-1"></div>
-                    <span class="font-semibold w-1/2 text-center flex-1 whitespace-no-wrap">Operating Systems</span>
-                    <div class="flex justify-end flex-1 text-xs items-center">
-                        <label for="os-top-picker" class="mr-1">Show:&nbsp;</label>
-                        <input type="number" min="1" id="os-top-picker" data-entity="1" class="w-1/4 top-picker bg-gray-800 rounded-md text-center" value="10">
+            <div class="flex flex-col space-y-2">
+                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="language-container" style="height: 300px">
+                    <div class="flex justify-between">
+                        <span class="font-semibold text-lg w-1/2 flex-1 whitespace-no-wrap">Languages</span>
+                        <div class="flex justify-end flex-1 text-xs items-center">
+                            <input type="number" min="1" id="language-top-picker" data-entity="3" class="top-picker bg-gray-800 rounded-md text-center" value="10">
+                        </div>
+                    </div>
+                    <canvas id="chart-language" class="mt-4"></canvas>
+                    <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
+                        <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                     </div>
                 </div>
-                <canvas id="chart-os"></canvas>
+
+                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="editor-container" style="height: 300px">
+                    <div class="flex justify-between">
+                        <span class="font-semibold text-lg w-1/2 flex-1 whitespace-no-wrap">Editors</span>
+                        <div class="flex justify-end flex-1 text-xs items-center">
+                            <input type="number" min="1" id="editor-top-picker" data-entity="2" class="top-picker bg-gray-800 rounded-md text-center" value="10">
+                        </div>
+                    </div>
+                    <canvas id="chart-editor" class="mt-4"></canvas>
+                    <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
+                        <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="w-full lg:w-1/2 p-1" style="max-width: 100vw;">
+            <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="os-container" style="height: 300px">
+                <div class="flex justify-between">
+                    <div>
+                        <span class="font-semibold text-lg w-1/2 flex-1 whitespace-no-wrap mr-1 cursor-pointer">Operating Systems</span>
+                        <span class="font-semibold text-lg w-1/2 flex-1 whitespace-no-wrap ml-1 cursor-pointer text-gray-600" onclick="swapCharts('machine', 'os')">Machines</span>
+                    </div>
+                    <div class="flex justify-end flex-1 text-xs items-center">
+                        <input type="number" min="1" id="os-top-picker" data-entity="1" class="top-picker bg-gray-800 rounded-md text-center" value="10">
+                    </div>
+                </div>
+                <canvas id="chart-os" class="mt-4"></canvas>
+                <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
+                    <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
+                </div>
+            </div>
+        </div>
+        <div class="hidden w-full lg:w-1/2 p-1" style="max-width: 100vw;">
+            <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="machine-container" style="height: 300px">
+                <div class="flex justify-between">
+                    <div>
+                        <span class="font-semibold text-lg w-1/2 flex-1 whitespace-no-wrap mr-1 cursor-pointer text-gray-600" onclick="swapCharts('os', 'machine')">Operating Systems</span>
+                        <span class="font-semibold text-lg w-1/2 flex-1 whitespace-no-wrap ml-1 cursor-pointer">Machines</span>
+                    </div>
+                    <div class="flex justify-end flex-1 text-xs items-center">
+                        <input type="number" min="1" id="machine-top-picker" data-entity="4" class="top-picker bg-gray-800 rounded-md text-center" value="10">
+                    </div>
+                </div>
+                <canvas id="chart-machine" class="mt-4"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
                     <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                 </div>
             </div>
         </div>
         <div class="w-full lg:w-1/2 p-1" style="max-width: 100vw;">
-            <div class="p-4 pb-10 bg-gray-900 border border-gray-700 text-gray-300 rounded-md shadow m-2 flex flex-col relative" id="language-container" style="height: 300px">
-                <div class="flex justify-between">
-                    <div class="w-1/4 flex-1"></div>
-                    <span class="font-semibold w-1/2 text-center flex-1 whitespace-no-wrap">Languages</span>
-                    <div class="flex justify-end flex-1 text-xs items-center">
-                        <label for="language-top-picker" class="mr-1">Show:&nbsp;</label>
-                        <input type="number" min="1" id="language-top-picker" data-entity="3" class="w-1/4 top-picker bg-gray-800 rounded-md text-center" value="10">
-                    </div>
-                </div>
-                <canvas id="chart-language"></canvas>
-                <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                    <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
-                </div>
-            </div>
-        </div>
-        <div class="w-full lg:w-1/2 p-1" style="max-width: 100vw;">
-            <div class="p-4 pb-10 bg-gray-900 border border-gray-700 text-gray-300 rounded-md shadow m-2 flex flex-col" id="editor-container" style="height: 300px">
-                <div class="flex justify-between">
-                    <div class="w-1/4 flex-1"></div>
-                    <span class="font-semibold w-1/2 text-center flex-1 whitespace-no-wrap">Editors</span>
-                    <div class="flex justify-end flex-1 text-xs items-center">
-                        <label for="editor-top-picker" class="mr-1">Show:&nbsp;</label>
-                        <input type="number" min="1" id="editor-top-picker" data-entity="2" class="w-1/4 top-picker bg-gray-800 rounded-md text-center" value="10">
-                    </div>
-                </div>
-                <canvas id="chart-editor"></canvas>
-                <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                    <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
-                </div>
-            </div>
-        </div>
-        <div class="w-full lg:w-1/2 p-1" style="max-width: 100vw;">
-            <div class="p-4 pb-10 bg-gray-900 border border-gray-700 text-gray-300 rounded-md shadow m-2 flex flex-col" id="machine-container" style="height: 300px">
-                <div class="flex justify-between">
-                    <div class="w-1/4 flex-1"></div>
-                    <span class="font-semibold w-1/2 text-center flex-1 whitespace-no-wrap">Machines</span>
-                    <div class="flex justify-end flex-1 text-xs items-center">
-                        <label for="machine-top-picker" class="mr-1">Show:&nbsp;</label>
-                        <input type="number" min="1" id="machine-top-picker" data-entity="4" class="w-1/4 top-picker bg-gray-800 rounded-md text-center" value="10">
-                    </div>
-                </div>
-                <canvas id="chart-machine"></canvas>
-                <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                    <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
-                </div>
-            </div>
-        </div>
-        <div class="w-full lg:w-1/2 p-1" style="max-width: 100vw;">
-            <div class="p-4 pb-10 bg-gray-900 border border-gray-700 text-gray-300 rounded-md shadow m-2 flex flex-col" id="label-container" style="height: 300px">
-                <div class="flex justify-between">
-                    <div class="w-1/4 flex-1">
-                        <a href="settings#details-labels" class="h-8 inline">
-                            <span class="iconify inline" data-icon="twemoji:gear"></span>
-                        </a>
-                    </div>
-                    <span class="font-semibold w-1/2 text-center flex-1 whitespace-no-wrap">Labels</span>
+            <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="label-container" style="height: 300px">
+                <div class="flex justify-between text-lg">
+                    <span class="font-semibold whitespace-no-wrap">Labels</span>
+                    <a href="settings#details-labels" class="ml-4 h-8 inline flex-grow">
+                        <span class="iconify inline" data-icon="twemoji:gear"></span>
+                    </a>
                     <div class="flex justify-end flex-1 text-xs items-center">
                         <label for="label-top-picker" class="mr-1">Show:&nbsp;</label>
-                        <input type="number" min="1" id="label-top-picker" data-entity="5" class="w-1/4 top-picker bg-gray-800 rounded-md text-center" value="10">
+                        <input type="number" min="1" id="label-top-picker" data-entity="5" class="top-picker bg-gray-800 rounded-md text-center" value="10">
                     </div>
                 </div>
-                <canvas id="chart-label"></canvas>
+                <canvas id="chart-label" class="mt-4"></canvas>
                 <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
                     <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                 </div>
@@ -214,18 +179,17 @@
 
     {{ else }}
 
-    <div class="max-w-screen-sm flex flex-col items-center mt-12 space-y-8 text-gray-300 text-center">
+    <div class="max-w-screen-sm flex flex-col items-center mt-12 space-y-8 text-gray-300">
         <div class="pb-4">
             <img src="assets/images/welcome.svg" width="200px" alt="User welcome illustration">
         </div>
-        <p class="text-sm">
-            <strong>Welcome to Wakapi! 👋</strong> It looks like there is no data available for the specified time range.<br>If you logged in to Wakapi for the first time, see the setup instructions below on how to get started.
+        <h1 class="font-semibold text-2xl text-white m-0 w-full">Welcome to Wakapi!</h1>
+        <p>
+            It looks like there is no data available for the specified time range.<br>If you logged in to Wakapi for the first time, see the setup instructions below on how to get started.
         </p>
         <div class="w-full pt-10 flex flex-col space-y-4">
-            <div>
-                <h3 class="inline-block font-semibold text-md border-b border-green-700">Setup Instructions</h3>
-            </div>
-            <div class="w-full bg-gray-900 text-left rounded-md py-4 px-8 text-xs font-mono shadow-md">
+            <h1 class="font-semibold text-2xl text-white m-0 mb-2">Setup Instructions</h1>
+            <div class="w-full bg-gray-850 text-left rounded-md py-4 px-8 text-xs font-mono shadow-md">
                 # <strong>Step 1:</strong> Download WakaTime plugin for your IDE<br>
                 # See: https://wakatime.com/plugins<br><br>
 
@@ -238,9 +202,6 @@
 
                 # <strong>Step 3:</strong> Start coding and then check back here!
             </div>
-            <p class="pt-4 text-sm">
-                More at <a href="https://github.com/muety/wakapi" target="_blank" rel="noreferrer noopener" class="font-mono border-b border-green-700">github.com/muety/wakapi</a>.
-            </p>
         </div>
     </div>
 
@@ -254,8 +215,6 @@
 
 <script>
     const languageColors = {{ .LanguageColors | json }}
-    const editorColors = {{ .EditorColors | json }}
-    const osColors = {{ .OSColors | json }}
 
     const wakapiData = {}
     wakapiData.projects = {{ .Projects | json }}

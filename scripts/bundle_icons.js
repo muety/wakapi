@@ -33,7 +33,18 @@ let icons = [
     'eva:corner-right-down-fill',
     'bi:heart-fill',
     'fxemoji:running',
-    'ic:round-person'
+    'ic:round-person',
+    'bx:bxs-bar-chart-alt-2',
+    'bi:people-fill',
+    'fluent:data-bar-horizontal-24-filled',
+    'ic:round-dashboard',
+    'ci:settings-filled',
+    'akar-icons:chevron-down',
+    'ls:logout',
+    'fluent:key-32-filled',
+    'majesticons:clipboard-copy',
+    'fa-regular:calendar-alt',
+    'ph:books-bold'
 ]
 
 const output = path.normalize(path.join(__dirname, '../static/assets/icons.js'))

@@ -1,0 +1,84 @@
+<div class="flex justify-between space-x-4 items-center relative">
+    <div class="mr-8">
+    {{ template "logo.tpl.html" }}
+    </div>
+
+    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer">
+        <span class="iconify inline text-2xl text-gray-400" data-icon="ic:round-dashboard"></span>
+        <a class="text-gray-300" href="summary">Dashboard</a>
+    </div>
+
+    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-not-allowed">
+        <span class="iconify inline text-2xl text-gray-700" data-icon="bi:people-fill"></span>
+        <a class="text-gray-600 leading-none">
+            Team<br>
+            <span class="text-xxs">(coming soon)</span>
+        </a>
+    </div>
+
+    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-not-allowed">
+        <span class="iconify inline text-2xl text-gray-700" data-icon="fluent:data-bar-horizontal-24-filled"></span>
+        <a class="text-gray-600 leading-none">
+            Leaderboard<br>
+            <span class="text-xxs">(coming soon)</span>
+        </a>
+    </div>
+
+    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer">
+        <span class="iconify inline text-2xl text-gray-400" data-icon="ph:books-bold"></span>
+        <a class="text-gray-400">Resources</a>
+        <span class="iconify inline text-xl text-gray-400" data-icon="akar-icons:chevron-down"></span>
+    </div>
+
+    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer">
+        <span class="iconify inline text-2xl text-gray-400" data-icon="ci:settings-filled"></span>
+        <a class="text-gray-400" href="settings">Settings</a>
+    </div>
+
+    <div class="flex-grow"></div>
+
+    <div class="menu-item flex items-center text-sm font-semibold space-x-3 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer" onclick="showUserMenuPopup(event)">
+        <div class="flex flex-col text-right">
+            <a class="text-gray-300">{{ .User.ID }}</a>
+            {{ if .User.Email }}
+            <span class="text-xxs text-gray-500">{{ .User.Email }}</span>
+            {{ end }}
+        </div>
+        {{ if avatarUrlTemplate }}
+        <img src="{{ .User.AvatarURL avatarUrlTemplate }}" width="32px" class="rounded-full border-green-700" alt="User Profile Avatar" title="Looks like you, doesn't it?"/>
+        {{ else }}
+        <span class="iconify inline cursor-pointer text-gray-500 rounded-full border-green-700" style="width: 32px; height: 32px" data-icon="ic:round-person" onclick="showUserMenuPopup(event)"></span>
+        {{ end }}
+    </div>
+
+    <div class="hidden flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-14"
+         id="user-menu-popup" style="min-width: 156px;">
+        <div class="flex-grow flex flex-col">
+            <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
+                <button class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" onclick="showApiKeyPopup(event); hideUserMenuPopup(event)">
+                    <span class="text-sm">Show API Key</span>
+                    <span class="iconify inline" data-icon="fluent:key-32-filled"></span>
+                </button>
+            </div>
+            <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
+                <form action="logout" method="post" class="flex-grow">
+                    <button type="submit" class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold">
+                        <span class="text-sm">Logout</span>
+                        <span class="iconify inline" data-icon="ls:logout"></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="hidden flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup" id="api-key-popup">
+        <div class="flex-grow flex flex-col px-2">
+            <span class="text-xxs text-gray-500 mx-1">API Key</span>
+            <input type="text" class="bg-transparent text-sm text-white mx-1 font-mono" id="api-key-container" readonly
+                   value="{{ .ApiKey }}" style="min-width: 330px">
+        </div>
+        <div class="flex items-center px-2 border-l border-gray-700">
+            <button title="Copy to clipboard" onclick="copyApiKey(event)"><span class="iconify inline text-gray-300" data-icon="majesticons:clipboard-copy"></span></button>
+        </div>
+    </div>
+</div>

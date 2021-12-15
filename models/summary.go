@@ -55,8 +55,6 @@ type SummaryViewModel struct {
 	User           *User
 	AvatarURL      string
 	LanguageColors map[string]string
-	EditorColors   map[string]string
-	OSColors       map[string]string
 	Error          string
 	Success        string
 	ApiKey         string
@@ -223,6 +221,27 @@ func (s *Summary) TotalTimeByFilters(filters *Filters) time.Duration {
 		return s.TotalTimeByKey(typeId, key)
 	}
 	return 0
+}
+
+func (s *Summary) MaxBy(entityType uint8) *SummaryItem {
+	var max *SummaryItem
+	mappedItems := s.MappedItems()
+	if items := mappedItems[entityType]; len(*items) > 0 {
+		for _, item := range *items {
+			if max == nil || item.Total > max.Total {
+				max = item
+			}
+		}
+	}
+	return max
+}
+
+func (s *Summary) MaxByToString(entityType uint8) string {
+	max := s.MaxBy(entityType)
+	if max == nil {
+		return "-"
+	}
+	return max.Key
 }
 
 func (s *Summary) WithResolvedAliases(resolve AliasResolver) *Summary {
