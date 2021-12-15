@@ -17,10 +17,10 @@ func init() {
 
 			if cfg.Db.IsMySQL() {
 				tx := db.Begin()
-				if err := tx.Exec("ALTER TABLE heartbeats MODIFY COLUMN id BIGINT UNSIGNED").Error; err != nil {
+				if err := tx.Exec("ALTER TABLE heartbeats MODIFY COLUMN id BIGINT UNSIGNED AUTO_INCREMENT").Error; err != nil {
 					return err
 				}
-				if err := tx.Exec("ALTER TABLE summary_items MODIFY COLUMN id BIGINT UNSIGNED").Error; err != nil {
+				if err := tx.Exec("ALTER TABLE summary_items MODIFY COLUMN id BIGINT UNSIGNED AUTO_INCREMENT").Error; err != nil {
 					return err
 				}
 				tx.Commit()
