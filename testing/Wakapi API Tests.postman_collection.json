@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "da93a75e-e931-4f00-80b8-428f0e7ae824",
+		"_postman_id": "a7f72e0a-a32e-4ec4-bf60-9915ba0acbd3",
 		"name": "Wakapi API Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -2520,7 +2520,7 @@
 											"});",
 											"",
 											"pm.test(\"Body contains string\", function () {",
-											"    pm.expect(pm.response.text()).to.include(\"Showing a total of\");",
+											"    pm.expect(pm.response.text()).to.include(\"Total Time\");",
 											"});"
 										],
 										"type": "text/javascript"
@@ -2805,7 +2805,7 @@
 											"});",
 											"",
 											"pm.test(\"Body contains string\", function () {",
-											"    pm.expect(pm.response.text()).to.include(\"Showing a total of\");",
+											"    pm.expect(pm.response.text()).to.include(\"Total Time\");",
 											"});"
 										],
 										"type": "text/javascript"
