@@ -1,10 +1,4 @@
 <script type="module">
-    function findParentAttribute(el, attrName) {
-        if (el.attributes[attrName]) return el.attributes[attrName]
-        if (!el.parentNode || !el.parentNode.attributes) return null
-        return findParentAttribute(el.parentNode, attrName)
-    }
-
     PetiteVue.createApp({
         $delimiters: ['${', '}'],
         state: {
@@ -15,9 +9,7 @@
         mounted() {
             window.addEventListener('click', (e) => {
                 const skip = findParentAttribute(e.target, 'data-trigger-for')?.value
-                Object.keys(this.state).forEach(k => {
-                    if (k !== skip) this.state[k] = false
-                })
+                Object.keys(this.state).filter(k => k !== skip).forEach(k => this.state[k] = false)
             })
         }
     }).mount('#main-menu')

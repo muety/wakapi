@@ -3,6 +3,41 @@
 
 {{ template "head.tpl.html" . }}
 
+<script type="module">
+    // Constants
+    const timeSelection = '{{ .From | datetime }} - {{ .To | ceildate | datetime }}'
+    const fromDate = '{{ .From | simpledate }}'
+    const toDate = '{{ .To | ceildate | simpledate }}'
+
+    // Elements
+    const formTimePicker = document.getElementById('time-picker-form')
+
+    PetiteVue.createApp({
+        $delimiters: ['${', '}'],
+        state: {
+            showDropdownTimepicker: false,
+        },
+        fromDate: fromDate,
+        toDate: toDate,
+        timeSelection: timeSelection,
+        onDateUpdated() {
+            formTimePicker.submit()
+        },
+        mounted() {
+            window.addEventListener('click', (e) => {
+                const skip = findParentAttribute(e.target, 'data-trigger-for')?.value
+                Object.keys(this.state).filter(k => k !== skip).forEach(k => this.state[k] = false)
+            })
+
+            const query = new URLSearchParams(window.location.search)
+            if (query.has('interval')) {
+                const refEl = document.getElementById(`time-option-${query.get('interval')}`)
+                this.timeSelection = refEl ? refEl.innerText : 'Unknown'
+            }
+        }
+    }).mount('#summary-page')
+</script>
+
 <body class="relative bg-gray-900 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
 
 {{ template "menu-main.tpl.html" . }}
@@ -11,35 +46,35 @@
 
 {{ if .User.HasData }}
 
-<div class="flex justify-end mt-12 relative">
-    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer justify-end" onclick="togglePopup(event, 'time-picker-dropdown')">
+<div class="flex justify-end mt-12 relative" id="summary-page" v-scope @vue:mounted="mounted">
+    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer justify-end" @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker">
         <span class="iconify inline text-2xl text-gray-400 flex-grow" data-icon="fa-regular:calendar-alt"></span>
-        <a id="current-time-selection" class="text-gray-300 -mb-1">{{ .From | datetime }} - {{ .To | ceildate | datetime }}</a>
+        <a v-cloak id="current-time-selection" class="text-gray-300 -mb-1">${timeSelection}</a>
         <span class="iconify inline text-2xl text-gray-400" data-icon="akar-icons:chevron-down"></span>
     </div>
 
-    <div class="hidden z-10 absolute top-0 right-0 popup mt-12 w-40" id="time-picker-dropdown">
+    <div v-cloak v-show="state.showDropdownTimepicker" class="z-10 absolute top-0 right-0 popup mt-12 w-40" id="time-picker-dropdown">
         <div class="flex-grow flex flex-col flex bg-gray-850 shadow-md rounded w-40 p-1 ">
-            <a id="time-option-today" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=today" onclick="togglePopup(event, 'time-picker-dropdown')">Today</a>
-            <a id="time-option-yesterday" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=yesterday" onclick="togglePopup(event, 'time-picker-dropdown')">Yesterday</a>
-            <a id="time-option-week" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=week" onclick="togglePopup(event, 'time-picker-dropdown')">This Week</a>
-            <a id="time-option-month" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=month" onclick="togglePopup(event, 'time-picker-dropdown')">This Month</a>
-            <a id="time-option-year" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=year" onclick="togglePopup(event, 'time-picker-dropdown')">This Year</a>
-            <a id="time-option-last_7_days" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=last_7_days" onclick="togglePopup(event, 'time-picker-dropdown')">Past 7 Days</a>
-            <a id="time-option-last_30_days" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=last_30_days" onclick="togglePopup(event, 'time-picker-dropdown')">Past 30 Days</a>
-            <a id="time-option-last_12_months" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=last_12_months" onclick="togglePopup(event, 'time-picker-dropdown')">Past 12 Months</a>
-            <a id="time-option-any" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=any" onclick="togglePopup(event, 'time-picker-dropdown')">All Time</a>
+            <a id="time-option-today" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=today"  @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker">Today</a>
+            <a id="time-option-yesterday" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=yesterday"  @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker">Yesterday</a>
+            <a id="time-option-week" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=week"  @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker">This Week</a>
+            <a id="time-option-month" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=month"  @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker">This Month</a>
+            <a id="time-option-year" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=year"  @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker">This Year</a>
+            <a id="time-option-last_7_days" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=last_7_days"  @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker">Past 7 Days</a>
+            <a id="time-option-last_30_days" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=last_30_days"  @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker">Past 30 Days</a>
+            <a id="time-option-last_12_months" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=last_12_months"  @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker">Past 12 Months</a>
+            <a id="time-option-any" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" href="summary?interval=any"  @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker">All Time</a>
             <hr class="my-2">
             <form id="time-picker-form" class="flex flex-col space-y-1">
                 <div class="flex flex-col space-x-1 bg-gray-900 rounded p-1 border-2 border-gray-800">
                     <label for="from-date-picker" class="text-gray-500 text-xs ml-2">Start:</label>
-                    <input id="from-date-picker" type="date" name="from" max="{{ .ToTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-900 cursor-pointer"
-                           value="{{ .From | simpledate }}" onclick="event.stopPropagation()" oninput="submitTimePicker(event)" required>
+                    <input v-model="fromDate" id="from-date-picker" type="date" name="from" max="{{ .ToTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-900 cursor-pointer"
+                           required @input="onDateUpdated" data-trigger-for="showDropdownTimepicker">
                 </div>
                 <div class="flex flex-col space-x-1 bg-gray-900 rounded p-1 border-2 border-gray-800">
                     <label for="to-date-picker" class="text-gray-500 text-xs ml-2">End:</label>
-                    <input id="to-date-picker" type="date" name="to" min="{{ .FromTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-900 cursor-pointer"
-                           value="{{ .To | ceildate | simpledate }}" onclick="event.stopPropagation()" oninput="submitTimePicker(event)" required>
+                    <input v-model="toDate" id="to-date-picker" type="date" name="to" min="{{ .FromTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-900 cursor-pointer"
+                           required @input="onDateUpdated" data-trigger-for="showDropdownTimepicker">
                 </div>
             </form>
         </div>
@@ -197,7 +232,7 @@
 
                 <!-- https://github.com/muety/wakapi/issues/224#issuecomment-890855563 -->
                 # Set <em>api_url = <span class="with-url-inner">%s/api/heartbeat</span></em><br>
-                # Set <em>api_key = <span id="api-key-instruction"></span></em><br><br>
+                # Set <em>api_key = <span id="api-key-instruction">{{ .ApiKey }}</span></em><br><br>
 
                 # <strong>Step 3:</strong> Start coding and then check back here!
             </div>
@@ -222,22 +257,9 @@
     wakapiData.languages = {{ .Languages | json }}
     wakapiData.machines = {{ .Machines | json }}
     wakapiData.labels = {{ .Labels | json }}
-
-    if (document.getElementById('to-date-picker') !== null) {
-        document.getElementById("to-date-picker").onchange = function () {
-            var input = document.getElementById("from-date-picker");
-            input.setAttribute("max", this.value);
-        }
-
-        document.getElementById("from-date-picker").onchange = function () {
-            var input = document.getElementById("to-date-picker");
-            input.setAttribute("min", this.value);
-        }
-    } else {
-        document.getElementById('api-key-instruction').innerHTML = document.getElementById('api-key-container').value
-    }
-
 </script>
+<script src="assets/summary.js"></script>
+
 </body>
 
 </html>

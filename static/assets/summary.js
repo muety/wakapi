@@ -5,7 +5,7 @@ const LEGEND_MAX_ENTRIES = 9
 const LEGEND_CHARACTERS = 20
 
 // https://hihayk.github.io/scale/#4/6/50/80/-51/67/20/14/276749/39/103/73/white
-const baseColors = [ '#112836', '#163B43', '#1C4F4D', '#215B4C', '#276749', '#437C57', '#5F9167', '#7DA67C', '#9FBA98', '#BFCEB5', '#DCE2D3' ]
+const baseColors = ['#112836', '#163B43', '#1C4F4D', '#215B4C', '#276749', '#437C57', '#5F9167', '#7DA67C', '#9FBA98', '#BFCEB5', '#DCE2D3']
 
 const projectsCanvas = document.getElementById('chart-projects')
 const osCanvas = document.getElementById('chart-os')
@@ -35,7 +35,6 @@ topNPickers.forEach(e => {
 
 let charts = []
 let showTopN = []
-let resizeCount = 0
 
 Chart.defaults.color = "#E2E8F0"
 Chart.defaults.borderColor = "#242b3a"
@@ -333,7 +332,7 @@ function parseTopN() {
 }
 
 function togglePlaceholders(mask) {
-    const placeholderElements = containers.map(c => c ? c.querySelector('.placeholder-container'): null)
+    const placeholderElements = containers.map(c => c ? c.querySelector('.placeholder-container') : null)
 
     for (let i = 0; i < mask.length; i++) {
         if (placeholderElements[i] === null) {
@@ -351,11 +350,6 @@ function togglePlaceholders(mask) {
 
 function getPresentDataMask() {
     return data.map(list => (list ? list.reduce((acc, e) => acc + e.total, 0) : 0) > 0)
-}
-
-function getContainer(chart) {
-    // See https://github.com/muety/wakapi/issues/235#issuecomment-907762100
-    return chart.canvas.parentNode
 }
 
 function getColor(seed, index) {
@@ -377,7 +371,7 @@ function getRandomColor(seed) {
 // https://stackoverflow.com/a/5624139/3112139
 function hexToRgb(hex) {
     var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-    hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+    hex = hex.replace(shorthandRegex, function (m, r, g, b) {
         return r + r + g + g + b + b;
     });
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -388,61 +382,12 @@ function hexToRgb(hex) {
     } : null;
 }
 
-function togglePopup(event, id) {
-    const el = document.getElementById(id)
-    if (el.classList.contains('hidden')) {
-        el.classList.remove('hidden')
-        el.classList.add('block')
-    } else {
-        el.classList.add('hidden')
-        el.classList.remove('block')
-    }
-    event.stopPropagation()
-}
-
-function copyApiKey(event) {
-    const el = document.getElementById('api-key-container')
-    el.select()
-    el.setSelectionRange(0, 9999)
-    document.execCommand('copy')
-    event.stopPropagation()
-}
-
-function submitTimePicker(event) {
-    const el = document.getElementById('time-picker-form')
-    el.submit()
-}
-
 function swapCharts(showEntity, hideEntity) {
     document.getElementById(`${showEntity}-container`).parentElement.classList.remove('hidden')
     document.getElementById(`${hideEntity}-container`).parentElement.classList.add('hidden')
 }
 
-function updateTimeSelection() {
-    const query = new URLSearchParams(window.location.search)
-    if (query.has('interval')) {
-        const targetEl = document.getElementById('current-time-selection')
-        const refEl = document.getElementById(`time-option-${query.get('interval')}`)
-        targetEl.innerText = refEl ? refEl.innerText : 'Unknown'
-    }
-}
-
-
-
-// Click outside
-window.addEventListener('click', function (event) {
-    if (event.target.classList.contains('popup')) {
-        return
-    }
-    document.querySelectorAll('.popup').forEach(el => {
-        el.classList.remove('block')
-        el.classList.add('hidden')
-    })
-})
-
 window.addEventListener('load', function () {
-    updateTimeSelection()
-
     topNPickers.forEach(e => e.addEventListener('change', () => {
         parseTopN()
         draw([parseInt(e.attributes['data-entity'].value)])
