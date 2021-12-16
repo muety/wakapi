@@ -7,6 +7,8 @@
 
 {{ template "menu-main.tpl.html" . }}
 
+{{ template "alerts.tpl.html" . }}
+
 {{ if .User.HasData }}
 
 <div class="flex justify-end mt-12 relative">
@@ -45,8 +47,6 @@
 </div>
 
 {{ end }}
-
-{{ template "alerts.tpl.html" . }}
 
 <main class="flex flex-col items-center mt-10 flex-grow">
 
@@ -161,7 +161,7 @@
             <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="label-container" style="height: 300px">
                 <div class="flex justify-between text-lg">
                     <span class="font-semibold whitespace-no-wrap">Labels</span>
-                    <a href="settings#details-labels" class="ml-4 h-8 inline flex-grow">
+                    <a href="settings#data" class="ml-4 inline p-2 hover:bg-gray-800 rounded" style="margin-top: -5px">
                         <span class="iconify inline" data-icon="twemoji:gear"></span>
                     </a>
                     <div class="flex justify-end flex-1 text-xs items-center">
@@ -182,12 +182,12 @@
         <div class="pb-4">
             <img src="assets/images/welcome.svg" width="200px" alt="User welcome illustration">
         </div>
-        <h1 class="font-semibold text-2xl text-white m-0 w-full">Welcome to Wakapi!</h1>
+        <h1 class="font-semibold text-3xl text-white m-0 w-full">Welcome to Wakapi!</h1>
         <p>
             It looks like there is no data available for the specified time range.<br>If you logged in to Wakapi for the first time, see the setup instructions below on how to get started.
         </p>
         <div class="w-full pt-10 flex flex-col space-y-4">
-            <h1 class="font-semibold text-2xl text-white m-0 mb-2">Setup Instructions</h1>
+            <h1 class="font-semibold text-3xl text-white m-0 mb-2">Setup Instructions</h1>
             <div class="w-full bg-gray-850 text-left rounded-md py-4 px-8 text-xs font-mono shadow-md">
                 # <strong>Step 1:</strong> Download WakaTime plugin for your IDE<br>
                 # See: https://wakatime.com/plugins<br><br>
@@ -238,8 +238,6 @@
     }
 
 </script>
-<script src="assets/app.js"></script>
-
 </body>
 
 </html>

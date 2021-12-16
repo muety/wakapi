@@ -1,8 +1,17 @@
 package view
 
+import "github.com/muety/wakapi/models"
+
 type SummaryViewModel struct {
-	Success string
-	Error   string
+	*models.Summary
+	*models.SummaryParams
+	User           *models.User
+	AvatarURL      string
+	LanguageColors map[string]string
+	Error          string
+	Success        string
+	ApiKey         string
+	RawQuery       string
 }
 
 func (s *SummaryViewModel) WithSuccess(m string) *SummaryViewModel {

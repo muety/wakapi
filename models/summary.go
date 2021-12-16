@@ -49,18 +49,6 @@ type SummaryItemContainer struct {
 	Items []*SummaryItem
 }
 
-type SummaryViewModel struct {
-	*Summary
-	*SummaryParams
-	User           *User
-	AvatarURL      string
-	LanguageColors map[string]string
-	Error          string
-	Success        string
-	ApiKey         string
-	RawQuery       string
-}
-
 type SummaryParams struct {
 	From      time.Time
 	To        time.Time

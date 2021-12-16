@@ -682,6 +682,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewMode
 		Aliases:          combinedAliases,
 		Labels:           combinedLabels,
 		Projects:         projects,
+		ApiKey:           user.ApiKey,
 		Success:          r.URL.Query().Get("success"),
 		Error:            r.URL.Query().Get("error"),
 	}

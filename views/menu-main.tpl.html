@@ -3,10 +3,10 @@
     {{ template "logo.tpl.html" }}
     </div>
 
-    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer">
+    <a class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer" href="summary">
         <span class="iconify inline text-2xl text-gray-400" data-icon="ic:round-dashboard"></span>
-        <a class="text-gray-300" href="summary">Dashboard</a>
-    </div>
+        <span class="text-gray-300">Dashboard</span>
+    </a>
 
     <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-not-allowed">
         <span class="iconify inline text-2xl text-gray-700" data-icon="bi:people-fill"></span>
@@ -32,7 +32,7 @@
         <div class="hidden flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-12 w-full" id="resources-menu-dropdown">
             <div class="flex-grow flex flex-col">
                 <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
-                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://github.com/muety/wakapi" rel="noreferrer noopener" onclick="togglePopup(event, 'resources-menu-dropdown')">
+                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://github.com/muety/wakapi" target="_blank" rel="noreferrer noopener" onclick="togglePopup(event, 'resources-menu-dropdown')">
                         <span class="text-sm">GitHub</span>
                         <span class="iconify inline" data-icon="codicon:github-inverted"></span>
                     </a>
@@ -44,13 +44,13 @@
                     </a>
                 </div>
                 <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
-                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://wakatime.com" rel="noreferrer noopener" onclick="togglePopup(event, 'resources-menu-dropdown')">
+                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://wakatime.com" target="_blank" rel="noreferrer noopener" onclick="togglePopup(event, 'resources-menu-dropdown')">
                         <span class="text-sm">WakaTime</span>
                         <span class="iconify inline" data-icon="simple-icons:wakatime"></span>
                     </a>
                 </div>
                 <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
-                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://github.com/sponsors/muety" rel="noreferrer noopener" onclick="togglePopup(event, 'resources-menu-dropdown')">
+                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://github.com/sponsors/muety" target="_blank" rel="noreferrer noopener" onclick="togglePopup(event, 'resources-menu-dropdown')">
                         <span class="text-sm">Donate</span>
                         <span class="iconify inline" data-icon="bx:bxs-heart"></span>
                     </a>
@@ -59,10 +59,10 @@
         </div>
     </div>
 
-    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer">
+    <a class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer" href="settings">
         <span class="iconify inline text-2xl text-gray-400" data-icon="ci:settings-filled"></span>
-        <a class="text-gray-400" href="settings">Settings</a>
-    </div>
+        <span class="text-gray-400">Settings</span>
+    </a>
 
     <div class="flex-grow"></div>
 

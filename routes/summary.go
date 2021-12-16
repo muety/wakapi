@@ -4,7 +4,6 @@ import (
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
-	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
 	su "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
@@ -61,7 +60,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vm := models.SummaryViewModel{
+	vm := view.SummaryViewModel{
 		Summary:        summary,
 		SummaryParams:  summaryParams,
 		User:           user,

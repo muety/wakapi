@@ -8,6 +8,7 @@ type SettingsViewModel struct {
 	Aliases          []*SettingsVMCombinedAlias
 	Labels           []*SettingsVMCombinedLabel
 	Projects         []string
+	ApiKey           string
 	Success          string
 	Error            string
 }
