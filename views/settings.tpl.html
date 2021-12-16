@@ -579,7 +579,7 @@
                                 />
                             </div>
                             <input
-                                    class="flex-shrink w-full font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed"
+                                    class="with-url-value flex-shrink w-full font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed"
                                     value="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:today&style=flat-square&color=2F855A&label=today"
                                     readonly
                             >
@@ -594,7 +594,7 @@
                                 />
                             </div>
                             <input
-                                    class="flex-shrink w-full font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed"
+                                    class="with-url-value flex-shrink w-full font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed"
                                     value="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:30_days&style=flat-square&color=2F855A&label=last 30d"
                                     readonly
                             >
@@ -625,7 +625,7 @@
                                  class="with-url-src-no-scheme" alt="Readme Stats Card">
                         </div>
                         <textarea
-                                class="flex-shrink w-full font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed mt-2"
+                                class="with-url-inner-no-scheme flex-shrink w-full font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed mt-2"
                                 rows="5" style="resize: none"
                                 readonly>https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=1A202C&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact</textarea>
                         {{ end }}
@@ -683,6 +683,27 @@
 </main>
 
 {{ template "footer.tpl.html" . }}
+
+<script type="text/javascript">
+    const baseUrl = location.href.substring(0, location.href.lastIndexOf('/'))
+    document.querySelectorAll('.with-url-src').forEach(e => {
+        e.setAttribute('src', e.getAttribute('src').replace('%s', baseUrl))
+    })
+    document.querySelectorAll('.with-url-src-no-scheme').forEach(e => {
+        const strippedUrl = baseUrl.replace(/https?:\/\//, '')
+        e.setAttribute('src', e.getAttribute('src').replace('%s', strippedUrl))
+    })
+    document.querySelectorAll('.with-url-value').forEach(e => {
+        e.setAttribute('value', e.getAttribute('value').replace('%s', baseUrl))
+    })
+    document.querySelectorAll('.with-url-inner').forEach(e => {
+        e.innerHTML = e.innerHTML.replace('%s', baseUrl)
+    })
+    document.querySelectorAll('.with-url-inner-no-scheme').forEach(e => {
+        const strippedUrl = baseUrl.replace(/https?:\/\//, '')
+        e.innerHTML = e.innerHTML.replace('%s', strippedUrl)
+    })
+</script>
 
 {{ template "foot.tpl.html" . }}
 </body>
