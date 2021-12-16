@@ -48,7 +48,7 @@
             this.updateTab()
             window.addEventListener('hashchange', () => this.updateTab())
         }
-    }).mount()
+    }).mount('#settings-page')
 </script>
 
 <body class="bg-gray-900 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
@@ -70,7 +70,7 @@
 
 {{ template "alerts.tpl.html" . }}
 
-<main class="mt-10 flex-grow flex justify-center w-full" v-scope @vue:mounted="mounted">
+<main class="mt-10 flex-grow flex justify-center w-full" v-scope @vue:mounted="mounted" id="settings-page">
     <div class="flex flex-col flex-grow mt-10">
         <h1 class="font-semibold text-3xl text-white m-0 mb-4">Settings</h1>
 
@@ -92,7 +92,7 @@
             </li>
         </ul>
 
-        <div id="account" class="tab flex flex-col space-y-4" v-if="isActive('account')">
+        <div v-cloak id="account" class="tab flex flex-col space-y-4" v-if="isActive('account')">
             <!-- Account Settings -->
             <form action="" method="post" class="w-3/4">
                 <input type="hidden" name="action" value="update_user">
@@ -197,7 +197,7 @@
             </form>
         </div>
 
-        <div id="data" class="tab flex flex-col space-y-4" v-if="isActive('data')">
+        <div v-cloak id="data" class="tab flex flex-col space-y-4" v-if="isActive('data')">
             <!-- Aliases -->
             <div class="w-full">
                 <div class="flex mb-8">
@@ -395,7 +395,7 @@
             </div>
         </div>
 
-        <div id="permissions" class="tab flex flex-col space-y-4" v-if="isActive('permissions')">
+        <div v-cloak id="permissions" class="tab flex flex-col space-y-4" v-if="isActive('permissions')">
             <!-- Public Data -->
             <form action="" method="post" class="w-3/4">
                 <div class="flex mb-8">
@@ -515,7 +515,7 @@
             </form>
         </div>
 
-        <div id="integrations" class="tab flex flex-col space-y-4" v-if="isActive('integrations')">
+        <div v-cloak id="integrations" class="tab flex flex-col space-y-4" v-if="isActive('integrations')">
             <form action="" method="post" class="w-3/4">
                 <input type="hidden" name="action" value="toggle_wakatime">
 
@@ -634,7 +634,7 @@
             </div>
         </div>
 
-        <div id="danger_zone" class="tab flex flex-col space-y-4" v-if="isActive('danger_zone')">
+        <div v-cloak id="danger_zone" class="tab flex flex-col space-y-4" v-if="isActive('danger_zone')">
             <div class="w-3/4">
                 <form action="" method="post" class="flex mb-8" id="form-regenerate-summaries">
                     <input type="hidden" name="action" value="regenerate_summaries">

@@ -2,6 +2,10 @@ body {
     font-family: 'Source Sans 3', 'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
 }
 
+[v-cloak] {
+    display: none;
+}
+
 .bg-gray-850 {
     background-color: #242b3a;
 }

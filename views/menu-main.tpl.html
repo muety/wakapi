@@ -1,4 +1,29 @@
-<div class="flex justify-between space-x-4 items-center relative" id="main-menu">
+<script type="module">
+    function findParentAttribute(el, attrName) {
+        if (el.attributes[attrName]) return el.attributes[attrName]
+        if (!el.parentNode || !el.parentNode.attributes) return null
+        return findParentAttribute(el.parentNode, attrName)
+    }
+
+    PetiteVue.createApp({
+        $delimiters: ['${', '}'],
+        state: {
+            showDropdownResources: false,
+            showDropdownUser: false,
+            showApiKey: false
+        },
+        mounted() {
+            window.addEventListener('click', (e) => {
+                const skip = findParentAttribute(e.target, 'data-trigger-for')?.value
+                Object.keys(this.state).forEach(k => {
+                    if (k !== skip) this.state[k] = false
+                })
+            })
+        }
+    }).mount('#main-menu')
+</script>
+
+<div class="flex justify-between space-x-4 items-center relative" id="main-menu" v-scope @vue:mounted="mounted">
     <div class="mr-8">
     {{ template "logo.tpl.html" }}
     </div>
@@ -24,33 +49,33 @@
         </a>
     </div>
 
-    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer relative" onclick="togglePopup(event, 'resources-menu-dropdown')">
+    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer relative" @click="state.showDropdownResources = !state.showDropdownResources" data-trigger-for="showDropdownResources">
         <span class="iconify inline text-2xl text-gray-400" data-icon="ph:books-bold"></span>
         <a class="text-gray-400">Resources</a>
         <span class="iconify inline text-xl text-gray-400" data-icon="akar-icons:chevron-down"></span>
 
-        <div class="hidden flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-12 w-full" id="resources-menu-dropdown">
+        <div v-cloak v-show="state.showDropdownResources" class="flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-12 w-full" id="resources-menu-dropdown">
             <div class="flex-grow flex flex-col">
                 <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
-                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://github.com/muety/wakapi" target="_blank" rel="noreferrer noopener" onclick="togglePopup(event, 'resources-menu-dropdown')">
+                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://github.com/muety/wakapi" target="_blank" rel="noreferrer noopener" @click="state.showDropdownResources = !state.showDropdownResources"  data-trigger-for="showDropdownResources">
                         <span class="text-sm">GitHub</span>
                         <span class="iconify inline" data-icon="codicon:github-inverted"></span>
                     </a>
                 </div>
                 <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
-                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="swagger-ui" onclick="togglePopup(event, 'resources-menu-dropdown')">
+                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="swagger-ui" @click="state.showDropdownResources = !state.showDropdownResources"  data-trigger-for="showDropdownResources">
                         <span class="text-sm">API Docs</span>
                         <span class="iconify inline" data-icon="bx:bx-code-curly"></span>
                     </a>
                 </div>
                 <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
-                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://wakatime.com" target="_blank" rel="noreferrer noopener" onclick="togglePopup(event, 'resources-menu-dropdown')">
+                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://wakatime.com" target="_blank" rel="noreferrer noopener" @click="state.showDropdownResources = !state.showDropdownResources"  data-trigger-for="showDropdownResources">
                         <span class="text-sm">WakaTime</span>
                         <span class="iconify inline" data-icon="simple-icons:wakatime"></span>
                     </a>
                 </div>
                 <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
-                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://github.com/sponsors/muety" target="_blank" rel="noreferrer noopener" onclick="togglePopup(event, 'resources-menu-dropdown')">
+                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://github.com/sponsors/muety" target="_blank" rel="noreferrer noopener" @click="state.showDropdownResources = !state.showDropdownResources"  data-trigger-for="showDropdownResources">
                         <span class="text-sm">Donate</span>
                         <span class="iconify inline" data-icon="bx:bxs-heart"></span>
                     </a>
@@ -66,7 +91,7 @@
 
     <div class="flex-grow"></div>
 
-    <div class="menu-item flex items-center text-sm font-semibold space-x-3 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer relative" onclick="togglePopup(event, 'user-menu-popup')">
+    <div class="menu-item flex items-center text-sm font-semibold space-x-3 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer relative" @click="state.showDropdownUser = !state.showDropdownUser" data-trigger-for="showDropdownUser">
         <div class="flex flex-col text-right">
             <a class="text-gray-300">{{ .User.ID }}</a>
             {{ if .User.Email }}
@@ -76,13 +101,13 @@
         {{ if avatarUrlTemplate }}
         <img src="{{ .User.AvatarURL avatarUrlTemplate }}" width="32px" class="rounded-full border-green-700" alt="User Profile Avatar" title="Looks like you, doesn't it?"/>
         {{ else }}
-        <span class="iconify inline cursor-pointer text-gray-500 rounded-full border-green-700" style="width: 32px; height: 32px" data-icon="ic:round-person" onclick="togglePopup(event, 'user-menu-popup')"></span>
+        <span class="iconify inline cursor-pointer text-gray-500 rounded-full border-green-700" style="width: 32px; height: 32px" data-icon="ic:round-person" @click="state.showDropdownUser = !state.showDropdownUser" data-trigger-for="showDropdownUser"></span>
         {{ end }}
 
-        <div class="hidden flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-14 w-full" id="user-menu-popup" style="min-width: 156px;">
+        <div v-cloak v-show="state.showDropdownUser" class="flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-14 w-full" id="user-menu-popup" style="min-width: 156px;">
             <div class="flex-grow flex flex-col">
                 <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
-                    <button class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" onclick="togglePopup(event, 'api-key-popup'); togglePopup(event, 'user-menu-popup')">
+                    <button class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" @click="state.showApiKey = true" data-trigger-for="showApiKey">
                         <span class="text-sm">Show API Key</span>
                         <span class="iconify inline" data-icon="fluent:key-32-filled"></span>
                     </button>
@@ -99,14 +124,16 @@
         </div>
     </div>
 
-    <div class="hidden flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup" id="api-key-popup">
+    <div v-cloak v-show="state.showApiKey" class="flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup" id="api-key-popup">
         <div class="flex-grow flex flex-col px-2">
             <span class="text-xxs text-gray-500 mx-1">API Key</span>
             <input type="text" class="bg-transparent text-sm text-white mx-1 font-mono" id="api-key-container" readonly
                    value="{{ .ApiKey }}" style="min-width: 330px">
         </div>
         <div class="flex items-center px-2 border-l border-gray-700">
-            <button title="Copy to clipboard" onclick="copyApiKey(event)"><span class="iconify inline text-gray-300" data-icon="majesticons:clipboard-copy"></span></button>
+            <button title="Copy to clipboard" onclick="copyApiKey(event)">
+                <span class="iconify inline text-gray-300" data-icon="majesticons:clipboard-copy"></span>
+            </button>
         </div>
     </div>
 </div>
