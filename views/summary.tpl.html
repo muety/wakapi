@@ -3,7 +3,7 @@
 
 {{ template "head.tpl.html" . }}
 
-<script type="module">
+<script>
     // Constants
     const timeSelection = '{{ .From | datetime }} - {{ .To | ceildate | datetime }}'
     const fromDate = '{{ .From | simpledate }}'
@@ -11,32 +11,8 @@
 
     // Elements
     const formTimePicker = document.getElementById('time-picker-form')
-
-    PetiteVue.createApp({
-        $delimiters: ['${', '}'],
-        state: {
-            showDropdownTimepicker: false,
-        },
-        fromDate: fromDate,
-        toDate: toDate,
-        timeSelection: timeSelection,
-        onDateUpdated() {
-            formTimePicker.submit()
-        },
-        mounted() {
-            window.addEventListener('click', (e) => {
-                const skip = findParentAttribute(e.target, 'data-trigger-for')?.value
-                Object.keys(this.state).filter(k => k !== skip).forEach(k => this.state[k] = false)
-            })
-
-            const query = new URLSearchParams(window.location.search)
-            if (query.has('interval')) {
-                const refEl = document.getElementById(`time-option-${query.get('interval')}`)
-                this.timeSelection = refEl ? refEl.innerText : 'Unknown'
-            }
-        }
-    }).mount('#summary-page')
 </script>
+<script type="module" src="assets/js/components/summary.js"></script>
 
 <body class="relative bg-gray-900 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
 
@@ -258,7 +234,7 @@
     wakapiData.machines = {{ .Machines | json }}
     wakapiData.labels = {{ .Labels | json }}
 </script>
-<script src="assets/summary.js"></script>
+<script src="assets/js/summary.js"></script>
 
 </body>
 

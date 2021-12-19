@@ -2,9 +2,8 @@
 <html lang="en">
 
 {{ template "head.tpl.html" . }}
-<script src="assets/timezones.js"></script>
-
-<script type="module">
+<script src="assets/js/timezones.js"></script>
+<script>
     // Constants
     const defaultTab = 'account'
     const userTimeZone = {{ .User.Location }}
@@ -15,41 +14,8 @@
     const formRegenerate = document.querySelector('#form-regenerate-summaries')
     const formImportWakatime = document.querySelector('#form-import-wakatime')
     const formDelete = document.querySelector('#form-delete-user')
-
-    PetiteVue.createApp({
-        //$delimiters: ['${', '}'],  // https://github.com/vuejs/petite-vue/pull/100
-        activeTab: defaultTab,
-        selectedTimezone: userTimeZone,
-        get tzOptions() {
-            return [defaultTzOption, ...tzs.sort().map(tz => ({ value: tz, text: tz }))]
-        },
-        updateTab() {
-            this.activeTab = window.location.hash.slice(1) || defaultTab
-        },
-        isActive(tab) {
-            return this.activeTab === tab
-        },
-        confirmRegenerate() {
-            if (confirm('Are you sure?')) {
-                formRegenerate.submit()
-            }
-        },
-        confirmWakatimeImport() {
-            if (confirm('Are you sure? The import can not be undone.')) {
-                formImportWakatime.submit()
-            }
-        },
-        confirmDeleteAccount() {
-            if (confirm('Are you sure? This can not be undone!')) {
-                formDelete.submit()
-            }
-        },
-        mounted() {
-            this.updateTab()
-            window.addEventListener('hashchange', () => this.updateTab())
-        }
-    }).mount('#settings-page')
 </script>
+<script type="module" src="assets/js/components/settings.js"></script>
 
 <body class="bg-gray-900 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
 <style>
