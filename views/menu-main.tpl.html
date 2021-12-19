@@ -5,51 +5,51 @@
     {{ template "logo.tpl.html" }}
     </div>
 
-    <a class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer" href="summary">
+    <a class="menu-item" href="summary">
         <span class="iconify inline text-2xl text-gray-400" data-icon="ic:round-dashboard"></span>
         <span class="text-gray-300 hidden lg:inline-block">Dashboard</span>
     </a>
 
-    <div class="menu-item hidden sm:flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-not-allowed">
+    <div class="menu-item hidden sm:flex imp:cursor-not-allowed">
         <span class="iconify inline text-2xl text-gray-700" data-icon="bi:people-fill"></span>
         <a class="text-gray-600 leading-none hidden lg:inline-block">Team<br>
-            <span class="text-xxs whitespace-no-wrap">(coming soon)</span>
+            <span class="text-xxs whitespace-nowrap">(coming soon)</span>
         </a>
     </div>
 
-    <div class="menu-item hidden sm:flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-not-allowed">
+    <div class="menu-item hidden sm:flex imp:cursor-not-allowed">
         <span class="iconify inline text-2xl text-gray-700" data-icon="fluent:data-bar-horizontal-24-filled"></span>
         <a class="text-gray-600 leading-none hidden lg:inline-block">Leaderboard<br>
-            <span class="text-xxs whitespace-no-wrap">(coming soon)</span>
+            <span class="text-xxs whitespace-nowrap">(coming soon)</span>
         </a>
     </div>
 
-    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer relative" @click="state.showDropdownResources = !state.showDropdownResources" data-trigger-for="showDropdownResources">
+    <div class="menu-item relative" @click="state.showDropdownResources = !state.showDropdownResources" data-trigger-for="showDropdownResources">
         <span class="iconify inline text-2xl text-gray-400" data-icon="ph:books-bold"></span>
         <a class="text-gray-400 hidden lg:inline-block">Resources</a>
         <span class="iconify inline text-xl text-gray-400" data-icon="akar-icons:chevron-down"></span>
 
         <div v-cloak v-show="state.showDropdownResources" class="flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-12 w-full" id="resources-menu-dropdown" style="min-width: 128px">
             <div class="flex-grow flex flex-col">
-                <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
+                <div class="submenu-item">
                     <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://github.com/muety/wakapi" target="_blank" rel="noreferrer noopener" @click="state.showDropdownResources = !state.showDropdownResources"  data-trigger-for="showDropdownResources">
                         <span class="text-sm">GitHub</span>
                         <span class="iconify inline" data-icon="codicon:github-inverted"></span>
                     </a>
                 </div>
-                <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
+                <div class="submenu-item">
                     <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="swagger-ui" @click="state.showDropdownResources = !state.showDropdownResources"  data-trigger-for="showDropdownResources">
                         <span class="text-sm">API Docs</span>
                         <span class="iconify inline" data-icon="bx:bx-code-curly"></span>
                     </a>
                 </div>
-                <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
+                <div class="submenu-item">
                     <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://wakatime.com" target="_blank" rel="noreferrer noopener" @click="state.showDropdownResources = !state.showDropdownResources"  data-trigger-for="showDropdownResources">
                         <span class="text-sm">WakaTime</span>
                         <span class="iconify inline" data-icon="simple-icons:wakatime"></span>
                     </a>
                 </div>
-                <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
+                <div class="submenu-item">
                     <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://github.com/sponsors/muety" target="_blank" rel="noreferrer noopener" @click="state.showDropdownResources = !state.showDropdownResources"  data-trigger-for="showDropdownResources">
                         <span class="text-sm">Donate</span>
                         <span class="iconify inline" data-icon="bx:bxs-heart"></span>
@@ -59,14 +59,14 @@
         </div>
     </div>
 
-    <a class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer" href="settings">
+    <a class="menu-item" href="settings">
         <span class="iconify inline text-2xl text-gray-400" data-icon="ci:settings-filled"></span>
         <span class="text-gray-400 hidden lg:inline-block">Settings</span>
     </a>
 
     <div class="flex-grow"></div>
 
-    <div class="flex-shrink-0 menu-item flex items-center text-sm font-semibold space-x-3 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer relative" @click="state.showDropdownUser = !state.showDropdownUser" data-trigger-for="showDropdownUser">
+    <div class="flex-shrink-0 menu-item relative" @click="state.showDropdownUser = !state.showDropdownUser" data-trigger-for="showDropdownUser">
         <div class="hidden md:flex flex flex-col text-right">
             <a class="text-gray-300">{{ .User.ID }}</a>
             {{ if .User.Email }}
@@ -79,7 +79,7 @@
         <span class="iconify inline cursor-pointer text-gray-500 rounded-full border-green-700" style="width: 32px; height: 32px" data-icon="ic:round-person" @click="state.showDropdownUser = !state.showDropdownUser" data-trigger-for="showDropdownUser"></span>
         {{ end }}
 
-        <div v-cloak v-show="state.showDropdownUser" class="flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-14 w-full" id="user-menu-popup" style="min-width: 156px;">
+        <div v-cloak v-show="state.showDropdownUser" class="flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-16 w-full" id="user-menu-popup" style="min-width: 156px;">
             <div class="flex-grow flex flex-col">
                 <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
                     <button class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" @click="state.showApiKey = true" data-trigger-for="showApiKey">

@@ -56,7 +56,7 @@ let icons = [
     'fluent:key-24-filled'
 ]
 
-const output = path.normalize(path.join(__dirname, '../static/assets/js/icons.js'))
+const output = path.normalize(path.join(__dirname, '../static/assets/js/icons.dist.js'))
 const pretty = false
 
 // Sort icons by collections: filtered[prefix][array of icons]

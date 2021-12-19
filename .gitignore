@@ -9,7 +9,5 @@ config*.yml
 !config.default.yml
 !testing/config.testing.yml
 pkged.go
-package.json
-yarn.lock
 package-lock.json
 node_modules

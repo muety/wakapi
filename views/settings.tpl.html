@@ -69,7 +69,7 @@
                         <span class="block text-sm text-gray-600">Time Zone, which you are located in. Relevant for displaying daily statistics.</span>
                     </div>
                     <div class="w-1/2 ml-4">
-                        <select name="location" id="select-timezone" class="appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 w-full cursor-pointer" v-model="selectedTimezone">
+                        <select name="location" id="select-timezone" class="select-default" v-model="selectedTimezone">
                             <option v-for="o in tzOptions" :value="o.value">{{ "{{" }}o.text{{ "}}" }}</option>
                         </select>
                     </div>
@@ -81,7 +81,7 @@
                         <span class="block text-sm text-gray-600">Optional in general, but required for weekly reports and for resetting your password.</span>
                     </div>
                     <div class="w-1/2 ml-4">
-                        <input class="appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 w-full"
+                        <input class="input-default"
                                type="email" id="email"
                                name="email" placeholder="Enter your e-mail address"
                                value="{{ .User.Email }}">
@@ -96,7 +96,7 @@
                     </div>
                     <div class="w-1/2 ml-4">
                         <select autocomplete="off" id="reports_weekly" name="reports_weekly"
-                                class="appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 w-full cursor-pointer">
+                                class="select-default">
                             <option value="false" class="cursor-pointer" {{ if not .User.ReportsWeekly }} selected{{ end }}>Disabled</option>
                             <option value="true" class="cursor-pointer" {{ if .User.ReportsWeekly }} selected {{ end }}>Enabled</option>
                         </select>
@@ -105,7 +105,7 @@
                 {{ end }}
 
                 <div class="flex justify-end mt-4">
-                    <button type="submit" class="py-2 px-4 font-semibold rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                    <button type="submit" class="btn-primary">
                         Save
                     </button>
                 </div>
@@ -125,7 +125,7 @@
                         <span class="block text-sm text-gray-600">Enter your old password for verification.</span>
                     </div>
                     <div class="w-1/2 ml-4">
-                        <input class="appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 w-full"
+                        <input class="input-default"
                                type="password" id="password_old"
                                name="password_old" placeholder="Old password" minlength="6" required>
                     </div>
@@ -137,7 +137,7 @@
                         <span class="block text-sm text-gray-600">Choose a new password. Preferably, it is at least 8 characters long and contains letters, digits and special chars.</span>
                     </div>
                     <div class="w-1/2 ml-4">
-                        <input class="appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 w-full"
+                        <input class="input-default"
                                type="password" id="password_new"
                                name="password_new" placeholder="New password" minlength="6" required>
                     </div>
@@ -149,14 +149,14 @@
                         <span class="block text-sm text-gray-600">Once again ...</span>
                     </div>
                     <div class="w-1/2 ml-4">
-                        <input class="appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 w-full"
+                        <input class="input-default"
                                type="password" id="password_repeat"
                                name="password_repeat" placeholder="Repeat your password" minlength="6" required>
                     </div>
                 </div>
 
                 <div class="flex justify-end mt-4">
-                    <button type="submit" class="py-2 px-4 font-semibold rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                    <button type="submit" class="btn-primary">
                         Save
                     </button>
                 </div>
@@ -166,7 +166,7 @@
         <div v-cloak id="data" class="tab flex flex-col space-y-4" v-if="isActive('data')">
             <!-- Aliases -->
             <div class="w-full">
-                <div class="flex flex-wrap md:flex-no-wrap mb-8 gap-x-4">
+                <div class="flex flex-wrap flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/3 mb-4 md:mb-0 inline-block">
                         <span class="font-semibold text-gray-300 text-lg">Aliases</span>
                         <p class="block text-sm text-gray-600">You can specify aliases for any type of entity. For instance, you can define a rule, that both "myapp-frontend" and "myapp-backend" are combined under a project called "myapp".</p>
@@ -182,7 +182,7 @@
                                      style="line-height: 1.8">
                                     &#9656;&nbsp; All <span class="font-semibold">{{ $alias.Type | typeName }}s</span> named
                                     {{ range $j, $value := $alias.Values }}
-                                    <span class="text-white text-sm bg-gray-900 rounded py-1 px-2 font-semibold text-green-700">{{- $value -}}</span>
+                                    <span class="text-white chip text-green-700">{{- $value -}}</span>
                                     {{ if lt $j (add (len $alias.Values) -2) }}
                                     <span class="-ml-1">{{- ", " | capitalize -}}</span>
                                     {{ else if lt $j (add (len $alias.Values) -1) }}
@@ -190,7 +190,7 @@
                                     {{ end }}
                                     {{ end }}
                                     are mapped to <span class="font-semibold">{{ $alias.Type | typeName }}</span> <span
-                                        class="text-white text-sm bg-gray-900 rounded py-1 px-2 font-semibold text-green-700">{{ $alias.Key }}</span>
+                                        class="text-white chip text-green-700">{{ $alias.Key }}</span>
                                 </div>
                                 <form class="float-right" action="" method="post">
                                     <input type="hidden" name="action" value="delete_alias">
@@ -209,22 +209,21 @@
                             <input type="hidden" name="action" value="add_alias">
                             <div class="flex items-center mt-2 w-full text-gray-500 text-sm">
                                 <span class="mr-2">Map</span>
-                                <select name="type" id="select-type"
-                                        class="appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 cursor-pointer">
+                                <select name="type" id="select-type" class="select-default" style="max-width: 256px">
                                     {{ range $i, $t := entityTypes }}
                                     <option value="{{ $t }}">{{ $t | typeName | capitalize }}</option>
                                     {{ end }}
                                 </select>
                                 <span class="mx-2">named</span>
-                                <input class="flex-grow appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4"
+                                <input class="input-default"
                                        type="text" id="alias-value" style="width: 130px;"
                                        name="value" placeholder="Original name" minlength="1" required>
                                 <span class="mx-2">to</span>
-                                <input class="flex-grow appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4"
+                                <input class="input-default"
                                        type="text" id="alias-key" style="width: 100px"
                                        name="key" placeholder="Replacement" minlength="1" required>
                                 <div class="flex justify-end ml-4">
-                                    <button type="submit" class="py-2 px-4 font-semibold rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                                    <button type="submit" class="btn-primary">
                                         Add
                                     </button>
                                 </div>
@@ -240,7 +239,7 @@
 
             <!-- Project Labels -->
             <div class="w-full">
-                <div class="flex flex-wrap md:flex-no-wrap mb-8 gap-x-4">
+                <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/3 mb-4 md:mb-0 inline-block">
                         <span class="font-semibold text-gray-300 text-lg">Project Labels</span>
                         <p class="block text-sm text-gray-600">You can assign labels (aka. tags) to projects to group them together, e.g. by "private" and "work".</p>
@@ -256,12 +255,12 @@
                                      style="line-height: 1.8">
                                     &#9656;&nbsp;&nbsp;<span class="font-semibold text-gray-300">{{ $label.Key }}:</span>
                                     {{ range $j, $value := $label.Values }}
-                                    <form action="" method="post" class="text-white text-xs bg-gray-900 rounded-full py-1 px-2 my-1 inline-flex justify-between items-center space-x-2">
+                                    <form action="" method="post" class="chip inline-flex justify-between items-center space-x-2 text-green-700">
                                         <input type="hidden" name="action" value="delete_label">
                                         <input type="hidden" name="key" value="{{ $label.Key }}">
                                         <input type="hidden" name="value" value="{{ $value }}">
                                         <span>{{- $value -}}</span>
-                                        <button type="submit" class="bg-gray-800 text-center hover:bg-gray-700 rounded-full w-4 h-4 leading-none text-red-600" title="Delete label">x</button>
+                                        <button type="submit" class="bg-gray-900 text-center hover:bg-gray-700 rounded-full w-4 h-4 leading-none text-red-600" title="Delete label">x</button>
                                     </form>
                                     {{ if lt $j (add (len $label.Values) -1) }}
                                     <span class="-ml-1">{{- ", " | capitalize -}}</span>
@@ -279,15 +278,15 @@
                                 <div class="flex flex-col space-y-4">
                                     <div class="flex items-center mt-2 w-full text-gray-500 text-sm space-x-4">
                                         <select name="key" id="select-project"
-                                                class="flex-grow appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 cursor-pointer">
+                                                class="select-default flex-grow">
                                             {{ range $i, $p := .Projects }}
                                             <option value="{{ $p }}">{{ $p }}</option>
                                             {{ end }}
                                         </select>
-                                        <input class="flex-grow appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4"
+                                        <input class="input-default"
                                                type="text" id="label-value"
                                                name="value" placeholder="Label" minlength="1" required>
-                                        <button type="submit" class="py-2 px-4 font-semibold rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                                        <button type="submit" class="btn-primary">
                                             Add
                                         </button>
                                     </div>
@@ -308,7 +307,7 @@
 
             <!-- Language Mappings -->
             <div class="w-full">
-                <div class="flex flex-wrap md:flex-no-wrap mb-8 gap-x-4">
+                <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/3 mb-4 md:mb-0 inline-block">
                         <span class="font-semibold text-gray-300 text-lg">Language Mappings</span>
                         <p class="block text-sm text-gray-600">You can specify custom mapping from file extensions to programming languages, for instance a ".jsx" file could be mapped to the "React" language.</p>
@@ -319,12 +318,12 @@
                         <div class="mb-8">
                             <h3 class="inline-block font-semibold text-gray-300">Rules</h3>
                             {{ range $i, $mapping := .LanguageMappings }}
-                            <div class="flex items-center">
+                            <div class="flex items-center mb-2">
                                 <div class="text-gray-300 border-1 w-full inline-block my-1 py-1 text-align text-sm">
                                     &#9656;&nbsp; When filename ends in <span
-                                        class="text-green-700 text-sm bg-gray-900 rounded py-1 px-2 font-semibold mr-1">{{ $mapping.Extension }}</span>
+                                        class="text-green-700 chip mr-1">{{ $mapping.Extension }}</span>
                                     then change the <span class="font-semibold">language</span> to <span
-                                        class="text-green-700 text-sm bg-gray-900 rounded py-1 px-2 font-semibold mr-1">{{ $mapping.Language }}</span>
+                                        class="text-green-700 chip mr-1">{{ $mapping.Language }}</span>
                                 </div>
                                 <form class="float-right" action="" method="post">
                                     <input type="hidden" name="action" value="delete_mapping">
@@ -342,15 +341,15 @@
                             <input type="hidden" name="action" value="add_mapping">
                             <div class="flex items-center w-full text-gray-500 text-sm">
                                 <span class="mr-2">When filename ends in</span>
-                                <input class="flex-grow appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 cursor-pointer"
+                                <input class="select-default flex-grow"
                                        type="text" id="extension" style="width: 70px"
                                        name="extension" placeholder=".py" minlength="1" required>
                                 <span class="mx-2">change language to</span>
-                                <input class="flex-grow appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 cursor-pointer"
+                                <input class="select-default flex-grow"
                                        type="text" id="language" style="width: 100px"
                                        name="language" placeholder="Python" minlength="1" required>
                                 <div class="flex justify-end ml-4">
-                                    <button type="submit" class="py-2 px-4 font-semibold rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                                    <button type="submit" class="btn-primary">
                                         Add
                                     </button>
                                 </div>
@@ -364,7 +363,7 @@
         <div v-cloak id="permissions" class="tab flex flex-col space-y-4" v-if="isActive('permissions')">
             <!-- Public Data -->
             <form action="" method="post" class="w-full lg:w-3/4">
-                <div class="flex flex-wrap md:flex-no-wrap mb-8 gap-x-4">
+                <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
                         <span class="font-semibold text-gray-300 text-lg">Aliases</span>
                         <p class="block text-sm text-gray-600">
@@ -381,7 +380,7 @@
                                 <span class="block text-sm text-gray-600">(in days; 0 = not public, -1 = unlimited)</span>
                             </div>
                             <div >
-                                <input class="appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4"
+                                <input class="input-default"
                                        style="max-width: 80px" type="number" id="max_days" name="max_days" min="-1" required
                                        value="{{ .User.ShareDataMaxDays }}">
                             </div>
@@ -392,7 +391,7 @@
                                 <label class="font-semibold text-gray-300" for="share_projects">Share Projects</label>
                             </div>
                             <div >
-                                <select autocomplete="off" id="share_projects" name="share_projects" class="flex-grow appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 cursor-pointer">
+                                <select autocomplete="off" id="share_projects" name="share_projects" class="select-default flex-grow">
                                     <option value="false" class="cursor-pointer" {{ if not .User.ShareProjects }} selected {{ end }}>No
                                     </option>
                                     <option value="true" class="cursor-pointer" {{ if .User.ShareProjects }} selected {{ end }}>Yes
@@ -406,7 +405,7 @@
                                 <label class="font-semibold text-gray-300" for="share_languages">Share Languages</label>
                             </div>
                             <div >
-                                <select autocomplete="off" id="share_languages" name="share_languages" class="flex-grow appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 cursor-pointer">
+                                <select autocomplete="off" id="share_languages" name="share_languages" class="select-default flex-grow">
                                     <option value="false" class="cursor-pointer" {{ if not .User.ShareLanguages }} selected {{ end }}>No
                                     </option>
                                     <option value="true" class="cursor-pointer" {{ if .User.ShareLanguages }} selected {{ end }}>Yes
@@ -420,7 +419,7 @@
                                 <label class="font-semibold text-gray-300" for="share_editors">Share Editors</label>
                             </div>
                             <div >
-                                <select autocomplete="off" id="share_editors" name="share_editors" class="flex-grow appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 cursor-pointer">
+                                <select autocomplete="off" id="share_editors" name="share_editors" class="select-default flex-grow">
                                     <option value="false" class="cursor-pointer" {{ if not .User.ShareEditors }} selected {{ end }}>No
                                     </option>
                                     <option value="true" class="cursor-pointer" {{ if .User.ShareEditors }} selected {{ end }}>Yes
@@ -434,7 +433,7 @@
                                 <label class="font-semibold text-gray-300" for="share_oss">Share OS'</label>
                             </div>
                             <div >
-                                <select autocomplete="off" id="share_oss" name="share_oss" class="flex-grow appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 cursor-pointer">
+                                <select autocomplete="off" id="share_oss" name="share_oss" class="select-default flex-grow">
                                     <option value="false" class="cursor-pointer" {{ if not .User.ShareOSs }} selected {{ end }}>No
                                     </option>
                                     <option value="true" class="cursor-pointer" {{ if .User.ShareOSs }} selected {{ end }}>Yes
@@ -448,7 +447,7 @@
                                 <label class="font-semibold text-gray-300" for="share_machines">Share Machines</label>
                             </div>
                             <div >
-                                <select autocomplete="off" id="share_machines" name="share_machines" class="flex-grow appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 cursor-pointer">
+                                <select autocomplete="off" id="share_machines" name="share_machines" class="select-default flex-grow">
                                     <option value="false" class="cursor-pointer" {{ if not .User.ShareMachines }} selected {{ end }}>No
                                     </option>
                                     <option value="true" class="cursor-pointer" {{ if .User.ShareMachines }} selected {{ end }}>Yes
@@ -462,7 +461,7 @@
                                 <label class="font-semibold text-gray-300" for="share_labels">Share Project Labels</label>
                             </div>
                             <div >
-                                <select autocomplete="off" id="share_labels" name="share_labels" class="flex-grow appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded py-2 px-4 cursor-pointer">
+                                <select autocomplete="off" id="share_labels" name="share_labels" class="select-default flex-grow">
                                     <option value="false" class="cursor-pointer" {{ if not .User.ShareLabels }} selected {{ end }}>No
                                     </option>
                                     <option value="true" class="cursor-pointer" {{ if .User.ShareLabels }} selected {{ end }}>Yes
@@ -474,7 +473,7 @@
                 </div>
 
                 <div class="flex justify-end mt-4">
-                    <button type="submit" class="py-2 px-4 font-semibold rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                    <button type="submit" class="btn-primary">
                         Save
                     </button>
                 </div>
@@ -490,13 +489,13 @@
                 {{ $placeholderText = "********" }}
                 {{ end }}
 
-                <div class="flex flex-wrap md:flex-no-wrap mb-8 gap-x-4">
+                <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
                         <label class="font-semibold text-gray-300" for="select-timezone">WakaTime</label>
                         <span class="block text-sm text-gray-600">
-                            You can connect Wakapi with the official WakaTime in a way that all heartbeats sent to Wakapi are relayed. This way, you can use both services at the same time. To get started, get <a class="text-gray-400 hover:text-gray-300 font-semibold" href="https://wakatime.com/developers#authentication" rel="noopener noreferrer" target="_blank">your API key</a> and paste it here.<br><br>
+                            You can connect Wakapi with the official WakaTime in a way that all heartbeats sent to Wakapi are relayed. This way, you can use both services at the same time. To get started, get <a class="link" href="https://wakatime.com/developers#authentication" rel="noopener noreferrer" target="_blank">your API key</a> and paste it here.<br><br>
                             Please note: When enabling this feature, the operators of this server will, in theory, have unlimited access to your data stored in WakaTime. If you are concerned about your privacy, please do not enable this integration or wait for OAuth 2 authentication (<a
-                                class="font-semibold text-gray-400 hover:text-gray-300" target="_blank" href="https://github.com/muety/wakapi/issues/94" rel="noopener noreferrer">#94</a>) to be implemented.
+                                class="link" target="_blank" href="https://github.com/muety/wakapi/issues/94" rel="noopener noreferrer">#94</a>) to be implemented.
                         </span>
                     </div>
                     <div class="w-full md:w-1/2">
@@ -508,10 +507,10 @@
 
                 <div class="flex justify-end mt-4">
                     {{ if not .User.WakatimeApiKey }}
-                    <button type="submit" class="py-2 px-4 font-semibold rounded bg-green-700 hover:bg-green-800 text-white text-sm">Connect</button>
+                    <button type="submit" class="btn-primary">Connect</button>
                     {{ else }}
                     <button id="btn-import-wakatime" type="button" class="py-2 px-4 font-semibold rounded bg-gray-850 hover:bg-gray-800 text-white text-sm mr-1" @click.stop="confirmWakatimeImport">Import Data</button>
-                    <button type="submit" class="py-2 px-4 font-semibold rounded bg-red-600 hover:bg-red-700 text-white text-sm ml-1">Disconnect</button>
+                    <button type="submit" class="btn-danger ml-1">Disconnect</button>
                     {{ end }}
                 </div>
             </form>
@@ -525,11 +524,11 @@
             </div>
 
             <div class="w-full lg:w-3/4">
-                <div class="flex flex-wrap md:flex-no-wrap mb-8 gap-x-4">
+                <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
                         <label class="font-semibold text-gray-300" for="select-timezone">Badges (Shields.IO)</label>
                         <span class="block text-sm text-gray-600">
-                            The integration with <a class="font-semibold text-gray-400 hover:text-gray-300" href="https://shields.io" target="_blank" rel="noreferrer noopener">Shields.IO</a> allows to generate badges for README pages or forums. To enable this feature, you need to grant public, unauthorized access to the respective endpoints. See <a class="font-semibold text-gray-400 hover:text-gray-300" href="settings#permissions">Permissions</a>.<br><br>
+                            The integration with <a class="link" href="https://shields.io" target="_blank" rel="noreferrer noopener">Shields.IO</a> allows to generate badges for README pages or forums. To enable this feature, you need to grant public, unauthorized access to the respective endpoints. See <a class="link" href="settings#permissions">Permissions</a>.<br><br>
                             Only available on public instances, not on localhost.
                         </span>
                     </div>
@@ -575,11 +574,11 @@
             </div>
 
             <div class="w-full lg:w-3/4">
-                <div class="flex flex-wrap md:flex-no-wrap mb-8 gap-x-4">
+                <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
                         <label class="font-semibold text-gray-300" for="select-timezone">GitHub Readme Stats</label>
                         <span class="block text-sm text-gray-600">
-                            Wakapi intregrates with <a class="font-semibold text-gray-400 hover:text-gray-300" href="https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats" target="_blank" rel="noreferrer noopener">GitHub Readme Stats</a> to generate fancy cards for you. To enable this feature, you need to grant public, unauthorized access to the respective endpoints. See <a class="font-semibold text-gray-400 hover:text-gray-300" href="settings#permissions">Permissions</a>.<br><br>
+                            Wakapi intregrates with <a class="link" href="https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats" target="_blank" rel="noreferrer noopener">GitHub Readme Stats</a> to generate fancy cards for you. To enable this feature, you need to grant public, unauthorized access to the respective endpoints. See <a class="link" href="settings#permissions">Permissions</a>.<br><br>
                             Only available on public instances, not on localhost.
                         </span>
                     </div>
@@ -612,7 +611,7 @@
                         </span>
                     </div>
                     <div class="w-1/2 ml-4">
-                        <button type="button" class="py-2 px-4 font-semibold rounded bg-red-600 hover:bg-red-700 text-white text-sm ml-1" @click.stop="confirmRegenerate">Clear and regenerate</button>
+                        <button type="button" class="btn-danger ml-1" @click.stop="confirmRegenerate">Clear and regenerate</button>
                     </div>
                 </form>
 
@@ -626,7 +625,7 @@
                         </span>
                     </div>
                     <div class="w-1/2 ml-4">
-                        <button type="submit" class="py-2 px-4 font-semibold rounded bg-red-600 hover:bg-red-700 text-white text-sm ml-1">Reset API key</button>
+                        <button type="submit" class="btn-danger ml-1">Reset API key</button>
                     </div>
                 </form>
 
@@ -640,7 +639,7 @@
                         </span>
                     </div>
                     <div class="w-1/2 ml-4">
-                        <button type="button" class="py-2 px-4 font-semibold rounded bg-red-600 hover:bg-red-700 text-white text-sm ml-1" @click.stop="confirmDeleteAccount">Delete account</button>
+                        <button type="button" class="btn-danger ml-1" @click.stop="confirmDeleteAccount">Delete account</button>
                     </div>
                 </form>
             </div>

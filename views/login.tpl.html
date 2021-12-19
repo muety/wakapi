@@ -12,17 +12,17 @@
 <main class="mt-10 flex-grow flex justify-center w-full">
     <div class="flex-grow max-w-lg mt-10">
         <div class="mb-8">
-            <h1 class="font-semibold text-3xl text-white m-0">Welcome!</h1>
-            <span class="text-gray-600">Log in to continue using Wakapi</span>
+            <h1 class="h1">Welcome!</h1>
+            <span class="h1-subcaption">Log in to continue using Wakapi</span>
         </div>
         <form action="login" method="post">
             <div class="mb-4">
-                <input class="appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded w-full py-2 px-4"
+                <input class="input-default"
                        type="text" id="username" autocomplete="username"
                        name="username" placeholder="Username" minlength="1" required autofocus>
             </div>
             <div class="mb-4">
-                <input class="appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded w-full py-2 px-4"
+                <input class="input-default"
                        type="password" id="password" autocomplete="current-password"
                        name="password" placeholder="Password" minlength="6" required>
             </div>
@@ -32,9 +32,9 @@
                 </a>
                 <div class="flex space-x-2">
                     <a href="signup">
-                        <button type="button" class="py-2 px-4 font-semibold rounded bg-gray-800 hover:bg-gray-850 text-white text-sm">Sign up</button>
+                        <button type="button" class="btn-default">Sign up</button>
                     </a>
-                    <button type="submit" class="py-2 px-4 font-semibold rounded bg-green-700 hover:bg-green-800 text-white text-sm">Log in</button>
+                    <button type="submit" class="btn-primary">Log in</button>
                 </div>
             </div>
         </form>

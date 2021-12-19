@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "build": "npm run build:icons && npm run build:tailwind",
+    "build:tailwind": "tailwindcss build -i static/assets/css/app.css -o static/assets/css/app.dist.css --minify",
+    "build:icons": "node scripts/bundle_icons.js",
+    "watch": "chokidar \"./views/**/*.html\" \"./static/assets/js/**/*.js\" \"./static/assets/css/**/*.css\" -i \"**/vendor/*\" -i \"**/*.dist.*\" -c \"npm run build\""
+  },
+  "devDependencies": {
+    "@iconify/json": "^1.1.444",
+    "@iconify/json-tools": "^1.0.10",
+    "chokidar-cli": "^3.0.0",
+    "tailwindcss": "2.2.19"
+  },
+  "dependencies": {}
+}

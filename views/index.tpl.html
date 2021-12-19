@@ -11,7 +11,7 @@
 
 <div class="absolute flex top-0 right-0 mr-8 mt-10 py-2">
     <div class="mx-1">
-        <a href="login" class="py-2 px-4 block rounded bg-green-700 hover:bg-green-800 text-white text-sm font-semibold">
+        <a href="login" class="btn-primary">
             <span class="iconify inline" data-icon="fluent:key-24-filled"></span> &nbsp;Login️</a>
     </div>
 </div>
@@ -27,25 +27,25 @@
         <div class="flex justify-center mt-8 mb-4 space-x-2">
             <a href="login">
                 <button type="button"
-                        class="py-2 px-4 rounded bg-green-700 hover:bg-green-800 text-white font-semibold"><span class="iconify inline" data-icon="ion:rocket"></span> Let's Go!
+                        class="btn-primary"><span class="iconify inline" data-icon="ion:rocket"></span> Let's Go!
                 </button>
             </a>
             <a href="https://github.com/muety/wakapi#%EF%B8%8F-how-to-use" target="_blank" rel="noopener noreferrer">
-                <button type="button" class="py-2 px-4 rounded bg-gray-800 hover:bg-gray-850 text-white"><span class="iconify inline" data-icon="heroicons-solid:server"></span> Get Your Own
+                <button type="button" class="btn-default"><span class="iconify inline" data-icon="heroicons-solid:server"></span> Get Your Own
                 </button>
             </a>
             <a href="https://github.com/sponsors/muety" target="_blank" rel="noopener noreferrer">
-                <button type="button" class="py-2 px-4 rounded bg-gray-800 hover:bg-gray-850 text-white"><span class="iconify inline" data-icon="bx:bxs-heart"></span> Support Us
+                <button type="button" class="btn-default"><span class="iconify inline" data-icon="bx:bxs-heart"></span> Support Us
                 </button>
             </a>
             <a href="https://github.com/muety/wakapi" target="_blank" rel="noopener noreferrer">
-                <button type="button" class="py-2 px-4 rounded bg-gray-800 hover:bg-gray-850 text-white">
+                <button type="button" class="btn-default">
                     <span class="iconify inline text-white" data-icon="codicon:github-inverted"></span>
                 </button>
             </a>
         </div>
 
-        <p class="text-center text-gray-500 text-sm mb-4">
+        <p class="text-center text-gray-500 text-sm my-4">
             This system has tracked a total of </span>
             {{ range $d := .TotalHours | printf "%d" | toRunes }}
             <span class="bg-gray-900 rounded-sm p-1 border border-gray-700 font-mono text-gray-400" style="margin: auto -1px;" title="{{ $.TotalHours }} hours (updated every hour)">{{ $d }}</span>

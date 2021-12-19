@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base definition */
+body {
+    font-family: 'Source Sans 3', 'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+}
+
+[v-cloak] {
+    display: none;
+}
+
+/* Additional classes */
+
+.bg-gray-850 {
+    background-color: #242b3a;
+}
+
+.hover\:bg-gray-850:hover {
+    --bg-opacity: 1;
+    background-color: #242b3a;
+}
+
+.text-xxs {
+    font-size: 0.65rem;
+}
+
+.mt-14 {
+    margin-top: 3.5rem;
+}
+
+.text-7xl {
+    font-size: 4.5rem;
+    line-height: 1.1;
+}
+
+.text-8xl {
+    font-size: 5rem;
+    line-height: 1.1;
+}
+
+.imp\:cursor-not-allowed {
+    @apply cursor-not-allowed !important;
+}
+
+/* Custom classes */
+.h1 {
+    @apply font-semibold text-3xl text-white m-0
+}
+
+.h1-subcaption {
+    @apply text-gray-600 text-sm;
+}
+
+.btn-default {
+    @apply py-2 px-4 font-semibold rounded bg-gray-800 hover:bg-gray-850 text-white text-sm;
+}
+
+.btn-primary {
+    @apply py-2 px-4 font-semibold rounded bg-green-700 hover:bg-green-800 text-white text-sm;
+}
+
+.btn-danger {
+    @apply py-2 px-4 font-semibold rounded bg-red-600 hover:bg-red-700 text-white text-sm;
+}
+
+.input-default {
+    @apply appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded w-full py-2 px-4;
+}
+
+.select-default {
+    @apply input-default cursor-pointer;
+}
+
+.menu-item {
+    @apply flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer;
+}
+
+.submenu-item {
+    @apply hover:bg-gray-800 rounded p-1 text-right;
+}
+
+.chip {
+    @apply text-xs bg-gray-850 rounded rounded-full py-1 px-2 font-semibold inline-block mb-1;
+}
+
+.link {
+    @apply font-semibold text-gray-400 hover:text-gray-300;
+}
+
+::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}

@@ -23,8 +23,8 @@
 <main class="mt-10 flex-grow flex justify-center w-full" id="signup-page">
     <div class="flex-grow max-w-lg mt-10">
         <div class="mb-8">
-            <h1 class="font-semibold text-3xl text-white m-0 mb-2">Sign up to Wakapi</h1>
-            <p class="text-sm text-gray-600">
+            <h1 class="h1">Sign up to Wakapi</h1>
+            <p class="h1-subcaption">
                 Welcome to Wakapi! Your first step is to create an account.
                 Afterwards, make sure to set up the <a href="https://wakatime.com" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-400">WakaTime</a> client tools.
                 Instruction can be found in our <a href="https://github.com/muety/wakapi#-client-setup" target="_blank"
@@ -46,7 +46,7 @@
 
                 <div>
                     <div class="mb-4">
-                        <input class="appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded w-full py-2 px-4"
+                        <input class="input-default"
                                v-model="username"
                                type="text" id="username"
                                name="username" placeholder="Choose a username" minlength="1"
@@ -54,7 +54,7 @@
                                required autofocus>
                     </div>
                     <div class="mb-4">
-                        <input class="appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded w-full py-2 px-4"
+                        <input class="input-default"
                                v-model="email"
                                type="email" id="email"
                                name="email" @keyup="updateAvatar" placeholder="Your e-mail address">
@@ -63,12 +63,12 @@
                 </div>
             </div>
             <div class="mb-4">
-                <input class="appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded w-full py-2 px-4"
+                <input class="input-default"
                        type="password" id="password"
                        name="password" placeholder="Choose a password" minlength="6" required>
             </div>
             <div class="mb-4">
-                <input class="appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded w-full py-2 px-4"
+                <input class="input-default"
                        type="password" id="password_repeat"
                        name="password_repeat" placeholder="And again..." minlength="6" required>
             </div>
@@ -81,9 +81,9 @@
 
             <div class="flex space-x-2 justify-end">
                 <a href="login">
-                    <button type="button" class="py-2 px-4 font-semibold rounded bg-gray-800 hover:bg-gray-850 text-white text-sm">Log in</button>
+                    <button type="button" class="btn-primary">Log in</button>
                 </a>
-                <button type="submit" class="py-2 px-4 font-semibold rounded bg-green-700 hover:bg-green-800 text-white text-sm">
+                <button type="submit" class="btn-default">
                     Create Account
                 </button>
             </div>
