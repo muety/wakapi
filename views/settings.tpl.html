@@ -94,7 +94,7 @@
 
         <div v-cloak id="account" class="tab flex flex-col space-y-4" v-if="isActive('account')">
             <!-- Account Settings -->
-            <form action="" method="post" class="w-3/4">
+            <form action="" method="post" class="w-full md:w-3/4">
                 <input type="hidden" name="action" value="update_user">
 
                 <div class="flex mb-8">
@@ -145,12 +145,12 @@
                 </div>
             </form>
 
-            <div class="w-3/4">
+            <div class="w-full md:w-3/4">
                 <hr class="border-t border-gray-800 my-4">
             </div>
 
             <!-- Password -->
-            <form class="w-3/4" action="" method="post">
+            <form class="w-full md:w-3/4" action="" method="post">
                 <input type="hidden" name="action" value="change_password">
 
                 <div class="flex mb-8">
@@ -200,13 +200,13 @@
         <div v-cloak id="data" class="tab flex flex-col space-y-4" v-if="isActive('data')">
             <!-- Aliases -->
             <div class="w-full">
-                <div class="flex mb-8">
-                    <div class="w-1/3 mr-4 inline-block">
+                <div class="flex flex-wrap md:flex-no-wrap mb-8 gap-x-4">
+                    <div class="w-full md:w-1/3 mb-4 md:mb-0 inline-block">
                         <span class="font-semibold text-gray-300 text-lg">Aliases</span>
                         <p class="block text-sm text-gray-600">You can specify aliases for any type of entity. For instance, you can define a rule, that both "myapp-frontend" and "myapp-backend" are combined under a project called "myapp".</p>
                     </div>
 
-                    <div class="w-2/3 ml-4 inline-block">
+                    <div class="w-full md:w-2/3 inline-block">
                         {{ if .Aliases }}
                         <div class="mb-8">
                             <h3 class="inline-block font-semibold text-gray-300">Rules</h3>
@@ -274,13 +274,13 @@
 
             <!-- Project Labels -->
             <div class="w-full">
-                <div class="flex mb-8">
-                    <div class="w-1/3 mr-4 inline-block">
+                <div class="flex flex-wrap md:flex-no-wrap mb-8 gap-x-4">
+                    <div class="w-full md:w-1/3 mb-4 md:mb-0 inline-block">
                         <span class="font-semibold text-gray-300 text-lg">Project Labels</span>
                         <p class="block text-sm text-gray-600">You can assign labels (aka. tags) to projects to group them together, e.g. by "private" and "work".</p>
                     </div>
 
-                    <div class="w-2/3 ml-4 inline-block">
+                    <div class="w-full md:w-2/3 inline-block">
                         {{ if .Labels }}
                         <div class="mb-8">
                             <h3 class="inline-block font-semibold text-gray-300">Labels</h3>
@@ -342,13 +342,13 @@
 
             <!-- Language Mappings -->
             <div class="w-full">
-                <div class="flex mb-8">
-                    <div class="w-1/3 mr-4 inline-block">
+                <div class="flex flex-wrap md:flex-no-wrap mb-8 gap-x-4">
+                    <div class="w-full md:w-1/3 mb-4 md:mb-0 inline-block">
                         <span class="font-semibold text-gray-300 text-lg">Language Mappings</span>
                         <p class="block text-sm text-gray-600">You can specify custom mapping from file extensions to programming languages, for instance a ".jsx" file could be mapped to the "React" language.</p>
                     </div>
 
-                    <div class="w-2/3 ml-4 inline-block">
+                    <div class="w-full md:w-2/3 inline-block">
                         {{ if .LanguageMappings }}
                         <div class="mb-8">
                             <h3 class="inline-block font-semibold text-gray-300">Rules</h3>
@@ -397,16 +397,16 @@
 
         <div v-cloak id="permissions" class="tab flex flex-col space-y-4" v-if="isActive('permissions')">
             <!-- Public Data -->
-            <form action="" method="post" class="w-3/4">
-                <div class="flex mb-8">
-                    <div class="w-1/2 mr-4 inline-block">
+            <form action="" method="post" class="w-full lg:w-3/4">
+                <div class="flex flex-wrap md:flex-no-wrap mb-8 gap-x-4">
+                    <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
                         <span class="font-semibold text-gray-300 text-lg">Aliases</span>
                         <p class="block text-sm text-gray-600">
                             Some features require public access to your data without authentication. This mainly includes badges ("shields" endpoint) and the integration with GitHub Readme Stats ("stats" endpoint). You can choose which data to share publicly through these endpoints.
                         </p>
                     </div>
 
-                    <div class="flex-col w-1/2 ml-4 inline-block space-y-4">
+                    <div class="flex-col w-full md:w-1/2 inline-block space-y-4">
                         <input type="hidden" name="action" value="update_sharing">
 
                         <div class="flex space-x-8">
@@ -516,7 +516,7 @@
         </div>
 
         <div v-cloak id="integrations" class="tab flex flex-col space-y-4" v-if="isActive('integrations')">
-            <form action="" method="post" class="w-3/4">
+            <form action="" method="post" class="w-full lg:w-3/4">
                 <input type="hidden" name="action" value="toggle_wakatime">
 
                 {{ $placeholderText := "WakaTime API key" }}
@@ -524,8 +524,8 @@
                 {{ $placeholderText = "********" }}
                 {{ end }}
 
-                <div class="flex mb-8">
-                    <div class="w-1/2 mr-4 inline-block">
+                <div class="flex flex-wrap md:flex-no-wrap mb-8 gap-x-4">
+                    <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
                         <label class="font-semibold text-gray-300" for="select-timezone">WakaTime</label>
                         <span class="block text-sm text-gray-600">
                             You can connect Wakapi with the official WakaTime in a way that all heartbeats sent to Wakapi are relayed. This way, you can use both services at the same time. To get started, get <a class="text-gray-400 hover:text-gray-300 font-semibold" href="https://wakatime.com/developers#authentication" rel="noopener noreferrer" target="_blank">your API key</a> and paste it here.<br><br>
@@ -533,7 +533,7 @@
                                 class="font-semibold text-gray-400 hover:text-gray-300" target="_blank" href="https://github.com/muety/wakapi/issues/94" rel="noopener noreferrer">#94</a>) to be implemented.
                         </span>
                     </div>
-                    <div class="w-1/2 ml-4">
+                    <div class="w-full md:w-1/2">
                         <input type="password" name="api_key" id="wakatime_api_key"
                                class="w-full appearance-none bg-gray-850 text-gray-300 outline-none rounded py-2 px-4 {{ if not .User.WakatimeApiKey }}focus:bg-gray-800{{ end }} {{ if .User.WakatimeApiKey }}cursor-not-allowed{{ end }}"
                                placeholder="{{ $placeholderText }}" {{ if .User.WakatimeApiKey }}readonly{{ end }}>
@@ -554,13 +554,13 @@
                 <input type="hidden" name="action" value="import_wakatime">
             </form>
 
-            <div class="w-3/4">
+            <div class="w-full lg:w-3/4">
                 <hr class="border-t border-gray-800 mb-4">
             </div>
 
-            <div class="w-3/4">
-                <div class="flex mb-8">
-                    <div class="w-1/2 mr-4 inline-block">
+            <div class="w-full lg:w-3/4">
+                <div class="flex flex-wrap md:flex-no-wrap mb-8 gap-x-4">
+                    <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
                         <label class="font-semibold text-gray-300" for="select-timezone">Badges (Shields.IO)</label>
                         <span class="block text-sm text-gray-600">
                             The integration with <a class="font-semibold text-gray-400 hover:text-gray-300" href="https://shields.io" target="_blank" rel="noreferrer noopener">Shields.IO</a> allows to generate badges for README pages or forums. To enable this feature, you need to grant public, unauthorized access to the respective endpoints. See <a class="font-semibold text-gray-400 hover:text-gray-300" href="settings#permissions">Permissions</a>.<br><br>
@@ -568,7 +568,7 @@
                         </span>
                     </div>
 
-                    <div class="w-1/2 ml-4">
+                    <div class="w-full md:w-1/2 ml-4">
                         {{ if ne .User.ShareDataMaxDays 0 }}
                         <div class="flex space-x-4 mb-4">
                             <div class="flex items-center">
@@ -604,13 +604,13 @@
                 </div>
             </div>
 
-            <div class="w-3/4">
+            <div class="w-full lg:w-3/4">
                 <hr class="border-t border-gray-800 mb-4">
             </div>
 
-            <div class="w-3/4">
-                <div class="flex mb-8">
-                    <div class="w-1/2 mr-4 inline-block">
+            <div class="w-full lg:w-3/4">
+                <div class="flex flex-wrap md:flex-no-wrap mb-8 gap-x-4">
+                    <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
                         <label class="font-semibold text-gray-300" for="select-timezone">GitHub Readme Stats</label>
                         <span class="block text-sm text-gray-600">
                             Wakapi intregrates with <a class="font-semibold text-gray-400 hover:text-gray-300" href="https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats" target="_blank" rel="noreferrer noopener">GitHub Readme Stats</a> to generate fancy cards for you. To enable this feature, you need to grant public, unauthorized access to the respective endpoints. See <a class="font-semibold text-gray-400 hover:text-gray-300" href="settings#permissions">Permissions</a>.<br><br>
@@ -618,7 +618,7 @@
                         </span>
                     </div>
 
-                    <div class="w-1/2 ml-4">
+                    <div class="w-full md:w-1/2">
                         {{ if ne .User.ShareDataMaxDays 0 }}
                         <div class="flex items-center mb-2">
                             <img src="https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=1A202C&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact"
@@ -635,7 +635,7 @@
         </div>
 
         <div v-cloak id="danger_zone" class="tab flex flex-col space-y-4" v-if="isActive('danger_zone')">
-            <div class="w-3/4">
+            <div class="w-full lg:w-3/4">
                 <form action="" method="post" class="flex mb-8" id="form-regenerate-summaries">
                     <input type="hidden" name="action" value="regenerate_summaries">
 

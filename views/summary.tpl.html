@@ -88,24 +88,24 @@
     {{ if .User.HasData }}
 
     <!-- KPIs -->
-    <div class="flex space-x-6 w-full mb-4 flex-wrap">
-        <div class="flex flex-col space-y-2 my-1 w-48 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+    <div class="flex gap-x-6 gap-y-6 w-full mb-4 flex-wrap">
+        <div class="flex flex-col space-y-2 w-40 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
             <span class="text-xs text-gray-500 font-semibold">Total Time</span>
             <span class="font-semibold text-xl truncate">{{ .TotalTime | duration }}</span>
         </div>
-        <div class="flex flex-col space-y-2 my-1 w-48 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+        <div class="flex flex-col space-y-2 w-40 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
             <span class="text-xs text-gray-500 font-semibold">Top Project</span>
             <span class="font-semibold text-xl truncate">{{ .MaxByToString 0 }}</span>
         </div>
-        <div class="flex flex-col space-y-2 my-1 w-48 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+        <div class="flex flex-col space-y-2 w-40 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
             <span class="text-xs text-gray-500 font-semibold">Top Language</span>
             <span class="font-semibold text-xl truncate">{{ .MaxByToString 1 }}</span>
         </div>
-        <div class="flex flex-col space-y-2 my-1 w-48 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+        <div class="flex flex-col space-y-2 w-40 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
             <span class="text-xs text-gray-500 font-semibold">Top OS</span>
             <span class="font-semibold text-xl truncate">{{ .MaxByToString 3 }}</span>
         </div>
-        <div class="flex flex-col space-y-2 my-1 w-48 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+        <div class="flex flex-col space-y-2 w-40 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
             <span class="text-xs text-gray-500 font-semibold">Top Editor</span>
             <span class="font-semibold text-xl truncate">{{ .MaxByToString 2 }}</span>
         </div>

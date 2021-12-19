@@ -16,37 +16,35 @@
 </script>
 
 <div class="flex justify-between space-x-4 items-center relative" id="main-menu" v-scope @vue:mounted="mounted">
-    <div class="mr-8">
+    <div class="mr-8 hidden lg:inline-block flex-shrink-0">
     {{ template "logo.tpl.html" }}
     </div>
 
     <a class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer" href="summary">
         <span class="iconify inline text-2xl text-gray-400" data-icon="ic:round-dashboard"></span>
-        <span class="text-gray-300">Dashboard</span>
+        <span class="text-gray-300 hidden lg:inline-block">Dashboard</span>
     </a>
 
-    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-not-allowed">
+    <div class="menu-item hidden sm:flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-not-allowed">
         <span class="iconify inline text-2xl text-gray-700" data-icon="bi:people-fill"></span>
-        <a class="text-gray-600 leading-none">
-            Team<br>
+        <a class="text-gray-600 leading-none hidden lg:inline-block">Team<br>
             <span class="text-xxs">(coming soon)</span>
         </a>
     </div>
 
-    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-not-allowed">
+    <div class="menu-item hidden sm:flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-not-allowed">
         <span class="iconify inline text-2xl text-gray-700" data-icon="fluent:data-bar-horizontal-24-filled"></span>
-        <a class="text-gray-600 leading-none">
-            Leaderboard<br>
+        <a class="text-gray-600 leading-none hidden lg:inline-block">Leaderboard<br>
             <span class="text-xxs">(coming soon)</span>
         </a>
     </div>
 
     <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer relative" @click="state.showDropdownResources = !state.showDropdownResources" data-trigger-for="showDropdownResources">
         <span class="iconify inline text-2xl text-gray-400" data-icon="ph:books-bold"></span>
-        <a class="text-gray-400">Resources</a>
+        <a class="text-gray-400 hidden lg:inline-block">Resources</a>
         <span class="iconify inline text-xl text-gray-400" data-icon="akar-icons:chevron-down"></span>
 
-        <div v-cloak v-show="state.showDropdownResources" class="flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-12 w-full" id="resources-menu-dropdown">
+        <div v-cloak v-show="state.showDropdownResources" class="flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-12 w-full" id="resources-menu-dropdown" style="min-width: 128px">
             <div class="flex-grow flex flex-col">
                 <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
                     <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://github.com/muety/wakapi" target="_blank" rel="noreferrer noopener" @click="state.showDropdownResources = !state.showDropdownResources"  data-trigger-for="showDropdownResources">
@@ -78,13 +76,13 @@
 
     <a class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer" href="settings">
         <span class="iconify inline text-2xl text-gray-400" data-icon="ci:settings-filled"></span>
-        <span class="text-gray-400">Settings</span>
+        <span class="text-gray-400 hidden lg:inline-block">Settings</span>
     </a>
 
     <div class="flex-grow"></div>
 
-    <div class="menu-item flex items-center text-sm font-semibold space-x-3 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer relative" @click="state.showDropdownUser = !state.showDropdownUser" data-trigger-for="showDropdownUser">
-        <div class="flex flex-col text-right">
+    <div class="flex-shrink-0 menu-item flex items-center text-sm font-semibold space-x-3 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer relative" @click="state.showDropdownUser = !state.showDropdownUser" data-trigger-for="showDropdownUser">
+        <div class="hidden md:flex flex flex-col text-right">
             <a class="text-gray-300">{{ .User.ID }}</a>
             {{ if .User.Email }}
             <span class="text-xxs text-gray-500">{{ .User.Email }}</span>
