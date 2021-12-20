@@ -309,7 +309,22 @@ $ yarn build  # or: yarn watch
 New icons can be added by editing the `icons` array in [scripts/bundle_icons.js](scripts/bundle_icons.js).
 
 #### Precompression
-As explained in [#284](https://github.com/muety/wakapi/issues/284), precompressed (using Brotli) versions of some of the assets are delivered to save additional bandwidth. This was inspired by Caddy's [`precompressed`](https://caddyserver.com/docs/caddyfile/directives/file_server) directive. `gzipped.FileServer` checks for every static file's `.br` or `.gz` equivalents and, if present, delivers those instead of the actual file, alongside `Content-Encoding: br`. Currently, compressed assets are simply checked in to Git. Later we might want to have this be part of a new build step.
+As explained in [#284](https://github.com/muety/wakapi/issues/284), precompressed (using Brotli) versions of some of the assets are delivered to save additional bandwidth. This was inspired by Caddy's [`precompressed`](https://caddyserver.com/docs/caddyfile/directives/file_server) directive. [`gzipped.FileServer`](https://github.com/muety/wakapi/blob/07a367ce0a97c7738ba8e255e9c72df273fd43a3/main.go#L249) checks for every static file's `.br` or `.gz` equivalents and, if present, delivers those instead of the actual file, alongside `Content-Encoding: br`. Currently, compressed assets are simply checked in to Git. Later we might want to have this be part of a new build step.
+
+To pre-compress files, run this:
+```bash
+# Install brotli first
+$ sudo apt install brotli  # or: sudo dnf install brotli
+
+# Watch, build and compress
+$ yarn watch:compress
+
+# Alternatively: build and compress only
+$ yarn build:all:compress
+
+# Alternatively: compress only
+$ yarn compress
+```
 
 ## ❔ FAQs
 Since Wakapi heavily relies on the concepts provided by WakaTime, [their FAQs](https://wakatime.com/faq) apply to Wakapi for large parts as well. You might find answers there.
