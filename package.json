@@ -3,7 +3,10 @@
     "build": "npm run build:icons && npm run build:tailwind",
     "build:tailwind": "tailwindcss build -i static/assets/css/app.css -o static/assets/css/app.dist.css --minify",
     "build:icons": "node scripts/bundle_icons.js",
-    "watch": "chokidar \"./views/**/*.html\" \"./static/assets/js/**/*.js\" \"./static/assets/css/**/*.css\" -i \"**/vendor/*\" -i \"**/*.dist.*\" -c \"npm run build\""
+    "build:all:compress": "npm run build && npm run compress",
+    "watch": "chokidar \"./views/**/*.html\" \"./static/assets/js/**/*.js\" \"./static/assets/css/**/*.css\" -i \"**/vendor/*\" -i \"**/*.dist.*\" -c \"npm run build\"",
+    "watch:compress": "chokidar \"./views/**/*.html\" \"./static/assets/js/**/*.js\" \"./static/assets/css/**/*.css\" -i \"**/vendor/*\" -i \"**/*.dist.*\" -c \"npm run build:all:compress\"",
+    "compress": "brotli -f static/assets/css/*.dist.css && brotli -f static/assets/js/*.dist.js"
   },
   "devDependencies": {
     "@iconify/json": "^1.1.444",

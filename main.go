@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"github.com/lpar/gzipped/v2"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/routes/relay"
 	"io/fs"
@@ -19,7 +20,7 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/routes/api"
 	"github.com/muety/wakapi/services/mail"
-	"github.com/muety/wakapi/utils"
+	fsutils "github.com/muety/wakapi/utils/fs"
 	"gorm.io/gorm/logger"
 
 	"github.com/gorilla/mux"
@@ -246,7 +247,15 @@ func main() {
 	// https://github.com/golang/go/issues/43431
 	embeddedStatic, _ := fs.Sub(staticFiles, "static")
 	static := conf.ChooseFS("static", embeddedStatic)
-	fileServer := http.FileServer(utils.NeuteredFileSystem{Fs: http.FS(static)})
+
+	fileServer := gzipped.FileServer(fsutils.NewExistsHttpFs(
+		fsutils.ExistsFS{
+			Fs: fsutils.NeuteredFileSystem{
+				Fs: static,
+			},
+		}),
+	)
+
 	router.PathPrefix("/contribute.json").Handler(fileServer)
 	router.PathPrefix("/assets").Handler(fileServer)
 	router.PathPrefix("/swagger-ui").Handler(fileServer)

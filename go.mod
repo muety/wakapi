@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	github.com/BurntSushi/toml v0.4.1 // indirect
-	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/emersion/go-sasl v0.0.0-20211008083017-0b9dcfb154ac
 	github.com/emersion/go-smtp v0.15.0
@@ -12,7 +11,6 @@ require (
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/getsentry/sentry-go v0.11.0
 	github.com/go-co-op/gocron v1.11.0
-	github.com/go-kit/kit v0.10.0 // indirect
 	github.com/go-openapi/spec v0.20.2 // indirect
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
@@ -22,6 +20,7 @@ require (
 	github.com/jinzhu/configor v1.2.1
 	github.com/jinzhu/now v1.1.4 // indirect
 	github.com/leandro-lugaresi/hub v1.1.1
+	github.com/lpar/gzipped/v2 v2.0.2
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.2

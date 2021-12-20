@@ -308,6 +308,9 @@ $ yarn build  # or: yarn watch
 
 New icons can be added by editing the `icons` array in [scripts/bundle_icons.js](scripts/bundle_icons.js).
 
+#### Precompression
+As explained in [#284](https://github.com/muety/wakapi/issues/284), precompressed (using Brotli) versions of some of the assets are delivered to save additional bandwidth. This was inspired by Caddy's [`precompressed`](https://caddyserver.com/docs/caddyfile/directives/file_server) directive. `gzipped.FileServer` checks for every static file's `.br` or `.gz` equivalents and, if present, delivers those instead of the actual file, alongside `Content-Encoding: br`. Currently, compressed assets are simply checked in to Git. Later we might want to have this be part of a new build step.
+
 ## ❔ FAQs
 Since Wakapi heavily relies on the concepts provided by WakaTime, [their FAQs](https://wakatime.com/faq) apply to Wakapi for large parts as well. You might find answers there.
 

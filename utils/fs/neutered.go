@@ -1,17 +1,17 @@
-package utils
+package fs
 
 import (
-	"net/http"
+	"io/fs"
 	"path/filepath"
 )
 
 // https://www.alexedwards.net/blog/disable-http-fileserver-directory-listings
 
 type NeuteredFileSystem struct {
-	Fs http.FileSystem
+	Fs fs.FS
 }
 
-func (nfs NeuteredFileSystem) Open(path string) (http.File, error) {
+func (nfs NeuteredFileSystem) Open(path string) (fs.File, error) {
 	f, err := nfs.Fs.Open(path)
 	if err != nil {
 		return nil, err
