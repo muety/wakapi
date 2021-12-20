@@ -247,14 +247,12 @@ func main() {
 	// https://github.com/golang/go/issues/43431
 	embeddedStatic, _ := fs.Sub(staticFiles, "static")
 	static := conf.ChooseFS("static", embeddedStatic)
-
-	fileServer := gzipped.FileServer(fsutils.NewExistsHttpFs(
-		fsutils.ExistsFS{
-			Fs: fsutils.NeuteredFileSystem{
-				Fs: static,
-			},
-		}),
-	)
+	fileServer := gzipped.FileServer(fsutils.NewExistsHttpFS(
+		fsutils.NewExistsFS(
+			fsutils.NeuteredFileSystem{
+				FS: static,
+			}).WithCache(!config.IsDev()),
+	))
 
 	router.PathPrefix("/contribute.json").Handler(fileServer)
 	router.PathPrefix("/assets").Handler(fileServer)

@@ -1,35 +1,59 @@
 package fs
 
 import (
+	"github.com/patrickmn/go-cache"
 	"io/fs"
 	"net/http"
 	"strings"
 )
 
+func NewExistsFS(fs fs.FS) ExistsFS {
+	return ExistsFS{
+		FS:    fs,
+		cache: cache.New(cache.NoExpiration, cache.NoExpiration),
+	}
+}
+
 type ExistsFS struct {
-	Fs fs.FS
+	fs.FS
+	UseCache bool
+	cache    *cache.Cache
+}
+
+func (efs ExistsFS) WithCache(withCache bool) ExistsFS {
+	efs.UseCache = withCache
+	return efs
 }
 
 func (efs ExistsFS) Exists(name string) bool {
-	_, err := fs.Stat(efs.Fs, name)
-	return err == nil
+	if efs.UseCache {
+		if result, ok := efs.cache.Get(name); ok {
+			return result.(bool)
+		}
+	}
+	_, err := fs.Stat(efs.FS, name)
+	result := err == nil
+	if efs.UseCache {
+		efs.cache.SetDefault(name, result)
+	}
+	return result
 }
 
 func (efs ExistsFS) Open(name string) (fs.File, error) {
-	return efs.Fs.Open(name)
+	return efs.FS.Open(name)
 }
 
 // ---
 
 type ExistsHttpFS struct {
-	Fs     ExistsFS
+	ExistsFS
 	httpFs http.FileSystem
 }
 
-func NewExistsHttpFs(fs ExistsFS) ExistsHttpFS {
+func NewExistsHttpFS(fs ExistsFS) ExistsHttpFS {
 	return ExistsHttpFS{
-		Fs:     fs,
-		httpFs: http.FS(fs),
+		ExistsFS: fs,
+		httpFs:   http.FS(fs),
 	}
 }
 
@@ -37,7 +61,7 @@ func (ehfs ExistsHttpFS) Exists(name string) bool {
 	if strings.HasPrefix(name, "/") {
 		name = name[1:]
 	}
-	return ehfs.Fs.Exists(name)
+	return ehfs.ExistsFS.Exists(name)
 }
 
 func (ehfs ExistsHttpFS) Open(name string) (http.File, error) {
