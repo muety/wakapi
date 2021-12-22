@@ -31,7 +31,7 @@ type Summary struct {
 	OperatingSystems SummaryItems `json:"operating_systems" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Machines         SummaryItems `json:"machines" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Labels           SummaryItems `json:"labels" gorm:"-"` // labels are not persisted, but calculated at runtime, i.e. when summary is retrieved
-	NumHeartbeats    int          `json:"-"`
+	NumHeartbeats    int          `json:"-" gorm:"default:0"`
 }
 
 type SummaryItems []*SummaryItem

@@ -15,6 +15,8 @@ func init() {
 				return nil
 			}
 
+			logbuch.Info("this may take a while!")
+
 			if cfg.Db.IsMySQL() {
 				tx := db.Begin()
 				if err := tx.Exec("ALTER TABLE heartbeats MODIFY COLUMN id BIGINT UNSIGNED AUTO_INCREMENT").Error; err != nil {
