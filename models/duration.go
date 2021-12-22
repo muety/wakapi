@@ -16,6 +16,7 @@ type Duration struct {
 	Editor          string        `json:"editor"`
 	OperatingSystem string        `json:"operating_system"`
 	Machine         string        `json:"machine"`
+	NumHeartbeats   int           `json:"-" hash:"ignore"`
 	GroupHash       string        `json:"-" hash:"ignore"`
 }
 
@@ -29,6 +30,7 @@ func NewDurationFromHeartbeat(h *Heartbeat) *Duration {
 		Editor:          h.Editor,
 		OperatingSystem: h.OperatingSystem,
 		Machine:         h.Machine,
+		NumHeartbeats:   1,
 	}
 	return d.Hashed()
 }

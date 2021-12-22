@@ -140,6 +140,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 	assert.Nil(suite.T(), err)
 	assert.Len(suite.T(), durations, 1)
 	assert.Equal(suite.T(), HeartbeatDiffThreshold, durations.First().Duration)
+	assert.Equal(suite.T(), 1, durations.First().NumHeartbeats)
 
 	/* TEST 3 */
 	from, to = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
@@ -155,6 +156,9 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 	assert.Equal(suite.T(), TestEditorGoland, durations[0].Editor)
 	assert.Equal(suite.T(), TestEditorGoland, durations[1].Editor)
 	assert.Equal(suite.T(), TestEditorVscode, durations[2].Editor)
+	assert.Equal(suite.T(), 2, durations[0].NumHeartbeats)
+	assert.Equal(suite.T(), 1, durations[1].NumHeartbeats)
+	assert.Equal(suite.T(), 3, durations[2].NumHeartbeats)
 }
 
 func filterHeartbeats(from, to time.Time, heartbeats []*models.Heartbeat) []*models.Heartbeat {

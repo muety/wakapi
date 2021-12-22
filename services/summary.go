@@ -117,10 +117,8 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User) (*mod
 
 func (srv *SummaryService) Summarize(from, to time.Time, user *models.User) (*models.Summary, error) {
 	// Initialize and fetch data
-	var durations models.Durations
-	if result, err := srv.durationService.Get(from, to, user); err == nil {
-		durations = result
-	} else {
+	durations, err := srv.durationService.Get(from, to, user)
+	if err != nil {
 		return nil, err
 	}
 
@@ -169,6 +167,7 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User) (*mo
 		Editors:          editorItems,
 		OperatingSystems: osItems,
 		Machines:         machineItems,
+		NumHeartbeats:    durations.TotalNumHeartbeats(),
 	}
 
 	return summary.Sorted(), nil
@@ -303,6 +302,7 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 		finalSummary.OperatingSystems = srv.mergeSummaryItems(finalSummary.OperatingSystems, s.OperatingSystems)
 		finalSummary.Machines = srv.mergeSummaryItems(finalSummary.Machines, s.Machines)
 		finalSummary.Labels = srv.mergeSummaryItems(finalSummary.Labels, s.Labels)
+		finalSummary.NumHeartbeats += s.NumHeartbeats
 
 		processed[hash] = true
 	}

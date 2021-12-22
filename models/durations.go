@@ -16,6 +16,14 @@ func (d Durations) Swap(i, j int) {
 	d[i], d[j] = d[j], d[i]
 }
 
+func (d Durations) TotalNumHeartbeats() int {
+	var total int
+	for _, e := range d {
+		total += e.NumHeartbeats
+	}
+	return total
+}
+
 func (d Durations) Sorted() Durations {
 	sort.Sort(d)
 	return d

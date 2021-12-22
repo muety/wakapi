@@ -57,6 +57,8 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User) (models.D
 				mapping[d1.GroupHash] = append(mapping[d1.GroupHash], d1)
 			}
 			latest = d1
+		} else {
+			latest.NumHeartbeats++
 		}
 
 		count++
