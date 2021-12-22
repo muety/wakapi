@@ -73,14 +73,16 @@ func (srv *ReportService) SyncSchedule(u *models.User) bool {
 	// unschedule
 	if !u.ReportsWeekly {
 		_ = srv.scheduler.RemoveByTag(u.ID)
+		logbuch.Info("disabled scheduled reports for user %s", u.ID)
 		return false
 	}
 
 	// schedule
-	if j := srv.getJobByTag(u.ID); j == nil && u.ReportsWeekly {
+	if job := srv.getJobByTag(u.ID); job == nil && u.ReportsWeekly {
 		t, _ := time.ParseInLocation("15:04", srv.config.App.GetWeeklyReportTime(), u.TZ())
-		t = t.Add(time.Duration(srv.rand.Intn(offsetIntervalMin)*srv.rand.Intn(2)) * time.Minute)
-		if _, err := srv.scheduler.
+		t = t.Add(time.Duration(srv.rand.Intn(offsetIntervalMin*60)) * time.Second)
+		if job, err := srv.scheduler.
+			SingletonMode().
 			Every(1).
 			Week().
 			Weekday(srv.config.App.GetWeeklyReportDay()).
@@ -88,6 +90,8 @@ func (srv *ReportService) SyncSchedule(u *models.User) bool {
 			Tag(u.ID).
 			Do(srv.Run, u, 7*24*time.Hour); err != nil {
 			config.Log().Error("failed to schedule report job for user '%s' – %v", u.ID, err)
+		} else {
+			logbuch.Info("next report for user %s is scheduled for %v", u.ID, job.NextRun())
 		}
 	}
 
@@ -97,6 +101,7 @@ func (srv *ReportService) SyncSchedule(u *models.User) bool {
 func (srv *ReportService) Run(user *models.User, duration time.Duration) error {
 	if user.Email == "" {
 		logbuch.Warn("not generating report for '%s' as no e-mail address is set")
+		return nil
 	}
 
 	if !srv.SyncSchedule(user) {
