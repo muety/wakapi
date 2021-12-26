@@ -68,12 +68,7 @@ func (h *SummariesHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filters := &models.Filters{}
-	if projectQuery := r.URL.Query().Get("project"); projectQuery != "" {
-		filters.Project = projectQuery
-	}
-
-	vm := v1.NewSummariesFrom(summaries, filters)
+	vm := v1.NewSummariesFrom(summaries)
 	utils.RespondJSON(w, r, http.StatusOK, vm)
 }
 
@@ -130,8 +125,11 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary
 	intervals := utils.SplitRangeByDays(overallParams.From, overallParams.To)
 	summaries := make([]*models.Summary, len(intervals))
 
+	// filtering
+	filters := routeutils.ParseFilters(r)
+
 	for i, interval := range intervals {
-		summary, err := h.summarySrvc.Aliased(interval[0], interval[1], user, h.summarySrvc.Retrieve, end.After(time.Now()))
+		summary, err := h.summarySrvc.Aliased(interval[0], interval[1], user, h.summarySrvc.Retrieve, filters, end.After(time.Now()))
 		if err != nil {
 			return nil, err, http.StatusInternalServerError
 		}

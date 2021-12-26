@@ -57,8 +57,6 @@ type SummaryParams struct {
 	Recompute bool
 }
 
-type AliasResolver func(t uint8, k string) string
-
 func SummaryTypes() []uint8 {
 	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryLabel}
 }
@@ -204,12 +202,12 @@ func (s *Summary) TotalTimeByKey(entityType uint8, key string) (timeSum time.Dur
 	return timeSum
 }
 
-func (s *Summary) TotalTimeByFilters(filters *Filters) time.Duration {
-	do, typeId, key := filters.One()
-	if do {
-		return s.TotalTimeByKey(typeId, key)
+func (s *Summary) TotalTimeByFilter(filter FilterElement) time.Duration {
+	var total time.Duration
+	for _, f := range filter.filter {
+		total += s.TotalTimeByKey(filter.entity, f)
 	}
-	return 0
+	return total
 }
 
 func (s *Summary) MaxBy(entityType uint8) *SummaryItem {

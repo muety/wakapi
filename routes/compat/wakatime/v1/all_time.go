@@ -1,10 +1,6 @@
 package v1
 
 import (
-	"net/http"
-	"net/url"
-	"time"
-
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -13,6 +9,8 @@ import (
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
+	"net/http"
+	"time"
 )
 
 type AllTimeHandler struct {
@@ -47,25 +45,23 @@ func (h *AllTimeHandler) RegisterRoutes(router *mux.Router) {
 // @Success 200 {object} v1.AllTimeViewModel
 // @Router /compat/wakatime/v1/users/{user}/all_time_since_today [get]
 func (h *AllTimeHandler) Get(w http.ResponseWriter, r *http.Request) {
-	values, _ := url.ParseQuery(r.URL.RawQuery)
-
 	user, err := routeutils.CheckEffectiveUser(w, r, h.userSrvc, "current")
 	if err != nil {
 		return // response was already sent by util function
 	}
 
-	summary, err, status := h.loadUserSummary(user)
+	summary, err, status := h.loadUserSummary(user, routeutils.ParseFilters(r))
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	vm := v1.NewAllTimeFrom(summary, models.NewFiltersWith(models.SummaryProject, values.Get("project")))
+	vm := v1.NewAllTimeFrom(summary)
 	utils.RespondJSON(w, r, http.StatusOK, vm)
 }
 
-func (h *AllTimeHandler) loadUserSummary(user *models.User) (*models.Summary, error, int) {
+func (h *AllTimeHandler) loadUserSummary(user *models.User, filters *models.Filters) (*models.Summary, error, int) {
 	summaryParams := &models.SummaryParams{
 		From:      time.Time{},
 		To:        time.Now(),
@@ -78,7 +74,14 @@ func (h *AllTimeHandler) loadUserSummary(user *models.User) (*models.Summary, er
 		retrieveSummary = h.summarySrvc.Summarize
 	}
 
-	summary, err := h.summarySrvc.Aliased(summaryParams.From, summaryParams.To, summaryParams.User, retrieveSummary, summaryParams.Recompute)
+	summary, err := h.summarySrvc.Aliased(
+		summaryParams.From,
+		summaryParams.To,
+		summaryParams.User,
+		retrieveSummary,
+		filters,
+		summaryParams.Recompute,
+	)
 	if err != nil {
 		return nil, err, http.StatusInternalServerError
 	}

@@ -52,12 +52,3 @@ func (suite *AliasServiceTestSuite) TestAliasService_GetAliasOrDefault() {
 	assert.Equal(suite.T(), "anchr", result3)
 	assert.Nil(suite.T(), err3)
 }
-
-func (suite *AliasServiceTestSuite) TestAliasService_GetAliasOrDefault_ErrorOnNonExistingUser() {
-	sut := NewAliasService(suite.AliasRepository)
-
-	result, err := sut.GetAliasOrDefault("nonexisting", models.SummaryProject, "wakapi-mobile")
-
-	assert.Empty(suite.T(), result)
-	assert.Error(suite.T(), err)
-}

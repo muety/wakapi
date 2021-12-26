@@ -116,7 +116,7 @@ func (h *MetricsHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) {
 	var metrics mm.Metrics
 
-	summaryAllTime, err := h.summarySrvc.Aliased(time.Time{}, time.Now(), user, h.summarySrvc.Retrieve, false)
+	summaryAllTime, err := h.summarySrvc.Aliased(time.Time{}, time.Now(), user, h.summarySrvc.Retrieve, nil, false)
 	if err != nil {
 		logbuch.Error("failed to retrieve all time summary for user '%s' for metric", user.ID)
 		return nil, err
@@ -124,7 +124,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 
 	from, to := utils.MustResolveIntervalRawTZ("today", user.TZ())
 
-	summaryToday, err := h.summarySrvc.Aliased(from, to, user, h.summarySrvc.Retrieve, false)
+	summaryToday, err := h.summarySrvc.Aliased(from, to, user, h.summarySrvc.Retrieve, nil, false)
 	if err != nil {
 		logbuch.Error("failed to retrieve today's summary for user '%s' for metric", user.ID)
 		return nil, err
@@ -141,7 +141,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 	metrics = append(metrics, &mm.CounterMetric{
 		Name:   MetricsPrefix + "_cumulative_seconds_total",
 		Desc:   DescAllTime,
-		Value:  int(v1.NewAllTimeFrom(summaryAllTime, &models.Filters{}).Data.TotalSeconds),
+		Value:  int(v1.NewAllTimeFrom(summaryAllTime).Data.TotalSeconds),
 		Labels: []mm.Label{},
 	})
 

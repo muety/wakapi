@@ -21,7 +21,7 @@ func NewDurationService(heartbeatService IHeartbeatService) *DurationService {
 	return srv
 }
 
-func (srv *DurationService) Get(from, to time.Time, user *models.User) (models.Durations, error) {
+func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *models.Filters) (models.Durations, error) {
 	heartbeats, err := srv.heartbeatService.GetAllWithin(from, to, user)
 	if err != nil {
 		return nil, err
@@ -34,6 +34,10 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User) (models.D
 	mapping := make(map[string][]*models.Duration)
 
 	for _, h := range heartbeats {
+		if filters != nil && !filters.Match(h) {
+			continue
+		}
+
 		d1 := models.NewDurationFromHeartbeat(h)
 
 		if list, ok := mapping[d1.GroupHash]; !ok || len(list) < 1 {

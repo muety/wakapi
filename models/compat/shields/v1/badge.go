@@ -3,7 +3,6 @@ package v1
 import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
-	"time"
 )
 
 // https://shields.io/endpoint
@@ -20,18 +19,11 @@ type BadgeData struct {
 	Color         string `json:"color"`
 }
 
-func NewBadgeDataFrom(summary *models.Summary, filters *models.Filters) *BadgeData {
-	var total time.Duration
-	if hasFilter, _, _ := filters.One(); hasFilter {
-		total = summary.TotalTimeByFilters(filters)
-	} else {
-		total = summary.TotalTime()
-	}
-
+func NewBadgeDataFrom(summary *models.Summary) *BadgeData {
 	return &BadgeData{
 		SchemaVersion: 1,
 		Label:         defaultLabel,
-		Message:       utils.FmtWakatimeDuration(total),
+		Message:       utils.FmtWakatimeDuration(summary.TotalTime()),
 		Color:         defaultColor,
 	}
 }

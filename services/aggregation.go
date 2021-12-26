@@ -83,7 +83,7 @@ func (srv *AggregationService) Run(userIds map[string]bool) error {
 
 func (srv *AggregationService) summaryWorker(jobs <-chan *AggregationJob, summaries chan<- *models.Summary) {
 	for job := range jobs {
-		if summary, err := srv.summaryService.Summarize(job.From, job.To, &models.User{ID: job.UserID}); err != nil {
+		if summary, err := srv.summaryService.Summarize(job.From, job.To, &models.User{ID: job.UserID}, nil); err != nil {
 			config.Log().Error("failed to generate summary (%v, %v, %s) – %v", job.From, job.To, job.UserID, err)
 		} else {
 			logbuch.Info("successfully generated summary (%v, %v, %s)", job.From, job.To, job.UserID)

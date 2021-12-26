@@ -126,7 +126,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(-1*time.Minute)
 	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(filterHeartbeats(from, to, suite.TestHeartbeats), nil)
 
-	durations, err = sut.Get(from, to, suite.TestUser)
+	durations, err = sut.Get(from, to, suite.TestUser, nil)
 
 	assert.Nil(suite.T(), err)
 	assert.Empty(suite.T(), durations)
@@ -135,7 +135,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Second)
 	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(filterHeartbeats(from, to, suite.TestHeartbeats), nil)
 
-	durations, err = sut.Get(from, to, suite.TestUser)
+	durations, err = sut.Get(from, to, suite.TestUser, nil)
 
 	assert.Nil(suite.T(), err)
 	assert.Len(suite.T(), durations, 1)
@@ -146,7 +146,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 	from, to = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
 	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(filterHeartbeats(from, to, suite.TestHeartbeats), nil)
 
-	durations, err = sut.Get(from, to, suite.TestUser)
+	durations, err = sut.Get(from, to, suite.TestUser, nil)
 
 	assert.Nil(suite.T(), err)
 	assert.Len(suite.T(), durations, 3)

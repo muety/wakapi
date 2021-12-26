@@ -3,7 +3,6 @@ package v1
 import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
-	"time"
 )
 
 // https://wakatime.com/developers#all_time_since_today
@@ -27,14 +26,8 @@ type AllTimeRange struct {
 	Timezone  string `json:"timezone"`
 }
 
-func NewAllTimeFrom(summary *models.Summary, filters *models.Filters) *AllTimeViewModel {
-	var total time.Duration
-	if key := filters.Project; key != "" {
-		total = summary.TotalTimeByFilters(filters)
-	} else {
-		total = summary.TotalTime()
-	}
-
+func NewAllTimeFrom(summary *models.Summary) *AllTimeViewModel {
+	total := summary.TotalTime()
 	return &AllTimeViewModel{
 		Data: &AllTimeData{
 			TotalSeconds: float32(total.Seconds()),

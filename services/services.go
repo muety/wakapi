@@ -75,13 +75,13 @@ type IMailService interface {
 }
 
 type IDurationService interface {
-	Get(time.Time, time.Time, *models.User) (models.Durations, error)
+	Get(time.Time, time.Time, *models.User, *models.Filters) (models.Durations, error)
 }
 
 type ISummaryService interface {
-	Aliased(time.Time, time.Time, *models.User, SummaryRetriever, bool) (*models.Summary, error)
-	Retrieve(time.Time, time.Time, *models.User) (*models.Summary, error)
-	Summarize(time.Time, time.Time, *models.User) (*models.Summary, error)
+	Aliased(time.Time, time.Time, *models.User, SummaryRetriever, *models.Filters, bool) (*models.Summary, error)
+	Retrieve(time.Time, time.Time, *models.User, *models.Filters) (*models.Summary, error)
+	Summarize(time.Time, time.Time, *models.User, *models.Filters) (*models.Summary, error)
 	GetLatestByUser() ([]*models.TimeByUser, error)
 	DeleteByUser(string) error
 	Insert(*models.Summary) error

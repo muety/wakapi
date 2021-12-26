@@ -9,6 +9,7 @@ import (
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 )
@@ -88,7 +89,7 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	summary, err, status := h.loadUserSummary(requestedUser, rangeFrom, rangeTo)
+	summary, err, status := h.loadUserSummary(requestedUser, rangeFrom, rangeTo, routeutils.ParseFilters(r))
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))
@@ -117,7 +118,7 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	utils.RespondJSON(w, r, http.StatusOK, stats)
 }
 
-func (h *StatsHandler) loadUserSummary(user *models.User, start, end time.Time) (*models.Summary, error, int) {
+func (h *StatsHandler) loadUserSummary(user *models.User, start, end time.Time, filters *models.Filters) (*models.Summary, error, int) {
 	overallParams := &models.SummaryParams{
 		From:      start,
 		To:        end,
@@ -125,7 +126,7 @@ func (h *StatsHandler) loadUserSummary(user *models.User, start, end time.Time) 
 		Recompute: false,
 	}
 
-	summary, err := h.summarySrvc.Aliased(overallParams.From, overallParams.To, user, h.summarySrvc.Retrieve, false)
+	summary, err := h.summarySrvc.Aliased(overallParams.From, overallParams.To, user, h.summarySrvc.Retrieve, filters, false)
 	if err != nil {
 		return nil, err, http.StatusInternalServerError
 	}

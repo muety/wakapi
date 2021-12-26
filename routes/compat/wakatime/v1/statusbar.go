@@ -78,7 +78,7 @@ func (h *StatusBarHandler) Get(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	summariesView := v1.NewSummariesFrom([]*models.Summary{summary}, &models.Filters{})
+	summariesView := v1.NewSummariesFrom([]*models.Summary{summary})
 	utils.RespondJSON(w, r, http.StatusOK, StatusBarViewModel{
 		CachedAt: time.Now(),
 		Data:     *summariesView.Data[0],
@@ -98,7 +98,7 @@ func (h *StatusBarHandler) loadUserSummary(user *models.User, start, end time.Ti
 		retrieveSummary = h.summarySrvc.Summarize
 	}
 
-	summary, err := h.summarySrvc.Aliased(summaryParams.From, summaryParams.To, summaryParams.User, retrieveSummary, summaryParams.Recompute)
+	summary, err := h.summarySrvc.Aliased(summaryParams.From, summaryParams.To, summaryParams.User, retrieveSummary, nil, summaryParams.Recompute)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}

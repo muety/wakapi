@@ -112,7 +112,7 @@ func (srv *ReportService) Run(user *models.User, duration time.Duration) error {
 	end := time.Now().In(user.TZ())
 	start := time.Now().Add(-1 * duration)
 
-	summary, err := srv.summaryService.Aliased(start, end, user, srv.summaryService.Retrieve, false)
+	summary, err := srv.summaryService.Aliased(start, end, user, srv.summaryService.Retrieve, nil, false)
 	if err != nil {
 		config.Log().Error("failed to generate report for '%s' – %v", user.ID, err)
 		return err

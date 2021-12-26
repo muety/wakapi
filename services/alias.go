@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -38,35 +39,53 @@ func (srv *AliasService) InitializeUser(userId string) error {
 	return err
 }
 
-func (srv *AliasService) GetByUser(userId string) ([]*models.Alias, error) {
-	aliases, err := srv.repository.GetByUser(userId)
-	if err != nil {
-		return nil, err
+func (srv *AliasService) MayInitializeUser(userId string) {
+	if err := srv.InitializeUser(userId); err != nil {
+		logbuch.Error("failed to initialize user alias map for user %s", userId)
 	}
-	return aliases, nil
+}
+
+func (srv *AliasService) GetByUser(userId string) ([]*models.Alias, error) {
+	if !srv.IsInitialized(userId) {
+		srv.MayInitializeUser(userId)
+	}
+	if aliases, ok := userAliases.Load(userId); ok {
+		return aliases.([]*models.Alias), nil
+	} else {
+		return nil, errors.New(fmt.Sprintf("no user aliases loaded for user %s", userId))
+	}
 }
 
 func (srv *AliasService) GetByUserAndKeyAndType(userId, key string, summaryType uint8) ([]*models.Alias, error) {
-	aliases, err := srv.repository.GetByUserAndKeyAndType(userId, key, summaryType)
-	if err != nil {
-		return nil, err
+	if !srv.IsInitialized(userId) {
+		srv.MayInitializeUser(userId)
 	}
-	return aliases, nil
+	if aliases, ok := userAliases.Load(userId); ok {
+		filteredAliases := make([]*models.Alias, 0, len(aliases.([]*models.Alias)))
+		for _, a := range aliases.([]*models.Alias) {
+			if a.Key == key && a.Type == summaryType {
+				filteredAliases = append(filteredAliases, a)
+			}
+		}
+		return filteredAliases, nil
+	} else {
+		return nil, errors.New(fmt.Sprintf("no user aliases loaded for user %s", userId))
+	}
 }
 
 func (srv *AliasService) GetAliasOrDefault(userId string, summaryType uint8, value string) (string, error) {
 	if !srv.IsInitialized(userId) {
-		if err := srv.InitializeUser(userId); err != nil {
-			return "", err
+		srv.MayInitializeUser(userId)
+	}
+
+	if aliases, ok := userAliases.Load(userId); ok {
+		for _, a := range aliases.([]*models.Alias) {
+			if a.Type == summaryType && a.Value == value {
+				return a.Key, nil
+			}
 		}
 	}
 
-	aliases, _ := userAliases.Load(userId)
-	for _, a := range aliases.([]*models.Alias) {
-		if a.Type == summaryType && a.Value == value {
-			return a.Key, nil
-		}
-	}
 	return value, nil
 }
 
@@ -75,7 +94,7 @@ func (srv *AliasService) Create(alias *models.Alias) (*models.Alias, error) {
 	if err != nil {
 		return nil, err
 	}
-	go srv.reinitUser(alias.UserID)
+	go srv.MayInitializeUser(alias.UserID)
 	return result, nil
 }
 
@@ -84,7 +103,7 @@ func (srv *AliasService) Delete(alias *models.Alias) error {
 		return errors.New("no user id specified")
 	}
 	err := srv.repository.Delete(alias.ID)
-	go srv.reinitUser(alias.UserID)
+	go srv.MayInitializeUser(alias.UserID)
 	return err
 }
 
@@ -102,14 +121,8 @@ func (srv *AliasService) DeleteMulti(aliases []*models.Alias) error {
 	err := srv.repository.DeleteBatch(ids)
 
 	for k := range affectedUsers {
-		go srv.reinitUser(k)
+		go srv.MayInitializeUser(k)
 	}
 
 	return err
-}
-
-func (srv *AliasService) reinitUser(userId string) {
-	if err := srv.InitializeUser(userId); err != nil {
-		logbuch.Error("error initializing user aliases – %v", err)
-	}
 }

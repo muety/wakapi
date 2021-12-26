@@ -122,19 +122,19 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	summary, err, status := h.loadUserSummary(user, interval)
+	summary, err, status := h.loadUserSummary(user, interval, filters)
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	vm := v1.NewBadgeDataFrom(summary, filters)
+	vm := v1.NewBadgeDataFrom(summary)
 	h.cache.SetDefault(cacheKey, vm)
 	utils.RespondJSON(w, r, http.StatusOK, vm)
 }
 
-func (h *BadgeHandler) loadUserSummary(user *models.User, interval *models.IntervalKey) (*models.Summary, error, int) {
+func (h *BadgeHandler) loadUserSummary(user *models.User, interval *models.IntervalKey, filters *models.Filters) (*models.Summary, error, int) {
 	err, from, to := utils.ResolveIntervalTZ(interval, user.TZ())
 	if err != nil {
 		return nil, err, http.StatusBadRequest
@@ -151,7 +151,14 @@ func (h *BadgeHandler) loadUserSummary(user *models.User, interval *models.Inter
 		retrieveSummary = h.summarySrvc.Summarize
 	}
 
-	summary, err := h.summarySrvc.Aliased(summaryParams.From, summaryParams.To, summaryParams.User, retrieveSummary, summaryParams.Recompute)
+	summary, err := h.summarySrvc.Aliased(
+		summaryParams.From,
+		summaryParams.To,
+		summaryParams.User,
+		retrieveSummary,
+		filters,
+		summaryParams.Recompute,
+	)
 	if err != nil {
 		return nil, err, http.StatusInternalServerError
 	}

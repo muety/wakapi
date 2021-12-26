@@ -98,20 +98,13 @@ func TestSummary_TotalTimeByFilters(t *testing.T) {
 		},
 	}
 
-	// Specifying filters about multiple entites is not supported at the moment
-	// as the current, very rudimentary, time calculation logic wouldn't make sense then.
-	// Evaluating a filter like (project="wakapi", language="go") can only be realized
-	// before computing the summary in the first place, because afterwards we can't know
-	// what time coded in "Go" was in the "Wakapi" project
-	// See https://github.com/muety/wakapi/issues/108
+	filters1 := NewFiltersWith(SummaryProject, "wakapi").OneOrEmpty()
+	filters2 := NewFiltersWith(SummaryLanguage, "Go").OneOrEmpty()
+	filters3 := FilterElement{}
 
-	filters1 := &Filters{Project: "wakapi"}
-	filters2 := &Filters{Language: "Go"}
-	filters3 := &Filters{}
-
-	assert.Equal(t, testDuration1, sut.TotalTimeByFilters(filters1))
-	assert.Equal(t, testDuration3, sut.TotalTimeByFilters(filters2))
-	assert.Zero(t, sut.TotalTimeByFilters(filters3))
+	assert.Equal(t, testDuration1, sut.TotalTimeByFilter(filters1))
+	assert.Equal(t, testDuration3, sut.TotalTimeByFilter(filters2))
+	assert.Zero(t, sut.TotalTimeByFilter(filters3))
 }
 
 func TestSummary_WithResolvedAliases(t *testing.T) {

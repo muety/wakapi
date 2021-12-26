@@ -24,7 +24,7 @@ type SummaryService struct {
 	projectLabelService IProjectLabelService
 }
 
-type SummaryRetriever func(f, t time.Time, u *models.User) (*models.Summary, error)
+type SummaryRetriever func(f, t time.Time, u *models.User, filters *models.Filters) (*models.Summary, error)
 
 func NewSummaryService(summaryRepo repositories.ISummaryRepository, durationService IDurationService, aliasService IAliasService, projectLabelService IProjectLabelService) *SummaryService {
 	srv := &SummaryService{
@@ -55,10 +55,10 @@ func NewSummaryService(summaryRepo repositories.ISummaryRepository, durationServ
 // Public summary generation methods
 
 // Aliased retrieves or computes a new summary based on the given SummaryRetriever and augments it with entity aliases and project labels
-func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f SummaryRetriever, skipCache bool) (*models.Summary, error) {
+func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f SummaryRetriever, filters *models.Filters, skipCache bool) (*models.Summary, error) {
 	// Check cache
-	cacheKey := srv.getHash(from.String(), to.String(), user.ID, "--aliased")
-	if cacheResult, ok := srv.cache.Get(cacheKey); ok && !skipCache && false {
+	cacheKey := srv.getHash(from.String(), to.String(), user.ID, filters.Hash(), "--aliased")
+	if cacheResult, ok := srv.cache.Get(cacheKey); ok && !skipCache {
 		return cacheResult.(*models.Summary), nil
 	}
 
@@ -67,6 +67,19 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f Summ
 		s, _ := srv.aliasService.GetAliasOrDefault(user.ID, t, k)
 		return s
 	}
+	resolveReverse := func(t uint8, k string) []string {
+		aliases, _ := srv.aliasService.GetByUserAndKeyAndType(user.ID, k, t)
+		aliasStrings := make([]string, 0, len(aliases))
+		for _, a := range aliases {
+			aliasStrings = append(aliasStrings, a.Value)
+		}
+		return aliasStrings
+	}
+
+	// Post-process filters
+	if filters != nil {
+		filters = filters.WithAliases(resolveReverse)
+	}
 
 	// Initialize alias resolver service
 	if err := srv.aliasService.InitializeUser(user.ID); err != nil {
@@ -74,7 +87,7 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f Summ
 	}
 
 	// Get actual summary
-	s, err := f(from, to, user)
+	s, err := f(from, to, user, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -89,17 +102,24 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f Summ
 	return summary.Sorted(), nil
 }
 
-func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User) (*models.Summary, error) {
-	// Get all already existing, pre-generated summaries that fall into the requested interval
-	summaries, err := srv.repository.GetByUserWithin(user, from, to)
-	if err != nil {
-		return nil, err
+func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filters *models.Filters) (*models.Summary, error) {
+	summaries := make([]*models.Summary, 0)
+
+	// Filtered summaries are not persisted currently
+	if filters == nil || filters.IsEmpty() {
+		// Get all already existing, pre-generated summaries that fall into the requested interval
+		result, err := srv.repository.GetByUserWithin(user, from, to)
+		if err == nil {
+			summaries = result
+		} else {
+			return nil, err
+		}
 	}
 
 	// Generate missing slots (especially before and after existing summaries) from durations (formerly raw heartbeats)
 	missingIntervals := srv.getMissingIntervals(from, to, summaries)
 	for _, interval := range missingIntervals {
-		if s, err := srv.Summarize(interval.Start, interval.End, user); err == nil {
+		if s, err := srv.Summarize(interval.Start, interval.End, user, filters); err == nil {
 			summaries = append(summaries, s)
 		} else {
 			return nil, err
@@ -115,9 +135,9 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User) (*mod
 	return summary.Sorted(), nil
 }
 
-func (srv *SummaryService) Summarize(from, to time.Time, user *models.User) (*models.Summary, error) {
+func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filters *models.Filters) (*models.Summary, error) {
 	// Initialize and fetch data
-	durations, err := srv.durationService.Get(from, to, user)
+	durations, err := srv.durationService.Get(from, to, user, filters)
 	if err != nil {
 		return nil, err
 	}
