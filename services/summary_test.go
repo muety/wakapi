@@ -79,8 +79,8 @@ func (suite *SummaryServiceTestSuite) SetupSuite() {
 		{
 			ID:         uint(rand.Uint32()),
 			UserID:     TestUserId,
-			ProjectKey: TestProjectLabel3,
-			Label:      "blaahh",
+			ProjectKey: TestProject3,
+			Label:      TestProjectLabel3,
 		},
 	}
 }
@@ -386,7 +386,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
 		Duration:        0, // not relevant here
 	})
 
-	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything).Return(models.Durations(durations), nil)
+	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything).Return(durations, nil)
 	suite.AliasService.On("InitializeUser", TestUserId).Return(nil)
 	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, TestProject1).Return(TestProject2, nil)
 	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, TestProject2).Return(TestProject2, nil)
@@ -439,6 +439,38 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased_ProjectLabels()
 	assert.NotNil(suite.T(), result)
 	assert.Equal(suite.T(), 195*time.Second, result.TotalTimeByKey(models.SummaryLabel, TestProjectLabel1))
 	assert.Equal(suite.T(), 6, result.NumHeartbeats)
+}
+
+func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
+	sut := NewSummaryService(suite.SummaryRepository, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+
+	suite.AliasService.On("InitializeUser", suite.TestUser.ID).Return(nil)
+	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return([]*models.ProjectLabel{}, nil)
+
+	from, to := suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
+	filters := models.NewFiltersWith(models.SummaryProject, TestProject1).With(models.SummaryLabel, TestProjectLabel3)
+
+	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything).Return(models.Durations{}, nil)
+	suite.AliasService.On("InitializeUser", TestUserId).Return(nil)
+	suite.AliasService.On("GetByUserAndKeyAndType", TestUserId, TestProject1, models.SummaryProject).Return([]*models.Alias{
+		{
+			Type:  models.SummaryProject,
+			Key:   TestProject1,
+			Value: TestProject2,
+		},
+	}, nil)
+	suite.ProjectLabelService.On("GetByUserGroupedInverted", suite.TestUser.ID).Return(map[string][]*models.ProjectLabel{
+		suite.TestLabels[0].Label: suite.TestLabels[0:1],
+		suite.TestLabels[1].Label: suite.TestLabels[1:2],
+	}, nil).Once()
+
+	sut.Aliased(from, to, suite.TestUser, sut.Summarize, filters, false)
+
+	effectiveFilters := suite.DurationService.Calls[0].Arguments[3].(*models.Filters)
+	assert.Contains(suite.T(), effectiveFilters.Project, TestProject1) // because actually requested
+	assert.Contains(suite.T(), effectiveFilters.Project, TestProject2) // because of alias
+	assert.Contains(suite.T(), effectiveFilters.Project, TestProject3) // because of label
+	assert.Contains(suite.T(), effectiveFilters.Label, TestProjectLabel3)
 }
 
 func filterDurations(from, to time.Time, durations models.Durations) models.Durations {

@@ -14,6 +14,7 @@ const (
 	TestUserId         = "muety"
 	TestProject1       = "test-project-1"
 	TestProject2       = "test-project-2"
+	TestProject3       = "test-project-3"
 	TestLanguageGo     = "Go"
 	TestLanguageJava   = "Java"
 	TestLanguagePython = "Python"
@@ -159,6 +160,27 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 	assert.Equal(suite.T(), 2, durations[0].NumHeartbeats)
 	assert.Equal(suite.T(), 1, durations[1].NumHeartbeats)
 	assert.Equal(suite.T(), 3, durations[2].NumHeartbeats)
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered() {
+	sut := NewDurationService(suite.HeartbeatService)
+
+	var (
+		from      time.Time
+		to        time.Time
+		durations models.Durations
+		err       error
+	)
+
+	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Hour)
+	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(filterHeartbeats(from, to, suite.TestHeartbeats), nil)
+
+	durations, err = sut.Get(from, to, suite.TestUser, models.NewFiltersWith(models.SummaryEditor, TestEditorGoland))
+	assert.Nil(suite.T(), err)
+	assert.Len(suite.T(), durations, 2)
+	for _, d := range durations {
+		assert.Equal(suite.T(), TestEditorGoland, d.Editor)
+	}
 }
 
 func filterHeartbeats(from, to time.Time, heartbeats []*models.Heartbeat) []*models.Heartbeat {
