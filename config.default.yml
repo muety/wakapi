@@ -69,3 +69,5 @@ mail:
     url:
     client_id:
     client_secret:
+
+quick_start: false                  # whether to skip initial tasks on application startup, like summary generation

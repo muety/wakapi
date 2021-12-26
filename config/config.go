@@ -140,14 +140,15 @@ type SMTPMailConfig struct {
 }
 
 type Config struct {
-	Env      string `default:"dev" env:"ENVIRONMENT"`
-	Version  string `yaml:"-"`
-	App      appConfig
-	Security securityConfig
-	Db       dbConfig
-	Server   serverConfig
-	Sentry   sentryConfig
-	Mail     mailConfig
+	Env        string `default:"dev" env:"ENVIRONMENT"`
+	Version    string `yaml:"-"`
+	QuickStart bool   `yaml:"quick_start" env:"WAKAPI_QUICK_START"`
+	App        appConfig
+	Security   securityConfig
+	Db         dbConfig
+	Server     serverConfig
+	Sentry     sentryConfig
+	Mail       mailConfig
 }
 
 func (c *Config) CreateCookie(name, value, path string) *http.Cookie {
