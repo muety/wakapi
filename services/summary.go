@@ -58,7 +58,7 @@ func NewSummaryService(summaryRepo repositories.ISummaryRepository, durationServ
 func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f SummaryRetriever, skipCache bool) (*models.Summary, error) {
 	// Check cache
 	cacheKey := srv.getHash(from.String(), to.String(), user.ID, "--aliased")
-	if cacheResult, ok := srv.cache.Get(cacheKey); ok && !skipCache {
+	if cacheResult, ok := srv.cache.Get(cacheKey); ok && !skipCache && false {
 		return cacheResult.(*models.Summary), nil
 	}
 

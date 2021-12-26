@@ -75,7 +75,7 @@ type IMailService interface {
 }
 
 type IDurationService interface {
-	Get(time.Time, time.Time, *models.User) ([]*models.Duration, error)
+	Get(time.Time, time.Time, *models.User) (models.Durations, error)
 }
 
 type ISummaryService interface {

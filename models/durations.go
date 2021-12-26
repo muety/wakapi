@@ -16,7 +16,7 @@ func (d Durations) Swap(i, j int) {
 	d[i], d[j] = d[j], d[i]
 }
 
-func (d *Durations) Sorted() *Durations {
+func (d Durations) Sorted() Durations {
 	sort.Sort(d)
 	return d
 }
