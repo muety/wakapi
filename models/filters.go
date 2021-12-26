@@ -104,7 +104,6 @@ func (f *Filters) Hash() string {
 }
 
 func (f *Filters) Match(h *Heartbeat) bool {
-	// TODO: labels?
 	return (f.Project == nil || f.Project.MatchAny(h.Project)) &&
 		(f.OS == nil || f.OS.MatchAny(h.OperatingSystem)) &&
 		(f.Language == nil || f.Language.MatchAny(h.Language)) &&
@@ -113,12 +112,12 @@ func (f *Filters) Match(h *Heartbeat) bool {
 }
 
 // WithAliases adds OR-conditions for every alias of a filter key as additional filter keys
-func (f *Filters) WithAliases(resolver AliasReverseResolver) *Filters {
+func (f *Filters) WithAliases(resolve AliasReverseResolver) *Filters {
 	if f.Project != nil {
 		updated := OrFilter(make([]string, 0, len(f.Project)))
 		for _, e := range f.Project {
 			updated = append(updated, e)
-			updated = append(updated, resolver(SummaryProject, e)...)
+			updated = append(updated, resolve(SummaryProject, e)...)
 		}
 		f.Project = updated
 	}
@@ -126,7 +125,7 @@ func (f *Filters) WithAliases(resolver AliasReverseResolver) *Filters {
 		updated := OrFilter(make([]string, 0, len(f.OS)))
 		for _, e := range f.OS {
 			updated = append(updated, e)
-			updated = append(updated, resolver(SummaryOS, e)...)
+			updated = append(updated, resolve(SummaryOS, e)...)
 		}
 		f.OS = updated
 	}
@@ -134,7 +133,7 @@ func (f *Filters) WithAliases(resolver AliasReverseResolver) *Filters {
 		updated := OrFilter(make([]string, 0, len(f.Language)))
 		for _, e := range f.Language {
 			updated = append(updated, e)
-			updated = append(updated, resolver(SummaryLanguage, e)...)
+			updated = append(updated, resolve(SummaryLanguage, e)...)
 		}
 		f.Language = updated
 	}
@@ -142,7 +141,7 @@ func (f *Filters) WithAliases(resolver AliasReverseResolver) *Filters {
 		updated := OrFilter(make([]string, 0, len(f.Editor)))
 		for _, e := range f.Editor {
 			updated = append(updated, e)
-			updated = append(updated, resolver(SummaryEditor, e)...)
+			updated = append(updated, resolve(SummaryEditor, e)...)
 		}
 		f.Editor = updated
 	}
@@ -150,9 +149,19 @@ func (f *Filters) WithAliases(resolver AliasReverseResolver) *Filters {
 		updated := OrFilter(make([]string, 0, len(f.Machine)))
 		for _, e := range f.Machine {
 			updated = append(updated, e)
-			updated = append(updated, resolver(SummaryMachine, e)...)
+			updated = append(updated, resolve(SummaryMachine, e)...)
 		}
 		f.Machine = updated
+	}
+	return f
+}
+
+func (f *Filters) WithProjectLabels(resolve ProjectLabelReverseResolver) *Filters {
+	if f.Label == nil || !f.Label.Exists() {
+		return f
+	}
+	for _, l := range f.Label {
+		f.Project = append(f.Project, resolve(l)...)
 	}
 	return f
 }

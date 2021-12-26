@@ -43,6 +43,7 @@ func (srv *ProjectLabelService) GetByUser(userId string) ([]*models.ProjectLabel
 	return labels, nil
 }
 
+// GetByUserGrouped returns lists of project labels, grouped by their project key
 func (srv *ProjectLabelService) GetByUserGrouped(userId string) (map[string][]*models.ProjectLabel, error) {
 	labelsByProject := make(map[string][]*models.ProjectLabel)
 	userLabels, err := srv.GetByUser(userId)
@@ -60,6 +61,7 @@ func (srv *ProjectLabelService) GetByUserGrouped(userId string) (map[string][]*m
 	return labelsByProject, nil
 }
 
+// GetByUserGroupedInverted returns lists of project labels, grouped by their label key
 func (srv *ProjectLabelService) GetByUserGroupedInverted(userId string) (map[string][]*models.ProjectLabel, error) {
 	projectsByLabel := make(map[string][]*models.ProjectLabel)
 	userLabels, err := srv.GetByUser(userId)

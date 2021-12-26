@@ -1,5 +1,8 @@
 package models
 
+// ProjectLabelReverseResolver returns all projects for a given label
+type ProjectLabelReverseResolver func(l string) []string
+
 type ProjectLabel struct {
 	ID         uint   `json:"id" gorm:"primary_key"`
 	User       *User  `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`

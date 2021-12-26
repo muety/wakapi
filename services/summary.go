@@ -62,23 +62,15 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f Summ
 		return cacheResult.(*models.Summary), nil
 	}
 
-	// Wrap alias resolution
-	resolve := func(t uint8, k string) string {
-		s, _ := srv.aliasService.GetAliasOrDefault(user.ID, t, k)
-		return s
-	}
-	resolveReverse := func(t uint8, k string) []string {
-		aliases, _ := srv.aliasService.GetByUserAndKeyAndType(user.ID, k, t)
-		aliasStrings := make([]string, 0, len(aliases))
-		for _, a := range aliases {
-			aliasStrings = append(aliasStrings, a.Value)
-		}
-		return aliasStrings
-	}
+	// Resolver functions
+	resolveAliases := srv.getAliasResolver(user)
+	resolveAliasesReverse := srv.getAliasReverseResolver(user)
+	resolveProjectLabelsReverse := srv.getProjectLabelsReverseResolver(user)
 
 	// Post-process filters
 	if filters != nil {
-		filters = filters.WithAliases(resolveReverse)
+		filters = filters.WithAliases(resolveAliasesReverse)
+		filters = filters.WithProjectLabels(resolveProjectLabelsReverse)
 	}
 
 	// Initialize alias resolver service
@@ -93,7 +85,7 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f Summ
 	}
 
 	// Post-process summary and cache it
-	summary := s.WithResolvedAliases(resolve)
+	summary := s.WithResolvedAliases(resolveAliases)
 	summary = srv.withProjectLabels(summary)
 	summary.FillBy(models.SummaryProject, models.SummaryLabel) // first fill up labels from projects
 	summary.FillMissing()                                      // then, full up types which are entirely missing
@@ -417,5 +409,43 @@ func (srv *SummaryService) invalidateUserCache(userId string) {
 		if strings.Contains(key, userId) {
 			srv.cache.Delete(key)
 		}
+	}
+}
+
+func (srv *SummaryService) getAliasResolver(user *models.User) models.AliasResolver {
+	return func(t uint8, k string) string {
+		s, _ := srv.aliasService.GetAliasOrDefault(user.ID, t, k)
+		return s
+	}
+}
+
+func (srv *SummaryService) getAliasReverseResolver(user *models.User) models.AliasReverseResolver {
+	return func(t uint8, k string) []string {
+		aliases, err := srv.aliasService.GetByUserAndKeyAndType(user.ID, k, t)
+		if err != nil {
+			aliases = []*models.Alias{}
+		}
+		aliasStrings := make([]string, 0, len(aliases))
+		for _, a := range aliases {
+			aliasStrings = append(aliasStrings, a.Value)
+		}
+		return aliasStrings
+	}
+}
+
+func (srv *SummaryService) getProjectLabelsReverseResolver(user *models.User) models.ProjectLabelReverseResolver {
+	return func(k string) []string {
+		var labels []*models.ProjectLabel
+		allLabels, err := srv.projectLabelService.GetByUserGroupedInverted(user.ID)
+		if err == nil {
+			if l, ok := allLabels[k]; ok {
+				labels = l
+			}
+		}
+		projectStrings := make([]string, 0, len(labels))
+		for _, l := range labels {
+			projectStrings = append(projectStrings, l.ProjectKey)
+		}
+		return projectStrings
 	}
 }
