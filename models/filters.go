@@ -161,7 +161,7 @@ func (f *Filters) WithProjectLabels(resolve ProjectLabelReverseResolver) *Filter
 		return f
 	}
 	for _, l := range f.Label {
-		f.Project = append(f.Project, resolve(l)...)
+		f.WithMultiple(SummaryProject, resolve(l))
 	}
 	return f
 }
