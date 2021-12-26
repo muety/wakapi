@@ -536,6 +536,30 @@ paths:
         in: path
         name: range
         type: string
+      - description: Project to filter by
+        in: query
+        name: project
+        type: string
+      - description: Language to filter by
+        in: query
+        name: language
+        type: string
+      - description: Editor to filter by
+        in: query
+        name: editor
+        type: string
+      - description: OS to filter by
+        in: query
+        name: operating_system
+        type: string
+      - description: Machine to filter by
+        in: query
+        name: machine
+        type: string
+      - description: Project label to filter by
+        in: query
+        name: label
+        type: string
       produces:
       - application/json
       responses:
@@ -582,6 +606,30 @@ paths:
       - description: End date (e.g. '2021-02-08')
         in: query
         name: end
+        type: string
+      - description: Project to filter by
+        in: query
+        name: project
+        type: string
+      - description: Language to filter by
+        in: query
+        name: language
+        type: string
+      - description: Editor to filter by
+        in: query
+        name: editor
+        type: string
+      - description: OS to filter by
+        in: query
+        name: operating_system
+        type: string
+      - description: Machine to filter by
+        in: query
+        name: machine
+        type: string
+      - description: Project label to filter by
+        in: query
+        name: label
         type: string
       produces:
       - application/json
@@ -804,6 +852,30 @@ paths:
         in: query
         name: recompute
         type: boolean
+      - description: Project to filter by
+        in: query
+        name: project
+        type: string
+      - description: Language to filter by
+        in: query
+        name: language
+        type: string
+      - description: Editor to filter by
+        in: query
+        name: editor
+        type: string
+      - description: OS to filter by
+        in: query
+        name: operating_system
+        type: string
+      - description: Machine to filter by
+        in: query
+        name: machine
+        type: string
+      - description: Project label to filter by
+        in: query
+        name: label
+        type: string
       produces:
       - application/json
       responses:

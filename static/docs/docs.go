@@ -313,6 +313,42 @@ var doc = `{
                         "description": "Range interval identifier",
                         "name": "range",
                         "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project to filter by",
+                        "name": "project",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language to filter by",
+                        "name": "language",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Editor to filter by",
+                        "name": "editor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "OS to filter by",
+                        "name": "operating_system",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Machine to filter by",
+                        "name": "machine",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project label to filter by",
+                        "name": "label",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -379,6 +415,42 @@ var doc = `{
                         "type": "string",
                         "description": "End date (e.g. '2021-02-08')",
                         "name": "end",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project to filter by",
+                        "name": "project",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language to filter by",
+                        "name": "language",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Editor to filter by",
+                        "name": "editor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "OS to filter by",
+                        "name": "operating_system",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Machine to filter by",
+                        "name": "machine",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project label to filter by",
+                        "name": "label",
                         "in": "query"
                     }
                 ],
@@ -718,6 +790,42 @@ var doc = `{
                         "type": "boolean",
                         "description": "Whether to recompute the summary from raw heartbeat or use cache",
                         "name": "recompute",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project to filter by",
+                        "name": "project",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language to filter by",
+                        "name": "language",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Editor to filter by",
+                        "name": "editor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "OS to filter by",
+                        "name": "operating_system",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Machine to filter by",
+                        "name": "machine",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project label to filter by",
+                        "name": "label",
                         "in": "query"
                     }
                 ],

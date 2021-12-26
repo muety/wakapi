@@ -247,18 +247,19 @@ func main() {
 	// https://github.com/golang/go/issues/43431
 	embeddedStatic, _ := fs.Sub(staticFiles, "static")
 	static := conf.ChooseFS("static", embeddedStatic)
-	fileServer := gzipped.FileServer(fsutils.NewExistsHttpFS(
-		fsutils.NewExistsFS(
-			fsutils.NeuteredFileSystem{
-				FS: static,
-			}).WithCache(!config.IsDev()),
+
+	assetsFileServer := gzipped.FileServer(fsutils.NewExistsHttpFS(
+		fsutils.NewExistsFS(static).WithCache(!config.IsDev()),
+	))
+	staticFileServer := http.FileServer(http.FS(
+		fsutils.NeuteredFileSystem{FS: static},
 	))
 
-	router.PathPrefix("/contribute.json").Handler(fileServer)
-	router.PathPrefix("/assets").Handler(fileServer)
-	router.PathPrefix("/swagger-ui").Handler(fileServer)
+	router.PathPrefix("/contribute.json").Handler(staticFileServer)
+	router.PathPrefix("/assets").Handler(assetsFileServer)
+	router.PathPrefix("/swagger-ui").Handler(staticFileServer)
 	router.PathPrefix("/docs").Handler(
-		middlewares.NewFileTypeFilterMiddleware([]string{".go"})(fileServer),
+		middlewares.NewFileTypeFilterMiddleware([]string{".go"})(staticFileServer),
 	)
 
 	// Miscellaneous
