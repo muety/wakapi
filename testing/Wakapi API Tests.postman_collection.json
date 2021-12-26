@@ -1437,6 +1437,156 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get summary (today, filtered)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const moment = require('moment')",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct user\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.user_id).to.eql(\"writeuser\");",
+									"});",
+									"",
+									"pm.test(\"Correct summary data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.projects.length).to.eql(1);",
+									"    pm.expect(jsonData.languages.length).to.eql(1);",
+									"    pm.expect(jsonData.editors.length).to.eql(1);",
+									"    pm.expect(jsonData.operating_systems.length).to.eql(1);",
+									"    pm.expect(jsonData.machines.length).to.eql(1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"tlsPreferServerCiphers": true,
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/summary?interval=today&project=wakapi&language=Go",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "interval",
+									"value": "today"
+								},
+								{
+									"key": "project",
+									"value": "wakapi"
+								},
+								{
+									"key": "language",
+									"value": "Go"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get summary (today, filtered non-matching)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const moment = require('moment')",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct user\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.user_id).to.eql(\"writeuser\");",
+									"});",
+									"",
+									"pm.test(\"Correct summary data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.projects.length).to.eql(0);",
+									"    pm.expect(jsonData.languages.length).to.eql(0);",
+									"    pm.expect(jsonData.editors.length).to.eql(0);",
+									"    pm.expect(jsonData.operating_systems.length).to.eql(0);",
+									"    pm.expect(jsonData.machines.length).to.eql(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"tlsPreferServerCiphers": true,
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/summary?interval=today&project=wakapi&language=JavaScript",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "interval",
+									"value": "today"
+								},
+								{
+									"key": "project",
+									"value": "wakapi"
+								},
+								{
+									"key": "language",
+									"value": "JavaScript"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -1963,6 +2113,136 @@
 								"users",
 								"current",
 								"stats"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get stats (filtered)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct content\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.projects.length).to.eql(1);",
+									"    pm.expect(jsonData.data.total_seconds).to.gt(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/current/stats?project=wakapi&language=Go",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"current",
+								"stats"
+							],
+							"query": [
+								{
+									"key": "project",
+									"value": "wakapi"
+								},
+								{
+									"key": "language",
+									"value": "Go"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get stats (filtered non-matching)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct content\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.projects.length).to.eql(0);",
+									"    pm.expect(jsonData.data.total_seconds).to.eql(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/current/stats?project=wakapi&language=JavaScript",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"current",
+								"stats"
+							],
+							"query": [
+								{
+									"key": "project",
+									"value": "wakapi"
+								},
+								{
+									"key": "language",
+									"value": "JavaScript"
+								}
 							]
 						}
 					},
