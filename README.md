@@ -57,7 +57,7 @@ Plans for the near future mainly include, besides usual improvements and bug fix
 There are different options for how to use Wakapi, ranging from our hosted cloud service to self-hosting it. Regardless of which option choose, you will always have to do the [client setup](#-client-setup) in addition. 
 
 ### ☁️ Option 1: Use [wakapi.dev](https://wakapi.dev)
-If you want to try out free, hosted cloud service, all you need to do is create an account and the set up your client-side tooling (see below).
+If you want to try out a free, hosted cloud service, all you need to do is create an account and then set up your client-side tooling (see below).
 
 However, we do not guarantee data persistence, so you might potentially lose your data if the service is taken down some day ❕
 
@@ -107,7 +107,7 @@ $ ./wakapi
 **Note:** Check the comments `config.yml` for best practices regarding security configuration and more.
 
 ### 💻 Client Setup
-Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime) client tools. In order to collect statistics to Wakapi, you need to set them up.
+Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime) client tools. In order to collect statistics for Wakapi, you need to set them up.
 
 1. **Set up WakaTime** for your specific IDE or editor. Please refer to the respective [plugin guide](https://wakatime.com/plugins)
 2. **Editing your local `~/.wakatime.cfg`** file as follows
@@ -125,7 +125,7 @@ api_key = 406fe41f-6d69-4183-a4cc-121e0c524c2b
 Optionally, you can set up a [client-side proxy](https://github.com/muety/wakapi/wiki/Advanced-Setup:-Client-side-proxy) in addition.
 
 ## 🔧 Configuration Options
-You can specify configuration options either via a config file (default: `config.yml`, customziable through the `-c` argument) or via environment variables. Here is an overview of all options.
+You can specify configuration options either via a config file (default: `config.yml`, customizable through the `-c` argument) or via environment variables. Here is an overview of all options.
 
 | YAML Key / Env. Variable    | Default      | Description                                                         |
 |-----------------------------|--------------|---------------------------------------------------------------------|
@@ -365,7 +365,7 @@ WakaTime is worth the price. However, if you only want basic statistics and keep
 <details>
 <summary><b>How are durations calculated?</b></summary>
 
-Inferring a measure for your coding time from heartbeats works a bit different than in WakaTime. While WakaTime has <a href="https://wakatime.com/faq#timeout">timeout intervals</a>, Wakapi essentially just pads every heartbeat, that occurs after a longer pause, with 2 extra minutes.
+Inferring a measure for your coding time from heartbeats works a bit differently than in WakaTime. While WakaTime has <a href="https://wakatime.com/faq#timeout">timeout intervals</a>, Wakapi essentially just pads every heartbeat that occurs after a longer pause with 2 extra minutes.
 
 Here is an example (circles are heartbeats):
 
@@ -375,7 +375,7 @@ Here is an example (circles are heartbeats):
 
 ```
 
-It is unclear how to handle the three minutes in between. Did the developer do a 3-minute break or were just no heartbeats being sent, e.g. because the developer was starring at the screen find a solution, but not actually typing code.
+It is unclear how to handle the three minutes in between. Did the developer do a 3-minute break or were just no heartbeats being sent, e.g. because the developer was starring at the screen trying to find a solution, but not actually typing code.
 
 <ul>
   <li><b>WakaTime</b> (with 5 min timeout): 3 min 20 sec
