@@ -15,6 +15,7 @@ import (
 	"golang.org/x/sync/semaphore"
 	"net/http"
 	"time"
+	"strconv"
 )
 
 const OriginWakatime = "wakatime"
@@ -174,24 +175,34 @@ func (w *WakatimeHeartbeatImporter) fetchRange() (time.Time, time.Time, error) {
 func (w *WakatimeHeartbeatImporter) fetchUserAgents() (map[string]*wakatime.UserAgentEntry, error) {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 
-	req, err := http.NewRequest(http.MethodGet, config.WakatimeApiUrl+config.WakatimeApiUserAgentsUrl, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := httpClient.Do(w.withHeaders(req))
-	if err != nil {
-		return nil, err
-	}
-
-	var userAgentsData wakatime.UserAgentsViewModel
-	if err := json.NewDecoder(res.Body).Decode(&userAgentsData); err != nil {
-		return nil, err
-	}
-
 	userAgents := make(map[string]*wakatime.UserAgentEntry)
-	for _, ua := range userAgentsData.Data {
-		userAgents[ua.Id] = ua
+
+	done := false
+	for i:=1; !done; i++ {
+		queryStr := "?page="+strconv.Itoa(i)
+
+		req, err := http.NewRequest(http.MethodGet, config.WakatimeApiUrl+
+						config.WakatimeApiUserAgentsUrl+queryStr, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		res, err := httpClient.Do(w.withHeaders(req))
+		if err != nil {
+			return nil, err
+		}
+
+		var userAgentsData wakatime.UserAgentsViewModel
+		if err := json.NewDecoder(res.Body).Decode(&userAgentsData); err != nil {
+			return nil, err
+		}
+		if i == userAgentsData.TotalPages {
+			done = true
+		}
+
+		for _, ua := range userAgentsData.Data {
+			userAgents[ua.Id] = ua
+		}
 	}
 
 	return userAgents, nil
@@ -202,24 +213,34 @@ func (w *WakatimeHeartbeatImporter) fetchUserAgents() (map[string]*wakatime.User
 func (w *WakatimeHeartbeatImporter) fetchMachineNames() (map[string]*wakatime.MachineEntry, error) {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 
-	req, err := http.NewRequest(http.MethodGet, config.WakatimeApiUrl+config.WakatimeApiMachineNamesUrl, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := httpClient.Do(w.withHeaders(req))
-	if err != nil {
-		return nil, err
-	}
-
-	var machineData wakatime.MachineViewModel
-	if err := json.NewDecoder(res.Body).Decode(&machineData); err != nil {
-		return nil, err
-	}
-
 	machines := make(map[string]*wakatime.MachineEntry)
-	for _, ma := range machineData.Data {
-		machines[ma.Id] = ma
+
+	done := false
+	for i:=1; !done; i++ {
+		queryStr := "?page="+strconv.Itoa(i)
+
+		req, err := http.NewRequest(http.MethodGet, config.WakatimeApiUrl+
+						config.WakatimeApiMachineNamesUrl+queryStr, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		res, err := httpClient.Do(w.withHeaders(req))
+		if err != nil {
+			return nil, err
+		}
+
+		var machineData wakatime.MachineViewModel
+		if err := json.NewDecoder(res.Body).Decode(&machineData); err != nil {
+				return nil, err
+		}
+		if i == machineData.TotalPages {
+			done = true
+		}
+
+		for _, ma := range machineData.Data {
+			machines[ma.Id] = ma
+		}
 	}
 
 	return machines, nil

@@ -1,7 +1,8 @@
 package v1
 
 type UserAgentsViewModel struct {
-	Data []*UserAgentEntry `json:"data"`
+	Data       []*UserAgentEntry    `json:"data"`
+	TotalPages int                  `json:"total_pages"`
 }
 
 type UserAgentEntry struct {
