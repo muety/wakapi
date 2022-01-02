@@ -9,11 +9,6 @@
     const userTimeZone = {{ .User.Location }}
     const userTzOffset = {{ .User.TZOffset.Hours }} // TODO: fix this!
     const defaultTzOption = { value: 'Local', text: `Local server time (UTC+${userTzOffset})` }
-
-    // Elements
-    const formRegenerate = document.querySelector('#form-regenerate-summaries')
-    const formImportWakatime = document.querySelector('#form-import-wakatime')
-    const formDelete = document.querySelector('#form-delete-user')
 </script>
 <script type="module" src="assets/js/components/settings.js"></script>
 

@@ -13,17 +13,17 @@ PetiteVue.createApp({
     },
     confirmRegenerate() {
         if (confirm('Are you sure?')) {
-            formRegenerate.submit()
+            document.querySelector('#form-regenerate-summaries').submit()
         }
     },
     confirmWakatimeImport() {
         if (confirm('Are you sure? The import can not be undone.')) {
-            formImportWakatime.submit()
+            document.querySelector('#form-import-wakatime').submit()
         }
     },
     confirmDeleteAccount() {
         if (confirm('Are you sure? This can not be undone!')) {
-            formDelete.submit()
+            document.querySelector('#form-delete-user').submit()
         }
     },
     mounted() {
