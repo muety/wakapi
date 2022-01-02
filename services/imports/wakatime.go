@@ -15,7 +15,6 @@ import (
 	"golang.org/x/sync/semaphore"
 	"net/http"
 	"time"
-	"strconv"
 )
 
 const OriginWakatime = "wakatime"
@@ -177,12 +176,9 @@ func (w *WakatimeHeartbeatImporter) fetchUserAgents() (map[string]*wakatime.User
 
 	userAgents := make(map[string]*wakatime.UserAgentEntry)
 
-	done := false
-	for i:=1; !done; i++ {
-		queryStr := "?page="+strconv.Itoa(i)
-
-		req, err := http.NewRequest(http.MethodGet, config.WakatimeApiUrl+
-						config.WakatimeApiUserAgentsUrl+queryStr, nil)
+	for page := 1; ; page++ {
+		url := fmt.Sprintf("%s%s?page=%d", config.WakatimeApiUrl, config.WakatimeApiUserAgentsUrl, page)
+		req, err := http.NewRequest(http.MethodGet, url, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -196,12 +192,13 @@ func (w *WakatimeHeartbeatImporter) fetchUserAgents() (map[string]*wakatime.User
 		if err := json.NewDecoder(res.Body).Decode(&userAgentsData); err != nil {
 			return nil, err
 		}
-		if i == userAgentsData.TotalPages {
-			done = true
-		}
 
 		for _, ua := range userAgentsData.Data {
 			userAgents[ua.Id] = ua
+		}
+
+		if page == userAgentsData.TotalPages {
+			break
 		}
 	}
 
@@ -215,12 +212,9 @@ func (w *WakatimeHeartbeatImporter) fetchMachineNames() (map[string]*wakatime.Ma
 
 	machines := make(map[string]*wakatime.MachineEntry)
 
-	done := false
-	for i:=1; !done; i++ {
-		queryStr := "?page="+strconv.Itoa(i)
-
-		req, err := http.NewRequest(http.MethodGet, config.WakatimeApiUrl+
-						config.WakatimeApiMachineNamesUrl+queryStr, nil)
+	for page := 1; ; page++ {
+		url := fmt.Sprintf("%s%s?page=%d", config.WakatimeApiUrl, config.WakatimeApiMachineNamesUrl, page)
+		req, err := http.NewRequest(http.MethodGet, url, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -232,14 +226,15 @@ func (w *WakatimeHeartbeatImporter) fetchMachineNames() (map[string]*wakatime.Ma
 
 		var machineData wakatime.MachineViewModel
 		if err := json.NewDecoder(res.Body).Decode(&machineData); err != nil {
-				return nil, err
-		}
-		if i == machineData.TotalPages {
-			done = true
+			return nil, err
 		}
 
 		for _, ma := range machineData.Data {
 			machines[ma.Id] = ma
+		}
+
+		if page == machineData.TotalPages {
+			break
 		}
 	}
 
