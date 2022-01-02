@@ -3,13 +3,8 @@
 
 {{ template "head.tpl.html" . }}
 
-<script>
-    // Constants
-    const timeSelection = '{{ .From | datetime }} - {{ .To | ceildate | datetime }}'
-    const fromDate = '{{ .From | simpledate }}'
-    const toDate = '{{ .To | ceildate | simpledate }}'
-</script>
-<script type="module" src="assets/js/components/time-picker.js"></script>
+<script src="assets/js/components/time-picker.js"></script>
+<script type="module" src="assets/js/components/summary.js"></script>
 
 <body class="relative bg-gray-900 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
 
@@ -17,10 +12,16 @@
 
 {{ template "alerts.tpl.html" . }}
 
+{{ template "time-picker.tpl.html" . }}
+
 {{ if .User.HasData }}
 
-<div class="flex justify-end mt-12 relative" id="summary-page" v-scope @vue:mounted="mounted">
-{{ template "time-picker.tpl.html" . }}
+<div class="flex justify-end mt-12 relative" id="summary-page" v-scope>
+    <div v-scope="TimePicker({
+        fromDate: '{{ .From | simpledate }}',
+        toDate: '{{ .To | ceildate | simpledate }}',
+        timeSelection: '{{ .From | datetime }} - {{ .To | ceildate | datetime }}'
+    })" @vue:mounted="mounted"></div>
 </div>
 
 {{ end }}
