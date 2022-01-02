@@ -7,8 +7,9 @@
     // Constants
     const defaultTab = 'account'
     const userTimeZone = {{ .User.Location }}
-    const userTzOffset = {{ .User.TZOffset.Hours }} // TODO: fix this!
-    const defaultTzOption = { value: 'Local', text: `Local server time (UTC+${userTzOffset})` }
+    const userTzOffset = {{ localTZOffset.Hours }}
+    const signPrefix = userTzOffset >= 0 ? '+' : ''
+    const defaultTzOption = { value: 'Local', text: `Local server time (UTC${signPrefix}${userTzOffset})` }
 </script>
 <script type="module" src="assets/js/components/settings.js"></script>
 

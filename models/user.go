@@ -90,6 +90,8 @@ func (u *User) TZ() *time.Location {
 	return tz
 }
 
+// TZOffset returns the time difference between the user's current time zone and UTC
+// TODO: is this actually working??
 func (u *User) TZOffset() time.Duration {
 	_, offset := time.Now().In(u.TZ()).Zone()
 	return time.Duration(offset * int(time.Second))

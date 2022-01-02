@@ -107,6 +107,12 @@ func FmtWakatimeDuration(d time.Duration) string {
 	return fmt.Sprintf("%d hrs %d mins", h, m)
 }
 
+// LocalTZOffset returns the time difference between server local time and UTC
+func LocalTZOffset() time.Duration {
+	_, offset := time.Now().Zone()
+	return time.Duration(offset * int(time.Second))
+}
+
 // https://stackoverflow.com/a/18632496
 func firstDayOfISOWeek(year int, week int, timezone *time.Location) time.Time {
 	date := time.Date(year, 0, 0, 0, 0, 0, 0, timezone)

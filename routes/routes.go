@@ -35,6 +35,7 @@ func DefaultTemplateFuncs() template.FuncMap {
 		"add":            utils.Add,
 		"capitalize":     utils.Capitalize,
 		"toRunes":        utils.ToRunes,
+		"localTZOffset":  utils.LocalTZOffset,
 		"entityTypes":    models.SummaryTypes,
 		"typeName":       typeName,
 		"isDev": func() bool {
