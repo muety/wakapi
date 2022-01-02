@@ -26,7 +26,7 @@ type SummariesData struct {
 	Machines         []*SummariesEntry    `json:"machines"`
 	OperatingSystems []*SummariesEntry    `json:"operating_systems"`
 	Projects         []*SummariesEntry    `json:"projects"`
-	Branches         []*SummariesEntry    `json:"branches"`
+	Branches         []*SummariesEntry    `json:"branches,omitempty"`
 	GrandTotal       *SummariesGrandTotal `json:"grand_total"`
 	Range            *SummariesRange      `json:"range"`
 }

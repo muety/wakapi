@@ -2080,7 +2080,7 @@
 									"    const jsonData = pm.response.json();",
 									"    pm.expect(jsonData.data.languages).to.eql(null); // because share_languages is false",
 									"    pm.expect(jsonData.data.projects.length).to.eql(1);",
-									"    pm.expect(jsonData.data.branches).to.be.null;",
+									"    pm.expect(jsonData.data.branches).to.be.undefined;",
 									"});"
 								],
 								"type": "text/javascript"

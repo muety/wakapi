@@ -26,7 +26,7 @@ type StatsData struct {
 	Machines              []*SummariesEntry `json:"machines"`
 	Projects              []*SummariesEntry `json:"projects"`
 	OperatingSystems      []*SummariesEntry `json:"operating_systems"`
-	Branches              []*SummariesEntry `json:"branches"`
+	Branches              []*SummariesEntry `json:"branches,omitempty"`
 }
 
 func NewStatsFrom(summary *models.Summary, filters *models.Filters) *StatsViewModel {
