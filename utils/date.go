@@ -66,7 +66,7 @@ func CeilDate(date time.Time) time.Time {
 	if floored == date {
 		return floored
 	}
-	return floored.Add(24 * time.Hour)
+	return floored.AddDate(0, 0, 1)
 }
 
 // SetLocation resets the time zone information of a date without converting it, i.e. 19:00 UTC will result in 19:00 CET, for instance
@@ -88,7 +88,7 @@ func SplitRangeByDays(from time.Time, to time.Time) [][]time.Time {
 	intervals := make([][]time.Time, 0)
 
 	for t1 := from; t1.Before(to); {
-		t2 := StartOfDay(t1).Add(24 * time.Hour)
+		t2 := StartOfDay(t1).AddDate(0, 0, 1)
 		if t2.After(to) {
 			t2 = to
 		}

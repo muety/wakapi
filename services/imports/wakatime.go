@@ -292,9 +292,9 @@ func generateDays(from, to time.Time) []time.Time {
 	days := make([]time.Time, 0)
 
 	from = utils.StartOfDay(from)
-	to = utils.StartOfDay(to.Add(24 * time.Hour))
+	to = utils.StartOfDay(to.AddDate(0, 0, 1))
 
-	for d := from; d.Before(to); d = d.Add(24 * time.Hour) {
+	for d := from; d.Before(to); d = d.AddDate(0, 0, 1) {
 		days = append(days, d)
 	}
 
