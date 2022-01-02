@@ -2,12 +2,13 @@ package api
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"net/http"
 
 	"github.com/muety/wakapi/models"
 )
@@ -41,7 +42,7 @@ func (h *DiagnosticsApiHandler) RegisterRoutes(router *mux.Router) {
 // @Param diagnostics body models.Diagnostics true "A single diagnostics object sent by WakaTime CLI"
 // @Security ApiKeyAuth
 // @Success 201
-// @Router /api/plugins/errors [post]
+// @Router /plugins/errors [post]
 func (h *DiagnosticsApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	var diagnostics models.Diagnostics
 

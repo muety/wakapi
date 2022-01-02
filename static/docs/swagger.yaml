@@ -351,7 +351,7 @@ info:
   title: Wakapi API
   version: "1.0"
 paths:
-  /api/compat/shields/v1/{user}/{interval}/{filter}:
+  /compat/shields/v1/{user}/{interval}/{filter}:
     get:
       description: Retrieve total time for a given entity (e.g. a project) within
         a given range (e.g. one week) in a format compatible with [Shields.io](https://shields.io/endpoint).
@@ -396,7 +396,7 @@ paths:
       summary: Get badge data
       tags:
       - badges
-  /api/compat/wakatime/v1/users/{user}:
+  /compat/wakatime/v1/users/{user}:
     get:
       description: Mimics https://wakatime.com/developers#users
       operationId: get-wakatime-user
@@ -418,7 +418,7 @@ paths:
       summary: Retrieve the given user
       tags:
       - wakatime
-  /api/compat/wakatime/v1/users/{user}/all_time_since_today:
+  /compat/wakatime/v1/users/{user}/all_time_since_today:
     get:
       description: Mimics https://wakatime.com/developers#all_time_since_today
       operationId: get-all-time
@@ -440,7 +440,7 @@ paths:
       summary: Retrieve summary for all time
       tags:
       - wakatime
-  /api/compat/wakatime/v1/users/{user}/heartbeats:
+  /compat/wakatime/v1/users/{user}/heartbeats:
     post:
       consumes:
       - application/json
@@ -460,7 +460,7 @@ paths:
       summary: Push a new heartbeat
       tags:
       - heartbeat
-  /api/compat/wakatime/v1/users/{user}/heartbeats.bulk:
+  /compat/wakatime/v1/users/{user}/heartbeats.bulk:
     post:
       consumes:
       - application/json
@@ -482,7 +482,7 @@ paths:
       summary: Push new heartbeats
       tags:
       - heartbeat
-  /api/compat/wakatime/v1/users/{user}/projects:
+  /compat/wakatime/v1/users/{user}/projects:
     get:
       description: Mimics https://wakatime.com/developers#projects
       operationId: get-wakatime-projects
@@ -509,7 +509,7 @@ paths:
       summary: Retrieve and fitler the user's projects
       tags:
       - wakatime
-  /api/compat/wakatime/v1/users/{user}/stats/{range}:
+  /compat/wakatime/v1/users/{user}/stats/{range}:
     get:
       description: Mimics https://wakatime.com/developers#stats
       operationId: get-wakatimes-tats
@@ -548,7 +548,7 @@ paths:
       summary: Retrieve statistics for a given user
       tags:
       - wakatime
-  /api/compat/wakatime/v1/users/{user}/summaries:
+  /compat/wakatime/v1/users/{user}/summaries:
     get:
       description: Mimics https://wakatime.com/developers#summaries.
       operationId: get-wakatime-summaries
@@ -595,7 +595,7 @@ paths:
       summary: Retrieve WakaTime-compatible summaries
       tags:
       - wakatime
-  /api/health:
+  /health:
     get:
       operationId: get-health
       produces:
@@ -608,7 +608,7 @@ paths:
       summary: Check the application's health status
       tags:
       - misc
-  /api/heartbeat:
+  /heartbeat:
     post:
       consumes:
       - application/json
@@ -628,7 +628,7 @@ paths:
       summary: Push a new heartbeat
       tags:
       - heartbeat
-  /api/heartbeats:
+  /heartbeats:
     post:
       consumes:
       - application/json
@@ -650,7 +650,7 @@ paths:
       summary: Push new heartbeats
       tags:
       - heartbeat
-  /api/plugins/errors:
+  /plugins/errors:
     post:
       consumes:
       - application/json
@@ -670,158 +670,6 @@ paths:
       summary: Push a new diagnostics object
       tags:
       - diagnostics
-  /api/summary:
-    get:
-      operationId: get-summary
-      parameters:
-      - description: Interval identifier
-        enum:
-        - today
-        - yesterday
-        - week
-        - month
-        - year
-        - 7_days
-        - last_7_days
-        - 30_days
-        - last_30_days
-        - 12_months
-        - last_12_months
-        - any
-        in: query
-        name: interval
-        type: string
-      - description: Start date (e.g. '2021-02-07')
-        in: query
-        name: from
-        type: string
-      - description: End date (e.g. '2021-02-08')
-        in: query
-        name: to
-        type: string
-      - description: Whether to recompute the summary from raw heartbeat or use cache
-        in: query
-        name: recompute
-        type: boolean
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.Summary'
-      security:
-      - ApiKeyAuth: []
-      summary: Retrieve a summary
-      tags:
-      - summary
-  /api/users/{user}/heartbeats:
-    post:
-      consumes:
-      - application/json
-      operationId: post-heartbeat-4
-      parameters:
-      - description: A single heartbeat
-        in: body
-        name: heartbeat
-        required: true
-        schema:
-          $ref: '#/definitions/models.Heartbeat'
-      responses:
-        "201":
-          description: ""
-      security:
-      - ApiKeyAuth: []
-      summary: Push a new heartbeat
-      tags:
-      - heartbeat
-  /api/users/{user}/heartbeats.bulk:
-    post:
-      consumes:
-      - application/json
-      operationId: post-heartbeat-8
-      parameters:
-      - description: Multiple heartbeats
-        in: body
-        name: heartbeat
-        required: true
-        schema:
-          items:
-            $ref: '#/definitions/models.Heartbeat'
-          type: array
-      responses:
-        "201":
-          description: ""
-      security:
-      - ApiKeyAuth: []
-      summary: Push new heartbeats
-      tags:
-      - heartbeat
-  /api/users/{user}/statusbar/today:
-    get:
-      description: Mimics https://wakatime.com/api/v1/users/current/statusbar/today.
-        Have no official documentation
-      operationId: statusbar
-      parameters:
-      - description: User ID to fetch data for (or 'current')
-        in: path
-        name: user
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.StatusBarViewModel'
-      security:
-      - ApiKeyAuth: []
-      summary: Retrieve summary for statusbar
-      tags:
-      - wakatime
-  /api/v1/users/{user}/heartbeats:
-    post:
-      consumes:
-      - application/json
-      operationId: post-heartbeat-2
-      parameters:
-      - description: A single heartbeat
-        in: body
-        name: heartbeat
-        required: true
-        schema:
-          $ref: '#/definitions/models.Heartbeat'
-      responses:
-        "201":
-          description: ""
-      security:
-      - ApiKeyAuth: []
-      summary: Push a new heartbeat
-      tags:
-      - heartbeat
-  /api/v1/users/{user}/heartbeats.bulk:
-    post:
-      consumes:
-      - application/json
-      operationId: post-heartbeat-6
-      parameters:
-      - description: Multiple heartbeats
-        in: body
-        name: heartbeat
-        required: true
-        schema:
-          items:
-            $ref: '#/definitions/models.Heartbeat'
-          type: array
-      responses:
-        "201":
-          description: ""
-      security:
-      - ApiKeyAuth: []
-      summary: Push new heartbeats
-      tags:
-      - heartbeat
   /relay:
     delete:
       operationId: relay-delete
@@ -923,6 +771,158 @@ paths:
       summary: Proxy an PUT API request to another Wakapi instance
       tags:
       - relay
+  /summary:
+    get:
+      operationId: get-summary
+      parameters:
+      - description: Interval identifier
+        enum:
+        - today
+        - yesterday
+        - week
+        - month
+        - year
+        - 7_days
+        - last_7_days
+        - 30_days
+        - last_30_days
+        - 12_months
+        - last_12_months
+        - any
+        in: query
+        name: interval
+        type: string
+      - description: Start date (e.g. '2021-02-07')
+        in: query
+        name: from
+        type: string
+      - description: End date (e.g. '2021-02-08')
+        in: query
+        name: to
+        type: string
+      - description: Whether to recompute the summary from raw heartbeat or use cache
+        in: query
+        name: recompute
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Summary'
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieve a summary
+      tags:
+      - summary
+  /users/{user}/heartbeats:
+    post:
+      consumes:
+      - application/json
+      operationId: post-heartbeat-4
+      parameters:
+      - description: A single heartbeat
+        in: body
+        name: heartbeat
+        required: true
+        schema:
+          $ref: '#/definitions/models.Heartbeat'
+      responses:
+        "201":
+          description: ""
+      security:
+      - ApiKeyAuth: []
+      summary: Push a new heartbeat
+      tags:
+      - heartbeat
+  /users/{user}/heartbeats.bulk:
+    post:
+      consumes:
+      - application/json
+      operationId: post-heartbeat-8
+      parameters:
+      - description: Multiple heartbeats
+        in: body
+        name: heartbeat
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.Heartbeat'
+          type: array
+      responses:
+        "201":
+          description: ""
+      security:
+      - ApiKeyAuth: []
+      summary: Push new heartbeats
+      tags:
+      - heartbeat
+  /users/{user}/statusbar/today:
+    get:
+      description: Mimics https://wakatime.com/api/v1/users/current/statusbar/today.
+        Have no official documentation
+      operationId: statusbar
+      parameters:
+      - description: User ID to fetch data for (or 'current')
+        in: path
+        name: user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.StatusBarViewModel'
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieve summary for statusbar
+      tags:
+      - wakatime
+  /v1/users/{user}/heartbeats:
+    post:
+      consumes:
+      - application/json
+      operationId: post-heartbeat-2
+      parameters:
+      - description: A single heartbeat
+        in: body
+        name: heartbeat
+        required: true
+        schema:
+          $ref: '#/definitions/models.Heartbeat'
+      responses:
+        "201":
+          description: ""
+      security:
+      - ApiKeyAuth: []
+      summary: Push a new heartbeat
+      tags:
+      - heartbeat
+  /v1/users/{user}/heartbeats.bulk:
+    post:
+      consumes:
+      - application/json
+      operationId: post-heartbeat-6
+      parameters:
+      - description: Multiple heartbeats
+        in: body
+        name: heartbeat
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.Heartbeat'
+          type: array
+      responses:
+        "201":
+          description: ""
+      security:
+      - ApiKeyAuth: []
+      summary: Push new heartbeats
+      tags:
+      - heartbeat
 securityDefinitions:
   ApiKeyAuth:
     in: header

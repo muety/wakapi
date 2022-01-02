@@ -1,6 +1,9 @@
 package v1
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -8,8 +11,6 @@ import (
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"net/http"
-	"time"
 )
 
 type StatsHandler struct {
@@ -50,7 +51,7 @@ func (h *StatsHandler) RegisterRoutes(router *mux.Router) {
 // @Param range path string false "Range interval identifier" Enums(today, yesterday, week, month, year, 7_days, last_7_days, 30_days, last_30_days, 12_months, last_12_months, any)
 // @Security ApiKeyAuth
 // @Success 200 {object} v1.StatsViewModel
-// @Router /api/compat/wakatime/v1/users/{user}/stats/{range} [get]
+// @Router /compat/wakatime/v1/users/{user}/stats/{range} [get]
 func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	var vars = mux.Vars(r)
 	var authorizedUser, requestedUser *models.User

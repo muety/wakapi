@@ -2,6 +2,10 @@ package v1
 
 import (
 	"fmt"
+	"net/http"
+	"regexp"
+	"time"
+
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -9,9 +13,6 @@ import (
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
-	"net/http"
-	"regexp"
-	"time"
 )
 
 const (
@@ -50,7 +51,7 @@ func (h *BadgeHandler) RegisterRoutes(router *mux.Router) {
 // @Param interval path string true "Interval to aggregate data for" Enums(today, yesterday, week, month, year, 7_days, last_7_days, 30_days, last_30_days, 12_months, last_12_months, any)
 // @Param filter path string true "Filter to apply (e.g. 'project:wakapi' or 'language:Go')"
 // @Success 200 {object} v1.BadgeData
-// @Router /api/compat/shields/v1/{user}/{interval}/{filter} [get]
+// @Router /compat/shields/v1/{user}/{interval}/{filter} [get]
 func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	intervalReg := regexp.MustCompile(intervalPattern)
 	entityFilterReg := regexp.MustCompile(entityFilterPattern)
