@@ -1,3 +1,9 @@
+// To use this, do the following:
+// 1. Include petite-vue
+// 2. Define variables timeSelection, fromDate, toDate in an inline script below previous
+// 3. Include this script file below previous
+// 4. Include time-picker.tpl.html template partial in body
+
 PetiteVue.createApp({
     $delimiters: ['${', '}'],
     state: {
@@ -7,7 +13,7 @@ PetiteVue.createApp({
     toDate: toDate,
     timeSelection: timeSelection,
     onDateUpdated() {
-        formTimePicker.submit()
+        document.getElementById('time-picker-form').submit()
     },
     mounted() {
         window.addEventListener('click', (e) => {
@@ -21,4 +27,4 @@ PetiteVue.createApp({
             this.timeSelection = refEl ? refEl.innerText : 'Unknown'
         }
     }
-}).mount('#summary-page')
+}).mount('#time-picker-container')
