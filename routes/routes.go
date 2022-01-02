@@ -77,6 +77,9 @@ func typeName(t uint8) string {
 	if t == models.SummaryLabel {
 		return "label"
 	}
+	if t == models.SummaryBranch {
+		return "branch"
+	}
 	return "unknown"
 }
 

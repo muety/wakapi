@@ -105,6 +105,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	case "label":
 		permitEntity = user.ShareLabels
 		filters = models.NewFiltersWith(models.SummaryLabel, filterKey)
+	// branches are intentionally omitted here, as only relevant in combination with a project filter
 	default:
 		permitEntity = true
 		filters = &models.Filters{}

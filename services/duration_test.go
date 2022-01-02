@@ -25,6 +25,8 @@ const (
 	TestOsWin          = "Windows"
 	TestMachine1       = "muety-desktop"
 	TestMachine2       = "muety-work"
+	TestBranchMaster   = "master"
+	TestBranchDev      = "dev"
 	MinUnixTime1       = 1601510400000 * 1e6
 )
 

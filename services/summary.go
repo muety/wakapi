@@ -90,6 +90,10 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f Summ
 	summary.FillBy(models.SummaryProject, models.SummaryLabel) // first fill up labels from projects
 	summary.FillMissing()                                      // then, full up types which are entirely missing
 
+	if withBranches := filters != nil && filters.Project != nil && filters.Project.Exists(); !withBranches {
+		summary.Branches = nil
+	}
+
 	srv.cache.SetDefault(cacheKey, summary)
 	return summary.Sorted(), nil
 }
@@ -134,7 +138,10 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filt
 		return nil, err
 	}
 
-	types := models.NativeSummaryTypes()
+	types := models.PersistedSummaryTypes()
+	if filters != nil && filters.Project != nil && filters.Project.Exists() {
+		types = append(types, models.SummaryBranch)
+	}
 
 	typedAggregations := make(chan models.SummaryItemContainer)
 	defer close(typedAggregations)
@@ -148,6 +155,7 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filt
 	var editorItems []*models.SummaryItem
 	var osItems []*models.SummaryItem
 	var machineItems []*models.SummaryItem
+	var branchItems []*models.SummaryItem
 
 	for i := 0; i < len(types); i++ {
 		item := <-typedAggregations
@@ -162,6 +170,8 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filt
 			osItems = item.Items
 		case models.SummaryMachine:
 			machineItems = item.Items
+		case models.SummaryBranch:
+			branchItems = item.Items
 		}
 	}
 
@@ -179,6 +189,7 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filt
 		Editors:          editorItems,
 		OperatingSystems: osItems,
 		Machines:         machineItems,
+		Branches:         branchItems,
 		NumHeartbeats:    durations.TotalNumHeartbeats(),
 	}
 
@@ -285,6 +296,7 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 		OperatingSystems: make([]*models.SummaryItem, 0),
 		Machines:         make([]*models.SummaryItem, 0),
 		Labels:           make([]*models.SummaryItem, 0),
+		Branches:         make([]*models.SummaryItem, 0),
 	}
 
 	var processed = map[time.Time]bool{}
@@ -314,6 +326,7 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 		finalSummary.OperatingSystems = srv.mergeSummaryItems(finalSummary.OperatingSystems, s.OperatingSystems)
 		finalSummary.Machines = srv.mergeSummaryItems(finalSummary.Machines, s.Machines)
 		finalSummary.Labels = srv.mergeSummaryItems(finalSummary.Labels, s.Labels)
+		finalSummary.Branches = srv.mergeSummaryItems(finalSummary.Branches, s.Branches)
 		finalSummary.NumHeartbeats += s.NumHeartbeats
 
 		processed[hash] = true

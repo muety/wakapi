@@ -13,6 +13,7 @@ type Filters struct {
 	Editor   OrFilter
 	Machine  OrFilter
 	Label    OrFilter
+	Branch   OrFilter
 }
 
 type OrFilter []string
@@ -62,6 +63,8 @@ func (f *Filters) WithMultiple(entity uint8, keys []string) *Filters {
 		f.Machine = append(f.Machine, keys...)
 	case SummaryLabel:
 		f.Label = append(f.Label, keys...)
+	case SummaryBranch:
+		f.Branch = append(f.Branch, keys...)
 	}
 	return f
 }
@@ -79,6 +82,8 @@ func (f *Filters) One() (bool, uint8, OrFilter) {
 		return true, SummaryMachine, f.Machine
 	} else if f.Label != nil && f.Label.Exists() {
 		return true, SummaryLabel, f.Label
+	} else if f.Branch != nil && f.Branch.Exists() {
+		return true, SummaryBranch, f.Branch
 	}
 	return false, 0, OrFilter{}
 }
@@ -152,6 +157,14 @@ func (f *Filters) WithAliases(resolve AliasReverseResolver) *Filters {
 			updated = append(updated, resolve(SummaryMachine, e)...)
 		}
 		f.Machine = updated
+	}
+	if f.Branch != nil {
+		updated := OrFilter(make([]string, 0, len(f.Branch)))
+		for _, e := range f.Branch {
+			updated = append(updated, e)
+			updated = append(updated, resolve(SummaryBranch, e)...)
+		}
+		f.Branch = updated
 	}
 	return f
 }

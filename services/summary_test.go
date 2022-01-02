@@ -42,6 +42,7 @@ func (suite *SummaryServiceTestSuite) SetupSuite() {
 			Editor:          TestEditorGoland,
 			OperatingSystem: TestOsLinux,
 			Machine:         TestMachine1,
+			Branch:          TestBranchMaster,
 			Time:            models.CustomTime(suite.TestStartTime),
 			Duration:        150 * time.Second,
 			NumHeartbeats:   2,
@@ -53,6 +54,7 @@ func (suite *SummaryServiceTestSuite) SetupSuite() {
 			Editor:          TestEditorGoland,
 			OperatingSystem: TestOsLinux,
 			Machine:         TestMachine1,
+			Branch:          TestBranchMaster,
 			Time:            models.CustomTime(suite.TestStartTime.Add((30 + 130) * time.Second)),
 			Duration:        20 * time.Second,
 			NumHeartbeats:   1,
@@ -64,6 +66,7 @@ func (suite *SummaryServiceTestSuite) SetupSuite() {
 			Editor:          TestEditorVscode,
 			OperatingSystem: TestOsLinux,
 			Machine:         TestMachine1,
+			Branch:          TestBranchDev,
 			Time:            models.CustomTime(suite.TestStartTime.Add(3 * time.Minute)),
 			Duration:        15 * time.Second,
 			NumHeartbeats:   3,
@@ -145,6 +148,13 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
 	assert.Equal(suite.T(), suite.TestDurations[0].Time.T(), result.FromTime.T())
 	assert.Equal(suite.T(), suite.TestDurations[len(suite.TestDurations)-1].Time.T(), result.ToTime.T())
 	assert.Equal(suite.T(), 185*time.Second, result.TotalTime())
+	assert.Equal(suite.T(), 185*time.Second, result.TotalTimeBy(models.SummaryProject))
+	assert.Equal(suite.T(), 185*time.Second, result.TotalTimeBy(models.SummaryOS))
+	assert.Equal(suite.T(), 185*time.Second, result.TotalTimeBy(models.SummaryMachine))
+	assert.Equal(suite.T(), 185*time.Second, result.TotalTimeBy(models.SummaryLanguage))
+	assert.Equal(suite.T(), 185*time.Second, result.TotalTimeBy(models.SummaryEditor))
+	assert.Zero(suite.T(), result.TotalTimeBy(models.SummaryBranch)) // no filters -> no branches contained
+	assert.Zero(suite.T(), result.TotalTimeBy(models.SummaryLabel))
 	assert.Equal(suite.T(), 170*time.Second, result.TotalTimeByKey(models.SummaryEditor, TestEditorGoland))
 	assert.Equal(suite.T(), 15*time.Second, result.TotalTimeByKey(models.SummaryEditor, TestEditorVscode))
 	assert.Equal(suite.T(), 6, result.NumHeartbeats)
@@ -400,6 +410,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
 	assert.Zero(suite.T(), result.TotalTimeByKey(models.SummaryProject, TestProject1))
 	assert.NotZero(suite.T(), result.TotalTimeByKey(models.SummaryProject, TestProject2))
 	assert.Equal(suite.T(), 6, result.NumHeartbeats)
+	assert.Nil(suite.T(), result.Branches)
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased_ProjectLabels() {
@@ -464,7 +475,8 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
 		suite.TestLabels[1].Label: suite.TestLabels[1:2],
 	}, nil).Once()
 
-	sut.Aliased(from, to, suite.TestUser, sut.Summarize, filters, false)
+	result, _ := sut.Aliased(from, to, suite.TestUser, sut.Summarize, filters, false)
+	assert.NotNil(suite.T(), result.Branches) // project filters were applied -> include branches
 
 	effectiveFilters := suite.DurationService.Calls[0].Arguments[3].(*models.Filters)
 	assert.Contains(suite.T(), effectiveFilters.Project, TestProject1) // because actually requested

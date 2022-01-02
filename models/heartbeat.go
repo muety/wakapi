@@ -56,6 +56,8 @@ func (h *Heartbeat) GetKey(t uint8) (key string) {
 		key = h.OperatingSystem
 	case SummaryMachine:
 		key = h.Machine
+	case SummaryBranch:
+		key = h.Branch
 	}
 
 	if key == "" {

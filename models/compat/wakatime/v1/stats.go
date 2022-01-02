@@ -26,6 +26,7 @@ type StatsData struct {
 	Machines              []*SummariesEntry `json:"machines"`
 	Projects              []*SummariesEntry `json:"projects"`
 	OperatingSystems      []*SummariesEntry `json:"operating_systems"`
+	Branches              []*SummariesEntry `json:"branches"`
 }
 
 func NewStatsFrom(summary *models.Summary, filters *models.Filters) *StatsViewModel {
@@ -71,11 +72,21 @@ func NewStatsFrom(summary *models.Summary, filters *models.Filters) *StatsViewMo
 		oss[i] = convertEntry(e, summary.TotalTimeBy(models.SummaryOS))
 	}
 
+	branches := make([]*SummariesEntry, len(summary.Branches))
+	for i, e := range summary.Branches {
+		branches[i] = convertEntry(e, summary.TotalTimeBy(models.SummaryBranch))
+	}
+
 	data.Editors = editors
 	data.Languages = languages
 	data.Machines = machines
 	data.Projects = projects
 	data.OperatingSystems = oss
+	data.Branches = branches
+
+	if summary.Branches == nil {
+		data.Branches = nil
+	}
 
 	return &StatsViewModel{
 		Data: data,

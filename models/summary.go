@@ -14,6 +14,7 @@ const (
 	SummaryOS       uint8 = 3
 	SummaryMachine  uint8 = 4
 	SummaryLabel    uint8 = 5
+	SummaryBranch   uint8 = 6
 )
 
 const UnknownSummaryKey = "unknown"
@@ -30,7 +31,8 @@ type Summary struct {
 	Editors          SummaryItems `json:"editors" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	OperatingSystems SummaryItems `json:"operating_systems" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Machines         SummaryItems `json:"machines" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Labels           SummaryItems `json:"labels" gorm:"-"` // labels are not persisted, but calculated at runtime, i.e. when summary is retrieved
+	Labels           SummaryItems `json:"labels" gorm:"-"`   // labels are not persisted, but calculated at runtime, i.e. when summary is retrieved
+	Branches         SummaryItems `json:"branches" gorm:"-"` // branches are not persisted, but calculated at runtime in case a project filter is applied
 	NumHeartbeats    int          `json:"-" gorm:"default:0"`
 }
 
@@ -58,10 +60,14 @@ type SummaryParams struct {
 }
 
 func SummaryTypes() []uint8 {
-	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryLabel}
+	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryLabel, SummaryBranch}
 }
 
 func NativeSummaryTypes() []uint8 {
+	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryBranch}
+}
+
+func PersistedSummaryTypes() []uint8 {
 	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine}
 }
 
@@ -72,6 +78,7 @@ func (s *Summary) Sorted() *Summary {
 	sort.Sort(sort.Reverse(s.Languages))
 	sort.Sort(sort.Reverse(s.Editors))
 	sort.Sort(sort.Reverse(s.Labels))
+	sort.Sort(sort.Reverse(s.Branches))
 	return s
 }
 
@@ -87,6 +94,7 @@ func (s *Summary) MappedItems() map[uint8]*SummaryItems {
 		SummaryOS:       &s.OperatingSystems,
 		SummaryMachine:  &s.Machines,
 		SummaryLabel:    &s.Labels,
+		SummaryBranch:   &s.Branches,
 	}
 }
 
@@ -233,6 +241,10 @@ func (s *Summary) MaxByToString(entityType uint8) string {
 
 func (s *Summary) WithResolvedAliases(resolve AliasResolver) *Summary {
 	processAliases := func(origin []*SummaryItem) []*SummaryItem {
+		if origin == nil {
+			return nil
+		}
+
 		target := make([]*SummaryItem, 0)
 
 		findItem := func(key string) *SummaryItem {
@@ -278,6 +290,7 @@ func (s *Summary) WithResolvedAliases(resolve AliasResolver) *Summary {
 	s.OperatingSystems = processAliases(s.OperatingSystems)
 	s.Machines = processAliases(s.Machines)
 	s.Labels = processAliases(s.Labels)
+	s.Branches = processAliases(s.Branches)
 
 	return s
 }

@@ -26,6 +26,7 @@ type SummariesData struct {
 	Machines         []*SummariesEntry    `json:"machines"`
 	OperatingSystems []*SummariesEntry    `json:"operating_systems"`
 	Projects         []*SummariesEntry    `json:"projects"`
+	Branches         []*SummariesEntry    `json:"branches"`
 	GrandTotal       *SummariesGrandTotal `json:"grand_total"`
 	Range            *SummariesRange      `json:"range"`
 }
@@ -92,6 +93,7 @@ func newDataFrom(s *models.Summary) *SummariesData {
 		Machines:         make([]*SummariesEntry, len(s.Machines)),
 		OperatingSystems: make([]*SummariesEntry, len(s.OperatingSystems)),
 		Projects:         make([]*SummariesEntry, len(s.Projects)),
+		Branches:         make([]*SummariesEntry, len(s.Branches)),
 		GrandTotal: &SummariesGrandTotal{
 			Digital:      fmt.Sprintf("%d:%d", totalHrs, totalMins),
 			Hours:        totalHrs,
@@ -109,7 +111,7 @@ func newDataFrom(s *models.Summary) *SummariesData {
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(5)
+	wg.Add(6)
 
 	go func(data *SummariesData) {
 		defer wg.Done()
@@ -145,6 +147,17 @@ func newDataFrom(s *models.Summary) *SummariesData {
 			data.Machines[i] = convertEntry(e, s.TotalTimeBy(models.SummaryMachine))
 		}
 	}(data)
+
+	go func(data *SummariesData) {
+		defer wg.Done()
+		for i, e := range s.Branches {
+			data.Branches[i] = convertEntry(e, s.TotalTimeBy(models.SummaryBranch))
+		}
+	}(data)
+
+	if s.Branches == nil {
+		data.Branches = nil
+	}
 
 	wg.Wait()
 	return data

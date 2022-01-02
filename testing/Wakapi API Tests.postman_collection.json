@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "a7f72e0a-a32e-4ec4-bf60-9915ba0acbd3",
+		"_postman_id": "43639725-0458-40d7-a4d4-9f55a539a7f7",
 		"name": "Wakapi API Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -996,6 +996,7 @@
 									"    pm.expect(jsonData.editors.length).to.eql(1);",
 									"    pm.expect(jsonData.operating_systems.length).to.eql(1);",
 									"    pm.expect(jsonData.machines.length).to.eql(1);",
+									"    pm.expect(jsonData.branches).to.be.null;",
 									"});",
 									"",
 									"/*",
@@ -1463,6 +1464,7 @@
 									"    pm.expect(jsonData.editors.length).to.eql(1);",
 									"    pm.expect(jsonData.operating_systems.length).to.eql(1);",
 									"    pm.expect(jsonData.machines.length).to.eql(1);",
+									"    pm.expect(jsonData.branches.length).to.eql(1);",
 									"});"
 								],
 								"type": "text/javascript"
@@ -2078,6 +2080,7 @@
 									"    const jsonData = pm.response.json();",
 									"    pm.expect(jsonData.data.languages).to.eql(null); // because share_languages is false",
 									"    pm.expect(jsonData.data.projects.length).to.eql(1);",
+									"    pm.expect(jsonData.data.branches).to.be.null;",
 									"});"
 								],
 								"type": "text/javascript"
@@ -2133,6 +2136,7 @@
 									"    const jsonData = pm.response.json();",
 									"    pm.expect(jsonData.data.projects.length).to.eql(1);",
 									"    pm.expect(jsonData.data.total_seconds).to.gt(0);",
+									"    pm.expect(jsonData.data.branches.length).to.eql(1);",
 									"});"
 								],
 								"type": "text/javascript"

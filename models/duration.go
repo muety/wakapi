@@ -16,6 +16,7 @@ type Duration struct {
 	Editor          string        `json:"editor"`
 	OperatingSystem string        `json:"operating_system"`
 	Machine         string        `json:"machine"`
+	Branch          string        `json:"branch"`
 	NumHeartbeats   int           `json:"-" hash:"ignore"`
 	GroupHash       string        `json:"-" hash:"ignore"`
 }
@@ -30,6 +31,7 @@ func NewDurationFromHeartbeat(h *Heartbeat) *Duration {
 		Editor:          h.Editor,
 		OperatingSystem: h.OperatingSystem,
 		Machine:         h.Machine,
+		Branch:          h.Branch,
 		NumHeartbeats:   1,
 	}
 	return d.Hashed()
@@ -56,6 +58,8 @@ func (d *Duration) GetKey(t uint8) (key string) {
 		key = d.OperatingSystem
 	case SummaryMachine:
 		key = d.Machine
+	case SummaryBranch:
+		key = d.Branch
 	}
 
 	if key == "" {

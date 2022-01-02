@@ -51,5 +51,8 @@ func ParseFilters(r *http.Request) *models.Filters {
 	if q := r.URL.Query().Get("label"); q != "" {
 		filters.With(models.SummaryLabel, q)
 	}
+	if q := r.URL.Query().Get("branch"); q != "" {
+		filters.With(models.SummaryBranch, q)
+	}
 	return filters
 }
