@@ -132,7 +132,7 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary
 	summaries := make([]*models.Summary, len(intervals))
 
 	// filtering
-	filters := routeutils.ParseFilters(r)
+	filters := utils.ParseSummaryFilters(r)
 
 	for i, interval := range intervals {
 		summary, err := h.summarySrvc.Aliased(interval[0], interval[1], user, h.summarySrvc.Retrieve, filters, end.After(time.Now()))

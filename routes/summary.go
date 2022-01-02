@@ -26,11 +26,13 @@ func NewSummaryHandler(summaryService services.ISummaryService, userService serv
 }
 
 func (h *SummaryHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/summary").Subrouter()
-	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).WithRedirectTarget(defaultErrorRedirectTarget()).Handler,
-	)
-	r.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
+	r1 := router.PathPrefix("/summary").Subrouter()
+	r1.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).WithRedirectTarget(defaultErrorRedirectTarget()).Handler)
+	r1.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
+
+	r2 := router.PathPrefix("/summary").Subrouter()
+	r2.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).WithRedirectTarget(defaultErrorRedirectTarget()).Handler)
+	r2.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
 }
 
 func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {

@@ -51,15 +51,13 @@ Check out our latest [blog post](https://muetsch.io/wakapi-s-year-2021.html), fe
 * ✅ Self-hosted
 
 ## 🚧 Roadmap
-Plans for the near future mainly include, besides usual improvements and bug fixes, a UI redesign as well as additional types of charts and statistics (see [#101](https://github.com/muety/wakapi/issues/101), [#80](https://github.com/muety/wakapi/issues/80), [#76](https://github.com/muety/wakapi/issues/76), [#12](https://github.com/muety/wakapi/issues/12)). If you have feature requests or any kind of improvement proposals feel free to open an issue or share them in our [user survey](https://github.com/muety/wakapi/issues/82). 
+Plans for the near future mainly include, besides usual improvements and bug fixes, a UI redesign as well as additional types of charts and statistics (see [#101](https://github.com/muety/wakapi/issues/101), [#76](https://github.com/muety/wakapi/issues/76), [#12](https://github.com/muety/wakapi/issues/12)). If you have feature requests or any kind of improvement proposals feel free to open an issue or share them in our [user survey](https://github.com/muety/wakapi/issues/82). 
 
 ## ⌨️ How to use?
 There are different options for how to use Wakapi, ranging from our hosted cloud service to self-hosting it. Regardless of which option choose, you will always have to do the [client setup](#-client-setup) in addition. 
 
 ### ☁️ Option 1: Use [wakapi.dev](https://wakapi.dev)
 If you want to try out a free, hosted cloud service, all you need to do is create an account and then set up your client-side tooling (see below).
-
-However, we do not guarantee data persistence, so you might potentially lose your data if the service is taken down some day ❕
 
 ### 📦 Option 2: Quick-run a Release
 ```bash

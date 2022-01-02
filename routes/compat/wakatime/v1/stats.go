@@ -9,7 +9,6 @@ import (
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
-	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 )
@@ -95,7 +94,7 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	summary, err, status := h.loadUserSummary(requestedUser, rangeFrom, rangeTo, routeutils.ParseFilters(r))
+	summary, err, status := h.loadUserSummary(requestedUser, rangeFrom, rangeTo, utils.ParseSummaryFilters(r))
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))

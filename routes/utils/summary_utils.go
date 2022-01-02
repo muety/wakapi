@@ -20,7 +20,7 @@ func LoadUserSummary(ss services.ISummaryService, r *http.Request) (*models.Summ
 		retrieveSummary = ss.Summarize
 	}
 
-	summary, err := ss.Aliased(summaryParams.From, summaryParams.To, summaryParams.User, retrieveSummary, ParseFilters(r), summaryParams.Recompute)
+	summary, err := ss.Aliased(summaryParams.From, summaryParams.To, summaryParams.User, retrieveSummary, summaryParams.Filters, summaryParams.Recompute)
 	if err != nil {
 		return nil, err, http.StatusInternalServerError
 	}
@@ -29,30 +29,4 @@ func LoadUserSummary(ss services.ISummaryService, r *http.Request) (*models.Summ
 	summary.ToTime = models.CustomTime(summary.ToTime.T().In(user.TZ()))
 
 	return summary, nil, http.StatusOK
-}
-
-func ParseFilters(r *http.Request) *models.Filters {
-	filters := &models.Filters{}
-	if q := r.URL.Query().Get("project"); q != "" {
-		filters.With(models.SummaryProject, q)
-	}
-	if q := r.URL.Query().Get("language"); q != "" {
-		filters.With(models.SummaryLanguage, q)
-	}
-	if q := r.URL.Query().Get("editor"); q != "" {
-		filters.With(models.SummaryEditor, q)
-	}
-	if q := r.URL.Query().Get("machine"); q != "" {
-		filters.With(models.SummaryMachine, q)
-	}
-	if q := r.URL.Query().Get("operating_system"); q != "" {
-		filters.With(models.SummaryOS, q)
-	}
-	if q := r.URL.Query().Get("label"); q != "" {
-		filters.With(models.SummaryLabel, q)
-	}
-	if q := r.URL.Query().Get("branch"); q != "" {
-		filters.With(models.SummaryBranch, q)
-	}
-	return filters
 }

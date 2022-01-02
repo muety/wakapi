@@ -30,6 +30,7 @@
 
     {{ if .User.HasData }}
 
+    {{ if not .IsProjectDetails }}
     <!-- KPIs -->
     <div class="flex gap-x-6 gap-y-6 w-full mb-4 flex-wrap">
         <div class="flex flex-col space-y-2 w-40 p-4 rounded-md p-4 text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
@@ -57,56 +58,68 @@
             <span class="font-semibold text-xl truncate" title="{{ .MaxByToString 2 }}">{{ .MaxByToString 2 }}</span>
         </div>
     </div>
+    {{ else }}
+    <div class="mb-8 w-full">
+    <h1 class="font-semibold text-3xl text-white">Project "{{ .GetProjectFilter }}"</h1>
+    <h4 class="font-semibold text-lg text-gray-500">{{ .TotalTime | duration }}</h4>
+    </div>
+    {{ end }}
 
-    <div class="flex flex-wrap w-full justify-center mt-4">
-        <div class="w-full lg:w-1/2 p-1" style="max-width: 100vw;">
-            <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="project-container" style="height: 608px">
-                <div class="flex justify-between">
-                    <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Projects</span>
-                    <div class="flex justify-end flex-1 text-xs items-center">
-                        <input type="number" min="1" id="project-top-picker" data-entity="0" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
-                    </div>
+    <div class="grid gap-2 grid-cols-1 md:grid-cols-2 w-full mt-4">
+        <div class="row-span-2 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col {{ if .IsProjectDetails }} hidden {{ end }}" id="project-container" style="max-height: 608px; max-width: 100vw">
+            <div class="flex justify-between">
+                <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Projects</span>
+                <div class="flex justify-end flex-1 text-xs items-center">
+                    <input type="number" min="1" id="project-top-picker" data-entity="0" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
                 </div>
-                <canvas id="chart-projects" class="mt-2"></canvas>
-                <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                    <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
-                </div>
+            </div>
+            <canvas id="chart-projects" class="mt-2"></canvas>
+            <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
+                <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
             </div>
         </div>
 
-        <div class="w-full lg:w-1/2 p-1" style="max-width: 100vw;">
-            <div class="flex flex-col space-y-2">
-                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="language-container" style="height: 300px">
-                    <div class="flex justify-between">
-                        <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Languages</span>
-                        <div class="flex justify-end flex-1 text-xs items-center">
-                            <input type="number" min="1" id="language-top-picker" data-entity="3" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
-                        </div>
-                    </div>
-                    <canvas id="chart-language" class="mt-4"></canvas>
-                    <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                        <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
-                    </div>
+        <div class="row-span-2 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col {{ if not .IsProjectDetails }} hidden {{ end }}" id="branch-container" style="max-height: 608px; max-width: 100vw">
+            <div class="flex justify-between">
+                <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Branches</span>
+                <div class="flex justify-end flex-1 text-xs items-center">
+                    <input type="number" min="1" id="branch-top-picker" data-entity="6" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
                 </div>
-
-                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="editor-container" style="height: 300px">
-                    <div class="flex justify-between">
-                        <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Editors</span>
-                        <div class="flex justify-end flex-1 text-xs items-center">
-                            <input type="number" min="1" id="editor-top-picker" data-entity="2" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
-                        </div>
-                    </div>
-                    <canvas id="chart-editor" class="mt-4"></canvas>
-                    <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
-                        <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
-                    </div>
-                </div>
-
+            </div>
+            <canvas id="chart-branches" class="mt-2"></canvas>
+            <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
+                <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
             </div>
         </div>
 
-        <div class="w-full lg:w-1/2 p-1" style="max-width: 100vw;">
-            <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="os-container" style="height: 300px">
+        <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="language-container" style="max-height: 300px">
+            <div class="flex justify-between">
+                <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Languages</span>
+                <div class="flex justify-end flex-1 text-xs items-center">
+                    <input type="number" min="1" id="language-top-picker" data-entity="3" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
+                </div>
+            </div>
+            <canvas id="chart-language" class="mt-4"></canvas>
+            <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
+                <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
+            </div>
+        </div>
+
+        <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="editor-container" style="max-height: 300px">
+            <div class="flex justify-between">
+                <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Editors</span>
+                <div class="flex justify-end flex-1 text-xs items-center">
+                    <input type="number" min="1" id="editor-top-picker" data-entity="2" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
+                </div>
+            </div>
+            <canvas id="chart-editor" class="mt-4"></canvas>
+            <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
+                <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
+            </div>
+        </div>
+
+        <div class="{{ if .IsProjectDetails }} hidden {{ end }}" style="max-width: 100vw;">
+            <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="os-container" style="max-height: 300px">
                 <div class="flex justify-between">
                     <div>
                         <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap mr-1 cursor-pointer">Operating Systems</span>
@@ -122,8 +135,9 @@
                 </div>
             </div>
         </div>
-        <div class="hidden w-full lg:w-1/2 p-1" style="max-width: 100vw;">
-            <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="machine-container" style="height: 300px">
+
+        <div class="hidden" style="max-width: 100vw;">
+            <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="machine-container" style="max-height: 300px">
                 <div class="flex justify-between">
                     <div>
                         <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap mr-1 cursor-pointer text-gray-600" onclick="swapCharts('os', 'machine')">Operating Systems</span>
@@ -139,8 +153,9 @@
                 </div>
             </div>
         </div>
-        <div class="w-full lg:w-1/2 p-1" style="max-width: 100vw;">
-            <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col" id="label-container" style="height: 300px">
+
+        <div style="max-width: 100vw;">
+            <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col {{ if .IsProjectDetails }} hidden {{ end }}" id="label-container" style="max-height: 300px">
                 <div class="flex justify-between text-lg" style="margin-bottom: -10px">
                     <span class="font-semibold whitespace-nowrap">Labels</span>
                     <a href="settings#data" class="ml-4 inline p-2 hover:bg-gray-800 rounded" style="margin-top: -5px">
@@ -204,6 +219,11 @@
     wakapiData.languages = {{ .Languages | json }}
     wakapiData.machines = {{ .Machines | json }}
     wakapiData.labels = {{ .Labels | json }}
+    {{ if .IsProjectDetails }}
+    wakapiData.branches = {{ .Branches | json }}
+    {{ else }}
+    wakapiData.branches = []
+    {{ end }}
 </script>
 <script src="assets/js/summary.js"></script>
 

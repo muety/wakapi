@@ -1,12 +1,12 @@
 package api
 
 import (
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
-	su "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 )
@@ -51,7 +51,7 @@ func (h *SummaryApiHandler) RegisterRoutes(router *mux.Router) {
 // @Success 200 {object} models.Summary
 // @Router /summary [get]
 func (h *SummaryApiHandler) Get(w http.ResponseWriter, r *http.Request) {
-	summary, err, status := su.LoadUserSummary(h.summarySrvc, r)
+	summary, err, status := routeutils.LoadUserSummary(h.summarySrvc, r)
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))

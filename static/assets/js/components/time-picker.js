@@ -8,6 +8,11 @@ function TimePicker({ fromDate, toDate, timeSelection }) {
         fromDate: fromDate,
         toDate: toDate,
         timeSelection: timeSelection,
+        intervalLink(interval) {
+            const queryParams = new URLSearchParams(window.location.search)
+            queryParams.set('interval', interval)
+            return `summary?${queryParams.toString()}`
+        },
         onDateUpdated() {
             document.getElementById('time-picker-form').submit()
         },

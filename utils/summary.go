@@ -96,12 +96,41 @@ func ParseSummaryParams(r *http.Request) (*models.SummaryParams, error) {
 
 	recompute := params.Get("recompute") != "" && params.Get("recompute") != "false"
 
+	filters := ParseSummaryFilters(r)
+
 	return &models.SummaryParams{
 		From:      from,
 		To:        to,
 		User:      user,
 		Recompute: recompute,
+		Filters:   filters,
 	}, nil
+}
+
+func ParseSummaryFilters(r *http.Request) *models.Filters {
+	filters := &models.Filters{}
+	if q := r.URL.Query().Get("project"); q != "" {
+		filters.With(models.SummaryProject, q)
+	}
+	if q := r.URL.Query().Get("language"); q != "" {
+		filters.With(models.SummaryLanguage, q)
+	}
+	if q := r.URL.Query().Get("editor"); q != "" {
+		filters.With(models.SummaryEditor, q)
+	}
+	if q := r.URL.Query().Get("machine"); q != "" {
+		filters.With(models.SummaryMachine, q)
+	}
+	if q := r.URL.Query().Get("operating_system"); q != "" {
+		filters.With(models.SummaryOS, q)
+	}
+	if q := r.URL.Query().Get("label"); q != "" {
+		filters.With(models.SummaryLabel, q)
+	}
+	if q := r.URL.Query().Get("branch"); q != "" {
+		filters.With(models.SummaryBranch, q)
+	}
+	return filters
 }
 
 func extractUser(r *http.Request) *models.User {

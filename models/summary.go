@@ -56,6 +56,7 @@ type SummaryParams struct {
 	From      time.Time
 	To        time.Time
 	User      *User
+	Filters   *Filters
 	Recompute bool
 }
 
@@ -302,6 +303,26 @@ func (s *Summary) findFirstPresentType() (uint8, error) {
 		}
 	}
 	return 127, errors.New("no type present")
+}
+
+func (s *SummaryParams) HasFilters() bool {
+	return s.Filters != nil && !s.Filters.IsEmpty()
+}
+
+func (s *SummaryParams) IsProjectDetails() bool {
+	if !s.HasFilters() {
+		return false
+	}
+	_, entity, filters := s.Filters.One()
+	return entity == SummaryProject && len(filters) == 1 // exactly one
+}
+
+func (s *SummaryParams) GetProjectFilter() string {
+	if !s.IsProjectDetails() {
+		return ""
+	}
+	_, _, filters := s.Filters.One()
+	return filters[0]
 }
 
 func (s *SummaryItem) TotalFixed() time.Duration {

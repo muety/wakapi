@@ -13,6 +13,7 @@ const editorsCanvas = document.getElementById('chart-editor')
 const languagesCanvas = document.getElementById('chart-language')
 const machinesCanvas = document.getElementById('chart-machine')
 const labelsCanvas = document.getElementById('chart-label')
+const branchesCanvas = document.getElementById('chart-branches')
 
 const projectContainer = document.getElementById('project-container')
 const osContainer = document.getElementById('os-container')
@@ -20,10 +21,11 @@ const editorContainer = document.getElementById('editor-container')
 const languageContainer = document.getElementById('language-container')
 const machineContainer = document.getElementById('machine-container')
 const labelContainer = document.getElementById('label-container')
+const branchContainer = document.getElementById('branch-container')
 
-const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer]
-const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas]
-const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels]
+const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer]
+const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas]
+const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches]
 
 let topNPickers = [...document.getElementsByClassName('top-picker')]
 topNPickers.sort(((a, b) => parseInt(a.attributes['data-entity'].value) - parseInt(b.attributes['data-entity'].value)))
@@ -64,9 +66,10 @@ function draw(subselection) {
             callbacks: {
                 label: (item) => {
                     const d = wakapiData[key][item.dataIndex]
-                    return `${d.key}: ${d.total.toString().toHHMMSS()}`
+                    return ` ${d.key}: ${d.total.toString().toHHMMSS()}`
                 },
-                title: () => 'Total Time'
+                title: () => 'Total Time',
+                footer: () => key === 'projects' ? 'Click for details' : null
             }
         }
     }
@@ -127,6 +130,16 @@ function draw(subselection) {
                     tooltip: getTooltipOptions('projects'),
                 },
                 maintainAspectRatio: false,
+                onClick: (event, data) => {
+                    const idx = data[0].index
+                    const name = wakapiData.projects[idx].key
+                    const query = new URLSearchParams(window.location.search)
+                    query.set('project', name)
+                    window.location.replace(`${window.location.pathname.slice(1)}?${query.toString()}`)
+                },
+                onHover: (event, elem) => {
+                    event.native.target.style.cursor = elem[0] ? 'pointer' : 'default'
+                }
             }
         })
         : null
@@ -319,12 +332,58 @@ function draw(subselection) {
         })
         : null
 
+    let branchChart = branchesCanvas && !branchesCanvas.classList.contains('hidden') && shouldUpdate(0)
+        ? new Chart(branchesCanvas.getContext('2d'), {
+            type: "bar",
+            data: {
+                datasets: [{
+                    data: wakapiData.branches
+                        .slice(0, Math.min(showTopN[0], wakapiData.branches.length))
+                        .map(p => parseInt(p.total)),
+                    backgroundColor: wakapiData.branches.map((p, i) => {
+                        const c = hexToRgb(getColor(p.key, i % baseColors.length))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
+                    }),
+                    hoverBackgroundColor: wakapiData.branches.map((p, i) => {
+                        const c = hexToRgb(getColor(p.key, i % baseColors.length))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
+                    }),
+                }],
+                labels: wakapiData.branches
+                    .slice(0, Math.min(showTopN[0], wakapiData.branches.length))
+                    .map(p => p.key)
+            },
+            options: {
+                indexAxis: 'y',
+                scales: {
+                    xAxes: {
+                        title: {
+                            display: true,
+                            text: 'Duration (hh:mm:ss)',
+                        },
+                        ticks: {
+                            callback: (label) => label.toString().toHHMMSS(),
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    tooltip: getTooltipOptions('branches'),
+                },
+                maintainAspectRatio: false,
+            }
+        })
+        : null
+
     charts[0] = projectChart ? projectChart : charts[0]
     charts[1] = osChart ? osChart : charts[1]
     charts[2] = editorChart ? editorChart : charts[2]
     charts[3] = languageChart ? languageChart : charts[3]
     charts[4] = machineChart ? machineChart : charts[4]
     charts[5] = labelChart ? labelChart : charts[5]
+    charts[6] = branchChart ? branchChart : charts[6]
 }
 
 function parseTopN() {
