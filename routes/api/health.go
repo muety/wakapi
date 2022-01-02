@@ -2,9 +2,10 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 type HealthApiHandler struct {
@@ -25,7 +26,7 @@ func (h *HealthApiHandler) RegisterRoutes(router *mux.Router) {
 // @Tags misc
 // @Produce plain
 // @Success 200 {string} string
-// @Router /api/health [get]
+// @Router /health [get]
 func (h *HealthApiHandler) Get(w http.ResponseWriter, r *http.Request) {
 	var dbStatus int
 	if sqlDb, err := h.db.DB(); err == nil {

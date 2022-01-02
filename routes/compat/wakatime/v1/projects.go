@@ -1,6 +1,9 @@
 package v1
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -9,8 +12,6 @@ import (
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"net/http"
-	"strings"
 )
 
 type ProjectsHandler struct {
@@ -44,7 +45,7 @@ func (h *ProjectsHandler) RegisterRoutes(router *mux.Router) {
 // @Param q query string true "Query to filter projects by"
 // @Security ApiKeyAuth
 // @Success 200 {object} v1.ProjectsViewModel
-// @Router /api/compat/wakatime/v1/users/{user}/projects [get]
+// @Router /compat/wakatime/v1/users/{user}/projects [get]
 func (h *ProjectsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	user, err := routeutils.CheckEffectiveUser(w, r, h.userSrvc, "current")
 	if err != nil {

@@ -1,6 +1,10 @@
 package v1
 
 import (
+	"net/http"
+	"net/url"
+	"time"
+
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -9,9 +13,6 @@ import (
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"net/http"
-	"net/url"
-	"time"
 )
 
 type AllTimeHandler struct {
@@ -44,7 +45,7 @@ func (h *AllTimeHandler) RegisterRoutes(router *mux.Router) {
 // @Param user path string true "User ID to fetch data for (or 'current')"
 // @Security ApiKeyAuth
 // @Success 200 {object} v1.AllTimeViewModel
-// @Router /api/compat/wakatime/v1/users/{user}/all_time_since_today [get]
+// @Router /compat/wakatime/v1/users/{user}/all_time_since_today [get]
 func (h *AllTimeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	values, _ := url.ParseQuery(r.URL.RawQuery)
 

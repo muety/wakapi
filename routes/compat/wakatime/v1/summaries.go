@@ -2,6 +2,10 @@ package v1
 
 import (
 	"errors"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -10,9 +14,6 @@ import (
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"net/http"
-	"strings"
-	"time"
 )
 
 type SummariesHandler struct {
@@ -53,7 +54,7 @@ func (h *SummariesHandler) RegisterRoutes(router *mux.Router) {
 // @Param end query string false "End date (e.g. '2021-02-08')"
 // @Security ApiKeyAuth
 // @Success 200 {object} v1.SummariesViewModel
-// @Router /api/compat/wakatime/v1/users/{user}/summaries [get]
+// @Router /compat/wakatime/v1/users/{user}/summaries [get]
 func (h *SummariesHandler) Get(w http.ResponseWriter, r *http.Request) {
 	_, err := routeutils.CheckEffectiveUser(w, r, h.userSrvc, "current")
 	if err != nil {
