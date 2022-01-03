@@ -1,19 +1,26 @@
-# Build Stage
+# To build locally: docker buildx build . -t wakapi --load
 
-FROM golang:1.16-alpine AS build-env
+# Preparation to save some time
+FROM --platform=$BUILDPLATFORM golang:1.16-alpine AS prep-env
 WORKDIR /src
-
-# Required for go-sqlite3
-RUN apk add --no-cache gcc musl-dev
 
 ADD ./go.mod .
 RUN go mod download
+ADD . .
 
 RUN wget "https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh" -O wait-for-it.sh && \
     chmod +x wait-for-it.sh
 
-ADD . .
-RUN go build -o wakapi
+# Build Stage
+FROM golang:1.16-alpine AS build-env
+
+# Required for go-sqlite3
+RUN apk add --no-cache gcc musl-dev
+
+WORKDIR /src
+COPY --from=prep-env /src .
+
+RUN go build -v -o wakapi
 
 WORKDIR /app
 RUN cp /src/wakapi . && \
