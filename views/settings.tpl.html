@@ -266,33 +266,33 @@
                             </div>
                             {{end}}
                             <div class="mb-8"></div>
-
-                            {{ if .Projects }}
-                            <h3 class="inline-block font-semibold text-gray-300">Add Label</h3>
-                            <form action="" method="post">
-                                <input type="hidden" name="action" value="add_label">
-                                <div class="flex flex-col space-y-4">
-                                    <div class="flex items-center mt-2 w-full text-gray-500 text-sm space-x-4">
-                                        <select name="key" id="select-project"
-                                                class="select-default flex-grow">
-                                            {{ range $i, $p := .Projects }}
-                                            <option value="{{ $p }}">{{ $p }}</option>
-                                            {{ end }}
-                                        </select>
-                                        <input class="input-default"
-                                               type="text" id="label-value"
-                                               name="value" placeholder="Label" minlength="1" required>
-                                        <button type="submit" class="btn-primary">
-                                            Add
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                            {{ else }}
-                            <div class="text-gray-300 text-sm mb-4 mt-6">You don't have any projects, yet. Start out by sending a few heartbeats before you can then assign labels.</div>
-                            {{ end }}
                         </div>
                         {{end}}
+
+                        {{ if .Projects }}
+                        <h3 class="inline-block font-semibold text-gray-300">Add Label</h3>
+                        <form action="" method="post">
+                            <input type="hidden" name="action" value="add_label">
+                            <div class="flex flex-col space-y-4">
+                                <div class="flex items-center mt-2 w-full text-gray-500 text-sm space-x-4">
+                                    <select name="key" id="select-project"
+                                            class="select-default flex-grow">
+                                        {{ range $i, $p := .Projects }}
+                                        <option value="{{ $p }}">{{ $p }}</option>
+                                        {{ end }}
+                                    </select>
+                                    <input class="input-default"
+                                           type="text" id="label-value"
+                                           name="value" placeholder="Label" minlength="1" required>
+                                    <button type="submit" class="btn-primary">
+                                        Add
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                        {{ else }}
+                        <div class="text-gray-300 text-sm mb-4 mt-6">You don't have any projects, yet. Start out by sending a few heartbeats before you can then assign labels.</div>
+                        {{ end }}
                     </div>
                 </div>
             </div>
@@ -476,7 +476,7 @@
             </form>
         </div>
 
-        <div v-cloak id="integrations" class="tab flex flex-col space-y-4" v-if="isActive('integrations')">
+        <div v-cloak id="integrations" class="tab flex flex-col space-y-4" v-show="isActive('integrations')">
             <form action="" method="post" class="w-full lg:w-3/4">
                 <input type="hidden" name="action" value="toggle_wakatime">
 
