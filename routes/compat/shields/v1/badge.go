@@ -17,7 +17,7 @@ import (
 
 const (
 	intervalPattern     = `interval:([a-z0-9_]+)`
-	entityFilterPattern = `(project|os|editor|language|machine):([_a-zA-Z0-9-\s]+)`
+	entityFilterPattern = `(project|os|editor|language|machine|label):([_a-zA-Z0-9-\s]+)`
 )
 
 type BadgeHandler struct {
