@@ -4,7 +4,7 @@ FROM golang:1.16-alpine AS build-env
 WORKDIR /src
 
 # Required for go-sqlite3
-RUN apk add gcc musl-dev
+RUN apk add --no-cache gcc musl-dev
 
 ADD ./go.mod .
 RUN go mod download
@@ -31,7 +31,7 @@ RUN cp /src/wakapi . && \
 FROM alpine:3
 WORKDIR /app
 
-RUN apk update && apk add bash ca-certificates tzdata && rm -rf /var/cache/apk
+RUN apk add --no-cache bash ca-certificates tzdata
 
 # See README.md and config.default.yml for all config options
 ENV ENVIRONMENT prod
