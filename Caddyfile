@@ -1,26 +1,26 @@
 wakapi.yourdomain.tld {
-	encode zstd gzip
+    encode zstd gzip
 
-	header {
-		Strict-Transport-Security "max-age=2592000; includeSubDomains"
-	}
+    header {
+        Strict-Transport-Security "max-age=2592000; includeSubDomains"
+    }
 	
-	log {
-    output file /var/log/caddy/wakapi.dev.access.log
-    format single_field common_log
-  }
+    log {
+        output file /var/log/caddy/wakapi.dev.access.log
+        format single_field common_log
+    }
 
-	reverse_proxy http://[::1]:3000
+    reverse_proxy http://[::1]:3000
 
-	@api path_regexp "^/api.*"
-	@notapi not path_regexp "^/api.*"
+    @api path_regexp "^/api.*"
+    @notapi not path_regexp "^/api.*"
 
-	push @notapi /assets/vendor/source-sans-3.css
-	push @notapi /assets/css/app.dist.css
-	push @notapi /assets/vendor/petite-vue.min.js
-	push @notapi /assets/vendor/chart.min.js
-	push @notapi /assets/vendor/iconify.basic.min.js
-	push @notapi /assets/js/icons.dist.js
-	push @notapi /assets/js/base.js
-	push @notapi /assets/images/logo.svg
+    push @notapi /assets/vendor/source-sans-3.css
+    push @notapi /assets/css/app.dist.css
+    push @notapi /assets/vendor/petite-vue.min.js
+    push @notapi /assets/vendor/chart.min.js
+    push @notapi /assets/vendor/iconify.basic.min.js
+    push @notapi /assets/js/icons.dist.js
+    push @notapi /assets/js/base.js
+    push @notapi /assets/images/logo.svg
 }
