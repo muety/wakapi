@@ -1,4 +1,3 @@
-const LEGEND_MAX_ENTRIES = 9
 // dirty hack to vertically align legends across multiple charts
 // however, without monospace font, it's still not perfectly aligned
 // waiting for https://github.com/chartjs/Chart.js/discussions/9890
@@ -31,8 +30,8 @@ let topNPickers = [...document.getElementsByClassName('top-picker')]
 topNPickers.sort(((a, b) => parseInt(a.attributes['data-entity'].value) - parseInt(b.attributes['data-entity'].value)))
 topNPickers.forEach(e => {
     const idx = parseInt(e.attributes['data-entity'].value)
-    e.max = Math.min(data[idx].length, 10)
-    e.value = e.max
+    e.max = data[idx].length
+    e.value = Math.min(e.max, 9)
 })
 
 let charts = []
@@ -77,7 +76,7 @@ function draw(subselection) {
     function filterLegendItem(item) {
         item.text = item.text.length > LEGEND_CHARACTERS ? item.text.slice(0, LEGEND_CHARACTERS - 3).padEnd(LEGEND_CHARACTERS, '.') : item.text
         item.text = item.text.padEnd(LEGEND_CHARACTERS + 3)
-        return item.index < LEGEND_MAX_ENTRIES
+        return true
     }
 
     function shouldUpdate(index) {
