@@ -43,6 +43,12 @@ func TestCommon_ParseUserAgent(t *testing.T) {
 			"emacs",
 			nil,
 		},
+		{
+			"wakatime/unset (linux-5.11.0-44-generic-x86_64) go1.16.13 emacs-wakatime/1.0.2",
+			"linux",
+			"emacs",
+			nil,
+		},
 	}
 
 	for _, test := range tests {
