@@ -29,6 +29,11 @@ func (m *AliasServiceMock) GetByUser(s string) ([]*models.Alias, error) {
 	return args.Get(0).([]*models.Alias), args.Error(1)
 }
 
+func (m *AliasServiceMock) GetByUserAndType(s string, u uint8) ([]*models.Alias, error) {
+	args := m.Called(s, u)
+	return args.Get(0).([]*models.Alias), args.Error(1)
+}
+
 func (m *AliasServiceMock) GetByUserAndKeyAndType(s string, s2 string, u uint8) ([]*models.Alias, error) {
 	args := m.Called(s, s2, u)
 	return args.Get(0).([]*models.Alias), args.Error(1)

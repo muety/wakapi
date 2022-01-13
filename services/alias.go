@@ -56,21 +56,18 @@ func (srv *AliasService) GetByUser(userId string) ([]*models.Alias, error) {
 	}
 }
 
+func (srv *AliasService) GetByUserAndType(userId string, summaryType uint8) ([]*models.Alias, error) {
+	check := func(a *models.Alias) bool {
+		return a.Type == summaryType
+	}
+	return srv.getFiltered(userId, check)
+}
+
 func (srv *AliasService) GetByUserAndKeyAndType(userId, key string, summaryType uint8) ([]*models.Alias, error) {
-	if !srv.IsInitialized(userId) {
-		srv.MayInitializeUser(userId)
+	check := func(a *models.Alias) bool {
+		return a.Key == key && a.Type == summaryType
 	}
-	if aliases, ok := userAliases.Load(userId); ok {
-		filteredAliases := make([]*models.Alias, 0, len(aliases.([]*models.Alias)))
-		for _, a := range aliases.([]*models.Alias) {
-			if a.Key == key && a.Type == summaryType {
-				filteredAliases = append(filteredAliases, a)
-			}
-		}
-		return filteredAliases, nil
-	} else {
-		return nil, errors.New(fmt.Sprintf("no user aliases loaded for user %s", userId))
-	}
+	return srv.getFiltered(userId, check)
 }
 
 func (srv *AliasService) GetAliasOrDefault(userId string, summaryType uint8, value string) (string, error) {
@@ -94,7 +91,11 @@ func (srv *AliasService) Create(alias *models.Alias) (*models.Alias, error) {
 	if err != nil {
 		return nil, err
 	}
+	// manually update cache
+	srv.updateCache(alias, false)
+	// reload entire cache (async, though)
 	go srv.MayInitializeUser(alias.UserID)
+
 	return result, nil
 }
 
@@ -103,7 +104,14 @@ func (srv *AliasService) Delete(alias *models.Alias) error {
 		return errors.New("no user id specified")
 	}
 	err := srv.repository.Delete(alias.ID)
+
+	// manually update cache
+	if err == nil {
+		srv.updateCache(alias, false)
+	}
+	// reload entire cache (async, though)
 	go srv.MayInitializeUser(alias.UserID)
+
 	return err
 }
 
@@ -120,9 +128,53 @@ func (srv *AliasService) DeleteMulti(aliases []*models.Alias) error {
 
 	err := srv.repository.DeleteBatch(ids)
 
+	// manually update cache
+	if err == nil {
+		for _, a := range aliases {
+			srv.updateCache(a, true)
+		}
+	}
+	// reload entire cache (async, though)
 	for k := range affectedUsers {
 		go srv.MayInitializeUser(k)
 	}
 
 	return err
+}
+
+func (srv *AliasService) updateCache(reason *models.Alias, removal bool) {
+	if !removal {
+		if aliases, ok := userAliases.Load(reason.UserID); ok {
+			updatedAliases := aliases.([]*models.Alias)
+			updatedAliases = append(updatedAliases, reason)
+			userAliases.Store(reason.UserID, updatedAliases)
+		}
+	} else {
+		if aliases, ok := userAliases.Load(reason.UserID); ok {
+			updatedAliases := make([]*models.Alias, 0, len(aliases.([]*models.Alias))) // if we only had generics...
+			for _, a := range aliases.([]*models.Alias) {
+				if a.ID != reason.ID {
+					updatedAliases = append(updatedAliases, a)
+				}
+			}
+			userAliases.Store(reason.UserID, updatedAliases)
+		}
+	}
+}
+
+func (srv *AliasService) getFiltered(userId string, check func(alias *models.Alias) bool) ([]*models.Alias, error) {
+	if !srv.IsInitialized(userId) {
+		srv.MayInitializeUser(userId)
+	}
+	if aliases, ok := userAliases.Load(userId); ok {
+		filteredAliases := make([]*models.Alias, 0, len(aliases.([]*models.Alias)))
+		for _, a := range aliases.([]*models.Alias) {
+			if check(a) {
+				filteredAliases = append(filteredAliases, a)
+			}
+		}
+		return filteredAliases, nil
+	} else {
+		return nil, errors.New(fmt.Sprintf("no user aliases loaded for user %s", userId))
+	}
 }

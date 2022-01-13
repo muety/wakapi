@@ -10,6 +10,7 @@ import (
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/services/imports"
 	"github.com/muety/wakapi/utils"
@@ -669,12 +670,11 @@ func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewMode
 	})
 
 	// projects
-	projects, err := h.heartbeatSrvc.GetEntitySetByUser(models.SummaryProject, user)
+	projects, err := routeutils.GetEffectiveProjectsList(user, h.heartbeatSrvc, h.aliasSrvc)
 	if err != nil {
 		conf.Log().Request(r).Error("error while fetching projects - %v", err)
 		return &view.SettingsViewModel{Error: criticalError}
 	}
-	sort.Strings(projects)
 
 	return &view.SettingsViewModel{
 		User:             user,

@@ -21,6 +21,7 @@ type IAliasService interface {
 	IsInitialized(string) bool
 	InitializeUser(string) error
 	GetByUser(string) ([]*models.Alias, error)
+	GetByUserAndType(string, uint8) ([]*models.Alias, error)
 	GetByUserAndKeyAndType(string, string, uint8) ([]*models.Alias, error)
 	GetAliasOrDefault(string, uint8, string) (string, error)
 }
