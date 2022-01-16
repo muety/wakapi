@@ -34,9 +34,6 @@
 
 Installation instructions can be found below and in the [Wiki](https://github.com/muety/wakapi/wiki).
 
-## 🎉 **Wakapi's Year 2021**
-Check out our latest [blog post](https://muetsch.io/wakapi-s-year-2021.html), featuring some interesting statistics about Wakapi in 2021!
-
 ## 🚀 Features
 * ✅ 100 % free and open-source
 * ✅ Built by developers for developers
