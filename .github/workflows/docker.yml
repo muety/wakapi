@@ -10,10 +10,6 @@ jobs:
   docker-publish:
     runs-on: ubuntu-latest
     steps:
-      # https://stackoverflow.com/questions/58177786
-      - name: Get version
-        run: echo "GIT_TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
@@ -33,18 +29,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Docker Metadata
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            ghcr.io/${{ github.repository }}
+            n1try/wakapi
+          tags: |
+            latest
+            alpine
+            type=semver,pattern={{major}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{version}}
+
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
           file: Dockerfile
           push: true
-          tags: |
-            n1try/wakapi:latest
-            n1try/wakapi:alpine
-            n1try/wakapi:${{ env.GIT_TAG }}
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:alpine
-            ghcr.io/${{ github.repository }}:${{ env.GIT_TAG }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
+          tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=registry,ref=n1try/wakapi:buildcache-alpine
           cache-to: type=registry,ref=n1try/wakapi:buildcache-alpine,mode=max
