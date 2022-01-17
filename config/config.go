@@ -151,12 +151,12 @@ type Config struct {
 	Mail       mailConfig
 }
 
-func (c *Config) CreateCookie(name, value, path string) *http.Cookie {
-	return c.createCookie(name, value, path, c.Security.CookieMaxAgeSec)
+func (c *Config) CreateCookie(name, value string) *http.Cookie {
+	return c.createCookie(name, value, c.Server.BasePath, c.Security.CookieMaxAgeSec)
 }
 
-func (c *Config) GetClearCookie(name, path string) *http.Cookie {
-	return c.createCookie(name, "", path, -1)
+func (c *Config) GetClearCookie(name string) *http.Cookie {
+	return c.createCookie(name, "", c.Server.BasePath, -1)
 }
 
 func (c *Config) createCookie(name, value, path string, maxAge int) *http.Cookie {

@@ -98,7 +98,7 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 	user.LastLoggedInAt = models.CustomTime(time.Now())
 	h.userSrvc.Update(user)
 
-	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded, "/"))
+	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded))
 	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 }
 
@@ -107,7 +107,7 @@ func (h *LoginHandler) PostLogout(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
-	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey, "/"))
+	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey))
 	http.Redirect(w, r, fmt.Sprintf("%s/", h.config.Server.BasePath), http.StatusFound)
 }
 

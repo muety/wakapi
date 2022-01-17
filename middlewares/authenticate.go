@@ -72,7 +72,7 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(conf.ErrUnauthorized))
 		} else {
-			http.SetCookie(w, m.config.GetClearCookie(models.AuthCookieKey, "/"))
+			http.SetCookie(w, m.config.GetClearCookie(models.AuthCookieKey))
 			http.Redirect(w, r, m.redirectTarget, http.StatusFound)
 		}
 		return

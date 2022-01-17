@@ -230,7 +230,7 @@ func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Re
 		return http.StatusInternalServerError, "", conf.ErrInternalServerError
 	}
 
-	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded, "/"))
+	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded))
 	return http.StatusOK, "password was updated successfully", ""
 }
 
@@ -565,7 +565,7 @@ func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Reques
 		}
 	}(user)
 
-	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey, "/"))
+	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey))
 	http.Redirect(w, r, fmt.Sprintf("%s/?success=%s", h.config.Server.BasePath, "Your account will be deleted in a few minutes. Sorry to you go."), http.StatusFound)
 	return -1, "", ""
 }
