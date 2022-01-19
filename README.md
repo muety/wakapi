@@ -71,7 +71,8 @@ $ docker run -d \
   -p 3000:3000 \
   -e "WAKAPI_PASSWORD_SALT=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w ${1:-32} | head -n 1)" \
   -v wakapi-data:/data \
-  --name wakapi n1try/wakapi
+  --name wakapi \
+  ghcr.io/muety/wakapi:latest
 ```
 
 **Note:** By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres, see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile) and [config.default.yml](https://github.com/muety/wakapi/blob/master/config.default.yml) for further options.
