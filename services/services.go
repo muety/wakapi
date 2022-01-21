@@ -107,7 +107,7 @@ type IUserService interface {
 	Update(*models.User) (*models.User, error)
 	Delete(*models.User) error
 	ResetApiKey(*models.User) (*models.User, error)
-	SetWakatimeApiKey(*models.User, string) (*models.User, error)
+	SetWakatimeApiCredentials(*models.User, string, string) (*models.User, error)
 	MigrateMd5Password(*models.User, *models.Login) (*models.User, error)
 	GenerateResetToken(*models.User) (*models.User, error)
 	FlushCache()

@@ -3,12 +3,15 @@ package relay
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/emvi/logbuch"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/patrickmn/go-cache"
 	"io"
 	"io/ioutil"
@@ -18,9 +21,10 @@ import (
 
 const maxFailuresPerDay = 100
 
-/* Middleware to conditionally relay heartbeats to Wakatime */
+// WakatimeRelayMiddleware is a middleware to conditionally relay heartbeats to Wakatime (and other compatible services)
 type WakatimeRelayMiddleware struct {
 	httpClient   *http.Client
+	hashCache    *cache.Cache
 	failureCache *cache.Cache
 	eventBus     *hub.Hub
 }
@@ -30,6 +34,7 @@ func NewWakatimeRelayMiddleware() *WakatimeRelayMiddleware {
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},
+		hashCache:    cache.New(10*time.Minute, 10*time.Minute),
 		failureCache: cache.New(24*time.Hour, 1*time.Hour),
 		eventBus:     config.EventBus(),
 	}
@@ -44,7 +49,10 @@ func (m *WakatimeRelayMiddleware) Handler(h http.Handler) http.Handler {
 func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	defer next(w, r)
 
-	if r.Method != http.MethodPost {
+	ownInstanceId := config.Get().InstanceId
+	originInstanceId := r.Header.Get("X-Origin-Instance")
+
+	if r.Method != http.MethodPost || originInstanceId == ownInstanceId {
 		return
 	}
 
@@ -53,9 +61,21 @@ func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	err := m.filterByCache(r)
+	if err != nil {
+		logbuch.Warn("%v", err)
+		return
+	}
+
 	body, _ := ioutil.ReadAll(r.Body)
 	r.Body.Close()
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	// prevent cycles
+	downstreamInstanceId := ownInstanceId
+	if originInstanceId != "" {
+		downstreamInstanceId = originInstanceId
+	}
 
 	headers := http.Header{
 		"X-Machine-Name": r.Header.Values("X-Machine-Name"),
@@ -65,14 +85,17 @@ func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		"X-Origin": []string{
 			fmt.Sprintf("wakapi v%s", config.Get().Version),
 		},
+		"X-Origin-Instance": []string{downstreamInstanceId},
 		"Authorization": []string{
 			fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(user.WakatimeApiKey))),
 		},
 	}
 
+	url := user.WakaTimeURL(config.WakatimeApiUrl) + config.WakatimeApiHeartbeatsBulkUrl
+
 	go m.send(
 		http.MethodPost,
-		config.WakatimeApiUrl+config.WakatimeApiHeartbeatsBulkUrl,
+		url,
 		bytes.NewReader(body),
 		headers,
 		user,
@@ -114,4 +137,54 @@ func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, heade
 			logbuch.Warn("%d / %d failed wakatime heartbeat relaying attempts for user %s within last 24 hours", n, maxFailuresPerDay, forUser.ID)
 		}
 	}
+}
+
+// filterByCache takes an HTTP request, tries to parse the body contents as heartbeats, checks against a local cache for whether a heartbeat has already been relayed before according to its hash and in-place filters these from the request's raw json body.
+// This method operates on the raw body data (interface{}), because serialization of models.Heartbeat is not necessarily identical to what the CLI has actually sent.
+// Purpose of this mechanism is mainly to prevent cyclic relays / loops.
+// Caution: this method does in-place changes to the request.
+func (m *WakatimeRelayMiddleware) filterByCache(r *http.Request) error {
+	heartbeats, err := routeutils.ParseHeartbeats(r)
+	if err != nil {
+		return err
+	}
+
+	body, _ := ioutil.ReadAll(r.Body)
+	r.Body.Close()
+	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	var rawData interface{}
+	if err := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(body))).Decode(&rawData); err != nil {
+		return err
+	}
+
+	newData := make([]interface{}, 0, len(heartbeats))
+
+	for i, hb := range heartbeats {
+		hb = hb.Hashed()
+
+		// we didn't see this particular heartbeat before
+		if _, found := m.hashCache.Get(hb.Hash); !found {
+			m.hashCache.SetDefault(hb.Hash, true)
+			newData = append(newData, rawData.([]interface{})[i])
+			continue
+		}
+	}
+
+	if len(newData) == 0 {
+		return errors.New("no new heartbeats to relay")
+	}
+
+	if len(newData) != len(heartbeats) {
+		user := middlewares.GetPrincipal(r)
+		logbuch.Warn("only relaying %d of %d heartbeats for user %s", len(newData), len(heartbeats), user.ID)
+	}
+
+	buf := bytes.Buffer{}
+	if err := json.NewEncoder(&buf).Encode(newData); err != nil {
+		return err
+	}
+	r.Body = ioutil.NopCloser(&buf)
+
+	return nil
 }

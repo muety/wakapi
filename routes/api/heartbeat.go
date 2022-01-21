@@ -1,9 +1,6 @@
 package api
 
 import (
-	"bytes"
-	"encoding/json"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -69,15 +66,12 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var heartbeats []*models.Heartbeat
-	heartbeats, err = h.tryParseBulk(r)
+	heartbeats, err = routeutils.ParseHeartbeats(r)
 	if err != nil {
-		heartbeats, err = h.tryParseSingle(r)
-		if err != nil {
-			conf.Log().Request(r).Error(err.Error())
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(err.Error()))
-			return
-		}
+		conf.Log().Request(r).Error(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
 	}
 
 	userAgent := r.Header.Get("User-Agent")
@@ -121,36 +115,6 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	defer func() {}()
 
 	utils.RespondJSON(w, r, http.StatusCreated, constructSuccessResponse(len(heartbeats)))
-}
-
-func (h *HeartbeatApiHandler) tryParseBulk(r *http.Request) ([]*models.Heartbeat, error) {
-	var heartbeats []*models.Heartbeat
-
-	body, _ := ioutil.ReadAll(r.Body)
-	r.Body.Close()
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-
-	dec := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(body)))
-	if err := dec.Decode(&heartbeats); err != nil {
-		return nil, err
-	}
-
-	return heartbeats, nil
-}
-
-func (h *HeartbeatApiHandler) tryParseSingle(r *http.Request) ([]*models.Heartbeat, error) {
-	var heartbeat models.Heartbeat
-
-	body, _ := ioutil.ReadAll(r.Body)
-	r.Body.Close()
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-
-	dec := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(body)))
-	if err := dec.Decode(&heartbeat); err != nil {
-		return nil, err
-	}
-
-	return []*models.Heartbeat{&heartbeat}, nil
 }
 
 // construct weird response format (see https://github.com/wakatime/wakatime/blob/2e636d389bf5da4e998e05d5285a96ce2c181e3d/wakatime/api.py#L288)

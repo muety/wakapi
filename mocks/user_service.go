@@ -74,8 +74,8 @@ func (m *UserServiceMock) ToggleBadges(user *models.User) (*models.User, error) 
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
-func (m *UserServiceMock) SetWakatimeApiKey(user *models.User, s string) (*models.User, error) {
-	args := m.Called(user, s)
+func (m *UserServiceMock) SetWakatimeApiCredentials(user *models.User, s1, s2 string) (*models.User, error) {
+	args := m.Called(user, s1, s2)
 	return args.Get(0).(*models.User), args.Error(1)
 }
 

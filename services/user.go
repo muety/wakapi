@@ -38,7 +38,7 @@ func NewUserService(mailService IMailService, userRepo repositories.IUserReposit
 
 			logbuch.Warn("resetting wakatime api key for user %s, because of too many failures (%d)", user.ID, n)
 
-			if _, err := srv.SetWakatimeApiKey(user, ""); err != nil {
+			if _, err := srv.SetWakatimeApiCredentials(user, "", ""); err != nil {
 				logbuch.Error("failed to set wakatime api key for user %s", user.ID)
 			}
 
@@ -154,9 +154,20 @@ func (srv *UserService) ResetApiKey(user *models.User) (*models.User, error) {
 	return srv.Update(user)
 }
 
-func (srv *UserService) SetWakatimeApiKey(user *models.User, apiKey string) (*models.User, error) {
+func (srv *UserService) SetWakatimeApiCredentials(user *models.User, apiKey string, apiUrl string) (*models.User, error) {
 	srv.cache.Flush()
-	return srv.repository.UpdateField(user, "wakatime_api_key", apiKey)
+
+	if apiKey != user.WakatimeApiKey {
+		if u, err := srv.repository.UpdateField(user, "wakatime_api_key", apiKey); err != nil {
+			return u, err
+		}
+	}
+
+	if apiUrl != user.WakatimeApiUrl {
+		return srv.repository.UpdateField(user, "wakatime_api_url", apiUrl)
+	}
+
+	return user, nil
 }
 
 func (srv *UserService) MigrateMd5Password(user *models.User, login *models.Login) (*models.User, error) {

@@ -431,13 +431,17 @@ func (h *SettingsHandler) actionSetWakatimeApiKey(w http.ResponseWriter, r *http
 
 	user := middlewares.GetPrincipal(r)
 	apiKey := r.PostFormValue("api_key")
+	apiUrl := r.PostFormValue("api_url")
+	if apiUrl == conf.WakatimeApiUrl || apiKey == "" {
+		apiUrl = ""
+	}
 
 	// Healthcheck, if a new API key is set, i.e. the feature is activated
-	if (user.WakatimeApiKey == "" && apiKey != "") && !h.validateWakatimeKey(apiKey) {
+	if (user.WakatimeApiKey == "" && apiKey != "") && !h.validateWakatimeKey(apiKey, apiUrl) {
 		return http.StatusBadRequest, "", "failed to connect to WakaTime, API key invalid?"
 	}
 
-	if _, err := h.userSrvc.SetWakatimeApiKey(user, apiKey); err != nil {
+	if _, err := h.userSrvc.SetWakatimeApiCredentials(user, apiKey, apiUrl); err != nil {
 		return http.StatusInternalServerError, "", conf.ErrInternalServerError
 	}
 
@@ -570,7 +574,11 @@ func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Reques
 	return -1, "", ""
 }
 
-func (h *SettingsHandler) validateWakatimeKey(apiKey string) bool {
+func (h *SettingsHandler) validateWakatimeKey(apiKey string, baseUrl string) bool {
+	if baseUrl == "" {
+		baseUrl = conf.WakatimeApiUrl
+	}
+
 	headers := http.Header{
 		"Accept": []string{"application/json"},
 		"Authorization": []string{
@@ -580,7 +588,7 @@ func (h *SettingsHandler) validateWakatimeKey(apiKey string) bool {
 
 	request, err := http.NewRequest(
 		http.MethodGet,
-		conf.WakatimeApiUrl+conf.WakatimeApiUserUrl,
+		baseUrl+conf.WakatimeApiUserUrl,
 		nil,
 	)
 	if err != nil {

@@ -29,7 +29,8 @@ type User struct {
 	ShareLabels      bool       `json:"-" gorm:"default:false; type:bool"`
 	IsAdmin          bool       `json:"-" gorm:"default:false; type:bool"`
 	HasData          bool       `json:"-" gorm:"default:false; type:bool"`
-	WakatimeApiKey   string     `json:"-"`
+	WakatimeApiKey   string     `json:"-"` // for relay middleware and imports
+	WakatimeApiUrl   string     `json:"-"` // for relay middleware and imports
 	ResetToken       string     `json:"-"`
 	ReportsWeekly    bool       `json:"-" gorm:"default:false; type:bool"`
 }
@@ -107,6 +108,14 @@ func (u *User) AvatarURL(urlTemplate string) string {
 		urlTemplate = strings.ReplaceAll(urlTemplate, "{email_hash}", fmt.Sprintf("%x", md5.Sum([]byte(u.Email))))
 	}
 	return urlTemplate
+}
+
+// WakaTimeURL returns the user's effective WakaTime URL, i.e. a custom one (which could also point to another Wakapi instance) or fallback if not specified otherwise.
+func (u *User) WakaTimeURL(fallback string) string {
+	if u.WakatimeApiUrl != "" {
+		return strings.TrimSuffix(u.WakatimeApiUrl, "/")
+	}
+	return fallback
 }
 
 func (c *CredentialsReset) IsValid() bool {

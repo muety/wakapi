@@ -56,6 +56,9 @@ func DefaultTemplateFuncs() template.FuncMap {
 		"avatarUrlTemplate": func() string {
 			return config.Get().App.AvatarURLTemplate
 		},
+		"defaultWakatimeUrl": func() string {
+			return config.WakatimeApiUrl
+		},
 	}
 }
 

@@ -40,7 +40,9 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 	out := make(chan *models.Heartbeat)
 
 	go func(user *models.User, out chan *models.Heartbeat) {
-		startDate, endDate, err := w.fetchRange()
+		baseUrl := user.WakaTimeURL(config.WakatimeApiUrl)
+
+		startDate, endDate, err := w.fetchRange(baseUrl)
 		if err != nil {
 			config.Log().Error("failed to fetch date range while importing wakatime heartbeats for user '%s' – %v", user.ID, err)
 			return
@@ -53,13 +55,13 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 			endDate = maxTo
 		}
 
-		userAgents, err := w.fetchUserAgents()
+		userAgents, err := w.fetchUserAgents(baseUrl)
 		if err != nil {
 			config.Log().Error("failed to fetch user agents while importing wakatime heartbeats for user '%s' – %v", user.ID, err)
 			return
 		}
 
-		machinesNames, err := w.fetchMachineNames()
+		machinesNames, err := w.fetchMachineNames(baseUrl)
 		if err != nil {
 			config.Log().Error("failed to fetch machine names while importing wakatime heartbeats for user '%s' – %v", user.ID, err)
 			return
@@ -82,7 +84,7 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 				defer time.Sleep(throttleDelay)
 
 				d := day.Format(config.SimpleDateFormat)
-				heartbeats, err := w.fetchHeartbeats(d)
+				heartbeats, err := w.fetchHeartbeats(d, baseUrl)
 				if err != nil {
 					config.Log().Error("failed to fetch heartbeats for day '%s' and user '%s' – &v", d, user.ID, err)
 				}
@@ -107,10 +109,10 @@ func (w *WakatimeHeartbeatImporter) ImportAll(user *models.User) <-chan *models.
 
 // https://wakatime.com/api/v1/users/current/heartbeats?date=2021-02-05
 // https://pastr.de/p/b5p4od5s8w0pfntmwoi117jy
-func (w *WakatimeHeartbeatImporter) fetchHeartbeats(day string) ([]*wakatime.HeartbeatEntry, error) {
+func (w *WakatimeHeartbeatImporter) fetchHeartbeats(day string, baseUrl string) ([]*wakatime.HeartbeatEntry, error) {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 
-	req, err := http.NewRequest(http.MethodGet, config.WakatimeApiUrl+config.WakatimeApiHeartbeatsUrl, nil)
+	req, err := http.NewRequest(http.MethodGet, baseUrl+config.WakatimeApiHeartbeatsUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -136,12 +138,12 @@ func (w *WakatimeHeartbeatImporter) fetchHeartbeats(day string) ([]*wakatime.Hea
 
 // https://wakatime.com/api/v1/users/current/all_time_since_today
 // https://pastr.de/p/w8xb4biv575pu32pox7jj2gr
-func (w *WakatimeHeartbeatImporter) fetchRange() (time.Time, time.Time, error) {
+func (w *WakatimeHeartbeatImporter) fetchRange(baseUrl string) (time.Time, time.Time, error) {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 
 	notime := time.Time{}
 
-	req, err := http.NewRequest(http.MethodGet, config.WakatimeApiUrl+config.WakatimeApiAllTimeUrl, nil)
+	req, err := http.NewRequest(http.MethodGet, baseUrl+config.WakatimeApiAllTimeUrl, nil)
 	if err != nil {
 		return notime, notime, err
 	}
@@ -171,13 +173,13 @@ func (w *WakatimeHeartbeatImporter) fetchRange() (time.Time, time.Time, error) {
 
 // https://wakatime.com/api/v1/users/current/user_agents
 // https://pastr.de/p/05k5do8q108k94lic4lfl3pc
-func (w *WakatimeHeartbeatImporter) fetchUserAgents() (map[string]*wakatime.UserAgentEntry, error) {
+func (w *WakatimeHeartbeatImporter) fetchUserAgents(baseUrl string) (map[string]*wakatime.UserAgentEntry, error) {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 
 	userAgents := make(map[string]*wakatime.UserAgentEntry)
 
 	for page := 1; ; page++ {
-		url := fmt.Sprintf("%s%s?page=%d", config.WakatimeApiUrl, config.WakatimeApiUserAgentsUrl, page)
+		url := fmt.Sprintf("%s%s?page=%d", baseUrl, config.WakatimeApiUserAgentsUrl, page)
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		if err != nil {
 			return nil, err
@@ -207,13 +209,13 @@ func (w *WakatimeHeartbeatImporter) fetchUserAgents() (map[string]*wakatime.User
 
 // https://wakatime.com/api/v1/users/current/machine_names
 // https://pastr.de/p/v58cv0xrupp3zvyyv8o6973j
-func (w *WakatimeHeartbeatImporter) fetchMachineNames() (map[string]*wakatime.MachineEntry, error) {
+func (w *WakatimeHeartbeatImporter) fetchMachineNames(baseUrl string) (map[string]*wakatime.MachineEntry, error) {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 
 	machines := make(map[string]*wakatime.MachineEntry)
 
 	for page := 1; ; page++ {
-		url := fmt.Sprintf("%s%s?page=%d", config.WakatimeApiUrl, config.WakatimeApiMachineNamesUrl, page)
+		url := fmt.Sprintf("%s%s?page=%d", baseUrl, config.WakatimeApiMachineNamesUrl, page)
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		if err != nil {
 			return nil, err

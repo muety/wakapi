@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	uuid "github.com/satori/go.uuid"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -143,6 +144,7 @@ type Config struct {
 	Env        string `default:"dev" env:"ENVIRONMENT"`
 	Version    string `yaml:"-"`
 	QuickStart bool   `yaml:"quick_start" env:"WAKAPI_QUICK_START"`
+	InstanceId string `yaml:"-"` // only temporary, changes between runs
 	App        appConfig
 	Security   securityConfig
 	Db         dbConfig
@@ -355,6 +357,7 @@ func Load(version string) *Config {
 
 	env = config.Env
 	config.Version = strings.TrimSpace(version)
+	config.InstanceId = uuid.NewV4().String()
 	config.App.Colors = readColors()
 	config.Db.Dialect = resolveDbDialect(config.Db.Type)
 	config.Security.SecureCookie = securecookie.New(

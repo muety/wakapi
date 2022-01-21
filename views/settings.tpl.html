@@ -489,14 +489,17 @@
                     <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
                         <label class="font-semibold text-gray-300" for="select-timezone">WakaTime</label>
                         <span class="block text-sm text-gray-600">
-                            You can connect Wakapi with the official WakaTime in a way that all heartbeats sent to Wakapi are relayed. This way, you can use both services at the same time. To get started, get <a class="link" href="https://wakatime.com/developers#authentication" rel="noopener noreferrer" target="_blank">your API key</a> and paste it here.<br><br>
+                            You can connect Wakapi with the official WakaTime (or another Wakapi instance, when optionally specifying a custom API URL) in a way that all heartbeats sent to Wakapi are relayed. This way, you can use both services at the same time. To get started, get <a class="link" href="https://wakatime.com/developers#authentication" rel="noopener noreferrer" target="_blank">your API key</a> and paste it here.<br><br>
                             Please note: When enabling this feature, the operators of this server will, in theory, have unlimited access to your data stored in WakaTime. If you are concerned about your privacy, please do not enable this integration or wait for OAuth 2 authentication (<a
                                 class="link" target="_blank" href="https://github.com/muety/wakapi/issues/94" rel="noopener noreferrer">#94</a>) to be implemented.
                         </span>
                     </div>
                     <div class="w-full md:w-1/2">
+                        <input type="url" name="api_url" id="wakatime_api_url"
+                               class="w-full appearance-none bg-gray-850 text-gray-300 outline-none rounded py-2 px-4 mb-2 {{ if not .User.WakatimeApiKey }}focus:bg-gray-800{{ end }} {{ if .User.WakatimeApiKey }}cursor-not-allowed{{ end }}"
+                               placeholder="{{ defaultWakatimeUrl }}" {{ if .User.WakatimeApiKey }}readonly{{ end }} value="{{ .User.WakaTimeURL "" }}">
                         <input type="password" name="api_key" id="wakatime_api_key"
-                               class="w-full appearance-none bg-gray-850 text-gray-300 outline-none rounded py-2 px-4 {{ if not .User.WakatimeApiKey }}focus:bg-gray-800{{ end }} {{ if .User.WakatimeApiKey }}cursor-not-allowed{{ end }}"
+                               class="w-full appearance-none bg-gray-850 text-gray-300 outline-none rounded py-2 px-4 mt-2 {{ if not .User.WakatimeApiKey }}focus:bg-gray-800{{ end }} {{ if .User.WakatimeApiKey }}cursor-not-allowed{{ end }}"
                                placeholder="{{ $placeholderText }}" {{ if .User.WakatimeApiKey }}readonly{{ end }}>
                     </div>
                 </div>
