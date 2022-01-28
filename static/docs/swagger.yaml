@@ -54,6 +54,12 @@ definitions:
     type: object
   models.Summary:
     properties:
+      branches:
+        description: branches are not persisted, but calculated at runtime in case
+          a project filter is applied
+        items:
+          $ref: '#/definitions/models.SummaryItem'
+        type: array
       editors:
         items:
           $ref: '#/definitions/models.SummaryItem'
@@ -142,6 +148,35 @@ definitions:
       schemaVersion:
         type: integer
     type: object
+  v1.HeartbeatEntry:
+    properties:
+      branch:
+        type: string
+      category:
+        type: string
+      created_at:
+        type: string
+      entity:
+        type: string
+      id:
+        type: string
+      is_write:
+        type: boolean
+      language:
+        type: string
+      machine_name_id:
+        type: string
+      project:
+        type: string
+      time:
+        type: number
+      type:
+        type: string
+      user_agent_id:
+        type: string
+      user_id:
+        type: string
+    type: object
   v1.Project:
     properties:
       id:
@@ -160,6 +195,10 @@ definitions:
     type: object
   v1.StatsData:
     properties:
+      branches:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
       daily_average:
         type: number
       days_including_holidays:
@@ -209,6 +248,10 @@ definitions:
     type: object
   v1.SummariesData:
     properties:
+      branches:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
       categories:
         items:
           $ref: '#/definitions/v1.SummariesEntry'
@@ -441,6 +484,33 @@ paths:
       tags:
       - wakatime
   /compat/wakatime/v1/users/{user}/heartbeats:
+    get:
+      operationId: get-heartbeats
+      parameters:
+      - description: Date
+        in: query
+        name: date
+        required: true
+        type: string
+      - description: Username (or current)
+        in: path
+        name: user
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.HeartbeatEntry'
+        "400":
+          description: bad date
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get heartbeats of user for specified date
+      tags:
+      - heartbeat
     post:
       consumes:
       - application/json
@@ -452,6 +522,11 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/models.Heartbeat'
+      - description: Username (or current)
+        in: path
+        name: user
+        required: true
+        type: string
       responses:
         "201":
           description: ""
@@ -474,6 +549,11 @@ paths:
           items:
             $ref: '#/definitions/models.Heartbeat'
           type: array
+      - description: Username (or current)
+        in: path
+        name: user
+        required: true
+        type: string
       responses:
         "201":
           description: ""
@@ -900,6 +980,11 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/models.Heartbeat'
+      - description: Username (or current)
+        in: path
+        name: user
+        required: true
+        type: string
       responses:
         "201":
           description: ""
@@ -922,6 +1007,11 @@ paths:
           items:
             $ref: '#/definitions/models.Heartbeat'
           type: array
+      - description: Username (or current)
+        in: path
+        name: user
+        required: true
+        type: string
       responses:
         "201":
           description: ""
@@ -965,6 +1055,11 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/models.Heartbeat'
+      - description: Username (or current)
+        in: path
+        name: user
+        required: true
+        type: string
       responses:
         "201":
           description: ""
@@ -987,6 +1082,11 @@ paths:
           items:
             $ref: '#/definitions/models.Heartbeat'
           type: array
+      - description: Username (or current)
+        in: path
+        name: user
+        required: true
+        type: string
       responses:
         "201":
           description: ""

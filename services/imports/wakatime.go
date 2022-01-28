@@ -6,6 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -13,8 +16,6 @@ import (
 	"github.com/muety/wakapi/utils"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/semaphore"
-	"net/http"
-	"time"
 )
 
 const OriginWakatime = "wakatime"
@@ -284,7 +285,7 @@ func mapHeartbeat(
 		OperatingSystem: ua.Os,
 		Machine:         ma.Value,
 		UserAgent:       ua.Value,
-		Time:            entry.Time,
+		Time:            models.CustomTime(time.Unix(0, int64(entry.Time*1e9))),
 		Origin:          OriginWakatime,
 		OriginId:        entry.Id,
 	}).Hashed()

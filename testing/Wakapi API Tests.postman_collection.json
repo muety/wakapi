@@ -965,6 +965,121 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Create heartbeats (get heartbeats test)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1640995199 Friday, 31 December 2021 11:59:59 PM (Jan 1st in +1, +2)",
+									"// 1641074399 Saturday, 1 January 2022 9:59:59 PM  (Jan 1st in +1, +2)",
+									"// 1641081599 Saturday, 1 January 2022 11:59:59 PM (Jan 2nd in +1, +2)",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\n    \"entity\": \"/home/user1/dev/project1/main.go\",\n    \"project\": \"wakapi\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": 1640995199\n},\n{\n    \"entity\": \"/home/user1/dev/project1/main.go\",\n    \"project\": \"wakapi\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": 1641074399\n},\n{\n    \"entity\": \"/home/user1/dev/project1/main.go\",\n    \"project\": \"wakapi\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": 1641081599\n}]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/heartbeat",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"heartbeat"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get heartbeats",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response body is correct\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.timezone).to.eql(pm.collectionVariables.get('TZ'));",
+									"    var date = new Date(\"2022-01-01T00:00:00+0100\")",
+									"    pm.expect(new Date(jsonData.start)).to.eql(date);",
+									"    pm.expect(new Date(jsonData.end)).to.eql(new Date(date.getTime() + 3600 * 1000 * 24));",
+									"    pm.expect(jsonData.data.length).to.eql(2);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{WRITEUSER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/compat/wakatime/v1/users/current/heartbeats?date=2022-01-01",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"compat",
+								"wakatime",
+								"v1",
+								"users",
+								"current",
+								"heartbeats"
+							],
+							"query": [
+								{
+									"key": "date",
+									"value": "2022-01-01"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -1982,7 +2097,7 @@
 									"",
 									"pm.test(\"Correct content\", function () {",
 									"    const jsonData = pm.response.json();",
-									"    pm.expect(jsonData.data.text).to.eql('0 hrs 2 mins');",
+									"    pm.expect(jsonData.data.text).to.eql('0 hrs 8 mins');",
 									"});"
 								],
 								"type": "text/javascript"

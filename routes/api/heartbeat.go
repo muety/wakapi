@@ -145,6 +145,7 @@ func constructSuccessResponse(n int) *heartbeatResponseVm {
 // @Tags heartbeat
 // @Accept json
 // @Param heartbeat body models.Heartbeat true "A single heartbeat"
+// @Param user path string true "Username (or current)"
 // @Security ApiKeyAuth
 // @Success 201
 // @Router /v1/users/{user}/heartbeats [post]
@@ -155,6 +156,7 @@ func (h *HeartbeatApiHandler) postAlias1() {}
 // @Tags heartbeat
 // @Accept json
 // @Param heartbeat body models.Heartbeat true "A single heartbeat"
+// @Param user path string true "Username (or current)"
 // @Security ApiKeyAuth
 // @Success 201
 // @Router /compat/wakatime/v1/users/{user}/heartbeats [post]
@@ -165,6 +167,7 @@ func (h *HeartbeatApiHandler) postAlias2() {}
 // @Tags heartbeat
 // @Accept json
 // @Param heartbeat body models.Heartbeat true "A single heartbeat"
+// @Param user path string true "Username (or current)"
 // @Security ApiKeyAuth
 // @Success 201
 // @Router /users/{user}/heartbeats [post]
@@ -185,6 +188,7 @@ func (h *HeartbeatApiHandler) postAlias4() {}
 // @Tags heartbeat
 // @Accept json
 // @Param heartbeat body []models.Heartbeat true "Multiple heartbeats"
+// @Param user path string true "Username (or current)"
 // @Security ApiKeyAuth
 // @Success 201
 // @Router /v1/users/{user}/heartbeats.bulk [post]
@@ -195,6 +199,7 @@ func (h *HeartbeatApiHandler) postAlias5() {}
 // @Tags heartbeat
 // @Accept json
 // @Param heartbeat body []models.Heartbeat true "Multiple heartbeats"
+// @Param user path string true "Username (or current)"
 // @Security ApiKeyAuth
 // @Success 201
 // @Router /compat/wakatime/v1/users/{user}/heartbeats.bulk [post]
@@ -205,6 +210,7 @@ func (h *HeartbeatApiHandler) postAlias6() {}
 // @Tags heartbeat
 // @Accept json
 // @Param heartbeat body []models.Heartbeat true "Multiple heartbeats"
+// @Param user path string true "Username (or current)"
 // @Security ApiKeyAuth
 // @Success 201
 // @Router /users/{user}/heartbeats.bulk [post]

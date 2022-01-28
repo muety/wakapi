@@ -2,9 +2,6 @@ package main
 
 import (
 	"embed"
-	"github.com/lpar/gzipped/v2"
-	"github.com/muety/wakapi/models"
-	"github.com/muety/wakapi/routes/relay"
 	"io/fs"
 	"log"
 	"net"
@@ -12,6 +9,10 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/lpar/gzipped/v2"
+	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/routes/relay"
 
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/handlers"
@@ -187,6 +188,7 @@ func main() {
 	wakatimeV1StatsHandler := wtV1Routes.NewStatsHandler(userService, summaryService)
 	wakatimeV1UsersHandler := wtV1Routes.NewUsersHandler(userService, heartbeatService)
 	wakatimeV1ProjectsHandler := wtV1Routes.NewProjectsHandler(userService, heartbeatService)
+	wakatimeV1HeartbeatsHandler := wtV1Routes.NewHeartbeatHandler(userService, heartbeatService)
 	shieldV1BadgeHandler := shieldsV1Routes.NewBadgeHandler(summaryService, userService)
 
 	// MVC Handlers
@@ -241,6 +243,7 @@ func main() {
 	wakatimeV1StatsHandler.RegisterRoutes(apiRouter)
 	wakatimeV1UsersHandler.RegisterRoutes(apiRouter)
 	wakatimeV1ProjectsHandler.RegisterRoutes(apiRouter)
+	wakatimeV1HeartbeatsHandler.RegisterRoutes(apiRouter)
 	shieldV1BadgeHandler.RegisterRoutes(apiRouter)
 
 	// Static Routes

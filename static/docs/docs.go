@@ -160,6 +160,48 @@ var doc = `{
             }
         },
         "/compat/wakatime/v1/users/{user}/heartbeats": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "tags": [
+                    "heartbeat"
+                ],
+                "summary": "Get heartbeats of user for specified date",
+                "operationId": "get-heartbeats",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Date",
+                        "name": "date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Username (or current)",
+                        "name": "user",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.HeartbeatEntry"
+                        }
+                    },
+                    "400": {
+                        "description": "bad date",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -183,6 +225,13 @@ var doc = `{
                         "schema": {
                             "$ref": "#/definitions/models.Heartbeat"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Username (or current)",
+                        "name": "user",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -219,6 +268,13 @@ var doc = `{
                                 "$ref": "#/definitions/models.Heartbeat"
                             }
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Username (or current)",
+                        "name": "user",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -863,6 +919,13 @@ var doc = `{
                         "schema": {
                             "$ref": "#/definitions/models.Heartbeat"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Username (or current)",
+                        "name": "user",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -899,6 +962,13 @@ var doc = `{
                                 "$ref": "#/definitions/models.Heartbeat"
                             }
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Username (or current)",
+                        "name": "user",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -967,6 +1037,13 @@ var doc = `{
                         "schema": {
                             "$ref": "#/definitions/models.Heartbeat"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Username (or current)",
+                        "name": "user",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1003,6 +1080,13 @@ var doc = `{
                                 "$ref": "#/definitions/models.Heartbeat"
                             }
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Username (or current)",
+                        "name": "user",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1094,6 +1178,13 @@ var doc = `{
         "models.Summary": {
             "type": "object",
             "properties": {
+                "branches": {
+                    "description": "branches are not persisted, but calculated at runtime in case a project filter is applied",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.SummaryItem"
+                    }
+                },
                 "editors": {
                     "type": "array",
                     "items": {
@@ -1222,6 +1313,50 @@ var doc = `{
                 }
             }
         },
+        "v1.HeartbeatEntry": {
+            "type": "object",
+            "properties": {
+                "branch": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "entity": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_write": {
+                    "type": "boolean"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "machine_name_id": {
+                    "type": "string"
+                },
+                "project": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "number"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "user_agent_id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "v1.Project": {
             "type": "object",
             "properties": {
@@ -1250,6 +1385,12 @@ var doc = `{
         "v1.StatsData": {
             "type": "object",
             "properties": {
+                "branches": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.SummariesEntry"
+                    }
+                },
                 "daily_average": {
                     "type": "number"
                 },
@@ -1325,6 +1466,12 @@ var doc = `{
         "v1.SummariesData": {
             "type": "object",
             "properties": {
+                "branches": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.SummariesEntry"
+                    }
+                },
                 "categories": {
                     "type": "array",
                     "items": {
