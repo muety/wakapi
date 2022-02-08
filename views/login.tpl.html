@@ -31,9 +31,11 @@
                     Forgot password?
                 </a>
                 <div class="flex space-x-2">
+                    {{ if eq .AllowSignup true }}
                     <a href="signup">
                         <button type="button" class="btn-default">Sign up</button>
                     </a>
+                    {{ end }}
                     <button type="submit" class="btn-primary">Log in</button>
                 </div>
             </div>
