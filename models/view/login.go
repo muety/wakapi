@@ -1,9 +1,10 @@
 package view
 
 type LoginViewModel struct {
-	Success    string
-	Error      string
-	TotalUsers int
+	Success     string
+	Error       string
+	TotalUsers  int
+	AllowSignup bool
 }
 
 type SetPasswordViewModel struct {
