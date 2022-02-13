@@ -288,6 +288,7 @@ func mapHeartbeat(
 		Time:            models.CustomTime(time.Unix(0, int64(entry.Time*1e9))),
 		Origin:          OriginWakatime,
 		OriginId:        entry.Id,
+		CreatedAt:       models.CustomTime(entry.CreatedAt),
 	}).Hashed()
 }
 

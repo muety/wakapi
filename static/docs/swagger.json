@@ -176,7 +176,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.HeartbeatEntry"
+                            "$ref": "#/definitions/v1.HeartbeatsResult"
                         }
                     },
                     "400": {
@@ -1325,6 +1325,9 @@
                 "machine_name_id": {
                     "type": "string"
                 },
+                "modified_at": {
+                    "type": "string"
+                },
                 "project": {
                     "type": "string"
                 },
@@ -1338,6 +1341,26 @@
                     "type": "string"
                 },
                 "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.HeartbeatsResult": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.HeartbeatEntry"
+                    }
+                },
+                "end": {
+                    "type": "string"
+                },
+                "start": {
+                    "type": "string"
+                },
+                "timezone": {
                     "type": "string"
                 }
             }

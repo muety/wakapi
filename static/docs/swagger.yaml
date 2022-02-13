@@ -166,6 +166,8 @@ definitions:
         type: string
       machine_name_id:
         type: string
+      modified_at:
+        type: string
       project:
         type: string
       time:
@@ -175,6 +177,19 @@ definitions:
       user_agent_id:
         type: string
       user_id:
+        type: string
+    type: object
+  v1.HeartbeatsResult:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/v1.HeartbeatEntry'
+        type: array
+      end:
+        type: string
+      start:
+        type: string
+      timezone:
         type: string
     type: object
   v1.Project:
@@ -501,7 +516,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.HeartbeatEntry'
+            $ref: '#/definitions/v1.HeartbeatsResult'
         "400":
           description: bad date
           schema:

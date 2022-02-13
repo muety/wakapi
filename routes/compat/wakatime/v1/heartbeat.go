@@ -14,10 +14,10 @@ import (
 )
 
 type HeartbeatsResult struct {
-	Data     []wakatime.HeartbeatEntry `json:"data"`
-	End      string                    `json:"end"`
-	Start    string                    `json:"start"`
-	Timezone string                    `json:"timezone"`
+	Data     []*wakatime.HeartbeatEntry `json:"data"`
+	End      string                     `json:"end"`
+	Start    string                     `json:"start"`
+	Timezone string                     `json:"timezone"`
 }
 
 type HeartbeatHandler struct {
@@ -46,7 +46,7 @@ func (h *HeartbeatHandler) RegisterRoutes(router *mux.Router) {
 // @Param date query string true "Date"
 // @Param user path string true "Username (or current)"
 // @Security ApiKeyAuth
-// @Success 200 {object} v1.HeartbeatEntry
+// @Success 200 {object} HeartbeatsResult
 // @Failure 400 {string} string "bad date"
 // @Router /compat/wakatime/v1/users/{user}/heartbeats [get]
 func (h *HeartbeatHandler) Get(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +76,7 @@ func (h *HeartbeatHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res := HeartbeatsResult{
-		Data:     wakatime.ToHeartbeatEntry(heartbeats),
+		Data:     wakatime.HeartbeatsToCompat(heartbeats),
 		Start:    rangeFrom.UTC().Format(time.RFC3339),
 		End:      rangeTo.UTC().Format(time.RFC3339),
 		Timezone: timezone.String(),
