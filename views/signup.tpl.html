@@ -87,7 +87,11 @@
                 <button type="submit" class="btn-primary">
                     Create Account
                 </button>
-                {{ end }}
+                {{ else }}
+                <button type="submit" class="btn-disabled" disabled title="The administrator of this instance has disabled sign up.">
+                    Create Account
+                </button>
+		{{ end }}
             </div>
         </form>
     </div>
