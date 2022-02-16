@@ -57,6 +57,10 @@ body {
     @apply py-2 px-4 font-semibold rounded bg-gray-800 hover:bg-gray-850 text-white text-sm;
 }
 
+.btn-disabled {
+    @apply py-2 px-4 font-semibold rounded bg-gray-800 text-gray-600 text-sm;
+}
+
 .btn-primary {
     @apply py-2 px-4 font-semibold rounded bg-green-700 hover:bg-green-800 text-white text-sm;
 }

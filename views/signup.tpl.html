@@ -83,9 +83,15 @@
                 <a href="login">
                     <button type="button" class="btn-default">Log in</button>
                 </a>
+                {{ if eq .AllowSignup true }}
                 <button type="submit" class="btn-primary">
                     Create Account
                 </button>
+                {{ else }}
+                <button type="submit" class="btn-disabled" disabled title="The administrator of this instance has disabled sign up.">
+                    Create Account
+                </button>
+                {{ end }}
             </div>
         </form>
     </div>
