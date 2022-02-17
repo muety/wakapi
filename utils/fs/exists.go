@@ -1,23 +1,28 @@
 package fs
 
 import (
-	"github.com/patrickmn/go-cache"
+	lru "github.com/hashicorp/golang-lru"
 	"io/fs"
 	"net/http"
 	"strings"
 )
 
 func NewExistsFS(fs fs.FS) ExistsFS {
+	cache, err := lru.New(1 << 24)
+	if err != nil {
+		panic(err)
+	}
+
 	return ExistsFS{
 		FS:    fs,
-		cache: cache.New(cache.NoExpiration, cache.NoExpiration),
+		cache: cache,
 	}
 }
 
 type ExistsFS struct {
 	fs.FS
 	UseCache bool
-	cache    *cache.Cache
+	cache    *lru.Cache
 }
 
 func (efs ExistsFS) WithCache(withCache bool) ExistsFS {
@@ -34,7 +39,7 @@ func (efs ExistsFS) Exists(name string) bool {
 	_, err := fs.Stat(efs.FS, name)
 	result := err == nil
 	if efs.UseCache {
-		efs.cache.SetDefault(name, result)
+		efs.cache.Add(name, result)
 	}
 	return result
 }
