@@ -180,6 +180,7 @@ func main() {
 	summaryApiHandler := api.NewSummaryApiHandler(userService, summaryService)
 	metricsHandler := api.NewMetricsHandler(userService, summaryService, heartbeatService, keyValueService)
 	diagnosticsHandler := api.NewDiagnosticsApiHandler(userService, diagnosticsService)
+	avatarHandler := api.NewAvatarHandler()
 
 	// Compat Handlers
 	wakatimeV1StatusBarHandler := wtV1Routes.NewStatusBarHandler(userService, summaryService)
@@ -237,6 +238,7 @@ func main() {
 	heartbeatApiHandler.RegisterRoutes(apiRouter)
 	metricsHandler.RegisterRoutes(apiRouter)
 	diagnosticsHandler.RegisterRoutes(apiRouter)
+	avatarHandler.RegisterRoutes(apiRouter)
 	wakatimeV1StatusBarHandler.RegisterRoutes(apiRouter)
 	wakatimeV1AllHandler.RegisterRoutes(apiRouter)
 	wakatimeV1SummariesHandler.RegisterRoutes(apiRouter)

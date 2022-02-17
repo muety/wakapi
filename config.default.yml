@@ -23,7 +23,8 @@ app:
 
   # url template for user avatar images (to be used with services like gravatar or dicebear)
   # available variable placeholders are: username, username_hash, email, email_hash
-  avatar_url_template: https://avatars.dicebear.com/api/pixel-art-neutral/{username_hash}.svg
+  # defaults to wakapi's internal avatar rendering powered by https://codeberg.org/Codeberg/avatars
+  avatar_url_template: api/avatar/{username_hash}.svg
 
 db:
   host:                               # leave blank when using sqlite3

@@ -3,6 +3,7 @@ module github.com/muety/wakapi
 go 1.16
 
 require (
+	codeberg.org/Codeberg/avatars v0.0.0-20211228163022-8da63012fe69
 	github.com/BurntSushi/toml v0.4.1 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/emersion/go-sasl v0.0.0-20211008083017-0b9dcfb154ac

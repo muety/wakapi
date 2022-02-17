@@ -69,7 +69,7 @@ type appConfig struct {
 	ImportBatchSize   int                          `yaml:"import_batch_size" default:"50" env:"WAKAPI_IMPORT_BATCH_SIZE"`
 	InactiveDays      int                          `yaml:"inactive_days" default:"7" env:"WAKAPI_INACTIVE_DAYS"`
 	CountCacheTTLMin  int                          `yaml:"count_cache_ttl_min" default:"30" env:"WAKAPI_COUNT_CACHE_TTL_MIN"`
-	AvatarURLTemplate string                       `yaml:"avatar_url_template" default:"https://avatars.dicebear.com/api/pixel-art-neutral/{username_hash}.svg"`
+	AvatarURLTemplate string                       `yaml:"avatar_url_template" default:"api/avatar/{username_hash}.svg"`
 	CustomLanguages   map[string]string            `yaml:"custom_languages"`
 	Colors            map[string]map[string]string `yaml:"-"`
 }

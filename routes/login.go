@@ -299,12 +299,11 @@ func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request)
 
 func (h *LoginHandler) buildViewModel(r *http.Request) *view.LoginViewModel {
 	numUsers, _ := h.userSrvc.Count()
-	allowSignup := h.config.Security.AllowSignup
 
 	return &view.LoginViewModel{
 		Success:     r.URL.Query().Get("success"),
 		Error:       r.URL.Query().Get("error"),
 		TotalUsers:  int(numUsers),
-		AllowSignup: allowSignup,
+		AllowSignup: h.config.IsDev() || h.config.Security.AllowSignup,
 	}
 }

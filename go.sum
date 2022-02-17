@@ -1,3 +1,5 @@
+codeberg.org/Codeberg/avatars v0.0.0-20211228163022-8da63012fe69 h1:/XvI42KX57UTpeIOIt7IfM+pmEFTL8FGtiIUGcGDOIU=
+codeberg.org/Codeberg/avatars v0.0.0-20211228163022-8da63012fe69/go.mod h1:ML/htpPRb3+owhkm4+qG2ZrXnk5WXaQLASOZ5GLCPi8=
 github.com/AndreasBriese/bbloom v0.0.0-20190306092124-e2d15f34fcf9/go.mod h1:bOvUY6CB00SOBii9/FifXqc0awNKxLFCL/+pkDPuyl8=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/toml v0.4.1 h1:GaI7EiDXDRfa8VshkTj7Fym7ha+y8/XxIgD2okUIjLw=
