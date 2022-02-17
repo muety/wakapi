@@ -46,7 +46,7 @@ func RunPreMigrations(db *gorm.DB, cfg *config.Config) {
 	for _, m := range preMigrations {
 		logbuch.Info("potentially running migration '%s'", m.name)
 		if err := m.f(db, cfg); err != nil {
-			logbuch.Fatal("migration '%s' failed – %v", m.name, err)
+			logbuch.Fatal("migration '%s' failed - %v", m.name, err)
 		}
 	}
 }
@@ -57,7 +57,7 @@ func RunPostMigrations(db *gorm.DB, cfg *config.Config) {
 	for _, m := range postMigrations {
 		logbuch.Info("potentially running migration '%s'", m.name)
 		if err := m.f(db, cfg); err != nil {
-			logbuch.Fatal("migration '%s' failed – %v", m.name, err)
+			logbuch.Fatal("migration '%s' failed - %v", m.name, err)
 		}
 	}
 }

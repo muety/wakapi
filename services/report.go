@@ -89,7 +89,7 @@ func (srv *ReportService) SyncSchedule(u *models.User) bool {
 			At(t).
 			Tag(u.ID).
 			Do(srv.Run, u, 7*24*time.Hour); err != nil {
-			config.Log().Error("failed to schedule report job for user '%s' – %v", u.ID, err)
+			config.Log().Error("failed to schedule report job for user '%s' - %v", u.ID, err)
 		} else {
 			logbuch.Info("next report for user %s is scheduled for %v", u.ID, job.NextRun())
 		}
@@ -114,7 +114,7 @@ func (srv *ReportService) Run(user *models.User, duration time.Duration) error {
 
 	summary, err := srv.summaryService.Aliased(start, end, user, srv.summaryService.Retrieve, nil, false)
 	if err != nil {
-		config.Log().Error("failed to generate report for '%s' – %v", user.ID, err)
+		config.Log().Error("failed to generate report for '%s' - %v", user.ID, err)
 		return err
 	}
 
@@ -126,7 +126,7 @@ func (srv *ReportService) Run(user *models.User, duration time.Duration) error {
 	}
 
 	if err := srv.mailService.SendReport(user, report); err != nil {
-		config.Log().Error("failed to send report for '%s' – %v", user.ID, err)
+		config.Log().Error("failed to send report for '%s' - %v", user.ID, err)
 		return err
 	}
 

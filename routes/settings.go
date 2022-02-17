@@ -492,7 +492,7 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 
 		insert := func(batch []*models.Heartbeat) {
 			if err := h.heartbeatSrvc.InsertBatch(batch); err != nil {
-				logbuch.Warn("failed to insert imported heartbeat, already existing? – %v", err)
+				logbuch.Warn("failed to insert imported heartbeat, already existing? - %v", err)
 			}
 		}
 
@@ -518,13 +518,13 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 		if !user.HasData {
 			user.HasData = true
 			if _, err := h.userSrvc.Update(user); err != nil {
-				conf.Log().Request(r).Error("failed to set 'has_data' flag for user %s – %v", user.ID, err)
+				conf.Log().Request(r).Error("failed to set 'has_data' flag for user %s - %v", user.ID, err)
 			}
 		}
 
 		if user.Email != "" {
 			if err := h.mailSrvc.SendImportNotification(user, time.Now().Sub(start), int(countAfter-countBefore)); err != nil {
-				conf.Log().Request(r).Error("failed to send import notification mail to %s – %v", user.ID, err)
+				conf.Log().Request(r).Error("failed to send import notification mail to %s - %v", user.ID, err)
 			} else {
 				logbuch.Info("sent import notification mail to %s", user.ID)
 			}
@@ -546,11 +546,11 @@ func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *ht
 
 	go func(user *models.User) {
 		if err := h.regenerateSummaries(user); err != nil {
-			conf.Log().Request(r).Error("failed to regenerate summaries for user '%s' – %v", user.ID, err)
+			conf.Log().Request(r).Error("failed to regenerate summaries for user '%s' - %v", user.ID, err)
 		}
 	}(middlewares.GetPrincipal(r))
 
-	return http.StatusAccepted, "summaries are being regenerated – this may take a up to a couple of minutes, please come back later", ""
+	return http.StatusAccepted, "summaries are being regenerated - this may take a up to a couple of minutes, please come back later", ""
 }
 
 func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Request) (int, string, string) {
@@ -563,7 +563,7 @@ func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Reques
 		logbuch.Info("deleting user '%s' shortly", user.ID)
 		time.Sleep(5 * time.Minute)
 		if err := h.userSrvc.Delete(user); err != nil {
-			conf.Log().Request(r).Error("failed to delete user '%s' – %v", user.ID, err)
+			conf.Log().Request(r).Error("failed to delete user '%s' - %v", user.ID, err)
 		} else {
 			logbuch.Info("successfully deleted user '%s'", user.ID)
 		}

@@ -269,12 +269,12 @@ func IsDev(env string) bool {
 func readColors() map[string]map[string]string {
 	// Read language colors
 	// Source:
-	// – https://raw.githubusercontent.com/ozh/github-colors/master/colors.json
-	// – https://wakatime.com/colors/operating_systems
+	// - https://raw.githubusercontent.com/ozh/github-colors/master/colors.json
+	// - https://wakatime.com/colors/operating_systems
 	// - https://wakatime.com/colors/editors
 	// Extracted from Wakatime website with XPath (see below) and did a bit of regex magic after.
-	// – $x('//span[@class="editor-icon tip"]/@data-original-title').map(e => e.nodeValue)
-	// – $x('//span[@class="editor-icon tip"]/div[1]/text()').map(e => e.nodeValue)
+	// - $x('//span[@class="editor-icon tip"]/@data-original-title').map(e => e.nodeValue)
+	// - $x('//span[@class="editor-icon tip"]/div[1]/text()').map(e => e.nodeValue)
 
 	raw := data.ColorsFile
 	if IsDev(env) {

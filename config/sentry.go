@@ -140,7 +140,7 @@ func initSentry(config sentryConfig, debug bool) {
 			return event
 		},
 	}); err != nil {
-		logbuch.Fatal("failed to initialized sentry – %v", err)
+		logbuch.Fatal("failed to initialized sentry - %v", err)
 	}
 }
 
