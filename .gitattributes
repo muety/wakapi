@@ -1,0 +1,6 @@
+* text=auto
+*.db -text
+*.png -text
+*.br -text
+*.ico -text
+*.woff2 -text

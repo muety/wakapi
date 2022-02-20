@@ -40,7 +40,7 @@ func NewDurationFromHeartbeat(h *Heartbeat) *Duration {
 func (d *Duration) Hashed() *Duration {
 	hash, err := hashstructure.Hash(d, hashstructure.FormatV2, nil)
 	if err != nil {
-		logbuch.Error("CRITICAL ERROR: failed to hash struct – %v", err)
+		logbuch.Error("CRITICAL ERROR: failed to hash struct - %v", err)
 	}
 	d.GroupHash = fmt.Sprintf("%x", hash)
 	return d

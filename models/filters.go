@@ -103,7 +103,7 @@ func (f *Filters) IsEmpty() bool {
 func (f *Filters) Hash() string {
 	hash, err := hashstructure.Hash(f, hashstructure.FormatV2, nil)
 	if err != nil {
-		logbuch.Error("CRITICAL ERROR: failed to hash struct – %v", err)
+		logbuch.Error("CRITICAL ERROR: failed to hash struct - %v", err)
 	}
 	return fmt.Sprintf("%x", hash) // "uint64 values with high bit set are not supported"
 }

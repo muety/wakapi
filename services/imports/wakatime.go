@@ -45,7 +45,7 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 
 		startDate, endDate, err := w.fetchRange(baseUrl)
 		if err != nil {
-			config.Log().Error("failed to fetch date range while importing wakatime heartbeats for user '%s' – %v", user.ID, err)
+			config.Log().Error("failed to fetch date range while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
 			return
 		}
 
@@ -58,13 +58,13 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 
 		userAgents, err := w.fetchUserAgents(baseUrl)
 		if err != nil {
-			config.Log().Error("failed to fetch user agents while importing wakatime heartbeats for user '%s' – %v", user.ID, err)
+			config.Log().Error("failed to fetch user agents while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
 			return
 		}
 
 		machinesNames, err := w.fetchMachineNames(baseUrl)
 		if err != nil {
-			config.Log().Error("failed to fetch machine names while importing wakatime heartbeats for user '%s' – %v", user.ID, err)
+			config.Log().Error("failed to fetch machine names while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
 			return
 		}
 
@@ -76,7 +76,7 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 
 		for _, d := range days {
 			if err := sem.Acquire(ctx, 1); err != nil {
-				logbuch.Error("failed to acquire semaphore – %v", err)
+				logbuch.Error("failed to acquire semaphore - %v", err)
 				break
 			}
 
@@ -87,7 +87,7 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 				d := day.Format(config.SimpleDateFormat)
 				heartbeats, err := w.fetchHeartbeats(d, baseUrl)
 				if err != nil {
-					config.Log().Error("failed to fetch heartbeats for day '%s' and user '%s' – &v", d, user.ID, err)
+					config.Log().Error("failed to fetch heartbeats for day '%s' and user '%s' - &v", d, user.ID, err)
 				}
 
 				for _, h := range heartbeats {

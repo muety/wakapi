@@ -30,7 +30,7 @@ done
 echo ""
 
 echo "Running test collection ..."
-newman run "Wakapi API Tests.postman_collection.json"
+newman run "wakapi_api_tests.postman_collection.json"
 exit_code=$?
 
 echo "Shutting down Wakapi ..."

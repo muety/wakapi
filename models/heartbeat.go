@@ -94,7 +94,7 @@ func (h *Heartbeat) String() string {
 func (h *Heartbeat) Hashed() *Heartbeat {
 	hash, err := hashstructure.Hash(h, hashstructure.FormatV2, nil)
 	if err != nil {
-		logbuch.Error("CRITICAL ERROR: failed to hash struct – %v", err)
+		logbuch.Error("CRITICAL ERROR: failed to hash struct - %v", err)
 	}
 	h.Hash = fmt.Sprintf("%x", hash) // "uint64 values with high bit set are not supported"
 	return h
