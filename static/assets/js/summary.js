@@ -331,13 +331,13 @@ function draw(subselection) {
         })
         : null
 
-    let branchChart = branchesCanvas && !branchesCanvas.classList.contains('hidden') && shouldUpdate(0)
+    let branchChart = branchesCanvas && !branchesCanvas.classList.contains('hidden') && shouldUpdate(6)
         ? new Chart(branchesCanvas.getContext('2d'), {
             type: "bar",
             data: {
                 datasets: [{
                     data: wakapiData.branches
-                        .slice(0, Math.min(showTopN[0], wakapiData.branches.length))
+                        .slice(0, Math.min(showTopN[6], wakapiData.branches.length))
                         .map(p => parseInt(p.total)),
                     backgroundColor: wakapiData.branches.map((p, i) => {
                         const c = hexToRgb(getColor(p.key, i % baseColors.length))
@@ -349,7 +349,7 @@ function draw(subselection) {
                     }),
                 }],
                 labels: wakapiData.branches
-                    .slice(0, Math.min(showTopN[0], wakapiData.branches.length))
+                    .slice(0, Math.min(showTopN[6], wakapiData.branches.length))
                     .map(p => p.key)
             },
             options: {

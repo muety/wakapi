@@ -21,6 +21,7 @@ LANGUAGES = {
     'PHP': 'php',
     'Blade': 'blade.php'
 }
+BRANCHES = ['master', 'feature-1', 'feature-2']
 
 
 class Heartbeat:
@@ -65,6 +66,7 @@ def generate_data(n: int, n_projects: int = 5, n_past_hours: int = 24) -> List[H
         p: str = random.choice(projects)
         l: str = random.choice(languages)
         f: str = randomword(random.randint(2, 8))
+        b: str = random.choice(BRANCHES)
         delta: timedelta = timedelta(
             hours=random.randint(0, n_past_hours - 1),
             minutes=random.randint(0, 59),
@@ -77,6 +79,7 @@ def generate_data(n: int, n_projects: int = 5, n_past_hours: int = 24) -> List[H
             entity=f'/home/me/dev/{p}/{f}.{LANGUAGES[l]}',
             project=p,
             language=l,
+            branch=b,
             time=(now - delta).timestamp()
         ))
 
