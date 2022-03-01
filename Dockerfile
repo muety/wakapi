@@ -56,4 +56,6 @@ COPY --from=build-env /app .
 
 VOLUME /data
 
+EXPOSE 3000
+
 ENTRYPOINT /app/entrypoint.sh
