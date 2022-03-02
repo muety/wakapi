@@ -133,7 +133,7 @@ function draw(subselection) {
                     const idx = data[0].index
                     const name = wakapiData.projects[idx].key
                     const url = new URL(window.location.href)
-                    url.searchParams.set('query', name)
+                    url.searchParams.set('project', name)
                     window.location.href = url.href
                 },
                 onHover: (event, elem) => {
