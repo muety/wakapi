@@ -134,7 +134,7 @@ function draw(subselection) {
                     const name = wakapiData.projects[idx].key
                     const url = new URL(window.location.href)
                     url.searchParams.set('query', name)
-                    window.location.href = a.href
+                    window.location.href = url.href
                 },
                 onHover: (event, elem) => {
                     event.native.target.style.cursor = elem[0] ? 'pointer' : 'default'
