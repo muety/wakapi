@@ -189,12 +189,11 @@
                 # <strong>Step 1:</strong> Download WakaTime plugin for your IDE<br>
                 # See: https://wakatime.com/plugins<br><br>
 
-                # <strong>Step 2:</strong> Adapt your config<br>
-                $ vi ~/.wakatime.cfg<br>
-
+                # <strong>Step 2:</strong> Set your ~/.wakatime.cfg to this:<br><br>
                 <!-- https://github.com/muety/wakapi/issues/224#issuecomment-890855563 -->
-                # Set <em>api_url = <span class="with-url-inner">%s/api</span></em><br>
-                # Set <em>api_key = <span id="api-key-instruction">{{ .ApiKey }}</span></em><br><br>
+                [settings]<br>
+                api_url = <span class="with-url-inner">%s/api</span><br>
+                api_key = <span id="api-key-instruction">{{ .ApiKey }}</span><br><br>
 
                 # <strong>Step 3:</strong> Start coding and then check back here!
             </div>
