@@ -49,6 +49,11 @@ func (s *SMTPSendingService) Send(mail *models.Mail) error {
 		if ok, _ := c.Extension("AUTH"); !ok {
 			return errors.New("smtp: server doesn't support AUTH")
 		}
+
+		if len(s.config.Username) == 0 || len(s.config.Password) == 0 {
+			return errors.New("smtp: server requires authentification, but no authentification is provided")
+		}
+
 		if err = c.Auth(s.auth); err != nil {
 			return err
 		}
