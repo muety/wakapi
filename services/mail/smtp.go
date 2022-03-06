@@ -51,7 +51,7 @@ func (s *SMTPSendingService) Send(mail *models.Mail) error {
 		}
 
 		if len(s.config.Username) == 0 || len(s.config.Password) == 0 {
-			return errors.New("smtp: server requires authentification, but no authentification is provided")
+			return errors.New("smtp: server requires authentication, but no authentication is provided")
 		}
 
 		if err = c.Auth(s.auth); err != nil {
