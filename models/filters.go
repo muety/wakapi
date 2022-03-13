@@ -92,12 +92,55 @@ func (f *Filters) OneOrEmpty() FilterElement {
 	if ok, t, of := f.One(); ok {
 		return FilterElement{entity: t, filter: of}
 	}
-	return FilterElement{}
+	return FilterElement{entity: SummaryUnknown, filter: []string{}}
 }
 
 func (f *Filters) IsEmpty() bool {
 	nonEmpty, _, _ := f.One()
 	return !nonEmpty
+}
+
+func (f *Filters) Count() int {
+	var count int
+	for i := SummaryProject; i <= SummaryBranch; i++ {
+		count += f.CountByEntity(i)
+	}
+	return count
+}
+
+func (f *Filters) CountByEntity(entity uint8) int {
+	return len(*f.ResolveEntity(entity))
+}
+
+func (f *Filters) EntityCount() int {
+	var count int
+	for i := SummaryProject; i <= SummaryBranch; i++ {
+		if c := f.CountByEntity(i); c > 0 {
+			count++
+		}
+	}
+	return count
+}
+
+func (f *Filters) ResolveEntity(entityId uint8) *OrFilter {
+	switch entityId {
+	case SummaryProject:
+		return &f.Project
+	case SummaryLanguage:
+		return &f.Language
+	case SummaryEditor:
+		return &f.Editor
+	case SummaryOS:
+		return &f.OS
+	case SummaryMachine:
+		return &f.Machine
+	case SummaryLabel:
+		return &f.Label
+	case SummaryBranch:
+		return &f.Branch
+	default:
+		return &OrFilter{}
+	}
 }
 
 func (f *Filters) Hash() string {

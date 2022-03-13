@@ -77,6 +77,26 @@ func (r *HeartbeatRepository) GetAllWithin(from, to time.Time, user *models.User
 	return heartbeats, nil
 }
 
+func (r *HeartbeatRepository) GetAllWithinByFilters(from, to time.Time, user *models.User, filterMap map[string][]string) ([]*models.Heartbeat, error) {
+	// https://stackoverflow.com/a/20765152/3112139
+	var heartbeats []*models.Heartbeat
+
+	q := r.db.
+		Where(&models.Heartbeat{UserID: user.ID}).
+		Where("time >= ?", from.Local()).
+		Where("time < ?", to.Local()).
+		Order("time asc")
+
+	for col, vals := range filterMap {
+		q = q.Where(col+" in ?", vals)
+	}
+
+	if err := q.Find(&heartbeats).Error; err != nil {
+		return nil, err
+	}
+	return heartbeats, nil
+}
+
 func (r *HeartbeatRepository) GetFirstByUsers() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
 	r.db.Model(&models.User{}).

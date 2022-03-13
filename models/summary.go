@@ -8,6 +8,7 @@ import (
 
 const (
 	NSummaryTypes   uint8 = 99
+	SummaryUnknown  uint8 = 98
 	SummaryProject  uint8 = 0
 	SummaryLanguage uint8 = 1
 	SummaryEditor   uint8 = 2
@@ -101,6 +102,20 @@ func (s *Summary) MappedItems() map[uint8]*SummaryItems {
 
 func (s *Summary) ItemsByType(summaryType uint8) *SummaryItems {
 	return s.MappedItems()[summaryType]
+}
+
+func (s *Summary) KeepOnly(types map[uint8]bool) *Summary {
+	if len(types) == 0 {
+		return s
+	}
+
+	for _, t := range SummaryTypes() {
+		if keep, ok := types[t]; !keep || !ok {
+			*s.ItemsByType(t) = []*SummaryItem{}
+		}
+	}
+
+	return s
 }
 
 /* Augments the summary in a way that at least one item is present for every type.

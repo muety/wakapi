@@ -22,7 +22,15 @@ func NewDurationService(heartbeatService IHeartbeatService) *DurationService {
 }
 
 func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *models.Filters) (models.Durations, error) {
-	heartbeats, err := srv.heartbeatService.GetAllWithin(from, to, user)
+	get := srv.heartbeatService.GetAllWithin
+
+	if filters != nil && !filters.IsEmpty() {
+		get = func(t1 time.Time, t2 time.Time, user *models.User) ([]*models.Heartbeat, error) {
+			return srv.heartbeatService.GetAllWithinByFilters(t1, t2, user, filters)
+		}
+	}
+
+	heartbeats, err := get(from, to, user)
 	if err != nil {
 		return nil, err
 	}

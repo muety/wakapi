@@ -168,6 +168,66 @@ func TestSummary_WithResolvedAliases(t *testing.T) {
 	assert.Empty(t, sut.Machines)
 }
 
+func TestSummary_KeepOnly(t *testing.T) {
+	newSummary := func() *Summary {
+		return &Summary{
+			Projects: []*SummaryItem{
+				{
+					Type: SummaryProject,
+					Key:  "wakapi",
+					// hack to work around the issue that the total time of a summary item is mistakenly represented in seconds
+					Total: 10 * time.Minute / time.Second,
+				},
+				{
+					Type:  SummaryProject,
+					Key:   "anchr",
+					Total: 10 * time.Minute / time.Second,
+				},
+			},
+			Languages: []*SummaryItem{
+				{
+					Type:  SummaryLanguage,
+					Key:   "Go",
+					Total: 10 * time.Minute / time.Second,
+				},
+			},
+			Editors: []*SummaryItem{
+				{
+					Type:  SummaryEditor,
+					Key:   "VSCode",
+					Total: 10 * time.Minute / time.Second,
+				},
+			},
+		}
+	}
+
+	var sut *Summary
+
+	sut = newSummary().KeepOnly(map[uint8]bool{}) // keep all
+	assert.NotZero(t, sut.TotalTimeBy(SummaryProject))
+	assert.NotZero(t, sut.TotalTimeBy(SummaryLanguage))
+	assert.NotZero(t, sut.TotalTimeBy(SummaryEditor))
+	assert.Equal(t, 20*time.Minute, sut.TotalTime())
+
+	sut = newSummary().KeepOnly(map[uint8]bool{SummaryProject: true})
+	assert.NotZero(t, sut.TotalTimeBy(SummaryProject))
+	assert.Zero(t, sut.TotalTimeBy(SummaryLanguage))
+	assert.Zero(t, sut.TotalTimeBy(SummaryEditor))
+	assert.Equal(t, 20*time.Minute, sut.TotalTime())
+
+	sut = newSummary().KeepOnly(map[uint8]bool{SummaryEditor: true, SummaryLanguage: true})
+	assert.Zero(t, sut.TotalTimeBy(SummaryProject))
+	assert.NotZero(t, sut.TotalTimeBy(SummaryLanguage))
+	assert.NotZero(t, sut.TotalTimeBy(SummaryEditor))
+	assert.Equal(t, 10*time.Minute, sut.TotalTime())
+
+	sut = newSummary().KeepOnly(map[uint8]bool{SummaryProject: true})
+	sut.FillMissing()
+	assert.NotZero(t, sut.TotalTimeBy(SummaryProject))
+	assert.NotZero(t, sut.TotalTimeBy(SummaryLanguage))
+	assert.NotZero(t, sut.TotalTimeBy(SummaryEditor))
+}
+
 func TestSummaryItems_Sorted(t *testing.T) {
 	testDuration1, testDuration2, testDuration3 := 10*time.Minute, 5*time.Minute, 20*time.Minute
 

@@ -15,18 +15,18 @@ type Heartbeat struct {
 	Entity          string     `json:"entity" gorm:"not null; index:idx_entity"`
 	Type            string     `json:"type"`
 	Category        string     `json:"category"`
-	Project         string     `json:"project"`
-	Branch          string     `json:"branch"`
+	Project         string     `json:"project" gorm:"index:idx_project"`
+	Branch          string     `json:"branch" gorm:"index:idx_branch"`
 	Language        string     `json:"language" gorm:"index:idx_language"`
 	IsWrite         bool       `json:"is_write"`
-	Editor          string     `json:"editor" hash:"ignore"`           // ignored because editor might be parsed differently by wakatime
-	OperatingSystem string     `json:"operating_system" hash:"ignore"` // ignored because os might be parsed differently by wakatime
-	Machine         string     `json:"machine" hash:"ignore"`          // ignored because wakatime api doesn't return machines currently
-	UserAgent       string     `json:"user_agent" hash:"ignore"`
+	Editor          string     `json:"editor" gorm:"index:idx_editor" hash:"ignore"`                     // ignored because editor might be parsed differently by wakatime
+	OperatingSystem string     `json:"operating_system" gorm:"index:idx_operating_system" hash:"ignore"` // ignored because os might be parsed differently by wakatime
+	Machine         string     `json:"machine" gorm:"index:idx_machine" hash:"ignore"`                   // ignored because wakatime api doesn't return machines currently
+	UserAgent       string     `json:"user_agent" hash:"ignore" gorm:"type:varchar(255)"`
 	Time            CustomTime `json:"time" gorm:"type:timestamp; index:idx_time,idx_time_user" swaggertype:"primitive,number"`
 	Hash            string     `json:"-" gorm:"type:varchar(17); uniqueIndex"`
-	Origin          string     `json:"-" hash:"ignore"`
-	OriginId        string     `json:"-" hash:"ignore"`
+	Origin          string     `json:"-" hash:"ignore" gorm:"type:varchar(255)"`
+	OriginId        string     `json:"-" hash:"ignore" gorm:"type:varchar(255)"`
 	CreatedAt       CustomTime `json:"created_at" gorm:"type:timestamp" swaggertype:"primitive,number" hash:"ignore"` // https://gorm.io/docs/conventions.html#CreatedAt
 }
 
@@ -98,4 +98,16 @@ func (h *Heartbeat) Hashed() *Heartbeat {
 	}
 	h.Hash = fmt.Sprintf("%x", hash) // "uint64 values with high bit set are not supported"
 	return h
+}
+
+func GetEntityColumn(t uint8) string {
+	return []string{
+		"project",
+		"language",
+		"editor",
+		"operating_system",
+		"machine",
+		"label",
+		"branch",
+	}[t]
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"math/rand"
 	"testing"
@@ -175,7 +176,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered() {
 	)
 
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Hour)
-	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(filterHeartbeats(from, to, suite.TestHeartbeats), nil)
+	suite.HeartbeatService.On("GetAllWithinByFilters", from, to, suite.TestUser, mock.Anything).Return(filterHeartbeats(from, to, suite.TestHeartbeats), nil)
 
 	durations, err = sut.Get(from, to, suite.TestUser, models.NewFiltersWith(models.SummaryEditor, TestEditorGoland))
 	assert.Nil(suite.T(), err)

@@ -134,6 +134,14 @@ func (srv *HeartbeatService) GetAllWithin(from, to time.Time, user *models.User)
 	return srv.augmented(heartbeats, user.ID)
 }
 
+func (srv *HeartbeatService) GetAllWithinByFilters(from, to time.Time, user *models.User, filters *models.Filters) ([]*models.Heartbeat, error) {
+	heartbeats, err := srv.repository.GetAllWithinByFilters(from, to, user, srv.filtersToColumnMap(filters))
+	if err != nil {
+		return nil, err
+	}
+	return srv.augmented(heartbeats, user.ID)
+}
+
 func (srv *HeartbeatService) GetLatestByUser(user *models.User) (*models.Heartbeat, error) {
 	return srv.repository.GetLatestByUser(user)
 }
@@ -236,4 +244,15 @@ func (srv *HeartbeatService) countTotalCacheKey() string {
 
 func (srv *HeartbeatService) countCacheTtl() time.Duration {
 	return time.Duration(srv.config.App.CountCacheTTLMin) * time.Minute
+}
+
+func (srv *HeartbeatService) filtersToColumnMap(filters *models.Filters) map[string][]string {
+	columnMap := map[string][]string{}
+	for _, t := range models.SummaryTypes() {
+		f := filters.ResolveEntity(t)
+		if len(*f) > 0 {
+			columnMap[models.GetEntityColumn(t)] = *f
+		}
+	}
+	return columnMap
 }
