@@ -86,7 +86,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 		hb.UserID = user.ID
 		hb.UserAgent = userAgent
 
-		if !hb.Valid() {
+		if !hb.Valid() || !hb.Timely(h.config.App.HeartbeatsMaxAge()) {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("invalid heartbeat object"))
 			return

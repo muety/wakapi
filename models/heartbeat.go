@@ -34,6 +34,11 @@ func (h *Heartbeat) Valid() bool {
 	return h.User != nil && h.UserID != "" && h.User.ID == h.UserID && h.Time != CustomTime(time.Time{})
 }
 
+func (h *Heartbeat) Timely(maxAge time.Duration) bool {
+	now := time.Now()
+	return now.Sub(h.Time.T()) <= maxAge && h.Time.T().Before(now)
+}
+
 func (h *Heartbeat) Augment(languageMappings map[string]string) {
 	maxPrec := -1 // precision / mapping complexity -> more concrete ones shall take precedence
 	for ending, value := range languageMappings {

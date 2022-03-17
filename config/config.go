@@ -68,6 +68,7 @@ type appConfig struct {
 	ImportBackoffMin  int                          `yaml:"import_backoff_min" default:"5" env:"WAKAPI_IMPORT_BACKOFF_MIN"`
 	ImportBatchSize   int                          `yaml:"import_batch_size" default:"50" env:"WAKAPI_IMPORT_BATCH_SIZE"`
 	InactiveDays      int                          `yaml:"inactive_days" default:"7" env:"WAKAPI_INACTIVE_DAYS"`
+	HeartbeatMaxAge   string                       `yaml:"heartbeat_max_age" default:"4320h" env:"WAKAPI_HEARTBEAT_MAX_AGE"`
 	CountCacheTTLMin  int                          `yaml:"count_cache_ttl_min" default:"30" env:"WAKAPI_COUNT_CACHE_TTL_MIN"`
 	AvatarURLTemplate string                       `yaml:"avatar_url_template" default:"api/avatar/{username_hash}.svg"`
 	CustomLanguages   map[string]string            `yaml:"custom_languages"`
@@ -242,6 +243,11 @@ func (c *appConfig) GetWeeklyReportTime() string {
 	return strings.Split(c.ReportTimeWeekly, ",")[1]
 }
 
+func (c *appConfig) HeartbeatsMaxAge() time.Duration {
+	d, _ := time.ParseDuration(c.HeartbeatMaxAge)
+	return d
+}
+
 func (c *dbConfig) IsSQLite() bool {
 	return c.Dialect == "sqlite3"
 }
@@ -399,6 +405,9 @@ func Load(version string) *Config {
 	}
 	if _, err := time.Parse("15:04", config.App.AggregationTime); err != nil {
 		logbuch.Fatal("invalid interval set for aggregation_time")
+	}
+	if _, err := time.ParseDuration(config.App.HeartbeatMaxAge); err != nil {
+		logbuch.Fatal("invalid duration set for heartbeat_max_age")
 	}
 
 	Set(config)
