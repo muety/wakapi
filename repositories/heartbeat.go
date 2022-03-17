@@ -176,3 +176,12 @@ func (r *HeartbeatRepository) DeleteBefore(t time.Time) error {
 	}
 	return nil
 }
+
+func (r *HeartbeatRepository) DeleteByUser(user *models.User) error {
+	if err := r.db.
+		Where("user_id = ?", user.ID).
+		Delete(models.Heartbeat{}).Error; err != nil {
+		return err
+	}
+	return nil
+}

@@ -30,6 +30,7 @@ type IHeartbeatRepository interface {
 	CountByUsers([]*models.User) ([]*models.CountByUser, error)
 	GetEntitySetByUser(uint8, *models.User) ([]string, error)
 	DeleteBefore(time.Time) error
+	DeleteByUser(*models.User) error
 }
 
 type IDiagnosticsRepository interface {

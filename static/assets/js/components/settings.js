@@ -21,6 +21,11 @@ PetiteVue.createApp({
             document.querySelector('#form-import-wakatime').submit()
         }
     },
+    confirmClearData() {
+        if (confirm('Are you sure? This can not be undone!')) {
+            document.querySelector('#form-clear-data').submit()
+        }
+    },
     confirmDeleteAccount() {
         if (confirm('Are you sure? This can not be undone!')) {
             document.querySelector('#form-delete-user').submit()

@@ -151,6 +151,8 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 		return h.actionImportWakatime
 	case "regenerate_summaries":
 		return h.actionRegenerateSummaries
+	case "clear_data":
+		return h.actionClearData
 	case "delete_account":
 		return h.actionDeleteUser
 	}
@@ -551,6 +553,29 @@ func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *ht
 	}(middlewares.GetPrincipal(r))
 
 	return http.StatusAccepted, "summaries are being regenerated - this may take a up to a couple of minutes, please come back later", ""
+}
+
+func (h *SettingsHandler) actionClearData(w http.ResponseWriter, r *http.Request) (int, string, string) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	user := middlewares.GetPrincipal(r)
+	logbuch.Info("user '%s' requested to delete all data", user.ID)
+
+	go func(user *models.User) {
+		logbuch.Info("deleting summaries for user '%s'", user.ID)
+		if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
+			logbuch.Error("failed to clear summaries: %v", err)
+		}
+
+		logbuch.Info("deleting heartbeats for user '%s'", user.ID)
+		if err := h.heartbeatSrvc.DeleteByUser(user); err != nil {
+			logbuch.Error("failed to clear heartbeats: %v", err)
+		}
+	}(user)
+
+	return http.StatusAccepted, "deletion in progress, this may take a couple of seconds", ""
 }
 
 func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Request) (int, string, string) {

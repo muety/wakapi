@@ -179,7 +179,13 @@ func (srv *HeartbeatService) GetEntitySetByUser(entityType uint8, user *models.U
 }
 
 func (srv *HeartbeatService) DeleteBefore(t time.Time) error {
+	go srv.cache.Flush()
 	return srv.repository.DeleteBefore(t)
+}
+
+func (srv *HeartbeatService) DeleteByUser(user *models.User) error {
+	go srv.cache.Flush()
+	return srv.repository.DeleteByUser(user)
 }
 
 func (srv *HeartbeatService) augmented(heartbeats []*models.Heartbeat, userId string) ([]*models.Heartbeat, error) {

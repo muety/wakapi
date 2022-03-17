@@ -69,3 +69,8 @@ func (m *HeartbeatServiceMock) DeleteBefore(time time.Time) error {
 	args := m.Called(time)
 	return args.Error(0)
 }
+
+func (m *HeartbeatServiceMock) DeleteByUser(u *models.User) error {
+	args := m.Called(u)
+	return args.Error(0)
+}

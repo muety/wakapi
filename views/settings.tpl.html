@@ -609,7 +609,7 @@
                             Regenerate all pre-computed summaries from raw heartbeat data. This may be useful if, for some reason, summaries are faulty or preconditions have change (e.g. you modified language mappings retrospectively). This may take some time. Be careful and only run this action if you know, what your are doing, as data loss might occur.
                         </span>
                     </div>
-                    <div class="w-1/2 ml-4">
+                    <div class="w-1/2 ml-4 flex items-center">
                         <button type="button" class="btn-danger ml-1" @click.stop="confirmRegenerate">Clear and regenerate</button>
                     </div>
                 </form>
@@ -623,8 +623,22 @@
                             Please note that resetting your API key requires you to update your .wakatime.cfg files on all of your computers to make the WakaTime client send heartbeats again.
                         </span>
                     </div>
-                    <div class="w-1/2 ml-4">
+                    <div class="w-1/2 ml-4 flex items-center">
                         <button type="submit" class="btn-danger ml-1">Reset API key</button>
+                    </div>
+                </form>
+
+                <form action="" method="post" class="flex mb-8" id="form-clear-data">
+                    <input type="hidden" name="action" value="clear_data">
+
+                    <div class="w-1/2 mr-4 inline-block">
+                        <span class="font-semibold text-gray-300">Clear Data</span>
+                        <span class="block text-sm text-gray-600">
+                            Clear all your time tracking data from Wakapi. This cannot be undone. Be careful!
+                        </span>
+                    </div>
+                    <div class="w-1/2 ml-4 flex items-center">
+                        <button type="button" class="btn-danger ml-1" @click.stop="confirmClearData">Clear data</button>
                     </div>
                 </form>
 
@@ -637,7 +651,7 @@
                             Deleting your account will cause all data, including all your heartbeats, to be erased from the server immediately. This action is irreversible. Be careful!
                         </span>
                     </div>
-                    <div class="w-1/2 ml-4">
+                    <div class="w-1/2 ml-4 flex items-center">
                         <button type="button" class="btn-danger ml-1" @click.stop="confirmDeleteAccount">Delete account</button>
                     </div>
                 </form>
