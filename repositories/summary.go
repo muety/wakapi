@@ -18,15 +18,15 @@ func (r *SummaryRepository) GetAll() ([]*models.Summary, error) {
 	var summaries []*models.Summary
 	if err := r.db.
 		Order("from_time asc").
-		Preload("Projects", "type = ?", models.SummaryProject).
-		Preload("Languages", "type = ?", models.SummaryLanguage).
-		Preload("Editors", "type = ?", models.SummaryEditor).
-		Preload("OperatingSystems", "type = ?", models.SummaryOS).
-		Preload("Machines", "type = ?", models.SummaryMachine).
 		// branch summaries are currently not persisted, as only relevant in combination with project filter
 		Find(&summaries).Error; err != nil {
 		return nil, err
 	}
+
+	if err := r.populateItems(summaries); err != nil {
+		return nil, err
+	}
+
 	return summaries, nil
 }
 
@@ -44,15 +44,15 @@ func (r *SummaryRepository) GetByUserWithin(user *models.User, from, to time.Tim
 		Where("from_time >= ?", from.Local()).
 		Where("to_time <= ?", to.Local()).
 		Order("from_time asc").
-		Preload("Projects", "type = ?", models.SummaryProject).
-		Preload("Languages", "type = ?", models.SummaryLanguage).
-		Preload("Editors", "type = ?", models.SummaryEditor).
-		Preload("OperatingSystems", "type = ?", models.SummaryOS).
-		Preload("Machines", "type = ?", models.SummaryMachine).
 		// branch summaries are currently not persisted, as only relevant in combination with project filter
 		Find(&summaries).Error; err != nil {
 		return nil, err
 	}
+
+	if err := r.populateItems(summaries); err != nil {
+		return nil, err
+	}
+
 	return summaries, nil
 }
 
@@ -72,5 +72,34 @@ func (r *SummaryRepository) DeleteByUser(userId string) error {
 		Delete(models.Summary{}).Error; err != nil {
 		return err
 	}
+	return nil
+}
+
+// inplace
+func (r *SummaryRepository) populateItems(summaries []*models.Summary) error {
+	summaryMap := map[uint]*models.Summary{}
+	summaryIds := make([]uint, len(summaries))
+	for i, s := range summaries {
+		if s.NumHeartbeats == 0 {
+			continue
+		}
+		summaryMap[s.ID] = s
+		summaryIds[i] = s.ID
+	}
+
+	var items []*models.SummaryItem
+
+	if err := r.db.
+		Model(&models.SummaryItem{}).
+		Where("summary_id in ?", summaryIds).
+		Find(&items).Error; err != nil {
+		return err
+	}
+
+	for _, item := range items {
+		l := summaryMap[item.SummaryID].ItemsByType(item.Type)
+		*l = append(*l, item)
+	}
+
 	return nil
 }

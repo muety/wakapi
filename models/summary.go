@@ -101,7 +101,23 @@ func (s *Summary) MappedItems() map[uint8]*SummaryItems {
 }
 
 func (s *Summary) ItemsByType(summaryType uint8) *SummaryItems {
-	return s.MappedItems()[summaryType]
+	switch summaryType {
+	case SummaryProject:
+		return &s.Projects
+	case SummaryLanguage:
+		return &s.Languages
+	case SummaryEditor:
+		return &s.Editors
+	case SummaryOS:
+		return &s.OperatingSystems
+	case SummaryMachine:
+		return &s.Machines
+	case SummaryLabel:
+		return &s.Labels
+	case SummaryBranch:
+		return &s.Branches
+	}
+	return nil
 }
 
 func (s *Summary) KeepOnly(types map[uint8]bool) *Summary {
