@@ -58,6 +58,7 @@ var (
 	summaryRepository         repositories.ISummaryRepository
 	keyValueRepository        repositories.IKeyValueRepository
 	diagnosticsRepository     repositories.IDiagnosticsRepository
+	metricsRepository         *repositories.MetricsRepository
 )
 
 var (
@@ -149,6 +150,7 @@ func main() {
 	summaryRepository = repositories.NewSummaryRepository(db)
 	keyValueRepository = repositories.NewKeyValueRepository(db)
 	diagnosticsRepository = repositories.NewDiagnosticsRepository(db)
+	metricsRepository = repositories.NewMetricsRepository(db)
 
 	// Services
 	mailService = mail.NewMailService()
@@ -178,7 +180,7 @@ func main() {
 	healthApiHandler := api.NewHealthApiHandler(db)
 	heartbeatApiHandler := api.NewHeartbeatApiHandler(userService, heartbeatService, languageMappingService)
 	summaryApiHandler := api.NewSummaryApiHandler(userService, summaryService)
-	metricsHandler := api.NewMetricsHandler(userService, summaryService, heartbeatService, keyValueService)
+	metricsHandler := api.NewMetricsHandler(userService, summaryService, heartbeatService, keyValueService, metricsRepository)
 	diagnosticsHandler := api.NewDiagnosticsApiHandler(userService, diagnosticsService)
 	avatarHandler := api.NewAvatarHandler()
 

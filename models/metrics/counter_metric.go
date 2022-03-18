@@ -4,7 +4,7 @@ import "fmt"
 
 type CounterMetric struct {
 	Name   string
-	Value  int
+	Value  int64
 	Desc   string
 	Labels Labels
 }

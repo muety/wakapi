@@ -9,6 +9,7 @@ import (
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	mm "github.com/muety/wakapi/models/metrics"
+	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
@@ -39,6 +40,7 @@ const (
 	DescMemAllocTotal = "Total number of bytes allocated for heap"
 	DescMemSysTotal   = "Total number of bytes obtained from the OS"
 	DescGoroutines    = "Total number of running goroutines"
+	DescDatabaseSize  = "Total database size in bytes"
 )
 
 type MetricsHandler struct {
@@ -47,14 +49,16 @@ type MetricsHandler struct {
 	summarySrvc   services.ISummaryService
 	heartbeatSrvc services.IHeartbeatService
 	keyValueSrvc  services.IKeyValueService
+	metricsRepo   *repositories.MetricsRepository
 }
 
-func NewMetricsHandler(userService services.IUserService, summaryService services.ISummaryService, heartbeatService services.IHeartbeatService, keyValueService services.IKeyValueService) *MetricsHandler {
+func NewMetricsHandler(userService services.IUserService, summaryService services.ISummaryService, heartbeatService services.IHeartbeatService, keyValueService services.IKeyValueService, metricsRepo *repositories.MetricsRepository) *MetricsHandler {
 	return &MetricsHandler{
 		userSrvc:      userService,
 		summarySrvc:   summaryService,
 		heartbeatSrvc: heartbeatService,
 		keyValueSrvc:  keyValueService,
+		metricsRepo:   metricsRepo,
 		config:        conf.Get(),
 	}
 }
@@ -141,21 +145,21 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 	metrics = append(metrics, &mm.CounterMetric{
 		Name:   MetricsPrefix + "_cumulative_seconds_total",
 		Desc:   DescAllTime,
-		Value:  int(v1.NewAllTimeFrom(summaryAllTime).Data.TotalSeconds),
+		Value:  int64(v1.NewAllTimeFrom(summaryAllTime).Data.TotalSeconds),
 		Labels: []mm.Label{},
 	})
 
 	metrics = append(metrics, &mm.CounterMetric{
 		Name:   MetricsPrefix + "_seconds_total",
 		Desc:   DescTotal,
-		Value:  int(summaryToday.TotalTime().Seconds()),
+		Value:  int64(summaryToday.TotalTime().Seconds()),
 		Labels: []mm.Label{},
 	})
 
 	metrics = append(metrics, &mm.CounterMetric{
 		Name:   MetricsPrefix + "_heartbeats_total",
 		Desc:   DescHeartbeats,
-		Value:  int(heartbeatCount),
+		Value:  int64(heartbeatCount),
 		Labels: []mm.Label{},
 	})
 
@@ -163,7 +167,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 		metrics = append(metrics, &mm.CounterMetric{
 			Name:   MetricsPrefix + "_project_seconds_total",
 			Desc:   DescProjects,
-			Value:  int(summaryToday.TotalTimeByKey(models.SummaryProject, p.Key).Seconds()),
+			Value:  int64(summaryToday.TotalTimeByKey(models.SummaryProject, p.Key).Seconds()),
 			Labels: []mm.Label{{Key: "name", Value: p.Key}},
 		})
 	}
@@ -172,7 +176,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 		metrics = append(metrics, &mm.CounterMetric{
 			Name:   MetricsPrefix + "_language_seconds_total",
 			Desc:   DescLanguages,
-			Value:  int(summaryToday.TotalTimeByKey(models.SummaryLanguage, l.Key).Seconds()),
+			Value:  int64(summaryToday.TotalTimeByKey(models.SummaryLanguage, l.Key).Seconds()),
 			Labels: []mm.Label{{Key: "name", Value: l.Key}},
 		})
 	}
@@ -181,7 +185,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 		metrics = append(metrics, &mm.CounterMetric{
 			Name:   MetricsPrefix + "_editor_seconds_total",
 			Desc:   DescEditors,
-			Value:  int(summaryToday.TotalTimeByKey(models.SummaryEditor, e.Key).Seconds()),
+			Value:  int64(summaryToday.TotalTimeByKey(models.SummaryEditor, e.Key).Seconds()),
 			Labels: []mm.Label{{Key: "name", Value: e.Key}},
 		})
 	}
@@ -190,7 +194,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 		metrics = append(metrics, &mm.CounterMetric{
 			Name:   MetricsPrefix + "_operating_system_seconds_total",
 			Desc:   DescOperatingSystems,
-			Value:  int(summaryToday.TotalTimeByKey(models.SummaryOS, o.Key).Seconds()),
+			Value:  int64(summaryToday.TotalTimeByKey(models.SummaryOS, o.Key).Seconds()),
 			Labels: []mm.Label{{Key: "name", Value: o.Key}},
 		})
 	}
@@ -199,7 +203,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 		metrics = append(metrics, &mm.CounterMetric{
 			Name:   MetricsPrefix + "_machine_seconds_total",
 			Desc:   DescMachines,
-			Value:  int(summaryToday.TotalTimeByKey(models.SummaryMachine, m.Key).Seconds()),
+			Value:  int64(summaryToday.TotalTimeByKey(models.SummaryMachine, m.Key).Seconds()),
 			Labels: []mm.Label{{Key: "name", Value: m.Key}},
 		})
 	}
@@ -208,7 +212,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 		metrics = append(metrics, &mm.CounterMetric{
 			Name:   MetricsPrefix + "_label_seconds_total",
 			Desc:   DescLabels,
-			Value:  int(summaryToday.TotalTimeByKey(models.SummaryLabel, m.Key).Seconds()),
+			Value:  int64(summaryToday.TotalTimeByKey(models.SummaryLabel, m.Key).Seconds()),
 			Labels: []mm.Label{{Key: "name", Value: m.Key}},
 		})
 	}
@@ -220,21 +224,34 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 	metrics = append(metrics, &mm.CounterMetric{
 		Name:   MetricsPrefix + "_goroutines_total",
 		Desc:   DescGoroutines,
-		Value:  runtime.NumGoroutine(),
+		Value:  int64(runtime.NumGoroutine()),
 		Labels: []mm.Label{},
 	})
 
 	metrics = append(metrics, &mm.CounterMetric{
 		Name:   MetricsPrefix + "_mem_alloc_total",
 		Desc:   DescMemAllocTotal,
-		Value:  int(memStats.Alloc),
+		Value:  int64(memStats.Alloc),
 		Labels: []mm.Label{},
 	})
 
 	metrics = append(metrics, &mm.CounterMetric{
 		Name:   MetricsPrefix + "_mem_sys_total",
 		Desc:   DescMemSysTotal,
-		Value:  int(memStats.Sys),
+		Value:  int64(memStats.Sys),
+		Labels: []mm.Label{},
+	})
+
+	// Database metrics
+	dbSize, err := h.metricsRepo.GetDatabaseSize()
+	if err != nil {
+		logbuch.Warn("failed to get database size (%v)", err)
+	}
+
+	metrics = append(metrics, &mm.CounterMetric{
+		Name:   MetricsPrefix + "_db_total_bytes",
+		Desc:   DescDatabaseSize,
+		Value:  dbSize,
 		Labels: []mm.Label{},
 	})
 
@@ -267,28 +284,28 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 	metrics = append(metrics, &mm.CounterMetric{
 		Name:   MetricsPrefix + "_admin_seconds_total",
 		Desc:   DescAdminTotalTime,
-		Value:  totalSeconds,
+		Value:  int64(totalSeconds),
 		Labels: []mm.Label{},
 	})
 
 	metrics = append(metrics, &mm.CounterMetric{
 		Name:   MetricsPrefix + "_admin_heartbeats_total",
 		Desc:   DescAdminTotalHeartbeats,
-		Value:  int(totalHeartbeats),
+		Value:  totalHeartbeats,
 		Labels: []mm.Label{},
 	})
 
 	metrics = append(metrics, &mm.CounterMetric{
 		Name:   MetricsPrefix + "_admin_users_total",
 		Desc:   DescAdminTotalUsers,
-		Value:  int(totalUsers),
+		Value:  totalUsers,
 		Labels: []mm.Label{},
 	})
 
 	metrics = append(metrics, &mm.CounterMetric{
 		Name:   MetricsPrefix + "_admin_users_active_total",
 		Desc:   DescAdminActiveUsers,
-		Value:  len(activeUsers),
+		Value:  int64(len(activeUsers)),
 		Labels: []mm.Label{},
 	})
 
@@ -304,7 +321,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 		metrics = append(metrics, &mm.CounterMetric{
 			Name:   MetricsPrefix + "_admin_user_heartbeats_total",
 			Desc:   DescAdminUserHeartbeats,
-			Value:  int(uc.Count),
+			Value:  uc.Count,
 			Labels: []mm.Label{{Key: "user", Value: uc.User}},
 		})
 	}
