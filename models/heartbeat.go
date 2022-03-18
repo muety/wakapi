@@ -23,11 +23,11 @@ type Heartbeat struct {
 	OperatingSystem string     `json:"operating_system" gorm:"index:idx_operating_system" hash:"ignore"` // ignored because os might be parsed differently by wakatime
 	Machine         string     `json:"machine" gorm:"index:idx_machine" hash:"ignore"`                   // ignored because wakatime api doesn't return machines currently
 	UserAgent       string     `json:"user_agent" hash:"ignore" gorm:"type:varchar(255)"`
-	Time            CustomTime `json:"time" gorm:"type:timestamp; index:idx_time,idx_time_user" swaggertype:"primitive,number"`
+	Time            CustomTime `json:"time" gorm:"type:timestamp(3); index:idx_time,idx_time_user" swaggertype:"primitive,number"`
 	Hash            string     `json:"-" gorm:"type:varchar(17); uniqueIndex"`
 	Origin          string     `json:"-" hash:"ignore" gorm:"type:varchar(255)"`
 	OriginId        string     `json:"-" hash:"ignore" gorm:"type:varchar(255)"`
-	CreatedAt       CustomTime `json:"created_at" gorm:"type:timestamp" swaggertype:"primitive,number" hash:"ignore"` // https://gorm.io/docs/conventions.html#CreatedAt
+	CreatedAt       CustomTime `json:"created_at" gorm:"type:timestamp(3)" swaggertype:"primitive,number" hash:"ignore"` // https://gorm.io/docs/conventions.html#CreatedAt
 }
 
 func (h *Heartbeat) Valid() bool {

@@ -36,6 +36,8 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 	}
 
 	// Aggregation
+	// the below logic is approximately equivalent to the SQL query at scripts/aggregate_durations.sql,
+	// but unfortunately we cannot use it, as it features mysql-specific functions (lag(), timediff(), ...)
 	var count int
 	var latest *models.Duration
 
@@ -89,6 +91,10 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 			}
 			durations = append(durations, d)
 		}
+	}
+
+	if len(heartbeats) == 1 && len(durations) == 1 {
+		durations[0].Duration = HeartbeatDiffThreshold
 	}
 
 	return durations.Sorted(), nil

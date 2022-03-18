@@ -171,7 +171,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 	assert.Equal(suite.T(), TestEditorGoland, durations[0].Editor)
 	assert.Equal(suite.T(), TestEditorGoland, durations[1].Editor)
 	assert.Equal(suite.T(), TestEditorVscode, durations[2].Editor)
-	assert.Equal(suite.T(), 2, durations[0].NumHeartbeats)
+	assert.Equal(suite.T(), 3, durations[0].NumHeartbeats)
 	assert.Equal(suite.T(), 1, durations[1].NumHeartbeats)
 	assert.Equal(suite.T(), 3, durations[2].NumHeartbeats)
 }
