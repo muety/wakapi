@@ -65,6 +65,17 @@ func (suite *DurationServiceTestSuite) SetupSuite() {
 			Machine:         TestMachine1,
 			Time:            models.CustomTime(suite.TestStartTime.Add(30 * time.Second)), // 0:30
 		},
+		// duplicate of previous one
+		{
+			ID:              rand.Uint64(),
+			UserID:          TestUserId,
+			Project:         TestProject1,
+			Language:        TestLanguageGo,
+			Editor:          TestEditorGoland,
+			OperatingSystem: TestOsLinux,
+			Machine:         TestMachine1,
+			Time:            models.CustomTime(suite.TestStartTime.Add(30 * time.Second)), // 0:30
+		},
 		{
 			ID:              rand.Uint64(),
 			UserID:          TestUserId,
