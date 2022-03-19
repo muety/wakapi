@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/lpar/gzipped/v2"
-	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/routes/relay"
 
 	"github.com/emvi/logbuch"
@@ -268,18 +267,6 @@ func main() {
 	router.PathPrefix("/docs").Handler(
 		middlewares.NewFileTypeFilterMiddleware([]string{".go"})(staticFileServer),
 	)
-
-	// Miscellaneous
-	// Pre-warm projects cache
-	if !config.IsDev() {
-		allUsers, err := userService.GetAll()
-		if err == nil {
-			logbuch.Info("pre-warming user project cache")
-			for _, u := range allUsers {
-				go heartbeatService.GetEntitySetByUser(models.SummaryProject, u)
-			}
-		}
-	}
 
 	// Listen HTTP
 	listen(router)
