@@ -25,7 +25,7 @@ type IHeartbeatRepository interface {
 	GetLastByUsers() ([]*models.TimeByUser, error)
 	GetLatestByUser(*models.User) (*models.Heartbeat, error)
 	GetLatestByOriginAndUser(string, *models.User) (*models.Heartbeat, error)
-	Count() (int64, error)
+	Count(bool) (int64, error)
 	CountByUser(*models.User) (int64, error)
 	CountByUsers([]*models.User) ([]*models.CountByUser, error)
 	GetEntitySetByUser(uint8, *models.User) ([]string, error)

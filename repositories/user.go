@@ -98,10 +98,9 @@ func (r *UserRepository) GetByLoggedInAfter(t time.Time) ([]*models.User, error)
 // Returns a list of user ids, whose last heartbeat is not older than t
 // NOTE: Only ID field will be populated
 func (r *UserRepository) GetByLastActiveAfter(t time.Time) ([]*models.User, error) {
-	subQuery1 := r.db.Model(&models.User{}).
-		Select("users.id as user, max(time) as time").
-		Joins("left join heartbeats on users.id = heartbeats.user_id").
-		Group("user")
+	subQuery1 := r.db.Model(&models.Heartbeat{}).
+		Select("user_id as user, max(time) as time").
+		Group("user_id")
 
 	var userIds []string
 	if err := r.db.

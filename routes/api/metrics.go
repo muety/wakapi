@@ -273,7 +273,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 	}
 
 	totalUsers, _ := h.userSrvc.Count()
-	totalHeartbeats, _ := h.heartbeatSrvc.Count()
+	totalHeartbeats, _ := h.heartbeatSrvc.Count(true)
 
 	activeUsers, err := h.userSrvc.GetActive(false)
 	if err != nil {

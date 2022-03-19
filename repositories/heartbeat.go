@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -8,11 +9,12 @@ import (
 )
 
 type HeartbeatRepository struct {
-	db *gorm.DB
+	db     *gorm.DB
+	config *conf.Config
 }
 
 func NewHeartbeatRepository(db *gorm.DB) *HeartbeatRepository {
-	return &HeartbeatRepository{db: db}
+	return &HeartbeatRepository{config: conf.Get(), db: db}
 }
 
 // Use with caution!!
@@ -116,12 +118,19 @@ func (r *HeartbeatRepository) GetLastByUsers() ([]*models.TimeByUser, error) {
 	return result, nil
 }
 
-func (r *HeartbeatRepository) Count() (int64, error) {
-	var count int64
-	if err := r.db.
-		Model(&models.Heartbeat{}).
-		Count(&count).Error; err != nil {
-		return 0, err
+func (r *HeartbeatRepository) Count(approximate bool) (count int64, err error) {
+	if r.config.Db.IsMySQL() && approximate {
+		err = r.db.Table("information_schema.tables").
+			Select("table_rows").
+			Where("table_schema = ?", r.config.Db.Name).
+			Where("table_name = 'heartbeats'").
+			Scan(&count).Error
+	}
+
+	if count == 0 {
+		err = r.db.
+			Model(&models.Heartbeat{}).
+			Count(&count).Error
 	}
 	return count, nil
 }
@@ -145,6 +154,10 @@ func (r *HeartbeatRepository) CountByUsers(users []*models.User) ([]*models.Coun
 		userIds[i] = u.ID
 	}
 
+	if len(userIds) == 0 {
+		return counts, nil
+	}
+
 	if err := r.db.
 		Model(&models.Heartbeat{}).
 		Select("user_id as user, count(id) as count").
@@ -153,6 +166,7 @@ func (r *HeartbeatRepository) CountByUsers(users []*models.User) ([]*models.Coun
 		Find(&counts).Error; err != nil {
 		return counts, err
 	}
+
 	return counts, nil
 }
 

@@ -73,12 +73,12 @@ func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {
 	return err
 }
 
-func (srv *HeartbeatService) Count() (int64, error) {
+func (srv *HeartbeatService) Count(approximate bool) (int64, error) {
 	result, ok := srv.cache.Get(srv.countTotalCacheKey())
 	if ok {
 		return result.(int64), nil
 	}
-	count, err := srv.repository.Count()
+	count, err := srv.repository.Count(approximate)
 	if err == nil {
 		srv.cache.Set(srv.countTotalCacheKey(), count, srv.countCacheTtl())
 	}
