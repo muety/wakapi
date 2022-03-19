@@ -46,20 +46,12 @@ func (h *DiagnosticsApiHandler) RegisterRoutes(router *mux.Router) {
 func (h *DiagnosticsApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	var diagnostics models.Diagnostics
 
-	user := middlewares.GetPrincipal(r)
-	if user == nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(conf.ErrUnauthorized))
-		return
-	}
-
 	if err := json.NewDecoder(r.Body).Decode(&diagnostics); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(conf.ErrBadRequest))
 		conf.Log().Request(r).Error("failed to parse diagnostics for user %s - %v", err)
 		return
 	}
-	diagnostics.UserID = user.ID
 
 	if _, err := h.diagnosticsSrvc.Create(&diagnostics); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
