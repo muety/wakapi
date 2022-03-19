@@ -36,7 +36,7 @@ func (h *Heartbeat) Valid() bool {
 
 func (h *Heartbeat) Timely(maxAge time.Duration) bool {
 	now := time.Now()
-	return now.Sub(h.Time.T()) <= maxAge && h.Time.T().Before(now)
+	return now.Sub(h.Time.T()) <= maxAge && h.Time.T().Sub(now) < 1*time.Hour
 }
 
 func (h *Heartbeat) Augment(languageMappings map[string]string) {
