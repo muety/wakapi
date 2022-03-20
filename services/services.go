@@ -1,13 +1,14 @@
 package services
 
 import (
+	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/muety/wakapi/models"
 	"time"
 )
 
 type IAggregationService interface {
 	Schedule()
-	Run(map[string]bool) error
+	Run(set datastructure.Set[string]) error
 }
 
 type IMiscService interface {

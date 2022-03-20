@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+// TODO: replace these functions by github.com/duke-git/lancet/v2/datetime
+// needs additional thoughts, though, as for "EndOfX" functions, we currently return the discrete next day,
+// while the above lib returns the very last nanosecond of the current day, i.e.
+// 2022-02-15 23:59:59.999 +0800 CST vs. 2022-02-16 00:00:00.000 +0800 CST
+// -> need to revisit comparison logic, etc.
+
 func StartOfDay(date time.Time) time.Time {
 	return FloorDate(date)
 }

@@ -2,10 +2,10 @@ package services
 
 import (
 	"fmt"
+	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/repositories"
-	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
 	"strings"
 	"sync"
@@ -54,14 +54,14 @@ func (srv *HeartbeatService) Insert(heartbeat *models.Heartbeat) error {
 }
 
 func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {
-	hashes := make(map[string]bool)
+	hashes := datastructure.NewSet[string]()
 
 	// https://github.com/muety/wakapi/issues/139
 	filteredHeartbeats := make([]*models.Heartbeat, 0, len(heartbeats))
 	for _, hb := range heartbeats {
-		if _, ok := hashes[hb.Hash]; !ok {
+		if !hashes.Contain(hb.Hash) {
 			filteredHeartbeats = append(filteredHeartbeats, hb)
-			hashes[hb.Hash] = true
+			hashes.Add(hb.Hash)
 		}
 		go srv.updateEntityUserCacheByHeartbeat(hb)
 	}
@@ -159,7 +159,7 @@ func (srv *HeartbeatService) GetEntitySetByUser(entityType uint8, user *models.U
 	if results, found := srv.cache.Get(cacheKey); found {
 		srv.entityCacheLock.RLock()
 		defer srv.entityCacheLock.RUnlock()
-		return utils.SetToStrings(results.(map[string]bool)), nil
+		return results.(datastructure.Set[string]).Values(), nil
 	}
 
 	results, err := srv.repository.GetEntitySetByUser(entityType, user)
@@ -174,7 +174,7 @@ func (srv *HeartbeatService) GetEntitySetByUser(entityType uint8, user *models.U
 		}
 	}
 
-	srv.cache.Set(cacheKey, utils.StringsToSet(filtered), cache.NoExpiration)
+	srv.cache.Set(cacheKey, datastructure.NewSet(filtered...), cache.NoExpiration)
 	return filtered, nil
 }
 
@@ -208,13 +208,13 @@ func (srv *HeartbeatService) getEntityUserCacheKey(entityType uint8, user *model
 func (srv *HeartbeatService) updateEntityUserCache(entityType uint8, entityKey string, user *models.User) {
 	cacheKey := srv.getEntityUserCacheKey(entityType, user)
 	if entities, found := srv.cache.Get(cacheKey); found {
-		entitySet := entities.(map[string]bool)
+		entitySet := entities.(datastructure.Set[string])
 
 		srv.entityCacheLock.Lock()
 		defer srv.entityCacheLock.Unlock()
 
-		if _, ok := entitySet[entityKey]; !ok {
-			entitySet[entityKey] = true
+		if !entitySet.Contain(entityKey) {
+			entitySet.Add(entityKey)
 			// new project / language / ..., which is not yet present in cache, arrived as part of a heartbeats
 			// -> update cache instead of just invalidating it, because rebuilding is expensive here
 			srv.cache.Set(cacheKey, entitySet, cache.NoExpiration)

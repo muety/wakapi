@@ -1,6 +1,7 @@
 package utils
 
 import (
+	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"sort"
@@ -12,17 +13,10 @@ import (
 // -> Instead, the "virtual" project "AB" shall appear
 // See https://github.com/muety/wakapi/issues/231
 func GetEffectiveProjectsList(user *models.User, heartbeatSrvc services.IHeartbeatService, aliasSrvc services.IAliasService) ([]string, error) {
-	projectsMap := make(map[string]bool) // proper sets as part of stdlib would be nice...
-
 	// extract actual projects from heartbeats
 	realProjects, err := heartbeatSrvc.GetEntitySetByUser(models.SummaryProject, user)
 	if err != nil {
 		return []string{}, err
-	}
-
-	// create a "set" / lookup table
-	for _, p := range realProjects {
-		projectsMap[p] = true
 	}
 
 	// fetch aliases
@@ -31,23 +25,16 @@ func GetEffectiveProjectsList(user *models.User, heartbeatSrvc services.IHeartbe
 		return []string{}, err
 	}
 
+	projects := datastructure.NewSet[string](realProjects...)
+
 	// remove alias values (source of a mapping)
 	// add alias key (target of a mapping) instead
 	for _, a := range projectAliases {
-		if projectsMap[a.Value] {
-			projectsMap[a.Value] = false
-		}
-		projectsMap[a.Key] = true
+		projects.Delete(a.Value)
+		projects.Add(a.Key)
 	}
 
-	projects := make([]string, 0, len(projectsMap))
-	for key, val := range projectsMap {
-		if !val {
-			continue
-		}
-		projects = append(projects, key)
-	}
-
-	sort.Strings(projects)
-	return projects, nil
+	sorted := projects.Values()
+	sort.Strings(sorted)
+	return sorted, nil
 }

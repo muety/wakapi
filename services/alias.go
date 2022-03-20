@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -117,12 +118,13 @@ func (srv *AliasService) Delete(alias *models.Alias) error {
 
 func (srv *AliasService) DeleteMulti(aliases []*models.Alias) error {
 	ids := make([]uint, len(aliases))
-	affectedUsers := make(map[string]bool)
+	affectedUsers := datastructure.NewSet[string]()
+
 	for i, a := range aliases {
 		if a.UserID == "" {
 			return errors.New("no user id specified")
 		}
-		affectedUsers[a.UserID] = true
+		affectedUsers.Add(a.UserID)
 		ids[i] = a.ID
 	}
 

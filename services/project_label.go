@@ -7,6 +7,7 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
 	"github.com/patrickmn/go-cache"
+	"github.com/samber/lo"
 	"time"
 )
 
@@ -45,38 +46,26 @@ func (srv *ProjectLabelService) GetByUser(userId string) ([]*models.ProjectLabel
 
 // GetByUserGrouped returns lists of project labels, grouped by their project key
 func (srv *ProjectLabelService) GetByUserGrouped(userId string) (map[string][]*models.ProjectLabel, error) {
-	labelsByProject := make(map[string][]*models.ProjectLabel)
 	userLabels, err := srv.GetByUser(userId)
 	if err != nil {
 		return nil, err
 	}
-
-	for _, l := range userLabels {
-		if _, ok := labelsByProject[l.ProjectKey]; !ok {
-			labelsByProject[l.ProjectKey] = []*models.ProjectLabel{l}
-		} else {
-			labelsByProject[l.ProjectKey] = append(labelsByProject[l.ProjectKey], l)
-		}
-	}
-	return labelsByProject, nil
+	mappedLabels := lo.GroupBy[*models.ProjectLabel, string](userLabels, func(l *models.ProjectLabel) string {
+		return l.ProjectKey
+	})
+	return mappedLabels, nil
 }
 
 // GetByUserGroupedInverted returns lists of project labels, grouped by their label key
 func (srv *ProjectLabelService) GetByUserGroupedInverted(userId string) (map[string][]*models.ProjectLabel, error) {
-	projectsByLabel := make(map[string][]*models.ProjectLabel)
 	userLabels, err := srv.GetByUser(userId)
 	if err != nil {
 		return nil, err
 	}
-
-	for _, l := range userLabels {
-		if _, ok := projectsByLabel[l.Label]; !ok {
-			projectsByLabel[l.Label] = []*models.ProjectLabel{l}
-		} else {
-			projectsByLabel[l.Label] = append(projectsByLabel[l.Label], l)
-		}
-	}
-	return projectsByLabel, nil
+	mappedLabels := lo.GroupBy[*models.ProjectLabel, string](userLabels, func(l *models.ProjectLabel) string {
+		return l.Label
+	})
+	return mappedLabels, nil
 }
 
 func (srv *ProjectLabelService) Create(label *models.ProjectLabel) (*models.ProjectLabel, error) {
