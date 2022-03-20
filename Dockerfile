@@ -1,7 +1,7 @@
 # To build locally: docker buildx build . -t wakapi --load
 
 # Preparation to save some time
-FROM --platform=$BUILDPLATFORM golang:1.17-alpine AS prep-env
+FROM --platform=$BUILDPLATFORM golang:1.18-alpine AS prep-env
 WORKDIR /src
 
 ADD ./go.mod .
@@ -12,7 +12,7 @@ RUN wget "https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-fo
     chmod +x wait-for-it.sh
 
 # Build Stage
-FROM golang:1.17-alpine AS build-env
+FROM golang:1.18-alpine AS build-env
 
 # Required for go-sqlite3
 RUN apk add --no-cache gcc musl-dev
