@@ -5,7 +5,7 @@ go 1.18
 require (
 	codeberg.org/Codeberg/avatars v0.0.0-20211228163022-8da63012fe69
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
-	github.com/duke-git/lancet/v2 v2.0.0
+	github.com/duke-git/lancet/v2 v2.0.1
 	github.com/emersion/go-sasl v0.0.0-20211008083017-0b9dcfb154ac
 	github.com/emersion/go-smtp v0.15.0
 	github.com/emvi/logbuch v1.2.0
@@ -21,12 +21,11 @@ require (
 	github.com/lpar/gzipped/v2 v2.0.2
 	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/samber/lo v1.11.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.7.0
 	github.com/swaggo/swag v1.7.0
 	go.uber.org/atomic v1.9.0
-	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd
+	golang.org/x/crypto v0.0.0-20220321153916-2c7772ba3064
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	gorm.io/driver/mysql v1.3.2
 	gorm.io/driver/postgres v1.3.1
@@ -63,7 +62,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
-	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
+	golang.org/x/mod v0.6.0-dev.0.20211013180041-c96bc1413d57 // indirect
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
 	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8 // indirect
 	golang.org/x/text v0.3.7 // indirect

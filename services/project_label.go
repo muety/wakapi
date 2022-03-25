@@ -2,12 +2,12 @@ package services
 
 import (
 	"errors"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
 	"github.com/patrickmn/go-cache"
-	"github.com/samber/lo"
 	"time"
 )
 
@@ -50,7 +50,7 @@ func (srv *ProjectLabelService) GetByUserGrouped(userId string) (map[string][]*m
 	if err != nil {
 		return nil, err
 	}
-	mappedLabels := lo.GroupBy[*models.ProjectLabel, string](userLabels, func(l *models.ProjectLabel) string {
+	mappedLabels := slice.GroupWith[*models.ProjectLabel, string](userLabels, func(l *models.ProjectLabel) string {
 		return l.ProjectKey
 	})
 	return mappedLabels, nil
@@ -62,7 +62,7 @@ func (srv *ProjectLabelService) GetByUserGroupedInverted(userId string) (map[str
 	if err != nil {
 		return nil, err
 	}
-	mappedLabels := lo.GroupBy[*models.ProjectLabel, string](userLabels, func(l *models.ProjectLabel) string {
+	mappedLabels := slice.GroupWith[*models.ProjectLabel, string](userLabels, func(l *models.ProjectLabel) string {
 		return l.Label
 	})
 	return mappedLabels, nil
