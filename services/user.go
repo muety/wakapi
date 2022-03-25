@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/emvi/logbuch"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
@@ -100,9 +101,9 @@ func (srv *UserService) GetAllByReports(reportsEnabled bool) ([]*models.User, er
 }
 
 func (srv *UserService) GetActive(exact bool) ([]*models.User, error) {
-	minDate := time.Now().Add(-24 * time.Hour * time.Duration(srv.config.App.InactiveDays))
+	minDate := time.Now().AddDate(0, 0, -1*srv.config.App.InactiveDays)
 	if !exact {
-		minDate = utils.FloorDateHour(minDate)
+		minDate = datetime.BeginOfHour(minDate)
 	}
 
 	cacheKey := fmt.Sprintf("%s--active", minDate.String())

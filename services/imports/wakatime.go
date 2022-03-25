@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/duke-git/lancet/v2/datetime"
 	"net/http"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
-	"github.com/muety/wakapi/utils"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/semaphore"
 )
@@ -295,8 +295,8 @@ func mapHeartbeat(
 func generateDays(from, to time.Time) []time.Time {
 	days := make([]time.Time, 0)
 
-	from = utils.StartOfDay(from)
-	to = utils.StartOfDay(to.AddDate(0, 0, 1))
+	from = datetime.BeginOfDay(from)
+	to = datetime.BeginOfDay(to.AddDate(0, 0, 1))
 
 	for d := from; d.Before(to); d = d.AddDate(0, 0, 1) {
 		days = append(days, d)

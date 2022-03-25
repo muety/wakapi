@@ -1033,7 +1033,7 @@
 									"    pm.expect(jsonData.timezone).to.eql(pm.collectionVariables.get('TZ'));",
 									"    var date = new Date(\"2022-01-01T00:00:00+0100\")",
 									"    pm.expect(new Date(jsonData.start)).to.eql(date);",
-									"    pm.expect(new Date(jsonData.end)).to.eql(new Date(date.getTime() + 3600 * 1000 * 24));",
+									"    pm.expect(new Date(jsonData.end)).to.eql(new Date(date.getTime() + 3600 * 1000 * 24 - 1000));",
 									"    pm.expect(jsonData.data.length).to.eql(2);",
 									"});"
 								],

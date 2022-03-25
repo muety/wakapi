@@ -35,27 +35,27 @@ func ResolveIntervalTZ(interval *models.IntervalKey, tz *time.Location) (err err
 
 	switch interval {
 	case models.IntervalToday:
-		from = StartOfToday(tz)
+		from = BeginOfToday(tz)
 	case models.IntervalYesterday:
-		from = StartOfToday(tz).Add(-24 * time.Hour)
-		to = StartOfToday(tz)
+		from = BeginOfToday(tz).Add(-24 * time.Hour)
+		to = BeginOfToday(tz)
 	case models.IntervalThisWeek:
-		from = StartOfThisWeek(tz)
+		from = BeginOfThisWeek(tz)
 	case models.IntervalLastWeek:
-		from = StartOfThisWeek(tz).AddDate(0, 0, -7)
-		to = StartOfThisWeek(tz)
+		from = BeginOfThisWeek(tz).AddDate(0, 0, -7)
+		to = BeginOfThisWeek(tz)
 	case models.IntervalThisMonth:
-		from = StartOfThisMonth(tz)
+		from = BeginOfThisMonth(tz)
 	case models.IntervalLastMonth:
-		from = StartOfThisMonth(tz).AddDate(0, -1, 0)
-		to = StartOfThisMonth(tz)
+		from = BeginOfThisMonth(tz).AddDate(0, -1, 0)
+		to = BeginOfThisMonth(tz)
 	case models.IntervalThisYear:
-		from = StartOfThisYear(tz)
+		from = BeginOfThisYear(tz)
 	case models.IntervalPast7Days:
 		from = now.AddDate(0, 0, -7)
 	case models.IntervalPast7DaysYesterday:
-		from = StartOfToday(tz).AddDate(0, 0, -1).AddDate(0, 0, -7)
-		to = StartOfToday(tz).AddDate(0, 0, -1)
+		from = BeginOfToday(tz).AddDate(0, 0, -1).AddDate(0, 0, -7)
+		to = BeginOfToday(tz).AddDate(0, 0, -1)
 	case models.IntervalPast14Days:
 		from = now.AddDate(0, 0, -14)
 	case models.IntervalPast30Days:

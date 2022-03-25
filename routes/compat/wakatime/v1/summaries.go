@@ -2,6 +2,7 @@ package v1
 
 import (
 	"errors"
+	"github.com/duke-git/lancet/v2/datetime"
 	"net/http"
 	"strings"
 	"time"
@@ -120,7 +121,7 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary
 	// i.e. for wakatime, an interval 2021-04-29 - 2021-04-29 is actually 2021-04-29 - 2021-04-30,
 	// while for wakapi it would be empty
 	// see https://github.com/muety/wakapi/issues/192
-	end = utils.EndOfDay(end).Add(-1 * time.Second)
+	end = datetime.EndOfDay(end)
 
 	overallParams := &models.SummaryParams{
 		From: start,

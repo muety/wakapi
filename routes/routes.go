@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/muety/wakapi/views"
 	"html/template"
 	"net/http"
@@ -28,7 +29,7 @@ func DefaultTemplateFuncs() template.FuncMap {
 		"simpledate":     utils.FormatDate,
 		"simpledatetime": utils.FormatDateTime,
 		"duration":       utils.FmtWakatimeDuration,
-		"floordate":      utils.FloorDate,
+		"floordate":      datetime.BeginOfDay,
 		"ceildate":       utils.CeilDate,
 		"title":          strings.Title,
 		"join":           strings.Join,

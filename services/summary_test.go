@@ -485,6 +485,45 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
 	assert.Contains(suite.T(), effectiveFilters.Label, TestProjectLabel3)
 }
 
+func (suite *SummaryServiceTestSuite) TestSummaryService_getMissingIntervals() {
+	sut := NewSummaryService(suite.SummaryRepository, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+
+	from1, _ := time.Parse(time.RFC822, "25 Mar 22 11:00 UTC")
+	to1, _ := time.Parse(time.RFC822, "25 Mar 22 13:00 UTC")
+	from2, _ := time.Parse(time.RFC822, "25 Mar 22 15:00 UTC")
+	to2, _ := time.Parse(time.RFC822, "26 Mar 22 00:00 UTC")
+
+	summaries := []*models.Summary{
+		{FromTime: models.CustomTime(from1), ToTime: models.CustomTime(to1)},
+		{FromTime: models.CustomTime(from2), ToTime: models.CustomTime(to2)},
+	}
+
+	r1 := sut.getMissingIntervals(from1, to1, summaries, true)
+	assert.Empty(suite.T(), r1)
+
+	r2 := sut.getMissingIntervals(from1, from1, summaries, true)
+	assert.Empty(suite.T(), r2)
+
+	// non-precise mode will not return intra-day intervals
+	// we might want to change this ...
+	r3 := sut.getMissingIntervals(from1, to2, summaries, false)
+	assert.Len(suite.T(), r3, 0)
+
+	r4 := sut.getMissingIntervals(from1, to2, summaries, true)
+	assert.Len(suite.T(), r4, 1)
+	assert.Equal(suite.T(), to1, r4[0].Start)
+	assert.Equal(suite.T(), from2, r4[0].End)
+
+	r5 := sut.getMissingIntervals(from1.Add(-time.Hour), to2.Add(time.Hour), summaries, true)
+	assert.Len(suite.T(), r5, 3)
+	assert.Equal(suite.T(), from1.Add(-time.Hour), r5[0].Start)
+	assert.Equal(suite.T(), from1, r5[0].End)
+	assert.Equal(suite.T(), to1, r5[1].Start)
+	assert.Equal(suite.T(), from2, r5[1].End)
+	assert.Equal(suite.T(), to2, r5[2].Start)
+	assert.Equal(suite.T(), to2.Add(time.Hour), r5[2].End)
+}
+
 func filterDurations(from, to time.Time, durations models.Durations) models.Durations {
 	filtered := make([]*models.Duration, 0, len(durations))
 	for _, d := range durations {

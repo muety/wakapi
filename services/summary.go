@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/emvi/logbuch"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
@@ -113,7 +114,7 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 	}
 
 	// Generate missing slots (especially before and after existing summaries) from durations (formerly raw heartbeats)
-	missingIntervals := srv.getMissingIntervals(from, to, summaries)
+	missingIntervals := srv.getMissingIntervals(from, to, summaries, false)
 	for _, interval := range missingIntervals {
 		if s, err := srv.Summarize(interval.Start, interval.End, user, filters); err == nil {
 			summaries = append(summaries, s)
@@ -368,7 +369,7 @@ func (srv *SummaryService) mergeSummaryItems(existing []*models.SummaryItem, new
 	return itemList
 }
 
-func (srv *SummaryService) getMissingIntervals(from, to time.Time, summaries []*models.Summary) []*models.Interval {
+func (srv *SummaryService) getMissingIntervals(from, to time.Time, summaries []*models.Summary, precise bool) []*models.Interval {
 	if len(summaries) == 0 {
 		return []*models.Interval{{from, to}}
 	}
@@ -377,37 +378,43 @@ func (srv *SummaryService) getMissingIntervals(from, to time.Time, summaries []*
 
 	// Pre
 	if from.Before(summaries[0].FromTime.T()) {
-		intervals = append(intervals, &models.Interval{from, summaries[0].FromTime.T()})
+		intervals = append(intervals, &models.Interval{Start: from, End: summaries[0].FromTime.T()})
 	}
 
 	// Between
 	for i := 0; i < len(summaries)-1; i++ {
 		t1, t2 := summaries[i].ToTime.T(), summaries[i+1].FromTime.T()
-		if t1.Equal(t2) {
+		if t1.Equal(t2) || t1.Equal(to) || t1.After(to) {
 			continue
 		}
+
+		td1 := t1
+		td2 := t2
 
 		// round to end of day / start of day, assuming that summaries are always generated on a per-day basis
 		// we assume that, if summary for any time range within a day is present, no further heartbeats exist on that day before 'from' and after 'to' time of that summary
 		// this requires that a summary exists for every single day in a year and none is skipped, which shouldn't ever happen
-		td1 := time.Date(t1.Year(), t1.Month(), t1.Day()+1, 0, 0, 0, 0, t1.Location())
-		td2 := time.Date(t2.Year(), t2.Month(), t2.Day(), 0, 0, 0, 0, t2.Location())
+		// non-precise mode is mainly for speed when fetching summaries over large intervals and trades speed for summary accuracy / comprehensiveness
+		if !precise {
+			td1 = datetime.BeginOfDay(t1).AddDate(0, 0, 1)
+			td2 = datetime.BeginOfDay(t2)
 
-		// we always want to jump to beginning of next day
-		// however, if left summary ends already at midnight, we would instead jump to beginning of second-next day -> go back again
-		if td1.Sub(t1) == 24*time.Hour {
-			td1 = td1.Add(-1 * time.Hour)
+			// we always want to jump to beginning of next day
+			// however, if left summary ends already at midnight, we would instead jump to beginning of second-next day -> go back again
+			if td1.Sub(t1) == 24*time.Hour {
+				td1 = td1.Add(-1 * time.Hour)
+			}
 		}
 
 		// one or more day missing in between?
 		if td1.Before(td2) {
-			intervals = append(intervals, &models.Interval{summaries[i].ToTime.T(), summaries[i+1].FromTime.T()})
+			intervals = append(intervals, &models.Interval{Start: summaries[i].ToTime.T(), End: summaries[i+1].FromTime.T()})
 		}
 	}
 
 	// Post
 	if to.After(summaries[len(summaries)-1].ToTime.T()) {
-		intervals = append(intervals, &models.Interval{summaries[len(summaries)-1].ToTime.T(), to})
+		intervals = append(intervals, &models.Interval{Start: summaries[len(summaries)-1].ToTime.T(), End: to})
 	}
 
 	return intervals

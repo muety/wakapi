@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/duke-git/lancet/v2/datetime"
 	"net/http"
 	"time"
 
@@ -65,7 +66,7 @@ func (h *HeartbeatHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	timezone := user.TZ()
-	rangeFrom, rangeTo := utils.StartOfDay(date.In(timezone)), utils.EndOfDay(date.In(timezone))
+	rangeFrom, rangeTo := datetime.BeginOfDay(date.In(timezone)), datetime.EndOfDay(date.In(timezone))
 
 	heartbeats, err := h.heartbeatSrvc.GetAllWithin(rangeFrom, rangeTo, user)
 	if err != nil {
