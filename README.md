@@ -35,11 +35,12 @@
 Installation instructions can be found below and in the [Wiki](https://github.com/muety/wakapi/wiki).
 
 ## 🚀 Features
+
 * ✅ 100 % free and open-source
 * ✅ Built by developers for developers
 * ✅ Statistics for projects, languages, editors, hosts and operating systems
 * ✅ Badges
-* ✅ Weekly E-Mail Reports
+* ✅ Weekly E-Mail reports
 * ✅ REST API
 * ✅ Partially compatible with WakaTime
 * ✅ WakaTime integration
@@ -48,20 +49,25 @@ Installation instructions can be found below and in the [Wiki](https://github.co
 * ✅ Self-hosted
 
 ## 🚧 Roadmap
-Plans for the near future mainly include, besides usual improvements and bug fixes, a UI redesign as well as additional types of charts and statistics (see [#101](https://github.com/muety/wakapi/issues/101), [#76](https://github.com/muety/wakapi/issues/76), [#12](https://github.com/muety/wakapi/issues/12)). If you have feature requests or any kind of improvement proposals feel free to open an issue or share them in our [user survey](https://github.com/muety/wakapi/issues/82). 
+
+Plans for the near future mainly include, besides usual improvements and bug fixes, a UI redesign as well as additional types of charts and statistics (see [#101](https://github.com/muety/wakapi/issues/101), [#76](https://github.com/muety/wakapi/issues/76), [#12](https://github.com/muety/wakapi/issues/12)). If you have feature requests or any kind of improvement proposals feel free to open an issue or share them in our [user survey](https://github.com/muety/wakapi/issues/82).
 
 ## ⌨️ How to use?
-There are different options for how to use Wakapi, ranging from our hosted cloud service to self-hosting it. Regardless of which option choose, you will always have to do the [client setup](#-client-setup) in addition. 
+
+There are different options for how to use Wakapi, ranging from our hosted cloud service to self-hosting it. Regardless of which option choose, you will always have to do the [client setup](#-client-setup) in addition.
 
 ### ☁️ Option 1: Use [wakapi.dev](https://wakapi.dev)
+
 If you want to try out a free, hosted cloud service, all you need to do is create an account and then set up your client-side tooling (see below).
 
-### 📦 Option 2: Quick-run a Release
+### 📦 Option 2: Quick-run a release
+
 ```bash
 $ curl -L https://wakapi.dev/get | bash
 ```
 
 ### 🐳 Option 3: Use Docker
+
 ```bash
 # Create a persistent volume
 $ docker volume create wakapi-data
@@ -82,14 +88,17 @@ $ docker run -d \
 If you want to run Wakapi on **Kubernetes**, there is [wakapi-helm-chart](https://github.com/andreymaznyak/wakapi-helm-chart) for quick and easy deployment.
 
 ### 🧑‍💻 Option 4: Compile and run from source
+
 #### Prerequisites
+
 * Go >= 1.18
 * gcc (to compile [go-sqlite3](https://github.com/mattn/go-sqlite3))
-    * Fedora / RHEL: `dnf install @development-tools`
-    * Ubuntu / Debian: `apt install build-essential`
-    * Windows: See [here](https://github.com/mattn/go-sqlite3/issues/214#issuecomment-253216476)
+  * Fedora / RHEL: `dnf install @development-tools`
+  * Ubuntu / Debian: `apt install build-essential`
+  * Windows: See [here](https://github.com/mattn/go-sqlite3/issues/214#issuecomment-253216476)
 
-#### Compile & Run
+#### Compile & run
+
 ```bash
 # Build the executable
 $ go build -o wakapi
@@ -102,13 +111,14 @@ $ vi config.yml
 $ ./wakapi
 ```
 
-**Note:** Check the comments `config.yml` for best practices regarding security configuration and more.
+**Note:** Check the comments in `config.yml` for best practices regarding security configuration and more.
 
-### 💻 Client Setup
+### 💻 Client setup
+
 Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime) client tools. In order to collect statistics for Wakapi, you need to set them up.
 
 1. **Set up WakaTime** for your specific IDE or editor. Please refer to the respective [plugin guide](https://wakatime.com/plugins)
-2. **Editing your local `~/.wakatime.cfg`** file as follows
+2. **Edit your local `~/.wakatime.cfg`** file as follows.
 
 ```ini
 [settings]
@@ -122,17 +132,19 @@ api_key = 406fe41f-6d69-4183-a4cc-121e0c524c2b
 
 Optionally, you can set up a [client-side proxy](https://github.com/muety/wakapi/wiki/Advanced-Setup:-Client-side-proxy) in addition.
 
-## 🔧 Configuration Options
+## 🔧 Configuration options
+
 You can specify configuration options either via a config file (default: `config.yml`, customizable through the `-c` argument) or via environment variables. Here is an overview of all options.
 
-| YAML Key / Env. Variable                                                     | Default                                          | Description                                                                                                                                                              |
+| YAML key / Env. variable                                                     | Default                                          | Description                                                                                                                                                              |
 |------------------------------------------------------------------------------|--------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `env` /<br>`ENVIRONMENT`                                                     | `dev`                                            | Whether to use development- or production settings                                                                                                                       |
-| `app.aggregation_time`<br>`WAKAPI_AGGREGATION_TIME`                          | `02:15`                                          | Time of day at which to periodically run summary generation for all users                                                                                                |
-| `app.report_time_weekly`<br>`WAKAPI_REPORT_TIME_WEEKLY`                      | `fri,18:00`                                      | Week day and time at which to send e-mail reports                                                                                                                        |
-| `app.import_batch_size`<br>`WAKAPI_IMPORT_BATCH_SIZE`                        | `50`                                             | Size of batches of heartbeats to insert to the database during importing from external services                                                                          |
-| `app.inactive_days`<br>`WAKAPI_INACTIVE_DAYS`                                | `7`                                              | Number of days after which to consider a user inactive (only for metrics)                                                                                                |
-| `app.heartbeat_max_age`<br>`WAKAPI_HEARTBEAT_MAX_AGE`                        | `4320h`                                          | Maximum acceptable age of a heartbeat (see [`ParseDuration`](https://pkg.go.dev/time#ParseDuration))                                                                     |
+| `app.aggregation_time` /<br>`WAKAPI_AGGREGATION_TIME`                        | `02:15`                                          | Time of day at which to periodically run summary generation for all users                                                                                                |
+| `app.report_time_weekly` /<br>`WAKAPI_REPORT_TIME_WEEKLY`                    | `fri,18:00`                                      | Week day and time at which to send e-mail reports                                                                                                                        |
+| `app.import_batch_size` /<br>`WAKAPI_IMPORT_BATCH_SIZE`                      | `50`                                             | Size of batches of heartbeats to insert to the database during importing from external services                                                                          |
+| `app.inactive_days` /<br>`WAKAPI_INACTIVE_DAYS`                              | `7`                                              | Number of days after which to consider a user inactive (only for metrics)                                                                                                |
+| `app.heartbeat_max_age /`<br>`WAKAPI_HEARTBEAT_MAX_AGE`                      | `4320h`                                          | Maximum acceptable age of a heartbeat (see [`ParseDuration`](https://pkg.go.dev/time#ParseDuration))                                                                     |
+| `app.vibrant_color` /<br> `WAKAPI_VIBRANT_COLOR`                             | `false`                                          | whether to enable vibrant colors for all charts in summary page                                                                                                          |
 | `app.custom_languages`                                                       | -                                                | Map from file endings to language names                                                                                                                                  |
 | `app.avatar_url_template`                                                    | (see [`config.default.yml`](config.default.yml)) | URL template for external user avatar images (e.g. from [Dicebear](https://dicebear.com) or [Gravatar](https://gravatar.com))                                            |
 | `server.port` /<br> `WAKAPI_PORT`                                            | `3000`                                           | Port to listen on                                                                                                                                                        |
@@ -143,6 +155,7 @@ You can specify configuration options either via a config file (default: `config
 | `server.tls_cert_path` /<br> `WAKAPI_TLS_CERT_PATH`                          | -                                                | Path of SSL server certificate (leave blank to not use HTTPS)                                                                                                            |
 | `server.tls_key_path` /<br> `WAKAPI_TLS_KEY_PATH`                            | -                                                | Path of SSL server private key (leave blank to not use HTTPS)                                                                                                            |
 | `server.base_path` /<br> `WAKAPI_BASE_PATH`                                  | `/`                                              | Web base path (change when running behind a proxy under a sub-path)                                                                                                      |
+| `server.public_url` /<br> `WAKAPI_PUBLIC_URL`                                | `http://localhost:3000`                          | Public web URL for Wakapi, required for links (e.g. password reset) in e-mail                                                                                            |
 | `security.password_salt` /<br> `WAKAPI_PASSWORD_SALT`                        | -                                                | Pepper to use for password hashing                                                                                                                                       |
 | `security.insecure_cookies` /<br> `WAKAPI_INSECURE_COOKIES`                  | `false`                                          | Whether or not to allow cookies over HTTP                                                                                                                                |
 | `security.cookie_max_age` /<br> `WAKAPI_COOKIE_MAX_AGE`                      | `172800`                                         | Lifetime of authentication cookies in seconds or `0` to use [Session](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Define_the_lifetime_of_a_cookie) cookies |
@@ -166,34 +179,40 @@ You can specify configuration options either via a config file (default: `config
 | `mail.smtp.username` /<br> `WAKAPI_MAIL_SMTP_USER`                           | -                                                | SMTP server authentication username                                                                                                                                      |
 | `mail.smtp.password` /<br> `WAKAPI_MAIL_SMTP_PASS`                           | -                                                | SMTP server authentication password                                                                                                                                      |
 | `mail.smtp.tls` /<br> `WAKAPI_MAIL_SMTP_TLS`                                 | `false`                                          | Whether the SMTP server requires TLS encryption (`false` for STARTTLS or no encryption)                                                                                  |
-| `mail.mailwhale.url` /<br> `WAKAPI_MAIL_MAILWHALE_URL`                       | -                                                | URL of [MailWhale](https://mailwhale.dev) instance (e.g. `https://mailwhale.dev`) (if using `mailwhale` mail provider`)                                                  |
+| `mail.mailwhale.url` /<br> `WAKAPI_MAIL_MAILWHALE_URL`                       | -                                                | URL of [MailWhale](https://mailwhale.dev) instance (e.g. `https://mailwhale.dev`) (if using `mailwhale` mail provider)                                                   |
 | `mail.mailwhale.client_id` /<br> `WAKAPI_MAIL_MAILWHALE_CLIENT_ID`           | -                                                | MailWhale API client ID                                                                                                                                                  |
 | `mail.mailwhale.client_secret` /<br> `WAKAPI_MAIL_MAILWHALE_CLIENT_SECRET`   | -                                                | MailWhale API client secret                                                                                                                                              |
 | `sentry.dsn` /<br> `WAKAPI_SENTRY_DSN`                                       | –                                                | DSN for to integrate [Sentry](https://sentry.io) for error logging and tracing (leave empty to disable)                                                                  |
 | `sentry.enable_tracing` /<br> `WAKAPI_SENTRY_TRACING`                        | `false`                                          | Whether to enable Sentry request tracing                                                                                                                                 |
 | `sentry.sample_rate` /<br> `WAKAPI_SENTRY_SAMPLE_RATE`                       | `0.75`                                           | Probability of tracing a request in Sentry                                                                                                                               |
-| `sentry.sample_rate_heartbeats` /<br> `WAKAPI_SENTRY_SAMPLE_RATE_HEARTBEATS` | `0.1`                                            | Probability of tracing a heartbeats request in Sentry                                                                                                                    |
+| `sentry.sample_rate_heartbeats` /<br> `WAKAPI_SENTRY_SAMPLE_RATE_HEARTBEATS` | `0.1`                                            | Probability of tracing a heartbeat request in Sentry                                                                                                                     |
 | `quick_start` /<br> `WAKAPI_QUICK_START`                                     | `false`                                          | Whether to skip initial boot tasks. Use only for development purposes!                                                                                                   |
 
 ### Supported databases
+
 Wakapi uses [GORM](https://gorm.io) as an ORM. As a consequence, a set of different relational databases is supported.
+
 * [SQLite](https://sqlite.org/) (_default, easy setup_)
 * [MySQL](https://hub.docker.com/_/mysql) (_recommended, because most extensively tested_)
 * [MariaDB](https://hub.docker.com/_/mariadb) (_open-source MySQL alternative_)
 * [Postgres](https://hub.docker.com/_/postgres) (_open-source as well_)
 * [CockroachDB](https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html) (_cloud-native, distributed, Postgres-compatible API_)
 
-## 🔧 API Endpoints
+## 🔧 API endpoints
+
 See our [Swagger API Documentation](https://wakapi.dev/swagger-ui).
 
 ### Generating Swagger docs
+
 ```bash
 $ go get -u github.com/swaggo/swag/cmd/swag
 $ swag init -o static/docs
 ```
 
 ## 🤝 Integrations
-### Prometheus Export
+
+### Prometheus export
+
 You can export your Wakapi statistics to Prometheus to view them in a Grafana dashboard or so. Here is how.
 
 ```bash
@@ -208,6 +227,7 @@ $ echo "<YOUR_API_KEY>" | base64
 ```
 
 #### Scrape config example
+
 ```yml
 # prometheus.yml
 # (assuming your Wakapi instance listens at localhost, port 3000)
@@ -221,15 +241,18 @@ scrape_configs:
       - targets: ['localhost:3000']
 ```
 
-#### Grafana 
+#### Grafana
+
 There is also a [nice Grafana dashboard](https://grafana.com/grafana/dashboards/12790), provided by the author of [wakatime_exporter](https://github.com/MacroPower/wakatime_exporter).
 
 ![](https://grafana.com/api/dashboards/12790/images/8741/image)
 
-### WakaTime Integration
-Wakapi plays well together with [WakaTime](https://wakatime.com). For one thing, you can **forward heartbeats** from Wakapi to WakaTime to effectively use both services simultaneously. In addition, there is the option to **import historic data** from WakaTime for consistency between both services. Both features can be enabled in the _Integrations_ section of your Wakapi instance's settings page.     
+### WakaTime integration
 
-### GitHub Readme Stats Integrations
+Wakapi plays well together with [WakaTime](https://wakatime.com). For one thing, you can **forward heartbeats** from Wakapi to WakaTime to effectively use both services simultaneously. In addition, there is the option to **import historic data** from WakaTime for consistency between both services. Both features can be enabled in the _Integrations_ section of your Wakapi instance's settings page.
+
+### GitHub Readme Stats integrations
+
 Wakapi also integrates with [GitHub Readme Stats](https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats) to generate fancy cards for you. Here is an example.
 
 ![](https://github-readme-stats.vercel.app/api/wakatime?username=n1try&api_domain=wakapi.dev&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact)
@@ -237,20 +260,20 @@ Wakapi also integrates with [GitHub Readme Stats](https://github.com/anuraghazra
 <details>
 <summary>Click to view code</summary>
 
-```md
+```markdown
 ![](https://github-readme-stats.vercel.app/api/wakatime?username={yourusername}&api_domain=wakapi.dev&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact)
 ```
 
 </details>
 <br>
 
+### Github Readme Metrics integration
 
-### Github Readme Metrics Integration
-There is a [WakaTime plugin](https://github.com/lowlighter/metrics/tree/master/source/plugins/wakatime) for GitHub [metrics](https://github.com/lowlighter/metrics/) that is also compatible with Wakapi.
+There is a [WakaTime plugin](https://github.com/lowlighter/metrics/tree/master/source/plugins/wakatime) for GitHub [Metrics](https://github.com/lowlighter/metrics/) that is also compatible with Wakapi.
 
 Preview:
 
-![](https://raw.githubusercontent.com/lowlighter/lowlighter/master/metrics.plugin.wakatime.svg)
+![](https://raw.githubusercontent.com/lowlighter/metrics/examples/metrics.plugin.wakatime.svg)
 
 <details>
 <summary>Click to view code</summary>
@@ -264,7 +287,7 @@ Preview:
     plugin_wakatime_days: 7                                   # Display last week stats
     plugin_wakatime_sections: time, projects, projects-graphs # Display time and projects sections, along with projects graphs
     plugin_wakatime_limit: 4                                  # Show 4 entries per graph
-    plugin_wakatime_url: http://wakapi.dev                  # Wakatime url endpoint
+    plugin_wakatime_url: http://wakapi.dev                    # Wakatime url endpoint
     plugin_wakatime_user: .user.login                         # User
 
 ```
@@ -272,20 +295,26 @@ Preview:
 </details>
 <br>
 
-## 👍 Best Practices
-It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or _nginx_ to enable **TLS encryption** (HTTPS).
-However, if you want to expose your wakapi instance to the public anyway, you need to set `server.listen_ipv4` to `0.0.0.0` in `config.yml`
+## 👍 Best practices
+
+It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or [nginx](https://www.nginx.com/), to enable **TLS encryption** (HTTPS).
+
+However, if you want to expose your wakapi instance to the public anyway, you need to set `server.listen_ipv4` to `0.0.0.0` in `config.yml`.
 
 ## 🧪 Tests
-### Unit Tests
+
+### Unit tests
+
 Unit tests are supposed to test business logic on a fine-grained level. They are implemented as part of the application, using Go's [testing](https://pkg.go.dev/testing?utm_source=godoc) package alongside [stretchr/testify](https://pkg.go.dev/github.com/stretchr/testify).
 
 #### How to run
+
 ```bash
 $ CGO_FLAGS="-g -O2 -Wno-return-local-addr" go test -json -coverprofile=coverage/coverage.out ./... -run ./...
 ```
 
-### API Tests
+### API tests
+
 API tests are implemented as black box tests, which interact with a fully-fledged, standalone Wakapi through HTTP requests. They are supposed to check Wakapi's web stack and endpoints, including response codes, headers and data on a syntactical level, rather than checking the actual content that is returned.
 
 Our API (or end-to-end, in some way) tests are implemented as a [Postman](https://www.postman.com/) collection and can be run either from inside Postman, or using [newman](https://www.npmjs.com/package/newman) as a command-line runner.
@@ -293,6 +322,7 @@ Our API (or end-to-end, in some way) tests are implemented as a [Postman](https:
 To get a predictable environment, tests are run against a fresh and clean Wakapi instance with a SQLite database that is populated with nothing but some seed data (see [data.sql](testing/data.sql)). It is usually recommended for software tests to be [safe](https://www.restapitutorial.com/lessons/idempotency.html), stateless and without side effects. In contrary to that paradigm, our API tests strictly require a fixed execution order (which Postman assures) and their assertions may rely on specific previous tests having succeeded.
 
 #### Prerequisites (Linux only)
+
 ```bash
 # 1. sqlite (cli)
 $ sudo apt install sqlite  # Fedora: sudo dnf install sqlite
@@ -301,26 +331,31 @@ $ sudo apt install sqlite  # Fedora: sudo dnf install sqlite
 $ npm install -g newman
 ```
 
-#### How to run (Linux only) 
+#### How to run (Linux only)
+
 ```bash
 $ ./testing/run_api_tests.sh
 ```
 
-## 🤓 Developer Notes
+## 🤓 Developer notes
+
 ### Building web assets
-To keep things minimal, all JS and CSS assets are included as static files and checked in to Git. [TailwindCSS](https://tailwindcss.com/docs/installation#building-for-production) and [Iconify](https://iconify.design/docs/icon-bundles/) require an additional build step. To only require this at the time of development, the compiled assets are checked in to Git as well. 
+
+To keep things minimal, all JS and CSS assets are included as static files and checked in to Git. [TailwindCSS](https://tailwindcss.com/docs/installation#building-for-production) and [Iconify](https://iconify.design/docs/icon-bundles/) require an additional build step. To only require this at the time of development, the compiled assets are checked in to Git as well.
 
 ```bash
 $ yarn
-$ yarn build  # or: yarn watch 
+$ yarn build  # or: yarn watch
 ```
 
 New icons can be added by editing the `icons` array in [scripts/bundle_icons.js](scripts/bundle_icons.js).
 
 #### Precompression
+
 As explained in [#284](https://github.com/muety/wakapi/issues/284), precompressed (using Brotli) versions of some of the assets are delivered to save additional bandwidth. This was inspired by Caddy's [`precompressed`](https://caddyserver.com/docs/caddyfile/directives/file_server) directive. [`gzipped.FileServer`](https://github.com/muety/wakapi/blob/07a367ce0a97c7738ba8e255e9c72df273fd43a3/main.go#L249) checks for every static file's `.br` or `.gz` equivalents and, if present, delivers those instead of the actual file, alongside `Content-Encoding: br`. Currently, compressed assets are simply checked in to Git. Later we might want to have this be part of a new build step.
 
 To pre-compress files, run this:
+
 ```bash
 # Install brotli first
 $ sudo apt install brotli  # or: sudo dnf install brotli
@@ -336,35 +371,36 @@ $ yarn compress
 ```
 
 ## ❔ FAQs
-Since Wakapi heavily relies on the concepts provided by WakaTime, [their FAQs](https://wakatime.com/faq) apply to Wakapi for large parts as well. You might find answers there.
+
+Since Wakapi heavily relies on the concepts provided by WakaTime, [their FAQs](https://wakatime.com/faq) largely apply to Wakapi as well. You might find answers there.
 
 <details>
-<summary><b>What data is sent to Wakapi?</b></summary>
+<summary><b>What data are sent to Wakapi?</b></summary>
 
 <ul>
   <li>File names</li>
   <li>Project names</li>
   <li>Editor names</li>
-  <li>You computer's host name</li>
+  <li>Your computer's host name</li>
   <li>Timestamps for every action you take in your editor</li>
   <li>...</li>
 </ul>
 
 See the related [WakaTime FAQ section](https://wakatime.com/faq#data-collected) for details.
 
-If you host Wakapi yourself, you have control over all your data. However, if you use our webservice and are concerned about privacy, you can also [exclude or obfuscate](https://wakatime.com/faq#exclude-paths) certain file- or project names.  
+If you host Wakapi yourself, you have control over all your data. However, if you use our webservice and are concerned about privacy, you can also [exclude or obfuscate](https://wakatime.com/faq#exclude-paths) certain file- or project names.
 </details>
 
 <details>
 <summary><b>What happens if I'm offline?</b></summary>
 
-All data is cached locally on your machine and sent in batches once you're online again.
+All data are cached locally on your machine and sent in batches once you're online again.
 </details>
 
 <details>
 <summary><b>How did Wakapi come about?</b></summary>
 
-Wakapi was started when I was a student, who wanted to track detailed statistics about my coding time. Although I'm a big fan of WakaTime I didn't want to pay <a href="https://wakatime.com/pricing">$9 a month</a> back then. Luckily, most parts of WakaTime are open source!  
+Wakapi was started when I was a student, who wanted to track detailed statistics about my coding time. Although I'm a big fan of WakaTime I didn't want to pay <a href="https://wakatime.com/pricing">$9 a month</a> back then. Luckily, most parts of WakaTime are open source!
 </details>
 
 <details>
@@ -377,11 +413,11 @@ Wakapi is a small subset of WakaTime and has a lot less features. Cool WakaTime 
   <li><a href="https://wakatime.com/share/embed">Embeddable Charts</a></li>
   <li>Personal Goals</li>
   <li>Team- / Organization Support</li>
-  <li>Integrations (with GitLab, etc.)</li>
+  <li>Additional Integrations (with GitLab, etc.)</li>
   <li>Richer API</li>
 </ul>
 
-WakaTime is worth the price. However, if you only want basic statistics and keep sovereignty over your data, you might want to go with Wakapi.
+WakaTime is worth the price. However, if you only need basic statistics and like to keep sovereignty over your data, you might want to go with Wakapi.
 </details>
 
 <details>
@@ -391,13 +427,13 @@ Inferring a measure for your coding time from heartbeats works a bit differently
 
 Here is an example (circles are heartbeats):
 
-```
+```text
 |---o---o--------------o---o---|
 |   |10s|      3m      |10s|   |
 
 ```
 
-It is unclear how to handle the three minutes in between. Did the developer do a 3-minute break or were just no heartbeats being sent, e.g. because the developer was starring at the screen trying to find a solution, but not actually typing code.
+It is unclear how to handle the three minutes in between. Did the developer do a 3-minute break, or were just no heartbeats being sent, e.g. because the developer was staring at the screen trying to find a solution, but not actually typing code?
 
 <ul>
   <li><b>WakaTime</b> (with 5 min timeout): 3 min 20 sec
@@ -409,17 +445,21 @@ Wakapi adds a "padding" of two minutes before the third heartbeat. This is why t
 </details>
 
 ## 🌳 Treeware
+
 This package is [Treeware](https://treeware.earth). If you use it in production, then we ask that you [**buy the world a tree**](https://plant.treeware.earth/muety/wakapi) to thank us for our work. By contributing to the Treeware forest you’ll be creating employment for local families and restoring wildlife habitats.
 
 ## 👏 Support
+
 Coding in open source is my passion and I would love to do it on a full-time basis and make a living from it one day. So if you like this project, please consider supporting it 🙂. You can donate either through [buying me a coffee](https://buymeacoff.ee/n1try) or becoming a GitHub sponsor. Every little donation is highly appreciated and boosts my motivation to keep improving Wakapi!
 
 ## 🙏 Thanks
-I highly appreciate the efforts of **[@alanhamlett](https://github.com/alanhamlett)** and the WakaTime team and am thankful for their software being open source. 
+
+I highly appreciate the efforts of **[@alanhamlett](https://github.com/alanhamlett)** and the WakaTime team and am thankful for their software being open source.
 
 Moreover, thanks to **[JetBrains](https://jb.gg/OpenSource)** for supporting this project as part of their open-source program.
 
 ![](static/assets/images/jetbrains-logo.png)
 
 ## 📓 License
+
 GPL-v3 @ [Ferdinand Mütsch](https://muetsch.io)
