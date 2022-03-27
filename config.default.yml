@@ -17,6 +17,7 @@ app:
   inactive_days: 7                    # time of previous days within a user must have logged in to be considered active
   import_batch_size: 50               # maximum number of heartbeats to insert into the database within one transaction
   heartbeat_max_age: '4320h'          # maximum acceptable age of a heartbeat (see https://pkg.go.dev/time#ParseDuration)
+  vibrant_color: false                # whether to enable vibrant colors for all charts in summary page
   custom_languages:
     vue: Vue
     jsx: JSX

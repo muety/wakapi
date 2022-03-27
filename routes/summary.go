@@ -66,7 +66,10 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		Summary:        summary,
 		SummaryParams:  summaryParams,
 		User:           user,
+		VibrantColor:   h.config.App.VibrantColor,
+		EditorColors:   utils.FilterColors(h.config.App.GetEditorColors(), summary.Editors),
 		LanguageColors: utils.FilterColors(h.config.App.GetLanguageColors(), summary.Languages),
+		OSColors:       utils.FilterColors(h.config.App.GetOSColors(), summary.OperatingSystems),
 		ApiKey:         user.ApiKey,
 		RawQuery:       rawQuery,
 	}
