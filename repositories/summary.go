@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
 	"time"
@@ -78,20 +79,20 @@ func (r *SummaryRepository) DeleteByUser(userId string) error {
 // inplace
 func (r *SummaryRepository) populateItems(summaries []*models.Summary) error {
 	summaryMap := map[uint]*models.Summary{}
-	summaryIds := make([]uint, len(summaries))
-	for i, s := range summaries {
+	summaryIds := datastructure.NewSet[uint]()
+	for _, s := range summaries {
 		if s.NumHeartbeats == 0 {
 			continue
 		}
 		summaryMap[s.ID] = s
-		summaryIds[i] = s.ID
+		summaryIds.Add(s.ID)
 	}
 
 	var items []*models.SummaryItem
 
 	if err := r.db.
 		Model(&models.SummaryItem{}).
-		Where("summary_id in ?", summaryIds).
+		Where("summary_id in ?", summaryIds.Values()).
 		Find(&items).Error; err != nil {
 		return err
 	}
