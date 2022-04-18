@@ -2097,7 +2097,7 @@
 									"",
 									"pm.test(\"Correct content\", function () {",
 									"    const jsonData = pm.response.json();",
-									"    pm.expect(jsonData.data.text).to.eql('0 hrs 8 mins');",
+									"    pm.expect(jsonData.data.text).to.eql('0 hrs 4 mins');",
 									"});"
 								],
 								"type": "text/javascript"
