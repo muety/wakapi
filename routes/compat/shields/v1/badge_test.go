@@ -30,7 +30,7 @@ func TestBadgeHandler_EntityPattern(t *testing.T) {
 		{test: pathPrefix + "project:Anchr-Android_v2.0", key: "project", val: "Anchr-Android_v2.0"}, // all the way
 	}
 
-	sut := regexp.MustCompile(entityFilterPattern)
+	sut := regexp.MustCompile(`(project|os|editor|language|machine|label):([^:?&/]+)`) // see entityFilterPattern in badge_utils.go
 
 	for _, tc := range tests {
 		var key, val string

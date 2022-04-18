@@ -2,8 +2,8 @@ package v1
 
 import (
 	"fmt"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"net/http"
-	"regexp"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -13,11 +13,6 @@ import (
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
-)
-
-const (
-	intervalPattern     = `interval:([a-z0-9_]+)`
-	entityFilterPattern = `(project|os|editor|language|machine|label):([_a-zA-Z0-9-\s\.]+)`
 )
 
 type BadgeHandler struct {
@@ -53,77 +48,33 @@ func (h *BadgeHandler) RegisterRoutes(router *mux.Router) {
 // @Success 200 {object} v1.BadgeData
 // @Router /compat/shields/v1/{user}/{interval}/{filter} [get]
 func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
-	intervalReg := regexp.MustCompile(intervalPattern)
-	entityFilterReg := regexp.MustCompile(entityFilterPattern)
-
-	var filterEntity, filterKey string
-	if groups := entityFilterReg.FindStringSubmatch(r.URL.Path); len(groups) > 2 {
-		filterEntity, filterKey = groups[1], groups[2]
-	}
-
-	var interval = models.IntervalPast30Days
-	if groups := intervalReg.FindStringSubmatch(r.URL.Path); len(groups) > 1 {
-		if i, err := utils.ParseInterval(groups[1]); err == nil {
-			interval = i
-		}
-	}
-
-	requestedUserId := mux.Vars(r)["user"]
-	user, err := h.userSrvc.GetUserById(requestedUserId)
+	user, err := h.userSrvc.GetUserById(mux.Vars(r)["user"])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	_, rangeFrom, rangeTo := utils.ResolveIntervalTZ(interval, user.TZ())
-	minStart := rangeTo.Add(-24 * time.Hour * time.Duration(user.ShareDataMaxDays))
-	// negative value means no limit
-	if rangeFrom.Before(minStart) && user.ShareDataMaxDays >= 0 {
+	interval, filters, err := routeutils.GetBadgeParams(r, user)
+	if err != nil {
 		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte("requested time range too broad"))
+		w.Write([]byte(err.Error()))
 		return
 	}
 
-	var permitEntity bool
-	var filters *models.Filters
-	switch filterEntity {
-	case "project":
-		permitEntity = user.ShareProjects
-		filters = models.NewFiltersWith(models.SummaryProject, filterKey)
-	case "os":
-		permitEntity = user.ShareOSs
-		filters = models.NewFiltersWith(models.SummaryOS, filterKey)
-	case "editor":
-		permitEntity = user.ShareEditors
-		filters = models.NewFiltersWith(models.SummaryEditor, filterKey)
-	case "language":
-		permitEntity = user.ShareLanguages
-		filters = models.NewFiltersWith(models.SummaryLanguage, filterKey)
-	case "machine":
-		permitEntity = user.ShareMachines
-		filters = models.NewFiltersWith(models.SummaryMachine, filterKey)
-	case "label":
-		permitEntity = user.ShareLabels
-		filters = models.NewFiltersWith(models.SummaryLabel, filterKey)
-	// branches are intentionally omitted here, as only relevant in combination with a project filter
-	default:
-		permitEntity = true
-		filters = &models.Filters{}
-	}
-
-	if !permitEntity {
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte("user did not opt in to share entity-specific data"))
-		return
-	}
-
-	cacheKey := fmt.Sprintf("%s_%v_%s_%s", user.ID, *interval, filterEntity, filterKey)
+	cacheKey := fmt.Sprintf("%s_%v_%s", user.ID, *interval.Key, filters.Hash())
 	if cacheResult, ok := h.cache.Get(cacheKey); ok {
 		utils.RespondJSON(w, r, http.StatusOK, cacheResult.(*v1.BadgeData))
 		return
 	}
 
-	summary, err, status := h.loadUserSummary(user, interval, filters)
+	params := &models.SummaryParams{
+		From:    interval.Start,
+		To:      interval.End,
+		User:    user,
+		Filters: filters,
+	}
+
+	summary, err, status := routeutils.LoadUserSummaryByParams(h.summarySrvc, params)
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))

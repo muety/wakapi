@@ -29,6 +29,11 @@ type Interval struct {
 	End   time.Time
 }
 
+type KeyedInterval struct {
+	Interval
+	Key *IntervalKey
+}
+
 // CustomTime is a wrapper type around time.Time, mainly used for the purpose of transparently unmarshalling Python timestamps in the format <sec>.<nsec> (e.g. 1619335137.3324468)
 type CustomTime time.Time
 
