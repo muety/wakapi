@@ -6,7 +6,6 @@ import (
 
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 
@@ -29,9 +28,6 @@ func NewDiagnosticsApiHandler(userService services.IUserService, diagnosticsServ
 
 func (h *DiagnosticsApiHandler) RegisterRoutes(router *mux.Router) {
 	r := router.PathPrefix("/plugins/errors").Subrouter()
-	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
-	)
 	r.Path("").Methods(http.MethodPost).HandlerFunc(h.Post)
 }
 
