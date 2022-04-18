@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/duke-git/lancet/v2/mathutil"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"time"
@@ -59,13 +60,26 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 			continue
 		}
 
-		dur := d1.Time.T().Sub(latest.Time.T().Add(latest.Duration))
-		if dur > HeartbeatDiffThreshold {
-			dur = HeartbeatDiffThreshold
+		sameDay := d1.Time.T().Day() == latest.Time.T().Day()
+		dur := time.Duration(mathutil.Min(
+			int64(d1.Time.T().Sub(latest.Time.T().Add(latest.Duration))),
+			int64(HeartbeatDiffThreshold),
+		))
+
+		// skip heartbeats that span across two adjacent summaries (assuming there are no more than 1 summary per day)
+		// this is relevant to prevent the time difference between generating summaries from raw heartbeats and aggregating pre-generated summaries
+		// for the latter case, the very last heartbeat of a day won't be counted, so we don't want to count it here either
+		// another option would be to adapt the Summarize() method to always append up to HeartbeatDiffThreshold seconds to a day's very last duration
+		if !sameDay {
+			dur = 0
 		}
 		latest.Duration += dur
 
-		if dur >= HeartbeatDiffThreshold || latest.GroupHash != d1.GroupHash {
+		// start new "group" if:
+		// (a) heartbeats were too far apart each other,
+		// (b) if they are of a different entity or,
+		// (c) if they span across two days
+		if dur >= HeartbeatDiffThreshold || latest.GroupHash != d1.GroupHash || !sameDay {
 			list := mapping[d1.GroupHash]
 			if d0 := list[len(list)-1]; d0 != d1 {
 				mapping[d1.GroupHash] = append(mapping[d1.GroupHash], d1)

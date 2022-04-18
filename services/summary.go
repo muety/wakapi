@@ -390,7 +390,7 @@ func (srv *SummaryService) getMissingIntervals(from, to time.Time, summaries []*
 	// Between
 	for i := 0; i < len(summaries)-1; i++ {
 		t1, t2 := summaries[i].ToTime.T(), summaries[i+1].FromTime.T()
-		if t1.Equal(t2) || t1.Equal(to) || t1.After(to) { // TODO: check after
+		if t1.Equal(t2) || t1.Equal(to) || t1.After(to) {
 			continue
 		}
 
