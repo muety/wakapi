@@ -38,13 +38,8 @@ type CountTotalTimeResult struct {
 }
 
 func (srv *MiscService) ScheduleCountTotalTime() {
-	// Run once initially
-	if err := srv.runCountTotalTime(); err != nil {
-		logbuch.Fatal("failed to run CountTotalTimeJob: %v", err)
-	}
-
 	s := gocron.NewScheduler(time.Local)
-	s.Every(1).Hour().Do(srv.runCountTotalTime)
+	s.Every(1).Hour().WaitForSchedule().Do(srv.runCountTotalTime)
 	s.StartBlocking()
 }
 

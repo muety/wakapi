@@ -169,11 +169,9 @@ func main() {
 	miscService = services.NewMiscService(userService, summaryService, keyValueService)
 
 	// Schedule background tasks
-	if !config.QuickStart {
-		go aggregationService.Schedule()
-		go miscService.ScheduleCountTotalTime()
-		go reportService.Schedule()
-	}
+	go aggregationService.Schedule()
+	go miscService.ScheduleCountTotalTime()
+	go reportService.Schedule()
 
 	routes.Init()
 
