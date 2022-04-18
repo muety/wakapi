@@ -29,7 +29,7 @@ require (
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	gorm.io/driver/mysql v1.3.3
-	gorm.io/driver/postgres v1.3.3
+	gorm.io/driver/postgres v1.3.4
 	gorm.io/driver/sqlite v1.3.1
 	gorm.io/gorm v1.23.4
 )

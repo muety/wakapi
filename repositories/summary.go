@@ -1,9 +1,10 @@
 package repositories
 
 import (
-	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"time"
 )
 
@@ -24,7 +25,7 @@ func (r *SummaryRepository) GetAll() ([]*models.Summary, error) {
 		return nil, err
 	}
 
-	if err := r.populateItems(summaries); err != nil {
+	if err := r.populateItems(summaries, []clause.Interface{}); err != nil {
 		return nil, err
 	}
 
@@ -40,17 +41,26 @@ func (r *SummaryRepository) Insert(summary *models.Summary) error {
 
 func (r *SummaryRepository) GetByUserWithin(user *models.User, from, to time.Time) ([]*models.Summary, error) {
 	var summaries []*models.Summary
-	if err := r.db.
-		Where(&models.Summary{UserID: user.ID}).
-		Where("from_time >= ?", from.Local()).
-		Where("to_time <= ?", to.Local()).
-		Order("from_time asc").
-		// branch summaries are currently not persisted, as only relevant in combination with project filter
-		Find(&summaries).Error; err != nil {
+
+	queryConditions := []clause.Interface{
+		clause.Where{Exprs: r.db.Statement.BuildCondition("user_id = ?", user.ID)},
+		clause.Where{Exprs: r.db.Statement.BuildCondition("from_time >= ?", from.Local())},
+		clause.Where{Exprs: r.db.Statement.BuildCondition("to_time <= ?", to.Local())},
+	}
+
+	q := r.db.Model(&models.Summary{}).
+		Order("from_time asc")
+
+	for _, c := range queryConditions {
+		q.Statement.AddClause(c)
+	}
+
+	// branch summaries are currently not persisted, as only relevant in combination with project filter
+	if err := q.Find(&summaries).Error; err != nil {
 		return nil, err
 	}
 
-	if err := r.populateItems(summaries); err != nil {
+	if err := r.populateItems(summaries, queryConditions); err != nil {
 		return nil, err
 	}
 
@@ -77,28 +87,29 @@ func (r *SummaryRepository) DeleteByUser(userId string) error {
 }
 
 // inplace
-func (r *SummaryRepository) populateItems(summaries []*models.Summary) error {
-	summaryMap := map[uint]*models.Summary{}
-	summaryIds := datastructure.NewSet[uint]()
-	for _, s := range summaries {
-		if s.NumHeartbeats == 0 {
-			continue
-		}
-		summaryMap[s.ID] = s
-		summaryIds.Add(s.ID)
-	}
-
+func (r *SummaryRepository) populateItems(summaries []*models.Summary, conditions []clause.Interface) error {
 	var items []*models.SummaryItem
 
-	if err := r.db.
-		Model(&models.SummaryItem{}).
-		Where("summary_id in ?", summaryIds.Values()).
-		Find(&items).Error; err != nil {
+	summaryMap := slice.GroupWith[*models.Summary, uint](summaries, func(s *models.Summary) uint {
+		return s.ID
+	})
+
+	q := r.db.Model(&models.SummaryItem{}).
+		Select("summary_items.*").
+		Joins("cross join summaries").
+		Where("summary_items.summary_id = summaries.id").
+		Where("num_heartbeats > ?", 0)
+
+	for _, c := range conditions {
+		q.Statement.AddClause(c)
+	}
+
+	if err := q.Find(&items).Error; err != nil {
 		return err
 	}
 
 	for _, item := range items {
-		l := summaryMap[item.SummaryID].ItemsByType(item.Type)
+		l := summaryMap[item.SummaryID][0].ItemsByType(item.Type)
 		*l = append(*l, item)
 	}
 
