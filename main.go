@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"github.com/muety/wakapi/migrations"
 	"io/fs"
 	"log"
 	"net"
@@ -16,7 +17,6 @@ import (
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/handlers"
 	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/migrations"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/routes/api"
 	"github.com/muety/wakapi/services/mail"
@@ -138,7 +138,9 @@ func main() {
 	defer sqlDb.Close()
 
 	// Migrate database schema
-	migrations.Run(db, config)
+	if !config.SkipMigrations {
+		migrations.Run(db, config)
+	}
 
 	// Repositories
 	aliasRepository = repositories.NewAliasRepository(db)

@@ -74,6 +74,7 @@ func GetBadgeParams(r *http.Request, requestedUser *models.User) (*models.KeyedI
 	default:
 		// non-entity-specific request, just a general, in-total query
 		permitEntity = true
+		filters = &models.Filters{}
 	}
 
 	if !permitEntity {
