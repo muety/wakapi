@@ -109,6 +109,9 @@ func (r *SummaryRepository) populateItems(summaries []*models.Summary, condition
 	}
 
 	for _, item := range items {
+		if _, ok := summaryMap[item.SummaryID]; ok {
+			continue
+		}
 		l := summaryMap[item.SummaryID][0].ItemsByType(item.Type)
 		*l = append(*l, item)
 	}
