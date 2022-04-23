@@ -318,7 +318,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve() {
 	assert.Equal(suite.T(), 45*time.Minute, result.TotalTimeByKey(models.SummaryProject, TestProject1))
 	assert.Equal(suite.T(), 45*time.Minute, result.TotalTimeByKey(models.SummaryProject, TestProject2))
 	assert.Equal(suite.T(), 200, result.NumHeartbeats)
-	suite.DurationService.AssertNumberOfCalls(suite.T(), "Get", 2+1+1)
+	suite.DurationService.AssertNumberOfCalls(suite.T(), "Get", 2+1)
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve_DuplicateSummaries() {

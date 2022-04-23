@@ -142,16 +142,17 @@ type SMTPMailConfig struct {
 }
 
 type Config struct {
-	Env        string `default:"dev" env:"ENVIRONMENT"`
-	Version    string `yaml:"-"`
-	QuickStart bool   `yaml:"quick_start" env:"WAKAPI_QUICK_START"`
-	InstanceId string `yaml:"-"` // only temporary, changes between runs
-	App        appConfig
-	Security   securityConfig
-	Db         dbConfig
-	Server     serverConfig
-	Sentry     sentryConfig
-	Mail       mailConfig
+	Env            string `default:"dev" env:"ENVIRONMENT"`
+	Version        string `yaml:"-"`
+	QuickStart     bool   `yaml:"quick_start" env:"WAKAPI_QUICK_START"`
+	SkipMigrations bool   `yaml:"skip_migrations" env:"WAKAPI_SKIP_MIGRATIONS"`
+	InstanceId     string `yaml:"-"` // only temporary, changes between runs
+	App            appConfig
+	Security       securityConfig
+	Db             dbConfig
+	Server         serverConfig
+	Sentry         sentryConfig
+	Mail           mailConfig
 }
 
 func (c *Config) CreateCookie(name, value string) *http.Cookie {

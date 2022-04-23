@@ -117,6 +117,12 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 	missingIntervals := srv.getMissingIntervals(from, to, summaries, false)
 	for _, interval := range missingIntervals {
 		if s, err := srv.Summarize(interval.Start, interval.End, user, filters); err == nil {
+			if len(missingIntervals) > 2 && s.FromTime.T().Equal(s.ToTime.T()) {
+				// little hack here: GetAllWithin will query for >= from_date
+				// however, for "in-between" / intra-day missing intervals, we want strictly > from_date to prevent double-counting
+				// to not have to rewrite many interfaces, we skip these summaries here
+				continue
+			}
 			summaries = append(summaries, s)
 		} else {
 			return nil, err
@@ -401,14 +407,14 @@ func (srv *SummaryService) getMissingIntervals(from, to time.Time, summaries []*
 
 			// we always want to jump to beginning of next day
 			// however, if left summary ends already at midnight, we would instead jump to beginning of second-next day -> go back again
-			if td1.Sub(t1) == 24*time.Hour {
+			if td1.AddDate(0, 0, 1).Equal(t1) {
 				td1 = td1.Add(-1 * time.Hour)
 			}
 		}
 
 		// one or more day missing in between?
 		if td1.Before(td2) {
-			intervals = append(intervals, &models.Interval{Start: summaries[i].ToTime.T(), End: summaries[i+1].FromTime.T()})
+			intervals = append(intervals, &models.Interval{Start: t1, End: t2})
 		}
 	}
 

@@ -73,3 +73,4 @@ mail:
     client_secret:
 
 quick_start: false                  # whether to skip initial tasks on application startup, like summary generation
+skip_migrations: false              # whether to intentionally not run database migrations, only use for dev purposes

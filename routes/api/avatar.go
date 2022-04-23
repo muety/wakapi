@@ -5,7 +5,9 @@ import (
 	"github.com/gorilla/mux"
 	lru "github.com/hashicorp/golang-lru"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/utils"
 	"net/http"
+	"time"
 )
 
 type AvatarHandler struct {
@@ -32,6 +34,10 @@ func (h *AvatarHandler) RegisterRoutes(router *mux.Router) {
 
 func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	hash := mux.Vars(r)["hash"]
+
+	if utils.IsNoCache(r, 1*time.Hour) {
+		h.cache.Remove(hash)
+	}
 
 	if !h.cache.Contains(hash) {
 		h.cache.Add(hash, avatars.MakeMaleAvatar(hash))

@@ -109,8 +109,9 @@ var excludedRoutes = []string{
 
 func initSentry(config sentryConfig, debug bool) {
 	if err := sentry.Init(sentry.ClientOptions{
-		Dsn:   config.Dsn,
-		Debug: debug,
+		Dsn:              config.Dsn,
+		Debug:            debug,
+		AttachStacktrace: true,
 		TracesSampler: sentry.TracesSamplerFunc(func(ctx sentry.SamplingContext) sentry.Sampled {
 			if !config.EnableTracing {
 				return sentry.SampledFalse

@@ -45,13 +45,8 @@ type AggregationJob struct {
 
 // Schedule a job to (re-)generate summaries every day shortly after midnight
 func (srv *AggregationService) Schedule() {
-	// Run once initially
-	if err := srv.Run(datastructure.NewSet[string]()); err != nil {
-		logbuch.Fatal("failed to run AggregationJob: %v", err)
-	}
-
 	s := gocron.NewScheduler(time.Local)
-	s.Every(1).Day().At(srv.config.App.AggregationTime).Do(srv.Run, datastructure.NewSet[string]())
+	s.Every(1).Day().At(srv.config.App.AggregationTime).WaitForSchedule().Do(srv.Run, datastructure.NewSet[string]())
 	s.StartBlocking()
 }
 

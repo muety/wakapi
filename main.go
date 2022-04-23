@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"github.com/muety/wakapi/migrations"
 	"io/fs"
 	"log"
 	"net"
@@ -16,7 +17,6 @@ import (
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/handlers"
 	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/migrations"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/routes/api"
 	"github.com/muety/wakapi/services/mail"
@@ -138,7 +138,9 @@ func main() {
 	defer sqlDb.Close()
 
 	// Migrate database schema
-	migrations.Run(db, config)
+	if !config.SkipMigrations {
+		migrations.Run(db, config)
+	}
 
 	// Repositories
 	aliasRepository = repositories.NewAliasRepository(db)
@@ -167,11 +169,9 @@ func main() {
 	miscService = services.NewMiscService(userService, summaryService, keyValueService)
 
 	// Schedule background tasks
-	if !config.QuickStart {
-		go aggregationService.Schedule()
-		go miscService.ScheduleCountTotalTime()
-		go reportService.Schedule()
-	}
+	go aggregationService.Schedule()
+	go miscService.ScheduleCountTotalTime()
+	go reportService.Schedule()
 
 	routes.Init()
 
@@ -182,6 +182,7 @@ func main() {
 	metricsHandler := api.NewMetricsHandler(userService, summaryService, heartbeatService, keyValueService, metricsRepository)
 	diagnosticsHandler := api.NewDiagnosticsApiHandler(userService, diagnosticsService)
 	avatarHandler := api.NewAvatarHandler()
+	badgeHandler := api.NewBadgeHandler(userService, summaryService)
 
 	// Compat Handlers
 	wakatimeV1StatusBarHandler := wtV1Routes.NewStatusBarHandler(userService, summaryService)
@@ -240,6 +241,7 @@ func main() {
 	metricsHandler.RegisterRoutes(apiRouter)
 	diagnosticsHandler.RegisterRoutes(apiRouter)
 	avatarHandler.RegisterRoutes(apiRouter)
+	badgeHandler.RegisterRoutes(apiRouter)
 	wakatimeV1StatusBarHandler.RegisterRoutes(apiRouter)
 	wakatimeV1AllHandler.RegisterRoutes(apiRouter)
 	wakatimeV1SummariesHandler.RegisterRoutes(apiRouter)

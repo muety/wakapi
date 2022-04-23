@@ -91,6 +91,7 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, login.Username)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		conf.Log().Request(r).Error("failed to encode secure cookie - %v", err)
 		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r).WithError("internal server error"))
 		return
 	}
@@ -163,6 +164,7 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 	_, created, err := h.userSrvc.CreateOrGet(&signup, numUsers == 0)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		conf.Log().Request(r).Error("failed to create new user - %v", err)
 		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r).WithError("failed to create new user"))
 		return
 	}
@@ -237,6 +239,7 @@ func (h *LoginHandler) PostSetPassword(w http.ResponseWriter, r *http.Request) {
 	user.ResetToken = ""
 	if hash, err := utils.HashBcrypt(user.Password, h.config.Security.PasswordSalt); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		conf.Log().Request(r).Error("failed to set new password - %v", err)
 		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("failed to set new password"))
 		return
 	} else {
@@ -245,6 +248,7 @@ func (h *LoginHandler) PostSetPassword(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := h.userSrvc.Update(user); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		conf.Log().Request(r).Error("failed to save new password - %v", err)
 		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("failed to save new password"))
 		return
 	}
@@ -278,6 +282,7 @@ func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request)
 	if user, err := h.userSrvc.GetUserByEmail(resetRequest.Email); user != nil && err == nil {
 		if u, err := h.userSrvc.GenerateResetToken(user); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			conf.Log().Request(r).Error("failed to generate password reset token - %v", err)
 			templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r).WithError("failed to generate password reset token"))
 			return
 		} else {

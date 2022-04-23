@@ -51,6 +51,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	summary, err, status := su.LoadUserSummary(h.summarySrvc, r)
 	if err != nil {
 		w.WriteHeader(status)
+		conf.Log().Request(r).Error("failed to load summary - %v", err)
 		templates[conf.SummaryTemplate].Execute(w, h.buildViewModel(r).WithError(err.Error()))
 		return
 	}

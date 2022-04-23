@@ -8,8 +8,8 @@ import (
 // https://shields.io/endpoint
 
 const (
-	defaultLabel = "coding time"
-	defaultColor = "#2D3748" // not working
+	defaultLabel = "wakapi.dev"
+	defaultColor = "2F855A"
 )
 
 type BadgeData struct {
