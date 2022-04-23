@@ -71,7 +71,6 @@ type appConfig struct {
 	HeartbeatMaxAge   string                       `yaml:"heartbeat_max_age" default:"4320h" env:"WAKAPI_HEARTBEAT_MAX_AGE"`
 	CountCacheTTLMin  int                          `yaml:"count_cache_ttl_min" default:"30" env:"WAKAPI_COUNT_CACHE_TTL_MIN"`
 	AvatarURLTemplate string                       `yaml:"avatar_url_template" default:"api/avatar/{username_hash}.svg"`
-	VibrantColor      bool                         `yaml:"vibrant_color" default:"false" env:"WAKAPI_VIBRANT_COLOR"`
 	CustomLanguages   map[string]string            `yaml:"custom_languages"`
 	Colors            map[string]map[string]string `yaml:"-"`
 }

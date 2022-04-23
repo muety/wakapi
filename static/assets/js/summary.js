@@ -87,6 +87,8 @@ function draw(subselection) {
         .filter((c, i) => shouldUpdate(i))
         .forEach(c => c.destroy())
 
+    let vibrantColor = JSON.parse(window.localStorage.getItem('vibrant-color') || false);
+
     let projectChart = projectsCanvas && !projectsCanvas.classList.contains('hidden') && shouldUpdate(0)
         ? new Chart(projectsCanvas.getContext('2d'), {
             //type: 'horizontalBar',

@@ -2,6 +2,7 @@ PetiteVue.createApp({
     //$delimiters: ['${', '}'],  // https://github.com/vuejs/petite-vue/pull/100
     activeTab: defaultTab,
     selectedTimezone: userTimeZone,
+    vibrantColorEnabled: JSON.parse(localStorage.getItem('vibrant-color') || false),
     get tzOptions() {
         return [defaultTzOption, ...tzs.sort().map(tz => ({ value: tz, text: tz }))]
     },
@@ -30,6 +31,13 @@ PetiteVue.createApp({
         if (confirm('Are you sure? This can not be undone!')) {
             document.querySelector('#form-delete-user').submit()
         }
+    },
+    toggleVibrantColor() {
+        let key = 'vibrant-color';
+        let value = !(JSON.parse(localStorage.getItem(key) || false));
+        localStorage.setItem(key, value);
+        this.vibrantColorEnabled = value;
+        return value;
     },
     mounted() {
         this.updateTab()
