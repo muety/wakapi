@@ -2,7 +2,7 @@ PetiteVue.createApp({
     //$delimiters: ['${', '}'],  // https://github.com/vuejs/petite-vue/pull/100
     activeTab: defaultTab,
     selectedTimezone: userTimeZone,
-    vibrantColorEnabled: JSON.parse(localStorage.getItem('vibrant-color') || false),
+    vibrantColorsEnabled: JSON.parse(localStorage.getItem('wakapi_vibrant_colors') || false),
     get tzOptions() {
         return [defaultTzOption, ...tzs.sort().map(tz => ({ value: tz, text: tz }))]
     },
@@ -32,12 +32,8 @@ PetiteVue.createApp({
             document.querySelector('#form-delete-user').submit()
         }
     },
-    toggleVibrantColor() {
-        let key = 'vibrant-color';
-        let value = !(JSON.parse(localStorage.getItem(key) || false));
-        localStorage.setItem(key, value);
-        this.vibrantColorEnabled = value;
-        return value;
+    onToggleVibrantColors() {
+        localStorage.setItem('wakapi_vibrant_colors', this.vibrantColorsEnabled)
     },
     mounted() {
         this.updateTab()

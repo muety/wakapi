@@ -369,7 +369,10 @@
 
                     <div class="w-full md:w-2/3 inline-block">
                         <div class="flex-col items-center w-full text-gray-500 text-sm">
-                            <input class="flex cursor-pointer h-4 w-4" type="checkbox" id="vibrant-color-toggle" @click="toggleVibrantColor" v-model="vibrantColorEnabled">
+                            <select autocomplete="off" id="vibrant-color-toggle" class="select-default" style="max-width: 6rem" v-model="vibrantColorsEnabled" @change="onToggleVibrantColors">
+                                <option value="false" class="cursor-pointer">Disabled</option>
+                                <option value="true" class="cursor-pointer">Enabled</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -395,7 +398,7 @@
                                 <label class="font-semibold text-gray-300" for="max_days">Time Range</label>
                                 <span class="block text-sm text-gray-600">(in days; 0 = not public, -1 = unlimited)</span>
                             </div>
-                            <div >
+                            <div>
                                 <input class="input-default"
                                        style="max-width: 80px" type="number" id="max_days" name="max_days" min="-1" required
                                        value="{{ .User.ShareDataMaxDays }}">
@@ -406,7 +409,7 @@
                             <div class="flex-grow">
                                 <label class="font-semibold text-gray-300" for="share_projects">Share Projects</label>
                             </div>
-                            <div >
+                            <div>
                                 <select autocomplete="off" id="share_projects" name="share_projects" class="select-default flex-grow">
                                     <option value="false" class="cursor-pointer" {{ if not .User.ShareProjects }} selected {{ end }}>No
                                     </option>
@@ -420,7 +423,7 @@
                             <div class="flex-grow">
                                 <label class="font-semibold text-gray-300" for="share_languages">Share Languages</label>
                             </div>
-                            <div >
+                            <div>
                                 <select autocomplete="off" id="share_languages" name="share_languages" class="select-default flex-grow">
                                     <option value="false" class="cursor-pointer" {{ if not .User.ShareLanguages }} selected {{ end }}>No
                                     </option>
@@ -434,7 +437,7 @@
                             <div class="flex-grow">
                                 <label class="font-semibold text-gray-300" for="share_editors">Share Editors</label>
                             </div>
-                            <div >
+                            <div>
                                 <select autocomplete="off" id="share_editors" name="share_editors" class="select-default flex-grow">
                                     <option value="false" class="cursor-pointer" {{ if not .User.ShareEditors }} selected {{ end }}>No
                                     </option>
@@ -448,7 +451,7 @@
                             <div class="flex-grow">
                                 <label class="font-semibold text-gray-300" for="share_oss">Share OS'</label>
                             </div>
-                            <div >
+                            <div>
                                 <select autocomplete="off" id="share_oss" name="share_oss" class="select-default flex-grow">
                                     <option value="false" class="cursor-pointer" {{ if not .User.ShareOSs }} selected {{ end }}>No
                                     </option>
@@ -462,7 +465,7 @@
                             <div class="flex-grow">
                                 <label class="font-semibold text-gray-300" for="share_machines">Share Machines</label>
                             </div>
-                            <div >
+                            <div>
                                 <select autocomplete="off" id="share_machines" name="share_machines" class="select-default flex-grow">
                                     <option value="false" class="cursor-pointer" {{ if not .User.ShareMachines }} selected {{ end }}>No
                                     </option>
@@ -476,7 +479,7 @@
                             <div class="flex-grow">
                                 <label class="font-semibold text-gray-300" for="share_labels">Share Project Labels</label>
                             </div>
-                            <div >
+                            <div>
                                 <select autocomplete="off" id="share_labels" name="share_labels" class="select-default flex-grow">
                                     <option value="false" class="cursor-pointer" {{ if not .User.ShareLabels }} selected {{ end }}>No
                                     </option>

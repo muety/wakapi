@@ -87,7 +87,7 @@ function draw(subselection) {
         .filter((c, i) => shouldUpdate(i))
         .forEach(c => c.destroy())
 
-    let vibrantColor = JSON.parse(window.localStorage.getItem('vibrant-color') || false);
+    const vibrantColors = JSON.parse(window.localStorage.getItem('wakapi_vibrant_colors') || false);
 
     let projectChart = projectsCanvas && !projectsCanvas.classList.contains('hidden') && shouldUpdate(0)
         ? new Chart(projectsCanvas.getContext('2d'), {
@@ -99,11 +99,11 @@ function draw(subselection) {
                         .slice(0, Math.min(showTopN[0], wakapiData.projects.length))
                         .map(p => parseInt(p.total)),
                     backgroundColor: wakapiData.projects.map((p, i) => {
-                        const c = hexToRgb(vibrantColor ? getRandomColor(p.key) : getColor(p.key, i % baseColors.length))
+                        const c = hexToRgb(vibrantColors ? getRandomColor(p.key) : getColor(p.key, i % baseColors.length))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
                     }),
                     hoverBackgroundColor: wakapiData.projects.map((p, i) => {
-                        const c = hexToRgb(vibrantColor ? getRandomColor(p.key) : getColor(p.key, i % baseColors.length))
+                        const c = hexToRgb(vibrantColors ? getRandomColor(p.key) : getColor(p.key, i % baseColors.length))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
                     }),
                 }],
@@ -154,11 +154,11 @@ function draw(subselection) {
                         .slice(0, Math.min(showTopN[1], wakapiData.operatingSystems.length))
                         .map(p => parseInt(p.total)),
                     backgroundColor: wakapiData.operatingSystems.map((p, i) => {
-                        const c = hexToRgb(vibrantColor ? (osColors[p.key.toLowerCase()] || getRandomColor(p.key)) : getColor(p.key, i))
+                        const c = hexToRgb(vibrantColors ? (osColors[p.key.toLowerCase()] || getRandomColor(p.key)) : getColor(p.key, i))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
                     }),
                     hoverBackgroundColor: wakapiData.operatingSystems.map((p, i) => {
-                        const c = hexToRgb(vibrantColor ? (osColors[p.key.toLowerCase()] || getRandomColor(p.key)) : getColor(p.key, i))
+                        const c = hexToRgb(vibrantColors ? (osColors[p.key.toLowerCase()] || getRandomColor(p.key)) : getColor(p.key, i))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
                     }),
                     borderWidth: 0
@@ -191,11 +191,11 @@ function draw(subselection) {
                         .slice(0, Math.min(showTopN[2], wakapiData.editors.length))
                         .map(p => parseInt(p.total)),
                     backgroundColor: wakapiData.editors.map((p, i) => {
-                        const c = hexToRgb(vibrantColor ? (editorColors[p.key.toLowerCase()] || getRandomColor(p.key)) : getColor(p.key, i))
+                        const c = hexToRgb(vibrantColors ? (editorColors[p.key.toLowerCase()] || getRandomColor(p.key)) : getColor(p.key, i))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
                     }),
                     hoverBackgroundColor: wakapiData.editors.map((p, i) => {
-                        const c = hexToRgb(vibrantColor ? (editorColors[p.key.toLowerCase()] || getRandomColor(p.key)) : getColor(p.key, i))
+                        const c = hexToRgb(vibrantColors ? (editorColors[p.key.toLowerCase()] || getRandomColor(p.key)) : getColor(p.key, i))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
                     }),
                     borderWidth: 0
@@ -268,11 +268,11 @@ function draw(subselection) {
                         .slice(0, Math.min(showTopN[4], wakapiData.machines.length))
                         .map(p => parseInt(p.total)),
                     backgroundColor: wakapiData.machines.map((p, i) => {
-                        const c = hexToRgb(vibrantColor ? getRandomColor(p.key) : getColor(p.key, i))
+                        const c = hexToRgb(vibrantColors ? getRandomColor(p.key) : getColor(p.key, i))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
                     }),
                     hoverBackgroundColor: wakapiData.machines.map((p, i) => {
-                        const c = hexToRgb(vibrantColor ? getRandomColor(p.key) : getColor(p.key, i))
+                        const c = hexToRgb(vibrantColors ? getRandomColor(p.key) : getColor(p.key, i))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
                     }),
                     borderWidth: 0
@@ -305,11 +305,11 @@ function draw(subselection) {
                         .slice(0, Math.min(showTopN[5], wakapiData.labels.length))
                         .map(p => parseInt(p.total)),
                     backgroundColor: wakapiData.labels.map((p, i) => {
-                        const c = hexToRgb(vibrantColor ? getRandomColor(p.key) : getColor(p.key, i))
+                        const c = hexToRgb(vibrantColors ? getRandomColor(p.key) : getColor(p.key, i))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
                     }),
                     hoverBackgroundColor: wakapiData.labels.map((p, i) => {
-                        const c = hexToRgb(vibrantColor ? getRandomColor(p.key) : getColor(p.key, i))
+                        const c = hexToRgb(vibrantColors ? getRandomColor(p.key) : getColor(p.key, i))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
                     }),
                     borderWidth: 0
@@ -342,11 +342,11 @@ function draw(subselection) {
                         .slice(0, Math.min(showTopN[6], wakapiData.branches.length))
                         .map(p => parseInt(p.total)),
                     backgroundColor: wakapiData.branches.map((p, i) => {
-                        const c = hexToRgb(vibrantColor ? getRandomColor(p.key) : getColor(p.key, i % baseColors.length))
+                        const c = hexToRgb(vibrantColors ? getRandomColor(p.key) : getColor(p.key, i % baseColors.length))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
                     }),
                     hoverBackgroundColor: wakapiData.branches.map((p, i) => {
-                        const c = hexToRgb(vibrantColor ? getRandomColor(p.key) : getColor(p.key, i % baseColors.length))
+                        const c = hexToRgb(vibrantColors ? getRandomColor(p.key) : getColor(p.key, i % baseColors.length))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
                     }),
                 }],
