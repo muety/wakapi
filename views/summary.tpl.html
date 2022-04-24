@@ -6,7 +6,7 @@
 <script src="assets/js/components/time-picker.js"></script>
 <script type="module" src="assets/js/components/summary.js"></script>
 
-<body class="relative bg-gray-900 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
+<body class="relative bg-gray-900 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto">
 
 {{ template "menu-main.tpl.html" . }}
 
@@ -16,7 +16,7 @@
 
 {{ if .User.HasData }}
 
-<div id="summary-page" v-scope>
+<div id="summary-page" class="flex-grow" v-scope>
     <div class="flex justify-end mt-12 relative">
         <div v-scope="TimePicker({
             fromDate: '{{ .From | simpledate }}',
