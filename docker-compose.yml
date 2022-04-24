@@ -22,3 +22,8 @@ services:
       POSTGRES_USER: "wakapi"
       POSTGRES_PASSWORD: "choose-a-password"
       POSTGRES_DB: "wakapi"
+    volumes:
+      - wakapi-db-data:/var/lib/postgresql/data
+
+volumes:
+  wakapi-db-data: {}
