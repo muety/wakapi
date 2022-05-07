@@ -14,7 +14,7 @@ func init() {
 
 type User struct {
 	ID               string     `json:"id" gorm:"primary_key"`
-	ApiKey           string     `json:"api_key" gorm:"unique"`
+	ApiKey           string     `json:"api_key" gorm:"unique; default:NULL"`
 	Email            string     `json:"email" gorm:"index:idx_user_email; size:255"`
 	Location         string     `json:"location"`
 	Password         string     `json:"-"`
