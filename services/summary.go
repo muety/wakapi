@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/emvi/logbuch"
 	"github.com/leandro-lugaresi/hub"
@@ -41,12 +40,7 @@ func NewSummaryService(summaryRepo repositories.ISummaryRepository, durationServ
 	sub1 := srv.eventBus.Subscribe(0, config.TopicProjectLabel)
 	go func(sub *hub.Subscription) {
 		for m := range sub.Receiver {
-			userId := m.Fields[config.FieldUserId].(string)
-			for key := range srv.cache.Items() {
-				if strings.HasSuffix(key, fmt.Sprintf("__%s__--aliased", userId)) {
-					srv.cache.Delete(key)
-				}
-			}
+			srv.invalidateUserCache(m.Fields[config.FieldUserId].(string))
 		}
 	}(&sub1)
 
