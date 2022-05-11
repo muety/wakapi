@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/duke-git/lancet/v2/datetime"
+	"github.com/muety/wakapi/utils"
 	"net/http"
 	"time"
 
@@ -154,8 +155,9 @@ func (w *WakatimeHeartbeatImporter) fetchRange(baseUrl string) (time.Time, time.
 		return notime, notime, err
 	}
 
-	var allTimeData wakatime.AllTimeViewModel
-	if err := json.NewDecoder(res.Body).Decode(&allTimeData); err != nil {
+	// see https://github.com/muety/wakapi/issues/370
+	allTimeData, err := utils.ParseJsonDropKeys[wakatime.AllTimeViewModel](res.Body, "text")
+	if err != nil {
 		return notime, notime, err
 	}
 
