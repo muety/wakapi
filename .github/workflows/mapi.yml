@@ -39,7 +39,7 @@ jobs:
         mapi-token: ${{ secrets.MAPI_TOKEN }}
         api-url: http://localhost:3000/api/
         api-spec: static/docs/swagger.yaml
-        target: mayhemheroes/wakapi
+        target: muety/wakapi
         duration: 1min
         sarif-report: mapi.sarif
         run-args: |
