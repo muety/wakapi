@@ -166,8 +166,6 @@ definitions:
         type: string
       machine_name_id:
         type: string
-      modified_at:
-        type: string
       project:
         type: string
       time:
@@ -808,8 +806,6 @@ paths:
       responses:
         "201":
           description: ""
-      security:
-      - ApiKeyAuth: []
       summary: Push a new diagnostics object
       tags:
       - diagnostics

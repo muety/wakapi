@@ -19,5 +19,6 @@ func NewDiagnosticsService(diagnosticsRepo repositories.IDiagnosticsRepository) 
 }
 
 func (srv *DiagnosticsService) Create(diagnostics *models.Diagnostics) (*models.Diagnostics, error) {
+	diagnostics.ID = 0
 	return srv.repository.Insert(diagnostics)
 }

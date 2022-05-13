@@ -204,7 +204,7 @@ See our [Swagger API Documentation](https://wakapi.dev/swagger-ui).
 ### Generating Swagger docs
 
 ```bash
-$ go get -u github.com/swaggo/swag/cmd/swag
+$ go install github.com/swaggo/swag/cmd/swag@latest
 $ swag init -o static/docs
 ```
 

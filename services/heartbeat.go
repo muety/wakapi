@@ -54,6 +54,10 @@ func (srv *HeartbeatService) Insert(heartbeat *models.Heartbeat) error {
 }
 
 func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {
+	if len(heartbeats) == 0 {
+		return nil
+	}
+
 	hashes := datastructure.NewSet[string]()
 
 	// https://github.com/muety/wakapi/issues/139

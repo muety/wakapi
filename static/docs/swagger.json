@@ -596,11 +596,6 @@
         },
         "/plugins/errors": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -1323,9 +1318,6 @@
                     "type": "string"
                 },
                 "machine_name_id": {
-                    "type": "string"
-                },
-                "modified_at": {
                     "type": "string"
                 },
                 "project": {
