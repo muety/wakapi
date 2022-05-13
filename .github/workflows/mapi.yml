@@ -1,0 +1,52 @@
+name: 'Mayhem for API'
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.18
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Get dependencies
+      run: go get
+
+    - name: Build
+      run: GO111MODULE=on go build -v .
+
+    - name: start wakapi
+      run: ./wakapi --config config.default.yml &
+
+    - name: create a trivial testing user
+      run: sqlite3 wakapi_db.db "insert into users (id, api_key) values ('mapi', 'test-api-key')"
+
+    - name: Run Mayhem for API
+      uses: ForAllSecure/mapi-action@v1
+      continue-on-error: true
+      with:
+        mapi-token: ${{ secrets.MAPI_TOKEN }}
+        api-url: http://localhost:3000/api/
+        api-spec: static/docs/swagger.yaml
+        target: mayhemheroes/wakapi
+        duration: 1min
+        sarif-report: mapi.sarif
+        run-args: |
+          --header-auth
+          Authorization: Basic dGVzdC1hcGkta2V5
+
+    - name: Upload SARIF file
+      uses: github/codeql-action/upload-sarif@v1
+      with:
+        sarif_file: mapi.sarif
