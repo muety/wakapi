@@ -258,7 +258,7 @@ func (srv *HeartbeatService) countCacheTtl() time.Duration {
 
 func (srv *HeartbeatService) filtersToColumnMap(filters *models.Filters) map[string][]string {
 	columnMap := map[string][]string{}
-	for _, t := range models.SummaryTypes() {
+	for _, t := range models.NativeSummaryTypes() {
 		f := filters.ResolveEntity(t)
 		if len(*f) > 0 {
 			columnMap[models.GetEntityColumn(t)] = *f
