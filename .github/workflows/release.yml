@@ -15,7 +15,13 @@ jobs:
       fail-fast: false
       matrix:
         platform: [ubuntu-latest, macos-latest, windows-latest]
-        alias: [linux, mac, win]
+        include:
+          - platform: ubuntu-latest
+            alias: linux
+          - platform: macos-latest
+            alias: mac
+          - platform: windows-latest
+            alias: win
 
     runs-on: ${{ matrix.platform }}
     steps:
