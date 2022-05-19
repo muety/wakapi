@@ -33,7 +33,16 @@ jobs:
         go get
 
     - name: Enable Go 1.11 modules
+      if: runner.os == 'Windows'
       run: cmd /c "set GO111MODULE=on"
+
+    - name: Unit Tests
+      run: go test ./... -run ./...
+
+    - name: API Tests
+      run: |
+        npm -g install newman
+        ./testing/run_api_tests.sh
 
     - name: Build
       run: go build -v .
