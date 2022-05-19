@@ -1,4 +1,4 @@
-name: Linux
+name: Release
 
 on:
   push:
@@ -10,8 +10,13 @@ on:
 
 jobs:
   build-and-release:
-    name: Linux - Build, Test & Release
-    runs-on: ubuntu-latest
+    name: Build & Release
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+
+    runs-on: ${{ matrix.platform }}
     steps:
 
     - name: Set up Go 1.x
@@ -24,21 +29,21 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Get dependencies
-      run: go get
-
-    - name: Unit Tests
-      run: go test ./... -run ./...
-
-    - name: API Tests
       run: |
-        npm -g install newman
-        ./testing/run_api_tests.sh
+        go get
+
+    - name: Enable Go 1.11 modules
+      run: cmd /c "set GO111MODULE=on"
 
     - name: Build
-      run: GO111MODULE=on go build -v .
+      run: go build -v .
 
-    - name: Zip executable and sample config
-      if: github.event_name == 'release'
+    - name: Compress working folder on Windows
+      if: runner.os == 'Windows'
+      run: |
+        cp .\config.default.yml .\config.yml
+        Compress-Archive -Path .\wakapi.exe, .\config.yml -DestinationPath release.zip
+    - name: Compress working folder on Unix
       run: |
         cp config.default.yml config.yml
         zip -9 release.zip wakapi config.yml
@@ -51,5 +56,5 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_path: release.zip
-        asset_name: wakapi_linux_amd64.zip
+        asset_name: wakapi_${{ runner.os }}_amd64.zip
         asset_content_type: application/gzip
