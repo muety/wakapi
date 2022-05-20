@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  release:
+    name: 'Build, package and release to GitHub'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - platform: ubuntu-latest
+            alias: linux
+          - platform: macos-latest
+            alias: mac
+          - platform: windows-latest
+            alias: win
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.18
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Get dependencies
+      run: go get
+
+    - name: Build
+      run: go build -v .
+
+    - name: Compress working folder on Windows
+      if: runner.os == 'Windows'
+      run: |
+        cp .\config.default.yml .\config.yml
+        Compress-Archive -Path .\wakapi.exe, .\config.yml -DestinationPath wakapi_${{ matrix.alias }}_amd64.zip
+    - name: Compress working folder on Unix
+      if: runner.os != 'Windows'
+      run: |
+        cp config.default.yml config.yml
+        zip -9 wakapi_${{ matrix.alias }}_amd64.zip wakapi config.yml
+
+    - name: Upload built executable to Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: wakapi_${{ matrix.alias }}_amd64.zip
