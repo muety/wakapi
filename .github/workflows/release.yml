@@ -42,12 +42,12 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         cp .\config.default.yml .\config.yml
-        Compress-Archive -Path .\wakapi.exe, .\config.yml -DestinationPath release.zip
+        Compress-Archive -Path .\wakapi.exe, .\config.yml -DestinationPath wakapi_${{ matrix.alias }}_amd64.zip
     - name: Compress working folder on Unix
       if: runner.os != 'Windows'
       run: |
         cp config.default.yml config.yml
-        zip -9 release.zip wakapi config.yml
+        zip -9 wakapi_${{ matrix.alias }}_amd64.zip wakapi config.yml
 
     - name: Upload built executable to Release
       uses: softprops/action-gh-release@v1
