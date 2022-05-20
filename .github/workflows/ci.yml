@@ -7,6 +7,7 @@ on:
 
 jobs:
   test:
+    name: 'Unit- & API tests'
     runs-on: ubuntu-latest
     steps:
 
@@ -31,7 +32,7 @@ jobs:
         ./testing/run_api_tests.sh
 
   mapi:
-    name: 'Mayhem for API'
+    name: 'Automated pen-tests with Mayhem for API'
     runs-on: ubuntu-latest
     steps:
     - name: Set up Go 1.x
@@ -74,6 +75,8 @@ jobs:
         sarif_file: mapi.sarif
 
   build:
+    name: 'Build (Win, Linux, Mac)'
+
     strategy:
       matrix:
         platform: [ubuntu-latest, macos-latest, windows-latest]
