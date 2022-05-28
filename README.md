@@ -123,7 +123,7 @@ Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime
 ```ini
 [settings]
 
-# Your Wakapi server URL or 'https://wakapi.dev' when using the cloud server
+# Your Wakapi server URL or 'https://wakapi.dev/api/heartbeat' when using the cloud server
 api_url = http://localhost:3000/api/heartbeat
 
 # Your Wakapi API key (get it from the web interface after having created an account)
