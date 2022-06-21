@@ -113,6 +113,8 @@ $ ./wakapi
 
 **Note:** Check the comments in `config.yml` for best practices regarding security configuration and more.
 
+💡 When running Wakapi standalone (without Docker), it is recommended to run it as a [SystemD service](etc/wakapi.service). 
+
 ### 💻 Client setup
 
 Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime) client tools. In order to collect statistics for Wakapi, you need to set them up.

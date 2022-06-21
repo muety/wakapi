@@ -1,0 +1,53 @@
+[Unit]
+Description=Wakapi
+StartLimitIntervalSec=400
+StartLimitBurst=3
+
+# Optional, in case you're running MySQL / Postgres with Systemd, too
+Requires=mysql.service
+After=mysql.service
+
+[Service]
+Type=simple
+
+# Assuming Wakapi executable is under /opt/wakapi and config file at /etc
+# Feel free to change this
+WorkingDirectory=/opt/wakapi
+ExecStart=/opt/wakapi/wakapi -config /etc/wakapi.yml
+
+# Environment variables, see README for more
+Environment=WAKAPI_DB_HOST=localhost
+Environment=WAKAPI_DB_USER=wakapi
+Environment=WAKAPI_DB_NAME=wakapi
+Environment=WAKAPI_DB_PASSWORD=secretpassword
+Environment=WAKAPI_PASSWORD_SALT=somerandomstring
+
+# TODO: Use Systemd's credentials management (https://systemd.io/CREDENTIALS/) introduced in v247 (%d syntax in v250) once more established
+
+# sudo groupadd wakapi
+# sudo useradd -g wakapi wakapi
+User=wakapi
+Group=wakapi
+
+Restart=on-failure
+RestartSec=90
+
+# Security hardening
+PrivateTmp=true
+PrivateUsers=true
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+PrivateDevices=true
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+ProtectClock=true
+RestrictSUIDSGID=true
+ProtectHostname=true
+ProtectProc=invisible
+
+[Install]
+WantedBy=multi-user.target
