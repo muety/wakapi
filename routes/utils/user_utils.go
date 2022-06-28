@@ -35,7 +35,7 @@ func CheckEffectiveUser(w http.ResponseWriter, r *http.Request, userService serv
 		return nil, err
 	}
 
-	if authorizedUser == nil || authorizedUser.ID != requestedUser.ID {
+	if authorizedUser == nil || authorizedUser.ID != requestedUser.ID && !authorizedUser.IsAdmin {
 		err := errors.New(conf.ErrUnauthorized)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte(err.Error()))
