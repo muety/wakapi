@@ -100,15 +100,16 @@ If you want to run Wakapi on **Kubernetes**, there is [wakapi-helm-chart](https:
 #### Compile & run
 
 ```bash
-# Build the executable
-$ go build -o wakapi
+# Build and install
+# Alternatively: go build -o wakapi
+$ go install github.com/muety/wakapi@latest
 
-# Adapt config to your needs
-$ cp config.default.yml config.yml
-$ vi config.yml
+# Get default config and customize
+$ curl -o wakapi.yml https://raw.githubusercontent.com/muety/wakapi/master/config.default.yml
+$ vi wakapi.yml
 
 # Run it
-$ ./wakapi
+$ ./wakapi -config wakapi.yml
 ```
 
 **Note:** Check the comments in `config.yml` for best practices regarding security configuration and more.
