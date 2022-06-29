@@ -42,5 +42,5 @@ func CheckEffectiveUser(w http.ResponseWriter, r *http.Request, userService serv
 		return nil, err
 	}
 
-	return authorizedUser, nil
+	return requestedUser, nil
 }
