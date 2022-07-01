@@ -996,7 +996,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "[{\n    \"entity\": \"/home/user1/dev/project1/main.go\",\n    \"project\": \"wakapi\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": 1640995199\n},\n{\n    \"entity\": \"/home/user1/dev/project1/main.go\",\n    \"project\": \"wakapi\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": 1641074399\n},\n{\n    \"entity\": \"/home/user1/dev/project1/main.go\",\n    \"project\": \"wakapi\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": 1641081599\n}]",
+							"raw": "[{\n    \"entity\": \"/home/user1/dev/project1/main.go\",\n    \"project\": \"wakapi\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": 1640995200\n},\n{\n    \"entity\": \"/home/user1/dev/project1/main.go\",\n    \"project\": \"wakapi\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": 1641074400\n},\n{\n    \"entity\": \"/home/user1/dev/project1/main.go\",\n    \"project\": \"wakapi\",\n    \"language\": \"Go\",\n    \"is_write\": true,\n    \"type\": \"file\",\n    \"category\": null,\n    \"branch\": null,\n    \"time\": 1641081600\n}]",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -3388,9 +3388,9 @@
 					"",
 					"getUtcOffset((utcOffset) => {",
 					"    const now = moment().utcOffset(utcOffset)",
-					"    const startOfDay = moment().utcOffset(utcOffset).startOf('day')",
-					"    const endOfDay = moment().utcOffset(utcOffset).endOf('day')",
-					"    const endOfTomorrow = moment().utcOffset(utcOffset).add(1, 'd').endOf('day')",
+					"    const startOfDay = now.clone().startOf('day')",
+					"    const endOfDay = now.clone().endOf('day')",
+					"    const endOfTomorrow = now.clone().add(1, 'd').endOf('day')",
 					"",
 					"    // Auth stuff",
 					"    const readApiKey = pm.variables.get('READUSER_API_KEY')",
@@ -3410,19 +3410,19 @@
 					"    }",
 					"",
 					"    // Heartbeat stuff",
-					"    pm.variables.set('tsNow', now.format('x') / 1000)",
-					"    pm.variables.set('tsNowMinus1Min', now.add(-1, 'm').format('x') / 1000)",
-					"    pm.variables.set('tsNowMinus2Min', now.add(-2, 'm').format('x') / 1000)",
-					"    pm.variables.set('tsNowMinus3Min', now.add(-3, 'm').format('x') / 1000)",
+					"    pm.variables.set('tsNow', now.clone().format('x') / 1000)",
+					"    pm.variables.set('tsNowMinus1Min', now.clone().add(-1, 'm').format('x') / 1000)",
+					"    pm.variables.set('tsNowMinus2Min', now.clone().add(-2, 'm').format('x') / 1000)",
+					"    pm.variables.set('tsNowMinus3Min', now.clone().add(-3, 'm').format('x') / 1000)",
 					"    pm.variables.set('tsStartOfDay', startOfDay.format('x') / 1000)",
 					"    pm.variables.set('tsEndOfDay', endOfDay.format('x') / 1000)",
 					"    pm.variables.set('tsEndOfTomorrow', endOfTomorrow.format('x') / 1000)",
 					"    pm.variables.set('tsStartOfDayIso', startOfDay.toISOString())",
 					"    pm.variables.set('tsEndOfDayIso', endOfDay.toISOString())",
 					"    pm.variables.set('tsEndOfTomorrowIso', endOfTomorrow.toISOString())",
-					"    pm.variables.set('ts1', now.startOf('hour').format('x') / 1000)",
-					"    pm.variables.set('ts2', now.startOf('hour').add(1, 'm').format('x') / 1000)",
-					"    pm.variables.set('ts3', now.startOf('hour').add(2, 'm').format('x') / 1000)",
+					"    pm.variables.set('ts1', now.clone().startOf('hour').format('x') / 1000)",
+					"    pm.variables.set('ts2', now.clone().startOf('hour').add(1, 'm').format('x') / 1000)",
+					"    pm.variables.set('ts3', now.clone().startOf('hour').add(2, 'm').format('x') / 1000)",
 					"})"
 				]
 			}

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/mathutil"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -60,7 +61,7 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 			continue
 		}
 
-		sameDay := d1.Time.T().Day() == latest.Time.T().Day()
+		sameDay := datetime.BeginOfDay(d1.Time.T()) == datetime.BeginOfDay(latest.Time.T())
 		dur := time.Duration(mathutil.Min(
 			int64(d1.Time.T().Sub(latest.Time.T().Add(latest.Duration))),
 			int64(HeartbeatDiffThreshold),
