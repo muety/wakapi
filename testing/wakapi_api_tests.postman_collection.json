@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "43639725-0458-40d7-a4d4-9f55a539a7f7",
+		"_postman_id": "5c0749a5-6ddf-41ea-82f1-140578788bc3",
 		"name": "Wakapi API Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -973,10 +973,9 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// 1640995199 Friday, 31 December 2021 11:59:59 PM (Jan 1st in +1, +2)",
-									"// 1641074399 Saturday, 1 January 2022 9:59:59 PM  (Jan 1st in +1, +2)",
-									"// 1641081599 Saturday, 1 January 2022 11:59:59 PM (Jan 2nd in +1, +2)",
-									""
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
 								],
 								"type": "text/javascript"
 							}
@@ -1331,8 +1330,8 @@
 									"",
 									"pm.test(\"Correct dates\", function () {",
 									"    const jsonData = pm.response.json();",
-									"    pm.expect(moment(jsonData.from).unix()).to.gte(moment(pm.variables.get('tsStartOfDayDate')).unix())",
-									"    pm.expect(moment(jsonData.to).unix()).to.gte(moment(pm.variables.get('tsEndOfDayDate')).unix())",
+									"    pm.expect(moment(jsonData.from).unix()).to.gte(moment(pm.variables.get('tsStartOfDayIso')).unix())",
+									"    pm.expect(moment(jsonData.to).unix()).to.lte(moment(pm.variables.get('tsEndOfDayIso')).unix())",
 									"});",
 									""
 								],
@@ -1358,7 +1357,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{BASE_URL}}/api/summary?from={{tsStartOfDayDate}}&to={{tsEndOfTomorrowDate}}",
+							"raw": "{{BASE_URL}}/api/summary?from={{tsStartOfDayIso}}&to={{tsEndOfDayIso}}",
 							"host": [
 								"{{BASE_URL}}"
 							],
@@ -1369,11 +1368,11 @@
 							"query": [
 								{
 									"key": "from",
-									"value": "{{tsStartOfDayDate}}"
+									"value": "{{tsStartOfDayIso}}"
 								},
 								{
 									"key": "to",
-									"value": "{{tsEndOfTomorrowDate}}"
+									"value": "{{tsEndOfDayIso}}"
 								}
 							]
 						}
@@ -3371,46 +3370,60 @@
 				"exec": [
 					"const moment = require('moment')",
 					"",
-					"const now = moment()",
-					"const startOfDay = moment().startOf('day')",
-					"const endOfDay = moment().endOf('day')",
-					"const endOfTomorrow = moment().add(1, 'd').endOf('day')",
+					"// pretend we're in Berlin, as this is also the time zone configured for the user",
+					"const userZone = 'Europe/Berlin'",
 					"",
-					"console.log(`Current timestamp is: ${now.format('x') / 1000}`)",
-					"",
-					"",
-					"// Auth stuff",
-					"const readApiKey = pm.variables.get('READUSER_API_KEY')",
-					"const writeApiKey = pm.variables.get('WRITEUSER_API_KEY')",
-					"",
-					"if (!readApiKey || !writeApiKey) {",
-					"    throw new Error('no api key given')",
+					"// postman doesn't have moment-timezone package included",
+					"// and we can't just use utcOffset(2), because of summer / winter time",
+					"// inspired by https://stackoverflow.com/a/56853085/3112139",
+					"function getUtcOffset(cb) {",
+					"    let offset = pm.globals.get('utcOffset')",
+					"    if (offset) return cb(offset)",
+					"    pm.sendRequest(`https://worldtimeapi.org/api/timezone/${userZone}`, (err, res) => {",
+					"        offset = res.json().utc_offset",
+					"        pm.globals.set('utcOffset', offset)",
+					"        return cb(offset)",
+					"    })",
 					"}",
 					"",
-					"pm.variables.set('READUSER_TOKEN', base64encode(readApiKey))",
-					"pm.variables.set('WRITEUSER_TOKEN', base64encode(writeApiKey))",
+					"getUtcOffset((utcOffset) => {",
+					"    const now = moment().utcOffset(utcOffset)",
+					"    const startOfDay = moment().utcOffset(utcOffset).startOf('day')",
+					"    const endOfDay = moment().utcOffset(utcOffset).endOf('day')",
+					"    const endOfTomorrow = moment().utcOffset(utcOffset).add(1, 'd').endOf('day')",
 					"",
-					"function base64encode(str) {",
-					"    return Buffer.from(str, 'utf-8').toString('base64')",
-					"}",
+					"    // Auth stuff",
+					"    const readApiKey = pm.variables.get('READUSER_API_KEY')",
+					"    const writeApiKey = pm.variables.get('WRITEUSER_API_KEY')",
 					"",
-					"// Heartbeat stuff",
-					"pm.variables.set('tsNow', now.format('x') / 1000)",
-					"pm.variables.set('tsNowMinus1Min', now.add(-1, 'm').format('x') / 1000)",
-					"pm.variables.set('tsNowMinus2Min', now.add(-2, 'm').format('x') / 1000)",
-					"pm.variables.set('tsNowMinus3Min', now.add(-3, 'm').format('x') / 1000)",
-					"pm.variables.set('tsStartOfDay', startOfDay.format('x') / 1000)",
-					"pm.variables.set('tsEndOfDay', endOfDay.format('x') / 1000)",
-					"pm.variables.set('tsEndOfTomorrow', endOfTomorrow.format('x') / 1000)",
-					"pm.variables.set('tsStartOfDayIso', startOfDay.toISOString())",
-					"pm.variables.set('tsEndOfDayIso', endOfDay.toISOString())",
-					"pm.variables.set('tsEndOfTomorrowIso', endOfTomorrow.toISOString())",
-					"pm.variables.set('tsStartOfDayDate', startOfDay.format('YYYY-MM-DD'))",
-					"pm.variables.set('tsEndOfDayDate', endOfDay.format('YYYY-MM-DD'))",
-					"pm.variables.set('tsEndOfTomorrowDate', endOfTomorrow.format('YYYY-MM-DD'))",
-					"pm.variables.set('ts1', now.startOf('hour').format('x') / 1000)",
-					"pm.variables.set('ts2', now.startOf('hour').add(1, 'm').format('x') / 1000)",
-					"pm.variables.set('ts3', now.startOf('hour').add(2, 'm').format('x') / 1000)"
+					"    console.log(readApiKey)",
+					"",
+					"    if (!readApiKey || !writeApiKey) {",
+					"        throw new Error('no api key given')",
+					"    }",
+					"",
+					"    pm.variables.set('READUSER_TOKEN', base64encode(readApiKey))",
+					"    pm.variables.set('WRITEUSER_TOKEN', base64encode(writeApiKey))",
+					"",
+					"    function base64encode(str) {",
+					"        return Buffer.from(str, 'utf-8').toString('base64')",
+					"    }",
+					"",
+					"    // Heartbeat stuff",
+					"    pm.variables.set('tsNow', now.format('x') / 1000)",
+					"    pm.variables.set('tsNowMinus1Min', now.add(-1, 'm').format('x') / 1000)",
+					"    pm.variables.set('tsNowMinus2Min', now.add(-2, 'm').format('x') / 1000)",
+					"    pm.variables.set('tsNowMinus3Min', now.add(-3, 'm').format('x') / 1000)",
+					"    pm.variables.set('tsStartOfDay', startOfDay.format('x') / 1000)",
+					"    pm.variables.set('tsEndOfDay', endOfDay.format('x') / 1000)",
+					"    pm.variables.set('tsEndOfTomorrow', endOfTomorrow.format('x') / 1000)",
+					"    pm.variables.set('tsStartOfDayIso', startOfDay.toISOString())",
+					"    pm.variables.set('tsEndOfDayIso', endOfDay.toISOString())",
+					"    pm.variables.set('tsEndOfTomorrowIso', endOfTomorrow.toISOString())",
+					"    pm.variables.set('ts1', now.startOf('hour').format('x') / 1000)",
+					"    pm.variables.set('ts2', now.startOf('hour').add(1, 'm').format('x') / 1000)",
+					"    pm.variables.set('ts3', now.startOf('hour').add(2, 'm').format('x') / 1000)",
+					"})"
 				]
 			}
 		},

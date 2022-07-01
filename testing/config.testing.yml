@@ -12,6 +12,7 @@ server:
 app:
   aggregation_time: '02:15'
   report_time_weekly: 'fri,18:00'
+  heartbeat_max_age: 87600h  # 10 years
   inactive_days: 7
   custom_languages:
     vue: Vue
