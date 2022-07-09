@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	uuid "github.com/satori/go.uuid"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -16,6 +16,7 @@ import (
 	"github.com/jinzhu/configor"
 	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/models"
+	uuid "github.com/satori/go.uuid"
 	"gorm.io/gorm"
 )
 
@@ -363,7 +364,13 @@ func Load(version string) *Config {
 	}
 
 	env = config.Env
+
 	config.Version = strings.TrimSpace(version)
+	tagVersionMatch, _ := regexp.MatchString(`\d+\.\d+\.\d+`, version)
+	if tagVersionMatch {
+		config.Version = "v" + config.Version
+	}
+
 	config.InstanceId = uuid.NewV4().String()
 	config.App.Colors = readColors()
 	config.Db.Dialect = resolveDbDialect(config.Db.Type)

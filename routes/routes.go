@@ -2,15 +2,15 @@ package routes
 
 import (
 	"fmt"
-	"github.com/duke-git/lancet/v2/datetime"
-	"github.com/muety/wakapi/views"
 	"html/template"
 	"net/http"
 	"strings"
 
+	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
+	"github.com/muety/wakapi/views"
 )
 
 type action func(w http.ResponseWriter, r *http.Request) (int, string, string)
