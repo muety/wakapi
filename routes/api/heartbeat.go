@@ -79,6 +79,12 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	machineName := r.Header.Get("X-Machine-Name")
 
 	for _, hb := range heartbeats {
+		if hb == nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("invalid heartbeat object"))
+			return
+		}
+
 		hb.OperatingSystem = opSys
 		hb.Editor = editor
 		hb.Machine = machineName
