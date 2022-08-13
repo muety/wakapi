@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
@@ -10,6 +11,7 @@ import (
 	"github.com/muety/wakapi/services"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -49,17 +51,22 @@ func (h *HomeHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 func (h *HomeHandler) buildViewModel(r *http.Request) *view.HomeViewModel {
 	var totalHours int
 	var totalUsers int
+	var newsbox view.Newsbox
 
-	if t, err := h.keyValueSrvc.GetString(conf.KeyLatestTotalTime); err == nil && t != nil && t.Value != "" {
-		if d, err := time.ParseDuration(t.Value); err == nil {
+	if kv, err := h.keyValueSrvc.GetString(conf.KeyLatestTotalTime); err == nil && kv != nil && kv.Value != "" {
+		if d, err := time.ParseDuration(kv.Value); err == nil {
 			totalHours = int(d.Hours())
 		}
 	}
 
-	if t, err := h.keyValueSrvc.GetString(conf.KeyLatestTotalUsers); err == nil && t != nil && t.Value != "" {
-		if d, err := strconv.Atoi(t.Value); err == nil {
+	if kv, err := h.keyValueSrvc.GetString(conf.KeyLatestTotalUsers); err == nil && kv != nil && kv.Value != "" {
+		if d, err := strconv.Atoi(kv.Value); err == nil {
 			totalUsers = d
 		}
+	}
+
+	if kv, err := h.keyValueSrvc.GetString(conf.KeyNewsbox); err == nil && kv != nil && kv.Value != "" {
+		json.NewDecoder(strings.NewReader(kv.Value)).Decode(&newsbox)
 	}
 
 	return &view.HomeViewModel{
@@ -67,5 +74,6 @@ func (h *HomeHandler) buildViewModel(r *http.Request) *view.HomeViewModel {
 		Error:      r.URL.Query().Get("error"),
 		TotalHours: totalHours,
 		TotalUsers: totalUsers,
+		Newsbox:    &newsbox,
 	}
 }

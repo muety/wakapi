@@ -9,7 +9,7 @@
 
 {{ template "alerts.tpl.html" . }}
 
-<div class="absolute flex top-0 right-0 mr-8 mt-10 py-2">
+<div class="absolute flex top-0 right-0 mr-4 mt-10 py-2">
     <div class="mx-1">
         <a href="login" class="btn-primary">
             <span class="iconify inline" data-icon="fluent:key-24-filled"></span> &nbsp;Login</a>
@@ -18,6 +18,12 @@
 
 <main class="mt-10 px-4 md:px-10 lg:px-24 flex-grow flex justify-center w-full">
     <div class="flex flex-col text-white">
+        {{ if and .Newsbox .Newsbox.Text }}
+        <div class="mb-14 -mt-4 newsbox newsbox-{{ .Newsbox.Type }}">
+            {{ .Newsbox.Text | htmlSafe }}
+        </div>
+        {{ end }}
+
         <h1 class="text-8xl font-semibold antialiased text-center mb-10 leading-snug">Keep Track of<br><span
                 class="text-green-700">Your</span> Coding Time</h1>
         <p class="text-center text-gray-500 text-xl my-2">Wakapi is an open-source tool that helps you keep track of the

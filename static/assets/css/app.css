@@ -93,6 +93,22 @@ body {
     @apply font-semibold text-gray-400 hover:text-gray-300;
 }
 
+.newsbox {
+    @apply px-4 py-2 border-2 border-red-700 bg-gray-850 rounded-md text-white border-green-700;
+}
+
+.newsbox-default {
+    @apply border-green-700;
+}
+
+.newsbox-warning {
+    @apply border-yellow-600;
+}
+
+.newsbox-danger {
+    @apply border-red-700;
+}
+
 ::-webkit-calendar-picker-indicator {
     filter: invert(1);
     cursor: pointer;
