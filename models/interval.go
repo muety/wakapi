@@ -14,8 +14,8 @@ var (
 	IntervalPast7DaysYesterday = &IntervalKey{"Last 7 Days from Yesterday"}
 	IntervalPast14Days         = &IntervalKey{"Last 14 Days"}
 	IntervalPast30Days         = &IntervalKey{"30_days", "last_30_days", "Last 30 Days"}
-	IntervalPast12Months       = &IntervalKey{"12_months", "last_12_months"}
-	IntervalAny                = &IntervalKey{"any"}
+	IntervalPast12Months       = &IntervalKey{"12_months", "last_12_months", "last_year"}
+	IntervalAny                = &IntervalKey{"any", "all_time"}
 )
 
 var AllIntervals = []*IntervalKey{
