@@ -50,7 +50,7 @@ func (h *SummariesHandler) RegisterRoutes(router *mux.Router) {
 // @Tags wakatime
 // @Produce json
 // @Param user path string true "User ID to fetch data for (or 'current')"
-// @Param range query string false "Range interval identifier" Enums(today, yesterday, week, month, year, 7_days, last_7_days, 30_days, last_30_days, 12_months, last_12_months, any)
+// @Param range query string false "Range interval identifier" Enums(today, yesterday, week, month, year, 7_days, last_7_days, 30_days, last_30_days, 6_months, last_6_months, 12_months, last_12_months, last_year, any, all_time)
 // @Param start query string false "Start date (e.g. '2021-02-07')"
 // @Param end query string false "End date (e.g. '2021-02-08')"
 // @Param project query string false "Project to filter by"
