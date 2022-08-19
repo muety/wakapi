@@ -11,7 +11,7 @@ ADD ./go.mod ./go.sum ./
 RUN go mod download
 ADD . .
 
-RUN go build -v -o wakapi
+RUN go build -ldflags "-s -w" -v -o wakapi main.go
 
 WORKDIR /app
 RUN cp /src/wakapi . && \
