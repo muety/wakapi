@@ -1,33 +1,25 @@
-# To build locally: docker buildx build . -t wakapi --load
-
-# Preparation to save some time
-FROM --platform=$BUILDPLATFORM golang:1.18-alpine AS prep-env
-WORKDIR /src
-
-ADD ./go.mod .
-RUN go mod download
-ADD . .
-
-RUN wget "https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh" -O wait-for-it.sh && \
-    chmod +x wait-for-it.sh
-
-# Build Stage
 FROM golang:1.18-alpine AS build-env
+WORKDIR /src
 
 # Required for go-sqlite3
 RUN apk add --no-cache gcc musl-dev
 
-WORKDIR /src
-COPY --from=prep-env /src .
+RUN wget "https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh" -O wait-for-it.sh && \
+    chmod +x wait-for-it.sh
 
-RUN go build -v -o wakapi
+ADD ./go.mod ./go.sum ./
+RUN go mod download
+ADD . .
 
-WORKDIR /app
-RUN cp /src/wakapi . && \
-    cp /src/config.default.yml config.yml && \
-    sed -i 's/listen_ipv6: ::1/listen_ipv6: /g' config.yml && \
-    cp /src/wait-for-it.sh . && \
-    cp /src/entrypoint.sh .
+RUN go build -ldflags "-s -w" -v -o wakapi main.go
+
+WORKDIR /staging
+RUN mkdir ./data ./app && \
+    cp /src/wakapi app/ && \
+    cp /src/config.default.yml app/config.yml && \
+    sed -i 's/listen_ipv6: ::1/listen_ipv6: /g' app/config.yml && \
+    cp /src/wait-for-it.sh app/ && \
+    cp /src/entrypoint.sh app/
 
 # Run Stage
 
@@ -41,18 +33,18 @@ WORKDIR /app
 RUN apk add --no-cache bash ca-certificates tzdata
 
 # See README.md and config.default.yml for all config options
-ENV ENVIRONMENT prod
-ENV WAKAPI_DB_TYPE sqlite3
-ENV WAKAPI_DB_USER ''
-ENV WAKAPI_DB_PASSWORD ''
-ENV WAKAPI_DB_HOST ''
-ENV WAKAPI_DB_NAME=/data/wakapi.db
-ENV WAKAPI_PASSWORD_SALT ''
-ENV WAKAPI_LISTEN_IPV4 '0.0.0.0'
-ENV WAKAPI_INSECURE_COOKIES 'true'
-ENV WAKAPI_ALLOW_SIGNUP 'true'
+ENV ENVIRONMENT=prod \
+    WAKAPI_DB_TYPE=sqlite3 \
+    WAKAPI_DB_USER='' \
+    WAKAPI_DB_PASSWORD='' \
+    WAKAPI_DB_HOST='' \
+    WAKAPI_DB_NAME=/data/wakapi.db \
+    WAKAPI_PASSWORD_SALT='' \
+    WAKAPI_LISTEN_IPV4='0.0.0.0' \
+    WAKAPI_INSECURE_COOKIES='true' \
+    WAKAPI_ALLOW_SIGNUP='true'
 
-COPY --from=build-env /app .
+COPY --from=build-env /staging /
 
 EXPOSE 3000
 
