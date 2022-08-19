@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"github.com/muety/wakapi/migrations"
 	"io/fs"
 	"log"
 	"net"
@@ -11,28 +10,29 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/lpar/gzipped/v2"
-	"github.com/muety/wakapi/routes/relay"
-
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/handlers"
-	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/repositories"
-	"github.com/muety/wakapi/routes/api"
-	"github.com/muety/wakapi/services/mail"
-	fsutils "github.com/muety/wakapi/utils/fs"
-	"gorm.io/gorm/logger"
-
 	"github.com/gorilla/mux"
+	"github.com/lpar/gzipped/v2"
+
+	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
+	"github.com/muety/wakapi/migrations"
+	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/routes"
+	"github.com/muety/wakapi/routes/api"
 	shieldsV1Routes "github.com/muety/wakapi/routes/compat/shields/v1"
 	wtV1Routes "github.com/muety/wakapi/routes/compat/wakatime/v1"
+	"github.com/muety/wakapi/routes/relay"
 	"github.com/muety/wakapi/services"
+	"github.com/muety/wakapi/services/mail"
+	fsutils "github.com/muety/wakapi/utils/fs"
+
 	_ "gorm.io/driver/mysql"
 	_ "gorm.io/driver/postgres"
 	_ "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // Embed version.txt
@@ -121,6 +121,10 @@ func main() {
 	// Connect to database
 	var err error
 	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{Logger: gormLogger})
+	if err != nil {
+		logbuch.Error(err.Error())
+		logbuch.Fatal("could not open database")
+	}
 	if config.Db.IsSQLite() {
 		db.Exec("PRAGMA foreign_keys = ON;")
 	}
