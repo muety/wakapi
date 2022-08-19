@@ -13,12 +13,13 @@ ADD . .
 
 RUN go build -ldflags "-s -w" -v -o wakapi main.go
 
-WORKDIR /app
-RUN cp /src/wakapi . && \
-    cp /src/config.default.yml config.yml && \
-    sed -i 's/listen_ipv6: ::1/listen_ipv6: /g' config.yml && \
-    cp /src/wait-for-it.sh . && \
-    cp /src/entrypoint.sh .
+WORKDIR /staging
+RUN mkdir ./data ./app && \
+    cp /src/wakapi app/ && \
+    cp /src/config.default.yml app/config.yml && \
+    sed -i 's/listen_ipv6: ::1/listen_ipv6: /g' app/config.yml && \
+    cp /src/wait-for-it.sh app/ && \
+    cp /src/entrypoint.sh app/
 
 # Run Stage
 
@@ -43,7 +44,7 @@ ENV ENVIRONMENT=prod \
     WAKAPI_INSECURE_COOKIES='true' \
     WAKAPI_ALLOW_SIGNUP='true'
 
-COPY --from=build-env /app .
+COPY --from=build-env /staging /
 
 EXPOSE 3000
 
