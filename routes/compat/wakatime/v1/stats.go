@@ -48,7 +48,7 @@ func (h *StatsHandler) RegisterRoutes(router *mux.Router) {
 // @Tags wakatime
 // @Produce json
 // @Param user path string true "User ID to fetch data for (or 'current')"
-// @Param range path string false "Range interval identifier" Enums(today, yesterday, week, month, year, 7_days, last_7_days, 30_days, last_30_days, 12_months, last_12_months, any)
+// @Param range path string false "Range interval identifier" Enums(today, yesterday, week, month, year, 7_days, last_7_days, 30_days, last_30_days, 6_months, last_6_months, 12_months, last_12_months, last_year, any, all_time)
 // @Param project query string false "Project to filter by"
 // @Param language query string false "Language to filter by"
 // @Param editor query string false "Editor to filter by"

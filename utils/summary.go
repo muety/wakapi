@@ -60,6 +60,8 @@ func ResolveIntervalTZ(interval *models.IntervalKey, tz *time.Location) (err err
 		from = now.AddDate(0, 0, -14)
 	case models.IntervalPast30Days:
 		from = now.AddDate(0, 0, -30)
+	case models.IntervalPast6Months:
+		from = now.AddDate(0, -6, 0)
 	case models.IntervalPast12Months:
 		from = now.AddDate(0, -12, 0)
 	case models.IntervalAny:

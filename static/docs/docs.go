@@ -54,9 +54,13 @@ const docTemplate = `{
                             "last_7_days",
                             "30_days",
                             "last_30_days",
+                            "6_months",
+                            "last_6_months",
                             "12_months",
                             "last_12_months",
-                            "any"
+                            "last_year",
+                            "any",
+                            "all_time"
                         ],
                         "type": "string",
                         "description": "Interval to aggregate data for",
@@ -354,9 +358,13 @@ const docTemplate = `{
                             "last_7_days",
                             "30_days",
                             "last_30_days",
+                            "6_months",
+                            "last_6_months",
                             "12_months",
                             "last_12_months",
-                            "any"
+                            "last_year",
+                            "any",
+                            "all_time"
                         ],
                         "type": "string",
                         "description": "Range interval identifier",
@@ -445,9 +453,13 @@ const docTemplate = `{
                             "last_7_days",
                             "30_days",
                             "last_30_days",
+                            "6_months",
+                            "last_6_months",
                             "12_months",
                             "last_12_months",
-                            "any"
+                            "last_year",
+                            "any",
+                            "all_time"
                         ],
                         "type": "string",
                         "description": "Range interval identifier",
@@ -809,9 +821,13 @@ const docTemplate = `{
                             "last_7_days",
                             "30_days",
                             "last_30_days",
+                            "6_months",
+                            "last_6_months",
                             "12_months",
                             "last_12_months",
-                            "any"
+                            "last_year",
+                            "any",
+                            "all_time"
                         ],
                         "type": "string",
                         "description": "Interval identifier",

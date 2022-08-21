@@ -37,7 +37,7 @@ func (h *SummaryApiHandler) RegisterRoutes(router *mux.Router) {
 // @ID get-summary
 // @Tags summary
 // @Produce json
-// @Param interval query string false "Interval identifier" Enums(today, yesterday, week, month, year, 7_days, last_7_days, 30_days, last_30_days, 12_months, last_12_months, any)
+// @Param interval query string false "Interval identifier" Enums(today, yesterday, week, month, year, 7_days, last_7_days, 30_days, last_30_days, 6_months, last_6_months, 12_months, last_12_months, last_year, any, all_time)
 // @Param from query string false "Start date (e.g. '2021-02-07')"
 // @Param to query string false "End date (e.g. '2021-02-08')"
 // @Param recompute query bool false "Whether to recompute the summary from raw heartbeat or use cache"
