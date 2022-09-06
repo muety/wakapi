@@ -1,16 +1,16 @@
 name: Release
 
 on:
-  push:
-  # release:
-  #   types:
-  #     - published
+  release:
+    types:
+      - published
 
 jobs:
   release:
     name: 'Build, package and release to GitHub'
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         GOOS: [darwin, windows, linux]
         GOARCH: [amd64, arm64]
@@ -48,7 +48,7 @@ jobs:
       run: |
         zip -9 wakapi_${{ matrix.GOOS }}_${{ matrix.GOARCH }}.zip *
 
-    # - name: Upload built executable to Release
-    #   uses: softprops/action-gh-release@v1
-    #   with:
-    #     files: wakapi_${{ matrix.alias }}_amd64.zip
+    - name: Upload built executable to Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./dist/*.zip
