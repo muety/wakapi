@@ -1,10 +1,9 @@
 name: Release
 
 on:
-  push:
-  # release:
-  #   types:
-  #     - published
+  release:
+    types:
+      - published
 
 jobs:
   release:
@@ -80,7 +79,7 @@ jobs:
       run: |
         zip -9 wakapi_${{ matrix.GOOS }}_${{ matrix.GOARCH }}.zip *
 
-    # - name: Upload built executable to Release
-    #   uses: softprops/action-gh-release@v1
-    #   with:
-    #     files: ./dist/*.zip
+    - name: Upload built executable to Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./dist/*.zip
