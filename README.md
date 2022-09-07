@@ -66,6 +66,11 @@ If you want to try out a free, hosted cloud service, all you need to do is creat
 $ curl -L https://wakapi.dev/get | bash
 ```
 
+**Alternatively** using [eget](https://github.com/zyedidia/eget):
+```bash
+$ eget muety/wakapi
+```
+
 ### 🐳 Option 3: Use Docker
 
 ```bash
