@@ -12,11 +12,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: ubuntu-latest
+          - platform: ubuntu-18.04
             GOOS: linux
             GOARCH: amd64
             CC: gcc
-          - platform: ubuntu-latest
+          - platform: ubuntu-18.04
             package: gcc-aarch64-linux-gnu
             GOOS: linux
             GOARCH: arm64
