@@ -64,7 +64,7 @@ jobs:
       shell: bash
       run: |
         GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} \
-          CC=${{ matrix.CC }} CGO_ENABLED=1 go build -v -ldflags '-w -s' ../
+          CC=${{ matrix.CC }} CGO_ENABLED=0 go build -v -ldflags '-w -s' ../
 
     - name: Compress working folder (Windows PowerShell)
       working-directory: ./dist

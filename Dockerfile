@@ -11,7 +11,7 @@ ADD ./go.mod ./go.sum ./
 RUN go mod download
 ADD . .
 
-RUN go build -ldflags "-s -w" -v -o wakapi main.go
+RUN CGO_ENABLED=0 go build -ldflags "-s -w" -v -o wakapi main.go
 
 WORKDIR /staging
 RUN mkdir ./data ./app && \
