@@ -8,12 +8,29 @@ on:
 jobs:
   release:
     name: 'Build, package and release to GitHub'
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        GOOS: [darwin, windows, linux]
-        GOARCH: [amd64, arm64]
+        include:
+          - platform: ubuntu-18.04
+            GOOS: linux
+            GOARCH: amd64
+            CC: gcc
+          - platform: ubuntu-18.04
+            package: gcc-aarch64-linux-gnu
+            GOOS: linux
+            GOARCH: arm64
+            CC: aarch64-linux-gnu-gcc
+          - platform: windows-latest
+            GOOS: windows
+            GOARCH: amd64
+          - platform: macos-latest
+            GOOS: darwin
+            GOARCH: amd64
+          - platform: macos-latest
+            GOOS: darwin
+            GOARCH: arm64
+    runs-on: ${{ matrix.platform }}
 
     steps:
 
@@ -25,6 +42,10 @@ jobs:
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
+
+    - name: Install gcc
+      if: "${{ matrix.package != '' }}"
+      run: sudo apt-get update && sudo apt-get -y install ${{ matrix.package }}
 
     - name: Set version
       shell: bash
@@ -40,11 +61,20 @@ jobs:
 
     - name: Build
       working-directory: ./dist
+      shell: bash
       run: |
-        GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} go build -v ../
+        GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} \
+          CC=${{ matrix.CC }} CGO_ENABLED=1 go build -v -ldflags '-w -s' ../
+
+    - name: Compress working folder (Windows PowerShell)
+      working-directory: ./dist
+      if: "${{ matrix.GOOS == 'windows' }}"
+      run: |
+        Compress-Archive -Path .\wakapi.exe, .\config.yml -DestinationPath wakapi_${{ matrix.GOOS }}_${{ matrix.GOARCH }}.zip
 
     - name: Compress working folder
       working-directory: ./dist
+      if: "${{ matrix.GOOS != 'windows' }}"
       run: |
         zip -9 wakapi_${{ matrix.GOOS }}_${{ matrix.GOARCH }}.zip *
 
