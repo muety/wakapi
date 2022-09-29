@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Compiling."
-go build
+CGO_ENABLED=0 go build
 
 if ! command -v newman &> /dev/null
 then

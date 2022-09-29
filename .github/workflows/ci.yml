@@ -47,7 +47,7 @@ jobs:
       run: go get
 
     - name: Build
-      run: GO111MODULE=on go build -v .
+      run: CGO_ENABLED=0 go build -v .
 
     - name: start wakapi
       run: ./wakapi --config config.default.yml &
@@ -97,4 +97,4 @@ jobs:
       run: go get
 
     - name: Build
-      run: go build -v .
+      run: CGO_ENABLED=0 go build -v .
