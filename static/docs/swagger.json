@@ -14,7 +14,6 @@
         },
         "version": "1.0"
     },
-    "basePath": "/api",
     "paths": {
         "/compat/shields/v1/{user}/{interval}/{filter}": {
             "get": {

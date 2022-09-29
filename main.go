@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"github.com/muety/wakapi/static/docs"
 	"io/fs"
 	"log"
 	"net"
@@ -14,6 +15,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/lpar/gzipped/v2"
+	"github.com/swaggo/http-swagger"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -36,10 +38,12 @@ import (
 )
 
 // Embed version.txt
+//
 //go:embed version.txt
 var version string
 
 // Embed static files
+//
 //go:embed static
 var staticFiles embed.FS
 
@@ -97,9 +101,11 @@ var (
 // @in header
 // @name Authorization
 
-// @BasePath /api
 func main() {
 	config = conf.Load(version)
+
+	// Configure Swagger docs
+	docs.SwaggerInfo.BasePath = config.Server.BasePath
 
 	// Set log level
 	if config.IsDev() {
@@ -269,10 +275,7 @@ func main() {
 
 	router.PathPrefix("/contribute.json").Handler(staticFileServer)
 	router.PathPrefix("/assets").Handler(assetsFileServer)
-	router.PathPrefix("/swagger-ui").Handler(staticFileServer)
-	router.PathPrefix("/docs").Handler(
-		middlewares.NewFileTypeFilterMiddleware([]string{".go"})(staticFileServer),
-	)
+	router.PathPrefix("/swagger-ui").Handler(httpSwagger.WrapHandler)
 
 	// Listen HTTP
 	listen(router)
