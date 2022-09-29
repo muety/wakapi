@@ -94,16 +94,6 @@ If you want to run Wakapi on **Kubernetes**, there is [wakapi-helm-chart](https:
 
 ### 🧑‍💻 Option 4: Compile and run from source
 
-#### Prerequisites
-
-* Go >= 1.18
-* gcc (to compile [go-sqlite3](https://github.com/mattn/go-sqlite3))
-  * Fedora / RHEL: `dnf install @development-tools`
-  * Ubuntu / Debian: `apt install build-essential`
-  * Windows: See [here](https://github.com/mattn/go-sqlite3/issues/214#issuecomment-253216476)
-
-#### Compile & run
-
 ```bash
 # Build and install
 # Alternatively: go build -o wakapi

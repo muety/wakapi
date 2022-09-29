@@ -1,9 +1,6 @@
 FROM golang:1.18-alpine AS build-env
 WORKDIR /src
 
-# Required for go-sqlite3
-RUN apk add --no-cache gcc musl-dev
-
 RUN wget "https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh" -O wait-for-it.sh && \
     chmod +x wait-for-it.sh
 
