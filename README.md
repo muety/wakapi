@@ -317,7 +317,7 @@ Unit tests are supposed to test business logic on a fine-grained level. They are
 #### How to run
 
 ```bash
-$ CGO_FLAGS="-g -O2 -Wno-return-local-addr" go test -json -coverprofile=coverage/coverage.out ./... -run ./...
+$ CGO_ENABLED=0 go test -json -coverprofile=coverage/coverage.out ./... -run ./...
 ```
 
 ### API tests
