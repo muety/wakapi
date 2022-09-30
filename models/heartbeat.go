@@ -13,8 +13,8 @@ type Heartbeat struct {
 	User            *User      `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" hash:"ignore"`
 	UserID          string     `json:"-" gorm:"not null; index:idx_time_user; index:idx_user_project"` // idx_user_project is for quickly fetching a user's project list (settings page)
 	Entity          string     `json:"entity" gorm:"not null"`
-	Type            string     `json:"type"`
-	Category        string     `json:"category"`
+	Type            string     `json:"type" gorm:"size:255"`
+	Category        string     `json:"category" gorm:"size:255"`
 	Project         string     `json:"project" gorm:"index:idx_project; index:idx_user_project"`
 	Branch          string     `json:"branch" gorm:"index:idx_branch"`
 	Language        string     `json:"language" gorm:"index:idx_language"`

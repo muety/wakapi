@@ -22,7 +22,7 @@ const UnknownSummaryKey = "unknown"
 const DefaultProjectLabel = "default"
 
 type Summary struct {
-	ID               uint         `json:"-" gorm:"primary_key"`
+	ID               uint         `json:"-" gorm:"primary_key; size:32"`
 	User             *User        `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	UserID           string       `json:"user_id" gorm:"not null; index:idx_time_summary_user"`
 	FromTime         CustomTime   `json:"from" gorm:"not null; type:timestamp; default:CURRENT_TIMESTAMP; index:idx_time_summary_user" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
@@ -42,9 +42,9 @@ type SummaryItems []*SummaryItem
 type SummaryItem struct {
 	ID        uint64        `json:"-" gorm:"primary_key"`
 	Summary   *Summary      `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	SummaryID uint          `json:"-"`
+	SummaryID uint          `json:"-" gorm:"size:32"`
 	Type      uint8         `json:"-" gorm:"index:idx_type"`
-	Key       string        `json:"key"`
+	Key       string        `json:"key" gorm:"size:255"`
 	Total     time.Duration `json:"total" swaggertype:"primitive,integer"`
 }
 
@@ -134,7 +134,9 @@ func (s *Summary) KeepOnly(types map[uint8]bool) *Summary {
 	return s
 }
 
-/* Augments the summary in a way that at least one item is present for every type.
+/*
+	Augments the summary in a way that at least one item is present for every type.
+
 If a summary has zero items for a given type, but one or more for any of the other types,
 the total summary duration can be derived from those and inserted as a dummy-item with key "unknown"
 for the missing type.

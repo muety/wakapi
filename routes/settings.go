@@ -3,6 +3,7 @@ package routes
 import (
 	"encoding/base64"
 	"fmt"
+	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
@@ -637,7 +638,7 @@ func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
 		return err
 	}
 
-	if err := h.aggregationSrvc.Run(map[string]bool{user.ID: true}); err != nil {
+	if err := h.aggregationSrvc.Run(datastructure.NewSet(user.ID)); err != nil {
 		logbuch.Error("failed to regenerate summaries: %v", err)
 		return err
 	}
