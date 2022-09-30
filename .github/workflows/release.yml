@@ -1,9 +1,10 @@
 name: Release
 
 on:
-  release:
-    types:
-      - published
+  push:
+#  release:
+#    types:
+#      - published
 
 jobs:
   release:
@@ -15,12 +16,9 @@ jobs:
           - platform: ubuntu-18.04
             GOOS: linux
             GOARCH: amd64
-            CC: gcc
           - platform: ubuntu-18.04
-            package: gcc-aarch64-linux-gnu
             GOOS: linux
             GOARCH: arm64
-            CC: aarch64-linux-gnu-gcc
           - platform: windows-latest
             GOOS: windows
             GOARCH: amd64
@@ -43,10 +41,6 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
-    - name: Install gcc
-      if: "${{ matrix.package != '' }}"
-      run: sudo apt-get update && sudo apt-get -y install ${{ matrix.package }}
-
     - name: Set version
       shell: bash
       run: |
@@ -63,8 +57,8 @@ jobs:
       working-directory: ./dist
       shell: bash
       run: |
-        GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} \
-          CC=${{ matrix.CC }} CGO_ENABLED=0 go build -v -ldflags '-w -s' ../
+        GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} CGO_ENABLED=0 \
+            go build -v -ldflags '-w -s' ../
 
     - name: Compress working folder (Windows PowerShell)
       working-directory: ./dist
@@ -78,7 +72,13 @@ jobs:
       run: |
         zip -9 wakapi_${{ matrix.GOOS }}_${{ matrix.GOARCH }}.zip *
 
-    - name: Upload built executable to Release
-      uses: softprops/action-gh-release@v1
+    - name: Archive zip
+      uses: actions/upload-artifact@v3
       with:
-        files: ./dist/*.zip
+        name: wakapi_${{ matrix.GOOS }}_${{ matrix.GOARCH }}.zip
+        path: dist/wakapi_${{ matrix.GOOS }}_${{ matrix.GOARCH }}.zip
+
+    # - name: Upload built executable to Release
+    #   uses: softprops/action-gh-release@v1
+    #   with:
+    #     files: ./dist/*.zip
