@@ -105,7 +105,7 @@ func main() {
 	config = conf.Load(version)
 
 	// Configure Swagger docs
-	docs.SwaggerInfo.BasePath = config.Server.BasePath
+	docs.SwaggerInfo.BasePath = config.Server.BasePath + "/api"
 
 	// Set log level
 	if config.IsDev() {
