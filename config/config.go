@@ -216,6 +216,9 @@ func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
 			if err := db.AutoMigrate(&models.Diagnostics{}); err != nil && !c.Db.AutoMigrateFailSilently {
 				return err
 			}
+			if err := db.AutoMigrate(&models.LeaderboardItem{}); err != nil && !c.Db.AutoMigrateFailSilently {
+				return err
+			}
 			return nil
 		}
 	}
