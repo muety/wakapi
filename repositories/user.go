@@ -85,6 +85,14 @@ func (r *UserRepository) GetAllByReports(reportsEnabled bool) ([]*models.User, e
 	return users, nil
 }
 
+func (r *UserRepository) GetAllByLeaderboard(leaderboardEnabled bool) ([]*models.User, error) {
+	var users []*models.User
+	if err := r.db.Where(&models.User{PublicLeaderboard: leaderboardEnabled}).Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func (r *UserRepository) GetByLoggedInAfter(t time.Time) ([]*models.User, error) {
 	var users []*models.User
 	if err := r.db.

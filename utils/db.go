@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/emvi/logbuch"
 	"gorm.io/gorm"
+	"reflect"
 )
 
 func IsCleanDB(db *gorm.DB) bool {
@@ -29,4 +31,11 @@ func HasConstraints(db *gorm.DB) bool {
 	}
 	logbuch.Warn("HasForeignKeyConstraints is not yet implemented for dialect '%s'", db.Dialector.Name())
 	return false
+}
+
+func WhereNullable(query *gorm.DB, col string, val any) *gorm.DB {
+	if val == nil || reflect.ValueOf(val).IsNil() {
+		return query.Where(fmt.Sprintf("%s is null", col))
+	}
+	return query.Where(fmt.Sprintf("%s = ?", col), val)
 }

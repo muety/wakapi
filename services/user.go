@@ -100,6 +100,10 @@ func (srv *UserService) GetAllByReports(reportsEnabled bool) ([]*models.User, er
 	return srv.repository.GetAllByReports(reportsEnabled)
 }
 
+func (srv *UserService) GetAllByLeaderboard(leaderboardEnabled bool) ([]*models.User, error) {
+	return srv.repository.GetAllByLeaderboard(leaderboardEnabled)
+}
+
 func (srv *UserService) GetActive(exact bool) ([]*models.User, error) {
 	minDate := time.Now().AddDate(0, 0, -1*srv.config.App.InactiveDays)
 	if !exact {

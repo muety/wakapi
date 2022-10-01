@@ -97,6 +97,15 @@ type IReportService interface {
 	Run(*models.User, time.Duration) error
 }
 
+type ILeaderboardService interface {
+	ScheduleDefault()
+	Run([]*models.User, *models.IntervalKey, []uint8) error
+	GetByInterval(*models.IntervalKey) ([]*models.LeaderboardItem, error)
+	GetAggregatedByInterval(*models.IntervalKey, *uint8) ([]*models.LeaderboardItem, error)
+	GenerateByUser(*models.User, *models.IntervalKey) (*models.LeaderboardItem, error)
+	GenerateAggregatedByUser(*models.User, *models.IntervalKey, uint8) ([]*models.LeaderboardItem, error)
+}
+
 type IUserService interface {
 	GetUserById(string) (*models.User, error)
 	GetUserByKey(string) (*models.User, error)
@@ -104,6 +113,7 @@ type IUserService interface {
 	GetUserByResetToken(string) (*models.User, error)
 	GetAll() ([]*models.User, error)
 	GetAllByReports(bool) ([]*models.User, error)
+	GetAllByLeaderboard(bool) ([]*models.User, error)
 	GetActive(bool) ([]*models.User, error)
 	Count() (int64, error)
 	CreateOrGet(*models.Signup, bool) (*models.User, bool, error)
