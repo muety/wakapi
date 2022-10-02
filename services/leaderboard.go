@@ -9,6 +9,8 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
+	"reflect"
+	"strings"
 	"time"
 )
 
@@ -24,7 +26,7 @@ type LeaderboardService struct {
 func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, summaryService ISummaryService, userService IUserService) *LeaderboardService {
 	srv := &LeaderboardService{
 		config:         config.Get(),
-		cache:          cache.New(24*time.Hour, 24*time.Hour),
+		cache:          cache.New(6*time.Hour, 6*time.Hour),
 		eventBus:       config.EventBus(),
 		repository:     leaderboardRepo,
 		summaryService: summaryService,
@@ -108,8 +110,8 @@ func (srv *LeaderboardService) Run(users []*models.User, interval *models.Interv
 		}
 	}
 
+	srv.cache.Flush()
 	logbuch.Info("finished leaderboard generation")
-
 	return nil
 }
 
@@ -123,7 +125,19 @@ func (srv *LeaderboardService) GetByInterval(interval *models.IntervalKey) ([]*m
 }
 
 func (srv *LeaderboardService) GetAggregatedByInterval(interval *models.IntervalKey, by *uint8) ([]*models.LeaderboardItem, error) {
-	return srv.repository.GetAllAggregatedByInterval(interval, by)
+	// check cache
+	cacheKey := srv.getHash(interval, by)
+	if cacheResult, ok := srv.cache.Get(cacheKey); ok {
+		return cacheResult.([]*models.LeaderboardItem), nil
+	}
+
+	items, err := srv.repository.GetAllAggregatedByInterval(interval, by)
+	if err != nil {
+		return nil, err
+	}
+
+	srv.cache.SetDefault(cacheKey, items)
+	return items, nil
 }
 
 func (srv *LeaderboardService) GenerateByUser(user *models.User, interval *models.IntervalKey) (*models.LeaderboardItem, error) {
@@ -172,4 +186,12 @@ func (srv *LeaderboardService) GenerateAggregatedByUser(user *models.User, inter
 	}
 
 	return items, nil
+}
+
+func (srv *LeaderboardService) getHash(interval *models.IntervalKey, by *uint8) string {
+	k := strings.Join(*interval, "__")
+	if by != nil && !reflect.ValueOf(by).IsNil() {
+		k += "__" + models.GetEntityColumn(*by)
+	}
+	return k
 }
