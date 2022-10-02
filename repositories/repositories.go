@@ -88,6 +88,7 @@ type IUserRepository interface {
 
 type ILeaderboardRepository interface {
 	InsertBatch([]*models.LeaderboardItem) error
+	CountAllByUser(string) (int64, error)
 	DeleteByUserAndInterval(string, *models.IntervalKey) error
 	GetAllAggregatedByInterval(*models.IntervalKey, *uint8) ([]*models.LeaderboardItem, error)
 	GetAggregatedByUserAndInterval(string, *models.IntervalKey, *uint8) ([]*models.LeaderboardItem, error)

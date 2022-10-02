@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/emvi/logbuch"
+	"github.com/go-co-op/gocron"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -21,7 +22,7 @@ type LeaderboardService struct {
 }
 
 func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, summaryService ISummaryService, userService IUserService) *LeaderboardService {
-	return &LeaderboardService{
+	srv := &LeaderboardService{
 		config:         config.Get(),
 		cache:          cache.New(24*time.Hour, 24*time.Hour),
 		eventBus:       config.EventBus(),
@@ -29,6 +30,28 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 		summaryService: summaryService,
 		userService:    userService,
 	}
+
+	onUserUpdate := srv.eventBus.Subscribe(0, config.EventUserUpdate)
+	go func(sub *hub.Subscription) {
+		for m := range sub.Receiver {
+
+			// generate leaderboard for updated user, if leaderboard enabled and none present, yet
+			user := m.Fields[config.FieldPayload].(*models.User)
+			if user.PublicLeaderboard {
+				exists, err := srv.ExistsAnyByUser(user.ID)
+				if err != nil {
+					config.Log().Error("failed to check existing leaderboards upon user update - %v", err)
+				}
+				if !exists {
+					logbuch.Info("generating leaderboard for '%s' after settings update", user.ID)
+					srv.Run([]*models.User{user}, models.IntervalPast7Days, []uint8{models.SummaryLanguage})
+				}
+			}
+
+		}
+	}(&onUserUpdate)
+
+	return srv
 }
 
 func (srv *LeaderboardService) ScheduleDefault() {
@@ -42,11 +65,9 @@ func (srv *LeaderboardService) ScheduleDefault() {
 		srv.Run(users, interval, by)
 	}
 
-	runAllUsers(models.IntervalPast7Days, []uint8{models.SummaryLanguage})
-
-	//s := gocron.NewScheduler(time.Local)
-	//s.Every(1).Day().At(srv.config.App.LeaderboardGenerationTime).Do(runAllUsers, models.IntervalPast7Days, []uint8{models.SummaryLanguage})
-	//s.StartBlocking()
+	s := gocron.NewScheduler(time.Local)
+	s.Every(1).Day().At(srv.config.App.LeaderboardGenerationTime).Do(runAllUsers, models.IntervalPast7Days, []uint8{models.SummaryLanguage})
+	s.StartBlocking()
 }
 
 func (srv *LeaderboardService) Run(users []*models.User, interval *models.IntervalKey, by []uint8) error {
@@ -90,6 +111,11 @@ func (srv *LeaderboardService) Run(users []*models.User, interval *models.Interv
 	logbuch.Info("finished leaderboard generation")
 
 	return nil
+}
+
+func (srv *LeaderboardService) ExistsAnyByUser(userId string) (bool, error) {
+	count, err := srv.repository.CountAllByUser(userId)
+	return count > 0, err
 }
 
 func (srv *LeaderboardService) GetByInterval(interval *models.IntervalKey) ([]*models.LeaderboardItem, error) {

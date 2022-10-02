@@ -66,7 +66,7 @@ var env string
 
 type appConfig struct {
 	AggregationTime           string                       `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
-	LeaderboardGenerationTime string                       `yaml:"leaderboard_generation_time" default:"06:00,18:00" env:"WAKAPI_LEADERBOARD_GENERATION_TIME"`
+	LeaderboardGenerationTime string                       `yaml:"leaderboard_generation_time" default:"06:00;18:00" env:"WAKAPI_LEADERBOARD_GENERATION_TIME"`
 	ReportTimeWeekly          string                       `yaml:"report_time_weekly" default:"fri,18:00" env:"WAKAPI_REPORT_TIME_WEEKLY"`
 	ImportBackoffMin          int                          `yaml:"import_backoff_min" default:"5" env:"WAKAPI_IMPORT_BACKOFF_MIN"`
 	ImportBatchSize           int                          `yaml:"import_batch_size" default:"50" env:"WAKAPI_IMPORT_BATCH_SIZE"`

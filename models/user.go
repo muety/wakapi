@@ -66,9 +66,10 @@ type CredentialsReset struct {
 }
 
 type UserDataUpdate struct {
-	Email         string `schema:"email"`
-	Location      string `schema:"location"`
-	ReportsWeekly bool   `schema:"reports_weekly"`
+	Email             string `schema:"email"`
+	Location          string `schema:"location"`
+	ReportsWeekly     bool   `schema:"reports_weekly"`
+	PublicLeaderboard bool   `schema:"public_leaderboard"`
 }
 
 type TimeByUser struct {

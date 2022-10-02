@@ -24,6 +24,15 @@ func (r *LeaderboardRepository) InsertBatch(items []*models.LeaderboardItem) err
 	return nil
 }
 
+func (r *LeaderboardRepository) CountAllByUser(userId string) (int64, error) {
+	var count int64
+	err := r.db.
+		Table("leaderboard_items").
+		Where("user_id = ?", userId).
+		Count(&count).Error
+	return count, err
+}
+
 func (r *LeaderboardRepository) GetAllAggregatedByInterval(key *models.IntervalKey, by *uint8) ([]*models.LeaderboardItem, error) {
 	// TODO: distinct by (user, key) to filter out potential duplicates ?
 	var items []*models.LeaderboardItem

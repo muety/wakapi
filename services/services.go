@@ -100,6 +100,7 @@ type IReportService interface {
 type ILeaderboardService interface {
 	ScheduleDefault()
 	Run([]*models.User, *models.IntervalKey, []uint8) error
+	ExistsAnyByUser(string) (bool, error)
 	GetByInterval(*models.IntervalKey) ([]*models.LeaderboardItem, error)
 	GetAggregatedByInterval(*models.IntervalKey, *uint8) ([]*models.LeaderboardItem, error)
 	GenerateByUser(*models.User, *models.IntervalKey) (*models.LeaderboardItem, error)
