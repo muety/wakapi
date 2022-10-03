@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"github.com/duke-git/lancet/v2/convertor"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/emvi/logbuch"
 	"github.com/leandro-lugaresi/hub"
@@ -94,6 +95,20 @@ func (srv *UserService) GetUserByResetToken(resetToken string) (*models.User, er
 
 func (srv *UserService) GetAll() ([]*models.User, error) {
 	return srv.repository.GetAll()
+}
+
+func (srv *UserService) GetMany(ids []string) ([]*models.User, error) {
+	return srv.repository.GetMany(ids)
+}
+
+func (srv *UserService) GetManyMapped(ids []string) (map[string]*models.User, error) {
+	users, err := srv.repository.GetMany(ids)
+	if err != nil {
+		return nil, err
+	}
+	return convertor.ToMap[*models.User, string, *models.User](users, func(u *models.User) (string, *models.User) {
+		return u.ID, u
+	}), nil
 }
 
 func (srv *UserService) GetAllByReports(reportsEnabled bool) ([]*models.User, error) {

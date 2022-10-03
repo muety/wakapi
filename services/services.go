@@ -101,8 +101,8 @@ type ILeaderboardService interface {
 	ScheduleDefault()
 	Run([]*models.User, *models.IntervalKey, []uint8) error
 	ExistsAnyByUser(string) (bool, error)
-	GetByInterval(*models.IntervalKey) ([]*models.LeaderboardItem, error)
-	GetAggregatedByInterval(*models.IntervalKey, *uint8) ([]*models.LeaderboardItem, error)
+	GetByInterval(*models.IntervalKey, bool) (models.Leaderboard, error)
+	GetAggregatedByInterval(*models.IntervalKey, *uint8, bool) (models.Leaderboard, error)
 	GenerateByUser(*models.User, *models.IntervalKey) (*models.LeaderboardItem, error)
 	GenerateAggregatedByUser(*models.User, *models.IntervalKey, uint8) ([]*models.LeaderboardItem, error)
 }
@@ -113,6 +113,8 @@ type IUserService interface {
 	GetUserByEmail(string) (*models.User, error)
 	GetUserByResetToken(string) (*models.User, error)
 	GetAll() ([]*models.User, error)
+	GetMany([]string) ([]*models.User, error)
+	GetManyMapped([]string) (map[string]*models.User, error)
 	GetAllByReports(bool) ([]*models.User, error)
 	GetAllByLeaderboard(bool) ([]*models.User, error)
 	GetActive(bool) ([]*models.User, error)

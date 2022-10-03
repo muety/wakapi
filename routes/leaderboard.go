@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/emvi/logbuch"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -45,28 +46,40 @@ func (h *LeaderboardHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
-	templates[conf.LeaderboardTemplate].Execute(w, h.buildViewModel(r))
+	if err := templates[conf.LeaderboardTemplate].Execute(w, h.buildViewModel(r)); err != nil {
+		logbuch.Error(err.Error())
+	}
 }
 
 func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardViewModel {
 	user := middlewares.GetPrincipal(r)
 	byParam := strings.ToLower(r.URL.Query().Get("by"))
+	keyParam := strings.ToLower(r.URL.Query().Get("key"))
 
 	var err error
-	var items []*models.LeaderboardItem
+	var leaderboard models.Leaderboard
+	var topKeys []string
 
 	if byParam == "" {
-		items, err = h.leaderboardService.GetByInterval(models.IntervalPast7Days)
+		leaderboard, err = h.leaderboardService.GetByInterval(models.IntervalPast7Days, true)
 		if err != nil {
 			conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
 			return &view.LeaderboardViewModel{Error: criticalError}
 		}
 	} else {
 		if by, ok := allowedAggregations[byParam]; ok {
-			items, err = h.leaderboardService.GetAggregatedByInterval(models.IntervalPast7Days, &by)
+			leaderboard, err = h.leaderboardService.GetAggregatedByInterval(models.IntervalPast7Days, &by, true)
 			if err != nil {
 				conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
 				return &view.LeaderboardViewModel{Error: criticalError}
+			}
+
+			topKeys = leaderboard.TopKeys(by)
+			if len(topKeys) > 0 {
+				if keyParam == "" {
+					keyParam = strings.ToLower(topKeys[0])
+				}
+				leaderboard = leaderboard.TopByKey(by, keyParam)
 			}
 		} else {
 			return &view.LeaderboardViewModel{Error: fmt.Sprintf("unsupported aggregation '%s'", byParam)}
@@ -81,7 +94,9 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 	return &view.LeaderboardViewModel{
 		User:    user,
 		By:      byParam,
-		Items:   items,
+		Key:     keyParam,
+		Items:   leaderboard,
+		TopKeys: topKeys,
 		ApiKey:  apiKey,
 		Success: r.URL.Query().Get("success"),
 		Error:   r.URL.Query().Get("error"),

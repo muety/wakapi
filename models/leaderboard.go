@@ -1,6 +1,11 @@
 package models
 
-import "time"
+import (
+	"github.com/duke-git/lancet/v2/maputil"
+	"github.com/duke-git/lancet/v2/slice"
+	"strings"
+	"time"
+)
 
 type LeaderboardItem struct {
 	ID        uint          `json:"-" gorm:"primary_key; size:32"`
@@ -12,4 +17,54 @@ type LeaderboardItem struct {
 	Total     time.Duration `json:"total" gorm:"not null" swaggertype:"primitive,integer"`
 	Key       *string       `json:"key" gorm:"size:255"` // pointer because nullable
 	CreatedAt CustomTime    `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+}
+
+type Leaderboard []*LeaderboardItem
+
+func (l Leaderboard) UserIDs() []string {
+	return slice.Unique[string](slice.Map[*LeaderboardItem, string](l, func(i int, item *LeaderboardItem) string {
+		return item.UserID
+	}))
+}
+
+func (l Leaderboard) TopByKey(by uint8, key string) Leaderboard {
+	return slice.Filter[*LeaderboardItem](l, func(i int, item *LeaderboardItem) bool {
+		return item.By != nil && *item.By == by && item.Key != nil && strings.ToLower(*item.Key) == strings.ToLower(key)
+	})
+}
+
+func (l Leaderboard) TopKeys(by uint8) []string {
+	type keyTotal struct {
+		Key   string
+		Total time.Duration
+	}
+
+	totalsMapped := make(map[string]*keyTotal, len(l))
+
+	for _, item := range l {
+		if item.Key == nil || item.By == nil || *item.By != by {
+			continue
+		}
+		if _, ok := totalsMapped[*item.Key]; !ok {
+			totalsMapped[*item.Key] = &keyTotal{Key: *item.Key, Total: 0}
+		}
+		totalsMapped[*item.Key].Total += item.Total
+	}
+
+	totals := slice.Map[*keyTotal, keyTotal](maputil.Values[string, *keyTotal](totalsMapped), func(i int, item *keyTotal) keyTotal {
+		return *item
+	})
+	if err := slice.SortByField(totals, "Total", "desc"); err != nil {
+		return []string{} // TODO
+	}
+
+	return slice.Map[keyTotal, string](totals, func(i int, item keyTotal) string {
+		return item.Key
+	})
+}
+
+func (l Leaderboard) TopKeysByUser(by uint8, userId string) []string {
+	return Leaderboard(slice.Filter[*LeaderboardItem](l, func(i int, item *LeaderboardItem) bool {
+		return item.UserID == userId
+	})).TopKeys(by)
 }

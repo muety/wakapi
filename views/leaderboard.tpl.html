@@ -20,21 +20,44 @@
 
 <main class="mt-10 flex-grow flex justify-center w-full" id="leaderboard-page">
     <div class="flex flex-col flex-grow mt-10">
-        <h1 class="font-semibold text-3xl text-white m-0 mb-4">Leaderboard</h1>
+        <h1 class="h1" style="margin-bottom: 0.5rem">Leaderboard</h1>
 
-        <ul class="flex space-x-4 mb-16 text-gray-600">
-            <li class="font-semibold text-2xl {{ if eq .By "" }} text-gray-300 {{ else }} hover:text-gray-500 {{ end }}">
+        <p class="block text-sm text-gray-300 w-full lg:w-3/4 mb-8">Wakapi's leaderboard shows a ranking of the most active users on this servers, given they opted in to get listed on the public leaderboard (see <i>Settings 🠒 Data</i>). Statistics are updated at least every 12 hours and are based on the users' total coding time in the past seven days. </p>
+
+        <ul class="flex space-x-4 mb-4 text-gray-600">
+            <li class="font-semibold text-xl {{ if eq .By "" }} text-gray-300 {{ else }} hover:text-gray-500 {{ end }}">
                 <a href="leaderboard">Total</a>
             </li>
-            <li class="font-semibold text-2xl {{ if eq .By "language" }} text-gray-300 {{ else }} hover:text-gray-500 {{ end }}">
+            <li class="font-semibold text-xl {{ if eq .By "language" }} text-gray-300 {{ else }} hover:text-gray-500 {{ end }}">
                 <a href="leaderboard?by=language">By Language</a>
             </li>
         </ul>
 
-        <div id="total" class="tab flex flex-col space-y-4">
+        {{ if ne .By "" }}
+        <div class="flex space-x-2 mb-4">
+            {{ range $i, $key := (strslice .TopKeys 0 20) }}
+            <div class="inline-block">
+                <a href="leaderboard?by={{ $.By }}&key={{ $key }}" class="{{ if eq $.Key (lower $key) }} btn-primary {{ else }} btn-default {{ end }} btn-small cursor-pointer">{{ $key }}</a>
+            </div>
+            {{ end }}
+        </div>
+        {{ end }}
+
+        <div class="flex flex-col space-y-4 mt-8 text-gray-300 w-full lg:w-3/4">
             <ol>
                 {{ range $i, $item := .Items }}
-                <li>{{ $item.Rank }} - {{ $item.UserID }} - {{ $item.Total | duration }}</li>
+                <li class="px-4 py-2 my-2 rounded-md border-2 leaderboard-{{ ($.ColorModifier $item $.User) }} flex justify-between">
+                    <div class="w-2/12"><strong># {{ $item.Rank }}</strong></div>
+                    <div class="flex w-1/2 items-center space-x-4">
+                        {{ if avatarUrlTemplate }}
+                        <img src="{{ $item.User.AvatarURL avatarUrlTemplate }}" width="24px" class="rounded-full border-green-700" alt="User Profile Avatar"/>
+                        {{ else }}
+                        <span class="iconify inline cursor-pointer text-gray-500 rounded-full border-green-700" style="width: 24px; height: 24px" data-icon="ic:round-person"></span>
+                        {{ end }}
+                        <strong>@{{ $item.UserID }}</strong>
+                    </div>
+                    <div class="w-4/12 text-right"><span>{{ $item.Total | duration }}</span></div>
+                </li>
                 {{ end }}
             </ol>
         </div>

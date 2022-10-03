@@ -69,6 +69,10 @@ body {
     @apply py-2 px-4 font-semibold rounded bg-red-600 hover:bg-red-700 text-white text-sm;
 }
 
+.btn-small {
+    @apply py-1 px-2;
+}
+
 .input-default {
     @apply appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded w-full py-2 px-4;
 }
@@ -107,6 +111,30 @@ body {
 
 .newsbox-danger {
     @apply border-red-700;
+}
+
+.leaderboard-default {
+    @apply border-gray-700;
+}
+
+.leaderboard-self {
+    margin-left: -10px;
+    margin-right: -10px;
+    padding-left: calc(1rem + 10px);
+    padding-right: calc(1rem + 10px);
+    @apply border-green-700 bg-gray-800;
+}
+
+.leaderboard-gold {
+    border-color: #ffd700;
+}
+
+.leaderboard-silver {
+    border-color: #c0c0c0;
+}
+
+.leaderboard-bronze {
+    border-color: #cd7f32;
 }
 
 ::-webkit-calendar-picker-indicator {

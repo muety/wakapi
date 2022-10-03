@@ -120,11 +120,11 @@ func (srv *LeaderboardService) ExistsAnyByUser(userId string) (bool, error) {
 	return count > 0, err
 }
 
-func (srv *LeaderboardService) GetByInterval(interval *models.IntervalKey) ([]*models.LeaderboardItem, error) {
-	return srv.GetAggregatedByInterval(interval, nil)
+func (srv *LeaderboardService) GetByInterval(interval *models.IntervalKey, resolveUsers bool) (models.Leaderboard, error) {
+	return srv.GetAggregatedByInterval(interval, nil, resolveUsers)
 }
 
-func (srv *LeaderboardService) GetAggregatedByInterval(interval *models.IntervalKey, by *uint8) ([]*models.LeaderboardItem, error) {
+func (srv *LeaderboardService) GetAggregatedByInterval(interval *models.IntervalKey, by *uint8, resolveUsers bool) (models.Leaderboard, error) {
 	// check cache
 	cacheKey := srv.getHash(interval, by)
 	if cacheResult, ok := srv.cache.Get(cacheKey); ok {
@@ -134,6 +134,21 @@ func (srv *LeaderboardService) GetAggregatedByInterval(interval *models.Interval
 	items, err := srv.repository.GetAllAggregatedByInterval(interval, by)
 	if err != nil {
 		return nil, err
+	}
+
+	if resolveUsers {
+		a := models.Leaderboard(items).UserIDs()
+		println(a)
+		users, err := srv.userService.GetManyMapped(models.Leaderboard(items).UserIDs())
+		if err != nil {
+			config.Log().Error("failed to resolve users for leaderboard item - %v", err)
+		} else {
+			for _, item := range items {
+				if u, ok := users[item.UserID]; ok {
+					item.User = u
+				}
+			}
+		}
 	}
 
 	srv.cache.SetDefault(cacheKey, items)
