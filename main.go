@@ -212,6 +212,7 @@ func main() {
 	// MVC Handlers
 	summaryHandler := routes.NewSummaryHandler(summaryService, userService)
 	settingsHandler := routes.NewSettingsHandler(userService, heartbeatService, summaryService, aliasService, aggregationService, languageMappingService, projectLabelService, keyValueService, mailService)
+	leaderboardHandler := routes.NewLeaderboardHandler(userService, leaderboardService)
 	homeHandler := routes.NewHomeHandler(keyValueService)
 	loginHandler := routes.NewLoginHandler(userService, mailService)
 	imprintHandler := routes.NewImprintHandler(keyValueService)
@@ -246,6 +247,7 @@ func main() {
 	loginHandler.RegisterRoutes(rootRouter)
 	imprintHandler.RegisterRoutes(rootRouter)
 	summaryHandler.RegisterRoutes(rootRouter)
+	leaderboardHandler.RegisterRoutes(rootRouter)
 	settingsHandler.RegisterRoutes(rootRouter)
 	relayHandler.RegisterRoutes(rootRouter)
 

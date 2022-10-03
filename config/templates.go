@@ -9,4 +9,5 @@ const (
 	ResetPasswordTemplate = "reset-password.tpl.html"
 	SettingsTemplate      = "settings.tpl.html"
 	SummaryTemplate       = "summary.tpl.html"
+	LeaderboardTemplate   = "leaderboard.tpl.html"
 )

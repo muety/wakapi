@@ -9,12 +9,7 @@
 
 {{ template "alerts.tpl.html" . }}
 
-<div class="absolute flex top-0 right-0 mr-4 mt-10 py-2">
-    <div class="mx-1">
-        <a href="login" class="btn-primary">
-            <span class="iconify inline" data-icon="fluent:key-24-filled"></span> &nbsp;Login</a>
-    </div>
-</div>
+{{ template "login-btn.tpl.html" . }}
 
 <main class="mt-10 px-4 md:px-10 lg:px-24 flex-grow flex justify-center w-full">
     <div class="flex flex-col text-white">
