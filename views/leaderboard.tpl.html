@@ -6,7 +6,6 @@
 <script>
     const defaultTab = 'total'
 </script>
-<script type="module" src="assets/js/components/leaderboard.js"></script>
 
 <body class="relative bg-gray-900 text-gray-700 p-4 pt-10 flex flex-col min-h-screen {{ if .User }} max-w-screen-xl {{ else }} max-w-screen-lg {{end}} mx-auto justify-center">
 
@@ -19,30 +18,22 @@
 {{ template "login-btn.tpl.html" . }}
 {{ end }}
 
-<main class="mt-10 flex-grow flex justify-center w-full" v-scope @vue:mounted="mounted" id="leaderboard-page">
+<main class="mt-10 flex-grow flex justify-center w-full" id="leaderboard-page">
     <div class="flex flex-col flex-grow mt-10">
         <h1 class="font-semibold text-3xl text-white m-0 mb-4">Leaderboard</h1>
 
         <ul class="flex space-x-4 mb-16 text-gray-600">
-            <li class="font-semibold text-2xl" v-bind:class="{ 'text-gray-300': isActive('total'), 'hover:text-gray-500': !isActive('total') }">
-                <a href="leaderboard#total" @click="updateTab">Total</a>
+            <li class="font-semibold text-2xl {{ if eq .By "" }} text-gray-300 {{ else }} hover:text-gray-500 {{ end }}">
+                <a href="leaderboard">Total</a>
             </li>
-            <li class="font-semibold text-2xl" v-bind:class="{ 'text-gray-300': isActive('language'), 'hover:text-gray-500': !isActive('language') }">
-                <a href="leaderboard#language" @click="updateTab">By Language</a>
+            <li class="font-semibold text-2xl {{ if eq .By "language" }} text-gray-300 {{ else }} hover:text-gray-500 {{ end }}">
+                <a href="leaderboard?by=language">By Language</a>
             </li>
         </ul>
 
-        <div v-cloak id="total" class="tab flex flex-col space-y-4" v-if="isActive('total')">
+        <div id="total" class="tab flex flex-col space-y-4">
             <ol>
                 {{ range $i, $item := .Items }}
-                <li>{{ $item.Rank }} - {{ $item.UserID }} - {{ $item.Total | duration }}</li>
-                {{ end }}
-            </ol>
-        </div>
-
-        <div v-cloak id="language" class="tab flex flex-col space-y-4" v-if="isActive('language')">
-            <ol>
-                {{ range $i, $item := .ItemsByLanguage }}
                 <li>{{ $item.Rank }} - {{ $item.UserID }} - {{ $item.Total | duration }}</li>
                 {{ end }}
             </ol>
