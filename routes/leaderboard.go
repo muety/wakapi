@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
@@ -58,6 +59,7 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 
 	var err error
 	var leaderboard models.Leaderboard
+	var userLanguages map[string][]string
 	var topKeys []string
 
 	if byParam == "" {
@@ -72,6 +74,14 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 			if err != nil {
 				conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
 				return &view.LeaderboardViewModel{Error: criticalError}
+			}
+
+			userLeaderboards := slice.GroupWith[*models.LeaderboardItem, string](leaderboard, func(item *models.LeaderboardItem) string {
+				return item.UserID
+			})
+			userLanguages = map[string][]string{}
+			for u, items := range userLeaderboards {
+				userLanguages[u] = models.Leaderboard(items).TopKeysByUser(models.SummaryLanguage, u)
 			}
 
 			topKeys = leaderboard.TopKeys(by)
@@ -92,13 +102,14 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 	}
 
 	return &view.LeaderboardViewModel{
-		User:    user,
-		By:      byParam,
-		Key:     keyParam,
-		Items:   leaderboard,
-		TopKeys: topKeys,
-		ApiKey:  apiKey,
-		Success: r.URL.Query().Get("success"),
-		Error:   r.URL.Query().Get("error"),
+		User:          user,
+		By:            byParam,
+		Key:           keyParam,
+		Items:         leaderboard,
+		UserLanguages: userLanguages,
+		TopKeys:       topKeys,
+		ApiKey:        apiKey,
+		Success:       r.URL.Query().Get("success"),
+		Error:         r.URL.Query().Get("error"),
 	}
 }

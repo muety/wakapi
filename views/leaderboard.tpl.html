@@ -47,8 +47,8 @@
             <ol>
                 {{ range $i, $item := .Items }}
                 <li class="px-4 py-2 my-2 rounded-md border-2 leaderboard-{{ ($.ColorModifier $item $.User) }} flex justify-between">
-                    <div class="w-2/12"><strong># {{ $item.Rank }}</strong></div>
-                    <div class="flex w-1/2 items-center space-x-4">
+                    <div class="w-1/12"><strong># {{ $item.Rank }}</strong></div>
+                    <div class="flex w-4/12 justify-start items-center space-x-4 text-ellipsis overflow-hidden whitespace-nowrap align-middle">
                         {{ if avatarUrlTemplate }}
                         <img src="{{ $item.User.AvatarURL avatarUrlTemplate }}" width="24px" class="rounded-full border-green-700" alt="User Profile Avatar"/>
                         {{ else }}
@@ -56,7 +56,10 @@
                         {{ end }}
                         <strong>@{{ $item.UserID }}</strong>
                     </div>
-                    <div class="w-4/12 text-right"><span>{{ $item.Total | duration }}</span></div>
+                    <span class="w-4/12 text-sm text-ellipsis overflow-hidden whitespace-nowrap leading-6 align-middle">
+                        {{ join (index $.UserLanguages $item.UserID) ", " }}
+                    </span>
+                    <div class="w-3/12 text-right"><span>{{ $item.Total | duration }}</span></div>
                 </li>
                 {{ end }}
             </ol>

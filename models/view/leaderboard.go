@@ -3,14 +3,15 @@ package view
 import "github.com/muety/wakapi/models"
 
 type LeaderboardViewModel struct {
-	User    *models.User
-	By      string
-	Key     string
-	Items   []*models.LeaderboardItem
-	TopKeys []string
-	ApiKey  string
-	Success string
-	Error   string
+	User          *models.User
+	By            string
+	Key           string
+	Items         []*models.LeaderboardItem
+	TopKeys       []string
+	UserLanguages map[string][]string
+	ApiKey        string
+	Success       string
+	Error         string
 }
 
 func (s *LeaderboardViewModel) WithSuccess(m string) *LeaderboardViewModel {
