@@ -1,6 +1,9 @@
 package view
 
-import "github.com/muety/wakapi/models"
+import (
+	"github.com/muety/wakapi/models"
+	"strings"
+)
 
 type LeaderboardViewModel struct {
 	User          *models.User
@@ -38,4 +41,31 @@ func (s *LeaderboardViewModel) ColorModifier(item *models.LeaderboardItem, princ
 		return "bronze"
 	}
 	return "default"
+}
+
+func (s *LeaderboardViewModel) LangIcon(lang string) string {
+	// https://icon-sets.iconify.design/mdi/
+	langs := map[string]string{
+		"c":          "c",
+		"c++":        "cpp",
+		"cpp":        "cpp",
+		"go":         "go",
+		"haskell":    "haskell",
+		"html":       "html5",
+		"java":       "java",
+		"javascript": "javascript",
+		"kotlin":     "kotlin",
+		"lua":        "lua",
+		"php":        "php",
+		"python":     "python",
+		"r":          "r",
+		"ruby":       "ruby",
+		"rust":       "rust",
+		"swift":      "swift",
+		"typescript": "typescript",
+	}
+	if match, ok := langs[strings.ToLower(lang)]; ok {
+		return "mdi:language-" + match
+	}
+	return ""
 }

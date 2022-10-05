@@ -37,7 +37,12 @@
         <div class="flex space-x-2 mb-4">
             {{ range $i, $key := (strslice .TopKeys 0 20) }}
             <div class="inline-block">
-                <a href="leaderboard?by={{ $.By }}&key={{ $key }}" class="{{ if eq $.Key (lower $key) }} btn-primary {{ else }} btn-default {{ end }} btn-small cursor-pointer">{{ $key }}</a>
+                <a href="leaderboard?by={{ $.By }}&key={{ $key }}" class="{{ if eq $.Key (lower $key) }} btn-primary {{ else }} btn-default {{ end }} btn-small cursor-pointer">
+                    {{ if and (eq (lower $.By) "language") ($.LangIcon $key) }}
+                    <span class="align-middle leading-none"><span class="iconify inline text-white text-base" data-icon="{{ ($.LangIcon $key) | urlSafe }}"></span>&nbsp;</span>
+                    {{ end }}
+                    <span>{{ $key }}</span>
+                </a>
             </div>
             {{ end }}
         </div>
@@ -47,19 +52,24 @@
             <ol>
                 {{ range $i, $item := .Items }}
                 <li class="px-4 py-2 my-2 rounded-md border-2 leaderboard-{{ ($.ColorModifier $item $.User) }} flex justify-between">
-                    <div class="w-1/12"><strong># {{ $item.Rank }}</strong></div>
-                    <div class="flex w-4/12 justify-start items-center space-x-4 text-ellipsis overflow-hidden whitespace-nowrap align-middle">
+                    <div class="w-1/12 mr-1"><strong># {{ $item.Rank }}</strong></div>
+                    <div class="flex w-3/12 mx-1 justify-start items-center space-x-4 align-middle">
                         {{ if avatarUrlTemplate }}
                         <img src="{{ $item.User.AvatarURL avatarUrlTemplate }}" width="24px" class="rounded-full border-green-700" alt="User Profile Avatar"/>
                         {{ else }}
                         <span class="iconify inline cursor-pointer text-gray-500 rounded-full border-green-700" style="width: 24px; height: 24px" data-icon="ic:round-person"></span>
                         {{ end }}
-                        <strong>@{{ $item.UserID }}</strong>
+                        <strong class="text-ellipsis truncate">@{{ $item.UserID }}</strong>
                     </div>
-                    <span class="w-4/12 text-sm text-ellipsis overflow-hidden whitespace-nowrap leading-6 align-middle">
-                        {{ join (index $.UserLanguages $item.UserID) ", " }}
+                    <span class="w-5/12 mx-1 truncate leading-6 align-middle">
+                        {{ range $i, $lang := (index $.UserLanguages $item.UserID) }}
+                        {{ if $.LangIcon $lang }}
+                        <span class="align-middle leading-none"><span class="iconify inline text-white text-base" data-icon="{{ ($.LangIcon $lang) | urlSafe }}"></span></span>
+                        {{ end }}
+                        <span class="text-sm leading-6">{{ $lang }}{{ if lt $i (add (len (index $.UserLanguages $item.UserID)) -1) }},&nbsp;{{ end }}</span>
+                        {{ end }}
                     </span>
-                    <div class="w-3/12 text-right"><span>{{ $item.Total | duration }}</span></div>
+                    <div class="w-3/12 ml-1 text-right"><span>{{ $item.Total | duration }}</span></div>
                 </li>
                 {{ end }}
             </ol>

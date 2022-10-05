@@ -53,7 +53,23 @@ let icons = [
     'ion:rocket',
     'heroicons-solid:server',
     'eva:checkmark-circle-2-fill',
-    'fluent:key-24-filled'
+    'fluent:key-24-filled',
+    'mdi:language-c',
+    'mdi:language-cpp',
+    'mdi:language-go',
+    'mdi:language-haskell',
+    'mdi:language-html5',
+    'mdi:language-java',
+    'mdi:language-javascript',
+    'mdi:language-kotlin',
+    'mdi:language-lua',
+    'mdi:language-php',
+    'mdi:language-python',
+    'mdi:language-r',
+    'mdi:language-ruby',
+    'mdi:language-rust',
+    'mdi:language-swift',
+    'mdi:language-typescript',
 ]
 
 const output = path.normalize(path.join(__dirname, '../static/assets/js/icons.dist.js'))
