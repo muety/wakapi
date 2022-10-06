@@ -141,3 +141,9 @@ body {
     filter: invert(1);
     cursor: pointer;
 }
+
+.max-available {
+    max-width: -moz-available;
+    max-width: -webkit-fill-available;
+    max-width: fill-available;
+}
