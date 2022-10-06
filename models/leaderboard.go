@@ -68,3 +68,13 @@ func (l Leaderboard) TopKeysByUser(by uint8, userId string) []string {
 		return item.UserID == userId
 	})).TopKeys(by)
 }
+
+func (l Leaderboard) LastUpdate() time.Time {
+	lastUpdate := time.Time{}
+	for _, item := range l {
+		if item.CreatedAt.T().After(lastUpdate) {
+			lastUpdate = item.CreatedAt.T()
+		}
+	}
+	return lastUpdate
+}

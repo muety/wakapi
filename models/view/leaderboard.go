@@ -3,6 +3,7 @@ package view
 import (
 	"github.com/muety/wakapi/models"
 	"strings"
+	"time"
 )
 
 type LeaderboardViewModel struct {
@@ -68,4 +69,8 @@ func (s *LeaderboardViewModel) LangIcon(lang string) string {
 		return "mdi:language-" + match
 	}
 	return ""
+}
+
+func (s *LeaderboardViewModel) LastUpdate() time.Time {
+	return models.Leaderboard(s.Items).LastUpdate()
 }
