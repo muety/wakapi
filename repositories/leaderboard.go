@@ -37,9 +37,9 @@ func (r *LeaderboardRepository) GetAllAggregatedByInterval(key *models.IntervalK
 	// TODO: distinct by (user, key) to filter out potential duplicates ?
 	var items []*models.LeaderboardItem
 	q := r.db.
-		Select("*, rank() over (partition by `key` order by total desc) as `rank`").
-		Where("`interval` in ?", *key)
-	q = utils.WhereNullable(q, "`by`", by)
+		Select("*, rank() over (partition by \"key\" order by total desc) as \"rank\"").
+		Where("\"interval\" in ?", *key)
+	q = utils.WhereNullable(q, "\"by\"", by)
 
 	if err := q.Find(&items).Error; err != nil {
 		return nil, err
@@ -50,10 +50,10 @@ func (r *LeaderboardRepository) GetAllAggregatedByInterval(key *models.IntervalK
 func (r *LeaderboardRepository) GetAggregatedByUserAndInterval(userId string, key *models.IntervalKey, by *uint8) ([]*models.LeaderboardItem, error) {
 	var items []*models.LeaderboardItem
 	q := r.db.
-		Select("*, rank() over (partition by `key` order by total desc) as `rank`").
+		Select("*, rank() over (partition by \"key\" order by total desc) as \"rank\"").
 		Where("user_id = ?", userId).
-		Where("`interval` in ?", *key)
-	q = utils.WhereNullable(q, "`by`", by)
+		Where("\"interval\" in ?", *key)
+	q = utils.WhereNullable(q, "\"by\"", by)
 
 	if err := q.Find(&items).Error; err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (r *LeaderboardRepository) DeleteByUser(userId string) error {
 func (r *LeaderboardRepository) DeleteByUserAndInterval(userId string, key *models.IntervalKey) error {
 	if err := r.db.
 		Where("user_id = ?", userId).
-		Where("`interval` in ?", *key).
+		Where("\"interval\" in ?", *key).
 		Delete(models.LeaderboardItem{}).Error; err != nil {
 		return err
 	}
