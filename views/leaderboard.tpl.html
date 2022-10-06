@@ -22,7 +22,10 @@
     <div class="flex flex-col flex-grow mt-10">
         <h1 class="h1" style="margin-bottom: 0.5rem">Leaderboard</h1>
 
-        <p class="block text-sm text-gray-300 w-full lg:w-3/4 mb-8">Wakapi's leaderboard shows a ranking of the most active users on this servers, given they opted in to get listed on the public leaderboard (see <i>Settings 🠒 Data</i>). Statistics are updated at least every 12 hours and are based on the users' total coding time in the past seven days. </p>
+        <p class="block text-sm text-gray-300 w-full lg:w-3/4 mb-8">
+            Wakapi's leaderboard shows a ranking of the most active users on this servers, given they opted in to get listed on the public leaderboard. Statistics are updated at least every 12 hours and are based on the users' total coding time in the past seven days.
+            To participate, log in, go to <a class="link" href="settings#permissions">Settings 🠒 Permissions</a> and enable leaderboards.
+        </p>
 
         <ul class="flex space-x-4 mb-4 text-gray-600">
             <li class="font-semibold text-xl {{ if eq .By "" }} text-gray-300 {{ else }} hover:text-gray-500 {{ end }}">
@@ -49,6 +52,7 @@
         {{ end }}
 
         <div class="flex flex-col space-y-4 mt-8 text-gray-300 w-full lg:w-3/4">
+            {{ if len .Items }}
             <ol>
                 {{ range $i, $item := .Items }}
                 <li class="px-4 py-2 my-2 rounded-md border-2 leaderboard-{{ ($.ColorModifier $item $.User) }} flex justify-between">
@@ -73,6 +77,13 @@
                 </li>
                 {{ end }}
             </ol>
+            {{ else }}
+            <p>
+                <span class="iconify inline text-white text-base" data-icon="twemoji:frowning-face"></span>&nbsp;
+                The leaderboard is currently empty ...
+            </p>
+            {{ end }}
+
         </div>
     </div>
 </main>

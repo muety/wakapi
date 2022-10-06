@@ -70,6 +70,7 @@ let icons = [
     'mdi:language-rust',
     'mdi:language-swift',
     'mdi:language-typescript',
+    'twemoji:frowning-face',
 ]
 
 const output = path.normalize(path.join(__dirname, '../static/assets/js/icons.dist.js'))
