@@ -61,6 +61,15 @@ func (r *LeaderboardRepository) GetAggregatedByUserAndInterval(userId string, ke
 	return items, nil
 }
 
+func (r *LeaderboardRepository) DeleteByUser(userId string) error {
+	if err := r.db.
+		Where("user_id = ?", userId).
+		Delete(models.LeaderboardItem{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *LeaderboardRepository) DeleteByUserAndInterval(userId string, key *models.IntervalKey) error {
 	if err := r.db.
 		Where("user_id = ?", userId).

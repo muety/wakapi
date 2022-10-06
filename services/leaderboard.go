@@ -39,17 +39,22 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 
 			// generate leaderboard for updated user, if leaderboard enabled and none present, yet
 			user := m.Fields[config.FieldPayload].(*models.User)
-			if user.PublicLeaderboard {
-				exists, err := srv.ExistsAnyByUser(user.ID)
-				if err != nil {
-					config.Log().Error("failed to check existing leaderboards upon user update - %v", err)
-				}
-				if !exists {
-					logbuch.Info("generating leaderboard for '%s' after settings update", user.ID)
-					srv.Run([]*models.User{user}, models.IntervalPast7Days, []uint8{models.SummaryLanguage})
-				}
+
+			exists, err := srv.ExistsAnyByUser(user.ID)
+			if err != nil {
+				config.Log().Error("failed to check existing leaderboards upon user update - %v", err)
 			}
 
+			if user.PublicLeaderboard && !exists {
+				logbuch.Info("generating leaderboard for '%s' after settings update", user.ID)
+				srv.Run([]*models.User{user}, models.IntervalPast7Days, []uint8{models.SummaryLanguage})
+			} else if !user.PublicLeaderboard && exists {
+				logbuch.Info("clearing leaderboard for '%s' after settings update", user.ID)
+				if err := srv.repository.DeleteByUser(user.ID); err != nil {
+					config.Log().Error("failed to clear leaderboard for user '%s' - %v", user.ID, err)
+				}
+				srv.cache.Flush()
+			}
 		}
 	}(&onUserUpdate)
 
