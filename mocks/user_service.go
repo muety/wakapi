@@ -34,6 +34,21 @@ func (m *UserServiceMock) GetAll() ([]*models.User, error) {
 	return args.Get(0).([]*models.User), args.Error(1)
 }
 
+func (m *UserServiceMock) GetMany(s []string) ([]*models.User, error) {
+	args := m.Called(s)
+	return args.Get(0).([]*models.User), args.Error(1)
+}
+
+func (m *UserServiceMock) GetManyMapped(s []string) (map[string]*models.User, error) {
+	args := m.Called()
+	return args.Get(0).(map[string]*models.User), args.Error(1)
+}
+
+func (m *UserServiceMock) GetAllByLeaderboard(b bool) ([]*models.User, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (m *UserServiceMock) GetAllByReports(b bool) ([]*models.User, error) {
 	args := m.Called(b)
 	return args.Get(0).([]*models.User), args.Error(1)

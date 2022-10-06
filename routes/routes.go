@@ -35,9 +35,11 @@ func DefaultTemplateFuncs() template.FuncMap {
 		"join":           strings.Join,
 		"add":            utils.Add,
 		"capitalize":     utils.Capitalize,
+		"lower":          strings.ToLower,
 		"toRunes":        utils.ToRunes,
 		"localTZOffset":  utils.LocalTZOffset,
 		"entityTypes":    models.SummaryTypes,
+		"strslice":       utils.SubSlice[string],
 		"typeName":       typeName,
 		"isDev": func() bool {
 			return config.Get().IsDev()
@@ -53,6 +55,9 @@ func DefaultTemplateFuncs() template.FuncMap {
 		},
 		"htmlSafe": func(html string) template.HTML {
 			return template.HTML(html)
+		},
+		"urlSafe": func(s string) template.URL {
+			return template.URL(s)
 		},
 		"avatarUrlTemplate": func() string {
 			return config.Get().App.AvatarURLTemplate

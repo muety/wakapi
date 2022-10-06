@@ -75,7 +75,9 @@ type IUserRepository interface {
 	GetByEmail(string) (*models.User, error)
 	GetByResetToken(string) (*models.User, error)
 	GetAll() ([]*models.User, error)
+	GetMany([]string) ([]*models.User, error)
 	GetAllByReports(bool) ([]*models.User, error)
+	GetAllByLeaderboard(bool) ([]*models.User, error)
 	GetByLoggedInAfter(time.Time) ([]*models.User, error)
 	GetByLastActiveAfter(time.Time) ([]*models.User, error)
 	Count() (int64, error)
@@ -83,4 +85,13 @@ type IUserRepository interface {
 	Update(*models.User) (*models.User, error)
 	UpdateField(*models.User, string, interface{}) (*models.User, error)
 	Delete(*models.User) error
+}
+
+type ILeaderboardRepository interface {
+	InsertBatch([]*models.LeaderboardItem) error
+	CountAllByUser(string) (int64, error)
+	DeleteByUser(string) error
+	DeleteByUserAndInterval(string, *models.IntervalKey) error
+	GetAllAggregatedByInterval(*models.IntervalKey, *uint8) ([]*models.LeaderboardItem, error)
+	GetAggregatedByUserAndInterval(string, *models.IntervalKey, *uint8) ([]*models.LeaderboardItem, error)
 }

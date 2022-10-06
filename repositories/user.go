@@ -77,9 +77,28 @@ func (r *UserRepository) GetAll() ([]*models.User, error) {
 	return users, nil
 }
 
+func (r *UserRepository) GetMany(ids []string) ([]*models.User, error) {
+	var users []*models.User
+	if err := r.db.
+		Table("users").
+		Where("id in ?", ids).
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func (r *UserRepository) GetAllByReports(reportsEnabled bool) ([]*models.User, error) {
 	var users []*models.User
 	if err := r.db.Where(&models.User{ReportsWeekly: reportsEnabled}).Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func (r *UserRepository) GetAllByLeaderboard(leaderboardEnabled bool) ([]*models.User, error) {
+	var users []*models.User
+	if err := r.db.Where(&models.User{PublicLeaderboard: leaderboardEnabled}).Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil
@@ -156,6 +175,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"reset_token":         user.ResetToken,
 		"location":            user.Location,
 		"reports_weekly":      user.ReportsWeekly,
+		"public_leaderboard":  user.PublicLeaderboard,
 	}
 
 	result := r.db.Model(user).Updates(updateMap)

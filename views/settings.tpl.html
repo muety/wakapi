@@ -380,6 +380,46 @@
         </div>
 
         <div v-cloak id="permissions" class="tab flex flex-col space-y-4" v-if="isActive('permissions')">
+            <!-- Public Leaderboard -->
+            <form action="" method="post" class="w-full lg:w-3/4">
+                <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
+                    <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
+                        <span class="font-semibold text-gray-300 text-lg">Public Leaderboard</span>
+                        <p class="block text-sm text-gray-600">
+                            Opt in to get listed in the <a class="link" href="leaderboard">public leaderboard</a>. It shows aggregated statistics from the past 7 days of your coding.
+                        </p>
+                    </div>
+
+                    <div class="flex-col w-full md:w-1/2 inline-block space-y-4">
+                        <input type="hidden" name="action" value="update_leaderboard">
+
+                        <div class="flex space-x-8">
+                            <div class="flex-grow">
+                                <label class="font-semibold text-gray-300" for="share_projects">Participate in leaderboard</label>
+                            </div>
+                            <div>
+                                <select autocomplete="off" id="enable_leaderboard" name="enable_leaderboard" class="select-default flex-grow">
+                                    <option value="false" class="cursor-pointer" {{ if not .User.PublicLeaderboard }} selected {{ end }}>No
+                                    </option>
+                                    <option value="true" class="cursor-pointer" {{ if .User.PublicLeaderboard }} selected {{ end }}>Yes
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end mt-4">
+                    <button type="submit" class="btn-primary">
+                        Save
+                    </button>
+                </div>
+            </form>
+
+            <div class="w-full md:w-3/4">
+                <hr class="border-t border-gray-800 my-4">
+            </div>
+
             <!-- Public Data -->
             <form action="" method="post" class="w-full lg:w-3/4">
                 <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">

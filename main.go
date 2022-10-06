@@ -59,6 +59,7 @@ var (
 	languageMappingRepository repositories.ILanguageMappingRepository
 	projectLabelRepository    repositories.IProjectLabelRepository
 	summaryRepository         repositories.ISummaryRepository
+	leaderboardRepository     *repositories.LeaderboardRepository
 	keyValueRepository        repositories.IKeyValueRepository
 	diagnosticsRepository     repositories.IDiagnosticsRepository
 	metricsRepository         *repositories.MetricsRepository
@@ -72,6 +73,7 @@ var (
 	projectLabelService    services.IProjectLabelService
 	durationService        services.IDurationService
 	summaryService         services.ISummaryService
+	leaderboardService     services.ILeaderboardService
 	aggregationService     services.IAggregationService
 	mailService            services.IMailService
 	keyValueService        services.IKeyValueService
@@ -159,6 +161,7 @@ func main() {
 	languageMappingRepository = repositories.NewLanguageMappingRepository(db)
 	projectLabelRepository = repositories.NewProjectLabelRepository(db)
 	summaryRepository = repositories.NewSummaryRepository(db)
+	leaderboardRepository = repositories.NewLeaderboardRepository(db)
 	keyValueRepository = repositories.NewKeyValueRepository(db)
 	diagnosticsRepository = repositories.NewDiagnosticsRepository(db)
 	metricsRepository = repositories.NewMetricsRepository(db)
@@ -172,6 +175,7 @@ func main() {
 	heartbeatService = services.NewHeartbeatService(heartbeatRepository, languageMappingService)
 	durationService = services.NewDurationService(heartbeatService)
 	summaryService = services.NewSummaryService(summaryRepository, durationService, aliasService, projectLabelService)
+	leaderboardService = services.NewLeaderboardService(leaderboardRepository, summaryService, userService)
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
 	keyValueService = services.NewKeyValueService(keyValueRepository)
 	reportService = services.NewReportService(summaryService, userService, mailService)
@@ -180,6 +184,7 @@ func main() {
 
 	// Schedule background tasks
 	go aggregationService.Schedule()
+	go leaderboardService.ScheduleDefault()
 	go miscService.ScheduleCountTotalTime()
 	go reportService.Schedule()
 
@@ -207,6 +212,7 @@ func main() {
 	// MVC Handlers
 	summaryHandler := routes.NewSummaryHandler(summaryService, userService)
 	settingsHandler := routes.NewSettingsHandler(userService, heartbeatService, summaryService, aliasService, aggregationService, languageMappingService, projectLabelService, keyValueService, mailService)
+	leaderboardHandler := routes.NewLeaderboardHandler(userService, leaderboardService)
 	homeHandler := routes.NewHomeHandler(keyValueService)
 	loginHandler := routes.NewLoginHandler(userService, mailService)
 	imprintHandler := routes.NewImprintHandler(keyValueService)
@@ -241,6 +247,7 @@ func main() {
 	loginHandler.RegisterRoutes(rootRouter)
 	imprintHandler.RegisterRoutes(rootRouter)
 	summaryHandler.RegisterRoutes(rootRouter)
+	leaderboardHandler.RegisterRoutes(rootRouter)
 	settingsHandler.RegisterRoutes(rootRouter)
 	relayHandler.RegisterRoutes(rootRouter)
 

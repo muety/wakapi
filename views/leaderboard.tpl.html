@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{{ template "head.tpl.html" . }}
+
+<script>
+    const defaultTab = 'total'
+</script>
+
+<body class="relative bg-gray-900 text-gray-700 p-4 pt-10 flex flex-col min-h-screen {{ if .User }} max-w-screen-xl {{ else }} max-w-screen-lg {{end}} mx-auto justify-center">
+
+{{ template "alerts.tpl.html" . }}
+
+{{ if .User }}
+{{ template "menu-main.tpl.html" . }}
+{{ else }}
+{{ template "header.tpl.html" . }}
+{{ template "login-btn.tpl.html" . }}
+{{ end }}
+
+<main class="mt-10 flex-grow flex justify-center w-full" id="leaderboard-page">
+    <div class="flex flex-col flex-grow mt-10 max-available">
+        <h1 class="h1" style="margin-bottom: 0.5rem">Leaderboard</h1>
+
+        <p class="block text-sm text-gray-300 w-full lg:w-3/4 mb-8">
+            Wakapi's leaderboard shows a ranking of the most active users on this servers, given they opted in to get listed on the public leaderboard. Statistics are updated at least every 12 hours and are based on the users' total coding time in the past seven days.
+            To participate, log in, go to <a class="link" href="settings#permissions">Settings 🠒 Permissions</a> and enable leaderboards.
+        </p>
+
+        <ul class="flex space-x-4 mb-4 text-gray-600">
+            <li class="font-semibold text-xl {{ if eq .By "" }} text-gray-300 {{ else }} hover:text-gray-500 {{ end }}">
+                <a href="leaderboard">Total</a>
+            </li>
+            <li class="font-semibold text-xl {{ if eq .By "language" }} text-gray-300 {{ else }} hover:text-gray-500 {{ end }}">
+                <a href="leaderboard?by=language">By Language</a>
+            </li>
+        </ul>
+
+        {{ if ne .By "" }}
+        <div class="flex flex-wrap space-x-2 mb-4">
+            {{ range $i, $key := (strslice .TopKeys 0 10) }}
+            <div class="inline-block mb-4">
+                <a href="leaderboard?by={{ $.By }}&key={{ $key }}" class="{{ if eq $.Key (lower $key) }} btn-primary {{ else }} btn-default {{ end }} btn-small cursor-pointer whitespace-nowrap">
+                    {{ if and (eq (lower $.By) "language") ($.LangIcon $key) }}
+                    <span class="align-middle leading-none"><span class="iconify inline text-white text-base" data-icon="{{ ($.LangIcon $key) | urlSafe }}"></span>&nbsp;</span>
+                    {{ end }}
+                    <span>{{ $key }}</span>
+                </a>
+            </div>
+            {{ end }}
+        </div>
+        {{ end }}
+
+        <div class="flex flex-col space-y-4 mt-4 text-gray-300 w-full lg:w-3/4">
+            {{ if len .Items }}
+            <ol>
+                {{ range $i, $item := .Items }}
+                <li class="px-4 py-2 my-2 rounded-md border-2 leaderboard-{{ ($.ColorModifier $item $.User) }} flex justify-between">
+                    <div class="w-1/12 mr-1"><strong># {{ $item.Rank }}</strong></div>
+                    <div class="flex w-3/12 mx-1 justify-start items-center space-x-4 align-middle">
+                        {{ if avatarUrlTemplate }}
+                        <img src="{{ $item.User.AvatarURL avatarUrlTemplate }}" width="24px" class="rounded-full border-green-700" alt="User Profile Avatar"/>
+                        {{ else }}
+                        <span class="iconify inline cursor-pointer text-gray-500 rounded-full border-green-700" style="width: 24px; height: 24px" data-icon="ic:round-person"></span>
+                        {{ end }}
+                        <strong class="text-ellipsis truncate">@{{ $item.UserID }}</strong>
+                    </div>
+                    <div class="w-5/12 mx-1 truncate leading-6 align-middle">
+                        {{ range $i, $lang := (index $.UserLanguages $item.UserID) }}
+                        {{ if $.LangIcon $lang }}
+                        <span class="align-middle leading-none"><span class="iconify inline text-white text-base" data-icon="{{ ($.LangIcon $lang) | urlSafe }}"></span></span>
+                        {{ end }}
+                        <span class="text-sm leading-6">{{ $lang }}{{ if lt $i (add (len (index $.UserLanguages $item.UserID)) -1) }},&nbsp;{{ end }}</span>
+                        {{ end }}
+                    </div>
+                    <div class="w-3/12 ml-1 text-right"><span>{{ $item.Total | duration }}</span></div>
+                </li>
+                {{ end }}
+            </ol>
+            <p class="text-sm pt-8">Last Updated: {{ .LastUpdate | datetime }}</p>
+            {{ else }}
+            <p>
+                <span class="iconify inline text-white text-base" data-icon="twemoji:frowning-face"></span>&nbsp;
+                The leaderboard is currently empty ...
+            </p>
+            {{ end }}
+
+        </div>
+    </div>
+</main>
+
+{{ template "footer.tpl.html" . }}
+
+{{ template "foot.tpl.html" . }}
+</body>
+
+</html>

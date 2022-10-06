@@ -65,16 +65,17 @@ var cFlag = flag.String("config", defaultConfigPath, "config file location")
 var env string
 
 type appConfig struct {
-	AggregationTime   string                       `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
-	ReportTimeWeekly  string                       `yaml:"report_time_weekly" default:"fri,18:00" env:"WAKAPI_REPORT_TIME_WEEKLY"`
-	ImportBackoffMin  int                          `yaml:"import_backoff_min" default:"5" env:"WAKAPI_IMPORT_BACKOFF_MIN"`
-	ImportBatchSize   int                          `yaml:"import_batch_size" default:"50" env:"WAKAPI_IMPORT_BATCH_SIZE"`
-	InactiveDays      int                          `yaml:"inactive_days" default:"7" env:"WAKAPI_INACTIVE_DAYS"`
-	HeartbeatMaxAge   string                       `yaml:"heartbeat_max_age" default:"4320h" env:"WAKAPI_HEARTBEAT_MAX_AGE"`
-	CountCacheTTLMin  int                          `yaml:"count_cache_ttl_min" default:"30" env:"WAKAPI_COUNT_CACHE_TTL_MIN"`
-	AvatarURLTemplate string                       `yaml:"avatar_url_template" default:"api/avatar/{username_hash}.svg" env:"WAKAPI_AVATAR_URL_TEMPLATE"`
-	CustomLanguages   map[string]string            `yaml:"custom_languages"`
-	Colors            map[string]map[string]string `yaml:"-"`
+	AggregationTime           string                       `yaml:"aggregation_time" default:"02:15" env:"WAKAPI_AGGREGATION_TIME"`
+	LeaderboardGenerationTime string                       `yaml:"leaderboard_generation_time" default:"06:00;18:00" env:"WAKAPI_LEADERBOARD_GENERATION_TIME"`
+	ReportTimeWeekly          string                       `yaml:"report_time_weekly" default:"fri,18:00" env:"WAKAPI_REPORT_TIME_WEEKLY"`
+	ImportBackoffMin          int                          `yaml:"import_backoff_min" default:"5" env:"WAKAPI_IMPORT_BACKOFF_MIN"`
+	ImportBatchSize           int                          `yaml:"import_batch_size" default:"50" env:"WAKAPI_IMPORT_BATCH_SIZE"`
+	InactiveDays              int                          `yaml:"inactive_days" default:"7" env:"WAKAPI_INACTIVE_DAYS"`
+	HeartbeatMaxAge           string                       `yaml:"heartbeat_max_age" default:"4320h" env:"WAKAPI_HEARTBEAT_MAX_AGE"`
+	CountCacheTTLMin          int                          `yaml:"count_cache_ttl_min" default:"30" env:"WAKAPI_COUNT_CACHE_TTL_MIN"`
+	AvatarURLTemplate         string                       `yaml:"avatar_url_template" default:"api/avatar/{username_hash}.svg" env:"WAKAPI_AVATAR_URL_TEMPLATE"`
+	CustomLanguages           map[string]string            `yaml:"custom_languages"`
+	Colors                    map[string]map[string]string `yaml:"-"`
 }
 
 type securityConfig struct {
@@ -214,6 +215,9 @@ func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
 				return err
 			}
 			if err := db.AutoMigrate(&models.Diagnostics{}); err != nil && !c.Db.AutoMigrateFailSilently {
+				return err
+			}
+			if err := db.AutoMigrate(&models.LeaderboardItem{}); err != nil && !c.Db.AutoMigrateFailSilently {
 				return err
 			}
 			return nil

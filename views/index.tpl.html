@@ -9,12 +9,7 @@
 
 {{ template "alerts.tpl.html" . }}
 
-<div class="absolute flex top-0 right-0 mr-4 mt-10 py-2">
-    <div class="mx-1">
-        <a href="login" class="btn-primary">
-            <span class="iconify inline" data-icon="fluent:key-24-filled"></span> &nbsp;Login</a>
-    </div>
-</div>
+{{ template "login-btn.tpl.html" . }}
 
 <main class="mt-10 px-4 md:px-10 lg:px-24 flex-grow flex justify-center w-full">
     <div class="flex flex-col text-white">
@@ -74,6 +69,7 @@
                     <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; 100 % free and open-source</li>
                     <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; Built by developers for developers</li>
                     <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; Fancy statistics and plots</li>
+                    <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; Public leaderboards</li>
                     <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; Cool badges for readmes</li>
                     <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; Weekly e-mail reports</li>
                     <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; Intuitive REST API</li>

@@ -53,3 +53,10 @@ func ParseUserAgent(ua string) (string, string, error) {
 	}
 	return groups[0][1], groups[0][2], nil
 }
+
+func SubSlice[T any](slice []T, from, to uint) []T {
+	if int(to) > len(slice) {
+		to = uint(len(slice))
+	}
+	return slice[from:int(to)]
+}
