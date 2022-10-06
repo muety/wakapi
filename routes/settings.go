@@ -146,6 +146,8 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 		return h.actionAddLanguageMapping
 	case "update_sharing":
 		return h.actionUpdateSharing
+	case "update_leaderboard":
+		return h.actionUpdateLeaderboard
 	case "toggle_wakatime":
 		return h.actionSetWakatimeApiKey
 	case "import_wakatime":
@@ -250,6 +252,26 @@ func (h *SettingsHandler) actionResetApiKey(w http.ResponseWriter, r *http.Reque
 
 	msg := fmt.Sprintf("your new api key is: %s", user.ApiKey)
 	return http.StatusOK, msg, ""
+}
+
+func (h *SettingsHandler) actionUpdateLeaderboard(w http.ResponseWriter, r *http.Request) (int, string, string) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	var err error
+	user := middlewares.GetPrincipal(r)
+	defer h.userSrvc.FlushCache()
+
+	user.PublicLeaderboard, err = strconv.ParseBool(r.PostFormValue("enable_leaderboard"))
+
+	if err != nil {
+		return http.StatusBadRequest, "", "invalid input"
+	}
+	if _, err := h.userSrvc.Update(user); err != nil {
+		return http.StatusInternalServerError, "", "internal sever error"
+	}
+	return http.StatusOK, "settings updated", ""
 }
 
 func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Request) (int, string, string) {
