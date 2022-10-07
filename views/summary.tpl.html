@@ -16,7 +16,7 @@
 
 {{ if .User.HasData }}
 
-<div id="summary-page" class="flex-grow" v-scope>
+<div id="summary-page" class="grow" v-scope>
     <div class="flex justify-end mt-12 relative">
         <div v-scope="TimePicker({
             fromDate: '{{ .From | simpledate }}',
@@ -27,7 +27,7 @@
 
     {{ end }}
 
-    <main class="flex flex-col items-center mt-10 flex-grow">
+    <main class="flex flex-col items-center mt-10 grow">
 
         {{ if .User.HasData }}
 

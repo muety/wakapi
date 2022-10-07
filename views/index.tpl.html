@@ -11,7 +11,7 @@
 
 {{ template "login-btn.tpl.html" . }}
 
-<main class="mt-10 px-4 md:px-10 lg:px-24 flex-grow flex justify-center w-full">
+<main class="mt-10 px-4 md:px-10 lg:px-24 grow flex justify-center w-full">
     <div class="flex flex-col text-white">
         {{ if and .Newsbox .Newsbox.Text }}
         <div class="mb-14 -mt-4 newsbox newsbox-{{ .Newsbox.Type }}">
