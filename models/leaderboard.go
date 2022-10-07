@@ -45,10 +45,11 @@ func (l Leaderboard) TopKeys(by uint8) []string {
 		if item.Key == nil || item.By == nil || *item.By != by {
 			continue
 		}
-		if _, ok := totalsMapped[*item.Key]; !ok {
-			totalsMapped[*item.Key] = &keyTotal{Key: *item.Key, Total: 0}
+		key := strings.ToLower(*item.Key)
+		if _, ok := totalsMapped[key]; !ok {
+			totalsMapped[key] = &keyTotal{Key: *item.Key, Total: 0}
 		}
-		totalsMapped[*item.Key].Total += item.Total
+		totalsMapped[key].Total += item.Total
 	}
 
 	totals := slice.Map[*keyTotal, keyTotal](maputil.Values[string, *keyTotal](totalsMapped), func(i int, item *keyTotal) keyTotal {

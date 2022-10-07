@@ -87,8 +87,9 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 			topKeys = leaderboard.TopKeys(by)
 			if len(topKeys) > 0 {
 				if keyParam == "" {
-					keyParam = strings.ToLower(topKeys[0])
+					keyParam = topKeys[0]
 				}
+				keyParam = strings.ToLower(keyParam)
 				leaderboard = leaderboard.TopByKey(by, keyParam)
 			}
 		} else {

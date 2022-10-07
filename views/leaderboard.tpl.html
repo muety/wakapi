@@ -23,7 +23,7 @@
         <h1 class="h1" style="margin-bottom: 0.5rem">Leaderboard</h1>
 
         <p class="block text-sm text-gray-300 w-full lg:w-3/4 mb-8">
-            Wakapi's leaderboard shows a ranking of the most active users on this servers, given they opted in to get listed on the public leaderboard. Statistics are updated at least every 12 hours and are based on the users' total coding time in the past seven days.
+            Wakapi's leaderboard shows a ranking of the most active users on this server, given they opted in to get listed on the public leaderboard. Statistics are updated at least every 12 hours and are based on the users' total coding time in the past seven days.
             To participate, log in, go to <a class="link" href="settings#permissions">Settings 🠒 Permissions</a> and enable leaderboards.
         </p>
 
@@ -40,7 +40,7 @@
         <div class="flex flex-wrap space-x-2 mb-4">
             {{ range $i, $key := (strslice .TopKeys 0 10) }}
             <div class="inline-block mb-4">
-                <a href="leaderboard?by={{ $.By }}&key={{ $key }}" class="{{ if eq $.Key (lower $key) }} btn-primary {{ else }} btn-default {{ end }} btn-small cursor-pointer whitespace-nowrap">
+                <a href="leaderboard?by={{ $.By }}&key={{ lower $key }}" class="{{ if eq (lower $.Key) (lower $key) }} btn-primary {{ else }} btn-default {{ end }} btn-small cursor-pointer whitespace-nowrap">
                     {{ if and (eq (lower $.By) "language") ($.LangIcon $key) }}
                     <span class="align-middle leading-none"><span class="iconify inline text-white text-base" data-icon="{{ ($.LangIcon $key) | urlSafe }}"></span>&nbsp;</span>
                     {{ end }}

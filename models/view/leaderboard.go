@@ -47,7 +47,6 @@ func (s *LeaderboardViewModel) ColorModifier(item *models.LeaderboardItem, princ
 func (s *LeaderboardViewModel) LangIcon(lang string) string {
 	// https://icon-sets.iconify.design/mdi/
 	langs := map[string]string{
-		"c":          "c",
 		"c++":        "cpp",
 		"cpp":        "cpp",
 		"go":         "go",
