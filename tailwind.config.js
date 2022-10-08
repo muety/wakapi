@@ -1,4 +1,13 @@
+const colors = require('tailwindcss/colors')
+
 module.exports = {
+    theme: {
+        extend: {
+            colors: {
+                green: colors.emerald,
+            }
+        }
+    },
     content: [
         './views/*.tpl.html',
     ],
