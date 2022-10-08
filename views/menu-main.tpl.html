@@ -1,7 +1,7 @@
 <script type="module" src="assets/js/components/menu-main.js"></script>
 
 <div class="flex justify-between space-x-4 items-center relative" id="main-menu" v-scope @vue:mounted="mounted">
-    <div class="mr-8 hidden lg:inline-block flex-shrink-0">
+    <div class="mr-8 hidden lg:inline-block shrink-0">
     {{ template "logo.tpl.html" }}
     </div>
 
@@ -28,7 +28,7 @@
         <span class="iconify inline text-xl text-gray-400" data-icon="akar-icons:chevron-down"></span>
 
         <div v-cloak v-show="state.showDropdownResources" class="flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-12 w-full" id="resources-menu-dropdown" style="min-width: 128px">
-            <div class="flex-grow flex flex-col">
+            <div class="grow flex flex-col">
                 <div class="submenu-item">
                     <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="https://github.com/muety/wakapi" target="_blank" rel="noreferrer noopener" @click="state.showDropdownResources = !state.showDropdownResources"  data-trigger-for="showDropdownResources">
                         <span class="text-sm">GitHub</span>
@@ -62,9 +62,9 @@
         <span class="text-gray-400 hidden lg:inline-block">Settings</span>
     </a>
 
-    <div class="flex-grow"></div>
+    <div class="grow"></div>
 
-    <div class="flex-shrink-0 menu-item relative" @click="state.showDropdownUser = !state.showDropdownUser" data-trigger-for="showDropdownUser">
+    <div class="shrink-0 menu-item relative" @click="state.showDropdownUser = !state.showDropdownUser" data-trigger-for="showDropdownUser">
         <div class="hidden md:flex flex flex-col text-right">
             <a class="text-gray-300">{{ .User.ID }}</a>
             {{ if .User.Email }}
@@ -78,7 +78,7 @@
         {{ end }}
 
         <div v-cloak v-show="state.showDropdownUser" class="flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup mt-16 w-full" id="user-menu-popup" style="min-width: 156px;">
-            <div class="flex-grow flex flex-col">
+            <div class="grow flex flex-col">
                 <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
                     <button class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" @click="state.showApiKey = true" data-trigger-for="showApiKey">
                         <span class="text-sm">Show API Key</span>
@@ -86,7 +86,7 @@
                     </button>
                 </div>
                 <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
-                    <form action="logout" method="post" class="flex-grow">
+                    <form action="logout" method="post" class="grow">
                         <button type="submit" class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold">
                             <span class="text-sm">Logout</span>
                             <span class="iconify inline" data-icon="ls:logout"></span>
@@ -98,7 +98,7 @@
     </div>
 
     <div v-cloak v-show="state.showApiKey" class="flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup" id="api-key-popup">
-        <div class="flex-grow flex flex-col px-2">
+        <div class="grow flex flex-col px-2">
             <span class="text-xxs text-gray-500 mx-1">API Key</span>
             <input type="text" class="bg-transparent text-sm text-white mx-1 font-mono" id="api-key-container" readonly
                    value="{{ .ApiKey }}" style="min-width: 330px">

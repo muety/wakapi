@@ -1,12 +1,12 @@
 <template id="time-picker-template">
     <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer justify-end" @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker">
-        <span class="iconify inline text-2xl text-gray-400 flex-grow" data-icon="fa-regular:calendar-alt"></span>
+        <span class="iconify inline text-2xl text-gray-400 grow" data-icon="fa-regular:calendar-alt"></span>
         <a v-cloak id="current-time-selection" class="text-gray-300 -mb-1">${timeSelection}</a>
         <span class="iconify inline text-2xl text-gray-400" data-icon="akar-icons:chevron-down"></span>
     </div>
 
     <div v-cloak v-show="state.showDropdownTimepicker" class="z-10 absolute top-0 right-0 popup mt-12 w-40" id="time-picker-dropdown">
-        <div class="flex-grow flex flex-col flex bg-gray-850 shadow-md rounded w-40 p-1 ">
+        <div class="grow flex flex-col flex bg-gray-850 shadow-md rounded w-40 p-1 ">
             <a id="time-option-today" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" :href="intervalLink('today')" @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker">Today</a>
             <a id="time-option-yesterday" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" :href="intervalLink('yesterday')" @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker">Yesterday</a>
             <a id="time-option-week" class="submenu-item hover:bg-gray-800 rounded p-1 text-right w-full text-gray-300 px-2 font-semibold text-sm" :href="intervalLink('week')" @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker">This Week</a>
