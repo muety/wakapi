@@ -60,6 +60,17 @@ func init() {
 						return err
 					}
 				}
+				// https://github.com/muety/wakapi/issues/416#issuecomment-1271674792
+				if db.Migrator().HasConstraint(&models.SummaryItem{}, "fk_summary_items_summary") {
+					if err := db.Migrator().DropConstraint(&models.SummaryItem{}, "fk_summary_items_summary"); err != nil {
+						return err
+					}
+				}
+				if db.Migrator().HasConstraint(&models.SummaryItem{}, "fk_summaries_labels") {
+					if err := db.Migrator().DropConstraint(&models.SummaryItem{}, "fk_summaries_labels"); err != nil {
+						return err
+					}
+				}
 
 				if err := db.Migrator().AlterColumn(&models.Summary{}, "id"); err != nil {
 					return err
