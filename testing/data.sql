@@ -1,14 +1,15 @@
 BEGIN TRANSACTION;
-INSERT INTO "key_string_values" VALUES ('20210213-add_has_data_field','done');
-INSERT INTO "key_string_values" VALUES ('20210221-add_created_date_column','done');
-INSERT INTO "key_string_values" VALUES ('imprint','no content here');
-INSERT INTO "key_string_values" VALUES ('20210411-add_imprint_content','done');
-INSERT INTO "key_string_values" VALUES ('20210806-remove_persisted_project_labels','done');
-INSERT INTO "key_string_values" VALUES ('20211215-migrate_id_to_bigint-add_has_data_field','done');
-INSERT INTO "key_string_values" VALUES ('latest_total_time','0s');
-INSERT INTO "key_string_values" VALUES ('latest_total_users','0');
+INSERT INTO "key_string_values" ("key","value") VALUES ('20210213-add_has_data_field','done');
+INSERT INTO "key_string_values" ("key","value") VALUES ('20210221-add_created_date_column','done');
+INSERT INTO "key_string_values" ("key","value") VALUES ('imprint','no content here');
+INSERT INTO "key_string_values" ("key","value") VALUES ('20210411-add_imprint_content','done');
+INSERT INTO "key_string_values" ("key","value") VALUES ('20210806-remove_persisted_project_labels','done');
+INSERT INTO "key_string_values" ("key","value") VALUES ('20211215-migrate_id_to_bigint-add_has_data_field','done');
+INSERT INTO "key_string_values" ("key","value") VALUES ('20212212-total_summary_heartbeats','done');
+INSERT INTO "key_string_values" ("key","value") VALUES ('20220317-align_num_heartbeats','done');
+INSERT INTO "key_string_values" ("key","value") VALUES ('20220318-mysql_timestamp_precision','done');
+INSERT INTO "key_string_values" ("key","value") VALUES ('202203191-drop_diagnostics_user','done');
 COMMIT;
-
 
 BEGIN TRANSACTION;
 INSERT INTO "users" ("id", "api_key", "email", "location", "password", "created_at", "last_logged_in_at",
