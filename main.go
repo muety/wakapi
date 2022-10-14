@@ -35,6 +35,8 @@ import (
 	_ "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+
+	_ "github.com/muety/wakapi/static/docs"
 )
 
 // Embed version.txt
@@ -282,6 +284,7 @@ func main() {
 
 	router.PathPrefix("/contribute.json").Handler(staticFileServer)
 	router.PathPrefix("/assets").Handler(assetsFileServer)
+	router.Path("/swagger-ui").Handler(http.RedirectHandler("swagger-ui/", http.StatusMovedPermanently)) // https://github.com/swaggo/http-swagger/issues/44
 	router.PathPrefix("/swagger-ui").Handler(httpSwagger.WrapHandler)
 
 	// Listen HTTP
