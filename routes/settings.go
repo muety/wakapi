@@ -464,7 +464,7 @@ func (h *SettingsHandler) actionSetWakatimeApiKey(w http.ResponseWriter, r *http
 
 	// Healthcheck, if a new API key is set, i.e. the feature is activated
 	if (user.WakatimeApiKey == "" && apiKey != "") && !h.validateWakatimeKey(apiKey, apiUrl) {
-		return http.StatusBadRequest, "", "failed to connect to WakaTime, API key invalid?"
+		return http.StatusBadRequest, "", "failed to connect to WakaTime, API key or endpoint URL invalid?"
 	}
 
 	if _, err := h.userSrvc.SetWakatimeApiCredentials(user, apiKey, apiUrl); err != nil {
