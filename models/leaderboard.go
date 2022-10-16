@@ -11,7 +11,7 @@ type LeaderboardItem struct {
 	ID        uint          `json:"-" gorm:"primary_key; size:32"`
 	User      *User         `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	UserID    string        `json:"user_id" gorm:"not null; index:idx_leaderboard_user"`
-	Rank      uint          `json:"rank" gorm:"->"`
+	Rank      uint          `json:"rank" gorm:"-:migration"`
 	Interval  string        `json:"interval" gorm:"not null; size:32; index:idx_leaderboard_combined"`
 	By        *uint8        `json:"aggregated_by" gorm:"index:idx_leaderboard_combined"` // pointer because nullable
 	Total     time.Duration `json:"total" gorm:"not null" swaggertype:"primitive,integer"`
