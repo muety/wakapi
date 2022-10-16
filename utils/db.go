@@ -39,3 +39,13 @@ func WhereNullable(query *gorm.DB, col string, val any) *gorm.DB {
 	}
 	return query.Where(fmt.Sprintf("%s = ?", col), val)
 }
+
+func WithPaging(query *gorm.DB, limit, skip int) *gorm.DB {
+	if limit >= 0 {
+		query = query.Limit(limit)
+	}
+	if skip >= 0 {
+		query = query.Offset(skip)
+	}
+	return query
+}

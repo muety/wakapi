@@ -14,6 +14,7 @@ type LeaderboardViewModel struct {
 	TopKeys       []string
 	UserLanguages map[string][]string
 	ApiKey        string
+	PageParams    *models.PageParams
 	Success       string
 	Error         string
 }

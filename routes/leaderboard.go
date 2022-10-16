@@ -10,6 +10,7 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
 	"github.com/muety/wakapi/services"
+	"github.com/muety/wakapi/utils"
 	"net/http"
 	"strings"
 )
@@ -56,6 +57,7 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 	user := middlewares.GetPrincipal(r)
 	byParam := strings.ToLower(r.URL.Query().Get("by"))
 	keyParam := strings.ToLower(r.URL.Query().Get("key"))
+	pageParams := utils.ParsePageParams(r)
 
 	var err error
 	var leaderboard models.Leaderboard
@@ -63,14 +65,14 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 	var topKeys []string
 
 	if byParam == "" {
-		leaderboard, err = h.leaderboardService.GetByInterval(models.IntervalPast7Days, true)
+		leaderboard, err = h.leaderboardService.GetByInterval(models.IntervalPast7Days, pageParams, true)
 		if err != nil {
 			conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
 			return &view.LeaderboardViewModel{Error: criticalError}
 		}
 	} else {
 		if by, ok := allowedAggregations[byParam]; ok {
-			leaderboard, err = h.leaderboardService.GetAggregatedByInterval(models.IntervalPast7Days, &by, true)
+			leaderboard, err = h.leaderboardService.GetAggregatedByInterval(models.IntervalPast7Days, &by, pageParams, true)
 			if err != nil {
 				conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
 				return &view.LeaderboardViewModel{Error: criticalError}
@@ -110,6 +112,7 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 		UserLanguages: userLanguages,
 		TopKeys:       topKeys,
 		ApiKey:        apiKey,
+		PageParams:    pageParams,
 		Success:       r.URL.Query().Get("success"),
 		Error:         r.URL.Query().Get("error"),
 	}

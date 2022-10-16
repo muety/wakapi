@@ -33,13 +33,17 @@ func (r *LeaderboardRepository) CountAllByUser(userId string) (int64, error) {
 	return count, err
 }
 
-func (r *LeaderboardRepository) GetAllAggregatedByInterval(key *models.IntervalKey, by *uint8) ([]*models.LeaderboardItem, error) {
+func (r *LeaderboardRepository) GetAllAggregatedByInterval(key *models.IntervalKey, by *uint8, limit, skip int) ([]*models.LeaderboardItem, error) {
 	// TODO: distinct by (user, key) to filter out potential duplicates ?
 	var items []*models.LeaderboardItem
-	q := r.db.
+	subq := r.db.
+		Table("leaderboard_items").
 		Select("*, rank() over (partition by \"key\" order by total desc) as \"rank\"").
 		Where("\"interval\" in ?", *key)
-	q = utils.WhereNullable(q, "\"by\"", by)
+	subq = utils.WhereNullable(subq, "\"by\"", by)
+
+	q := r.db.Table("(?) as ranked", subq)
+	q = r.withPaging(q, limit, skip)
 
 	if err := q.Find(&items).Error; err != nil {
 		return nil, err
@@ -47,13 +51,17 @@ func (r *LeaderboardRepository) GetAllAggregatedByInterval(key *models.IntervalK
 	return items, nil
 }
 
-func (r *LeaderboardRepository) GetAggregatedByUserAndInterval(userId string, key *models.IntervalKey, by *uint8) ([]*models.LeaderboardItem, error) {
+func (r *LeaderboardRepository) GetAggregatedByUserAndInterval(userId string, key *models.IntervalKey, by *uint8, limit, skip int) ([]*models.LeaderboardItem, error) {
 	var items []*models.LeaderboardItem
-	q := r.db.
+	subq := r.db.
+		Table("leaderboard_items").
 		Select("*, rank() over (partition by \"key\" order by total desc) as \"rank\"").
 		Where("user_id = ?", userId).
 		Where("\"interval\" in ?", *key)
-	q = utils.WhereNullable(q, "\"by\"", by)
+	subq = utils.WhereNullable(subq, "\"by\"", by)
+
+	q := r.db.Table("(?) as ranked", subq)
+	q = r.withPaging(q, limit, skip)
 
 	if err := q.Find(&items).Error; err != nil {
 		return nil, err
@@ -78,4 +86,14 @@ func (r *LeaderboardRepository) DeleteByUserAndInterval(userId string, key *mode
 		return err
 	}
 	return nil
+}
+
+func (r *LeaderboardRepository) withPaging(q *gorm.DB, limit, skip int) *gorm.DB {
+	if limit > 0 {
+		q = q.Where("\"rank\" <= ?", skip+limit)
+	}
+	if skip > 0 {
+		q = q.Where("\"rank\" > ?", skip)
+	}
+	return q
 }

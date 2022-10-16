@@ -92,6 +92,6 @@ type ILeaderboardRepository interface {
 	CountAllByUser(string) (int64, error)
 	DeleteByUser(string) error
 	DeleteByUserAndInterval(string, *models.IntervalKey) error
-	GetAllAggregatedByInterval(*models.IntervalKey, *uint8) ([]*models.LeaderboardItem, error)
-	GetAggregatedByUserAndInterval(string, *models.IntervalKey, *uint8) ([]*models.LeaderboardItem, error)
+	GetAllAggregatedByInterval(*models.IntervalKey, *uint8, int, int) ([]*models.LeaderboardItem, error)
+	GetAggregatedByUserAndInterval(string, *models.IntervalKey, *uint8, int, int) ([]*models.LeaderboardItem, error)
 }

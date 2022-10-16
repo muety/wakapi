@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/models"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -41,4 +42,17 @@ func IsNoCache(r *http.Request, cacheTtl time.Duration) bool {
 		}
 	}
 	return false
+}
+
+func ParsePageParams(r *http.Request) *models.PageParams {
+	pageParams := &models.PageParams{}
+	page := r.URL.Query().Get("page")
+	pageSize := r.URL.Query().Get("page_size")
+	if p, err := strconv.Atoi(page); err == nil {
+		pageParams.Page = p
+	}
+	if p, err := strconv.Atoi(pageSize); err == nil && pageParams.Page > 0 {
+		pageParams.PageSize = p
+	}
+	return pageParams
 }
