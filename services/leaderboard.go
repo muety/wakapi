@@ -214,6 +214,6 @@ func (srv *LeaderboardService) getHash(interval *models.IntervalKey, by *uint8, 
 	if by != nil && !reflect.ValueOf(by).IsNil() {
 		k += "__" + models.GetEntityColumn(*by)
 	}
-	k = "__" + strconv.Itoa(pageParams.Page) + "__" + strconv.Itoa(pageParams.PageSize)
+	k += "__" + strconv.Itoa(pageParams.Page) + "__" + strconv.Itoa(pageParams.PageSize)
 	return k
 }
