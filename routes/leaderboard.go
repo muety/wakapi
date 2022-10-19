@@ -57,7 +57,10 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 	user := middlewares.GetPrincipal(r)
 	byParam := strings.ToLower(r.URL.Query().Get("by"))
 	keyParam := strings.ToLower(r.URL.Query().Get("key"))
-	pageParams := utils.ParsePageParams(r)
+	pageParams := utils.ParsePageParamsWithDefault(r, 1, 100)
+	// note: pagination is not fully implemented, yet
+	// count function to get total item / total pages is missing
+	// and according ui (+ optionally search bar) is missing, too
 
 	var err error
 	var leaderboard models.Leaderboard
@@ -70,12 +73,34 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 			conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
 			return &view.LeaderboardViewModel{Error: criticalError}
 		}
+
+		// regardless of page, always show own rank
+		if user != nil && !leaderboard.HasUser(user.ID) {
+			// but only if leaderboard spans multiple pages
+			if count, err := h.leaderboardService.CountUsers(); err == nil && count > int64(pageParams.PageSize) {
+				if l, err := h.leaderboardService.GetByIntervalAndUser(models.IntervalPast7Days, user.ID, true); err == nil && len(l) > 0 {
+					leaderboard = append(leaderboard, l[0])
+				}
+			}
+		}
 	} else {
 		if by, ok := allowedAggregations[byParam]; ok {
 			leaderboard, err = h.leaderboardService.GetAggregatedByInterval(models.IntervalPast7Days, &by, pageParams, true)
 			if err != nil {
 				conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
 				return &view.LeaderboardViewModel{Error: criticalError}
+			}
+
+			// regardless of page, always show own rank
+			if user != nil {
+				// but only if leaderboard could, in theory, span multiple pages
+				if count, err := h.leaderboardService.CountUsers(); err == nil && count > int64(pageParams.PageSize) {
+					if l, err := h.leaderboardService.GetAggregatedByIntervalAndUser(models.IntervalPast7Days, user.ID, &by, true); err == nil {
+						leaderboard.AddMany(l)
+					} else {
+						conf.Log().Request(r).Error("error while fetching own aggregated user leaderboard - %v", err)
+					}
+				}
 			}
 
 			userLeaderboards := slice.GroupWith[*models.LeaderboardItem, string](leaderboard, func(item *models.LeaderboardItem) string {

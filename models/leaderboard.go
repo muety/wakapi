@@ -19,12 +19,34 @@ type LeaderboardItem struct {
 	CreatedAt CustomTime    `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 }
 
+func (l1 *LeaderboardItem) Equals(l2 *LeaderboardItem) bool {
+	return l1.ID == l2.ID
+}
+
 type Leaderboard []*LeaderboardItem
+
+func (l *Leaderboard) Add(item *LeaderboardItem) {
+	if _, found := slice.Find[*LeaderboardItem](*l, func(i int, item2 *LeaderboardItem) bool {
+		return item.Equals(item2)
+	}); !found {
+		*l = append(*l, item)
+	}
+}
+
+func (l *Leaderboard) AddMany(items []*LeaderboardItem) {
+	for _, item := range items {
+		l.Add(item)
+	}
+}
 
 func (l Leaderboard) UserIDs() []string {
 	return slice.Unique[string](slice.Map[*LeaderboardItem, string](l, func(i int, item *LeaderboardItem) string {
 		return item.UserID
 	}))
+}
+
+func (l Leaderboard) HasUser(userId string) bool {
+	return slice.Contain(l.UserIDs(), userId)
 }
 
 func (l Leaderboard) TopByKey(by uint8, key string) Leaderboard {

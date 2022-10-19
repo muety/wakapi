@@ -101,8 +101,11 @@ type ILeaderboardService interface {
 	ScheduleDefault()
 	Run([]*models.User, *models.IntervalKey, []uint8) error
 	ExistsAnyByUser(string) (bool, error)
+	CountUsers() (int64, error)
 	GetByInterval(*models.IntervalKey, *models.PageParams, bool) (models.Leaderboard, error)
+	GetByIntervalAndUser(*models.IntervalKey, string, bool) (models.Leaderboard, error)
 	GetAggregatedByInterval(*models.IntervalKey, *uint8, *models.PageParams, bool) (models.Leaderboard, error)
+	GetAggregatedByIntervalAndUser(*models.IntervalKey, string, *uint8, bool) (models.Leaderboard, error)
 	GenerateByUser(*models.User, *models.IntervalKey) (*models.LeaderboardItem, error)
 	GenerateAggregatedByUser(*models.User, *models.IntervalKey, uint8) ([]*models.LeaderboardItem, error)
 }

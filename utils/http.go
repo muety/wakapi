@@ -56,3 +56,14 @@ func ParsePageParams(r *http.Request) *models.PageParams {
 	}
 	return pageParams
 }
+
+func ParsePageParamsWithDefault(r *http.Request, page, size int) *models.PageParams {
+	pageParams := ParsePageParams(r)
+	if pageParams.Page == 0 {
+		pageParams.Page = page
+	}
+	if pageParams.PageSize == 0 {
+		pageParams.PageSize = size
+	}
+	return pageParams
+}

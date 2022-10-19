@@ -33,6 +33,15 @@ func (r *LeaderboardRepository) CountAllByUser(userId string) (int64, error) {
 	return count, err
 }
 
+func (r *LeaderboardRepository) CountUsers() (int64, error) {
+	var count int64
+	err := r.db.
+		Table("leaderboard_items").
+		Distinct("user_id").
+		Count(&count).Error
+	return count, err
+}
+
 func (r *LeaderboardRepository) GetAllAggregatedByInterval(key *models.IntervalKey, by *uint8, limit, skip int) ([]*models.LeaderboardItem, error) {
 	// TODO: distinct by (user, key) to filter out potential duplicates ?
 	var items []*models.LeaderboardItem
@@ -56,11 +65,10 @@ func (r *LeaderboardRepository) GetAggregatedByUserAndInterval(userId string, ke
 	subq := r.db.
 		Table("leaderboard_items").
 		Select("*, rank() over (partition by \"key\" order by total desc) as \"rank\"").
-		Where("user_id = ?", userId).
 		Where("\"interval\" in ?", *key)
 	subq = utils.WhereNullable(subq, "\"by\"", by)
 
-	q := r.db.Table("(?) as ranked", subq)
+	q := r.db.Table("(?) as ranked", subq).Where("user_id = ?", userId)
 	q = r.withPaging(q, limit, skip)
 
 	if err := q.Find(&items).Error; err != nil {

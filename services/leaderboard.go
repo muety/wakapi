@@ -126,13 +126,31 @@ func (srv *LeaderboardService) ExistsAnyByUser(userId string) (bool, error) {
 	return count > 0, err
 }
 
+func (srv *LeaderboardService) CountUsers() (int64, error) {
+	// check cache
+	cacheKey := "count_total"
+	if cacheResult, ok := srv.cache.Get(cacheKey); ok {
+		return cacheResult.(int64), nil
+	}
+
+	count, err := srv.repository.CountUsers()
+	if err != nil {
+		srv.cache.SetDefault(cacheKey, count)
+	}
+	return count, err
+}
+
 func (srv *LeaderboardService) GetByInterval(interval *models.IntervalKey, pageParams *models.PageParams, resolveUsers bool) (models.Leaderboard, error) {
 	return srv.GetAggregatedByInterval(interval, nil, pageParams, resolveUsers)
 }
 
+func (srv *LeaderboardService) GetByIntervalAndUser(interval *models.IntervalKey, userId string, resolveUser bool) (models.Leaderboard, error) {
+	return srv.GetAggregatedByIntervalAndUser(interval, userId, nil, resolveUser)
+}
+
 func (srv *LeaderboardService) GetAggregatedByInterval(interval *models.IntervalKey, by *uint8, pageParams *models.PageParams, resolveUsers bool) (models.Leaderboard, error) {
 	// check cache
-	cacheKey := srv.getHash(interval, by, pageParams)
+	cacheKey := srv.getHash(interval, by, "", pageParams)
 	if cacheResult, ok := srv.cache.Get(cacheKey); ok {
 		return cacheResult.([]*models.LeaderboardItem), nil
 	}
@@ -143,8 +161,6 @@ func (srv *LeaderboardService) GetAggregatedByInterval(interval *models.Interval
 	}
 
 	if resolveUsers {
-		a := models.Leaderboard(items).UserIDs()
-		println(a)
 		users, err := srv.userService.GetManyMapped(models.Leaderboard(items).UserIDs())
 		if err != nil {
 			config.Log().Error("failed to resolve users for leaderboard item - %v", err)
@@ -153,6 +169,33 @@ func (srv *LeaderboardService) GetAggregatedByInterval(interval *models.Interval
 				if u, ok := users[item.UserID]; ok {
 					item.User = u
 				}
+			}
+		}
+	}
+
+	srv.cache.SetDefault(cacheKey, items)
+	return items, nil
+}
+
+func (srv *LeaderboardService) GetAggregatedByIntervalAndUser(interval *models.IntervalKey, userId string, by *uint8, resolveUser bool) (models.Leaderboard, error) {
+	// check cache
+	cacheKey := srv.getHash(interval, by, userId, nil)
+	if cacheResult, ok := srv.cache.Get(cacheKey); ok {
+		return cacheResult.([]*models.LeaderboardItem), nil
+	}
+
+	items, err := srv.repository.GetAggregatedByUserAndInterval(userId, interval, by, 0, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	if resolveUser {
+		u, err := srv.userService.GetUserById(userId)
+		if err != nil {
+			config.Log().Error("failed to resolve user for leaderboard item - %v", err)
+		} else {
+			for _, item := range items {
+				item.User = u
 			}
 		}
 	}
@@ -209,11 +252,13 @@ func (srv *LeaderboardService) GenerateAggregatedByUser(user *models.User, inter
 	return items, nil
 }
 
-func (srv *LeaderboardService) getHash(interval *models.IntervalKey, by *uint8, pageParams *models.PageParams) string {
-	k := strings.Join(*interval, "__")
+func (srv *LeaderboardService) getHash(interval *models.IntervalKey, by *uint8, user string, pageParams *models.PageParams) string {
+	k := strings.Join(*interval, "__") + "__" + user
 	if by != nil && !reflect.ValueOf(by).IsNil() {
 		k += "__" + models.GetEntityColumn(*by)
 	}
-	k += "__" + strconv.Itoa(pageParams.Page) + "__" + strconv.Itoa(pageParams.PageSize)
+	if pageParams != nil {
+		k += "__" + strconv.Itoa(pageParams.Page) + "__" + strconv.Itoa(pageParams.PageSize)
+	}
 	return k
 }
