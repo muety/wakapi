@@ -103,7 +103,7 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 				}
 			}
 
-			userLeaderboards := slice.GroupWith[*models.LeaderboardItem, string](leaderboard, func(item *models.LeaderboardItem) string {
+			userLeaderboards := slice.GroupWith[*models.LeaderboardItemRanked, string](leaderboard, func(item *models.LeaderboardItemRanked) string {
 				return item.UserID
 			})
 			userLanguages = map[string][]string{}

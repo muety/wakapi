@@ -10,7 +10,7 @@ type LeaderboardViewModel struct {
 	User          *models.User
 	By            string
 	Key           string
-	Items         []*models.LeaderboardItem
+	Items         []*models.LeaderboardItemRanked
 	TopKeys       []string
 	UserLanguages map[string][]string
 	ApiKey        string
@@ -29,7 +29,7 @@ func (s *LeaderboardViewModel) WithError(m string) *LeaderboardViewModel {
 	return s
 }
 
-func (s *LeaderboardViewModel) ColorModifier(item *models.LeaderboardItem, principal *models.User) string {
+func (s *LeaderboardViewModel) ColorModifier(item *models.LeaderboardItemRanked, principal *models.User) string {
 	if principal != nil && item.UserID == principal.ID {
 		return "self"
 	}

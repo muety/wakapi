@@ -152,7 +152,7 @@ func (srv *LeaderboardService) GetAggregatedByInterval(interval *models.Interval
 	// check cache
 	cacheKey := srv.getHash(interval, by, "", pageParams)
 	if cacheResult, ok := srv.cache.Get(cacheKey); ok {
-		return cacheResult.([]*models.LeaderboardItem), nil
+		return cacheResult.([]*models.LeaderboardItemRanked), nil
 	}
 
 	items, err := srv.repository.GetAllAggregatedByInterval(interval, by, pageParams.Limit(), pageParams.Offset())
@@ -181,7 +181,7 @@ func (srv *LeaderboardService) GetAggregatedByIntervalAndUser(interval *models.I
 	// check cache
 	cacheKey := srv.getHash(interval, by, userId, nil)
 	if cacheResult, ok := srv.cache.Get(cacheKey); ok {
-		return cacheResult.([]*models.LeaderboardItem), nil
+		return cacheResult.([]*models.LeaderboardItemRanked), nil
 	}
 
 	items, err := srv.repository.GetAggregatedByUserAndInterval(userId, interval, by, 0, 0)

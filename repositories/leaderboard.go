@@ -42,9 +42,10 @@ func (r *LeaderboardRepository) CountUsers() (int64, error) {
 	return count, err
 }
 
-func (r *LeaderboardRepository) GetAllAggregatedByInterval(key *models.IntervalKey, by *uint8, limit, skip int) ([]*models.LeaderboardItem, error) {
+func (r *LeaderboardRepository) GetAllAggregatedByInterval(key *models.IntervalKey, by *uint8, limit, skip int) ([]*models.LeaderboardItemRanked, error) {
 	// TODO: distinct by (user, key) to filter out potential duplicates ?
-	var items []*models.LeaderboardItem
+
+	var items []*models.LeaderboardItemRanked
 	subq := r.db.
 		Table("leaderboard_items").
 		Select("*, rank() over (partition by \"key\" order by total desc) as \"rank\"").
@@ -60,8 +61,8 @@ func (r *LeaderboardRepository) GetAllAggregatedByInterval(key *models.IntervalK
 	return items, nil
 }
 
-func (r *LeaderboardRepository) GetAggregatedByUserAndInterval(userId string, key *models.IntervalKey, by *uint8, limit, skip int) ([]*models.LeaderboardItem, error) {
-	var items []*models.LeaderboardItem
+func (r *LeaderboardRepository) GetAggregatedByUserAndInterval(userId string, key *models.IntervalKey, by *uint8, limit, skip int) ([]*models.LeaderboardItemRanked, error) {
+	var items []*models.LeaderboardItemRanked
 	subq := r.db.
 		Table("leaderboard_items").
 		Select("*, rank() over (partition by \"key\" order by total desc) as \"rank\"").

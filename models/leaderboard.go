@@ -11,7 +11,6 @@ type LeaderboardItem struct {
 	ID        uint          `json:"-" gorm:"primary_key; size:32"`
 	User      *User         `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	UserID    string        `json:"user_id" gorm:"not null; index:idx_leaderboard_user"`
-	Rank      uint          `json:"rank" gorm:"-:migration"`
 	Interval  string        `json:"interval" gorm:"not null; size:32; index:idx_leaderboard_combined"`
 	By        *uint8        `json:"aggregated_by" gorm:"index:idx_leaderboard_combined"` // pointer because nullable
 	Total     time.Duration `json:"total" gorm:"not null" swaggertype:"primitive,integer"`
@@ -19,28 +18,35 @@ type LeaderboardItem struct {
 	CreatedAt CustomTime    `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 }
 
-func (l1 *LeaderboardItem) Equals(l2 *LeaderboardItem) bool {
+// https://github.com/go-gorm/gorm/issues/5789
+// https://github.com/go-gorm/gorm/issues/5284#issuecomment-1107775806
+type LeaderboardItemRanked struct {
+	LeaderboardItem
+	Rank uint
+}
+
+func (l1 *LeaderboardItemRanked) Equals(l2 *LeaderboardItemRanked) bool {
 	return l1.ID == l2.ID
 }
 
-type Leaderboard []*LeaderboardItem
+type Leaderboard []*LeaderboardItemRanked
 
-func (l *Leaderboard) Add(item *LeaderboardItem) {
-	if _, found := slice.Find[*LeaderboardItem](*l, func(i int, item2 *LeaderboardItem) bool {
+func (l *Leaderboard) Add(item *LeaderboardItemRanked) {
+	if _, found := slice.Find[*LeaderboardItemRanked](*l, func(i int, item2 *LeaderboardItemRanked) bool {
 		return item.Equals(item2)
 	}); !found {
 		*l = append(*l, item)
 	}
 }
 
-func (l *Leaderboard) AddMany(items []*LeaderboardItem) {
+func (l *Leaderboard) AddMany(items []*LeaderboardItemRanked) {
 	for _, item := range items {
 		l.Add(item)
 	}
 }
 
 func (l Leaderboard) UserIDs() []string {
-	return slice.Unique[string](slice.Map[*LeaderboardItem, string](l, func(i int, item *LeaderboardItem) string {
+	return slice.Unique[string](slice.Map[*LeaderboardItemRanked, string](l, func(i int, item *LeaderboardItemRanked) string {
 		return item.UserID
 	}))
 }
@@ -50,7 +56,7 @@ func (l Leaderboard) HasUser(userId string) bool {
 }
 
 func (l Leaderboard) TopByKey(by uint8, key string) Leaderboard {
-	return slice.Filter[*LeaderboardItem](l, func(i int, item *LeaderboardItem) bool {
+	return slice.Filter[*LeaderboardItemRanked](l, func(i int, item *LeaderboardItemRanked) bool {
 		return item.By != nil && *item.By == by && item.Key != nil && strings.ToLower(*item.Key) == strings.ToLower(key)
 	})
 }
@@ -87,7 +93,7 @@ func (l Leaderboard) TopKeys(by uint8) []string {
 }
 
 func (l Leaderboard) TopKeysByUser(by uint8, userId string) []string {
-	return Leaderboard(slice.Filter[*LeaderboardItem](l, func(i int, item *LeaderboardItem) bool {
+	return Leaderboard(slice.Filter[*LeaderboardItemRanked](l, func(i int, item *LeaderboardItemRanked) bool {
 		return item.UserID == userId
 	})).TopKeys(by)
 }

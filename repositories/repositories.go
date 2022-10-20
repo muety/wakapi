@@ -93,6 +93,6 @@ type ILeaderboardRepository interface {
 	CountUsers() (int64, error)
 	DeleteByUser(string) error
 	DeleteByUserAndInterval(string, *models.IntervalKey) error
-	GetAllAggregatedByInterval(*models.IntervalKey, *uint8, int, int) ([]*models.LeaderboardItem, error)
-	GetAggregatedByUserAndInterval(string, *models.IntervalKey, *uint8, int, int) ([]*models.LeaderboardItem, error)
+	GetAllAggregatedByInterval(*models.IntervalKey, *uint8, int, int) ([]*models.LeaderboardItemRanked, error)
+	GetAggregatedByUserAndInterval(string, *models.IntervalKey, *uint8, int, int) ([]*models.LeaderboardItemRanked, error)
 }
