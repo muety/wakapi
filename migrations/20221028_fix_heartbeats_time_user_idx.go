@@ -5,6 +5,8 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"regexp"
+	"strings"
 )
 
 // due to an error in the model definition, idx_time_user used to only cover 'user_id', but not time column
@@ -16,22 +18,50 @@ func init() {
 		f: func(db *gorm.DB, cfg *config.Config) error {
 			migrator := db.Migrator()
 
-			indexes, err := migrator.GetIndexes(&models.Heartbeat{})
-			if err != nil {
-				return err
+			if !migrator.HasTable(&models.Heartbeat{}) {
+				return nil
 			}
 
-			for _, idx := range indexes {
-				if idx.Table() == "heartbeats" && idx.Name() == "idx_time_user" {
-					if len(idx.Columns()) == 1 {
-						if err := migrator.DropIndex(&models.Heartbeat{}, "idx_time_user"); err != nil {
-							return err
-						}
-						logbuch.Info("index 'idx_time_user' needs to be recreated, this may take a while")
-						return nil
+			var drop bool
+			if cfg.Db.IsSQLite() {
+				// sqlite migrator doesn't support GetIndexes() currently
+				var ddl string
+				if err := db.
+					Table("sqlite_schema").
+					Select("sql").
+					Where("type = 'index'").
+					Where("tbl_name = 'heartbeats'").
+					Where("name = 'idx_time_user'").
+					Scan(&ddl).Error; err != nil {
+					return err
+				}
+
+				matches := regexp.MustCompile("(?i)\\((.+)\\)$").FindStringSubmatch(ddl)
+				if len(matches) > 0 && !strings.Contains(matches[0], "`user_id`") || !strings.Contains(matches[0], "`time`") {
+					drop = true
+				}
+			} else {
+				indexes, err := migrator.GetIndexes(&models.Heartbeat{})
+				if err != nil {
+					return err
+				}
+
+				for _, idx := range indexes {
+					if idx.Table() == "heartbeats" && idx.Name() == "idx_time_user" && len(idx.Columns()) == 1 {
+						drop = true
+						break
 					}
 				}
 			}
+
+			if !drop {
+				return nil
+			}
+
+			if err := migrator.DropIndex(&models.Heartbeat{}, "idx_time_user"); err != nil {
+				return err
+			}
+			logbuch.Info("index 'idx_time_user' needs to be recreated, this may take a while")
 
 			return nil
 		},
