@@ -66,6 +66,10 @@ func mysqlConnectionString(config *dbConfig) string {
 }
 
 func postgresConnectionString(config *dbConfig) string {
+	if len(config.DSN) > 0 {
+		return config.DSN
+	}
+
 	sslmode := "disable"
 	if config.Ssl {
 		sslmode = "require"
