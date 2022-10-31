@@ -6,7 +6,6 @@ import (
 	"github.com/muety/wakapi/utils"
 	"net/http"
 	"regexp"
-	"time"
 )
 
 const (
@@ -43,7 +42,7 @@ func GetBadgeParams(r *http.Request, requestedUser *models.User) (*models.KeyedI
 		Key:      intervalKey,
 	}
 
-	minStart := rangeTo.Add(-24 * time.Hour * time.Duration(requestedUser.ShareDataMaxDays))
+	minStart := rangeTo.AddDate(0, 0, -requestedUser.ShareDataMaxDays)
 	// negative value means no limit
 	if rangeFrom.Before(minStart) && requestedUser.ShareDataMaxDays >= 0 {
 		return nil, nil, errors.New("requested time range too broad")
