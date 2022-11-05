@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	UserKey       = "user"
-	ImprintKey    = "imprint"
-	AuthCookieKey = "wakapi_auth"
+	UserKey               = "user"
+	ImprintKey            = "imprint"
+	AuthCookieKey         = "wakapi_auth"
+	PersistentIntervalKey = "wakapi_summary_interval"
 )
 
 type MigrationFunc func(db *gorm.DB) error

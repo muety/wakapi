@@ -43,8 +43,14 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	rawQuery := r.URL.RawQuery
 	q := r.URL.Query()
 	if q.Get("interval") == "" && q.Get("from") == "" {
-		q.Set("interval", "today")
+		if intervalCookie, _ := r.Cookie(models.PersistentIntervalKey); intervalCookie != nil {
+			q.Set("interval", intervalCookie.Value)
+		} else {
+			q.Set("interval", "today")
+		}
 		r.URL.RawQuery = q.Encode()
+	} else {
+		// TODO: Add a `Set-Cookie: interval` header to persit it on the front-end
 	}
 
 	summaryParams, _ := utils.ParseSummaryParams(r)
