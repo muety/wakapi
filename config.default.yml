@@ -21,6 +21,9 @@ app:
   custom_languages:
     vue: Vue
     jsx: JSX
+    tsx: TSX
+    cjs: JavaScript
+    ipynb: Python
     svelte: Svelte
 
   # url template for user avatar images (to be used with services like gravatar or dicebear)

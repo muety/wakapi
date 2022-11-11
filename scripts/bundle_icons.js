@@ -70,6 +70,11 @@ let icons = [
     'mdi:language-rust',
     'mdi:language-swift',
     'mdi:language-typescript',
+    'mdi:language-vuejs',
+    'mdi:language-react',
+    'mdi:language-markdown',
+    'mdi:code-json',
+    'mdi:bash',
     'twemoji:frowning-face',
 ]
 

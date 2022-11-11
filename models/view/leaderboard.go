@@ -48,25 +48,32 @@ func (s *LeaderboardViewModel) ColorModifier(item *models.LeaderboardItemRanked,
 func (s *LeaderboardViewModel) LangIcon(lang string) string {
 	// https://icon-sets.iconify.design/mdi/
 	langs := map[string]string{
-		"c++":        "cpp",
-		"cpp":        "cpp",
-		"go":         "go",
-		"haskell":    "haskell",
-		"html":       "html5",
-		"java":       "java",
-		"javascript": "javascript",
-		"kotlin":     "kotlin",
-		"lua":        "lua",
-		"php":        "php",
-		"python":     "python",
-		"r":          "r",
-		"ruby":       "ruby",
-		"rust":       "rust",
-		"swift":      "swift",
-		"typescript": "typescript",
+		"c++":        "language-cpp",
+		"cpp":        "language-cpp",
+		"go":         "language-go",
+		"haskell":    "language-haskell",
+		"html":       "language-html5",
+		"java":       "language-java",
+		"javascript": "language-javascript",
+		"jsx":        "language-javascript",
+		"kotlin":     "language-kotlin",
+		"lua":        "language-lua",
+		"php":        "language-php",
+		"python":     "language-python",
+		"r":          "language-r",
+		"ruby":       "language-ruby",
+		"rust":       "language-rust",
+		"swift":      "language-swift",
+		"typescript": "language-typescript",
+		"tsx":        "language-typescript",
+		"vue":        "language-vuejs",
+		"react":      "language-react",
+		"markdown":   "language-markdown",
+		"bash":       "bash",
+		"json":       "code-json",
 	}
 	if match, ok := langs[strings.ToLower(lang)]; ok {
-		return "mdi:language-" + match
+		return "mdi:" + match
 	}
 	return ""
 }
