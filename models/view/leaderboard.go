@@ -66,9 +66,9 @@ func (s *LeaderboardViewModel) LangIcon(lang string) string {
 		"swift":      "language-swift",
 		"typescript": "language-typescript",
 		"tsx":        "language-typescript",
-		"vue":        "language-vuejs",
-		"react":      "language-react",
 		"markdown":   "language-markdown",
+		"vue":        "vuejs",
+		"react":      "react",
 		"bash":       "bash",
 		"json":       "code-json",
 	}
