@@ -13,9 +13,17 @@ import (
 // https://pastr.de/v/736450
 
 type SummariesViewModel struct {
-	Data  []*SummariesData `json:"data"`
-	End   time.Time        `json:"end"`
-	Start time.Time        `json:"start"`
+	Data            []*SummariesData          `json:"data"`
+	End             time.Time                 `json:"end"`
+	Start           time.Time                 `json:"start"`
+	CumulativeTotal *SummariesCumulativeTotal `json:"cummulative_total"` // typo is intended
+}
+
+type SummariesCumulativeTotal struct {
+	Decimal string  `json:"decimal"`
+	Digital string  `json:"digital"`
+	Seconds float64 `json:"seconds"`
+	Text    string  `json:"text"`
 }
 
 type SummariesData struct {
@@ -73,10 +81,23 @@ func NewSummariesFrom(summaries []*models.Summary) *SummariesViewModel {
 		}
 	}
 
+	var totalTime time.Duration
+	for _, s := range summaries {
+		totalTime += s.TotalTime()
+	}
+
+	totalHrs, totalMins, totalSecs := totalTime.Hours(), (totalTime - time.Duration(totalTime.Hours())*time.Hour).Minutes(), totalTime.Seconds()
+
 	return &SummariesViewModel{
 		Data:  data,
 		End:   maxDate,
 		Start: minDate,
+		CumulativeTotal: &SummariesCumulativeTotal{
+			Decimal: fmt.Sprintf("%.2f", totalHrs),
+			Digital: fmt.Sprintf("%d:%d", int(totalHrs), int(totalMins)),
+			Seconds: totalSecs,
+			Text:    utils.FmtWakatimeDuration(totalTime),
+		},
 	}
 }
 
