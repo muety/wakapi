@@ -3,6 +3,7 @@ package v1
 import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
+	"time"
 )
 
 // https://wakatime.com/developers#all_time_since_today
@@ -28,11 +29,19 @@ type AllTimeRange struct {
 
 func NewAllTimeFrom(summary *models.Summary) *AllTimeViewModel {
 	total := summary.TotalTime()
+	tzName, _ := summary.FromTime.T().Zone()
 	return &AllTimeViewModel{
 		Data: &AllTimeData{
 			TotalSeconds: float32(total.Seconds()),
 			Text:         utils.FmtWakatimeDuration(total),
 			IsUpToDate:   true,
+			Range: &AllTimeRange{
+				End:       summary.ToTime.T().Format(time.RFC3339),
+				EndDate:   utils.FormatDate(summary.ToTime.T()),
+				Start:     summary.FromTime.T().Format(time.RFC3339),
+				StartDate: utils.FormatDate(summary.FromTime.T()),
+				Timezone:  tzName,
+			},
 		},
 	}
 }

@@ -57,17 +57,19 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 			endDate = maxTo
 		}
 
-		userAgents, err := w.fetchUserAgents(baseUrl)
-		if err != nil {
-			config.Log().Error("failed to fetch user agents while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
-			return
-		}
+		userAgents := map[string]*wakatime.UserAgentEntry{}
+		//userAgents, err := w.fetchUserAgents(baseUrl)
+		// if err != nil {
+		// 	config.Log().Error("failed to fetch user agents while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
+		// 	return
+		// }
 
-		machinesNames, err := w.fetchMachineNames(baseUrl)
-		if err != nil {
-			config.Log().Error("failed to fetch machine names while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
-			return
-		}
+		machinesNames := map[string]*wakatime.MachineEntry{}
+		// machinesNames, err := w.fetchMachineNames(baseUrl)
+		// if err != nil {
+		// 	config.Log().Error("failed to fetch machine names while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
+		// 	return
+		// }
 
 		days := generateDays(startDate, endDate)
 
@@ -259,9 +261,17 @@ func mapHeartbeat(
 ) *models.Heartbeat {
 	ua := userAgents[entry.UserAgentId]
 	if ua == nil {
-		ua = &wakatime.UserAgentEntry{
-			Editor: "unknown",
-			Os:     "unknown",
+		// try to parse id as an actual user agent string (as returned by wakapi)
+		if opSys, editor, err := utils.ParseUserAgent(entry.UserAgentId); err == nil {
+			ua = &wakatime.UserAgentEntry{
+				Editor: opSys,
+				Os:     editor,
+			}
+		} else {
+			ua = &wakatime.UserAgentEntry{
+				Editor: "unknown",
+				Os:     "unknown",
+			}
 		}
 	}
 
