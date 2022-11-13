@@ -10,6 +10,7 @@
 const fs = require('fs')
 const path = require('path')
 const { Collection } = require('@iconify/json-tools')
+const { locate } = require("@iconify/json");
 
 let icons = [
     'fxemoji:key',
@@ -107,7 +108,7 @@ icons.forEach(icon => {
 let code = ''
 Object.keys(filtered).forEach(prefix => {
     let collection = new Collection()
-    if (!collection.loadIconifyCollection(prefix)) {
+    if (!collection.loadFromFile(locate(prefix))) {
         console.error('Error loading collection', prefix)
         return
     }
