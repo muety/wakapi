@@ -9,6 +9,7 @@ import (
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/muety/wakapi/utils"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/emvi/logbuch"
@@ -29,12 +30,14 @@ const (
 )
 
 type WakatimeHeartbeatImporter struct {
-	ApiKey string
+	ApiKey     string
+	httpClient *http.Client
 }
 
 func NewWakatimeHeartbeatImporter(apiKey string) *WakatimeHeartbeatImporter {
 	return &WakatimeHeartbeatImporter{
-		ApiKey: apiKey,
+		ApiKey:     apiKey,
+		httpClient: &http.Client{Timeout: 10 * time.Second},
 	}
 }
 
@@ -58,18 +61,22 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 		}
 
 		userAgents := map[string]*wakatime.UserAgentEntry{}
-		//userAgents, err := w.fetchUserAgents(baseUrl)
-		// if err != nil {
-		// 	config.Log().Error("failed to fetch user agents while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
-		// 	return
-		// }
+		if data, err := w.fetchUserAgents(baseUrl); err == nil {
+			userAgents = data
+		} else if strings.Contains(baseUrl, "wakatime.com") {
+			// when importing from wakatime, resolving user agents is mandatorily required
+			config.Log().Error("failed to fetch user agents while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
+			return
+		}
 
 		machinesNames := map[string]*wakatime.MachineEntry{}
-		// machinesNames, err := w.fetchMachineNames(baseUrl)
-		// if err != nil {
-		// 	config.Log().Error("failed to fetch machine names while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
-		// 	return
-		// }
+		if data, err := w.fetchMachineNames(baseUrl); err == nil {
+			machinesNames = data
+		} else if strings.Contains(baseUrl, "wakatime.com") {
+			// when importing from wakatime, resolving machine names is mandatorily required
+			config.Log().Error("failed to fetch machine names while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
+			return
+		}
 
 		days := generateDays(startDate, endDate)
 
@@ -90,7 +97,7 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 				d := day.Format(config.SimpleDateFormat)
 				heartbeats, err := w.fetchHeartbeats(d, baseUrl)
 				if err != nil {
-					config.Log().Error("failed to fetch heartbeats for day '%s' and user '%s' - &v", d, user.ID, err)
+					config.Log().Error("failed to fetch heartbeats for day '%s' and user '%s' - %v", d, user.ID, err)
 				}
 
 				for _, h := range heartbeats {
@@ -114,8 +121,6 @@ func (w *WakatimeHeartbeatImporter) ImportAll(user *models.User) <-chan *models.
 // https://wakatime.com/api/v1/users/current/heartbeats?date=2021-02-05
 // https://pastr.de/p/b5p4od5s8w0pfntmwoi117jy
 func (w *WakatimeHeartbeatImporter) fetchHeartbeats(day string, baseUrl string) ([]*wakatime.HeartbeatEntry, error) {
-	httpClient := &http.Client{Timeout: 10 * time.Second}
-
 	req, err := http.NewRequest(http.MethodGet, baseUrl+config.WakatimeApiHeartbeatsUrl, nil)
 	if err != nil {
 		return nil, err
@@ -125,12 +130,13 @@ func (w *WakatimeHeartbeatImporter) fetchHeartbeats(day string, baseUrl string) 
 	q.Add("date", day)
 	req.URL.RawQuery = q.Encode()
 
-	res, err := httpClient.Do(w.withHeaders(req))
+	res, err := w.httpClient.Do(w.withHeaders(req))
 	if err != nil {
 		return nil, err
 	} else if res.StatusCode >= 400 {
 		return nil, errors.New(fmt.Sprintf("got status %d from wakatime api", res.StatusCode))
 	}
+	defer res.Body.Close()
 
 	var heartbeatsData wakatime.HeartbeatsViewModel
 	if err := json.NewDecoder(res.Body).Decode(&heartbeatsData); err != nil {
@@ -143,8 +149,6 @@ func (w *WakatimeHeartbeatImporter) fetchHeartbeats(day string, baseUrl string) 
 // https://wakatime.com/api/v1/users/current/all_time_since_today
 // https://pastr.de/p/w8xb4biv575pu32pox7jj2gr
 func (w *WakatimeHeartbeatImporter) fetchRange(baseUrl string) (time.Time, time.Time, error) {
-	httpClient := &http.Client{Timeout: 10 * time.Second}
-
 	notime := time.Time{}
 
 	req, err := http.NewRequest(http.MethodGet, baseUrl+config.WakatimeApiAllTimeUrl, nil)
@@ -152,7 +156,7 @@ func (w *WakatimeHeartbeatImporter) fetchRange(baseUrl string) (time.Time, time.
 		return notime, notime, err
 	}
 
-	res, err := httpClient.Do(w.withHeaders(req))
+	res, err := w.httpClient.Do(w.withHeaders(req))
 	if err != nil {
 		return notime, notime, err
 	}
@@ -179,8 +183,6 @@ func (w *WakatimeHeartbeatImporter) fetchRange(baseUrl string) (time.Time, time.
 // https://wakatime.com/api/v1/users/current/user_agents
 // https://pastr.de/p/05k5do8q108k94lic4lfl3pc
 func (w *WakatimeHeartbeatImporter) fetchUserAgents(baseUrl string) (map[string]*wakatime.UserAgentEntry, error) {
-	httpClient := &http.Client{Timeout: 10 * time.Second}
-
 	userAgents := make(map[string]*wakatime.UserAgentEntry)
 
 	for page := 1; ; page++ {
@@ -190,10 +192,11 @@ func (w *WakatimeHeartbeatImporter) fetchUserAgents(baseUrl string) (map[string]
 			return nil, err
 		}
 
-		res, err := httpClient.Do(w.withHeaders(req))
+		res, err := w.httpClient.Do(w.withHeaders(req))
 		if err != nil {
 			return nil, err
 		}
+		defer res.Body.Close()
 
 		var userAgentsData wakatime.UserAgentsViewModel
 		if err := json.NewDecoder(res.Body).Decode(&userAgentsData); err != nil {
@@ -230,6 +233,7 @@ func (w *WakatimeHeartbeatImporter) fetchMachineNames(baseUrl string) (map[strin
 		if err != nil {
 			return nil, err
 		}
+		defer res.Body.Close()
 
 		var machineData wakatime.MachineViewModel
 		if err := json.NewDecoder(res.Body).Decode(&machineData); err != nil {
