@@ -42,7 +42,12 @@ func (s *SMTPSendingService) Send(mail *models.Mail) error {
 
 	if ok, _ := c.Extension("STARTTLS"); ok {
 		if err = c.StartTLS(nil); err != nil {
-			return err
+			errCode := err.(*smtp.SMTPError).Code
+			if errCode == 503 {
+				// TLS already active
+			} else {
+				return err
+			}
 		}
 	}
 	if s.auth != nil {
