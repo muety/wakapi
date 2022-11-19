@@ -4,10 +4,12 @@ import (
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
+	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
 	su "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
+	"fmt"
 	"net/http"
 )
 
@@ -49,8 +51,9 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 			q.Set("interval", "today")
 		}
 		r.URL.RawQuery = q.Encode()
-	} else {
-		// TODO: Add a `Set-Cookie: interval` header to persit it on the front-end
+	} else if q.Get("interval") != "" {
+		headerValue := fmt.Sprintf("%s=%s", models.PersistentIntervalKey, q.Get("interval"))
+		w.Header().Add("Set-Cookie", headerValue)
 	}
 
 	summaryParams, _ := utils.ParseSummaryParams(r)
