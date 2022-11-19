@@ -93,8 +93,7 @@ type ISummaryService interface {
 
 type IReportService interface {
 	Schedule()
-	SyncSchedule(user *models.User) bool
-	Run(*models.User, time.Duration) error
+	SendReport(*models.User, time.Duration) error
 }
 
 type ILeaderboardService interface {

@@ -1,21 +1,20 @@
 package services
 
 import (
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/emvi/logbuch"
-	"github.com/go-co-op/gocron"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"math/rand"
-	"sync"
 	"time"
 )
 
-var reportLock = sync.Mutex{}
+// delay between evey report generation task (to throttle email sending frequency)
+const reportDelay = 15 * time.Second
 
-// range for random offset to add / subtract when scheduling a new job
-// to avoid all mails being sent at once, but distributed over 2*offsetIntervalMin minutes
-const offsetIntervalMin = 15
+// past time range to cover in the report
+const reportRange = 7 * 24 * time.Hour
 
 type ReportService struct {
 	config         *config.Config
@@ -23,7 +22,6 @@ type ReportService struct {
 	summaryService ISummaryService
 	userService    IUserService
 	mailService    IMailService
-	scheduler      *gocron.Scheduler
 	rand           *rand.Rand
 }
 
@@ -34,18 +32,8 @@ func NewReportService(summaryService ISummaryService, userService IUserService, 
 		summaryService: summaryService,
 		userService:    userService,
 		mailService:    mailService,
-		scheduler:      gocron.NewScheduler(time.Local),
 		rand:           rand.New(rand.NewSource(time.Now().Unix())),
 	}
-
-	srv.scheduler.StartAsync()
-
-	sub := srv.eventBus.Subscribe(0, config.EventUserUpdate)
-	go func(sub *hub.Subscription) {
-		for m := range sub.Receiver {
-			srv.SyncSchedule(m.Fields[config.FieldPayload].(*models.User))
-		}
-	}(&sub)
 
 	return srv
 }
@@ -53,61 +41,46 @@ func NewReportService(summaryService ISummaryService, userService IUserService, 
 func (srv *ReportService) Schedule() {
 	logbuch.Info("initializing report service")
 
-	users, err := srv.userService.GetAllByReports(true)
-	if err != nil {
-		config.Log().Fatal("%v", err)
-	}
-
-	logbuch.Info("scheduling reports for %d users", len(users))
-	for _, u := range users {
-		srv.SyncSchedule(u)
-	}
-}
-
-// SyncSchedule syncs the currently active schedulers with the user's wish about whether or not to receive reports.
-// Returns whether a scheduler is active after this operation has run.
-func (srv *ReportService) SyncSchedule(u *models.User) bool {
-	reportLock.Lock()
-	defer reportLock.Unlock()
-
-	// unschedule
-	if !u.ReportsWeekly {
-		_ = srv.scheduler.RemoveByTag(u.ID)
-		logbuch.Info("disabled scheduled reports for user %s", u.ID)
-		return false
-	}
-
-	// schedule
-	if job := srv.getJobByTag(u.ID); job == nil && u.ReportsWeekly {
-		t, _ := time.ParseInLocation("15:04", srv.config.App.GetWeeklyReportTime(), u.TZ())
-		t = t.Add(time.Duration(srv.rand.Intn(offsetIntervalMin*60)) * time.Second)
-		if job, err := srv.scheduler.
-			SingletonMode().
-			Every(1).
-			Week().
-			Weekday(srv.config.App.GetWeeklyReportDay()).
-			At(t).
-			Tag(u.ID).
-			Do(srv.Run, u, 7*24*time.Hour); err != nil {
-			config.Log().Error("failed to schedule report job for user '%s' - %v", u.ID, err)
-		} else {
-			logbuch.Info("next report for user %s is scheduled for %v", u.ID, job.NextRun())
+	_, err := config.GetDefaultQueue().DispatchCron(func() {
+		// fetch all users with reports enabled
+		users, err := srv.userService.GetAllByReports(true)
+		if err != nil {
+			config.Log().Error("failed to get users for report generation, %v", err)
+			return
 		}
-	}
 
-	return u.ReportsWeekly
+		// filter users who have their email set
+		users = slice.Filter[*models.User](users, func(i int, u *models.User) bool {
+			return u.Email != ""
+		})
+
+		// schedule jobs, throttled by one job per 15 seconds
+		logbuch.Info("scheduling report generation for %d users", len(users))
+		for i, u := range users {
+			err := config.GetQueue(config.QueueMails).DispatchIn(func() {
+				if err := srv.SendReport(u, reportRange); err != nil {
+					config.Log().Error("failed to generate report for '%s', %v", u.ID, err)
+				}
+			}, time.Duration(i)*reportDelay)
+
+			if err != nil {
+				config.Log().Error("failed to dispatch report generation job for user '%s', %v", u.ID, err)
+			}
+		}
+	}, srv.config.App.GetWeeklyReportCron())
+
+	if err != nil {
+		config.Log().Error("failed to dispatch report generation jobs, %v", err)
+	}
 }
 
-func (srv *ReportService) Run(user *models.User, duration time.Duration) error {
+func (srv *ReportService) SendReport(user *models.User, duration time.Duration) error {
 	if user.Email == "" {
 		logbuch.Warn("not generating report for '%s' as no e-mail address is set")
 		return nil
 	}
 
-	if !srv.SyncSchedule(user) {
-		logbuch.Info("reports for user '%s' were turned off in the meanwhile since last report job ran")
-		return nil
-	}
+	logbuch.Info("generating report for '%s'", user.ID)
 
 	end := time.Now().In(user.TZ())
 	start := time.Now().Add(-1 * duration)
@@ -126,21 +99,10 @@ func (srv *ReportService) Run(user *models.User, duration time.Duration) error {
 	}
 
 	if err := srv.mailService.SendReport(user, report); err != nil {
-		config.Log().Error("failed to send report for '%s' - %v", user.ID, err)
+		config.Log().Error("failed to send report for '%s', %v", user.ID, err)
 		return err
 	}
 
 	logbuch.Info("sent report to user '%s'", user.ID)
-	return nil
-}
-
-func (srv *ReportService) getJobByTag(tag string) *gocron.Job {
-	for _, j := range srv.scheduler.Jobs() {
-		for _, t := range j.Tags() {
-			if t == tag {
-				return j
-			}
-		}
-	}
 	return nil
 }
