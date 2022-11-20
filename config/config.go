@@ -246,7 +246,7 @@ func (c *appConfig) GetOSColors() map[string]string {
 
 func (c *appConfig) GetAggregationTimeCron() string {
 	if strings.Contains(c.AggregationTime, ":") {
-		// old format, e.g. "15:04"
+		// old gocron format, e.g. "15:04"
 		timeParts := strings.Split(c.AggregationTime, ":")
 		h, err := strconv.Atoi(timeParts[0])
 		if err != nil {
@@ -266,7 +266,7 @@ func (c *appConfig) GetAggregationTimeCron() string {
 
 func (c *appConfig) GetWeeklyReportCron() string {
 	if strings.Contains(c.ReportTimeWeekly, ",") {
-		// old format, e.g. "fri,18:00"
+		// old gocron format, e.g. "fri,18:00"
 		split := strings.Split(c.ReportTimeWeekly, ",")
 		weekday := parseWeekday(split[0])
 		timeParts := strings.Split(split[1], ":")
@@ -293,7 +293,7 @@ func (c *appConfig) GetLeaderboardGenerationTimeCron() []string {
 	var parse func(string) string
 
 	if strings.Contains(c.LeaderboardGenerationTime, ":") {
-		// old format, e.g. "15:04"
+		// old gocron format, e.g. "15:04"
 		parse = func(s string) string {
 			timeParts := strings.Split(s, ":")
 			h, err := strconv.Atoi(timeParts[0])

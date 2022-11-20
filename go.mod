@@ -10,7 +10,6 @@ require (
 	github.com/emvi/logbuch v1.2.0
 	github.com/getsentry/sentry-go v0.14.0
 	github.com/glebarez/sqlite v1.5.0
-	github.com/go-co-op/gocron v1.17.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/schema v1.2.0
@@ -20,8 +19,10 @@ require (
 	github.com/leandro-lugaresi/hub v1.1.1
 	github.com/lpar/gzipped/v2 v2.1.0
 	github.com/mitchellh/hashstructure/v2 v2.0.2
+	github.com/muety/artifex v0.0.0-20221119195407-0ccdcf919cae
 	github.com/narqo/go-badge v0.0.0-20220127184443-140af28a266e
 	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.8.0
 	github.com/swaggo/http-swagger v1.3.3
@@ -63,10 +64,8 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
-	github.com/muety/artifex v0.0.0-20221119195407-0ccdcf919cae // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20220927061507-ef77025ab5aa // indirect
-	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/stretchr/objx v0.4.0 // indirect
 	github.com/swaggo/files v0.0.0-20220728132757-551d4a08d97a // indirect
 	golang.org/x/image v0.0.0-20220902085622-e7cb96979f69 // indirect
