@@ -15,6 +15,7 @@ const (
 	QueueDefault    = "wakapi.default"
 	QueueProcessing = "wakapi.processing"
 	QueueReports    = "wakapi.reports"
+	QueueImports    = "wakapi.imports"
 )
 
 type JobQueueMetrics struct {
@@ -29,6 +30,7 @@ func init() {
 	InitQueue(QueueDefault, 1)
 	InitQueue(QueueProcessing, int(math.Ceil(float64(runtime.NumCPU())/2.0)))
 	InitQueue(QueueReports, 1)
+	InitQueue(QueueImports, 1)
 }
 
 func InitQueue(name string, workers int) error {
