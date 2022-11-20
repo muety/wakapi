@@ -33,6 +33,7 @@ func NewMiscService(userService IUserService, summaryService ISummaryService, ke
 }
 
 func (srv *MiscService) ScheduleCountTotalTime() {
+	logbuch.Info("scheduling total time counting")
 	if _, err := srv.queueDefault.DispatchEvery(srv.CountTotalTime, 1*time.Hour); err != nil {
 		config.Log().Error("failed to schedule user counting jobs, %v", err)
 	}
@@ -41,7 +42,7 @@ func (srv *MiscService) ScheduleCountTotalTime() {
 func (srv *MiscService) CountTotalTime() {
 	users, err := srv.userService.GetAll()
 	if err != nil {
-		logbuch.Error("failed to fetch users for time counting, %v", err)
+		config.Log().Error("failed to fetch users for time counting, %v", err)
 	}
 
 	var totalTime time.Duration = 0
@@ -65,14 +66,14 @@ func (srv *MiscService) CountTotalTime() {
 				Key:   config.KeyLatestTotalTime,
 				Value: totalTime.String(),
 			}); err != nil {
-				logbuch.Error("failed to save total time count: %v", err)
+				config.Log().Error("failed to save total time count: %v", err)
 			}
 
 			if err := srv.keyValueService.PutString(&models.KeyStringValue{
 				Key:   config.KeyLatestTotalUsers,
 				Value: strconv.Itoa(len(users)),
 			}); err != nil {
-				logbuch.Error("failed to save total users count: %v", err)
+				config.Log().Error("failed to save total users count: %v", err)
 			}
 		} else {
 			config.Log().Error("waiting for user counting jobs timed out")
