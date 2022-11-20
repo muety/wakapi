@@ -4,6 +4,7 @@ import (
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/emvi/logbuch"
 	"github.com/leandro-lugaresi/hub"
+	"github.com/muety/artifex"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"math/rand"
@@ -11,7 +12,7 @@ import (
 )
 
 // delay between evey report generation task (to throttle email sending frequency)
-const reportDelay = 15 * time.Second
+const reportDelay = 5 * time.Second
 
 // past time range to cover in the report
 const reportRange = 7 * 24 * time.Hour
@@ -23,6 +24,8 @@ type ReportService struct {
 	userService    IUserService
 	mailService    IMailService
 	rand           *rand.Rand
+	queueDefault   *artifex.Dispatcher
+	queueWorkers   *artifex.Dispatcher
 }
 
 func NewReportService(summaryService ISummaryService, userService IUserService, mailService IMailService) *ReportService {
@@ -33,15 +36,27 @@ func NewReportService(summaryService ISummaryService, userService IUserService, 
 		userService:    userService,
 		mailService:    mailService,
 		rand:           rand.New(rand.NewSource(time.Now().Unix())),
+		queueDefault:   config.GetDefaultQueue(),
+		queueWorkers:   config.GetQueue(config.QueueReports),
 	}
 
 	return srv
 }
 
 func (srv *ReportService) Schedule() {
-	logbuch.Info("initializing report service")
+	logbuch.Info("scheduling report generation")
 
-	_, err := config.GetDefaultQueue().DispatchCron(func() {
+	scheduleUserReport := func(u *models.User, index int) {
+		if err := srv.queueWorkers.DispatchIn(func() {
+			if err := srv.SendReport(u, reportRange); err != nil {
+				config.Log().Error("failed to generate report for '%s', %v", u.ID, err)
+			}
+		}, time.Duration(index)*reportDelay); err != nil {
+			config.Log().Error("failed to dispatch report generation job for user '%s', %v", u.ID, err)
+		}
+	}
+
+	_, err := srv.queueDefault.DispatchCron(func() {
 		// fetch all users with reports enabled
 		users, err := srv.userService.GetAllByReports(true)
 		if err != nil {
@@ -54,18 +69,10 @@ func (srv *ReportService) Schedule() {
 			return u.Email != ""
 		})
 
-		// schedule jobs, throttled by one job per 15 seconds
+		// schedule jobs, throttled by one job per x seconds
 		logbuch.Info("scheduling report generation for %d users", len(users))
 		for i, u := range users {
-			err := config.GetQueue(config.QueueMails).DispatchIn(func() {
-				if err := srv.SendReport(u, reportRange); err != nil {
-					config.Log().Error("failed to generate report for '%s', %v", u.ID, err)
-				}
-			}, time.Duration(i)*reportDelay)
-
-			if err != nil {
-				config.Log().Error("failed to dispatch report generation job for user '%s', %v", u.ID, err)
-			}
+			scheduleUserReport(u, i)
 		}
 	}, srv.config.App.GetWeeklyReportCron())
 

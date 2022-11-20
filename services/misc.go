@@ -2,12 +2,13 @@ package services
 
 import (
 	"github.com/emvi/logbuch"
+	"github.com/muety/artifex"
 	"github.com/muety/wakapi/config"
-	"runtime"
+	"github.com/muety/wakapi/utils"
 	"strconv"
+	"sync"
 	"time"
 
-	"github.com/go-co-op/gocron"
 	"github.com/muety/wakapi/models"
 )
 
@@ -16,6 +17,8 @@ type MiscService struct {
 	userService     IUserService
 	summaryService  ISummaryService
 	keyValueService IKeyValueService
+	queueDefault    *artifex.Dispatcher
+	queueWorkers    *artifex.Dispatcher
 }
 
 func NewMiscService(userService IUserService, summaryService ISummaryService, keyValueService IKeyValueService) *MiscService {
@@ -24,81 +27,64 @@ func NewMiscService(userService IUserService, summaryService ISummaryService, ke
 		userService:     userService,
 		summaryService:  summaryService,
 		keyValueService: keyValueService,
+		queueDefault:    config.GetDefaultQueue(),
+		queueWorkers:    config.GetQueue(config.QueueProcessing),
 	}
-}
-
-type CountTotalTimeJob struct {
-	UserID  string
-	NumJobs int
-}
-
-type CountTotalTimeResult struct {
-	UserId string
-	Total  time.Duration
 }
 
 func (srv *MiscService) ScheduleCountTotalTime() {
-	s := gocron.NewScheduler(time.Local)
-	s.Every(1).Hour().WaitForSchedule().Do(srv.runCountTotalTime)
-	s.StartBlocking()
+	if _, err := srv.queueDefault.DispatchEvery(srv.CountTotalTime, 1*time.Hour); err != nil {
+		config.Log().Error("failed to schedule user counting jobs, %v", err)
+	}
 }
 
-func (srv *MiscService) runCountTotalTime() error {
+func (srv *MiscService) CountTotalTime() {
 	users, err := srv.userService.GetAll()
 	if err != nil {
-		return err
+		logbuch.Error("failed to fetch users for time counting, %v", err)
 	}
 
-	jobs := make(chan *CountTotalTimeJob, len(users))
-	results := make(chan *CountTotalTimeResult, len(users))
+	var totalTime time.Duration = 0
+	var pendingJobs sync.WaitGroup
+	pendingJobs.Add(len(users))
 
 	for _, u := range users {
-		jobs <- &CountTotalTimeJob{
-			UserID:  u.ID,
-			NumJobs: len(users),
+		if err := srv.queueWorkers.Dispatch(func() {
+			defer pendingJobs.Done()
+			totalTime += srv.countUserTotalTime(u.ID)
+		}); err != nil {
+			config.Log().Error("failed to enqueue counting job for user '%s'", u.ID)
+			pendingJobs.Done()
 		}
-	}
-	close(jobs)
-
-	for i := 0; i < runtime.NumCPU(); i++ {
-		go srv.countTotalTimeWorker(jobs, results)
 	}
 
 	// persist
-	var i int
-	var total time.Duration
-	for i = 0; i < len(users); i++ {
-		result := <-results
-		total += result.Total
-	}
-	close(results)
+	go func(wg *sync.WaitGroup) {
+		if utils.WaitTimeout(&pendingJobs, 10*time.Minute) {
+			if err := srv.keyValueService.PutString(&models.KeyStringValue{
+				Key:   config.KeyLatestTotalTime,
+				Value: totalTime.String(),
+			}); err != nil {
+				logbuch.Error("failed to save total time count: %v", err)
+			}
 
-	if err := srv.keyValueService.PutString(&models.KeyStringValue{
-		Key:   config.KeyLatestTotalTime,
-		Value: total.String(),
-	}); err != nil {
-		logbuch.Error("failed to save total time count: %v", err)
-	}
-
-	if err := srv.keyValueService.PutString(&models.KeyStringValue{
-		Key:   config.KeyLatestTotalUsers,
-		Value: strconv.Itoa(i),
-	}); err != nil {
-		logbuch.Error("failed to save total users count: %v", err)
-	}
-
-	return nil
+			if err := srv.keyValueService.PutString(&models.KeyStringValue{
+				Key:   config.KeyLatestTotalUsers,
+				Value: strconv.Itoa(len(users)),
+			}); err != nil {
+				logbuch.Error("failed to save total users count: %v", err)
+			}
+		} else {
+			config.Log().Error("waiting for user counting jobs timed out")
+		}
+	}(&pendingJobs)
 }
 
-func (srv *MiscService) countTotalTimeWorker(jobs <-chan *CountTotalTimeJob, results chan<- *CountTotalTimeResult) {
-	for job := range jobs {
-		if result, err := srv.summaryService.Aliased(time.Time{}, time.Now(), &models.User{ID: job.UserID}, srv.summaryService.Retrieve, nil, false); err != nil {
-			config.Log().Error("failed to count total for user %s: %v", job.UserID, err)
-		} else {
-			results <- &CountTotalTimeResult{
-				UserId: job.UserID,
-				Total:  result.TotalTime(),
-			}
-		}
+func (srv *MiscService) countUserTotalTime(userId string) time.Duration {
+	result, err := srv.summaryService.Aliased(time.Time{}, time.Now(), &models.User{ID: userId}, srv.summaryService.Retrieve, nil, false)
+	if err != nil {
+		config.Log().Error("failed to count total for user %s: %v", userId, err)
+		return 0
 	}
+	return result.TotalTime()
 }

@@ -2,8 +2,8 @@ package services
 
 import (
 	"github.com/emvi/logbuch"
-	"github.com/go-co-op/gocron"
 	"github.com/leandro-lugaresi/hub"
+	"github.com/muety/artifex"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
@@ -22,6 +22,8 @@ type LeaderboardService struct {
 	repository     repositories.ILeaderboardRepository
 	summaryService ISummaryService
 	userService    IUserService
+	queueDefault   *artifex.Dispatcher
+	queueWorkers   *artifex.Dispatcher
 }
 
 func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, summaryService ISummaryService, userService IUserService) *LeaderboardService {
@@ -32,6 +34,8 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 		repository:     leaderboardRepo,
 		summaryService: summaryService,
 		userService:    userService,
+		queueDefault:   config.GetDefaultQueue(),
+		queueWorkers:   config.GetQueue(config.QueueProcessing),
 	}
 
 	onUserUpdate := srv.eventBus.Subscribe(0, config.EventUserUpdate)
@@ -48,7 +52,7 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 
 			if user.PublicLeaderboard && !exists {
 				logbuch.Info("generating leaderboard for '%s' after settings update", user.ID)
-				srv.Run([]*models.User{user}, models.IntervalPast7Days, []uint8{models.SummaryLanguage})
+				srv.ComputeLeaderboard([]*models.User{user}, models.IntervalPast7Days, []uint8{models.SummaryLanguage})
 			} else if !user.PublicLeaderboard && exists {
 				logbuch.Info("clearing leaderboard for '%s' after settings update", user.ID)
 				if err := srv.repository.DeleteByUser(user.ID); err != nil {
@@ -62,23 +66,26 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 	return srv
 }
 
-func (srv *LeaderboardService) ScheduleDefault() {
-	runAllUsers := func(interval *models.IntervalKey, by []uint8) {
+func (srv *LeaderboardService) Schedule() {
+	logbuch.Info("scheduling leaderboard generation")
+
+	generate := func() {
 		users, err := srv.userService.GetAllByLeaderboard(true)
 		if err != nil {
 			config.Log().Error("failed to get users for leaderboard generation - %v", err)
 			return
 		}
-
-		srv.Run(users, interval, by)
+		srv.ComputeLeaderboard(users, models.IntervalPast7Days, []uint8{models.SummaryLanguage})
 	}
 
-	s := gocron.NewScheduler(time.Local)
-	s.Every(1).Day().At(srv.config.App.LeaderboardGenerationTime).Do(runAllUsers, models.IntervalPast7Days, []uint8{models.SummaryLanguage})
-	s.StartBlocking()
+	for _, cronExp := range srv.config.App.GetLeaderboardGenerationTimeCron() {
+		if _, err := srv.queueDefault.DispatchCron(generate, cronExp); err != nil {
+			config.Log().Error("failed to schedule leaderboard generation (%s), %v", cronExp, err)
+		}
+	}
 }
 
-func (srv *LeaderboardService) Run(users []*models.User, interval *models.IntervalKey, by []uint8) error {
+func (srv *LeaderboardService) ComputeLeaderboard(users []*models.User, interval *models.IntervalKey, by []uint8) error {
 	logbuch.Info("generating leaderboard (%s) for %d users (%d aggregations)", (*interval)[0], len(users), len(by))
 
 	for _, user := range users {
