@@ -40,7 +40,7 @@ func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !h.cache.Contains(hash) {
-		h.cache.Add(hash, avatars.MakeMaleAvatar(hash))
+		h.cache.Add(hash, avatars.MakeAvatar(hash))
 	}
 	data, _ := h.cache.Get(hash)
 
