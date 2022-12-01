@@ -13,6 +13,7 @@ type IAggregationService interface {
 
 type IMiscService interface {
 	ScheduleCountTotalTime()
+	CountTotalTime()
 }
 
 type IAliasService interface {
