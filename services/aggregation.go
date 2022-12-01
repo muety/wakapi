@@ -4,7 +4,7 @@ import (
 	"errors"
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/emvi/logbuch"
-	"github.com/muety/artifex"
+	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"sync"
 	"time"

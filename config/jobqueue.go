@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/emvi/logbuch"
-	"github.com/muety/artifex"
+	"github.com/muety/artifex/v2"
 	"math"
 	"runtime"
 )

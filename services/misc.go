@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/emvi/logbuch"
-	"github.com/muety/artifex"
+	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
 	"go.uber.org/atomic"

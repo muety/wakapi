@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/duke-git/lancet/v2/datetime"
-	"github.com/muety/artifex"
+	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/utils"
 	"net/http"
 	"strings"

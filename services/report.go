@@ -4,7 +4,7 @@ import (
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/emvi/logbuch"
 	"github.com/leandro-lugaresi/hub"
-	"github.com/muety/artifex"
+	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"math/rand"

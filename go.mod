@@ -19,21 +19,21 @@ require (
 	github.com/leandro-lugaresi/hub v1.1.1
 	github.com/lpar/gzipped/v2 v2.1.0
 	github.com/mitchellh/hashstructure/v2 v2.0.2
-	github.com/muety/artifex v0.0.0-20221120093027-024690fdd028
+	github.com/muety/artifex/v2 v2.0.1-0.20221201142708-74e7d3f6feaf
 	github.com/narqo/go-badge v0.0.0-20220127184443-140af28a266e
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.8.0
 	github.com/swaggo/http-swagger v1.3.3
-	github.com/swaggo/swag v1.8.7
+	github.com/swaggo/swag v1.8.8
 	go.uber.org/atomic v1.10.0
 	golang.org/x/crypto v0.3.0
 	golang.org/x/sync v0.1.0
 	gorm.io/driver/mysql v1.4.4
 	gorm.io/driver/postgres v1.4.5
 	gorm.io/driver/sqlite v1.4.3
-	gorm.io/gorm v1.24.1
+	gorm.io/gorm v1.24.2
 )
 
 require (
@@ -41,7 +41,7 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
-	github.com/glebarez/go-sqlite v1.19.2 // indirect
+	github.com/glebarez/go-sqlite v1.19.5 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
 	github.com/go-openapi/spec v0.20.7 // indirect
@@ -75,8 +75,8 @@ require (
 	golang.org/x/tools v0.3.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.21.4 // indirect
+	modernc.org/libc v1.21.5 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.4.0 // indirect
-	modernc.org/sqlite v1.19.4 // indirect
+	modernc.org/sqlite v1.20.0 // indirect
 )
