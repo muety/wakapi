@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/muety/wakapi/helpers"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -120,7 +121,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {}()
 
-	utils.RespondJSON(w, r, http.StatusCreated, constructSuccessResponse(len(heartbeats)))
+	helpers.RespondJSON(w, r, http.StatusCreated, constructSuccessResponse(len(heartbeats)))
 }
 
 // construct weird response format (see https://github.com/wakatime/wakatime/blob/2e636d389bf5da4e998e05d5285a96ce2c181e3d/wakatime/api.py#L288)

@@ -2,8 +2,8 @@ package v1
 
 import (
 	"fmt"
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
-	"github.com/muety/wakapi/utils"
 	"math"
 	"sync"
 	"time"
@@ -96,7 +96,7 @@ func NewSummariesFrom(summaries []*models.Summary) *SummariesViewModel {
 			Decimal: fmt.Sprintf("%.2f", totalHrs),
 			Digital: fmt.Sprintf("%d:%d", int(totalHrs), int(totalMins)),
 			Seconds: totalSecs,
-			Text:    utils.FmtWakatimeDuration(totalTime),
+			Text:    helpers.FmtWakatimeDuration(totalTime),
 		},
 	}
 }
@@ -119,7 +119,7 @@ func newDataFrom(s *models.Summary) *SummariesData {
 			Digital:      fmt.Sprintf("%d:%d", totalHrs, totalMins),
 			Hours:        totalHrs,
 			Minutes:      totalMins,
-			Text:         utils.FmtWakatimeDuration(total),
+			Text:         helpers.FmtWakatimeDuration(total),
 			TotalSeconds: total.Seconds(),
 		},
 		Range: &SummariesRange{
@@ -201,7 +201,7 @@ func convertEntry(e *models.SummaryItem, entityTotal time.Duration) *SummariesEn
 		Name:         e.Key,
 		Percent:      percentage,
 		Seconds:      secs,
-		Text:         utils.FmtWakatimeDuration(total),
+		Text:         helpers.FmtWakatimeDuration(total),
 		TotalSeconds: total.Seconds(),
 	}
 }

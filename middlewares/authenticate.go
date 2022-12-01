@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"fmt"
+	"github.com/muety/wakapi/helpers"
 	"net/http"
 	"strings"
 
@@ -121,7 +122,7 @@ func (m *AuthenticateMiddleware) tryGetUserByApiKeyQuery(r *http.Request) (*mode
 }
 
 func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.User, error) {
-	username, err := utils.ExtractCookieAuth(r, m.config)
+	username, err := helpers.ExtractCookieAuth(r, m.config)
 	if err != nil {
 		return nil, err
 	}

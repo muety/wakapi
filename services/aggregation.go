@@ -4,12 +4,11 @@ import (
 	"errors"
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/emvi/logbuch"
+	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
-	"runtime"
 	"sync"
 	"time"
 
-	"github.com/go-co-op/gocron"
 	"github.com/muety/wakapi/models"
 )
 
@@ -25,6 +24,8 @@ type AggregationService struct {
 	summaryService   ISummaryService
 	heartbeatService IHeartbeatService
 	inProgress       datastructure.Set[string]
+	queueDefault     *artifex.Dispatcher
+	queueWorkers     *artifex.Dispatcher
 }
 
 func NewAggregationService(userService IUserService, summaryService ISummaryService, heartbeatService IHeartbeatService) *AggregationService {
@@ -34,6 +35,8 @@ func NewAggregationService(userService IUserService, summaryService ISummaryServ
 		summaryService:   summaryService,
 		heartbeatService: heartbeatService,
 		inProgress:       datastructure.NewSet[string](),
+		queueDefault:     config.GetDefaultQueue(),
+		queueWorkers:     config.GetQueue(config.QueueProcessing),
 	}
 }
 
@@ -45,58 +48,23 @@ type AggregationJob struct {
 
 // Schedule a job to (re-)generate summaries every day shortly after midnight
 func (srv *AggregationService) Schedule() {
-	s := gocron.NewScheduler(time.Local)
-	s.Every(1).Day().At(srv.config.App.AggregationTime).WaitForSchedule().Do(srv.Run, datastructure.NewSet[string]())
-	s.StartBlocking()
+	logbuch.Info("scheduling summary aggregation")
+
+	if _, err := srv.queueDefault.DispatchCron(func() {
+		if err := srv.AggregateSummaries(datastructure.NewSet[string]()); err != nil {
+			config.Log().Error("failed to generate summaries, %v", err)
+		}
+	}, srv.config.App.GetAggregationTimeCron()); err != nil {
+		config.Log().Error("failed to schedule summary generation, %v", err)
+	}
 }
 
-func (srv *AggregationService) Run(userIds datastructure.Set[string]) error {
+func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[string]) error {
 	if err := srv.lockUsers(userIds); err != nil {
 		return err
 	}
 	defer srv.unlockUsers(userIds)
 
-	jobs := make(chan *AggregationJob)
-	summaries := make(chan *models.Summary)
-
-	for i := 0; i < runtime.NumCPU(); i++ {
-		go srv.summaryWorker(jobs, summaries)
-	}
-
-	for i := 0; i < int(srv.config.Db.MaxConn); i++ {
-		go srv.persistWorker(summaries)
-	}
-
-	// don't leak open channels
-	go func(c1 chan *AggregationJob, c2 chan *models.Summary) {
-		defer close(c1)
-		defer close(c2)
-		time.Sleep(1 * time.Hour)
-	}(jobs, summaries)
-
-	return srv.trigger(jobs, userIds)
-}
-
-func (srv *AggregationService) summaryWorker(jobs <-chan *AggregationJob, summaries chan<- *models.Summary) {
-	for job := range jobs {
-		if summary, err := srv.summaryService.Summarize(job.From, job.To, &models.User{ID: job.UserID}, nil); err != nil {
-			config.Log().Error("failed to generate summary (%v, %v, %s) - %v", job.From, job.To, job.UserID, err)
-		} else {
-			logbuch.Info("successfully generated summary (%v, %v, %s)", job.From, job.To, job.UserID)
-			summaries <- summary
-		}
-	}
-}
-
-func (srv *AggregationService) persistWorker(summaries <-chan *models.Summary) {
-	for summary := range summaries {
-		if err := srv.summaryService.Insert(summary); err != nil {
-			config.Log().Error("failed to save summary (%v, %v, %s) - %v", summary.UserID, summary.FromTime, summary.ToTime, err)
-		}
-	}
-}
-
-func (srv *AggregationService) trigger(jobs chan<- *AggregationJob, userIds datastructure.Set[string]) error {
 	logbuch.Info("generating summaries")
 
 	// Get a map from user ids to the time of their latest summary or nil if none exists yet
@@ -118,6 +86,20 @@ func (srv *AggregationService) trigger(jobs chan<- *AggregationJob, userIds data
 	for _, e := range firstUserHeartbeatTimes {
 		firstUserHeartbeatLookup[e.User] = e.Time
 	}
+
+	// Dispatch summary generation jobs
+	jobs := make(chan *AggregationJob)
+	defer close(jobs)
+	go func() {
+		for jobRef := range jobs {
+			job := *jobRef
+			if err := srv.queueWorkers.Dispatch(func() {
+				srv.process(job)
+			}); err != nil {
+				config.Log().Error("failed to dispatch summary generation job for user '%s'", job.UserID)
+			}
+		}
+	}()
 
 	// Generate summary aggregation jobs
 	for _, e := range lastUserSummaryTimes {
@@ -141,23 +123,14 @@ func (srv *AggregationService) trigger(jobs chan<- *AggregationJob, userIds data
 	return nil
 }
 
-func (srv *AggregationService) lockUsers(userIds datastructure.Set[string]) error {
-	aggregationLock.Lock()
-	defer aggregationLock.Unlock()
-	for uid := range userIds {
-		if srv.inProgress.Contain(uid) {
-			return errors.New("aggregation already in progress for at least of the request users")
+func (srv *AggregationService) process(job AggregationJob) {
+	if summary, err := srv.summaryService.Summarize(job.From, job.To, &models.User{ID: job.UserID}, nil); err != nil {
+		config.Log().Error("failed to generate summary (%v, %v, %s) - %v", job.From, job.To, job.UserID, err)
+	} else {
+		logbuch.Info("successfully generated summary (%v, %v, %s)", job.From, job.To, job.UserID)
+		if err := srv.summaryService.Insert(summary); err != nil {
+			config.Log().Error("failed to save summary (%v, %v, %s) - %v", summary.UserID, summary.FromTime, summary.ToTime, err)
 		}
-	}
-	srv.inProgress = srv.inProgress.Union(userIds)
-	return nil
-}
-
-func (srv *AggregationService) unlockUsers(userIds datastructure.Set[string]) {
-	aggregationLock.Lock()
-	defer aggregationLock.Unlock()
-	for uid := range userIds {
-		srv.inProgress.Delete(uid)
 	}
 }
 
@@ -186,6 +159,26 @@ func generateUserJobs(userId string, from time.Time, jobs chan<- *AggregationJob
 		)
 		jobs <- &AggregationJob{userId, from, to}
 		from = to
+	}
+}
+
+func (srv *AggregationService) lockUsers(userIds datastructure.Set[string]) error {
+	aggregationLock.Lock()
+	defer aggregationLock.Unlock()
+	for uid := range userIds {
+		if srv.inProgress.Contain(uid) {
+			return errors.New("aggregation already in progress for at least of the request users")
+		}
+	}
+	srv.inProgress = srv.inProgress.Union(userIds)
+	return nil
+}
+
+func (srv *AggregationService) unlockUsers(userIds datastructure.Set[string]) {
+	aggregationLock.Lock()
+	defer aggregationLock.Unlock()
+	for uid := range userIds {
+		srv.inProgress.Delete(uid)
 	}
 }
 

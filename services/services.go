@@ -8,11 +8,12 @@ import (
 
 type IAggregationService interface {
 	Schedule()
-	Run(set datastructure.Set[string]) error
+	AggregateSummaries(set datastructure.Set[string]) error
 }
 
 type IMiscService interface {
 	ScheduleCountTotalTime()
+	CountTotalTime()
 }
 
 type IAliasService interface {
@@ -93,13 +94,12 @@ type ISummaryService interface {
 
 type IReportService interface {
 	Schedule()
-	SyncSchedule(user *models.User) bool
-	Run(*models.User, time.Duration) error
+	SendReport(*models.User, time.Duration) error
 }
 
 type ILeaderboardService interface {
-	ScheduleDefault()
-	Run([]*models.User, *models.IntervalKey, []uint8) error
+	Schedule()
+	ComputeLeaderboard([]*models.User, *models.IntervalKey, []uint8) error
 	ExistsAnyByUser(string) (bool, error)
 	CountUsers() (int64, error)
 	GetByInterval(*models.IntervalKey, *models.PageParams, bool) (models.Leaderboard, error)

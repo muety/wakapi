@@ -1,8 +1,8 @@
 package v1
 
 import (
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
-	"github.com/muety/wakapi/utils"
 	"time"
 )
 
@@ -33,13 +33,13 @@ func NewAllTimeFrom(summary *models.Summary) *AllTimeViewModel {
 	return &AllTimeViewModel{
 		Data: &AllTimeData{
 			TotalSeconds: float32(total.Seconds()),
-			Text:         utils.FmtWakatimeDuration(total),
+			Text:         helpers.FmtWakatimeDuration(total),
 			IsUpToDate:   true,
 			Range: &AllTimeRange{
 				End:       summary.ToTime.T().Format(time.RFC3339),
-				EndDate:   utils.FormatDate(summary.ToTime.T()),
+				EndDate:   helpers.FormatDate(summary.ToTime.T()),
 				Start:     summary.FromTime.T().Format(time.RFC3339),
-				StartDate: utils.FormatDate(summary.FromTime.T()),
+				StartDate: helpers.FormatDate(summary.FromTime.T()),
 				Timezone:  tzName,
 			},
 		},

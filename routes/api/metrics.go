@@ -5,13 +5,13 @@ import (
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	mm "github.com/muety/wakapi/models/metrics"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/utils"
 	"net/http"
 	"runtime"
 	"sort"
@@ -36,6 +36,9 @@ const (
 	DescAdminUserHeartbeats  = "Total number of tracked heartbeats by user (all time)."
 	DescAdminTotalUsers      = "Total number of registered users."
 	DescAdminActiveUsers     = "Number of active users."
+
+	DescJobQueueEnqueued      = "Number of jobs currently enqueued"
+	DescJobQueueTotalFinished = "Total number of processed jobs"
 
 	DescMemAllocTotal = "Total number of bytes allocated for heap"
 	DescMemSysTotal   = "Total number of bytes obtained from the OS"
@@ -126,7 +129,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 		return nil, err
 	}
 
-	from, to := utils.MustResolveIntervalRawTZ("today", user.TZ())
+	from, to := helpers.MustResolveIntervalRawTZ("today", user.TZ())
 
 	summaryToday, err := h.summarySrvc.Aliased(from, to, user, h.summarySrvc.Retrieve, nil, false)
 	if err != nil {
@@ -142,21 +145,21 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 
 	// User Metrics
 
-	metrics = append(metrics, &mm.CounterMetric{
+	metrics = append(metrics, &mm.GaugeMetric{
 		Name:   MetricsPrefix + "_cumulative_seconds_total",
 		Desc:   DescAllTime,
 		Value:  int64(v1.NewAllTimeFrom(summaryAllTime).Data.TotalSeconds),
 		Labels: []mm.Label{},
 	})
 
-	metrics = append(metrics, &mm.CounterMetric{
+	metrics = append(metrics, &mm.GaugeMetric{
 		Name:   MetricsPrefix + "_seconds_total",
 		Desc:   DescTotal,
 		Value:  int64(summaryToday.TotalTime().Seconds()),
 		Labels: []mm.Label{},
 	})
 
-	metrics = append(metrics, &mm.CounterMetric{
+	metrics = append(metrics, &mm.GaugeMetric{
 		Name:   MetricsPrefix + "_heartbeats_total",
 		Desc:   DescHeartbeats,
 		Value:  int64(heartbeatCount),
@@ -164,7 +167,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 	})
 
 	for _, p := range summaryToday.Projects {
-		metrics = append(metrics, &mm.CounterMetric{
+		metrics = append(metrics, &mm.GaugeMetric{
 			Name:   MetricsPrefix + "_project_seconds_total",
 			Desc:   DescProjects,
 			Value:  int64(summaryToday.TotalTimeByKey(models.SummaryProject, p.Key).Seconds()),
@@ -173,7 +176,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 	}
 
 	for _, l := range summaryToday.Languages {
-		metrics = append(metrics, &mm.CounterMetric{
+		metrics = append(metrics, &mm.GaugeMetric{
 			Name:   MetricsPrefix + "_language_seconds_total",
 			Desc:   DescLanguages,
 			Value:  int64(summaryToday.TotalTimeByKey(models.SummaryLanguage, l.Key).Seconds()),
@@ -182,7 +185,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 	}
 
 	for _, e := range summaryToday.Editors {
-		metrics = append(metrics, &mm.CounterMetric{
+		metrics = append(metrics, &mm.GaugeMetric{
 			Name:   MetricsPrefix + "_editor_seconds_total",
 			Desc:   DescEditors,
 			Value:  int64(summaryToday.TotalTimeByKey(models.SummaryEditor, e.Key).Seconds()),
@@ -191,7 +194,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 	}
 
 	for _, o := range summaryToday.OperatingSystems {
-		metrics = append(metrics, &mm.CounterMetric{
+		metrics = append(metrics, &mm.GaugeMetric{
 			Name:   MetricsPrefix + "_operating_system_seconds_total",
 			Desc:   DescOperatingSystems,
 			Value:  int64(summaryToday.TotalTimeByKey(models.SummaryOS, o.Key).Seconds()),
@@ -200,7 +203,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 	}
 
 	for _, m := range summaryToday.Machines {
-		metrics = append(metrics, &mm.CounterMetric{
+		metrics = append(metrics, &mm.GaugeMetric{
 			Name:   MetricsPrefix + "_machine_seconds_total",
 			Desc:   DescMachines,
 			Value:  int64(summaryToday.TotalTimeByKey(models.SummaryMachine, m.Key).Seconds()),
@@ -209,7 +212,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 	}
 
 	for _, m := range summaryToday.Labels {
-		metrics = append(metrics, &mm.CounterMetric{
+		metrics = append(metrics, &mm.GaugeMetric{
 			Name:   MetricsPrefix + "_label_seconds_total",
 			Desc:   DescLabels,
 			Value:  int64(summaryToday.TotalTimeByKey(models.SummaryLabel, m.Key).Seconds()),
@@ -221,21 +224,21 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
 
-	metrics = append(metrics, &mm.CounterMetric{
+	metrics = append(metrics, &mm.GaugeMetric{
 		Name:   MetricsPrefix + "_goroutines_total",
 		Desc:   DescGoroutines,
 		Value:  int64(runtime.NumGoroutine()),
 		Labels: []mm.Label{},
 	})
 
-	metrics = append(metrics, &mm.CounterMetric{
+	metrics = append(metrics, &mm.GaugeMetric{
 		Name:   MetricsPrefix + "_mem_alloc_total",
 		Desc:   DescMemAllocTotal,
 		Value:  int64(memStats.Alloc),
 		Labels: []mm.Label{},
 	})
 
-	metrics = append(metrics, &mm.CounterMetric{
+	metrics = append(metrics, &mm.GaugeMetric{
 		Name:   MetricsPrefix + "_mem_sys_total",
 		Desc:   DescMemSysTotal,
 		Value:  int64(memStats.Sys),
@@ -248,12 +251,29 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 		logbuch.Warn("failed to get database size (%v)", err)
 	}
 
-	metrics = append(metrics, &mm.CounterMetric{
+	metrics = append(metrics, &mm.GaugeMetric{
 		Name:   MetricsPrefix + "_db_total_bytes",
 		Desc:   DescDatabaseSize,
 		Value:  dbSize,
 		Labels: []mm.Label{},
 	})
+
+	// Miscellaneous
+	for _, qm := range conf.GetQueueMetrics() {
+		metrics = append(metrics, &mm.GaugeMetric{
+			Name:   MetricsPrefix + "_queue_jobs_enqueued",
+			Value:  int64(qm.EnqueuedJobs),
+			Desc:   DescJobQueueEnqueued,
+			Labels: []mm.Label{{Key: "queue", Value: qm.Queue}},
+		})
+
+		metrics = append(metrics, &mm.CounterMetric{
+			Name:   MetricsPrefix + "_queue_jobs_total_finished",
+			Value:  int64(qm.FinishedJobs),
+			Desc:   DescJobQueueTotalFinished,
+			Labels: []mm.Label{{Key: "queue", Value: qm.Queue}},
+		})
+	}
 
 	return &metrics, nil
 }
@@ -281,28 +301,28 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 		return nil, err
 	}
 
-	metrics = append(metrics, &mm.CounterMetric{
+	metrics = append(metrics, &mm.GaugeMetric{
 		Name:   MetricsPrefix + "_admin_seconds_total",
 		Desc:   DescAdminTotalTime,
 		Value:  int64(totalSeconds),
 		Labels: []mm.Label{},
 	})
 
-	metrics = append(metrics, &mm.CounterMetric{
+	metrics = append(metrics, &mm.GaugeMetric{
 		Name:   MetricsPrefix + "_admin_heartbeats_total",
 		Desc:   DescAdminTotalHeartbeats,
 		Value:  totalHeartbeats,
 		Labels: []mm.Label{},
 	})
 
-	metrics = append(metrics, &mm.CounterMetric{
+	metrics = append(metrics, &mm.GaugeMetric{
 		Name:   MetricsPrefix + "_admin_users_total",
 		Desc:   DescAdminTotalUsers,
 		Value:  totalUsers,
 		Labels: []mm.Label{},
 	})
 
-	metrics = append(metrics, &mm.CounterMetric{
+	metrics = append(metrics, &mm.GaugeMetric{
 		Name:   MetricsPrefix + "_admin_users_active_total",
 		Desc:   DescAdminActiveUsers,
 		Value:  int64(len(activeUsers)),
@@ -318,7 +338,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 	}
 
 	for _, uc := range userCounts {
-		metrics = append(metrics, &mm.CounterMetric{
+		metrics = append(metrics, &mm.GaugeMetric{
 			Name:   MetricsPrefix + "_admin_user_heartbeats_total",
 			Desc:   DescAdminUserHeartbeats,
 			Value:  uc.Count,

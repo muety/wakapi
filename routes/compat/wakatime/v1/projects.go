@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/muety/wakapi/helpers"
 	"net/http"
 	"strings"
 
@@ -11,7 +12,6 @@ import (
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/utils"
 )
 
 type ProjectsHandler struct {
@@ -70,5 +70,5 @@ func (h *ProjectsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vm := &v1.ProjectsViewModel{Data: projects}
-	utils.RespondJSON(w, r, http.StatusOK, vm)
+	helpers.RespondJSON(w, r, http.StatusOK, vm)
 }

@@ -661,7 +661,7 @@ func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
 		return err
 	}
 
-	if err := h.aggregationSrvc.Run(datastructure.NewSet(user.ID)); err != nil {
+	if err := h.aggregationSrvc.AggregateSummaries(datastructure.NewSet(user.ID)); err != nil {
 		logbuch.Error("failed to regenerate summaries: %v", err)
 		return err
 	}

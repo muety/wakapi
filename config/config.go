@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/muety/wakapi/utils"
+	"github.com/robfig/cron/v3"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -227,28 +230,96 @@ func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
 }
 
 func (c *appConfig) GetCustomLanguages() map[string]string {
-	return cloneStringMap(c.CustomLanguages, false)
+	return utils.CloneStringMap(c.CustomLanguages, false)
 }
 
 func (c *appConfig) GetLanguageColors() map[string]string {
-	return cloneStringMap(c.Colors["languages"], true)
+	return utils.CloneStringMap(c.Colors["languages"], true)
 }
 
 func (c *appConfig) GetEditorColors() map[string]string {
-	return cloneStringMap(c.Colors["editors"], true)
+	return utils.CloneStringMap(c.Colors["editors"], true)
 }
 
 func (c *appConfig) GetOSColors() map[string]string {
-	return cloneStringMap(c.Colors["operating_systems"], true)
+	return utils.CloneStringMap(c.Colors["operating_systems"], true)
 }
 
-func (c *appConfig) GetWeeklyReportDay() time.Weekday {
-	s := strings.Split(c.ReportTimeWeekly, ",")[0]
-	return parseWeekday(s)
+func (c *appConfig) GetAggregationTimeCron() string {
+	if strings.Contains(c.AggregationTime, ":") {
+		// old gocron format, e.g. "15:04"
+		timeParts := strings.Split(c.AggregationTime, ":")
+		h, err := strconv.Atoi(timeParts[0])
+		if err != nil {
+			logbuch.Fatal(err.Error())
+		}
+
+		m, err := strconv.Atoi(timeParts[1])
+		if err != nil {
+			logbuch.Fatal(err.Error())
+		}
+
+		return fmt.Sprintf("0 %d %d * * *", m, h)
+	}
+
+	return utils.CronPadToSecondly(c.AggregationTime)
 }
 
-func (c *appConfig) GetWeeklyReportTime() string {
-	return strings.Split(c.ReportTimeWeekly, ",")[1]
+func (c *appConfig) GetWeeklyReportCron() string {
+	if strings.Contains(c.ReportTimeWeekly, ",") {
+		// old gocron format, e.g. "fri,18:00"
+		split := strings.Split(c.ReportTimeWeekly, ",")
+		weekday := utils.ParseWeekday(split[0])
+		timeParts := strings.Split(split[1], ":")
+
+		h, err := strconv.Atoi(timeParts[0])
+		if err != nil {
+			logbuch.Fatal(err.Error())
+		}
+
+		m, err := strconv.Atoi(timeParts[1])
+		if err != nil {
+			logbuch.Fatal(err.Error())
+		}
+
+		return fmt.Sprintf("0 %d %d * * %d", m, h, weekday)
+	}
+
+	return utils.CronPadToSecondly(c.ReportTimeWeekly)
+}
+
+func (c *appConfig) GetLeaderboardGenerationTimeCron() []string {
+	crons := []string{}
+
+	var parse func(string) string
+
+	if strings.Contains(c.LeaderboardGenerationTime, ":") {
+		// old gocron format, e.g. "15:04"
+		parse = func(s string) string {
+			timeParts := strings.Split(s, ":")
+			h, err := strconv.Atoi(timeParts[0])
+			if err != nil {
+				logbuch.Fatal(err.Error())
+			}
+
+			m, err := strconv.Atoi(timeParts[1])
+			if err != nil {
+				logbuch.Fatal(err.Error())
+			}
+
+			return fmt.Sprintf("0 %d %d * * *", m, h)
+		}
+	} else {
+		parse = func(s string) string {
+			return utils.CronPadToSecondly(s)
+		}
+	}
+
+	for _, s := range utils.SplitMulti(c.LeaderboardGenerationTime, ",", ";") {
+		crons = append(crons, parse(strings.TrimSpace(s)))
+	}
+
+	return crons
 }
 
 func (c *appConfig) HeartbeatsMaxAge() time.Duration {
@@ -323,35 +394,6 @@ func resolveDbDialect(dbType string) string {
 	return dbType
 }
 
-func findString(needle string, haystack []string, defaultVal string) string {
-	for _, s := range haystack {
-		if s == needle {
-			return s
-		}
-	}
-	return defaultVal
-}
-
-func parseWeekday(s string) time.Weekday {
-	switch strings.ToLower(s) {
-	case "mon", strings.ToLower(time.Monday.String()):
-		return time.Monday
-	case "tue", strings.ToLower(time.Tuesday.String()):
-		return time.Tuesday
-	case "wed", strings.ToLower(time.Wednesday.String()):
-		return time.Wednesday
-	case "thu", strings.ToLower(time.Thursday.String()):
-		return time.Thursday
-	case "fri", strings.ToLower(time.Friday.String()):
-		return time.Friday
-	case "sat", strings.ToLower(time.Saturday.String()):
-		return time.Saturday
-	case "sun", strings.ToLower(time.Sunday.String()):
-		return time.Sunday
-	}
-	return time.Monday
-}
-
 func Set(config *Config) {
 	cfg = config
 }
@@ -411,17 +453,36 @@ func Load(version string) *Config {
 		logbuch.Warn("with sqlite, only a single connection is supported") // otherwise 'PRAGMA foreign_keys=ON' would somehow have to be set for every connection in the pool
 		config.Db.MaxConn = 1
 	}
-	if config.Mail.Provider != "" && findString(config.Mail.Provider, emailProviders, "") == "" {
+	if config.Mail.Provider != "" && utils.FindString(config.Mail.Provider, emailProviders, "") == "" {
 		logbuch.Fatal("unknown mail provider '%s'", config.Mail.Provider)
-	}
-	if _, err := time.Parse("15:04", config.App.GetWeeklyReportTime()); err != nil {
-		logbuch.Fatal("invalid interval set for report_time_weekly")
-	}
-	if _, err := time.Parse("15:04", config.App.AggregationTime); err != nil {
-		logbuch.Fatal("invalid interval set for aggregation_time")
 	}
 	if _, err := time.ParseDuration(config.App.HeartbeatMaxAge); err != nil {
 		logbuch.Fatal("invalid duration set for heartbeat_max_age")
+	}
+
+	cronParser := cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
+
+	if _, err := cronParser.Parse(config.App.GetWeeklyReportCron()); err != nil {
+		logbuch.Fatal("invalid cron expression for report_time_weekly")
+	}
+	if _, err := cronParser.Parse(config.App.GetAggregationTimeCron()); err != nil {
+		logbuch.Fatal("invalid cron expression for aggregation_time")
+	}
+	for _, c := range config.App.GetLeaderboardGenerationTimeCron() {
+		if _, err := cronParser.Parse(c); err != nil {
+			logbuch.Fatal("invalid cron expression for leaderboard_generation_time")
+		}
+	}
+
+	// deprecation notices
+	if strings.Contains(config.App.AggregationTime, ":") {
+		logbuch.Warn("you're using deprecated syntax for 'aggregation_time', please change it to a valid cron expression")
+	}
+	if strings.Contains(config.App.ReportTimeWeekly, ":") {
+		logbuch.Warn("you're using deprecated syntax for 'report_time_weekly', please change it to a valid cron expression")
+	}
+	if strings.Contains(config.App.LeaderboardGenerationTime, ":") {
+		logbuch.Warn("you're using deprecated syntax for 'leaderboard_generation_time', please change it to a semicolon-separated list if valid cron expressions")
 	}
 
 	Set(config)

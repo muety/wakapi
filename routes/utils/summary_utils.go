@@ -1,14 +1,14 @@
 package utils
 
 import (
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/utils"
 	"net/http"
 )
 
 func LoadUserSummary(ss services.ISummaryService, r *http.Request) (*models.Summary, error, int) {
-	summaryParams, err := utils.ParseSummaryParams(r)
+	summaryParams, err := helpers.ParseSummaryParams(r)
 	if err != nil {
 		return nil, err, http.StatusBadRequest
 	}

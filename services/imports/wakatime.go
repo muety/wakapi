@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/duke-git/lancet/v2/datetime"
+	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/utils"
 	"net/http"
 	"strings"
@@ -32,19 +33,23 @@ const (
 type WakatimeHeartbeatImporter struct {
 	ApiKey     string
 	httpClient *http.Client
+	queue      *artifex.Dispatcher
 }
 
 func NewWakatimeHeartbeatImporter(apiKey string) *WakatimeHeartbeatImporter {
 	return &WakatimeHeartbeatImporter{
 		ApiKey:     apiKey,
 		httpClient: &http.Client{Timeout: 10 * time.Second},
+		queue:      config.GetQueue(config.QueueImports),
 	}
 }
 
 func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time, maxTo time.Time) <-chan *models.Heartbeat {
 	out := make(chan *models.Heartbeat)
 
-	go func(user *models.User, out chan *models.Heartbeat) {
+	process := func(user *models.User, minFrom time.Time, maxTo time.Time, out chan *models.Heartbeat) {
+		logbuch.Info("running wakatime import for user '%s'", user.ID)
+
 		baseUrl := user.WakaTimeURL(config.WakatimeApiUrl)
 
 		startDate, endDate, err := w.fetchRange(baseUrl)
@@ -109,7 +114,14 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 				}
 			}(d)
 		}
-	}(user, out)
+	}
+
+	logbuch.Info("scheduling wakatime import for user '%s'", user.ID)
+	if err := w.queue.Dispatch(func() {
+		process(user, minFrom, maxTo, out)
+	}); err != nil {
+		config.Log().Error("failed to dispatch wakatime import job for user '%s', %v", user.ID, err)
+	}
 
 	return out
 }

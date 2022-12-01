@@ -186,9 +186,9 @@ func main() {
 
 	// Schedule background tasks
 	go aggregationService.Schedule()
-	go leaderboardService.ScheduleDefault()
-	go miscService.ScheduleCountTotalTime()
+	go leaderboardService.Schedule()
 	go reportService.Schedule()
+	go miscService.ScheduleCountTotalTime()
 
 	routes.Init()
 

@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"github.com/muety/wakapi/helpers"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"net/http"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/shields/v1"
 	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
 )
 
@@ -63,7 +63,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	cacheKey := fmt.Sprintf("%s_%v_%s", user.ID, *interval.Key, filters.Hash())
 	if cacheResult, ok := h.cache.Get(cacheKey); ok {
-		utils.RespondJSON(w, r, http.StatusOK, cacheResult.(*v1.BadgeData))
+		helpers.RespondJSON(w, r, http.StatusOK, cacheResult.(*v1.BadgeData))
 		return
 	}
 
@@ -83,11 +83,11 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	vm := v1.NewBadgeDataFrom(summary)
 	h.cache.SetDefault(cacheKey, vm)
-	utils.RespondJSON(w, r, http.StatusOK, vm)
+	helpers.RespondJSON(w, r, http.StatusOK, vm)
 }
 
 func (h *BadgeHandler) loadUserSummary(user *models.User, interval *models.IntervalKey, filters *models.Filters) (*models.Summary, error, int) {
-	err, from, to := utils.ResolveIntervalTZ(interval, user.TZ())
+	err, from, to := helpers.ResolveIntervalTZ(interval, user.TZ())
 	if err != nil {
 		return nil, err, http.StatusBadRequest
 	}

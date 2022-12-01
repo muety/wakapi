@@ -2,7 +2,6 @@ package utils
 
 import (
 	"github.com/duke-git/lancet/v2/datetime"
-	"github.com/muety/wakapi/config"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -23,8 +22,8 @@ func init() {
 }
 
 func TestDate_SplitRangeByDays(t *testing.T) {
-	df1, _ := time.Parse(config.SimpleDateTimeFormat, "2021-04-25 20:25:00")
-	dt1, _ := time.Parse(config.SimpleDateTimeFormat, "2021-04-28 06:45:00")
+	df1, _ := time.Parse("2006-01-02 15:04:05", "2021-04-25 20:25:00")
+	dt1, _ := time.Parse("2006-01-02 15:04:05", "2021-04-28 06:45:00")
 	df2 := df1
 	dt2 := datetime.EndOfDay(df1)
 	df3 := df1

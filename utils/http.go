@@ -1,8 +1,7 @@
 package utils
 
 import (
-	"encoding/json"
-	"github.com/muety/wakapi/config"
+	"errors"
 	"github.com/muety/wakapi/models"
 	"net/http"
 	"regexp"
@@ -21,14 +20,6 @@ var (
 
 func init() {
 	cacheMaxAgeRe = regexp.MustCompile(cacheMaxAgePattern)
-}
-
-func RespondJSON(w http.ResponseWriter, r *http.Request, status int, object interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(object); err != nil {
-		config.Log().Request(r).Error("error while writing json response: %v", err)
-	}
 }
 
 func IsNoCache(r *http.Request, cacheTtl time.Duration) bool {
@@ -66,4 +57,13 @@ func ParsePageParamsWithDefault(r *http.Request, page, size int) *models.PagePar
 		pageParams.PageSize = size
 	}
 	return pageParams
+}
+
+func ParseUserAgent(ua string) (string, string, error) {
+	re := regexp.MustCompile(`(?iU)^wakatime\/(?:v?[\d+.]+|unset)\s\((\w+)-.*\)\s.+\s([^\/\s]+)-wakatime\/.+$`)
+	groups := re.FindAllStringSubmatch(ua, -1)
+	if len(groups) == 0 || len(groups[0]) != 3 {
+		return "", "", errors.New("failed to parse user agent string")
+	}
+	return groups[0][1], groups[0][2], nil
 }
