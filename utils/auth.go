@@ -3,8 +3,6 @@ package utils
 import (
 	"encoding/base64"
 	"errors"
-	"github.com/gorilla/securecookie"
-	"github.com/muety/wakapi/models"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"regexp"
@@ -42,19 +40,6 @@ func ExtractBearerAuth(r *http.Request) (key string, err error) {
 
 	keyBytes, err := base64.StdEncoding.DecodeString(authHeader[1])
 	return string(keyBytes), err
-}
-
-func ExtractCookieAuth(r *http.Request, secureCookie *securecookie.SecureCookie) (username *string, err error) {
-	cookie, err := r.Cookie(models.AuthCookieKey)
-	if err != nil {
-		return nil, errors.New("missing authentication")
-	}
-
-	if err := secureCookie.Decode(models.AuthCookieKey, cookie.Value, &username); err != nil {
-		return nil, errors.New("cookie is invalid")
-	}
-
-	return username, nil
 }
 
 func CompareBcrypt(wanted, actual, pepper string) bool {

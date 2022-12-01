@@ -122,7 +122,7 @@ func (m *AuthenticateMiddleware) tryGetUserByApiKeyQuery(r *http.Request) (*mode
 }
 
 func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.User, error) {
-	username, err := helpers.ExtractCookieAuth(r)
+	username, err := helpers.ExtractCookieAuth(r, m.config)
 	if err != nil {
 		return nil, err
 	}
