@@ -91,7 +91,8 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 	jobs := make(chan *AggregationJob)
 	defer close(jobs)
 	go func() {
-		for job := range jobs {
+		for jobRef := range jobs {
+			job := *jobRef
 			if err := srv.queueWorkers.Dispatch(func() {
 				srv.process(job)
 			}); err != nil {
@@ -122,7 +123,7 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 	return nil
 }
 
-func (srv *AggregationService) process(job *AggregationJob) {
+func (srv *AggregationService) process(job AggregationJob) {
 	if summary, err := srv.summaryService.Summarize(job.From, job.To, &models.User{ID: job.UserID}, nil); err != nil {
 		config.Log().Error("failed to generate summary (%v, %v, %s) - %v", job.From, job.To, job.UserID, err)
 	} else {

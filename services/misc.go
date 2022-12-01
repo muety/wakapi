@@ -63,11 +63,12 @@ func (srv *MiscService) CountTotalTime() {
 	pendingJobs.Add(len(users))
 
 	for _, u := range users {
+		user := *u
 		if err := srv.queueWorkers.Dispatch(func() {
 			defer pendingJobs.Done()
-			totalTime.Add(srv.countUserTotalTime(u.ID))
+			totalTime.Add(srv.countUserTotalTime(user.ID))
 		}); err != nil {
-			config.Log().Error("failed to enqueue counting job for user '%s'", u.ID)
+			config.Log().Error("failed to enqueue counting job for user '%s'", user.ID)
 			pendingJobs.Done()
 		}
 	}
