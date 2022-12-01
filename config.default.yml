@@ -12,12 +12,12 @@ server:
   public_url: http://localhost:3000   # required for links (e.g. password reset) in e-mail
 
 app:
-  aggregation_time: '02:15'                   # time at which to run daily aggregation batch jobs
-  leaderboard_generation_time: '06:00;18:00'  # time at which to run daily aggregation batch jobs
-  report_time_weekly: 'fri,18:00'             # time at which to fan out weekly reports (format: '<weekday)>,<daytime>')
-  inactive_days: 7                            # time of previous days within a user must have logged in to be considered active
-  import_batch_size: 50                       # maximum number of heartbeats to insert into the database within one transaction
-  heartbeat_max_age: '4320h'                  # maximum acceptable age of a heartbeat (see https://pkg.go.dev/time#ParseDuration)
+  aggregation_time: '0 15 2 * * *'                          # time at which to run daily aggregation batch jobs
+  leaderboard_generation_time: '0 0 6 * * *,0 0 18 * * *'   # times at which to re-calculate the leaderboard
+  report_time_weekly: '0 0 18 * * 5'                        # time at which to fan out weekly reports (extended cron)
+  inactive_days: 7                                          # time of previous days within a user must have logged in to be considered active
+  import_batch_size: 50                                     # maximum number of heartbeats to insert into the database within one transaction
+  heartbeat_max_age: '4320h'                                # maximum acceptable age of a heartbeat (see https://pkg.go.dev/time#ParseDuration)
   custom_languages:
     vue: Vue
     jsx: JSX
