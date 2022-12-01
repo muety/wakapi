@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/muety/wakapi/helpers"
 	"net/http"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/utils"
 )
 
 type StatusBarViewModel struct {
@@ -65,7 +65,7 @@ func (h *StatusBarHandler) Get(w http.ResponseWriter, r *http.Request) {
 		rangeParam = (*models.IntervalToday)[0]
 	}
 
-	err, rangeFrom, rangeTo := utils.ResolveIntervalRawTZ(rangeParam, user.TZ())
+	err, rangeFrom, rangeTo := helpers.ResolveIntervalRawTZ(rangeParam, user.TZ())
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("invalid range"))
@@ -79,7 +79,7 @@ func (h *StatusBarHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	summariesView := v1.NewSummariesFrom([]*models.Summary{summary})
-	utils.RespondJSON(w, r, http.StatusOK, StatusBarViewModel{
+	helpers.RespondJSON(w, r, http.StatusOK, StatusBarViewModel{
 		CachedAt: time.Now(),
 		Data:     *summariesView.Data[0],
 	})

@@ -5,9 +5,9 @@ import (
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/artifex"
 	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
-	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
 	"reflect"
 	"strconv"
@@ -212,7 +212,7 @@ func (srv *LeaderboardService) GetAggregatedByIntervalAndUser(interval *models.I
 }
 
 func (srv *LeaderboardService) GenerateByUser(user *models.User, interval *models.IntervalKey) (*models.LeaderboardItem, error) {
-	err, from, to := utils.ResolveIntervalTZ(interval, user.TZ())
+	err, from, to := helpers.ResolveIntervalTZ(interval, user.TZ())
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +231,7 @@ func (srv *LeaderboardService) GenerateByUser(user *models.User, interval *model
 }
 
 func (srv *LeaderboardService) GenerateAggregatedByUser(user *models.User, interval *models.IntervalKey, by uint8) ([]*models.LeaderboardItem, error) {
-	err, from, to := utils.ResolveIntervalTZ(interval, user.TZ())
+	err, from, to := helpers.ResolveIntervalTZ(interval, user.TZ())
 	if err != nil {
 		return nil, err
 	}

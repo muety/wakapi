@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"fmt"
 	"github.com/duke-git/lancet/v2/datetime"
+	"strings"
 	"time"
 )
 
@@ -47,16 +47,28 @@ func SplitRangeByDays(from time.Time, to time.Time) [][]time.Time {
 	return intervals
 }
 
-func FmtWakatimeDuration(d time.Duration) string {
-	d = d.Round(time.Minute)
-	h := d / time.Hour
-	d -= h * time.Hour
-	m := d / time.Minute
-	return fmt.Sprintf("%d hrs %d mins", h, m)
-}
-
 // LocalTZOffset returns the time difference between server local time and UTC
 func LocalTZOffset() time.Duration {
 	_, offset := time.Now().Zone()
 	return time.Duration(offset * int(time.Second))
+}
+
+func ParseWeekday(s string) time.Weekday {
+	switch strings.ToLower(s) {
+	case "mon", strings.ToLower(time.Monday.String()):
+		return time.Monday
+	case "tue", strings.ToLower(time.Tuesday.String()):
+		return time.Tuesday
+	case "wed", strings.ToLower(time.Wednesday.String()):
+		return time.Wednesday
+	case "thu", strings.ToLower(time.Thursday.String()):
+		return time.Thursday
+	case "fri", strings.ToLower(time.Friday.String()):
+		return time.Friday
+	case "sat", strings.ToLower(time.Saturday.String()):
+		return time.Saturday
+	case "sun", strings.ToLower(time.Sunday.String()):
+		return time.Sunday
+	}
+	return time.Monday
 }

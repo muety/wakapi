@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models/view"
 	su "github.com/muety/wakapi/routes/utils"
@@ -47,7 +48,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		r.URL.RawQuery = q.Encode()
 	}
 
-	summaryParams, _ := utils.ParseSummaryParams(r)
+	summaryParams, _ := helpers.ParseSummaryParams(r)
 	summary, err, status := su.LoadUserSummary(h.summarySrvc, r)
 	if err != nil {
 		w.WriteHeader(status)

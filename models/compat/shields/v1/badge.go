@@ -1,8 +1,8 @@
 package v1
 
 import (
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
-	"github.com/muety/wakapi/utils"
 )
 
 // https://shields.io/endpoint
@@ -23,7 +23,7 @@ func NewBadgeDataFrom(summary *models.Summary) *BadgeData {
 	return &BadgeData{
 		SchemaVersion: 1,
 		Label:         defaultLabel,
-		Message:       utils.FmtWakatimeDuration(summary.TotalTime()),
+		Message:       helpers.FmtWakatimeDuration(summary.TotalTime()),
 		Color:         defaultColor,
 	}
 }

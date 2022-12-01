@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/duke-git/lancet/v2/datetime"
+	"github.com/muety/wakapi/helpers"
 	"net/http"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/utils"
 )
 
 type HeartbeatsResult struct {
@@ -82,5 +82,5 @@ func (h *HeartbeatHandler) Get(w http.ResponseWriter, r *http.Request) {
 		End:      rangeTo.UTC().Format(time.RFC3339),
 		Timezone: timezone.String(),
 	}
-	utils.RespondJSON(w, r, http.StatusOK, res)
+	helpers.RespondJSON(w, r, http.StatusOK, res)
 }

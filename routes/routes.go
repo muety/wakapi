@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/muety/wakapi/helpers"
 	"html/template"
 	"net/http"
 	"strings"
@@ -24,16 +25,16 @@ func Init() {
 func DefaultTemplateFuncs() template.FuncMap {
 	return template.FuncMap{
 		"json":           utils.Json,
-		"date":           utils.FormatDateHuman,
-		"datetime":       utils.FormatDateTimeHuman,
-		"simpledate":     utils.FormatDate,
-		"simpledatetime": utils.FormatDateTime,
-		"duration":       utils.FmtWakatimeDuration,
+		"date":           helpers.FormatDateHuman,
+		"datetime":       helpers.FormatDateTimeHuman,
+		"simpledate":     helpers.FormatDate,
+		"simpledatetime": helpers.FormatDateTime,
+		"duration":       helpers.FmtWakatimeDuration,
 		"floordate":      datetime.BeginOfDay,
 		"ceildate":       utils.CeilDate,
 		"title":          strings.Title,
 		"join":           strings.Join,
-		"add":            utils.Add,
+		"add":            add,
 		"capitalize":     utils.Capitalize,
 		"lower":          strings.ToLower,
 		"toRunes":        utils.ToRunes,
@@ -105,4 +106,8 @@ func loadTemplates() {
 
 func defaultErrorRedirectTarget() string {
 	return fmt.Sprintf("%s/?error=unauthorized", config.Get().Server.BasePath)
+}
+
+func add(i, j int) int {
+	return i + j
 }

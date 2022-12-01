@@ -3,6 +3,7 @@ package v1
 import (
 	"errors"
 	"github.com/duke-git/lancet/v2/datetime"
+	"github.com/muety/wakapi/helpers"
 	"net/http"
 	"strings"
 	"time"
@@ -76,7 +77,7 @@ func (h *SummariesHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vm := v1.NewSummariesFrom(summaries)
-	utils.RespondJSON(w, r, http.StatusOK, vm)
+	helpers.RespondJSON(w, r, http.StatusOK, vm)
 }
 
 func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary, error, int) {
@@ -94,24 +95,24 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary
 	var start, end time.Time
 	if rangeParam != "" {
 		// range param takes precedence
-		if err, parsedFrom, parsedTo := utils.ResolveIntervalRawTZ(rangeParam, timezone); err == nil {
+		if err, parsedFrom, parsedTo := helpers.ResolveIntervalRawTZ(rangeParam, timezone); err == nil {
 			start, end = parsedFrom, parsedTo
 		} else {
 			return nil, errors.New("invalid 'range' parameter"), http.StatusBadRequest
 		}
-	} else if err, parsedFrom, parsedTo := utils.ResolveIntervalRawTZ(startParam, timezone); err == nil && startParam == endParam {
+	} else if err, parsedFrom, parsedTo := helpers.ResolveIntervalRawTZ(startParam, timezone); err == nil && startParam == endParam {
 		// also accept start param to be a range param
 		start, end = parsedFrom, parsedTo
 	} else {
 		// eventually, consider start and end params a date
 		var err error
 
-		start, err = utils.ParseDateTimeTZ(strings.Replace(startParam, " ", "+", 1), timezone)
+		start, err = helpers.ParseDateTimeTZ(strings.Replace(startParam, " ", "+", 1), timezone)
 		if err != nil {
 			return nil, errors.New("missing required 'start' parameter"), http.StatusBadRequest
 		}
 
-		end, err = utils.ParseDateTimeTZ(strings.Replace(endParam, " ", "+", 1), timezone)
+		end, err = helpers.ParseDateTimeTZ(strings.Replace(endParam, " ", "+", 1), timezone)
 		if err != nil {
 			return nil, errors.New("missing required 'end' parameter"), http.StatusBadRequest
 		}
@@ -133,7 +134,7 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary
 	summaries := make([]*models.Summary, len(intervals))
 
 	// filtering
-	filters := utils.ParseSummaryFilters(r)
+	filters := helpers.ParseSummaryFilters(r)
 
 	for i, interval := range intervals {
 		summary, err := h.summarySrvc.Aliased(interval[0], interval[1], user, h.summarySrvc.Retrieve, filters, end.After(time.Now()))

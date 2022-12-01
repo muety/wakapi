@@ -3,12 +3,12 @@ package v1
 import (
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/utils"
 	"net/http"
 	"time"
 )
@@ -50,7 +50,7 @@ func (h *AllTimeHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return // response was already sent by util function
 	}
 
-	summary, err, status := h.loadUserSummary(user, utils.ParseSummaryFilters(r))
+	summary, err, status := h.loadUserSummary(user, helpers.ParseSummaryFilters(r))
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))
@@ -58,7 +58,7 @@ func (h *AllTimeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vm := v1.NewAllTimeFrom(summary)
-	utils.RespondJSON(w, r, http.StatusOK, vm)
+	helpers.RespondJSON(w, r, http.StatusOK, vm)
 }
 
 func (h *AllTimeHandler) loadUserSummary(user *models.User, filters *models.Filters) (*models.Summary, error, int) {

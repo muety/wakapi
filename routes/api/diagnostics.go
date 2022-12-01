@@ -2,14 +2,13 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/muety/wakapi/helpers"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/utils"
-
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/services"
 )
 
 type DiagnosticsApiHandler struct {
@@ -55,5 +54,5 @@ func (h *DiagnosticsApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondJSON(w, r, http.StatusCreated, struct{}{})
+	helpers.RespondJSON(w, r, http.StatusCreated, struct{}{})
 }

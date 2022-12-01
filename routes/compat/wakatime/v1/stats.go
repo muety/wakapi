@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/muety/wakapi/helpers"
 	"net/http"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/utils"
 )
 
 type StatsHandler struct {
@@ -79,7 +79,7 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		rangeParam = (*models.IntervalPast7Days)[0]
 	}
 
-	err, rangeFrom, rangeTo := utils.ResolveIntervalRawTZ(rangeParam, requestedUser.TZ())
+	err, rangeFrom, rangeTo := helpers.ResolveIntervalRawTZ(rangeParam, requestedUser.TZ())
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("invalid range"))
@@ -94,7 +94,7 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	summary, err, status := h.loadUserSummary(requestedUser, rangeFrom, rangeTo, utils.ParseSummaryFilters(r))
+	summary, err, status := h.loadUserSummary(requestedUser, rangeFrom, rangeTo, helpers.ParseSummaryFilters(r))
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))
@@ -120,7 +120,7 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		stats.Data.Machines = nil
 	}
 
-	utils.RespondJSON(w, r, http.StatusOK, stats)
+	helpers.RespondJSON(w, r, http.StatusOK, stats)
 }
 
 func (h *StatsHandler) loadUserSummary(user *models.User, start, end time.Time, filters *models.Filters) (*models.Summary, error, int) {

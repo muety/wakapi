@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/muety/wakapi/utils"
 	"github.com/robfig/cron/v3"
 	"io/ioutil"
 	"net/http"
@@ -229,19 +230,19 @@ func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
 }
 
 func (c *appConfig) GetCustomLanguages() map[string]string {
-	return cloneStringMap(c.CustomLanguages, false)
+	return utils.CloneStringMap(c.CustomLanguages, false)
 }
 
 func (c *appConfig) GetLanguageColors() map[string]string {
-	return cloneStringMap(c.Colors["languages"], true)
+	return utils.CloneStringMap(c.Colors["languages"], true)
 }
 
 func (c *appConfig) GetEditorColors() map[string]string {
-	return cloneStringMap(c.Colors["editors"], true)
+	return utils.CloneStringMap(c.Colors["editors"], true)
 }
 
 func (c *appConfig) GetOSColors() map[string]string {
-	return cloneStringMap(c.Colors["operating_systems"], true)
+	return utils.CloneStringMap(c.Colors["operating_systems"], true)
 }
 
 func (c *appConfig) GetAggregationTimeCron() string {
@@ -261,14 +262,14 @@ func (c *appConfig) GetAggregationTimeCron() string {
 		return fmt.Sprintf("0 %d %d * * *", m, h)
 	}
 
-	return cronPadToSecondly(c.AggregationTime)
+	return utils.CronPadToSecondly(c.AggregationTime)
 }
 
 func (c *appConfig) GetWeeklyReportCron() string {
 	if strings.Contains(c.ReportTimeWeekly, ",") {
 		// old gocron format, e.g. "fri,18:00"
 		split := strings.Split(c.ReportTimeWeekly, ",")
-		weekday := parseWeekday(split[0])
+		weekday := utils.ParseWeekday(split[0])
 		timeParts := strings.Split(split[1], ":")
 
 		h, err := strconv.Atoi(timeParts[0])
@@ -284,7 +285,7 @@ func (c *appConfig) GetWeeklyReportCron() string {
 		return fmt.Sprintf("0 %d %d * * %d", m, h, weekday)
 	}
 
-	return cronPadToSecondly(c.ReportTimeWeekly)
+	return utils.CronPadToSecondly(c.ReportTimeWeekly)
 }
 
 func (c *appConfig) GetLeaderboardGenerationTimeCron() []string {
@@ -310,11 +311,11 @@ func (c *appConfig) GetLeaderboardGenerationTimeCron() []string {
 		}
 	} else {
 		parse = func(s string) string {
-			return cronPadToSecondly(s)
+			return utils.CronPadToSecondly(s)
 		}
 	}
 
-	for _, s := range strings.Split(c.LeaderboardGenerationTime, ";") {
+	for _, s := range utils.SplitMulti(c.LeaderboardGenerationTime, ",", ";") {
 		crons = append(crons, parse(strings.TrimSpace(s)))
 	}
 
@@ -393,43 +394,6 @@ func resolveDbDialect(dbType string) string {
 	return dbType
 }
 
-func findString(needle string, haystack []string, defaultVal string) string {
-	for _, s := range haystack {
-		if s == needle {
-			return s
-		}
-	}
-	return defaultVal
-}
-
-func parseWeekday(s string) time.Weekday {
-	switch strings.ToLower(s) {
-	case "mon", strings.ToLower(time.Monday.String()):
-		return time.Monday
-	case "tue", strings.ToLower(time.Tuesday.String()):
-		return time.Tuesday
-	case "wed", strings.ToLower(time.Wednesday.String()):
-		return time.Wednesday
-	case "thu", strings.ToLower(time.Thursday.String()):
-		return time.Thursday
-	case "fri", strings.ToLower(time.Friday.String()):
-		return time.Friday
-	case "sat", strings.ToLower(time.Saturday.String()):
-		return time.Saturday
-	case "sun", strings.ToLower(time.Sunday.String()):
-		return time.Sunday
-	}
-	return time.Monday
-}
-
-func cronPadToSecondly(expr string) string {
-	parts := strings.Split(expr, " ")
-	if len(parts) == 6 {
-		return expr
-	}
-	return "0 " + expr
-}
-
 func Set(config *Config) {
 	cfg = config
 }
@@ -489,7 +453,7 @@ func Load(version string) *Config {
 		logbuch.Warn("with sqlite, only a single connection is supported") // otherwise 'PRAGMA foreign_keys=ON' would somehow have to be set for every connection in the pool
 		config.Db.MaxConn = 1
 	}
-	if config.Mail.Provider != "" && findString(config.Mail.Provider, emailProviders, "") == "" {
+	if config.Mail.Provider != "" && utils.FindString(config.Mail.Provider, emailProviders, "") == "" {
 		logbuch.Fatal("unknown mail provider '%s'", config.Mail.Provider)
 	}
 	if _, err := time.ParseDuration(config.App.HeartbeatMaxAge); err != nil {

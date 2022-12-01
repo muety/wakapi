@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/muety/wakapi/helpers"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -9,7 +10,6 @@ import (
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/utils"
 )
 
 type UsersHandler struct {
@@ -56,5 +56,5 @@ func (h *UsersHandler) Get(w http.ResponseWriter, r *http.Request) {
 		conf.Log().Request(r).Error("%v", err)
 	}
 
-	utils.RespondJSON(w, r, http.StatusOK, v1.UserViewModel{Data: user})
+	helpers.RespondJSON(w, r, http.StatusOK, v1.UserViewModel{Data: user})
 }

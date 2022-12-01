@@ -5,13 +5,13 @@ import (
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	mm "github.com/muety/wakapi/models/metrics"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/utils"
 	"net/http"
 	"runtime"
 	"sort"
@@ -129,7 +129,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 		return nil, err
 	}
 
-	from, to := utils.MustResolveIntervalRawTZ("today", user.TZ())
+	from, to := helpers.MustResolveIntervalRawTZ("today", user.TZ())
 
 	summaryToday, err := h.summarySrvc.Aliased(from, to, user, h.summarySrvc.Retrieve, nil, false)
 	if err != nil {

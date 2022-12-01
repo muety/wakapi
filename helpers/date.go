@@ -1,9 +1,8 @@
-package utils
+package helpers
 
 import (
-	"errors"
+	"fmt"
 	"github.com/muety/wakapi/config"
-	"regexp"
 	"time"
 )
 
@@ -41,22 +40,10 @@ func FormatDateHuman(date time.Time) string {
 	return date.Format("Mon, 02 Jan 2006")
 }
 
-func Add(i, j int) int {
-	return i + j
-}
-
-func ParseUserAgent(ua string) (string, string, error) {
-	re := regexp.MustCompile(`(?iU)^wakatime\/(?:v?[\d+.]+|unset)\s\((\w+)-.*\)\s.+\s([^\/\s]+)-wakatime\/.+$`)
-	groups := re.FindAllStringSubmatch(ua, -1)
-	if len(groups) == 0 || len(groups[0]) != 3 {
-		return "", "", errors.New("failed to parse user agent string")
-	}
-	return groups[0][1], groups[0][2], nil
-}
-
-func SubSlice[T any](slice []T, from, to uint) []T {
-	if int(to) > len(slice) {
-		to = uint(len(slice))
-	}
-	return slice[from:int(to)]
+func FmtWakatimeDuration(d time.Duration) string {
+	d = d.Round(time.Minute)
+	h := d / time.Hour
+	d -= h * time.Hour
+	m := d / time.Minute
+	return fmt.Sprintf("%d hrs %d mins", h, m)
 }

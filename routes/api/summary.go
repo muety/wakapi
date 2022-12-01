@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/muety/wakapi/helpers"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"net/http"
 
@@ -8,7 +9,6 @@ import (
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/utils"
 )
 
 type SummaryApiHandler struct {
@@ -58,5 +58,5 @@ func (h *SummaryApiHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondJSON(w, r, http.StatusOK, summary)
+	helpers.RespondJSON(w, r, http.StatusOK, summary)
 }

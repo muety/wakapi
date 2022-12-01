@@ -2,8 +2,8 @@ package utils
 
 import (
 	"errors"
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
-	"github.com/muety/wakapi/utils"
 	"net/http"
 	"regexp"
 )
@@ -31,12 +31,12 @@ func GetBadgeParams(r *http.Request, requestedUser *models.User) (*models.KeyedI
 
 	var intervalKey = models.IntervalPast30Days
 	if groups := intervalReg.FindStringSubmatch(r.URL.Path); len(groups) > 1 {
-		if i, err := utils.ParseInterval(groups[1]); err == nil {
+		if i, err := helpers.ParseInterval(groups[1]); err == nil {
 			intervalKey = i
 		}
 	}
 
-	_, rangeFrom, rangeTo := utils.ResolveIntervalTZ(intervalKey, requestedUser.TZ())
+	_, rangeFrom, rangeTo := helpers.ResolveIntervalTZ(intervalKey, requestedUser.TZ())
 	interval := &models.KeyedInterval{
 		Interval: models.Interval{Start: rangeFrom, End: rangeTo},
 		Key:      intervalKey,

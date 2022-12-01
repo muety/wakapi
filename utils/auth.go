@@ -3,7 +3,7 @@ package utils
 import (
 	"encoding/base64"
 	"errors"
-	"github.com/muety/wakapi/config"
+	"github.com/gorilla/securecookie"
 	"github.com/muety/wakapi/models"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
@@ -44,13 +44,13 @@ func ExtractBearerAuth(r *http.Request) (key string, err error) {
 	return string(keyBytes), err
 }
 
-func ExtractCookieAuth(r *http.Request, config *config.Config) (username *string, err error) {
+func ExtractCookieAuth(r *http.Request, secureCookie *securecookie.SecureCookie) (username *string, err error) {
 	cookie, err := r.Cookie(models.AuthCookieKey)
 	if err != nil {
 		return nil, errors.New("missing authentication")
 	}
 
-	if err := config.Security.SecureCookie.Decode(models.AuthCookieKey, cookie.Value, &username); err != nil {
+	if err := secureCookie.Decode(models.AuthCookieKey, cookie.Value, &username); err != nil {
 		return nil, errors.New("cookie is invalid")
 	}
 
