@@ -31,6 +31,7 @@ type IHeartbeatRepository interface {
 	GetEntitySetByUser(uint8, *models.User) ([]string, error)
 	DeleteBefore(time.Time) error
 	DeleteByUser(*models.User) error
+	DeleteByUserBefore(*models.User, time.Time) error
 }
 
 type IDiagnosticsRepository interface {
@@ -66,6 +67,7 @@ type ISummaryRepository interface {
 	GetByUserWithin(*models.User, time.Time, time.Time) ([]*models.Summary, error)
 	GetLastByUser() ([]*models.TimeByUser, error)
 	DeleteByUser(string) error
+	DeleteByUserBefore(string, time.Time) error
 }
 
 type IUserRepository interface {

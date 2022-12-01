@@ -15,9 +15,11 @@ app:
   aggregation_time: '0 15 2 * * *'                          # time at which to run daily aggregation batch jobs
   leaderboard_generation_time: '0 0 6 * * *,0 0 18 * * *'   # times at which to re-calculate the leaderboard
   report_time_weekly: '0 0 18 * * 5'                        # time at which to fan out weekly reports (extended cron)
+  data_cleanup_time: '0 0 6 * * 7'                          # time at which to run old data cleanup (if enabled through data_retention_months)
   inactive_days: 7                                          # time of previous days within a user must have logged in to be considered active
   import_batch_size: 50                                     # maximum number of heartbeats to insert into the database within one transaction
   heartbeat_max_age: '4320h'                                # maximum acceptable age of a heartbeat (see https://pkg.go.dev/time#ParseDuration)
+  data_retention_months: -1                                 # maximum retention period on months for user data (heartbeats) (-1 for infinity)
   custom_languages:
     vue: Vue
     jsx: JSX

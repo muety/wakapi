@@ -10,13 +10,13 @@ type HeartbeatServiceMock struct {
 	mock.Mock
 }
 
-func (m *HeartbeatServiceMock) Insert(heartbeat *models.Heartbeat) error {
-	args := m.Called(heartbeat)
+func (m *HeartbeatServiceMock) Insert(h *models.Heartbeat) error {
+	args := m.Called(h)
 	return args.Error(0)
 }
 
-func (m *HeartbeatServiceMock) InsertBatch(heartbeats []*models.Heartbeat) error {
-	args := m.Called(heartbeats)
+func (m *HeartbeatServiceMock) InsertBatch(h []*models.Heartbeat) error {
+	args := m.Called(h)
 	return args.Error(0)
 }
 
@@ -72,5 +72,10 @@ func (m *HeartbeatServiceMock) DeleteBefore(time time.Time) error {
 
 func (m *HeartbeatServiceMock) DeleteByUser(u *models.User) error {
 	args := m.Called(u)
+	return args.Error(0)
+}
+
+func (m *HeartbeatServiceMock) DeleteByUserBefore(u *models.User, t time.Time) error {
+	args := m.Called(u, t)
 	return args.Error(0)
 }

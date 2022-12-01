@@ -86,6 +86,16 @@ func (r *SummaryRepository) DeleteByUser(userId string) error {
 	return nil
 }
 
+func (r *SummaryRepository) DeleteByUserBefore(userId string, t time.Time) error {
+	if err := r.db.
+		Where("user_id = ?", userId).
+		Where("to_time <= ?", t.Local()).
+		Delete(models.Summary{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 // inplace
 func (r *SummaryRepository) populateItems(summaries []*models.Summary, conditions []clause.Interface) error {
 	var items []*models.SummaryItem

@@ -657,12 +657,12 @@ func (h *SettingsHandler) validateWakatimeKey(apiKey string, baseUrl string) boo
 func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
 	logbuch.Info("clearing summaries for user '%s'", user.ID)
 	if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
-		logbuch.Error("failed to clear summaries: %v", err)
+		conf.Log().Error("failed to clear summaries: %v", err)
 		return err
 	}
 
 	if err := h.aggregationSrvc.AggregateSummaries(datastructure.NewSet(user.ID)); err != nil {
-		logbuch.Error("failed to regenerate summaries: %v", err)
+		conf.Log().Error("failed to regenerate summaries: %v", err)
 		return err
 	}
 

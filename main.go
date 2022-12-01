@@ -81,6 +81,7 @@ var (
 	keyValueService        services.IKeyValueService
 	reportService          services.IReportService
 	diagnosticsService     services.IDiagnosticsService
+	housekeepingService    services.IHousekeepingService
 	miscService            services.IMiscService
 )
 
@@ -182,12 +183,14 @@ func main() {
 	keyValueService = services.NewKeyValueService(keyValueRepository)
 	reportService = services.NewReportService(summaryService, userService, mailService)
 	diagnosticsService = services.NewDiagnosticsService(diagnosticsRepository)
+	housekeepingService = services.NewHousekeepingService(userService, heartbeatService, summaryService)
 	miscService = services.NewMiscService(userService, summaryService, keyValueService)
 
 	// Schedule background tasks
 	go aggregationService.Schedule()
 	go leaderboardService.Schedule()
 	go reportService.Schedule()
+	go housekeepingService.Schedule()
 	go miscService.ScheduleCountTotalTime()
 
 	routes.Init()

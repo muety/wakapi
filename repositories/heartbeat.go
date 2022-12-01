@@ -170,7 +170,7 @@ func (r *HeartbeatRepository) CountByUsers(users []*models.User) ([]*models.Coun
 	return counts, nil
 }
 
-func (r HeartbeatRepository) GetEntitySetByUser(entityType uint8, user *models.User) ([]string, error) {
+func (r *HeartbeatRepository) GetEntitySetByUser(entityType uint8, user *models.User) ([]string, error) {
 	var results []string
 	if err := r.db.
 		Model(&models.Heartbeat{}).
@@ -194,6 +194,16 @@ func (r *HeartbeatRepository) DeleteBefore(t time.Time) error {
 func (r *HeartbeatRepository) DeleteByUser(user *models.User) error {
 	if err := r.db.
 		Where("user_id = ?", user.ID).
+		Delete(models.Heartbeat{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *HeartbeatRepository) DeleteByUserBefore(user *models.User, t time.Time) error {
+	if err := r.db.
+		Where("user_id = ?", user.ID).
+		Where("time <= ?", t.Local()).
 		Delete(models.Heartbeat{}).Error; err != nil {
 		return err
 	}

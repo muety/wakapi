@@ -42,6 +42,7 @@ type IHeartbeatService interface {
 	GetEntitySetByUser(uint8, *models.User) ([]string, error)
 	DeleteBefore(time.Time) error
 	DeleteByUser(*models.User) error
+	DeleteByUserBefore(*models.User, time.Time) error
 }
 
 type IDiagnosticsService interface {
@@ -89,12 +90,18 @@ type ISummaryService interface {
 	Summarize(time.Time, time.Time, *models.User, *models.Filters) (*models.Summary, error)
 	GetLatestByUser() ([]*models.TimeByUser, error)
 	DeleteByUser(string) error
+	DeleteByUserBefore(string, time.Time) error
 	Insert(*models.Summary) error
 }
 
 type IReportService interface {
 	Schedule()
 	SendReport(*models.User, time.Duration) error
+}
+
+type IHousekeepingService interface {
+	Schedule()
+	ClearOldUserData(*models.User, time.Duration) error
 }
 
 type ILeaderboardService interface {

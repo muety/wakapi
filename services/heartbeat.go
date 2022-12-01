@@ -192,6 +192,11 @@ func (srv *HeartbeatService) DeleteByUser(user *models.User) error {
 	return srv.repository.DeleteByUser(user)
 }
 
+func (srv *HeartbeatService) DeleteByUserBefore(user *models.User, t time.Time) error {
+	go srv.cache.Flush()
+	return srv.repository.DeleteByUserBefore(user, t)
+}
+
 func (srv *HeartbeatService) augmented(heartbeats []*models.Heartbeat, userId string) ([]*models.Heartbeat, error) {
 	languageMapping, err := srv.languageMappingSrvc.ResolveByUser(userId)
 	if err != nil {
