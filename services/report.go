@@ -12,7 +12,7 @@ import (
 )
 
 // delay between evey report generation task (to throttle email sending frequency)
-const reportDelay = 5 * time.Second
+const reportDelay = 10 * time.Second
 
 // past time range to cover in the report
 const reportRange = 7 * 24 * time.Hour
@@ -46,12 +46,20 @@ func NewReportService(summaryService ISummaryService, userService IUserService, 
 func (srv *ReportService) Schedule() {
 	logbuch.Info("scheduling report generation")
 
-	scheduleUserReport := func(u *models.User, index int) {
-		if err := srv.queueWorkers.DispatchIn(func() {
+	scheduleUserReport := func(u *models.User) {
+		if err := srv.queueWorkers.Dispatch(func() {
+			t0 := time.Now()
+
 			if err := srv.SendReport(u, reportRange); err != nil {
 				config.Log().Error("failed to generate report for '%s', %v", u.ID, err)
 			}
-		}, time.Duration(index)*reportDelay); err != nil {
+
+			// make the job take at least reportDelay seconds
+			if diff := reportDelay - time.Now().Sub(t0); diff > 0 {
+				logbuch.Debug("waiting for %v before sending next report", diff)
+				time.Sleep(diff)
+			}
+		}); err != nil {
 			config.Log().Error("failed to dispatch report generation job for user '%s', %v", u.ID, err)
 		}
 	}
@@ -71,8 +79,8 @@ func (srv *ReportService) Schedule() {
 
 		// schedule jobs, throttled by one job per x seconds
 		logbuch.Info("scheduling report generation for %d users", len(users))
-		for i, u := range users {
-			scheduleUserReport(u, i)
+		for _, u := range users {
+			scheduleUserReport(u)
 		}
 	}, srv.config.App.GetWeeklyReportCron())
 
