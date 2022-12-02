@@ -13,27 +13,28 @@ func init() {
 }
 
 type User struct {
-	ID                string     `json:"id" gorm:"primary_key"`
-	ApiKey            string     `json:"api_key" gorm:"unique; default:NULL"`
-	Email             string     `json:"email" gorm:"index:idx_user_email; size:255"`
-	Location          string     `json:"location"`
-	Password          string     `json:"-"`
-	CreatedAt         CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
-	LastLoggedInAt    CustomTime `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
-	ShareDataMaxDays  int        `json:"-"`
-	ShareEditors      bool       `json:"-" gorm:"default:false; type:bool"`
-	ShareLanguages    bool       `json:"-" gorm:"default:false; type:bool"`
-	ShareProjects     bool       `json:"-" gorm:"default:false; type:bool"`
-	ShareOSs          bool       `json:"-" gorm:"default:false; type:bool; column:share_oss"`
-	ShareMachines     bool       `json:"-" gorm:"default:false; type:bool"`
-	ShareLabels       bool       `json:"-" gorm:"default:false; type:bool"`
-	IsAdmin           bool       `json:"-" gorm:"default:false; type:bool"`
-	HasData           bool       `json:"-" gorm:"default:false; type:bool"`
-	WakatimeApiKey    string     `json:"-"` // for relay middleware and imports
-	WakatimeApiUrl    string     `json:"-"` // for relay middleware and imports
-	ResetToken        string     `json:"-"`
-	ReportsWeekly     bool       `json:"-" gorm:"default:false; type:bool"`
-	PublicLeaderboard bool       `json:"-" gorm:"default:false; type:bool"`
+	ID                string      `json:"id" gorm:"primary_key"`
+	ApiKey            string      `json:"api_key" gorm:"unique; default:NULL"`
+	Email             string      `json:"email" gorm:"index:idx_user_email; size:255"`
+	Location          string      `json:"location"`
+	Password          string      `json:"-"`
+	CreatedAt         CustomTime  `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	LastLoggedInAt    CustomTime  `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	ShareDataMaxDays  int         `json:"-"`
+	ShareEditors      bool        `json:"-" gorm:"default:false; type:bool"`
+	ShareLanguages    bool        `json:"-" gorm:"default:false; type:bool"`
+	ShareProjects     bool        `json:"-" gorm:"default:false; type:bool"`
+	ShareOSs          bool        `json:"-" gorm:"default:false; type:bool; column:share_oss"`
+	ShareMachines     bool        `json:"-" gorm:"default:false; type:bool"`
+	ShareLabels       bool        `json:"-" gorm:"default:false; type:bool"`
+	IsAdmin           bool        `json:"-" gorm:"default:false; type:bool"`
+	HasData           bool        `json:"-" gorm:"default:false; type:bool"`
+	WakatimeApiKey    string      `json:"-"` // for relay middleware and imports
+	WakatimeApiUrl    string      `json:"-"` // for relay middleware and imports
+	ResetToken        string      `json:"-"`
+	ReportsWeekly     bool        `json:"-" gorm:"default:false; type:bool"`
+	PublicLeaderboard bool        `json:"-" gorm:"default:false; type:bool"`
+	SubscribedUntil   *CustomTime `json:"-" gorm:"type:timestamp" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 }
 
 type Login struct {

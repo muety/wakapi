@@ -122,6 +122,10 @@ type serverConfig struct {
 	TlsKeyPath   string `yaml:"tls_key_path" default:"" env:"WAKAPI_TLS_KEY_PATH"`
 }
 
+type subscriptionsConfig struct {
+	Enabled bool `yaml:"enabled" default:"false" env:"WAKAPI_SUBSCRIPTIONS_ENABLED"`
+}
+
 type sentryConfig struct {
 	Dsn                  string  `env:"WAKAPI_SENTRY_DSN"`
 	EnableTracing        bool    `yaml:"enable_tracing" env:"WAKAPI_SENTRY_TRACING"`
@@ -161,6 +165,7 @@ type Config struct {
 	Security       securityConfig
 	Db             dbConfig
 	Server         serverConfig
+	Subscriptions  subscriptionsConfig
 	Sentry         sentryConfig
 	Mail           mailConfig
 }
