@@ -23,16 +23,8 @@ function TimePicker({ fromDate, toDate, timeSelection }) {
             })
 
             const query = new URLSearchParams(window.location.search)
-            const cookies = new URLSearchParams(document.cookie.replaceAll('; ', '&'))
-
-            let interval = undefined;
-            if (query.has('interval'))
-                interval = query.get('interval')
-            else if (cookies.has('wakapi_summary_interval'))
-                interval = cookies.get('wakapi_summary_interval')
-
-            if (interval) {
-                const refEl = document.getElementById(`time-option-${interval}`)
+            if (query.has('interval')) {
+                const refEl = document.getElementById(`time-option-${query.get('interval')}`)
                 this.timeSelection = refEl ? refEl.innerText : 'Unknown'
             }
         }
