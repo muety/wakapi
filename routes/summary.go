@@ -5,10 +5,12 @@ import (
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
+	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
 	su "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
+	"fmt"
 	"net/http"
 )
 
@@ -44,8 +46,18 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	rawQuery := r.URL.RawQuery
 	q := r.URL.Query()
 	if q.Get("interval") == "" && q.Get("from") == "" {
+		// If the PersistentIntervalKey cookie is set, redirect to the correct summary page
+		if intervalCookie, _ := r.Cookie(models.PersistentIntervalKey); intervalCookie != nil {
+			redirectAddress := fmt.Sprintf("%s/summary?interval=%s", h.config.Server.BasePath, intervalCookie.Value)
+			http.Redirect(w, r, redirectAddress, http.StatusFound)
+		}
+
 		q.Set("interval", "today")
 		r.URL.RawQuery = q.Encode()
+	} else if q.Get("interval") != "" {
+		// Send a Set-Cookie header to persist the interval
+		headerValue := fmt.Sprintf("%s=%s", models.PersistentIntervalKey, q.Get("interval"))
+		w.Header().Add("Set-Cookie", headerValue)
 	}
 
 	summaryParams, _ := helpers.ParseSummaryParams(r)
