@@ -5,6 +5,7 @@ wakapi
 build
 *.exe
 *.db
+*.zip
 config*.yml
 !config.default.yml
 !testing/config.testing.yml
