@@ -321,7 +321,7 @@ func listen(handler http.Handler) {
 	}
 
 	// UNIX domain socket
-	if config.Server.ListenSocket != "" {
+	if config.Server.ListenSocket != "-" && config.Server.ListenSocket != "" {
 		// Remove if exists
 		if _, err := os.Stat(config.Server.ListenSocket); err == nil {
 			logbuch.Info("--> Removing unix socket %s", config.Server.ListenSocket)

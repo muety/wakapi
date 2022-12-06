@@ -109,7 +109,7 @@ $ ./wakapi -config wakapi.yml
 
 **Note:** Check the comments in `config.yml` for best practices regarding security configuration and more.
 
-💡 When running Wakapi standalone (without Docker), it is recommended to run it as a [SystemD service](etc/wakapi.service). 
+💡 When running Wakapi standalone (without Docker), it is recommended to run it as a [SystemD service](etc/wakapi.service).
 
 ### 💻 Client setup
 
@@ -161,6 +161,7 @@ You can specify configuration options either via a config file (default: `config
 | `security.expose_metrics` /<br> `WAKAPI_EXPOSE_METRICS`                      | `false`                                          | Whether to expose Prometheus metrics under `/api/metrics`                                                                                                                |
 | `db.host` /<br> `WAKAPI_DB_HOST`                                             | -                                                | Database host                                                                                                                                                            |
 | `db.port` /<br> `WAKAPI_DB_PORT`                                             | -                                                | Database port                                                                                                                                                            |
+| `db.socket` /<br> `WAKAPI_DB_SOCKET`                                         | -                                                | Database UNIX socket (alternative to `host`) (for MySQL only)                                                                                                            |
 | `db.user` /<br> `WAKAPI_DB_USER`                                             | -                                                | Database user                                                                                                                                                            |
 | `db.password` /<br> `WAKAPI_DB_PASSWORD`                                     | -                                                | Database password                                                                                                                                                        |
 | `db.name` /<br> `WAKAPI_DB_NAME`                                             | `wakapi_db.db`                                   | Database name                                                                                                                                                            |

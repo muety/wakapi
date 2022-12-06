@@ -36,6 +36,7 @@ app:
 db:
   host:                               # leave blank when using sqlite3
   port:                               # leave blank when using sqlite3
+  socket:                             # alternative to db.host (leave blank when using sqlite3)
   user:                               # leave blank when using sqlite3
   password:                           # leave blank when using sqlite3
   name: wakapi_db.db                  # database name for mysql / postgres or file path for sqlite (e.g. /tmp/wakapi.db)
