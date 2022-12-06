@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/muety/wakapi/utils"
-	"github.com/robfig/cron/v3"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -13,6 +11,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/muety/wakapi/utils"
+	"github.com/robfig/cron/v3"
 
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/securecookie"
@@ -451,7 +452,7 @@ func Load(version string) *Config {
 	}
 
 	// some validation checks
-	if config.Server.ListenIpV4 == "" && config.Server.ListenIpV6 == "" && config.Server.ListenSocket == "" {
+	if config.Server.ListenIpV4 == "-" && config.Server.ListenIpV6 == "-" && config.Server.ListenSocket == "" {
 		logbuch.Fatal("either of listen_ipv4 or listen_ipv6 or listen_socket must be set")
 	}
 	if config.Db.MaxConn <= 0 {

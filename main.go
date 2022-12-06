@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"github.com/muety/wakapi/static/docs"
 	"io/fs"
 	"log"
 	"net"
@@ -11,11 +10,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/muety/wakapi/static/docs"
+
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/lpar/gzipped/v2"
-	"github.com/swaggo/http-swagger"
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -298,7 +299,7 @@ func listen(handler http.Handler) {
 	var s4, s6, sSocket *http.Server
 
 	// IPv4
-	if config.Server.ListenIpV4 != "" {
+	if config.Server.ListenIpV4 != "-" {
 		bindString4 := config.Server.ListenIpV4 + ":" + strconv.Itoa(config.Server.Port)
 		s4 = &http.Server{
 			Handler:      handler,
@@ -309,7 +310,7 @@ func listen(handler http.Handler) {
 	}
 
 	// IPv6
-	if config.Server.ListenIpV6 != "" {
+	if config.Server.ListenIpV6 != "-" {
 		bindString6 := "[" + config.Server.ListenIpV6 + "]:" + strconv.Itoa(config.Server.Port)
 		s6 = &http.Server{
 			Handler:      handler,
