@@ -299,7 +299,7 @@ func listen(handler http.Handler) {
 	var s4, s6, sSocket *http.Server
 
 	// IPv4
-	if config.Server.ListenIpV4 != "-" {
+	if config.Server.ListenIpV4 != "-" && config.Server.ListenIpV4 != "" {
 		bindString4 := config.Server.ListenIpV4 + ":" + strconv.Itoa(config.Server.Port)
 		s4 = &http.Server{
 			Handler:      handler,
@@ -310,7 +310,7 @@ func listen(handler http.Handler) {
 	}
 
 	// IPv6
-	if config.Server.ListenIpV6 != "-" {
+	if config.Server.ListenIpV6 != "-" && config.Server.ListenIpV6 != "" {
 		bindString6 := "[" + config.Server.ListenIpV6 + "]:" + strconv.Itoa(config.Server.Port)
 		s6 = &http.Server{
 			Handler:      handler,
