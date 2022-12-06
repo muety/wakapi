@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -377,13 +376,6 @@ func readColors() map[string]map[string]string {
 	return colors
 }
 
-func mustReadConfigLocation() string {
-	if _, err := os.Stat(*cFlag); err != nil {
-		logbuch.Fatal("failed to find config file at '%s'", *cFlag)
-	}
-	return *cFlag
-}
-
 func resolveDbDialect(dbType string) string {
 	if dbType == "cockroach" {
 		return "postgres"
@@ -410,7 +402,7 @@ func Load(version string) *Config {
 
 	flag.Parse()
 
-	if err := configor.New(&configor.Config{}).Load(config, mustReadConfigLocation()); err != nil {
+	if err := configor.New(&configor.Config{}).Load(config, *cFlag); err != nil {
 		logbuch.Fatal("failed to read config: %v", err)
 	}
 
