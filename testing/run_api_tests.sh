@@ -1,11 +1,19 @@
 #!/bin/bash
-set -e
 
 if ! command -v newman &> /dev/null
 then
     echo "Newman could not be found. Run 'npm install -g newman' first."
     exit 1
 fi
+
+for i in "$@"; do
+    case $i in
+        --migration)
+            MIGRATION=1
+            shift
+            ;;
+    esac
+done
 
 script_path=$(realpath "${BASH_SOURCE[0]}")
 script_dir=$(dirname "$script_path")
@@ -16,13 +24,14 @@ echo "Compiling."
 cd "$script_dir" || exit 1
 
 # Download previous release (when upgrade testing)
-INITIAL_RUN_EXE="../wakapi"
-if [[ "$2" == "y" ]]; then
+initial_run_exe="../wakapi"
+if [[ $MIGRATION -eq 1 ]]; then
     if [ ! -f wakapi_linux_amd64.zip ]; then
+        echo "Downloading latest release"
         curl https://github.com/muety/wakapi/releases/latest/download/wakapi_linux_amd64.zip -O -L
     fi
     unzip -o wakapi_linux_amd64.zip
-    INITIAL_RUN_EXE="./wakapi"
+    initial_run_exe="./wakapi"
     echo "Running tests with release version"
 fi
 
@@ -37,7 +46,7 @@ case $1 in
     echo "Importing seed data ..."
     sqlite3 wakapi_testing.db < data.sql
 
-    CONFIG="config.testing.yml"
+    config="config.testing.yml"
     ;;
 esac
 
@@ -54,13 +63,15 @@ wait_for_wakapi () {
         sleep 1
         counter=$((counter+1))
     done
+    sleep 1
     printf "\n"
 }
 
 # Run tests
 echo "Running Wakapi testing instance in background ..."
-"$INITIAL_RUN_EXE" -config "$CONFIG" &
+"$initial_run_exe" -config "$config" &
 pid=$!
+wait_for_wakapi
 
 echo "Running test collection ..."
 newman run "wakapi_api_tests.postman_collection.json"
@@ -70,9 +81,9 @@ echo "Shutting down Wakapi ..."
 kill -TERM $pid
 
 # Run upgrade tests
-if [[ "$2" == "y" ]]; then
-    echo "Now running migrations with build"
-    ../wakapi -config "$CONFIG" &
+if [[ $MIGRATION -eq 1 ]]; then
+    echo "Running migrations with build"
+    ../wakapi -config "$config" &
     pid=$!
 
     wait_for_wakapi

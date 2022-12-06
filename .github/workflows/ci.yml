@@ -117,4 +117,4 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Run sqlite
-      run: ./testing/run_api_tests.sh sqlite y
+      run: ./testing/run_api_tests.sh sqlite --migration
