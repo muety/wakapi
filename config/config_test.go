@@ -2,8 +2,9 @@ package config
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestConfig_IsDev(t *testing.T) {
@@ -32,6 +33,28 @@ func Test_mysqlConnectionString(t *testing.T) {
 		c.Password,
 		c.Host,
 		c.Port,
+		c.Name,
+		"Local",
+	), mysqlConnectionString(c))
+}
+
+func Test_mysqlConnectionStringSocket(t *testing.T) {
+	c := &dbConfig{
+		Socket:   "/var/run/mysql.sock",
+		Port:     9999,
+		User:     "test_user",
+		Password: "test_password",
+		Name:     "test_name",
+		Dialect:  "mysql",
+		Charset:  "utf8mb4",
+		MaxConn:  10,
+	}
+
+	assert.Equal(t, fmt.Sprintf(
+		"%s:%s@unix(%s)/%s?charset=utf8mb4&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
+		c.User,
+		c.Password,
+		c.Socket,
 		c.Name,
 		"Local",
 	), mysqlConnectionString(c))

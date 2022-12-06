@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/muety/wakapi/utils"
-	"github.com/robfig/cron/v3"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -13,6 +11,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/muety/wakapi/utils"
+	"github.com/robfig/cron/v3"
 
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/securecookie"
@@ -96,6 +97,7 @@ type securityConfig struct {
 
 type dbConfig struct {
 	Host                    string `env:"WAKAPI_DB_HOST"`
+	Socket                  string `env:"WAKAPI_DB_SOCKET"`
 	Port                    uint   `env:"WAKAPI_DB_PORT"`
 	User                    string `env:"WAKAPI_DB_USER"`
 	Password                string `env:"WAKAPI_DB_PASSWORD"`
