@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -54,11 +55,16 @@ func (c *dbConfig) GetDialector() gorm.Dialector {
 }
 
 func mysqlConnectionString(config *dbConfig) string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
+	host := fmt.Sprintf("tcp(%s:%d)", config.Host, config.Port)
+
+	if config.Socket != "" {
+		host = fmt.Sprintf("unix(%s)", config.Socket)
+	}
+
+	return fmt.Sprintf("%s:%s@%s/%s?charset=%s&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
 		config.User,
 		config.Password,
-		config.Host,
-		config.Port,
+		host,
 		config.Name,
 		config.Charset,
 		"Local",

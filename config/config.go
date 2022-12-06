@@ -96,6 +96,7 @@ type securityConfig struct {
 
 type dbConfig struct {
 	Host                    string `env:"WAKAPI_DB_HOST"`
+	Socket                  string `env:"WAKAPI_DB_SOCKET"`
 	Port                    uint   `env:"WAKAPI_DB_PORT"`
 	User                    string `env:"WAKAPI_DB_USER"`
 	Password                string `env:"WAKAPI_DB_PASSWORD"`
