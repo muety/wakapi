@@ -34,7 +34,7 @@ type Summary struct {
 	Machines         SummaryItems `json:"machines" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Labels           SummaryItems `json:"labels" gorm:"-"`   // labels are not persisted, but calculated at runtime, i.e. when summary is retrieved
 	Branches         SummaryItems `json:"branches" gorm:"-"` // branches are not persisted, but calculated at runtime in case a project filter is applied
-	NumHeartbeats    int          `json:"-" gorm:"default:0"`
+	NumHeartbeats    int          `json:"-"`
 }
 
 type SummaryItems []*SummaryItem

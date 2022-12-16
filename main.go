@@ -132,13 +132,10 @@ func main() {
 
 	// Connect to database
 	var err error
-	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{Logger: gormLogger})
+	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{Logger: gormLogger}, conf.GetWakapiDBOpts(&config.Db))
 	if err != nil {
 		logbuch.Error(err.Error())
 		logbuch.Fatal("could not open database")
-	}
-	if config.Db.IsSQLite() {
-		db.Exec("PRAGMA foreign_keys = ON;")
 	}
 
 	if config.IsDev() {
