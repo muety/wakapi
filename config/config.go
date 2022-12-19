@@ -123,7 +123,10 @@ type serverConfig struct {
 }
 
 type subscriptionsConfig struct {
-	Enabled bool `yaml:"enabled" default:"false" env:"WAKAPI_SUBSCRIPTIONS_ENABLED"`
+	Enabled         bool   `yaml:"enabled" default:"false" env:"WAKAPI_SUBSCRIPTIONS_ENABLED"`
+	StripeApiKey    string `yaml:"stripe_api_key" env:"WAKAPI_SUBSCRIPTIONS_STRIPE_API_KEY"`
+	StripeSecret    string `yaml:"stripe_secret" env:"WAKAPI_SUBSCRIPTIONS_STRIPE_SECRET"`
+	StandardPriceId string `yaml:"standard_price_id" env:"WAKAPI_SUBSCRIPTIONS_STANDARD_PRICE_ID"`
 }
 
 type sentryConfig struct {

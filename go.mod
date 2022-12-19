@@ -67,6 +67,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20220927061507-ef77025ab5aa // indirect
 	github.com/stretchr/objx v0.4.0 // indirect
+	github.com/stripe/stripe-go/v74 v74.3.0 // indirect
 	github.com/swaggo/files v0.0.0-20220728132757-551d4a08d97a // indirect
 	golang.org/x/image v0.1.0 // indirect
 	golang.org/x/net v0.2.0 // indirect
