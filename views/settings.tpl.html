@@ -49,9 +49,11 @@
             <li class="font-semibold text-2xl" v-bind:class="{ 'text-gray-300': isActive('integrations'), 'hover:text-gray-500': !isActive('integrations') }">
                 <a href="settings#integrations" @click="updateTab">Integrations</a>
             </li>
-            <li class="font-semibold text-2xl" v-bind:class="{ 'text-gray-300': isActive('integrations'), 'hover:text-gray-500': !isActive('subscription') }">
+            {{ if .SubscriptionsEnabled }}
+            <li class="font-semibold text-2xl" v-bind:class="{ 'text-gray-300': isActive('subscription'), 'hover:text-gray-500': !isActive('subscription') }">
                 <a href="settings#subscription" @click="updateTab">Subscription</a>
             </li>
+            {{ end }}
             <li class="font-semibold text-2xl" v-bind:class="{ 'text-gray-300': isActive('danger_zone'), 'hover:text-gray-500': !isActive('danger_zone') }">
                 <a href="settings#danger_zone" @click="updateTab">Danger Zone</a>
             </li>
@@ -605,14 +607,12 @@
                             <div class="flex items-center w-1/3">
                                 <img class="with-url-src"
                                      src="api/badge/{{ .User.ID }}/interval:today?label=today"
-                                     alt="Badge"
-                                />
+                                     alt="Badge"/>
                             </div>
                             <input
                                     class="with-url-value w-2/3 font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed"
                                     value="%s/api/badge/{{ .User.ID }}/interval:today?label=today"
-                                    readonly
-                            >
+                                    readonly>
                         </div>
 
                         <div class="flex space-x-4 mt-4">
@@ -625,22 +625,19 @@
                             <input
                                     class="with-url-value w-2/3 font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed"
                                     value="%s/api/badge/{{ .User.ID }}/{{ .User.ID }}/interval:30_days?label=last 30d"
-                                    readonly
-                            >
+                                    readonly>
                         </div>
 
                         <div class="flex space-x-4 mt-4">
                             <div class="flex items-center w-1/3">
                                 <img class="with-url-src"
                                      src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:30_days&label=last 30d"
-                                     alt="Shields.io badge"
-                                />
+                                     alt="Shields.io badge"/>
                             </div>
                             <input
                                     class="with-url-value w-2/3 font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed"
                                     value="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:30_days&label=last 30d"
-                                    readonly
-                            >
+                                    readonly>
                         </div>
                         {{ end }}
                     </div>
@@ -677,21 +674,23 @@
             </div>
         </div>
 
+        {{ if .SubscriptionsEnabled }}
         <div v-cloak id="subscription" class="tab flex flex-col space-y-4" v-if="isActive('subscription')">
             <div class="w-full lg:w-3/4">
-                <form action="" method="post" class="flex mb-8" id="form-subscription-checkout">
+                <form action="subscription/checkout" method="post" class="flex mb-8" id="form-subscription-checkout">
                     <div class="w-1/2 mr-4 inline-block">
                         <span class="font-semibold text-gray-300">Subscription</span>
                         <span class="block text-sm text-gray-600">
-                            Lorem ipsum dolor sit amet
+                            By default, this Wakapi instance will only store historical coding activity for 12 months. However, if you want to support the project, you can opt for a paid subscription for {{ .SubscriptionPrice }} / month to get unlimited history with no restrictions.
                         </span>
                     </div>
                     <div class="w-1/2 ml-4 flex items-center">
-                        <button type="submit" class="btn-primary ml-1">Subscribe</button>
+                        <button type="submit" class="btn-primary ml-1">Subscribe ({{ .SubscriptionPrice }} / mo)</button>
                     </div>
                 </form>
             </div>
         </div>
+        {{ end }}
 
         <div v-cloak id="danger_zone" class="tab flex flex-col space-y-4" v-if="isActive('danger_zone')">
             <div class="w-full lg:w-3/4">

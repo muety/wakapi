@@ -123,10 +123,12 @@ type serverConfig struct {
 }
 
 type subscriptionsConfig struct {
-	Enabled         bool   `yaml:"enabled" default:"false" env:"WAKAPI_SUBSCRIPTIONS_ENABLED"`
-	StripeApiKey    string `yaml:"stripe_api_key" env:"WAKAPI_SUBSCRIPTIONS_STRIPE_API_KEY"`
-	StripeSecret    string `yaml:"stripe_secret" env:"WAKAPI_SUBSCRIPTIONS_STRIPE_SECRET"`
-	StandardPriceId string `yaml:"standard_price_id" env:"WAKAPI_SUBSCRIPTIONS_STANDARD_PRICE_ID"`
+	Enabled              bool   `yaml:"enabled" default:"false" env:"WAKAPI_SUBSCRIPTIONS_ENABLED"`
+	StripeApiKey         string `yaml:"stripe_api_key" env:"WAKAPI_SUBSCRIPTIONS_STRIPE_API_KEY"`
+	StripeSecretKey      string `yaml:"stripe_secret_key" env:"WAKAPI_SUBSCRIPTIONS_STRIPE_SECRET_KEY"`
+	StripeEndpointSecret string `yaml:"stripe_endpoint_secret" env:"WAKAPI_SUBSCRIPTIONS_STRIPE_ENDPOINT_SECRET"`
+	StandardPriceId      string `yaml:"standard_price_id" env:"WAKAPI_SUBSCRIPTIONS_STANDARD_PRICE_ID"`
+	StandardPrice        string `yaml:"-"`
 }
 
 type sentryConfig struct {
@@ -189,7 +191,7 @@ func (c *Config) createCookie(name, value, path string, maxAge int) *http.Cookie
 		MaxAge:   maxAge,
 		Secure:   !c.Security.InsecureCookies,
 		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteLaxMode,
 	}
 }
 

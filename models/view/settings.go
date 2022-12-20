@@ -3,14 +3,15 @@ package view
 import "github.com/muety/wakapi/models"
 
 type SettingsViewModel struct {
-	User             *models.User
-	LanguageMappings []*models.LanguageMapping
-	Aliases          []*SettingsVMCombinedAlias
-	Labels           []*SettingsVMCombinedLabel
-	Projects         []string
-	ApiKey           string
-	Success          string
-	Error            string
+	User              *models.User
+	LanguageMappings  []*models.LanguageMapping
+	Aliases           []*SettingsVMCombinedAlias
+	Labels            []*SettingsVMCombinedLabel
+	Projects          []string
+	SubscriptionPrice string
+	ApiKey            string
+	Success           string
+	Error             string
 }
 
 type SettingsVMCombinedAlias struct {
@@ -22,6 +23,10 @@ type SettingsVMCombinedAlias struct {
 type SettingsVMCombinedLabel struct {
 	Key    string
 	Values []string
+}
+
+func (s *SettingsViewModel) SubscriptionsEnabled() bool {
+	return s.SubscriptionPrice != ""
 }
 
 func (s *SettingsViewModel) WithSuccess(m string) *SettingsViewModel {

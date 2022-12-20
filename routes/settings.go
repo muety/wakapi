@@ -733,14 +733,21 @@ func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewMode
 		return &view.SettingsViewModel{Error: criticalError}
 	}
 
+	// subscriptions
+	var subscriptionPrice string
+	if h.config.Subscriptions.Enabled {
+		subscriptionPrice = h.config.Subscriptions.StandardPrice
+	}
+
 	return &view.SettingsViewModel{
-		User:             user,
-		LanguageMappings: mappings,
-		Aliases:          combinedAliases,
-		Labels:           combinedLabels,
-		Projects:         projects,
-		ApiKey:           user.ApiKey,
-		Success:          r.URL.Query().Get("success"),
-		Error:            r.URL.Query().Get("error"),
+		User:              user,
+		LanguageMappings:  mappings,
+		Aliases:           combinedAliases,
+		Labels:            combinedLabels,
+		Projects:          projects,
+		ApiKey:            user.ApiKey,
+		SubscriptionPrice: subscriptionPrice,
+		Success:           r.URL.Query().Get("success"),
+		Error:             r.URL.Query().Get("error"),
 	}
 }
