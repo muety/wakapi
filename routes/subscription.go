@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
+	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/stripe/stripe-go/v74"
 	stripePortalSession "github.com/stripe/stripe-go/v74/billingportal/session"
@@ -167,15 +168,25 @@ func (h *SubscriptionHandler) PostWebhook(w http.ResponseWriter, r *http.Request
 	case "customer.subscription.deleted",
 		"customer.subscription.updated",
 		"customer.subscription.created":
-		subscription, customer, err := h.handleParseSubscription(w, r, event)
+		// example payload: https://pastr.de/p/k7bx3alx38b1iawo6amtx09k
+		subscription, customer, err := h.parseSubscriptionEvent(w, r, event)
 		if err != nil {
 			return
 		}
-		logbuch.Info("received stripe subscription event of type '%s' for subscription '%d' (customer '%s' with email '%s').", event.Type, subscription.ID, customer.ID, customer.Email)
-	// TODO: handle
-	// if status == 'active', set active subscription date to current_period_end
-	// if status == 'canceled' or 'unpaid', clear active subscription date, if < now
-	// example payload: https://pastr.de/p/k7bx3alx38b1iawo6amtx09k
+		logbuch.Info("received stripe subscription event of type '%s' for subscription '%s' (customer '%s' with email '%s').", event.Type, subscription.ID, customer.ID, customer.Email)
+
+		user, err := h.userSrvc.GetUserByEmail(customer.Email)
+		if err != nil {
+			conf.Log().Request(r).Error("failed to find user with e-mail '%s' to update their subscription (status '%s')", subscription.Status)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if err := h.handleSubscriptionEvent(subscription, user); err != nil {
+			conf.Log().Request(r).Error("failed to handle subscription event %s (%s) for user %s, %v", event.ID, event.Type, user.ID, err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	default:
 		logbuch.Warn("got stripe event '%s' with no handler defined", event.Type)
 	}
@@ -191,7 +202,33 @@ func (h *SubscriptionHandler) GetCheckoutCancel(w http.ResponseWriter, r *http.R
 	http.Redirect(w, r, fmt.Sprintf("%s/settings#subscription", h.config.Server.BasePath), http.StatusFound)
 }
 
-func (h *SubscriptionHandler) handleParseSubscription(w http.ResponseWriter, r *http.Request, event stripe.Event) (*stripe.Subscription, *stripe.Customer, error) {
+func (h *SubscriptionHandler) handleSubscriptionEvent(subscription *stripe.Subscription, user *models.User) error {
+	switch subscription.Status {
+	case "active":
+		until := models.CustomTime(time.Unix(subscription.CurrentPeriodEnd, 0))
+
+		if user.SubscribedUntil == nil || !user.SubscribedUntil.T().Equal(until.T()) {
+			println(user.SubscribedUntil.T().String())
+			println(until.T().String())
+			user.SubscribedUntil = &until
+			logbuch.Info("user %s got active subscription %s until %v", user.ID, subscription.ID, user.SubscribedUntil)
+		}
+
+		if cancelAt := time.Unix(subscription.CancelAt, 0); !cancelAt.IsZero() {
+			logbuch.Info("user %s chose to cancel subscription %s by %v", user.ID, subscription.ID, cancelAt)
+		}
+	case "canceled", "unpaid":
+		user.SubscribedUntil = nil
+		logbuch.Info("user %s's subscription %s got canceled, because of status update to '%s'", user.ID, subscription.ID, subscription.Status)
+	default:
+		logbuch.Info("got subscription (%s) status update to '%s' for user '%s'", subscription.ID, subscription.Status, user.ID)
+	}
+
+	_, err := h.userSrvc.Update(user)
+	return err
+}
+
+func (h *SubscriptionHandler) parseSubscriptionEvent(w http.ResponseWriter, r *http.Request, event stripe.Event) (*stripe.Subscription, *stripe.Customer, error) {
 	var subscription stripe.Subscription
 	if err := json.Unmarshal(event.Data.Raw, &subscription); err != nil {
 		conf.Log().Request(r).Error("failed to parse stripe webhook payload: %v", err)

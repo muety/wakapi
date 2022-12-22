@@ -677,6 +677,7 @@
         {{ if .SubscriptionsEnabled }}
         <div v-cloak id="subscription" class="tab flex flex-col space-y-4" v-if="isActive('subscription')">
             <div class="w-full lg:w-3/4">
+                {{ if not .User.HasActiveSubscription }}
                 <form action="subscription/checkout" method="post" class="flex mb-8" id="form-subscription-checkout">
                     <div class="w-1/2 mr-4 inline-block">
                         <span class="font-semibold text-gray-300">Subscription</span>
@@ -688,6 +689,19 @@
                         <button type="submit" class="btn-primary ml-1">Subscribe ({{ .SubscriptionPrice }} / mo)</button>
                     </div>
                 </form>
+                {{ else }}
+                <form action="subscription/portal" method="post" class="flex mb-8" id="form-subscription-portal">
+                    <div class="w-1/2 mr-4 inline-block">
+                        <span class="font-semibold text-gray-300">Subscription</span>
+                        <span class="block text-sm text-gray-600">
+                            Congratulations! You have an active subscription until <strong>{{ .User.SubscribedUntil.T | date }}</strong>.
+                        </span>
+                    </div>
+                    <div class="w-1/2 ml-4 flex items-center">
+                        <button type="submit" class="btn-danger ml-1">Cancel subscription</button>
+                    </div>
+                </form>
+                {{ end }}
             </div>
         </div>
         {{ end }}

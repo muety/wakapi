@@ -121,6 +121,10 @@ func (u *User) WakaTimeURL(fallback string) string {
 	return fallback
 }
 
+func (u *User) HasActiveSubscription() bool {
+	return u.SubscribedUntil != nil && u.SubscribedUntil.T().After(time.Now())
+}
+
 func (c *CredentialsReset) IsValid() bool {
 	return ValidatePassword(c.PasswordNew) &&
 		c.PasswordNew == c.PasswordRepeat

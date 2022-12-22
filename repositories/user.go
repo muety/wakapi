@@ -176,6 +176,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"location":            user.Location,
 		"reports_weekly":      user.ReportsWeekly,
 		"public_leaderboard":  user.PublicLeaderboard,
+		"subscribed_until":    user.SubscribedUntil,
 	}
 
 	result := r.db.Model(user).Updates(updateMap)
