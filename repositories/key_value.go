@@ -34,6 +34,17 @@ func (r *KeyValueRepository) GetString(key string) (*models.KeyStringValue, erro
 	return kv, nil
 }
 
+func (r *KeyValueRepository) Search(like string) ([]*models.KeyStringValue, error) {
+	var keyValues []*models.KeyStringValue
+	if err := r.db.Table("key_string_values").
+		Where("`key` like ?", like).
+		Find(&keyValues).
+		Error; err != nil {
+		return nil, err
+	}
+	return keyValues, nil
+}
+
 func (r *KeyValueRepository) PutString(kv *models.KeyStringValue) error {
 	result := r.db.
 		Clauses(clause.OnConflict{

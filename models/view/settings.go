@@ -1,6 +1,9 @@
 package view
 
-import "github.com/muety/wakapi/models"
+import (
+	"github.com/muety/wakapi/models"
+	"time"
+)
 
 type SettingsViewModel struct {
 	User                *models.User
@@ -10,6 +13,7 @@ type SettingsViewModel struct {
 	Projects            []string
 	SubscriptionPrice   string
 	DataRetentionMonths int
+	UserFirstData       time.Time
 	SupportContact      string
 	ApiKey              string
 	Success             string

@@ -33,6 +33,7 @@ const (
 	KeyLatestTotalTime  = "latest_total_time"
 	KeyLatestTotalUsers = "latest_total_users"
 	KeyLastImportImport = "last_import"
+	KeyFirstHeartbeat   = "first_heartbeat"
 	KeyNewsbox          = "newsbox"
 
 	SimpleDateFormat     = "2006-01-02"

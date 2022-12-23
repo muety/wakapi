@@ -22,6 +22,10 @@ func (srv *KeyValueService) GetString(key string) (*models.KeyStringValue, error
 	return srv.repository.GetString(key)
 }
 
+func (srv *KeyValueService) GetByPrefix(prefix string) ([]*models.KeyStringValue, error) {
+	return srv.repository.Search(prefix + "%")
+}
+
 func (srv *KeyValueService) MustGetString(key string) *models.KeyStringValue {
 	kv, err := srv.repository.GetString(key)
 	if err != nil {

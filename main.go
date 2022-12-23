@@ -183,14 +183,14 @@ func main() {
 	reportService = services.NewReportService(summaryService, userService, mailService)
 	diagnosticsService = services.NewDiagnosticsService(diagnosticsRepository)
 	housekeepingService = services.NewHousekeepingService(userService, heartbeatService, summaryService)
-	miscService = services.NewMiscService(userService, summaryService, keyValueService)
+	miscService = services.NewMiscService(userService, heartbeatService, summaryService, keyValueService)
 
 	// Schedule background tasks
 	go aggregationService.Schedule()
 	go leaderboardService.Schedule()
 	go reportService.Schedule()
 	go housekeepingService.Schedule()
-	go miscService.ScheduleCountTotalTime()
+	go miscService.Schedule()
 
 	routes.Init()
 

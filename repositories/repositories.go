@@ -43,6 +43,7 @@ type IKeyValueRepository interface {
 	GetString(string) (*models.KeyStringValue, error)
 	PutString(*models.KeyStringValue) error
 	DeleteString(string) error
+	Search(string) ([]*models.KeyStringValue, error)
 }
 
 type ILanguageMappingRepository interface {

@@ -12,7 +12,7 @@ type IAggregationService interface {
 }
 
 type IMiscService interface {
-	ScheduleCountTotalTime()
+	Schedule()
 	CountTotalTime()
 }
 
@@ -52,6 +52,7 @@ type IDiagnosticsService interface {
 type IKeyValueService interface {
 	GetString(string) (*models.KeyStringValue, error)
 	MustGetString(string) *models.KeyStringValue
+	GetByPrefix(string) ([]*models.KeyStringValue, error)
 	PutString(*models.KeyStringValue) error
 	DeleteString(string) error
 }

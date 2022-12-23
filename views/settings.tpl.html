@@ -701,10 +701,12 @@
                 <br>
                 {{ end }}
 
+                {{ if not .UserFirstData.IsZero }}
                 <span class="block text-sm text-gray-600">
-                    Your currently oldest data point is from <span class="text-gray-300 font-semibold">2022-01-01</span>.
+                    Your currently oldest data point is from <span class="text-gray-300 font-semibold">{{ .UserFirstData | datetime }}</span>.
                 </span>
                 <br>
+                {{ end }}
 
                 <span class="font-semibold text-gray-300">Subscription status:</span>
                 <span class="text-gray-600 ml-1 text-sm">

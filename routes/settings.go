@@ -739,6 +739,13 @@ func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewMode
 		subscriptionPrice = h.config.Subscriptions.StandardPrice
 	}
 
+	// user first data
+	var firstData time.Time
+	firstDataKv := h.keyValueSrvc.MustGetString(fmt.Sprintf("%s_%s", conf.KeyFirstHeartbeat, user.ID))
+	if firstDataKv.Value != "" {
+		firstData, _ = time.Parse(time.RFC822Z, firstDataKv.Value)
+	}
+
 	return &view.SettingsViewModel{
 		User:                user,
 		LanguageMappings:    mappings,
@@ -746,6 +753,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewMode
 		Labels:              combinedLabels,
 		Projects:            projects,
 		ApiKey:              user.ApiKey,
+		UserFirstData:       firstData,
 		SubscriptionPrice:   subscriptionPrice,
 		SupportContact:      h.config.App.SupportContact,
 		DataRetentionMonths: h.config.App.DataRetentionMonths,
