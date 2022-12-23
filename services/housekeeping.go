@@ -48,6 +48,11 @@ func (s *HousekeepingService) Schedule() {
 
 		// schedule jobs
 		for _, u := range users {
+			// don't clean data for subscribed users
+			if s.config.Subscriptions.Enabled && u.HasActiveSubscription() {
+				continue
+			}
+
 			user := *u
 			s.queueWorkers.Dispatch(func() {
 				if err := s.ClearOldUserData(&user, retentionDuration); err != nil {
