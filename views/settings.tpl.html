@@ -79,13 +79,20 @@
                 <div class="flex mb-8">
                     <div class="w-1/2 mr-4 inline-block">
                         <label class="font-semibold text-gray-300" for="email">E-Mail Address</label>
-                        <span class="block text-sm text-gray-600">Optional in general, but required for weekly reports and for resetting your password.</span>
+                        <span class="block text-sm text-gray-600">
+                            Optional in general, but required for weekly reports and for resetting your password.
+                            {{ if .User.HasActiveSubscription }}
+                            You cannot unset or change your e-mail address while you have an active subscription.
+                            {{ end }}
+                        </span>
                     </div>
                     <div class="w-1/2 ml-4">
-                        <input class="input-default"
+                        <input class="input-default {{ if .User.HasActiveSubscription }}cursor-not-allowed{{ end }}"
                                type="email" id="email"
                                name="email" placeholder="Enter your e-mail address"
-                               value="{{ .User.Email }}">
+                               value="{{ .User.Email }}"
+                               {{ if .User.HasActiveSubscription }}disabled{{ end }}
+                        >
                     </div>
                 </div>
 
@@ -719,7 +726,12 @@
 
                 {{ if not .User.HasActiveSubscription }}
                 <form action="subscription/checkout" method="post" class="mt-8 mb-8" id="form-subscription-checkout">
+                    {{ if ne .User.Email "" }}
                     <button type="submit" class="btn-primary mt-4">Subscribe ({{ .SubscriptionPrice }} / mo)</button>
+                    {{ else }}
+                    <button type="submit" class="btn-disabled cursor-pointer mt-4" disabled title="">Subscribe ({{ .SubscriptionPrice }} / mo)</button><br>
+                    <span class="text-xs text-gray-600">You have to provide an e-mail address to purchase a subscription.</span>
+                    {{ end }}
                 </form>
                 {{ else }}
                 <form action="subscription/portal" method="post" class="mt-8 mb-8" id="form-subscription-portal">

@@ -209,8 +209,6 @@ func (h *SubscriptionHandler) handleSubscriptionEvent(subscription *stripe.Subsc
 		until := models.CustomTime(time.Unix(subscription.CurrentPeriodEnd, 0))
 
 		if user.SubscribedUntil == nil || !user.SubscribedUntil.T().Equal(until.T()) {
-			println(user.SubscribedUntil.T().String())
-			println(until.T().String())
 			user.SubscribedUntil = &until
 			logbuch.Info("user %s got active subscription %s until %v", user.ID, subscription.ID, user.SubscribedUntil)
 		}
