@@ -740,14 +740,16 @@ func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewMode
 	}
 
 	return &view.SettingsViewModel{
-		User:              user,
-		LanguageMappings:  mappings,
-		Aliases:           combinedAliases,
-		Labels:            combinedLabels,
-		Projects:          projects,
-		ApiKey:            user.ApiKey,
-		SubscriptionPrice: subscriptionPrice,
-		Success:           r.URL.Query().Get("success"),
-		Error:             r.URL.Query().Get("error"),
+		User:                user,
+		LanguageMappings:    mappings,
+		Aliases:             combinedAliases,
+		Labels:              combinedLabels,
+		Projects:            projects,
+		ApiKey:              user.ApiKey,
+		SubscriptionPrice:   subscriptionPrice,
+		SupportContact:      h.config.App.SupportContact,
+		DataRetentionMonths: h.config.App.DataRetentionMonths,
+		Success:             r.URL.Query().Get("success"),
+		Error:               r.URL.Query().Get("error"),
 	}
 }

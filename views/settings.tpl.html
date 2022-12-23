@@ -555,7 +555,7 @@
 
                 <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
-                        <label class="font-semibold text-gray-300" for="select-timezone">WakaTime</label>
+                        <label class="font-semibold text-gray-300 text-lg" for="select-timezone">WakaTime</label>
                         <span class="block text-sm text-gray-600">
                             You can connect Wakapi with the official WakaTime (or another Wakapi instance, when optionally specifying a custom API URL) in a way that all heartbeats sent to Wakapi are relayed. This way, you can use both services at the same time. To get started, get <a class="link" href="https://wakatime.com/developers#authentication" rel="noopener noreferrer" target="_blank">your API key</a> and paste it here.<br><br>
                             To forward data to another Wakapi instance, use <span class="text-xs font-mono">https://&lt;your-server&gt;/api/compat/wakatime/v1</span> as a URL.<br><br>
@@ -594,7 +594,7 @@
             <div class="w-full lg:w-3/4">
                 <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
-                        <label class="font-semibold text-gray-300" for="select-timezone">Badges</label>
+                        <label class="font-semibold text-gray-300 text-lg" for="select-timezone">Badges</label>
                         <span class="block text-sm text-gray-600">
                             This integration with allows to generate badges for README pages or forums. To enable this feature, you need to grant public, unauthorized access to the respective endpoints. See <a class="link" href="settings#permissions">Permissions</a>. Adapt the URL's <i>label</i> and <i>color</i> parameters for customized badges.<br><br>
                             In addition, there is an endpoint compatible with <a class="link" href="https://shields.io" target="_blank" rel="noreferrer noopener">Shields.IO</a> to allow for even more customization (e.g. different <a class="link" href="https://shields.io/#styles" target="_blank" rel="noreferrer noopener">styles</a>). Only available on public instances, not on localhost.
@@ -651,7 +651,7 @@
             <div class="w-full lg:w-3/4">
                 <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
-                        <label class="font-semibold text-gray-300" for="select-timezone">GitHub Readme Stats</label>
+                        <label class="font-semibold text-gray-300 text-lg" for="select-timezone">GitHub Readme Stats</label>
                         <span class="block text-sm text-gray-600">
                             Wakapi intregrates with <a class="link" href="https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats" target="_blank" rel="noreferrer noopener">GitHub Readme Stats</a> to generate fancy cards for you. To enable this feature, you need to grant public, unauthorized access to the respective endpoints. See <a class="link" href="settings#permissions">Permissions</a>.<br><br>
                             Only available on public instances, not on localhost.
@@ -676,30 +676,52 @@
 
         {{ if .SubscriptionsEnabled }}
         <div v-cloak id="subscription" class="tab flex flex-col space-y-4" v-if="isActive('subscription')">
-            <div class="w-full lg:w-3/4">
+            <div class="w-full lg:w-1/2">
+                <span class="font-semibold text-gray-300 text-lg">Subscription</span>
+                <span class="block text-sm text-gray-600">
+                        By default, this Wakapi instance will only store historical coding activity for {{ .DataRetentionMonths }} months.
+                        However, if you want to support the project, you can opt for a paid subscription for {{ .SubscriptionPrice }} / month to get unlimited history with no restrictions.
+                        You can cancel your subscription at any times!<br>
+                        Read more about the idea of adding paid subscriptions to Wakapi <a class="link" href="https://github.com/muety/wakapi" target="_blank" rel="noopener noreferrer">here</a>.<br>
+                    </span>
+                <br>
+
                 {{ if not .User.HasActiveSubscription }}
-                <form action="subscription/checkout" method="post" class="flex mb-8" id="form-subscription-checkout">
-                    <div class="w-1/2 mr-4 inline-block">
-                        <span class="font-semibold text-gray-300">Subscription</span>
-                        <span class="block text-sm text-gray-600">
-                            By default, this Wakapi instance will only store historical coding activity for 12 months. However, if you want to support the project, you can opt for a paid subscription for {{ .SubscriptionPrice }} / month to get unlimited history with no restrictions.
-                        </span>
-                    </div>
-                    <div class="w-1/2 ml-4 flex items-center">
-                        <button type="submit" class="btn-primary ml-1">Subscribe ({{ .SubscriptionPrice }} / mo)</button>
-                    </div>
+                <span class="font-semibold text-gray-300">How it works</span>
+                <span class="block text-sm text-gray-600">
+                        Without a subscription, your coding activity older than {{ .DataRetentionMonths }} months will get deleted by a routine that is run every day.
+                        If you do have an active subscription at the time of checking, your data is kept.<br>
+                        In other words, for every point in time <span class="text-xs font-mono">X</span>, where you do not currently have an active subscription, all data older than <span class="text-xs font-mono">X - {{ .DataRetentionMonths }}</span> months gets dropped.
+                    </span>
+                <br>
+                <span class="font-semibold text-gray-300">Please note</span>
+                <span class="block text-sm text-gray-600">
+                        If you just purchased a subscription, it might take a moment until it's active. Try refresh this page in a minute. Otherwise, please contact <a class="link" href="mailto:{{ .SupportContact }}">{{ .SupportContact }}</a>.
+                    </span>
+                <br>
+                {{ end }}
+
+                <span class="block text-sm text-gray-600">
+                    Your currently oldest data point is from <span class="text-gray-300 font-semibold">2022-01-01</span>.
+                </span>
+                <br>
+
+                <span class="font-semibold text-gray-300">Subscription status:</span>
+                <span class="text-gray-600 ml-1 text-sm">
+                    {{ if .User.HasActiveSubscription }}
+                    <span class="font-semibold text-green-500 text-base">Active</span> (until {{ .User.SubscribedUntil.T | date }})
+                    {{ else }}
+                    <span class="font-semibold text-red-500 text-base">Inactive</span>
+                    {{ end }}
+                </span>
+
+                {{ if not .User.HasActiveSubscription }}
+                <form action="subscription/checkout" method="post" class="mt-8 mb-8" id="form-subscription-checkout">
+                    <button type="submit" class="btn-primary mt-4">Subscribe ({{ .SubscriptionPrice }} / mo)</button>
                 </form>
                 {{ else }}
-                <form action="subscription/portal" method="post" class="flex mb-8" id="form-subscription-portal">
-                    <div class="w-1/2 mr-4 inline-block">
-                        <span class="font-semibold text-gray-300">Subscription</span>
-                        <span class="block text-sm text-gray-600">
-                            Congratulations! You have an active subscription until <strong>{{ .User.SubscribedUntil.T | date }}</strong>.
-                        </span>
-                    </div>
-                    <div class="w-1/2 ml-4 flex items-center">
-                        <button type="submit" class="btn-danger ml-1">Cancel subscription</button>
-                    </div>
+                <form action="subscription/portal" method="post" class="mt-8 mb-8" id="form-subscription-portal">
+                    <button type="submit" class="btn-danger">Cancel subscription</button>
                 </form>
                 {{ end }}
             </div>

@@ -3,15 +3,17 @@ package view
 import "github.com/muety/wakapi/models"
 
 type SettingsViewModel struct {
-	User              *models.User
-	LanguageMappings  []*models.LanguageMapping
-	Aliases           []*SettingsVMCombinedAlias
-	Labels            []*SettingsVMCombinedLabel
-	Projects          []string
-	SubscriptionPrice string
-	ApiKey            string
-	Success           string
-	Error             string
+	User                *models.User
+	LanguageMappings    []*models.LanguageMapping
+	Aliases             []*SettingsVMCombinedAlias
+	Labels              []*SettingsVMCombinedLabel
+	Projects            []string
+	SubscriptionPrice   string
+	DataRetentionMonths int
+	SupportContact      string
+	ApiKey              string
+	Success             string
+	Error               string
 }
 
 type SettingsVMCombinedAlias struct {

@@ -77,6 +77,7 @@ let icons = [
     'mdi:code-json',
     'mdi:bash',
     'twemoji:frowning-face',
+    'ci:dot-03-m'
 ]
 
 const output = path.normalize(path.join(__dirname, '../static/assets/js/icons.dist.js'))
