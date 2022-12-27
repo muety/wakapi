@@ -7,8 +7,7 @@ services:
       POSTGRES_USER: "wakapi"
       POSTGRES_PASSWORD: "wakapi"
       POSTGRES_DB: "wakapi"
-    ports:
-      - "5432:5432"
+    network_mode: host
     volumes:
       - wakapi-postgres:/var/lib/postgresql/data
 
@@ -19,8 +18,7 @@ services:
       MYSQL_PASSWORD: "wakapi"
       MYSQL_DATABASE: "wakapi"
       MYSQL_ROOT_PASSWORD: example
-    ports:
-      - "3306:3306"
+    network_mode: host
     volumes:
       - wakapi-mysql:/var/lib/mysql
 
@@ -31,8 +29,7 @@ services:
       MARIADB_PASSWORD: "wakapi"
       MARIADB_DATABASE: "wakapi"
       MARIADB_ROOT_PASSWORD: example
-    ports:
-      - "3306:3306"
+    network_mode: host
     volumes:
       - wakapi-mariadb:/var/lib/mysql
 

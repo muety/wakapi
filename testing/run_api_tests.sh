@@ -47,11 +47,20 @@ case $1 in
     else
         config="config.$1.yml"
     fi
-    sleep 5
 
-    if [ "$1" == "mysql" ]; then
-        sleep 10
+    db_port=0
+    if [ "$1" == "postgres" ]; then
+        db_port=5432
+    else
+        db_port=3306
     fi
+
+    for _ in $(seq 0 30); do
+        if netstat -tulpn 2>/dev/null | grep "LISTEN" | tr -s ' ' | cut -d' ' -f4 | grep -E ":$db_port$" > /dev/null; then
+            break
+        fi
+        sleep 1
+    done
     ;;
 
     sqlite|*)
