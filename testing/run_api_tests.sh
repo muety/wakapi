@@ -39,7 +39,7 @@ cleanup() {
         kill -TERM "$pid"
     fi
     if [ "${docker_down-0}" -eq 1 ]; then
-        docker-compose -f "$script_dir/docker-compose.yml" down
+        docker compose -f "$script_dir/docker-compose.yml" down
     fi
 }
 trap cleanup EXIT
@@ -47,11 +47,11 @@ trap cleanup EXIT
 # Initialise test data
 case $1 in
     postgres|mysql|mariadb)
-    docker-compose -f "$script_dir/docker-compose.yml" down
+    docker compose -f "$script_dir/docker-compose.yml" down
     docker volume rm "testing_wakapi-$1"
 
     docker_down=1
-    docker-compose -f "$script_dir/docker-compose.yml" up --wait -d "$1"
+    docker compose -f "$script_dir/docker-compose.yml" up --wait -d "$1"
     if [ "$1" == "mariadb" ]; then
         config="config.mysql.yml"
     else
