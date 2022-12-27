@@ -21,7 +21,7 @@ app:
 
 db:
   host: 127.0.0.1
-  port: 5432
+  port: 55432
   user: wakapi
   password: wakapi
   name: wakapi

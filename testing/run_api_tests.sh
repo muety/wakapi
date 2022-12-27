@@ -34,14 +34,24 @@ if [[ $MIGRATION -eq 1 ]]; then
     echo "Running tests with release version"
 fi
 
+cleanup() {
+    if [ -n "$pid" ] && ps -p "$pid" > /dev/null; then
+        kill -TERM "$pid"
+    fi
+    if [ "${docker_down-0}" -eq 1 ]; then
+        docker-compose -f "$script_dir/docker-compose.yml" down
+    fi
+}
+trap cleanup EXIT
+
 # Initialise test data
 case $1 in
     postgres|mysql|mariadb)
-    docker compose -f "$script_dir/docker-compose.yml" down
+    docker-compose -f "$script_dir/docker-compose.yml" down
     docker volume rm "testing_wakapi-$1"
 
     docker_down=1
-    docker compose -f "$script_dir/docker-compose.yml" up --wait -d "$1"
+    docker-compose -f "$script_dir/docker-compose.yml" up --wait -d "$1"
     if [ "$1" == "mariadb" ]; then
         config="config.mysql.yml"
     else
@@ -50,9 +60,9 @@ case $1 in
 
     db_port=0
     if [ "$1" == "postgres" ]; then
-        db_port=5432
+        db_port=55432
     else
-        db_port=3306
+        db_port=53306
     fi
 
     for _ in $(seq 0 30); do
@@ -120,10 +130,6 @@ if [[ $MIGRATION -eq 1 ]]; then
     wait_for_wakapi
     echo "Shutting down Wakapi ..."
     kill -TERM $pid
-fi
-
-if [ "$docker_down" -eq 1 ]; then
-    docker compose -f "$script_dir/docker-compose.yml" down
 fi
 
 echo "Exiting with status $exit_code"
