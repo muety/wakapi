@@ -132,6 +132,7 @@ func main() {
 
 	// Connect to database
 	var err error
+	logbuch.Info("starting with %s database", config.Db.Dialect)
 	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{Logger: gormLogger}, conf.GetWakapiDBOpts(&config.Db))
 	if err != nil {
 		logbuch.Error(err.Error())
