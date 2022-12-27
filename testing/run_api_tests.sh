@@ -52,10 +52,10 @@ case $1 in
 
     docker_down=1
     docker compose -f "$script_dir/docker-compose.yml" up --wait -d "$1"
+
+    config="config.$1.yml"
     if [ "$1" == "mariadb" ]; then
         config="config.mysql.yml"
-    else
-        config="config.$1.yml"
     fi
 
     db_port=0
