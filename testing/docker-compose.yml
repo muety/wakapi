@@ -1,0 +1,42 @@
+version: '3.7'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: "wakapi"
+      POSTGRES_PASSWORD: "wakapi"
+      POSTGRES_DB: "wakapi"
+    ports:
+      - "5432:5432"
+    volumes:
+      - wakapi-postgres:/var/lib/postgresql/data
+
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_USER: "wakapi"
+      MYSQL_PASSWORD: "wakapi"
+      MYSQL_DATABASE: "wakapi"
+      MYSQL_ROOT_PASSWORD: example
+    ports:
+      - "3306:3306"
+    volumes:
+      - wakapi-mysql:/var/lib/mysql
+
+  mariadb:
+    image: mariadb:10
+    environment:
+      MARIADB_USER: "wakapi"
+      MARIADB_PASSWORD: "wakapi"
+      MARIADB_DATABASE: "wakapi"
+      MARIADB_ROOT_PASSWORD: example
+    ports:
+      - "3306:3306"
+    volumes:
+      - wakapi-mariadb:/var/lib/mysql
+
+volumes:
+  wakapi-postgres: {}
+  wakapi-mysql: {}
+  wakapi-mariadb: {}

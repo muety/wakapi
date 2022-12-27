@@ -10,7 +10,6 @@ for i in "$@"; do
     case $i in
         --migration)
             MIGRATION=1
-            shift
             ;;
     esac
 done
@@ -37,6 +36,24 @@ fi
 
 # Initialise test data
 case $1 in
+    postgres|mysql|mariadb)
+    docker compose -f "$script_dir/docker-compose.yml" down
+    docker volume rm "testing_wakapi-$1"
+
+    docker_down=1
+    docker compose -f "$script_dir/docker-compose.yml" up --wait -d "$1"
+    if [ "$1" == "mariadb" ]; then
+        config="config.mysql.yml"
+    else
+        config="config.$1.yml"
+    fi
+    sleep 5
+
+    if [ "$1" == "mysql" ]; then
+        sleep 10
+    fi
+    ;;
+
     sqlite|*)
     rm -f wakapi_testing.db
 
@@ -46,7 +63,7 @@ case $1 in
     echo "Importing seed data ..."
     sqlite3 wakapi_testing.db < data.sql
 
-    config="config.testing.yml"
+    config="config.sqlite.yml"
     ;;
 esac
 
@@ -69,13 +86,18 @@ wait_for_wakapi () {
 
 # Run tests
 echo "Running Wakapi testing instance in background ..."
+echo "Configuration file: $config"
 "$initial_run_exe" -config "$config" &
 pid=$!
 wait_for_wakapi
 
-echo "Running test collection ..."
-newman run "wakapi_api_tests.postman_collection.json"
-exit_code=$?
+if [ "$1" == "sqlite" ]; then
+    echo "Running test collection ..."
+    newman run "wakapi_api_tests.postman_collection.json"
+    exit_code=$?
+else
+    exit_code=0
+fi
 
 echo "Shutting down Wakapi ..."
 kill -TERM $pid
@@ -89,6 +111,10 @@ if [[ $MIGRATION -eq 1 ]]; then
     wait_for_wakapi
     echo "Shutting down Wakapi ..."
     kill -TERM $pid
+fi
+
+if [ "$docker_down" -eq 1 ]; then
+    docker compose -f "$script_dir/docker-compose.yml" down
 fi
 
 echo "Exiting with status $exit_code"

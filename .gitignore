@@ -8,7 +8,7 @@ build
 *.zip
 config*.yml
 !config.default.yml
-!testing/config.testing.yml
+!testing/config.*.yml
 pkged.go
 package-lock.json
 node_modules
