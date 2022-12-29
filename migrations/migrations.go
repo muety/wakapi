@@ -3,10 +3,13 @@ package migrations
 import (
 	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
 	"sort"
 	"strings"
 )
+
+type gormMigrationFunc func(db *gorm.DB) error
 
 type migrationFunc struct {
 	f    func(db *gorm.DB, cfg *config.Config) error
@@ -19,6 +22,45 @@ var (
 	preMigrations  migrationFuncs
 	postMigrations migrationFuncs
 )
+
+func GetMigrationFunc(cfg *config.Config) gormMigrationFunc {
+	switch cfg.Db.Dialect {
+	default:
+		return func(db *gorm.DB) error {
+			if err := db.AutoMigrate(&models.User{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
+				return err
+			}
+			if err := db.AutoMigrate(&models.KeyStringValue{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
+				return err
+			}
+			if err := db.AutoMigrate(&models.Alias{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
+				return err
+			}
+			if err := db.AutoMigrate(&models.Heartbeat{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
+				return err
+			}
+			if err := db.AutoMigrate(&models.Summary{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
+				return err
+			}
+			if err := db.AutoMigrate(&models.SummaryItem{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
+				return err
+			}
+			if err := db.AutoMigrate(&models.LanguageMapping{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
+				return err
+			}
+			if err := db.AutoMigrate(&models.ProjectLabel{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
+				return err
+			}
+			if err := db.AutoMigrate(&models.Diagnostics{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
+				return err
+			}
+			if err := db.AutoMigrate(&models.LeaderboardItem{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
+				return err
+			}
+			return nil
+		}
+	}
+}
 
 func registerPreMigration(f migrationFunc) {
 	preMigrations = append(preMigrations, f)
@@ -35,7 +77,7 @@ func Run(db *gorm.DB, cfg *config.Config) {
 }
 
 func RunSchemaMigrations(db *gorm.DB, cfg *config.Config) {
-	if err := cfg.GetMigrationFunc(cfg.Db.Dialect)(db); err != nil {
+	if err := GetMigrationFunc(cfg)(db); err != nil {
 		logbuch.Fatal(err.Error())
 	}
 }

@@ -2,6 +2,7 @@ package view
 
 import (
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
 	"strings"
 	"time"
 )
@@ -14,7 +15,7 @@ type LeaderboardViewModel struct {
 	TopKeys       []string
 	UserLanguages map[string][]string
 	ApiKey        string
-	PageParams    *models.PageParams
+	PageParams    *utils.PageParams
 	Success       string
 	Error         string
 }

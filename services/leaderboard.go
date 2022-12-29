@@ -8,6 +8,7 @@ import (
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
+	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
 	"reflect"
 	"strconv"
@@ -147,7 +148,7 @@ func (srv *LeaderboardService) CountUsers() (int64, error) {
 	return count, err
 }
 
-func (srv *LeaderboardService) GetByInterval(interval *models.IntervalKey, pageParams *models.PageParams, resolveUsers bool) (models.Leaderboard, error) {
+func (srv *LeaderboardService) GetByInterval(interval *models.IntervalKey, pageParams *utils.PageParams, resolveUsers bool) (models.Leaderboard, error) {
 	return srv.GetAggregatedByInterval(interval, nil, pageParams, resolveUsers)
 }
 
@@ -155,7 +156,7 @@ func (srv *LeaderboardService) GetByIntervalAndUser(interval *models.IntervalKey
 	return srv.GetAggregatedByIntervalAndUser(interval, userId, nil, resolveUser)
 }
 
-func (srv *LeaderboardService) GetAggregatedByInterval(interval *models.IntervalKey, by *uint8, pageParams *models.PageParams, resolveUsers bool) (models.Leaderboard, error) {
+func (srv *LeaderboardService) GetAggregatedByInterval(interval *models.IntervalKey, by *uint8, pageParams *utils.PageParams, resolveUsers bool) (models.Leaderboard, error) {
 	// check cache
 	cacheKey := srv.getHash(interval, by, "", pageParams)
 	if cacheResult, ok := srv.cache.Get(cacheKey); ok {
@@ -259,7 +260,7 @@ func (srv *LeaderboardService) GenerateAggregatedByUser(user *models.User, inter
 	return items, nil
 }
 
-func (srv *LeaderboardService) getHash(interval *models.IntervalKey, by *uint8, user string, pageParams *models.PageParams) string {
+func (srv *LeaderboardService) getHash(interval *models.IntervalKey, by *uint8, user string, pageParams *utils.PageParams) string {
 	k := strings.Join(*interval, "__") + "__" + user
 	if by != nil && !reflect.ValueOf(by).IsNil() {
 		k += "__" + models.GetEntityColumn(*by)

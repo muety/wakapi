@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
@@ -9,8 +10,6 @@ import (
 	"github.com/muety/wakapi/models/view"
 	su "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/utils"
-	"fmt"
 	"net/http"
 )
 
@@ -80,9 +79,9 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		Summary:        summary,
 		SummaryParams:  summaryParams,
 		User:           user,
-		EditorColors:   utils.FilterColors(h.config.App.GetEditorColors(), summary.Editors),
-		LanguageColors: utils.FilterColors(h.config.App.GetLanguageColors(), summary.Languages),
-		OSColors:       utils.FilterColors(h.config.App.GetOSColors(), summary.OperatingSystems),
+		EditorColors:   su.FilterColors(h.config.App.GetEditorColors(), summary.Editors),
+		LanguageColors: su.FilterColors(h.config.App.GetLanguageColors(), summary.Languages),
+		OSColors:       su.FilterColors(h.config.App.GetOSColors(), summary.OperatingSystems),
 		ApiKey:         user.ApiKey,
 		RawQuery:       rawQuery,
 	}

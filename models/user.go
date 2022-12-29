@@ -3,6 +3,7 @@ package models
 import (
 	"crypto/md5"
 	"fmt"
+	conf "github.com/muety/wakapi/config"
 	"regexp"
 	"strings"
 	"time"
@@ -83,6 +84,10 @@ type CountByUser struct {
 	Count int64
 }
 
+func (u *User) Identity() string {
+	return u.ID
+}
+
 func (u *User) TZ() *time.Location {
 	if u.Location == "" {
 		u.Location = "Local"
@@ -123,6 +128,15 @@ func (u *User) WakaTimeURL(fallback string) string {
 
 func (u *User) HasActiveSubscription() bool {
 	return u.SubscribedUntil != nil && u.SubscribedUntil.T().After(time.Now())
+}
+
+func (u *User) MinDataAge() time.Time {
+	retentionMonths := conf.Get().App.DataRetentionMonths
+	if retentionMonths <= 0 || u.HasActiveSubscription() {
+		return time.Time{}
+	}
+	// this is not exactly precise, because of summer / winter time, etc.
+	return time.Now().AddDate(0, -retentionMonths, 0)
 }
 
 func (c *CredentialsReset) IsValid() bool {

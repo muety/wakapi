@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gorm.io/gorm"
 	"strconv"
 	"strings"
 	"time"
@@ -17,8 +16,6 @@ const (
 	AuthCookieKey         = "wakapi_auth"
 	PersistentIntervalKey = "wakapi_summary_interval"
 )
-
-type MigrationFunc func(db *gorm.DB) error
 
 type KeyStringValue struct {
 	Key   string `gorm:"primary_key"`
@@ -33,11 +30,6 @@ type Interval struct {
 type KeyedInterval struct {
 	Interval
 	Key *IntervalKey
-}
-
-type PageParams struct {
-	Page     int `json:"page"`
-	PageSize int `json:"page_size"`
 }
 
 // CustomTime is a wrapper type around time.Time, mainly used for the purpose of transparently unmarshalling Python timestamps in the format <sec>.<nsec> (e.g. 1619335137.3324468)
@@ -104,18 +96,4 @@ func (j CustomTime) T() time.Time {
 
 func (j CustomTime) Valid() bool {
 	return j.T().Unix() >= 0
-}
-
-func (p *PageParams) Limit() int {
-	if p.PageSize < 0 {
-		return 0
-	}
-	return p.PageSize
-}
-
-func (p *PageParams) Offset() int {
-	if p.PageSize <= 0 {
-		return 0
-	}
-	return (p.Page - 1) * p.PageSize
 }

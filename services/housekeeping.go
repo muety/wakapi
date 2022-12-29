@@ -35,9 +35,6 @@ func (s *HousekeepingService) Schedule() {
 
 	logbuch.Info("scheduling data cleanup")
 
-	// this is not exactly precise, because of summer / winter time, etc.
-	retentionDuration := time.Now().Sub(time.Now().AddDate(0, -s.config.App.DataRetentionMonths, 0))
-
 	_, err := s.queueDefault.DispatchCron(func() {
 		// fetch all users
 		users, err := s.userSrvc.GetAll()
@@ -53,9 +50,13 @@ func (s *HousekeepingService) Schedule() {
 				continue
 			}
 
+			if u.MinDataAge().IsZero() {
+				continue
+			}
+
 			user := *u
 			s.queueWorkers.Dispatch(func() {
-				if err := s.ClearOldUserData(&user, retentionDuration); err != nil {
+				if err := s.CleanUserDataBefore(&user, u.MinDataAge()); err != nil {
 					config.Log().Error("failed to clear old user data for '%s'", user.ID)
 				}
 			})
@@ -67,8 +68,7 @@ func (s *HousekeepingService) Schedule() {
 	}
 }
 
-func (s *HousekeepingService) ClearOldUserData(user *models.User, maxAge time.Duration) error {
-	before := time.Now().Add(-maxAge)
+func (s *HousekeepingService) CleanUserDataBefore(user *models.User, before time.Time) error {
 	logbuch.Warn("cleaning up user data for '%s' older than %v", user.ID, before)
 
 	// clear old heartbeats

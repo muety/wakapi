@@ -3,7 +3,6 @@ package config
 import (
 	"github.com/emvi/logbuch"
 	"github.com/getsentry/sentry-go"
-	"github.com/muety/wakapi/models"
 	"io"
 	"net/http"
 	"os"
@@ -89,8 +88,8 @@ func (l *SentryWrapperLogger) log(msg string, level sentry.Level) {
 		if h := l.req.Context().Value(sentry.HubContextKey); h != nil {
 			hub := h.(*sentry.Hub)
 			hub.Scope().SetRequest(l.req)
-			if u := getPrincipal(l.req); u != nil {
-				hub.Scope().SetUser(sentry.User{ID: u.ID})
+			if uid := getPrincipal(l.req); uid != "" {
+				hub.Scope().SetUser(sentry.User{ID: uid})
 			}
 			hub.CaptureEvent(event)
 			return
@@ -133,8 +132,8 @@ func initSentry(config sentryConfig, debug bool) {
 		BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
 			if hint.Context != nil {
 				if req, ok := hint.Context.Value(sentry.RequestContextKey).(*http.Request); ok {
-					if u := getPrincipal(req); u != nil {
-						event.User.ID = u.ID
+					if uid := getPrincipal(req); uid != "" {
+						event.User.ID = uid
 					}
 				}
 			}
@@ -145,12 +144,17 @@ func initSentry(config sentryConfig, debug bool) {
 	}
 }
 
-func getPrincipal(r *http.Request) *models.User {
+// returns a user id
+func getPrincipal(r *http.Request) string {
+	type identifiable interface {
+		Identity() string
+	}
 	type principalGetter interface {
-		GetPrincipal() *models.User
+		GetPrincipal() *identifiable
 	}
+
 	if p := r.Context().Value("principal"); p != nil {
-		return p.(principalGetter).GetPrincipal()
+		return (*p.(principalGetter).GetPrincipal()).Identity()
 	}
-	return nil
+	return ""
 }

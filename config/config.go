@@ -18,9 +18,7 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
 	"github.com/muety/wakapi/data"
-	"github.com/muety/wakapi/models"
 	uuid "github.com/satori/go.uuid"
-	"gorm.io/gorm"
 )
 
 const (
@@ -203,45 +201,6 @@ func (c *Config) IsDev() bool {
 
 func (c *Config) UseTLS() bool {
 	return c.Server.TlsCertPath != "" && c.Server.TlsKeyPath != ""
-}
-
-func (c *Config) GetMigrationFunc(dbDialect string) models.MigrationFunc {
-	switch dbDialect {
-	default:
-		return func(db *gorm.DB) error {
-			if err := db.AutoMigrate(&models.User{}); err != nil && !c.Db.AutoMigrateFailSilently {
-				return err
-			}
-			if err := db.AutoMigrate(&models.KeyStringValue{}); err != nil && !c.Db.AutoMigrateFailSilently {
-				return err
-			}
-			if err := db.AutoMigrate(&models.Alias{}); err != nil && !c.Db.AutoMigrateFailSilently {
-				return err
-			}
-			if err := db.AutoMigrate(&models.Heartbeat{}); err != nil && !c.Db.AutoMigrateFailSilently {
-				return err
-			}
-			if err := db.AutoMigrate(&models.Summary{}); err != nil && !c.Db.AutoMigrateFailSilently {
-				return err
-			}
-			if err := db.AutoMigrate(&models.SummaryItem{}); err != nil && !c.Db.AutoMigrateFailSilently {
-				return err
-			}
-			if err := db.AutoMigrate(&models.LanguageMapping{}); err != nil && !c.Db.AutoMigrateFailSilently {
-				return err
-			}
-			if err := db.AutoMigrate(&models.ProjectLabel{}); err != nil && !c.Db.AutoMigrateFailSilently {
-				return err
-			}
-			if err := db.AutoMigrate(&models.Diagnostics{}); err != nil && !c.Db.AutoMigrateFailSilently {
-				return err
-			}
-			if err := db.AutoMigrate(&models.LeaderboardItem{}); err != nil && !c.Db.AutoMigrateFailSilently {
-				return err
-			}
-			return nil
-		}
-	}
 }
 
 func (c *appConfig) GetCustomLanguages() map[string]string {

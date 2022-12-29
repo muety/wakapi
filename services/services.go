@@ -3,6 +3,7 @@ package services
 import (
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
 	"time"
 )
 
@@ -102,7 +103,7 @@ type IReportService interface {
 
 type IHousekeepingService interface {
 	Schedule()
-	ClearOldUserData(*models.User, time.Duration) error
+	CleanUserDataBefore(*models.User, time.Time) error
 }
 
 type ILeaderboardService interface {
@@ -110,9 +111,9 @@ type ILeaderboardService interface {
 	ComputeLeaderboard([]*models.User, *models.IntervalKey, []uint8) error
 	ExistsAnyByUser(string) (bool, error)
 	CountUsers() (int64, error)
-	GetByInterval(*models.IntervalKey, *models.PageParams, bool) (models.Leaderboard, error)
+	GetByInterval(*models.IntervalKey, *utils.PageParams, bool) (models.Leaderboard, error)
 	GetByIntervalAndUser(*models.IntervalKey, string, bool) (models.Leaderboard, error)
-	GetAggregatedByInterval(*models.IntervalKey, *uint8, *models.PageParams, bool) (models.Leaderboard, error)
+	GetAggregatedByInterval(*models.IntervalKey, *uint8, *utils.PageParams, bool) (models.Leaderboard, error)
 	GetAggregatedByIntervalAndUser(*models.IntervalKey, string, *uint8, bool) (models.Leaderboard, error)
 	GenerateByUser(*models.User, *models.IntervalKey) (*models.LeaderboardItem, error)
 	GenerateAggregatedByUser(*models.User, *models.IntervalKey, uint8) ([]*models.LeaderboardItem, error)

@@ -2,7 +2,6 @@ package utils
 
 import (
 	"errors"
-	"github.com/muety/wakapi/models"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -22,6 +21,25 @@ func init() {
 	cacheMaxAgeRe = regexp.MustCompile(cacheMaxAgePattern)
 }
 
+type PageParams struct {
+	Page     int `json:"page"`
+	PageSize int `json:"page_size"`
+}
+
+func (p *PageParams) Limit() int {
+	if p.PageSize < 0 {
+		return 0
+	}
+	return p.PageSize
+}
+
+func (p *PageParams) Offset() int {
+	if p.PageSize <= 0 {
+		return 0
+	}
+	return (p.Page - 1) * p.PageSize
+}
+
 func IsNoCache(r *http.Request, cacheTtl time.Duration) bool {
 	cacheControl := r.Header.Get("cache-control")
 	if strings.Contains(cacheControl, "no-cache") {
@@ -35,8 +53,8 @@ func IsNoCache(r *http.Request, cacheTtl time.Duration) bool {
 	return false
 }
 
-func ParsePageParams(r *http.Request) *models.PageParams {
-	pageParams := &models.PageParams{}
+func ParsePageParams(r *http.Request) *PageParams {
+	pageParams := &PageParams{}
 	page := r.URL.Query().Get("page")
 	pageSize := r.URL.Query().Get("page_size")
 	if p, err := strconv.Atoi(page); err == nil {
@@ -48,7 +66,7 @@ func ParsePageParams(r *http.Request) *models.PageParams {
 	return pageParams
 }
 
-func ParsePageParamsWithDefault(r *http.Request, page, size int) *models.PageParams {
+func ParsePageParamsWithDefault(r *http.Request, page, size int) *PageParams {
 	pageParams := ParsePageParams(r)
 	if pageParams.Page == 0 {
 		pageParams.Page = page

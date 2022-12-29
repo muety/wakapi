@@ -181,7 +181,7 @@ func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Reques
 		return http.StatusBadRequest, "", "invalid parameters"
 	}
 
-	if user.Email == "" && user.HasActiveSubscription() {
+	if user.Email == "" && h.config.Subscriptions.Enabled && user.HasActiveSubscription() {
 		return http.StatusBadRequest, "", "cannot unset email while subscription is active"
 	}
 

@@ -5,6 +5,7 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"net/http"
+	"strings"
 )
 
 func LoadUserSummary(ss services.ISummaryService, r *http.Request) (*models.Summary, error, int) {
@@ -37,4 +38,14 @@ func LoadUserSummaryByParams(ss services.ISummaryService, params *models.Summary
 	summary.ToTime = models.CustomTime(summary.ToTime.T().In(params.User.TZ()))
 
 	return summary, nil, http.StatusOK
+}
+
+func FilterColors(all map[string]string, haystack models.SummaryItems) map[string]string {
+	subset := make(map[string]string)
+	for _, item := range haystack {
+		if c, ok := all[strings.ToLower(item.Key)]; ok {
+			subset[strings.ToLower(item.Key)] = c
+		}
+	}
+	return subset
 }
