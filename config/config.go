@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/robfig/cron/v3"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -11,13 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/muety/wakapi/utils"
-	"github.com/robfig/cron/v3"
-
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
 	"github.com/muety/wakapi/data"
+	"github.com/muety/wakapi/utils"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -28,11 +27,12 @@ const (
 	SQLDialectPostgres = "postgres"
 	SQLDialectSqlite   = "sqlite3"
 
-	KeyLatestTotalTime  = "latest_total_time"
-	KeyLatestTotalUsers = "latest_total_users"
-	KeyLastImportImport = "last_import"
-	KeyFirstHeartbeat   = "first_heartbeat"
-	KeyNewsbox          = "newsbox"
+	KeyLatestTotalTime              = "latest_total_time"
+	KeyLatestTotalUsers             = "latest_total_users"
+	KeyLastImportImport             = "last_import"
+	KeyFirstHeartbeat               = "first_heartbeat"
+	KeySubscriptionNotificationSent = "sub_reminder"
+	KeyNewsbox                      = "newsbox"
 
 	SimpleDateFormat     = "2006-01-02"
 	SimpleDateTimeFormat = "2006-01-02 15:04:05"
@@ -124,6 +124,7 @@ type serverConfig struct {
 
 type subscriptionsConfig struct {
 	Enabled              bool   `yaml:"enabled" default:"false" env:"WAKAPI_SUBSCRIPTIONS_ENABLED"`
+	ExpiryNotifications  bool   `yaml:"expiry_notifications" default:"true" env:"WAKAPI_SUBSCRIPTIONS_EXPIRY_NOTIFICATIONS"`
 	StripeApiKey         string `yaml:"stripe_api_key" env:"WAKAPI_SUBSCRIPTIONS_STRIPE_API_KEY"`
 	StripeSecretKey      string `yaml:"stripe_secret_key" env:"WAKAPI_SUBSCRIPTIONS_STRIPE_SECRET_KEY"`
 	StripeEndpointSecret string `yaml:"stripe_endpoint_secret" env:"WAKAPI_SUBSCRIPTIONS_STRIPE_ENDPOINT_SECRET"`
@@ -412,7 +413,11 @@ func Load(version string) *Config {
 	if config.App.DataRetentionMonths <= 0 {
 		logbuch.Info("disabling data retention policy, keeping data forever")
 	} else {
-		logbuch.Info("data retention policy set to keep data for %d months at max", config.App.DataRetentionMonths)
+		dataRetentionWarning := fmt.Sprintf("⚠️ data retention policy will cause user data older than %d months to be deleted", config.App.DataRetentionMonths)
+		if config.Subscriptions.Enabled {
+			dataRetentionWarning += " (except for users with active subscriptions)"
+		}
+		logbuch.Warn(dataRetentionWarning)
 	}
 
 	// some validation checks

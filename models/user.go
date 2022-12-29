@@ -135,6 +135,22 @@ func (u *User) HasActiveSubscriptionStrict() bool {
 	return u.SubscribedUntil != nil && u.SubscribedUntil.T().After(time.Now())
 }
 
+// SubscriptionExpiredSince returns if a user's subscription has expiration and the duration since when that happened.
+// Returns (false, <negative duration>), if subscription hasn't expired, yet.
+// Returns (false, 0), if subscriptions are not enabled in the first place.
+// Returns (true, <very long duration>), if the user has never had a subscription.
+func (u *User) SubscriptionExpiredSince() (bool, time.Duration) {
+	cfg := conf.Get()
+	if !cfg.Subscriptions.Enabled {
+		return false, 0
+	}
+	if u.SubscribedUntil == nil {
+		return true, 99 * 365 * 24 * time.Hour
+	}
+	diff := time.Now().Sub(u.SubscribedUntil.T())
+	return diff >= 0, diff
+}
+
 func (u *User) MinDataAge() time.Time {
 	retentionMonths := conf.Get().App.DataRetentionMonths
 	if retentionMonths <= 0 || u.HasActiveSubscription() {

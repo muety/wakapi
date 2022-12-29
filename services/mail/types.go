@@ -20,3 +20,9 @@ type WakatimeFailureNotificationNotificationTplData struct {
 type ReportTplData struct {
 	Report *models.Report
 }
+
+type SubscriptionNotificationTplData struct {
+	PublicUrl           string
+	HasExpired          bool
+	DataRetentionMonths int
+}

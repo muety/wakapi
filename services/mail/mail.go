@@ -19,10 +19,12 @@ const (
 	tplNameImportNotification          = "import_finished"
 	tplNameWakatimeFailureNotification = "wakatime_connection_failure"
 	tplNameReport                      = "report"
+	tplNameSubscriptionNotification    = "subscription_expiring"
 	subjectPasswordReset               = "Wakapi - Password Reset"
 	subjectImportNotification          = "Wakapi - Data Import Finished"
 	subjectWakatimeFailureNotification = "Wakapi - WakaTime Connection Failure"
 	subjectReport                      = "Wakapi - Report from %s"
+	subjectSubscriptionNotification    = "Wakapi - Subscription expiring / expired"
 )
 
 type SendingService interface {
@@ -122,6 +124,24 @@ func (m *MailService) SendReport(recipient *models.User, report *models.Report) 
 	return m.sendingService.Send(mail)
 }
 
+func (m *MailService) SendSubscriptionNotification(recipient *models.User, hasExpired bool) error {
+	tpl, err := m.getSubscriptionNotificationTemplate(SubscriptionNotificationTplData{
+		PublicUrl:           m.config.Server.PublicUrl,
+		DataRetentionMonths: m.config.App.DataRetentionMonths,
+		HasExpired:          hasExpired,
+	})
+	if err != nil {
+		return err
+	}
+	mail := &models.Mail{
+		From:    models.MailAddress(m.config.Mail.Sender),
+		To:      models.MailAddresses([]models.MailAddress{models.MailAddress(recipient.Email)}),
+		Subject: subjectSubscriptionNotification,
+	}
+	mail.WithHTML(tpl.String())
+	return m.sendingService.Send(mail)
+}
+
 func (m *MailService) getPasswordResetTemplate(data PasswordResetTplData) (*bytes.Buffer, error) {
 	var rendered bytes.Buffer
 	if err := m.templates[m.fmtName(tplNamePasswordReset)].Execute(&rendered, data); err != nil {
@@ -149,6 +169,14 @@ func (m *MailService) getImportNotificationTemplate(data ImportNotificationTplDa
 func (m *MailService) getReportTemplate(data ReportTplData) (*bytes.Buffer, error) {
 	var rendered bytes.Buffer
 	if err := m.templates[m.fmtName(tplNameReport)].Execute(&rendered, data); err != nil {
+		return nil, err
+	}
+	return &rendered, nil
+}
+
+func (m *MailService) getSubscriptionNotificationTemplate(data SubscriptionNotificationTplData) (*bytes.Buffer, error) {
+	var rendered bytes.Buffer
+	if err := m.templates[m.fmtName(tplNameSubscriptionNotification)].Execute(&rendered, data); err != nil {
 		return nil, err
 	}
 	return &rendered, nil

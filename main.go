@@ -183,7 +183,7 @@ func main() {
 	reportService = services.NewReportService(summaryService, userService, mailService)
 	diagnosticsService = services.NewDiagnosticsService(diagnosticsRepository)
 	housekeepingService = services.NewHousekeepingService(userService, heartbeatService, summaryService)
-	miscService = services.NewMiscService(userService, heartbeatService, summaryService, keyValueService)
+	miscService = services.NewMiscService(userService, heartbeatService, summaryService, keyValueService, mailService)
 
 	// Schedule background tasks
 	go aggregationService.Schedule()
@@ -216,7 +216,7 @@ func main() {
 	// MVC Handlers
 	summaryHandler := routes.NewSummaryHandler(summaryService, userService)
 	settingsHandler := routes.NewSettingsHandler(userService, heartbeatService, summaryService, aliasService, aggregationService, languageMappingService, projectLabelService, keyValueService, mailService)
-	subscriptionHandler := routes.NewSubscriptionHandler(userService, mailService)
+	subscriptionHandler := routes.NewSubscriptionHandler(userService, mailService, keyValueService)
 	leaderboardHandler := routes.NewLeaderboardHandler(userService, leaderboardService)
 	homeHandler := routes.NewHomeHandler(keyValueService)
 	loginHandler := routes.NewLoginHandler(userService, mailService)

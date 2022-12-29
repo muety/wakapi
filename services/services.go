@@ -80,6 +80,7 @@ type IMailService interface {
 	SendWakatimeFailureNotification(*models.User, int) error
 	SendImportNotification(*models.User, time.Duration, int) error
 	SendReport(*models.User, *models.Report) error
+	SendSubscriptionNotification(*models.User, bool) error
 }
 
 type IDurationService interface {

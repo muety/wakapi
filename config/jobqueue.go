@@ -15,6 +15,7 @@ const (
 	QueueDefault      = "wakapi.default"
 	QueueProcessing   = "wakapi.processing"
 	QueueReports      = "wakapi.reports"
+	QueueMails        = "wakapi.mail"
 	QueueImports      = "wakapi.imports"
 	QueueHousekeeping = "wakapi.housekeeping"
 )
@@ -31,6 +32,7 @@ func init() {
 	InitQueue(QueueDefault, 1)
 	InitQueue(QueueProcessing, halfCPUs())
 	InitQueue(QueueReports, 1)
+	InitQueue(QueueMails, 1)
 	InitQueue(QueueImports, 1)
 	InitQueue(QueueHousekeeping, halfCPUs())
 }

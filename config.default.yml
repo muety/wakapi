@@ -1,4 +1,6 @@
 env: production
+quick_start: false                  # whether to skip initial tasks on application startup, like summary generation
+skip_migrations: false              # whether to intentionally not run database migrations, only use for dev purposes
 
 server:
   listen_ipv4: 127.0.0.1              # leave blank to disable ipv4
@@ -44,7 +46,7 @@ db:
   charset: utf8mb4                    # only used for mysql connections
   max_conn: 2                         # maximum number of concurrent connections to maintain
   ssl: false                          # whether to use tls for db connection (must be true for cockroachdb) (ignored for mysql and sqlite)
-  automgirate_fail_silently: false    # whether to ignore schema auto-migration failures when starting up
+  automigrate_fail_silently: false    # whether to ignore schema auto-migration failures when starting up
 
 security:
   password_salt:                      # change this
@@ -59,6 +61,14 @@ sentry:
   enable_tracing: true                # whether to use performance monitoring
   sample_rate: 0.75                   # probability of tracing a request
   sample_rate_heartbeats: 0.1         # probability of tracing a heartbeat request
+
+# only relevant for running wakapi as a hosted service with paid subscriptions and stripe payments
+subscriptions:
+  enabled: false
+  stripe_api_key:
+  stripe_secret_key:
+  stripe_endpoint_secret:
+  standard_price_id:
 
 mail:
   enabled: true                         # whether to enable mails (used for password resets, reports, etc.)
@@ -78,6 +88,3 @@ mail:
     url:
     client_id:
     client_secret:
-
-quick_start: false                  # whether to skip initial tasks on application startup, like summary generation
-skip_migrations: false              # whether to intentionally not run database migrations, only use for dev purposes

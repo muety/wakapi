@@ -23,15 +23,17 @@ import (
 )
 
 type SubscriptionHandler struct {
-	config     *conf.Config
-	userSrvc   services.IUserService
-	mailSrvc   services.IMailService
-	httpClient *http.Client
+	config       *conf.Config
+	userSrvc     services.IUserService
+	mailSrvc     services.IMailService
+	keyValueSrvc services.IKeyValueService
+	httpClient   *http.Client
 }
 
 func NewSubscriptionHandler(
 	userService services.IUserService,
 	mailService services.IMailService,
+	keyValueService services.IKeyValueService,
 ) *SubscriptionHandler {
 	config := conf.Get()
 
@@ -48,10 +50,11 @@ func NewSubscriptionHandler(
 	}
 
 	return &SubscriptionHandler{
-		config:     config,
-		userSrvc:   userService,
-		mailSrvc:   mailService,
-		httpClient: &http.Client{Timeout: 10 * time.Second},
+		config:       config,
+		userSrvc:     userService,
+		mailSrvc:     mailService,
+		keyValueSrvc: keyValueService,
+		httpClient:   &http.Client{Timeout: 10 * time.Second},
 	}
 }
 
@@ -204,11 +207,14 @@ func (h *SubscriptionHandler) GetCheckoutCancel(w http.ResponseWriter, r *http.R
 }
 
 func (h *SubscriptionHandler) handleSubscriptionEvent(subscription *stripe.Subscription, user *models.User) error {
+	var hasSubscribed bool
+
 	switch subscription.Status {
 	case "active":
 		until := models.CustomTime(time.Unix(subscription.CurrentPeriodEnd, 0))
 
 		if user.SubscribedUntil == nil || !user.SubscribedUntil.T().Equal(until.T()) {
+			hasSubscribed = true
 			user.SubscribedUntil = &until
 			logbuch.Info("user %s got active subscription %s until %v", user.ID, subscription.ID, user.SubscribedUntil)
 		}
@@ -224,6 +230,9 @@ func (h *SubscriptionHandler) handleSubscriptionEvent(subscription *stripe.Subsc
 	}
 
 	_, err := h.userSrvc.Update(user)
+	if err == nil && hasSubscribed {
+		go h.clearSubscriptionNotificationStatus(user.ID)
+	}
 	return err
 }
 
@@ -263,5 +272,12 @@ func (h *SubscriptionHandler) findStripeCustomerByEmail(email string) (*stripe.C
 		return results.Customer(), nil
 	} else {
 		return nil, errors.New("no customer found with given criteria")
+	}
+}
+
+func (h *SubscriptionHandler) clearSubscriptionNotificationStatus(userId string) {
+	key := fmt.Sprintf("%s_%s", conf.KeySubscriptionNotificationSent, userId)
+	if err := h.keyValueSrvc.DeleteString(key); err != nil {
+		conf.Log().Error("failed to delete '%s', %v", key, err)
 	}
 }
