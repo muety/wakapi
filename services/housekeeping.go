@@ -45,11 +45,7 @@ func (s *HousekeepingService) Schedule() {
 
 		// schedule jobs
 		for _, u := range users {
-			// don't clean data for subscribed users
-			if s.config.Subscriptions.Enabled && u.HasActiveSubscription() {
-				continue
-			}
-
+			// don't clean data for subscribed users or when they otherwise have unlimited data access
 			if u.MinDataAge().IsZero() {
 				continue
 			}

@@ -116,7 +116,11 @@ func (w *WakatimeHeartbeatImporter) Import(user *models.User, minFrom time.Time,
 		}
 	}
 
-	logbuch.Info("scheduling wakatime import for user '%s'", user.ID)
+	if minDataAge := user.MinDataAge(); minFrom.Before(minDataAge) {
+		logbuch.Info("wakatime data import for user '%s' capped to [%v, &v]", user.ID, minDataAge, maxTo)
+	}
+
+	logbuch.Info("scheduling wakatime import for user '%s' (interval [%v, &v])", user.ID, minFrom, maxTo)
 	if err := w.queue.Dispatch(func() {
 		process(user, minFrom, maxTo, out)
 	}); err != nil {

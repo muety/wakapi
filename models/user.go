@@ -126,7 +126,12 @@ func (u *User) WakaTimeURL(fallback string) string {
 	return fallback
 }
 
+// HasActiveSubscription returns true if subscriptions are enabled on the server and the user has got one
 func (u *User) HasActiveSubscription() bool {
+	return conf.Get().Subscriptions.Enabled && u.HasActiveSubscriptionStrict()
+}
+
+func (u *User) HasActiveSubscriptionStrict() bool {
 	return u.SubscribedUntil != nil && u.SubscribedUntil.T().After(time.Now())
 }
 
