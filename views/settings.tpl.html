@@ -81,9 +81,6 @@
                         <label class="font-semibold text-gray-300" for="email">E-Mail Address</label>
                         <span class="block text-sm text-gray-600">
                             Optional in general, but required for weekly reports and for resetting your password.
-                            {{ if .User.HasActiveSubscription }}
-                            You cannot unset or change your e-mail address while you have an active subscription.
-                            {{ end }}
                         </span>
                     </div>
                     <div class="w-1/2 ml-4">
@@ -91,7 +88,6 @@
                                type="email" id="email"
                                name="email" placeholder="Enter your e-mail address"
                                value="{{ .User.Email }}"
-                               {{ if .User.HasActiveSubscription }}disabled{{ end }}
                         >
                     </div>
                 </div>

@@ -22,6 +22,15 @@ import (
 	"time"
 )
 
+/*
+  How to integrate with Stripe?
+  ---
+  1. Create a plan with recurring payment (https://dashboard.stripe.com/test/products?active=true), copy its ID and save it as 'standard_price_id'
+  2. Create a webhook (https://dashboard.stripe.com/test/webhooks), with target URL '/subscription/webhook' and events ['customer.subscription.created', 'customer.subscription.updated', 'customer.subscription.deleted', 'checkout.session.completed'], copy the endpoint secret and save it to 'stripe_endpoint_secret'
+  3. Create a secret API key (https://dashboard.stripe.com/test/apikeys), copy it and save it to 'stripe_secret_key'
+  4. Copy the publishable API key (https://dashboard.stripe.com/test/apikeys) and save it to 'stripe_api_key'
+*/
+
 type SubscriptionHandler struct {
 	config       *conf.Config
 	userSrvc     services.IUserService
@@ -102,10 +111,15 @@ func (h *SubscriptionHandler) PostCheckout(w http.ResponseWriter, r *http.Reques
 				Quantity: stripe.Int64(1),
 			},
 		},
-		CustomerEmail:     &user.Email,
-		ClientReferenceID: &user.Email,
+		ClientReferenceID: &user.ID,
 		SuccessURL:        stripe.String(fmt.Sprintf("%s%s/subscription/success", h.config.Server.PublicUrl, h.config.Server.BasePath)),
 		CancelURL:         stripe.String(fmt.Sprintf("%s%s/subscription/cancel", h.config.Server.PublicUrl, h.config.Server.BasePath)),
+	}
+
+	if user.StripeCustomerId != "" {
+		checkoutParams.Customer = &user.StripeCustomerId
+	} else {
+		checkoutParams.CustomerEmail = &user.Email
 	}
 
 	session, err := stripeCheckoutSession.New(checkoutParams)
@@ -124,19 +138,13 @@ func (h *SubscriptionHandler) PostPortal(w http.ResponseWriter, r *http.Request)
 	}
 
 	user := middlewares.GetPrincipal(r)
-	if user.Email == "" {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s#subscription", h.config.Server.BasePath, "no subscription found with your e-mail address, please contact us!"), http.StatusFound)
-		return
-	}
-
-	customer, err := h.findStripeCustomerByEmail(user.Email)
-	if err != nil {
+	if user.StripeCustomerId == "" {
 		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s#subscription", h.config.Server.BasePath, "no subscription found with your e-mail address, please contact us!"), http.StatusFound)
 		return
 	}
 
 	portalParams := &stripe.BillingPortalSessionParams{
-		Customer:  &customer.ID,
+		Customer:  &user.StripeCustomerId,
 		ReturnURL: &h.config.Server.PublicUrl,
 	}
 
@@ -173,17 +181,33 @@ func (h *SubscriptionHandler) PostWebhook(w http.ResponseWriter, r *http.Request
 		"customer.subscription.updated",
 		"customer.subscription.created":
 		// example payload: https://pastr.de/p/k7bx3alx38b1iawo6amtx09k
-		subscription, customer, err := h.parseSubscriptionEvent(w, r, event)
+		subscription, err := h.parseSubscriptionEvent(w, r, event)
 		if err != nil {
-			return
-		}
-		logbuch.Info("received stripe subscription event of type '%s' for subscription '%s' (customer '%s' with email '%s').", event.Type, subscription.ID, customer.ID, customer.Email)
-
-		user, err := h.userSrvc.GetUserByEmail(customer.Email)
-		if err != nil {
-			conf.Log().Request(r).Error("failed to find user with e-mail '%s' to update their subscription (status '%s')", subscription.Status)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
+		}
+		logbuch.Info("received stripe subscription event of type '%s' for subscription '%s' (customer '%s').", event.Type, subscription.ID, subscription.Customer.ID)
+
+		// first, try to get user by associated customer id (requires checkout.session.completed event to have been processed before)
+		user, err := h.userSrvc.GetUserByStripeCustomerId(subscription.Customer.ID)
+		if err != nil {
+			conf.Log().Request(r).Warn("failed to find user with stripe customer id '%s' to update their subscription (status '%s')", subscription.Customer.ID, subscription.Status)
+
+			// second, resolve customer and try to get user by email
+			customer, err := stripeCustomer.Get(subscription.Customer.ID, nil)
+			if err != nil {
+				conf.Log().Request(r).Error("failed to fetch stripe customer with id '%s', %v", subscription.Customer.ID, err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			u, err := h.userSrvc.GetUserByEmail(customer.Email)
+			if err != nil {
+				conf.Log().Request(r).Error("failed to get user with email '%s' as stripe customer '%s' for processing event for subscription %s, %v", customer.Email, subscription.Customer.ID, subscription.ID, err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			user = u
 		}
 
 		if err := h.handleSubscriptionEvent(subscription, user); err != nil {
@@ -191,6 +215,34 @@ func (h *SubscriptionHandler) PostWebhook(w http.ResponseWriter, r *http.Request
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+
+	case "checkout.session.completed":
+		// example payload: https://pastr.de/p/d01iniw9naq9hkmvyqtxin2w
+		checkoutSession, err := h.parseCheckoutSessionEvent(w, r, event)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		logbuch.Info("received stripe checkout session event of type '%s' for session '%s' (customer '%s' with email '%s').", event.Type, checkoutSession.ID, checkoutSession.Customer.ID, checkoutSession.CustomerEmail)
+
+		user, err := h.userSrvc.GetUserById(checkoutSession.ClientReferenceID)
+		if err != nil {
+			conf.Log().Request(r).Error("failed to find user with id '%s' to update associated stripe customer (%s)", user.ID, checkoutSession.Customer.ID)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if user.StripeCustomerId == "" {
+			user.StripeCustomerId = checkoutSession.Customer.ID
+			if _, err := h.userSrvc.Update(user); err != nil {
+				conf.Log().Request(r).Error("failed to update stripe customer id (%s) for user '%s', %v", checkoutSession.Customer.ID, user.ID, err)
+			} else {
+				logbuch.Info("associated user '%s' with stripe customer '%s'", user.ID, checkoutSession.Customer.ID)
+			}
+		} else if user.StripeCustomerId != checkoutSession.Customer.ID {
+			conf.Log().Request(r).Error("invalid state: tried to associate user '%s' with stripe customer '%s', but '%s' already assigned", user.ID, checkoutSession.Customer.ID, user.StripeCustomerId)
+		}
+
 	default:
 		logbuch.Warn("got stripe event '%s' with no handler defined", event.Type)
 	}
@@ -219,7 +271,7 @@ func (h *SubscriptionHandler) handleSubscriptionEvent(subscription *stripe.Subsc
 			logbuch.Info("user %s got active subscription %s until %v", user.ID, subscription.ID, user.SubscribedUntil)
 		}
 
-		if cancelAt := time.Unix(subscription.CancelAt, 0); !cancelAt.IsZero() {
+		if cancelAt := time.Unix(subscription.CancelAt, 0); !cancelAt.IsZero() && cancelAt.After(time.Now()) {
 			logbuch.Info("user %s chose to cancel subscription %s by %v", user.ID, subscription.ID, cancelAt)
 		}
 	case "canceled", "unpaid":
@@ -227,6 +279,7 @@ func (h *SubscriptionHandler) handleSubscriptionEvent(subscription *stripe.Subsc
 		logbuch.Info("user %s's subscription %s got canceled, because of status update to '%s'", user.ID, subscription.ID, subscription.Status)
 	default:
 		logbuch.Info("got subscription (%s) status update to '%s' for user '%s'", subscription.ID, subscription.Status, user.ID)
+		return nil
 	}
 
 	_, err := h.userSrvc.Update(user)
@@ -236,24 +289,25 @@ func (h *SubscriptionHandler) handleSubscriptionEvent(subscription *stripe.Subsc
 	return err
 }
 
-func (h *SubscriptionHandler) parseSubscriptionEvent(w http.ResponseWriter, r *http.Request, event stripe.Event) (*stripe.Subscription, *stripe.Customer, error) {
+func (h *SubscriptionHandler) parseSubscriptionEvent(w http.ResponseWriter, r *http.Request, event stripe.Event) (*stripe.Subscription, error) {
 	var subscription stripe.Subscription
 	if err := json.Unmarshal(event.Data.Raw, &subscription); err != nil {
 		conf.Log().Request(r).Error("failed to parse stripe webhook payload: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
-		return nil, nil, err
+		return nil, err
 	}
+	return &subscription, nil
+}
 
-	customer, err := stripeCustomer.Get(subscription.Customer.ID, nil)
-	if err != nil {
-		conf.Log().Request(r).Error("failed to fetch stripe customer (%s): %v", subscription.Customer.ID, err)
+func (h *SubscriptionHandler) parseCheckoutSessionEvent(w http.ResponseWriter, r *http.Request, event stripe.Event) (*stripe.CheckoutSession, error) {
+	var checkoutSession stripe.CheckoutSession
+	if err := json.Unmarshal(event.Data.Raw, &checkoutSession); err != nil {
+		conf.Log().Request(r).Error("failed to parse stripe webhook payload: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
-		return nil, nil, err
+		return nil, err
 	}
 
-	logbuch.Info("associated stripe customer %s with user %s", customer.ID, customer.Email)
-
-	return &subscription, customer, nil
+	return &checkoutSession, nil
 }
 
 func (h *SubscriptionHandler) findStripeCustomerByEmail(email string) (*stripe.Customer, error) {
@@ -278,6 +332,6 @@ func (h *SubscriptionHandler) findStripeCustomerByEmail(email string) (*stripe.C
 func (h *SubscriptionHandler) clearSubscriptionNotificationStatus(userId string) {
 	key := fmt.Sprintf("%s_%s", conf.KeySubscriptionNotificationSent, userId)
 	if err := h.keyValueSrvc.DeleteString(key); err != nil {
-		conf.Log().Error("failed to delete '%s', %v", key, err)
+		logbuch.Warn("failed to delete '%s', %v", key, err)
 	}
 }

@@ -36,6 +36,7 @@ type User struct {
 	ReportsWeekly     bool        `json:"-" gorm:"default:false; type:bool"`
 	PublicLeaderboard bool        `json:"-" gorm:"default:false; type:bool"`
 	SubscribedUntil   *CustomTime `json:"-" gorm:"type:timestamp" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	StripeCustomerId  string      `json:"-"`
 }
 
 type Login struct {

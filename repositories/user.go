@@ -15,9 +15,9 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) GetById(userId string) (*models.User, error) {
+func (r *UserRepository) FindOne(attributes models.User) (*models.User, error) {
 	u := &models.User{}
-	if err := r.db.Where(&models.User{ID: userId}).First(u).Error; err != nil {
+	if err := r.db.Where(&attributes).First(u).Error; err != nil {
 		return u, err
 	}
 	return u, nil
@@ -32,39 +32,6 @@ func (r *UserRepository) GetByIds(userIds []string) ([]*models.User, error) {
 		return nil, err
 	}
 	return users, nil
-}
-
-func (r *UserRepository) GetByApiKey(key string) (*models.User, error) {
-	if key == "" {
-		return nil, errors.New("invalid input")
-	}
-	u := &models.User{}
-	if err := r.db.Where(&models.User{ApiKey: key}).First(u).Error; err != nil {
-		return u, err
-	}
-	return u, nil
-}
-
-func (r *UserRepository) GetByResetToken(resetToken string) (*models.User, error) {
-	if resetToken == "" {
-		return nil, errors.New("invalid input")
-	}
-	u := &models.User{}
-	if err := r.db.Where(&models.User{ResetToken: resetToken}).First(u).Error; err != nil {
-		return u, err
-	}
-	return u, nil
-}
-
-func (r *UserRepository) GetByEmail(email string) (*models.User, error) {
-	if email == "" {
-		return nil, errors.New("invalid input")
-	}
-	u := &models.User{}
-	if err := r.db.Where(&models.User{Email: email}).First(u).Error; err != nil {
-		return u, err
-	}
-	return u, nil
 }
 
 func (r *UserRepository) GetAll() ([]*models.User, error) {
@@ -144,7 +111,7 @@ func (r *UserRepository) Count() (int64, error) {
 }
 
 func (r *UserRepository) InsertOrGet(user *models.User) (*models.User, bool, error) {
-	if u, err := r.GetById(user.ID); err == nil && u != nil && u.ID != "" {
+	if u, err := r.FindOne(models.User{ID: user.ID}); err == nil && u != nil && u.ID != "" {
 		return u, false, nil
 	}
 
@@ -177,6 +144,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"reports_weekly":      user.ReportsWeekly,
 		"public_leaderboard":  user.PublicLeaderboard,
 		"subscribed_until":    user.SubscribedUntil,
+		"stripe_customer_id":  user.StripeCustomerId,
 	}
 
 	result := r.db.Model(user).Updates(updateMap)

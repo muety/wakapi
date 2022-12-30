@@ -62,7 +62,7 @@ func (srv *UserService) GetUserById(userId string) (*models.User, error) {
 		return u.(*models.User), nil
 	}
 
-	u, err := srv.repository.GetById(userId)
+	u, err := srv.repository.FindOne(models.User{ID: userId})
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (srv *UserService) GetUserByKey(key string) (*models.User, error) {
 		return u.(*models.User), nil
 	}
 
-	u, err := srv.repository.GetByApiKey(key)
+	u, err := srv.repository.FindOne(models.User{ApiKey: key})
 	if err != nil {
 		return nil, err
 	}
@@ -86,11 +86,15 @@ func (srv *UserService) GetUserByKey(key string) (*models.User, error) {
 }
 
 func (srv *UserService) GetUserByEmail(email string) (*models.User, error) {
-	return srv.repository.GetByEmail(email)
+	return srv.repository.FindOne(models.User{Email: email})
 }
 
 func (srv *UserService) GetUserByResetToken(resetToken string) (*models.User, error) {
-	return srv.repository.GetByResetToken(resetToken)
+	return srv.repository.FindOne(models.User{ResetToken: resetToken})
+}
+
+func (srv *UserService) GetUserByStripeCustomerId(customerId string) (*models.User, error) {
+	return srv.repository.FindOne(models.User{StripeCustomerId: customerId})
 }
 
 func (srv *UserService) GetAll() ([]*models.User, error) {
