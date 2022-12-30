@@ -52,7 +52,7 @@ func (s *HousekeepingService) Schedule() {
 
 			user := *u
 			s.queueWorkers.Dispatch(func() {
-				if err := s.CleanUserDataBefore(&user, u.MinDataAge()); err != nil {
+				if err := s.CleanUserDataBefore(&user, user.MinDataAge()); err != nil {
 					config.Log().Error("failed to clear old user data for '%s'", user.ID)
 				}
 			})

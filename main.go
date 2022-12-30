@@ -324,7 +324,7 @@ func listen(handler http.Handler) {
 	if config.Server.ListenSocket != "-" && config.Server.ListenSocket != "" {
 		// Remove if exists
 		if _, err := os.Stat(config.Server.ListenSocket); err == nil {
-			logbuch.Info("--> Removing unix socket %s", config.Server.ListenSocket)
+			logbuch.Info("👉 Removing unix socket %s", config.Server.ListenSocket)
 			if err := os.Remove(config.Server.ListenSocket); err != nil {
 				logbuch.Fatal(err.Error())
 			}
@@ -338,7 +338,7 @@ func listen(handler http.Handler) {
 
 	if config.UseTLS() {
 		if s4 != nil {
-			logbuch.Info("--> Listening for HTTPS on %s... ✅", s4.Addr)
+			logbuch.Info("👉 Listening for HTTPS on %s... ✅", s4.Addr)
 			go func() {
 				if err := s4.ListenAndServeTLS(config.Server.TlsCertPath, config.Server.TlsKeyPath); err != nil {
 					logbuch.Fatal(err.Error())
@@ -346,7 +346,7 @@ func listen(handler http.Handler) {
 			}()
 		}
 		if s6 != nil {
-			logbuch.Info("--> Listening for HTTPS on %s... ✅", s6.Addr)
+			logbuch.Info("👉 Listening for HTTPS on %s... ✅", s6.Addr)
 			go func() {
 				if err := s6.ListenAndServeTLS(config.Server.TlsCertPath, config.Server.TlsKeyPath); err != nil {
 					logbuch.Fatal(err.Error())
@@ -354,7 +354,7 @@ func listen(handler http.Handler) {
 			}()
 		}
 		if sSocket != nil {
-			logbuch.Info("--> Listening for HTTPS on %s... ✅", config.Server.ListenSocket)
+			logbuch.Info("👉 Listening for HTTPS on %s... ✅", config.Server.ListenSocket)
 			go func() {
 				unixListener, err := net.Listen("unix", config.Server.ListenSocket)
 				if err != nil {
@@ -367,7 +367,7 @@ func listen(handler http.Handler) {
 		}
 	} else {
 		if s4 != nil {
-			logbuch.Info("--> Listening for HTTP on %s... ✅", s4.Addr)
+			logbuch.Info("👉 Listening for HTTP on %s... ✅", s4.Addr)
 			go func() {
 				if err := s4.ListenAndServe(); err != nil {
 					logbuch.Fatal(err.Error())
@@ -375,7 +375,7 @@ func listen(handler http.Handler) {
 			}()
 		}
 		if s6 != nil {
-			logbuch.Info("--> Listening for HTTP on %s... ✅", s6.Addr)
+			logbuch.Info("👉 Listening for HTTP on %s... ✅", s6.Addr)
 			go func() {
 				if err := s6.ListenAndServe(); err != nil {
 					logbuch.Fatal(err.Error())
@@ -383,7 +383,7 @@ func listen(handler http.Handler) {
 			}()
 		}
 		if sSocket != nil {
-			logbuch.Info("--> Listening for HTTP on %s... ✅", config.Server.ListenSocket)
+			logbuch.Info("👉 Listening for HTTP on %s... ✅", config.Server.ListenSocket)
 			go func() {
 				unixListener, err := net.Listen("unix", config.Server.ListenSocket)
 				if err != nil {
