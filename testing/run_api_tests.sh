@@ -110,7 +110,7 @@ echo "Configuration file: $config"
 pid=$!
 wait_for_wakapi
 
-if [ "$1" == "sqlite" ]; then
+if [ "$1" == "sqlite" ] || [ -z "$1" ]; then
     echo "Running test collection ..."
     newman run "wakapi_api_tests.postman_collection.json"
     exit_code=$?
