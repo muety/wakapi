@@ -68,7 +68,7 @@ func (srv *MiscService) Schedule() {
 
 	if srv.config.Subscriptions.Enabled && srv.config.Subscriptions.ExpiryNotifications && srv.config.App.DataRetentionMonths > 0 {
 		logbuch.Info("scheduling subscription notifications")
-		if _, err := srv.queueDefault.DispatchEvery(srv.ComputeOldestHeartbeats, notifyExpiringSubscriptionsEvery); err != nil {
+		if _, err := srv.queueDefault.DispatchEvery(srv.NotifyExpiringSubscription, notifyExpiringSubscriptionsEvery); err != nil {
 			config.Log().Error("failed to schedule subscription notification jobs, %v", err)
 		}
 	}
@@ -207,7 +207,7 @@ func (srv *MiscService) NotifyExpiringSubscription() {
 
 	for _, u := range users {
 		if u.HasActiveSubscription() && u.Email == "" {
-			config.Log().Warn("invalid state: user '%s' has active subscription but no e-mail address set")
+			config.Log().Warn("invalid state: user '%s' has active subscription but no e-mail address set", u.ID)
 		}
 
 		// skip users without e-mail address

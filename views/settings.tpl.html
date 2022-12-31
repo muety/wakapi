@@ -685,7 +685,8 @@
                         By default, this Wakapi instance will only store historical coding activity for {{ .DataRetentionMonths }} months.
                         However, if you want to support the project, you can opt for a paid subscription for {{ .SubscriptionPrice }} / month to get unlimited history with no restrictions.
                         You can cancel your subscription at any times!<br>
-                        Read more about the idea of adding paid subscriptions to Wakapi <a class="link" href="https://github.com/muety/wakapi" target="_blank" rel="noopener noreferrer">here</a>.<br>
+                        Read more about the idea of adding paid subscriptions to Wakapi <a class="link" href="https://github.com/muety/wakapi" target="_blank" rel="noopener noreferrer">here</a>.
+                        If you are having any issues related to subscriptions, please contact us at <a class="link" href="mailto:{{ .SupportContact }}" target="_blank" rel="noopener noreferrer">{{ .SupportContact }}</a>.<br>
                     </span>
                 <br>
 
@@ -698,9 +699,7 @@
                     </span>
                 <br>
                 <span class="font-semibold text-gray-300">Please note</span>
-                <span class="block text-sm text-gray-600">
-                        If you just purchased a subscription, it might take a moment until it's active. Try refresh this page in a minute. Otherwise, please contact <a class="link" href="mailto:{{ .SupportContact }}">{{ .SupportContact }}</a>.
-                    </span>
+                <span class="block text-sm text-gray-600">If you just purchased a subscription, it might take a moment until it's active. Try refresh this page in a minute. Otherwise, please contact us!.</span>
                 <br>
                 {{ end }}
 
