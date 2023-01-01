@@ -685,7 +685,7 @@
                         By default, this Wakapi instance will only store historical coding activity for {{ .DataRetentionMonths }} months.
                         However, if you want to support the project, you can opt for a paid subscription for {{ .SubscriptionPrice }} / month to get unlimited history with no restrictions.
                         You can cancel your subscription at any times!<br>
-                        Read more about the idea of adding paid subscriptions to Wakapi <a class="link" href="https://github.com/muety/wakapi" target="_blank" rel="noopener noreferrer">here</a>.
+                        Read more about the idea of adding paid subscriptions to Wakapi <a class="link" href="https://github.com/muety/wakapi/discussions/447" target="_blank" rel="noopener noreferrer">here</a>.
                         If you are having any issues related to subscriptions, please contact us at <a class="link" href="mailto:{{ .SupportContact }}" target="_blank" rel="noopener noreferrer">{{ .SupportContact }}</a>.<br>
                     </span>
                 <br>
@@ -693,14 +693,16 @@
                 {{ if not .User.HasActiveSubscription }}
                 <span class="font-semibold text-gray-300">How it works</span>
                 <span class="block text-sm text-gray-600">
-                        Without a subscription, your coding activity older than {{ .DataRetentionMonths }} months will get deleted by a routine that is run every day.
-                        If you do have an active subscription at the time of checking, your data is kept.<br>
-                        In other words, for every point in time <span class="text-xs font-mono">X</span>, where you do not currently have an active subscription, all data older than <span class="text-xs font-mono">X - {{ .DataRetentionMonths }}</span> months gets dropped.
-                    </span>
+                    Without a subscription, your coding activity older than {{ .DataRetentionMonths }} months will get deleted by a routine that is run every day.
+                    If you do have an active subscription at the time of checking, your data is kept.<br>
+                    In other words, for every point in time <span class="text-xs font-mono">X</span>, where you do not currently have an active subscription, all data older than <span class="text-xs font-mono">X - {{ .DataRetentionMonths }}</span> months gets dropped.
+                </span>
                 <br>
                 <span class="font-semibold text-gray-300">Please note</span>
-                <span class="block text-sm text-gray-600">If you just purchased a subscription, it might take a moment until it's active. Try refresh this page in a minute. Otherwise, please contact us!.</span>
+                <span class="block text-sm text-gray-600">If you just purchased a subscription, it might take a moment until it's active. Try refresh this page in a minute. Otherwise, please contact us!</span>
+                <span class="block text-sm text-gray-600">By purchasing a subscription, you agree that your e-mail address, plus all information optionally passed as billing details, will be processed by Stripe, according to their <a href="https://stripe.com/privacy" class="link" target="_blank" rel="noopener noreferrer">privacy policy.</a></span>
                 <br>
+
                 {{ end }}
 
                 {{ if not .UserFirstData.IsZero }}
