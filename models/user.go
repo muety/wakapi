@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/utils"
 	"regexp"
 	"strings"
 	"time"
@@ -190,8 +191,9 @@ func ValidatePassword(password string) bool {
 	return len(password) >= 6
 }
 
+// ValidateEmail checks that, if an email address is given, it has proper syntax and (if not in dev mode) an MX record exists for the domain
 func ValidateEmail(email string) bool {
-	return email == "" || mailRegex.Match([]byte(email))
+	return email == "" || (mailRegex.Match([]byte(email)) && (conf.Get().IsDev() || utils.CheckEmailMX(email)))
 }
 
 func ValidateTimezone(tz string) bool {

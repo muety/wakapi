@@ -178,7 +178,7 @@ func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Reques
 	}
 
 	if !payload.IsValid() {
-		return http.StatusBadRequest, "", "invalid parameters"
+		return http.StatusBadRequest, "", "invalid parameters - perhaps invalid e-mail address?"
 	}
 
 	if payload.Email == "" && user.HasActiveSubscription() {
