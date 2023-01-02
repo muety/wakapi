@@ -39,8 +39,5 @@ func (h *ImprintHandler) GetImprint(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ImprintHandler) buildViewModel(r *http.Request) *view.ImprintViewModel {
-	return &view.ImprintViewModel{
-		Success: r.URL.Query().Get("success"),
-		Error:   r.URL.Query().Get("error"),
-	}
+	return &view.ImprintViewModel{}
 }

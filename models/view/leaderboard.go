@@ -8,6 +8,7 @@ import (
 )
 
 type LeaderboardViewModel struct {
+	Messages
 	User          *models.User
 	By            string
 	Key           string
@@ -16,17 +17,15 @@ type LeaderboardViewModel struct {
 	UserLanguages map[string][]string
 	ApiKey        string
 	PageParams    *utils.PageParams
-	Success       string
-	Error         string
 }
 
 func (s *LeaderboardViewModel) WithSuccess(m string) *LeaderboardViewModel {
-	s.Success = m
+	s.SetSuccess(m)
 	return s
 }
 
 func (s *LeaderboardViewModel) WithError(m string) *LeaderboardViewModel {
-	s.Error = m
+	s.SetError(m)
 	return s
 }
 

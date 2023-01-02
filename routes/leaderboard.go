@@ -9,6 +9,7 @@ import (
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
@@ -38,6 +39,7 @@ func (h *LeaderboardHandler) RegisterRoutes(router *mux.Router) {
 	r.Use(
 		middlewares.NewAuthenticateMiddleware(h.userService).
 			WithRedirectTarget(defaultErrorRedirectTarget()).
+			WithRedirectErrorMessage("unauthorized").
 			WithOptionalFor([]string{"/"}).
 			Handler,
 	)
@@ -48,12 +50,12 @@ func (h *LeaderboardHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
-	if err := templates[conf.LeaderboardTemplate].Execute(w, h.buildViewModel(r)); err != nil {
+	if err := templates[conf.LeaderboardTemplate].Execute(w, h.buildViewModel(r, w)); err != nil {
 		logbuch.Error(err.Error())
 	}
 }
 
-func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardViewModel {
+func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *view.LeaderboardViewModel {
 	user := middlewares.GetPrincipal(r)
 	byParam := strings.ToLower(r.URL.Query().Get("by"))
 	keyParam := strings.ToLower(r.URL.Query().Get("key"))
@@ -71,7 +73,9 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 		leaderboard, err = h.leaderboardService.GetByInterval(models.IntervalPast7Days, pageParams, true)
 		if err != nil {
 			conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
-			return &view.LeaderboardViewModel{Error: criticalError}
+			return &view.LeaderboardViewModel{
+				Messages: view.Messages{Error: criticalError},
+			}
 		}
 
 		// regardless of page, always show own rank
@@ -88,7 +92,9 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 			leaderboard, err = h.leaderboardService.GetAggregatedByInterval(models.IntervalPast7Days, &by, pageParams, true)
 			if err != nil {
 				conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
-				return &view.LeaderboardViewModel{Error: criticalError}
+				return &view.LeaderboardViewModel{
+					Messages: view.Messages{Error: criticalError},
+				}
 			}
 
 			// regardless of page, always show own rank
@@ -120,7 +126,9 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 				leaderboard = leaderboard.TopByKey(by, keyParam)
 			}
 		} else {
-			return &view.LeaderboardViewModel{Error: fmt.Sprintf("unsupported aggregation '%s'", byParam)}
+			return &view.LeaderboardViewModel{
+				Messages: view.Messages{Error: fmt.Sprintf("unsupported aggregation '%s'", byParam)},
+			}
 		}
 	}
 
@@ -129,7 +137,7 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 		apiKey = user.ApiKey
 	}
 
-	return &view.LeaderboardViewModel{
+	vm := &view.LeaderboardViewModel{
 		User:          user,
 		By:            byParam,
 		Key:           keyParam,
@@ -138,7 +146,6 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request) *view.LeaderboardVi
 		TopKeys:       topKeys,
 		ApiKey:        apiKey,
 		PageParams:    pageParams,
-		Success:       r.URL.Query().Get("success"),
-		Error:         r.URL.Query().Get("error"),
 	}
+	return routeutils.WithSessionMessages(vm, r, w)
 }

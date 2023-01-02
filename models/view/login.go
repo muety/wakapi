@@ -1,8 +1,7 @@
 package view
 
 type LoginViewModel struct {
-	Success     string
-	Error       string
+	Messages
 	TotalUsers  int
 	AllowSignup bool
 }
@@ -13,11 +12,11 @@ type SetPasswordViewModel struct {
 }
 
 func (s *LoginViewModel) WithSuccess(m string) *LoginViewModel {
-	s.Success = m
+	s.SetSuccess(m)
 	return s
 }
 
 func (s *LoginViewModel) WithError(m string) *LoginViewModel {
-	s.Error = m
+	s.SetError(m)
 	return s
 }

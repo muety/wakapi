@@ -9,6 +9,7 @@ import (
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"net/http"
 	"strconv"
@@ -46,10 +47,10 @@ func (h *HomeHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templates[conf.IndexTemplate].Execute(w, h.buildViewModel(r))
+	templates[conf.IndexTemplate].Execute(w, h.buildViewModel(r, w))
 }
 
-func (h *HomeHandler) buildViewModel(r *http.Request) *view.HomeViewModel {
+func (h *HomeHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *view.HomeViewModel {
 	var totalHours int
 	var totalUsers int
 	var newsbox view.Newsbox
@@ -72,11 +73,10 @@ func (h *HomeHandler) buildViewModel(r *http.Request) *view.HomeViewModel {
 		}
 	}
 
-	return &view.HomeViewModel{
-		Success:    r.URL.Query().Get("success"),
-		Error:      r.URL.Query().Get("error"),
+	vm := &view.HomeViewModel{
 		TotalHours: totalHours,
 		TotalUsers: totalUsers,
 		Newsbox:    &newsbox,
 	}
+	return routeutils.WithSessionMessages(vm, r, w)
 }

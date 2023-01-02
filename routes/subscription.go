@@ -9,6 +9,7 @@ import (
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/stripe/stripe-go/v74"
 	stripePortalSession "github.com/stripe/stripe-go/v74/billingportal/session"
@@ -81,7 +82,10 @@ func (h *SubscriptionHandler) RegisterRoutes(router *mux.Router) {
 
 	subRouterPrivate := subRouterPublic.PathPrefix("").Subrouter()
 	subRouterPrivate.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).WithRedirectTarget(defaultErrorRedirectTarget()).Handler,
+		middlewares.NewAuthenticateMiddleware(h.userSrvc).
+			WithRedirectTarget(defaultErrorRedirectTarget()).
+			WithRedirectErrorMessage("unauthorized").
+			Handler,
 	)
 	subRouterPrivate.Path("/checkout").Methods(http.MethodPost).HandlerFunc(h.PostCheckout)
 	subRouterPrivate.Path("/portal").Methods(http.MethodPost).HandlerFunc(h.PostPortal)
@@ -94,12 +98,14 @@ func (h *SubscriptionHandler) PostCheckout(w http.ResponseWriter, r *http.Reques
 
 	user := middlewares.GetPrincipal(r)
 	if user.Email == "" {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s#subscription", h.config.Server.BasePath, "missing e-mail address"), http.StatusFound)
+		routeutils.SetError(r, w, "missing e-mail address")
+		http.Redirect(w, r, fmt.Sprintf("%s/settings#subscription", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s#subscription", h.config.Server.BasePath, "missing form values"), http.StatusFound)
+		routeutils.SetError(r, w, "missing form values")
+		http.Redirect(w, r, fmt.Sprintf("%s/settings#subscription", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
 
@@ -125,7 +131,8 @@ func (h *SubscriptionHandler) PostCheckout(w http.ResponseWriter, r *http.Reques
 	session, err := stripeCheckoutSession.New(checkoutParams)
 	if err != nil {
 		conf.Log().Request(r).Error("failed to create stripe checkout session: %v", err)
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s#subscription", h.config.Server.BasePath, "something went wrong"), http.StatusFound)
+		routeutils.SetError(r, w, "something went wrong")
+		http.Redirect(w, r, fmt.Sprintf("%s/settings#subscription", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
 
@@ -139,7 +146,8 @@ func (h *SubscriptionHandler) PostPortal(w http.ResponseWriter, r *http.Request)
 
 	user := middlewares.GetPrincipal(r)
 	if user.StripeCustomerId == "" {
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s#subscription", h.config.Server.BasePath, "no subscription found with your e-mail address, please contact us!"), http.StatusFound)
+		routeutils.SetError(r, w, "no subscription found with your e-mail address, please contact us!")
+		http.Redirect(w, r, fmt.Sprintf("%s/settings#subscription", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
 
@@ -151,7 +159,8 @@ func (h *SubscriptionHandler) PostPortal(w http.ResponseWriter, r *http.Request)
 	session, err := stripePortalSession.New(portalParams)
 	if err != nil {
 		conf.Log().Request(r).Error("failed to create stripe portal session: %v", err)
-		http.Redirect(w, r, fmt.Sprintf("%s/settings?error=%s#subscription", h.config.Server.BasePath, "something went wrong"), http.StatusFound)
+		routeutils.SetError(r, w, "something went wrong")
+		http.Redirect(w, r, fmt.Sprintf("%s/settings#subscription", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
 
@@ -251,7 +260,8 @@ func (h *SubscriptionHandler) PostWebhook(w http.ResponseWriter, r *http.Request
 }
 
 func (h *SubscriptionHandler) GetCheckoutSuccess(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, fmt.Sprintf("%s/settings?success=%s#subscription", h.config.Server.BasePath, "you have successfully subscribed to Wakapi!"), http.StatusFound)
+	routeutils.SetSuccess(r, w, "you have successfully subscribed to Wakapi!")
+	http.Redirect(w, r, fmt.Sprintf("%s/settings", h.config.Server.BasePath), http.StatusFound)
 }
 
 func (h *SubscriptionHandler) GetCheckoutCancel(w http.ResponseWriter, r *http.Request) {

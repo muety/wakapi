@@ -6,19 +6,18 @@ type Newsbox struct {
 }
 
 type HomeViewModel struct {
-	Success    string
-	Error      string
+	Messages
 	TotalHours int
 	TotalUsers int
 	Newsbox    *Newsbox
 }
 
 func (s *HomeViewModel) WithSuccess(m string) *HomeViewModel {
-	s.Success = m
+	s.SetSuccess(m)
 	return s
 }
 
 func (s *HomeViewModel) WithError(m string) *HomeViewModel {
-	s.Error = m
+	s.SetError(m)
 	return s
 }

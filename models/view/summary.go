@@ -3,6 +3,7 @@ package view
 import "github.com/muety/wakapi/models"
 
 type SummaryViewModel struct {
+	Messages
 	*models.Summary
 	*models.SummaryParams
 	User           *models.User
@@ -10,18 +11,16 @@ type SummaryViewModel struct {
 	EditorColors   map[string]string
 	LanguageColors map[string]string
 	OSColors       map[string]string
-	Error          string
-	Success        string
 	ApiKey         string
 	RawQuery       string
 }
 
 func (s *SummaryViewModel) WithSuccess(m string) *SummaryViewModel {
-	s.Success = m
+	s.SetSuccess(m)
 	return s
 }
 
 func (s *SummaryViewModel) WithError(m string) *SummaryViewModel {
-	s.Error = m
+	s.SetError(m)
 	return s
 }

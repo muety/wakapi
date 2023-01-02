@@ -1,18 +1,17 @@
 package view
 
 type ImprintViewModel struct {
+	Messages
 	HtmlText string
-	Success  string
-	Error    string
 }
 
 func (s *ImprintViewModel) WithSuccess(m string) *ImprintViewModel {
-	s.Success = m
+	s.SetSuccess(m)
 	return s
 }
 
 func (s *ImprintViewModel) WithError(m string) *ImprintViewModel {
-	s.Error = m
+	s.SetError(m)
 	return s
 }
 

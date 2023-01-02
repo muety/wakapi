@@ -34,6 +34,8 @@ const (
 	KeySubscriptionNotificationSent = "sub_reminder"
 	KeyNewsbox                      = "newsbox"
 
+	SessionKeyDefault = "default"
+
 	SimpleDateFormat     = "2006-01-02"
 	SimpleDateTimeFormat = "2006-01-02 15:04:05"
 
@@ -92,6 +94,7 @@ type securityConfig struct {
 	InsecureCookies bool                       `yaml:"insecure_cookies" default:"false" env:"WAKAPI_INSECURE_COOKIES"`
 	CookieMaxAgeSec int                        `yaml:"cookie_max_age" default:"172800" env:"WAKAPI_COOKIE_MAX_AGE"`
 	SecureCookie    *securecookie.SecureCookie `yaml:"-"`
+	SessionKey      []byte                     `yaml:"-"`
 }
 
 type dbConfig struct {
@@ -394,6 +397,7 @@ func Load(version string) *Config {
 		securecookie.GenerateRandomKey(64),
 		securecookie.GenerateRandomKey(32),
 	)
+	config.Security.SessionKey = securecookie.GenerateRandomKey(32)
 
 	if strings.HasSuffix(config.Server.BasePath, "/") {
 		config.Server.BasePath = config.Server.BasePath[:len(config.Server.BasePath)-1]

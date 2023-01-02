@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"fmt"
 	"github.com/muety/wakapi/helpers"
 	"html/template"
 	"net/http"
@@ -105,7 +104,7 @@ func loadTemplates() {
 }
 
 func defaultErrorRedirectTarget() string {
-	return fmt.Sprintf("%s/?error=unauthorized", config.Get().Server.BasePath)
+	return config.Get().Server.BasePath + "/"
 }
 
 func add(i, j int) int {

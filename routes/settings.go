@@ -69,7 +69,10 @@ func NewSettingsHandler(
 func (h *SettingsHandler) RegisterRoutes(router *mux.Router) {
 	r := router.PathPrefix("/settings").Subrouter()
 	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).WithRedirectTarget(defaultErrorRedirectTarget()).Handler,
+		middlewares.NewAuthenticateMiddleware(h.userSrvc).
+			WithRedirectTarget(defaultErrorRedirectTarget()).
+			WithRedirectErrorMessage("unauthorized").
+			Handler,
 	)
 	r.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
 	r.Methods(http.MethodPost).HandlerFunc(h.PostIndex)
@@ -79,7 +82,7 @@ func (h *SettingsHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
-	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r))
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w))
 }
 
 func (h *SettingsHandler) PostIndex(w http.ResponseWriter, r *http.Request) {
@@ -89,7 +92,7 @@ func (h *SettingsHandler) PostIndex(w http.ResponseWriter, r *http.Request) {
 
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("missing form values"))
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w).WithError("missing form values"))
 		return
 	}
 
@@ -100,7 +103,7 @@ func (h *SettingsHandler) PostIndex(w http.ResponseWriter, r *http.Request) {
 	if actionFunc == nil {
 		logbuch.Warn("failed to dispatch action '%s'", action)
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError("unknown action requests"))
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w).WithError("unknown action requests"))
 		return
 	}
 
@@ -113,15 +116,15 @@ func (h *SettingsHandler) PostIndex(w http.ResponseWriter, r *http.Request) {
 
 	if errorMsg != "" {
 		w.WriteHeader(status)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithError(errorMsg))
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w).WithError(errorMsg))
 		return
 	}
 	if successMsg != "" {
 		w.WriteHeader(status)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r).WithSuccess(successMsg))
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w).WithSuccess(successMsg))
 		return
 	}
-	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r))
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w))
 }
 
 func (h *SettingsHandler) dispatchAction(action string) action {
@@ -622,8 +625,9 @@ func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Reques
 		}
 	}(user)
 
+	routeutils.SetSuccess(r, w, "Your account will be deleted in a few minutes. Sorry to you go.")
 	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey))
-	http.Redirect(w, r, fmt.Sprintf("%s/?success=%s", h.config.Server.BasePath, "Your account will be deleted in a few minutes. Sorry to you go."), http.StatusFound)
+	http.Redirect(w, r, h.config.Server.BasePath, http.StatusFound)
 	return -1, "", ""
 }
 
@@ -673,7 +677,7 @@ func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
 	return nil
 }
 
-func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewModel {
+func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *view.SettingsViewModel {
 	user := middlewares.GetPrincipal(r)
 
 	// mappings
@@ -683,7 +687,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewMode
 	aliases, err := h.aliasSrvc.GetByUser(user.ID)
 	if err != nil {
 		conf.Log().Request(r).Error("error while building alias map - %v", err)
-		return &view.SettingsViewModel{Error: criticalError}
+		return &view.SettingsViewModel{Messages: view.Messages{Error: criticalError}}
 	}
 	aliasMap := make(map[string][]*models.Alias)
 	for _, a := range aliases {
@@ -712,7 +716,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewMode
 	labelMap, err := h.projectLabelSrvc.GetByUserGroupedInverted(user.ID)
 	if err != nil {
 		conf.Log().Request(r).Error("error while building settings project label map - %v", err)
-		return &view.SettingsViewModel{Error: criticalError}
+		return &view.SettingsViewModel{Messages: view.Messages{Error: criticalError}}
 	}
 
 	combinedLabels := make([]*view.SettingsVMCombinedLabel, 0)
@@ -734,7 +738,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewMode
 	projects, err := routeutils.GetEffectiveProjectsList(user, h.heartbeatSrvc, h.aliasSrvc)
 	if err != nil {
 		conf.Log().Request(r).Error("error while fetching projects - %v", err)
-		return &view.SettingsViewModel{Error: criticalError}
+		return &view.SettingsViewModel{Messages: view.Messages{Error: criticalError}}
 	}
 
 	// subscriptions
@@ -750,7 +754,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewMode
 		firstData, _ = time.Parse(time.RFC822Z, firstDataKv.Value)
 	}
 
-	return &view.SettingsViewModel{
+	vm := &view.SettingsViewModel{
 		User:                user,
 		LanguageMappings:    mappings,
 		Aliases:             combinedAliases,
@@ -761,7 +765,6 @@ func (h *SettingsHandler) buildViewModel(r *http.Request) *view.SettingsViewMode
 		SubscriptionPrice:   subscriptionPrice,
 		SupportContact:      h.config.App.SupportContact,
 		DataRetentionMonths: h.config.App.DataRetentionMonths,
-		Success:             r.URL.Query().Get("success"),
-		Error:               r.URL.Query().Get("error"),
 	}
+	return routeutils.WithSessionMessages(vm, r, w)
 }

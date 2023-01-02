@@ -29,11 +29,17 @@ func NewSummaryHandler(summaryService services.ISummaryService, userService serv
 
 func (h *SummaryHandler) RegisterRoutes(router *mux.Router) {
 	r1 := router.PathPrefix("/summary").Subrouter()
-	r1.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).WithRedirectTarget(defaultErrorRedirectTarget()).Handler)
+	r1.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).
+		WithRedirectTarget(defaultErrorRedirectTarget()).
+		WithRedirectErrorMessage("unauthorized").
+		Handler)
 	r1.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
 
 	r2 := router.PathPrefix("/summary").Subrouter()
-	r2.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).WithRedirectTarget(defaultErrorRedirectTarget()).Handler)
+	r2.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).
+		WithRedirectTarget(defaultErrorRedirectTarget()).
+		WithRedirectErrorMessage("unauthorized").
+		Handler)
 	r2.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
 }
 
@@ -64,14 +70,14 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(status)
 		conf.Log().Request(r).Error("failed to load summary - %v", err)
-		templates[conf.SummaryTemplate].Execute(w, h.buildViewModel(r).WithError(err.Error()))
+		templates[conf.SummaryTemplate].Execute(w, h.buildViewModel(r, w).WithError(err.Error()))
 		return
 	}
 
 	user := middlewares.GetPrincipal(r)
 	if user == nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		templates[conf.SummaryTemplate].Execute(w, h.buildViewModel(r).WithError("unauthorized"))
+		templates[conf.SummaryTemplate].Execute(w, h.buildViewModel(r, w).WithError("unauthorized"))
 		return
 	}
 
@@ -89,9 +95,6 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	templates[conf.SummaryTemplate].Execute(w, vm)
 }
 
-func (h *SummaryHandler) buildViewModel(r *http.Request) *view.SummaryViewModel {
-	return &view.SummaryViewModel{
-		Success: r.URL.Query().Get("success"),
-		Error:   r.URL.Query().Get("error"),
-	}
+func (h *SummaryHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *view.SummaryViewModel {
+	return su.WithSessionMessages(&view.SummaryViewModel{}, r, w)
 }

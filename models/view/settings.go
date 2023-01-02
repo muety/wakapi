@@ -6,6 +6,7 @@ import (
 )
 
 type SettingsViewModel struct {
+	Messages
 	User                *models.User
 	LanguageMappings    []*models.LanguageMapping
 	Aliases             []*SettingsVMCombinedAlias
@@ -16,8 +17,6 @@ type SettingsViewModel struct {
 	UserFirstData       time.Time
 	SupportContact      string
 	ApiKey              string
-	Success             string
-	Error               string
 }
 
 type SettingsVMCombinedAlias struct {
@@ -36,11 +35,11 @@ func (s *SettingsViewModel) SubscriptionsEnabled() bool {
 }
 
 func (s *SettingsViewModel) WithSuccess(m string) *SettingsViewModel {
-	s.Success = m
+	s.SetSuccess(m)
 	return s
 }
 
 func (s *SettingsViewModel) WithError(m string) *SettingsViewModel {
-	s.Error = m
+	s.SetError(m)
 	return s
 }
