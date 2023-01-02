@@ -286,7 +286,7 @@ func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Req
 	var err error
 	user := middlewares.GetPrincipal(r)
 
-	defer h.userSrvc.FlushCache()
+	defer h.userSrvc.FlushUserCache(user.ID)
 
 	user.ShareProjects, err = strconv.ParseBool(r.PostFormValue("share_projects"))
 	user.ShareLanguages, err = strconv.ParseBool(r.PostFormValue("share_languages"))

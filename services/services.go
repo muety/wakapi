@@ -141,4 +141,5 @@ type IUserService interface {
 	MigrateMd5Password(*models.User, *models.Login) (*models.User, error)
 	GenerateResetToken(*models.User) (*models.User, error)
 	FlushCache()
+	FlushUserCache(string)
 }

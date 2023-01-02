@@ -67,7 +67,7 @@ func (srv *UserService) GetUserById(userId string) (*models.User, error) {
 		return nil, err
 	}
 
-	srv.cache.Set(u.ID, u, cache.DefaultExpiration)
+	srv.cache.SetDefault(u.ID, u)
 	return u, nil
 }
 
@@ -167,19 +167,19 @@ func (srv *UserService) CreateOrGet(signup *models.Signup, isAdmin bool) (*model
 }
 
 func (srv *UserService) Update(user *models.User) (*models.User, error) {
-	srv.cache.Flush()
+	srv.FlushUserCache(user.ID)
 	srv.notifyUpdate(user)
 	return srv.repository.Update(user)
 }
 
 func (srv *UserService) ResetApiKey(user *models.User) (*models.User, error) {
-	srv.cache.Flush()
+	srv.FlushUserCache(user.ID)
 	user.ApiKey = uuid.NewV4().String()
 	return srv.Update(user)
 }
 
 func (srv *UserService) SetWakatimeApiCredentials(user *models.User, apiKey string, apiUrl string) (*models.User, error) {
-	srv.cache.Flush()
+	srv.FlushUserCache(user.ID)
 
 	if apiKey != user.WakatimeApiKey {
 		if u, err := srv.repository.UpdateField(user, "wakatime_api_key", apiKey); err != nil {
@@ -195,7 +195,7 @@ func (srv *UserService) SetWakatimeApiCredentials(user *models.User, apiKey stri
 }
 
 func (srv *UserService) MigrateMd5Password(user *models.User, login *models.Login) (*models.User, error) {
-	srv.cache.Flush()
+	srv.FlushUserCache(user.ID)
 	user.Password = login.Password
 	if hash, err := utils.HashBcrypt(user.Password, srv.config.Security.PasswordSalt); err != nil {
 		return nil, err
@@ -210,7 +210,7 @@ func (srv *UserService) GenerateResetToken(user *models.User) (*models.User, err
 }
 
 func (srv *UserService) Delete(user *models.User) error {
-	srv.cache.Flush()
+	srv.FlushUserCache(user.ID)
 
 	user.ReportsWeekly = false
 	srv.notifyUpdate(user)
@@ -220,6 +220,10 @@ func (srv *UserService) Delete(user *models.User) error {
 
 func (srv *UserService) FlushCache() {
 	srv.cache.Flush()
+}
+
+func (srv *UserService) FlushUserCache(userId string) {
+	srv.cache.Delete(userId)
 }
 
 func (srv *UserService) notifyUpdate(user *models.User) {

@@ -5,6 +5,7 @@ import (
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
 	"github.com/muety/wakapi/services"
@@ -31,13 +32,20 @@ func NewLoginHandler(userService services.IUserService, mailService services.IMa
 func (h *LoginHandler) RegisterRoutes(router *mux.Router) {
 	router.Path("/login").Methods(http.MethodGet).HandlerFunc(h.GetIndex)
 	router.Path("/login").Methods(http.MethodPost).HandlerFunc(h.PostLogin)
-	router.Path("/logout").Methods(http.MethodPost).HandlerFunc(h.PostLogout)
 	router.Path("/signup").Methods(http.MethodGet).HandlerFunc(h.GetSignup)
 	router.Path("/signup").Methods(http.MethodPost).HandlerFunc(h.PostSignup)
 	router.Path("/set-password").Methods(http.MethodGet).HandlerFunc(h.GetSetPassword)
 	router.Path("/set-password").Methods(http.MethodPost).HandlerFunc(h.PostSetPassword)
 	router.Path("/reset-password").Methods(http.MethodGet).HandlerFunc(h.GetResetPassword)
 	router.Path("/reset-password").Methods(http.MethodPost).HandlerFunc(h.PostResetPassword)
+
+	authMiddleware := middlewares.NewAuthenticateMiddleware(h.userSrvc).
+		WithRedirectTarget(defaultErrorRedirectTarget()).
+		WithOptionalFor([]string{"/logout"})
+
+	logoutRouter := router.PathPrefix("/logout").Subrouter()
+	logoutRouter.Use(authMiddleware.Handler)
+	logoutRouter.Path("").Methods(http.MethodPost).HandlerFunc(h.PostLogout)
 }
 
 func (h *LoginHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
@@ -108,6 +116,9 @@ func (h *LoginHandler) PostLogout(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
+	if user := middlewares.GetPrincipal(r); user != nil {
+		h.userSrvc.FlushUserCache(user.ID)
+	}
 	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey))
 	http.Redirect(w, r, fmt.Sprintf("%s/", h.config.Server.BasePath), http.StatusFound)
 }

@@ -112,3 +112,7 @@ func (m *UserServiceMock) GenerateResetToken(user *models.User) (*models.User, e
 func (m *UserServiceMock) FlushCache() {
 	m.Called()
 }
+
+func (m *UserServiceMock) FlushUserCache(s string) {
+	m.Called(s)
+}
