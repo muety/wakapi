@@ -20,6 +20,10 @@ func (c *PrincipalContainer) GetPrincipal() *models.User {
 	return c.principal
 }
 
+func (c *PrincipalContainer) GetPrincipalIdentity() string {
+	return c.principal.Identity()
+}
+
 // This middleware is a bit of a dirty workaround to the fact that a http.Request's context
 // does not allow to pass values from an inner to an outer middleware. Calling WithContext() on a
 // request shallow-copies the whole request itself and therefore, in a chain of handler1(handler2()),

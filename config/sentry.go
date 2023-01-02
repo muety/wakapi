@@ -146,15 +146,12 @@ func initSentry(config sentryConfig, debug bool) {
 
 // returns a user id
 func getPrincipal(r *http.Request) string {
-	type identifiable interface {
-		Identity() string
-	}
-	type principalGetter interface {
-		GetPrincipal() *identifiable
+	type principalIdentityGetter interface {
+		GetPrincipalIdentity() string
 	}
 
 	if p := r.Context().Value("principal"); p != nil {
-		return (*p.(principalGetter).GetPrincipal()).Identity()
+		return p.(principalIdentityGetter).GetPrincipalIdentity()
 	}
 	return ""
 }
