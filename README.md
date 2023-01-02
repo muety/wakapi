@@ -36,7 +36,7 @@ Installation instructions can be found below and in the [Wiki](https://github.co
 
 ## 🚀 Features
 
-* ✅ 100 % free and open-source
+* ✅ Free and open-source
 * ✅ Built by developers for developers
 * ✅ Statistics for projects, languages, editors, hosts and operating systems
 * ✅ Badges
@@ -140,12 +140,14 @@ You can specify configuration options either via a config file (default: `config
 | `app.aggregation_time` /<br>`WAKAPI_AGGREGATION_TIME`                        | `0 15 2 * * *`                                   | Time of day at which to periodically run summary generation for all users                                                                                                |
 | `app.report_time_weekly` /<br>`WAKAPI_REPORT_TIME_WEEKLY`                    | `0 0 18 * * 5`                                   | Week day and time at which to send e-mail reports                                                                                                                        |
 | `app.leaderboard_generation_time` /<br>`WAKAPI_LEADERBOARD_GENERATION_TIME`  | `0 0 6 * * *,0 0 18 * * *`                       | One or multiple times of day at which to re-calculate the leaderboard                                                                                                    |
+| `app.data_cleanup_time` /<br>`WAKAPI_DATA_CLEANUP_TIME`                      | `0 0 6 * * 7`                                    | When to perform data cleanup operations (see `app.data_retention_months`)                                                                                                |
 | `app.import_batch_size` /<br>`WAKAPI_IMPORT_BATCH_SIZE`                      | `50`                                             | Size of batches of heartbeats to insert to the database during importing from external services                                                                          |
 | `app.inactive_days` /<br>`WAKAPI_INACTIVE_DAYS`                              | `7`                                              | Number of days after which to consider a user inactive (only for metrics)                                                                                                |
 | `app.heartbeat_max_age /`<br>`WAKAPI_HEARTBEAT_MAX_AGE`                      | `4320h`                                          | Maximum acceptable age of a heartbeat (see [`ParseDuration`](https://pkg.go.dev/time#ParseDuration))                                                                     |
 | `app.custom_languages`                                                       | -                                                | Map from file endings to language names                                                                                                                                  |
 | `app.avatar_url_template` /<br>`WAKAPI_AVATAR_URL_TEMPLATE`                  | (see [`config.default.yml`](config.default.yml)) | URL template for external user avatar images (e.g. from [Dicebear](https://dicebear.com) or [Gravatar](https://gravatar.com))                                            |
 | `app.support_contact` /<br>`WAKAPI_SUPPORT_CONTACT`                          | `hostmaster@wakapi.dev`                          | E-Mail address to display as a support contact on the page                                                                                                               |
+| `app.data_retention_months` /<br>`WAKAPI_DATA_RETENTION_MONTHS`              | `-1`                                             | Maximum retention period in months for user data (heartbeats) (-1 for unlimited)                                                                                         |
 | `server.port` /<br> `WAKAPI_PORT`                                            | `3000`                                           | Port to listen on                                                                                                                                                        |
 | `server.listen_ipv4` /<br> `WAKAPI_LISTEN_IPV4`                              | `127.0.0.1`                                      | IPv4 network address to listen on (leave blank to disable IPv4)                                                                                                          |
 | `server.listen_ipv6` /<br> `WAKAPI_LISTEN_IPV6`                              | `::1`                                            | IPv6 network address to listen on (leave blank to disable IPv6)                                                                                                          |
