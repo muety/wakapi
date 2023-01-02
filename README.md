@@ -312,7 +312,7 @@ Unit tests are supposed to test business logic on a fine-grained level. They are
 #### How to run
 
 ```bash
-$ CGO_ENABLED=0 go test -json -coverprofile=coverage/coverage.out ./... -run ./...
+$ CGO_ENABLED=0 go test `go list ./... | grep -v 'github.com/muety/wakapi/scripts'` -json -coverprofile=coverage/coverage.out ./... -run ./...
 ```
 
 ### API tests

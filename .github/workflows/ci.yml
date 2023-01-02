@@ -22,7 +22,7 @@ jobs:
       run: go get
 
     - name: Unit Tests
-      run: go test ./... -run ./...
+      run: CGO_ENABLED=0 go test `go list ./... | grep -v 'github.com/muety/wakapi/scripts'` -run ./...  # skip scripts package, because not actually a package
 
     - name: API Tests
       run: |
