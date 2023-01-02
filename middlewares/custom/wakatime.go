@@ -160,15 +160,21 @@ func (m *WakatimeRelayMiddleware) filterByCache(r *http.Request) error {
 
 	newData := make([]interface{}, 0, len(heartbeats))
 
-	for i, hb := range heartbeats {
-		hb = hb.Hashed()
-
+	process := func(heartbeat *models.Heartbeat, rawData interface{}) {
+		heartbeat = heartbeat.Hashed()
 		// we didn't see this particular heartbeat before
-		if _, found := m.hashCache.Get(hb.Hash); !found {
-			m.hashCache.SetDefault(hb.Hash, true)
-			newData = append(newData, rawData.([]interface{})[i])
-			continue
+		if _, found := m.hashCache.Get(heartbeat.Hash); !found {
+			m.hashCache.SetDefault(heartbeat.Hash, true)
+			newData = append(newData, rawData)
 		}
+	}
+
+	if _, isList := rawData.([]interface{}); isList {
+		for i, hb := range heartbeats {
+			process(hb, rawData.([]interface{})[i])
+		}
+	} else if len(heartbeats) > 0 {
+		process(heartbeats[0], rawData.(interface{}))
 	}
 
 	if len(newData) == 0 {
