@@ -5,6 +5,9 @@ module.exports = {
         extend: {
             colors: {
                 green: colors.emerald,
+            },
+            width: {
+                '16': '4rem',
             }
         }
     },

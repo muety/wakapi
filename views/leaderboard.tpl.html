@@ -56,8 +56,8 @@
             <ol>
                 {{ range $i, $item := .Items }}
                 <li class="px-4 py-2 my-2 rounded-md border-2 leaderboard-{{ ($.ColorModifier $item $.User) }} flex justify-between">
-                    <div class="w-1/12 mr-1"><strong># {{ $item.Rank }}</strong></div>
-                    <div class="flex w-3/12 mx-1 justify-start items-center space-x-4 align-middle">
+                    <div class="w-12"><strong># {{ $item.Rank }}</strong></div>
+                    <div class="flex flex-grow w-16 mx-1 justify-start items-center space-x-4 align-middle">
                         {{ if avatarUrlTemplate }}
                         <img src="{{ $item.User.AvatarURL avatarUrlTemplate }}" width="24px" class="rounded-full border-green-700" alt="User Profile Avatar"/>
                         {{ else }}
@@ -65,7 +65,7 @@
                         {{ end }}
                         <strong class="text-ellipsis truncate">@{{ $item.UserID }}</strong>
                     </div>
-                    <div class="w-5/12 mx-1 truncate leading-6 align-middle">
+                    <div class="flex-1 mx-1 hidden sm:inline-block truncate leading-6 align-middle">
                         {{ range $i, $lang := (index $.UserLanguages $item.UserID) }}
                         {{ if $.LangIcon $lang }}
                         <span class="align-middle leading-none"><span class="iconify inline text-white text-base" data-icon="{{ ($.LangIcon $lang) | urlSafe }}"></span></span>
@@ -73,7 +73,7 @@
                         <span class="text-sm leading-6">{{ $lang }}{{ if lt $i (add (len (index $.UserLanguages $item.UserID)) -1) }},&nbsp;{{ end }}</span>
                         {{ end }}
                     </div>
-                    <div class="w-3/12 ml-1 text-right"><span>{{ $item.Total | duration }}</span></div>
+                    <div class="flex-1 ml-1 text-right"><span>{{ $item.Total | duration }}</span></div>
                 </li>
                 {{ end }}
             </ol>
