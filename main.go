@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"github.com/lpar/gzipped/v2"
 	"io/fs"
 	"log"
 	"net"
@@ -15,7 +16,6 @@ import (
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/lpar/gzipped/v2"
 	httpSwagger "github.com/swaggo/http-swagger"
 
 	conf "github.com/muety/wakapi/config"
@@ -279,12 +279,12 @@ func main() {
 	embeddedStatic, _ := fs.Sub(staticFiles, "static")
 	static := conf.ChooseFS("static", embeddedStatic)
 
-	assetsFileServer := gzipped.FileServer(fsutils.NewExistsHttpFS(
-		fsutils.NewExistsFS(static).WithCache(!config.IsDev()),
-	))
-	staticFileServer := http.FileServer(http.FS(
-		fsutils.NeuteredFileSystem{FS: static},
-	))
+	assetsStaticFs := fsutils.NewExistsHttpFS(fsutils.NewExistsFS(static).WithCache(!config.IsDev()))
+	assetsFileServer := http.FileServer(assetsStaticFs)
+	if !config.IsDev() {
+		assetsFileServer = gzipped.FileServer(assetsStaticFs)
+	}
+	staticFileServer := http.FileServer(http.FS(fsutils.NeuteredFileSystem{FS: static}))
 
 	router.PathPrefix("/contribute.json").Handler(staticFileServer)
 	router.PathPrefix("/assets").Handler(assetsFileServer)
