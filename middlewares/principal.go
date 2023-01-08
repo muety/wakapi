@@ -21,6 +21,9 @@ func (c *PrincipalContainer) GetPrincipal() *models.User {
 }
 
 func (c *PrincipalContainer) GetPrincipalIdentity() string {
+	if c.principal == nil {
+		return ""
+	}
 	return c.principal.Identity()
 }
 
