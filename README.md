@@ -152,6 +152,7 @@ You can specify configuration options either via a config file (default: `config
 | `server.listen_ipv4` /<br> `WAKAPI_LISTEN_IPV4`                              | `127.0.0.1`                                      | IPv4 network address to listen on (leave blank to disable IPv4)                                                                                                          |
 | `server.listen_ipv6` /<br> `WAKAPI_LISTEN_IPV6`                              | `::1`                                            | IPv6 network address to listen on (leave blank to disable IPv6)                                                                                                          |
 | `server.listen_socket` /<br> `WAKAPI_LISTEN_SOCKET`                          | -                                                | UNIX socket to listen on (leave blank to disable UNIX socket)                                                                                                            |
+| `server.listen_socket_mode` /<br> `WAKAPI_LISTEN_SOCKET_MODE`                | `0666`                                           | Permission mode to create UNIX socket with                                                                                                                               |
 | `server.timeout_sec` /<br> `WAKAPI_TIMEOUT_SEC`                              | `30`                                             | Request timeout in seconds                                                                                                                                               |
 | `server.tls_cert_path` /<br> `WAKAPI_TLS_CERT_PATH`                          | -                                                | Path of SSL server certificate (leave blank to not use HTTPS)                                                                                                            |
 | `server.tls_key_path` /<br> `WAKAPI_TLS_KEY_PATH`                            | -                                                | Path of SSL server private key (leave blank to not use HTTPS)                                                                                                            |
@@ -306,6 +307,7 @@ However, if you want to expose your wakapi instance to the public anyway, you ne
 ## 🧪 Tests
 
 ### Unit tests
+
 
 Unit tests are supposed to test business logic on a fine-grained level. They are implemented as part of the application, using Go's [testing](https://pkg.go.dev/testing?utm_source=godoc) package alongside [stretchr/testify](https://pkg.go.dev/github.com/stretchr/testify).
 

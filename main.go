@@ -360,6 +360,9 @@ func listen(handler http.Handler) {
 				if err != nil {
 					logbuch.Fatal(err.Error())
 				}
+				if err := os.Chmod(config.Server.ListenSocket, os.FileMode(config.Server.ListenSocketMode)); err != nil {
+					logbuch.Warn("failed to set user permissions for unix socket, %v", err)
+				}
 				if err := sSocket.ServeTLS(unixListener, config.Server.TlsCertPath, config.Server.TlsKeyPath); err != nil {
 					logbuch.Fatal(err.Error())
 				}
@@ -388,6 +391,9 @@ func listen(handler http.Handler) {
 				unixListener, err := net.Listen("unix", config.Server.ListenSocket)
 				if err != nil {
 					logbuch.Fatal(err.Error())
+				}
+				if err := os.Chmod(config.Server.ListenSocket, os.FileMode(config.Server.ListenSocketMode)); err != nil {
+					logbuch.Warn("failed to set user permissions for unix socket, %v", err)
 				}
 				if err := sSocket.Serve(unixListener); err != nil {
 					logbuch.Fatal(err.Error())
