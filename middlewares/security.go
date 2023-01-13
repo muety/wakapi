@@ -6,7 +6,7 @@ import (
 
 var securityHeaders = map[string]string{
 	"Cross-Origin-Opener-Policy": "same-origin",
-	"Content-Security-Policy":    "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' https: data:; form-action 'self'; block-all-mixed-content;",
+	"Content-Security-Policy":    "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' https: data:; form-action 'self' *.stripe.com; block-all-mixed-content;",
 	"X-Frame-Options":            "DENY",
 	"X-Content-Type-Options":     "nosniff",
 }
