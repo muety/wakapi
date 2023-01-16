@@ -16,7 +16,7 @@ FROM information_schema.tables
 WHERE table_schema = ?
 GROUP BY table_schema`
 
-const sizeTplPostgres = `SELECT pg_database_size('%s');`
+const sizeTplPostgres = `SELECT pg_database_size(?);`
 
 const sizeTplSqlite = `
 SELECT page_count * page_size as size
