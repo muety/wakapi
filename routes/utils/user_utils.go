@@ -13,33 +13,33 @@ import (
 // CheckEffectiveUser extracts the requested user from a URL (like '/users/{user}'), compares it with the currently authorized user and writes an HTTP error if they differ.
 // Fallback can be used to manually set a value for '{user}' if none is present.
 func CheckEffectiveUser(w http.ResponseWriter, r *http.Request, userService services.IUserService, fallback string) (*models.User, error) {
+	respondError := func(code int, text string) (*models.User, error) {
+		err := errors.New(conf.ErrUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(err.Error()))
+		return nil, err
+	}
+
 	var vars = mux.Vars(r)
-	var authorizedUser, requestedUser *models.User
 
 	if vars["user"] == "" {
 		vars["user"] = fallback
 	}
 
-	authorizedUser = middlewares.GetPrincipal(r)
-	if authorizedUser != nil {
-		if vars["user"] == "current" {
-			vars["user"] = authorizedUser.ID
-		}
+	authorizedUser := middlewares.GetPrincipal(r)
+	if authorizedUser == nil {
+		return respondError(http.StatusUnauthorized, conf.ErrUnauthorized)
+	} else if vars["user"] == "current" {
+		return authorizedUser, nil
+	}
+
+	if authorizedUser.ID != vars["user"] && !authorizedUser.IsAdmin {
+		return respondError(http.StatusUnauthorized, conf.ErrUnauthorized)
 	}
 
 	requestedUser, err := userService.GetUserById(vars["user"])
 	if err != nil {
-		err := errors.New("user not found")
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(err.Error()))
-		return nil, err
-	}
-
-	if authorizedUser == nil || authorizedUser.ID != requestedUser.ID && !authorizedUser.IsAdmin {
-		err := errors.New(conf.ErrUnauthorized)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(err.Error()))
-		return nil, err
+		return respondError(http.StatusNotFound, "user not found")
 	}
 
 	return requestedUser, nil

@@ -64,12 +64,12 @@ func (h *SummariesHandler) RegisterRoutes(router *mux.Router) {
 // @Success 200 {object} v1.SummariesViewModel
 // @Router /compat/wakatime/v1/users/{user}/summaries [get]
 func (h *SummariesHandler) Get(w http.ResponseWriter, r *http.Request) {
-	_, err := routeutils.CheckEffectiveUser(w, r, h.userSrvc, "current")
+	user, err := routeutils.CheckEffectiveUser(w, r, h.userSrvc, "current")
 	if err != nil {
 		return // response was already sent by util function
 	}
 
-	summaries, err, status := h.loadUserSummaries(r)
+	summaries, err, status := h.loadUserSummaries(r, user)
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))
@@ -80,8 +80,7 @@ func (h *SummariesHandler) Get(w http.ResponseWriter, r *http.Request) {
 	helpers.RespondJSON(w, r, http.StatusOK, vm)
 }
 
-func (h *SummariesHandler) loadUserSummaries(r *http.Request) ([]*models.Summary, error, int) {
-	user := middlewares.GetPrincipal(r)
+func (h *SummariesHandler) loadUserSummaries(r *http.Request, user *models.User) ([]*models.Summary, error, int) {
 	params := r.URL.Query()
 	rangeParam, startParam, endParam, tzParam := params.Get("range"), params.Get("start"), params.Get("end"), params.Get("timezone")
 
