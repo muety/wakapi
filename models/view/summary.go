@@ -1,6 +1,10 @@
 package view
 
-import "github.com/muety/wakapi/models"
+import (
+	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/models"
+	"time"
+)
 
 type SummaryViewModel struct {
 	Messages
@@ -13,6 +17,16 @@ type SummaryViewModel struct {
 	OSColors       map[string]string
 	ApiKey         string
 	RawQuery       string
+	UserFirstData  time.Time
+}
+
+func (s SummaryViewModel) UserDataExpiring() bool {
+	cfg := conf.Get()
+	return cfg.Subscriptions.Enabled &&
+		cfg.App.DataRetentionMonths > 0 &&
+		!s.UserFirstData.IsZero() &&
+		!s.User.HasActiveSubscription() &&
+		time.Now().AddDate(0, -cfg.App.DataRetentionMonths, 0).After(s.UserFirstData)
 }
 
 func (s *SummaryViewModel) WithSuccess(m string) *SummaryViewModel {

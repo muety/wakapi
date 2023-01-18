@@ -11,19 +11,22 @@ import (
 	su "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"net/http"
+	"time"
 )
 
 type SummaryHandler struct {
-	config      *conf.Config
-	userSrvc    services.IUserService
-	summarySrvc services.ISummaryService
+	config       *conf.Config
+	userSrvc     services.IUserService
+	summarySrvc  services.ISummaryService
+	keyValueSrvc services.IKeyValueService
 }
 
-func NewSummaryHandler(summaryService services.ISummaryService, userService services.IUserService) *SummaryHandler {
+func NewSummaryHandler(summaryService services.ISummaryService, userService services.IUserService, keyValueService services.IKeyValueService) *SummaryHandler {
 	return &SummaryHandler{
-		summarySrvc: summaryService,
-		userSrvc:    userService,
-		config:      conf.Get(),
+		summarySrvc:  summaryService,
+		userSrvc:     userService,
+		keyValueSrvc: keyValueService,
+		config:       conf.Get(),
 	}
 }
 
@@ -81,6 +84,13 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// user first data
+	var firstData time.Time
+	firstDataKv := h.keyValueSrvc.MustGetString(fmt.Sprintf("%s_%s", conf.KeyFirstHeartbeat, user.ID))
+	if firstDataKv.Value != "" {
+		firstData, _ = time.Parse(time.RFC822Z, firstDataKv.Value)
+	}
+
 	vm := view.SummaryViewModel{
 		Summary:        summary,
 		SummaryParams:  summaryParams,
@@ -90,6 +100,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		OSColors:       su.FilterColors(h.config.App.GetOSColors(), summary.OperatingSystems),
 		ApiKey:         user.ApiKey,
 		RawQuery:       rawQuery,
+		UserFirstData:  firstData,
 	}
 
 	templates[conf.SummaryTemplate].Execute(w, vm)

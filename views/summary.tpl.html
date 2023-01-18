@@ -17,8 +17,17 @@
 {{ if .User.HasData }}
 
 <div id="summary-page" class="grow" v-scope>
-    <div class="flex justify-end mt-12 relative">
-        <div v-scope="TimePicker({
+    <div class="flex justify-end md:space-x-8 mt-12 flex-wrap md:flex-nowrap relative items-center">
+        {{ if $.UserDataExpiring }}
+        <div class="flex-grow justify-start">
+            <div class="flex-grow p-4 text-sm border-2 border-orange-500 rounded shadow text-gray-300 align-middle mb-4 md:mb-0">
+                <span class="iconify inline mr-1" data-icon="emojione-v1:warning"></span>
+                Some of your data is older than this instance's data retention period. This will cause old data to be deleted, unless you opt for a subscription. Go to <a class="font-semibold text-green-700" href="settings#subscription">Settings → Subscription</a> for more details.
+            </div>
+        </div>
+        {{ end }}
+
+        <div class="flex-shrink-0" v-scope="TimePicker({
             fromDate: '{{ .From | simpledate }}',
             toDate: '{{ .To | ceildate | simpledate }}',
             timeSelection: '{{ .From | datetime }} - {{ .To | ceildate | datetime }}'
