@@ -66,6 +66,10 @@ func (s *HousekeepingService) Schedule() {
 
 func (s *HousekeepingService) CleanUserDataBefore(user *models.User, before time.Time) error {
 	logbuch.Warn("cleaning up user data for '%s' older than %v", user.ID, before)
+	if s.config.App.DataCleanupDryRun {
+		logbuch.Info("skipping actual data deletion for '%v', because this is just a dry run", user.ID)
+		return nil
+	}
 
 	// clear old heartbeats
 	if err := s.heartbeatSrvc.DeleteByUserBefore(user, before); err != nil {
