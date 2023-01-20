@@ -284,8 +284,8 @@ func mapHeartbeat(
 		// try to parse id as an actual user agent string (as returned by wakapi)
 		if opSys, editor, err := utils.ParseUserAgent(entry.UserAgentId); err == nil {
 			ua = &wakatime.UserAgentEntry{
-				Editor: opSys,
-				Os:     editor,
+				Editor: editor,
+				Os:     opSys,
 			}
 		} else {
 			ua = &wakatime.UserAgentEntry{
