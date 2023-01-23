@@ -1,4 +1,5 @@
 import argparse
+import logging
 import time
 
 import requests
@@ -36,8 +37,11 @@ def send(recipient: str, subject: str, content: str, is_html: bool = False, base
 def run(args):
     content, is_html = read_mail_content(args.content)
     for recipient in tqdm(read_recipients(args.recipients)):
-        send(recipient, args.subject, content, is_html, args.mw_url)
-        time.sleep(args.throttle)
+        try:
+            send(recipient, args.subject, content, is_html, args.mw_url)
+            time.sleep(args.throttle)
+        except Exception as e:
+            logging.warning(f'failed to send to {recipient}, {e}')
 
 
 def parse_arguments():
