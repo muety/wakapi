@@ -140,8 +140,6 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 		return h.actionDeleteAlias
 	case "add_alias":
 		return h.actionAddAlias
-	case "add_project_to_label":
-		return h.addProjectToLabel
 	case "add_label":
 		return h.actionAddLabel
 	case "delete_label":
@@ -382,30 +380,7 @@ func (h *SettingsHandler) actionAddLabel(w http.ResponseWriter, r *http.Request)
 		return http.StatusBadRequest, "", "invalid input"
 	}
 
-	return http.StatusOK, "label added successfully", ""
-}
-
-func (h *SettingsHandler) addProjectToLabel(w http.ResponseWriter, r *http.Request) (int, string, string) {
-	if h.config.IsDev() {
-		loadTemplates()
-	}
-	user := middlewares.GetPrincipal(r)
-	label := &models.ProjectLabel{
-		UserID:     user.ID,
-		ProjectKey: r.PostFormValue("project"),
-		Label:      r.PostFormValue("label"),
-	}
-
-	if !label.IsValid() {
-		return http.StatusBadRequest, "", "invalid input"
-	}
-
-	if _, err := h.projectLabelSrvc.Create(label); err != nil {
-		// TODO: distinguish between bad request, conflict and server error
-		return http.StatusBadRequest, "", "invalid input"
-	}
-
-	return http.StatusOK, "added project to label successfully", ""
+	return http.StatusOK, "label added to project successfully", ""
 }
 
 func (h *SettingsHandler) actionDeleteLabel(w http.ResponseWriter, r *http.Request) (int, string, string) {

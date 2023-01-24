@@ -272,13 +272,11 @@
                                     {{ end }}
                                     {{ end }}
                                     <form action="" method="post" class="inline-flex space-x-1">
-                                        <input type="hidden" name="action" class="block" value="add_project_to_label">
-                                        <input type="hidden" name="label" value="{{ $label.Key }}">
-                                        <select name="project" class="block text-sm select-default !w-auto">
+                                        <input type="hidden" name="action" class="block" value="add_label">
+                                        <input type="hidden" name="value" value="{{ $label.Key }}">
+                                        <select name="key" class="block text-sm select-default !w-auto">
                                             {{ range $k, $project := $.Projects }}
-                                                {{ if ne $label.Key $project }}
-                                                    <option value="{{ $project }}">{{ $project }}</option>
-                                                {{ end }}
+                                                <option value="{{ $project }}">{{ $project }}</option>
                                             {{ end }}
                                         </select>
                                         <button type="submit" class="btn-primary btn-small">
