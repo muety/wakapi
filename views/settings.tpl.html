@@ -241,6 +241,7 @@
                 <hr class="border-t border-gray-800 my-4">
             </div>
 
+
             <!-- Project Labels -->
             <div class="w-full">
                 <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
@@ -254,7 +255,7 @@
                         <div class="mb-8">
                             <h3 class="inline-block font-semibold text-gray-300">Labels</h3>
                             {{ range $i, $label := .Labels }}
-                            <div class="flex items-center" action="" method="post">
+                            <div class="flex items-center">
                                 <div class="text-gray-500 border-1 w-full border-green-700 inline-block my-1 py-1 text-align text-sm"
                                      style="line-height: 1.8">
                                     &#9656;&nbsp;&nbsp;<span class="font-semibold text-gray-300">{{ $label.Key }}:</span>
@@ -270,6 +271,20 @@
                                     <span class="-ml-1">{{- ", " | capitalize -}}</span>
                                     {{ end }}
                                     {{ end }}
+                                    <form action="" method="post" class="inline-flex space-x-1">
+                                        <input type="hidden" name="action" class="block" value="add_project_to_label">
+                                        <input type="hidden" name="label" value="{{ $label.Key }}">
+                                        <select name="project" class="block text-sm select-default !w-auto">
+                                            {{ range $k, $project := $.Projects }}
+                                                {{ if ne $label.Key $project }}
+                                                    <option value="{{ $project }}">{{ $project }}</option>
+                                                {{ end }}
+                                            {{ end }}
+                                        </select>
+                                        <button type="submit" class="btn-primary btn-small">
+                                            Add project
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                             {{end}}
