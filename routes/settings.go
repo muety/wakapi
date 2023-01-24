@@ -365,21 +365,36 @@ func (h *SettingsHandler) actionAddLabel(w http.ResponseWriter, r *http.Request)
 	}
 	user := middlewares.GetPrincipal(r)
 
-	label := &models.ProjectLabel{
-		UserID:     user.ID,
-		ProjectKey: r.PostFormValue("key"),
-		Label:      r.PostFormValue("value"),
+	var labels []*models.ProjectLabel
+
+	if r.PostFormValue("num_projects") == "multiple" {
+		for _, key := range r.Form["keys"] {
+			label := &models.ProjectLabel{
+				UserID:     user.ID,
+				ProjectKey: key,
+				Label:      r.PostFormValue("value"),
+			}
+			labels = append(labels, label)
+		}
+	} else {
+		label := &models.ProjectLabel{
+			UserID:     user.ID,
+			ProjectKey: r.PostFormValue("key"),
+			Label:      r.PostFormValue("value"),
+		}
+		labels = append(labels, label)
 	}
 
-	if !label.IsValid() {
-		return http.StatusBadRequest, "", "invalid input"
+	for _, label := range labels {
+		msg := "invalid input for project: " + label.ProjectKey
+		if !label.IsValid() {
+			return http.StatusBadRequest, "", msg
+		}
+		if _, err := h.projectLabelSrvc.Create(label); err != nil {
+			// TODO: distinguish between bad request, conflict and server error
+			return http.StatusBadRequest, "", msg
+		}
 	}
-
-	if _, err := h.projectLabelSrvc.Create(label); err != nil {
-		// TODO: distinguish between bad request, conflict and server error
-		return http.StatusBadRequest, "", "invalid input"
-	}
-
 	return http.StatusOK, "label added to project successfully", ""
 }
 
