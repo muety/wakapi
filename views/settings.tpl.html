@@ -267,9 +267,6 @@
                                         <span>{{- $value -}}</span>
                                         <button type="submit" class="bg-gray-900 text-center hover:bg-gray-700 rounded-full w-4 h-4 leading-none text-red-600" title="Delete label">x</button>
                                     </form>
-                                    {{ if lt $j (add (len $label.Values) -1) }}
-                                    <span class="-ml-1">{{- ", " | capitalize -}}</span>
-                                    {{ end }}
                                     {{ end }}
                                     <form action="" method="post" class="inline-flex space-x-1">
                                         <input type="hidden" name="action" class="block" value="add_label">
@@ -297,7 +294,7 @@
                             <div class="flex flex-col space-y-4">
                                 <div class="flex items-center mt-2 w-full text-gray-500 text-sm space-x-4">
                                     <select name="key" id="select-project"
-                                            class="select-default grow">
+                                            class="select-default grow" multiple>
                                         {{ range $i, $p := .Projects }}
                                         <option value="{{ $p }}">{{ $p }}</option>
                                         {{ end }}
