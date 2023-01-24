@@ -253,7 +253,7 @@
                     <div class="w-full md:w-2/3 inline-block">
                         {{ if .Labels }}
                         <div class="mb-8">
-                            <h3 class="inline-block font-semibold text-gray-300">Labels</h3>
+                            <h3 class="inline-block font-semibold text-gray-300">Your labels</h3>
                             {{ range $i, $label := .Labels }}
                             <div class="flex items-center">
                                 <div class="text-gray-500 border-1 w-full border-green-700 inline-block my-1 py-1 text-align text-sm"
@@ -288,24 +288,21 @@
                         {{end}}
 
                         {{ if .Projects }}
-                        <h3 class="inline-block font-semibold text-gray-300">Add Label</h3>
+                        <h3 class="inline-block font-semibold text-gray-300">Bulk association</h3>
+                        <p>Associate a label with multiple projects</p>
                         <form action="" method="post">
                             <input type="hidden" name="action" value="add_label">
-                            <div class="flex flex-col space-y-4">
-                                <div class="flex items-center mt-2 w-full text-gray-500 text-sm space-x-4">
-                                    <select name="key" id="select-project"
-                                            class="select-default grow" multiple>
-                                        {{ range $i, $p := .Projects }}
+                            <input type="hidden" name="num_projects" value="multiple">
+                            <div class="mt-2 w-1/2 space-y-4 text-gray-500 text-sm flex-col flex">
+                                <input class="input-default block" name="value" placeholder="Label" required>
+                                <select name="keys" class="block w-full p-2.5 select-default grow" multiple required>
+                                    {{ range $i, $p := .Projects }}
                                         <option value="{{ $p }}">{{ $p }}</option>
-                                        {{ end }}
-                                    </select>
-                                    <input class="input-default"
-                                           type="text" id="label-value"
-                                           name="value" placeholder="Label" minlength="1" required>
-                                    <button type="submit" class="btn-primary">
-                                        Add
-                                    </button>
-                                </div>
+                                    {{ end }}
+                                </select>
+                                <button type="submit" class="btn-primary">
+                                    Submit
+                                </button>
                             </div>
                         </form>
                         {{ else }}
