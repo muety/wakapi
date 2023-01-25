@@ -295,7 +295,7 @@
                             <input type="hidden" name="num_projects" value="multiple">
                             <div class="mt-2 w-1/2 space-y-4 text-gray-500 text-sm flex-col flex">
                                 <input class="input-default block" name="value" placeholder="Label" required>
-                                <select name="keys" class="block w-full p-2.5 select-default grow" multiple required>
+                                <select name="key" class="block w-full p-2.5 select-default grow" multiple required>
                                     {{ range $i, $p := .Projects }}
                                         <option value="{{ $p }}">{{ $p }}</option>
                                     {{ end }}

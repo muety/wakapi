@@ -367,19 +367,10 @@ func (h *SettingsHandler) actionAddLabel(w http.ResponseWriter, r *http.Request)
 
 	var labels []*models.ProjectLabel
 
-	if r.PostFormValue("num_projects") == "multiple" {
-		for _, key := range r.Form["keys"] {
-			label := &models.ProjectLabel{
-				UserID:     user.ID,
-				ProjectKey: key,
-				Label:      r.PostFormValue("value"),
-			}
-			labels = append(labels, label)
-		}
-	} else {
+	for _, key := range r.Form["key"] {
 		label := &models.ProjectLabel{
 			UserID:     user.ID,
-			ProjectKey: r.PostFormValue("key"),
+			ProjectKey: key,
 			Label:      r.PostFormValue("value"),
 		}
 		labels = append(labels, label)
