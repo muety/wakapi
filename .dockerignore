@@ -8,3 +8,6 @@ Dockerfile
 docker-compose.yml
 .dockerignore
 .git*
+node_modules/
+testing/*.zip
+testing/wakapi
