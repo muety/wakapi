@@ -283,7 +283,7 @@
                                                 {{ end }}
                                             </select>
                                             <button type="submit" class="btn-primary btn-small">
-                                                Add project
+                                                &nbsp;+&nbsp;
                                             </button>
                                         </form>
                                     </div>
@@ -296,7 +296,7 @@
 
                         {{ if .Projects }}
                         <h3 class="inline-block font-semibold text-gray-300">Bulk association</h3>
-                        <p>Associate a label with multiple projects</p>
+                        <p class="text-sm text-gray-600">Associate a label with multiple projects</p>
                         <form action="" method="post">
                             <input type="hidden" name="action" value="add_label">
                             <input type="hidden" name="num_projects" value="multiple">
@@ -304,7 +304,7 @@
                                 <input class="input-default block" name="value" placeholder="Label" required>
                                 <select name="key" class="block w-full p-2.5 select-default grow" multiple required>
                                     {{ range $i, $p := .Projects }}
-                                        <option value="{{ $p }}" class="bg-gray-800">{{ $p }}</option>
+                                        <option value="{{ $p }}" class="bg-transparent checked:text-green-500">{{ $p }}</option>
                                     {{ end }}
                                 </select>
                                 <button type="submit" class="btn-primary">
