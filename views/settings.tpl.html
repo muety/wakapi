@@ -186,7 +186,7 @@
                                      style="line-height: 1.8">
                                     &#9656;&nbsp; All <span class="font-semibold">{{ $alias.Type | typeName }}s</span> named
                                     {{ range $j, $value := $alias.Values }}
-                                    <span class="text-white chip text-green-700">{{- $value -}}</span>
+                                    <span class="chip text-green-700">{{- $value -}}</span>
                                     {{ if lt $j (add (len $alias.Values) -2) }}
                                     <span class="-ml-1">{{- ", " | capitalize -}}</span>
                                     {{ else if lt $j (add (len $alias.Values) -1) }}
@@ -194,7 +194,7 @@
                                     {{ end }}
                                     {{ end }}
                                     are mapped to <span class="font-semibold">{{ $alias.Type | typeName }}</span> <span
-                                        class="text-white chip text-green-700">{{ $alias.Key }}</span>
+                                        class="chip text-green-700">{{ $alias.Key }}</span>
                                 </div>
                                 <form class="float-right" action="" method="post">
                                     <input type="hidden" name="action" value="delete_alias">
@@ -255,7 +255,7 @@
                         <div class="mb-8">
                             <h3 class="inline-block font-semibold text-gray-300">Your labels</h3>
                             {{ range $i, $label := .Labels }}
-                            <div class="flex items-center">
+                            <div class="flex items-center" data-element-type="label">
                                 <div class="text-gray-500 border-1 w-full border-green-700 inline-block my-1 py-1 text-align text-sm"
                                      style="line-height: 1.8">
                                     &#9656;&nbsp;&nbsp;<span class="font-semibold text-gray-300">{{ $label.Key }}:</span>
@@ -268,18 +268,25 @@
                                         <button type="submit" class="bg-gray-900 text-center hover:bg-gray-700 rounded-full w-4 h-4 leading-none text-red-600" title="Delete label">x</button>
                                     </form>
                                     {{ end }}
-                                    <form action="" method="post" class="inline-flex space-x-1">
-                                        <input type="hidden" name="action" class="block" value="add_label">
-                                        <input type="hidden" name="value" value="{{ $label.Key }}">
-                                        <select name="key" class="block text-sm select-default !w-auto">
-                                            {{ range $k, $project := $.Projects }}
-                                                <option value="{{ $project }}">{{ $project }}</option>
-                                            {{ end }}
-                                        </select>
-                                        <button type="submit" class="btn-primary btn-small">
-                                            Add project
+                                    <div class="ml-3 inline">
+                                        <button @click="showProjectAddButton({{ $i }})" class="top-1 relative" v-show="!labels[{{ $i }}]">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-400">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                            </svg>
                                         </button>
-                                    </form>
+                                        <form action="" method="post" class="inline-flex space-x-1" v-show="labels[{{ $i }}]">
+                                            <input type="hidden" name="action" class="block" value="add_label">
+                                            <input type="hidden" name="value" value="{{ $label.Key }}">
+                                            <select name="key" class="block text-sm select-default !w-auto">
+                                                {{ range $k, $project := $.Projects }}
+                                                    <option value="{{ $project }}">{{ $project }}</option>
+                                                {{ end }}
+                                            </select>
+                                            <button type="submit" class="btn-primary btn-small">
+                                                Add project
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                             {{end}}
