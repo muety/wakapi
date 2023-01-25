@@ -4,7 +4,6 @@
 
 <p align="center">
   <img src="https://badges.fw-web.space/github/license/muety/wakapi">
-  <a href="#-treeware"><img src="https://badges.fw-web.space:/treeware/trees/muety/wakapi?color=%234EC820&label=%F0%9F%8C%B3%20trees"></a>
   <a href="https://liberapay.com/muety/"><img src="https://badges.fw-web.space/liberapay/receives/muety.svg?logo=liberapay"></a>
   <img src="https://wakapi.dev/api/badge/n1try/interval:any/project:wakapi?label=wakapi">
   <img src="https://badges.fw-web.space/github/languages/code-size/muety/wakapi">
@@ -447,10 +446,6 @@ It is unclear how to handle the three minutes in between. Did the developer do a
 
 Wakapi adds a "padding" of two minutes before the third heartbeat. This is why total times will slightly vary between Wakapi and WakaTime.
 </details>
-
-## 🌳 Treeware
-
-This package is [Treeware](https://treeware.earth). If you use it in production, then we ask that you [**buy the world a tree**](https://plant.treeware.earth/muety/wakapi) to thank us for our work. By contributing to the Treeware forest you’ll be creating employment for local families and restoring wildlife habitats.
 
 ## 👏 Support
 
