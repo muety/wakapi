@@ -16,7 +16,8 @@ RUN mkdir ./data ./app && \
     cp /src/config.default.yml app/config.yml && \
     sed -i 's/listen_ipv6: ::1/listen_ipv6: /g' app/config.yml && \
     cp /src/wait-for-it.sh app/ && \
-    cp /src/entrypoint.sh app/
+    cp /src/entrypoint.sh app/ && \
+    chown 1000:1000 ./data
 
 # Run Stage
 
@@ -27,7 +28,9 @@ RUN mkdir ./data ./app && \
 FROM alpine:3
 WORKDIR /app
 
-RUN apk add --no-cache bash ca-certificates tzdata
+RUN addgroup -g 1000 app && \
+    adduser -u 1000 -G app -s /bin/sh -D app && \
+    apk add --no-cache bash ca-certificates tzdata
 
 # See README.md and config.default.yml for all config options
 ENV ENVIRONMENT=prod \
@@ -42,6 +45,7 @@ ENV ENVIRONMENT=prod \
     WAKAPI_ALLOW_SIGNUP='true'
 
 COPY --from=build-env /staging /
+USER app
 
 EXPOSE 3000
 
