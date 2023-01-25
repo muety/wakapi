@@ -297,7 +297,7 @@
                                 <input class="input-default block" name="value" placeholder="Label" required>
                                 <select name="key" class="block w-full p-2.5 select-default grow" multiple required>
                                     {{ range $i, $p := .Projects }}
-                                        <option value="{{ $p }}">{{ $p }}</option>
+                                        <option value="{{ $p }}" class="bg-gray-800">{{ $p }}</option>
                                     {{ end }}
                                 </select>
                                 <button type="submit" class="btn-primary">
