@@ -111,24 +111,20 @@ func initSentry(config sentryConfig, debug bool) {
 		Dsn:              config.Dsn,
 		Debug:            debug,
 		AttachStacktrace: true,
-		TracesSampler: sentry.TracesSamplerFunc(func(ctx sentry.SamplingContext) sentry.Sampled {
-			if !config.EnableTracing {
-				return sentry.SampledFalse
-			}
-
+		EnableTracing:    config.EnableTracing,
+		TracesSampler: func(ctx sentry.SamplingContext) float64 {
 			hub := sentry.GetHubFromContext(ctx.Span.Context())
 			txName := hub.Scope().Transaction()
-
 			for _, ex := range excludedRoutes {
 				if strings.HasPrefix(txName, ex) {
-					return sentry.SampledFalse
+					return 0.0
 				}
 			}
 			if txName == "POST /api/heartbeat" {
-				return sentry.UniformTracesSampler(config.SampleRateHeartbeats).Sample(ctx)
+				return float64(config.SampleRateHeartbeats)
 			}
-			return sentry.UniformTracesSampler(config.SampleRate).Sample(ctx)
-		}),
+			return float64(config.SampleRate)
+		},
 		BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
 			if hint.Context != nil {
 				if req, ok := hint.Context.Value(sentry.RequestContextKey).(*http.Request); ok {
