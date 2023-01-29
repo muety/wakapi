@@ -28,6 +28,7 @@ Environment=WAKAPI_PASSWORD_SALT=somerandomstring
 # sudo useradd -g wakapi wakapi
 User=wakapi
 Group=wakapi
+RuntimeDirectory=wakapi  # creates /run/wakapi, useful to place your socket file there
 
 Restart=on-failure
 RestartSec=90
