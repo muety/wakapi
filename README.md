@@ -455,9 +455,9 @@ Coding in open source is my passion and I would love to do it on a full-time bas
 
 I highly appreciate the efforts of **[@alanhamlett](https://github.com/alanhamlett)** and the WakaTime team and am thankful for their software being open source.
 
-Moreover, thanks to **[JetBrains](https://jb.gg/OpenSource)** for supporting this project as part of their open-source program.
+Moreover, thanks to **[Frachtwerk](https://frachtwerk.de)** for sponsoring server infrastructure for Wakapi.dev.
 
-![](static/assets/images/jetbrains-logo.png)
+![](.github/assets/frachtwerk_logo.png)
 
 ## 📓 License
 
