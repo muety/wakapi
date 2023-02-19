@@ -185,7 +185,7 @@ func (r *UserDataUpdate) IsValid() bool {
 }
 
 func ValidateUsername(username string) bool {
-	return len(username) >= 1 && username != "current"
+	return len(username) >= 1 && username != "current" && !strings.Contains(username, " ")
 }
 
 func ValidatePassword(password string) bool {
