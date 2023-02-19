@@ -19,7 +19,8 @@ LANGUAGES = {
     'Python': 'py',
     # https://github.com/muety/wakapi/issues/172
     'PHP': 'php',
-    'Blade': 'blade.php'
+    'Blade': 'blade.php',
+    '?': 'astro',  # simulate language unknown to wakatime-cli
 }
 BRANCHES = ['master', 'feature-1', 'feature-2']
 
@@ -78,7 +79,7 @@ def generate_data(n: int, n_projects: int = 5, n_past_hours: int = 24) -> List[H
         data.append(Heartbeat(
             entity=f'/home/me/dev/{p}/{f}.{LANGUAGES[l]}',
             project=p,
-            language=l,
+            language=l if not '?' in l else None,
             branch=b,
             time=(now - delta).timestamp()
         ))

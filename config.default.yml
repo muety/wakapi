@@ -30,6 +30,7 @@ app:
     cjs: JavaScript
     ipynb: Python
     svelte: Svelte
+    astro: Astro
 
   # url template for user avatar images (to be used with services like gravatar or dicebear)
   # available variable placeholders are: username, username_hash, email, email_hash
