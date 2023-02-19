@@ -278,14 +278,17 @@ func (h *SubscriptionHandler) handleSubscriptionEvent(subscription *stripe.Subsc
 		if user.SubscribedUntil == nil || !user.SubscribedUntil.T().Equal(until.T()) {
 			hasSubscribed = true
 			user.SubscribedUntil = &until
+			user.SubscriptionRenewal = &until
 			logbuch.Info("user %s got active subscription %s until %v", user.ID, subscription.ID, user.SubscribedUntil)
 		}
 
 		if cancelAt := time.Unix(subscription.CancelAt, 0); !cancelAt.IsZero() && cancelAt.After(time.Now()) {
+			user.SubscriptionRenewal = nil
 			logbuch.Info("user %s chose to cancel subscription %s by %v", user.ID, subscription.ID, cancelAt)
 		}
-	case "canceled", "unpaid":
+	case "canceled", "unpaid", "incomplete_expired":
 		user.SubscribedUntil = nil
+		user.SubscriptionRenewal = nil
 		logbuch.Info("user %s's subscription %s got canceled, because of status update to '%s'", user.ID, subscription.ID, subscription.Status)
 	default:
 		logbuch.Info("got subscription (%s) status update to '%s' for user '%s'", subscription.ID, subscription.Status, user.ID)

@@ -180,6 +180,7 @@ func (srv *MiscService) ComputeOldestHeartbeats() {
 // - Subscriptions are enabled on the server (aka. users can do something about their old data getting cleaned up)
 // - User has an e-mail address configured
 // - User's subscription has expired or is about to expire soon
+// - User doesn't have upcoming auto-renewal (i.e. chose to cancel at some date in the future)
 // - The user has gotten no such e-mail before recently
 // Note: only one mail will be sent for either "expired" or "about to expire" state.
 func (srv *MiscService) NotifyExpiringSubscription() {
@@ -187,6 +188,7 @@ func (srv *MiscService) NotifyExpiringSubscription() {
 		return
 	}
 
+	now := time.Now()
 	logbuch.Info("notifying users about soon to expire subscriptions")
 
 	users, err := srv.userService.GetAll()
@@ -210,10 +212,22 @@ func (srv *MiscService) NotifyExpiringSubscription() {
 			config.Log().Warn("invalid state: user '%s' has active subscription but no e-mail address set", u.ID)
 		}
 
+		var alreadySent bool
+		if kvs, ok := subscriptionReminders[u.ID]; ok && len(kvs) > 0 {
+			// don't send again while subscription hasn't had chance to have been renewed
+			if sendDate, err := time.Parse(time.RFC822Z, kvs[0].Value); err == nil && now.Sub(sendDate) <= notifyBeforeSubscriptionExpiry {
+				alreadySent = true
+			} else if err != nil {
+				config.Log().Error("failed to parse date for last sent subscription notification mail for user '%s', %v", u.ID, err)
+				alreadySent = true
+			}
+		}
+
 		// skip users without e-mail address
 		// skip users who already received a notification before
 		// skip users who either never had a subscription before or intentionally deleted it
-		if _, ok := subscriptionReminders[u.ID]; ok || u.Email == "" || u.SubscribedUntil == nil {
+		// skip users who have upcoming auto-renewal (everyone except users who chose to cancel subscription at later date)
+		if alreadySent || u.Email == "" || u.SubscribedUntil == nil || (u.SubscriptionRenewal != nil && u.SubscriptionRenewal.T().After(now)) {
 			continue
 		}
 

@@ -729,7 +729,12 @@
                 <span class="font-semibold text-gray-300">Subscription status:</span>
                 <span class="text-gray-600 ml-1 text-sm">
                     {{ if .User.HasActiveSubscription }}
-                    <span class="font-semibold text-green-500 text-base">Active</span> (until {{ .User.SubscribedUntil.T | date }})
+                    <span class="font-semibold text-green-500 text-base">Active</span>
+                    {{ if .User.SubscriptionRenewal }}
+                    (automatically renews at {{ .User.SubscriptionRenewal.T | date }})
+                    {{ else }}
+                    (until {{ .User.SubscribedUntil.T | date }})
+                    {{ end }}
                     {{ else }}
                     <span class="font-semibold text-red-500 text-base">Inactive</span>
                     {{ end }}
@@ -746,7 +751,7 @@
                 </form>
                 {{ else }}
                 <form action="subscription/portal" method="post" class="mt-8 mb-8" id="form-subscription-portal">
-                    <button type="submit" class="btn-danger">Cancel subscription</button>
+                    <button type="submit" class="btn-primary">Manage subscription</button>
                 </form>
                 {{ end }}
             </div>
