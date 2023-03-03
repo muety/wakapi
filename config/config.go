@@ -395,10 +395,18 @@ func Load(version string) *Config {
 	config.InstanceId = uuid.NewV4().String()
 	config.App.Colors = readColors()
 	config.Db.Dialect = resolveDbDialect(config.Db.Type)
-	config.Security.SecureCookie = securecookie.New(
-		securecookie.GenerateRandomKey(64),
-		securecookie.GenerateRandomKey(32),
-	)
+
+	var hashKey []byte
+	var blockKey []byte
+	if IsDev(env) {
+		logbuch.Warn("using temporary keys to sign and encrypt cookies in dev mode, make sure to set env to production for real-world use")
+		hashKey, blockKey = getTemporarySecureKeys()
+	} else {
+		hashKey = securecookie.GenerateRandomKey(64)
+		blockKey = securecookie.GenerateRandomKey(64)
+	}
+
+	config.Security.SecureCookie = securecookie.New(hashKey, blockKey)
 	config.Security.SessionKey = securecookie.GenerateRandomKey(32)
 
 	if strings.HasSuffix(config.Server.BasePath, "/") {
