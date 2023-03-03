@@ -1,7 +1,9 @@
 package routes
 
-import "github.com/gorilla/mux"
+import (
+	"github.com/go-chi/chi/v5"
+)
 
 type Handler interface {
-	RegisterRoutes(router *mux.Router)
+	RegisterRoutes(router chi.Router)
 }

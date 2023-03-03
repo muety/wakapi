@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/emvi/logbuch"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -70,25 +70,27 @@ func NewSubscriptionHandler(
 
 // https://stripe.com/docs/billing/quickstart?lang=go
 
-func (h *SubscriptionHandler) RegisterRoutes(router *mux.Router) {
+func (h *SubscriptionHandler) RegisterRoutes(router chi.Router) {
 	if !h.config.Subscriptions.Enabled {
 		return
 	}
 
-	subRouterPublic := router.PathPrefix("/subscription").Subrouter()
-	subRouterPublic.Path("/success").Methods(http.MethodGet).HandlerFunc(h.GetCheckoutSuccess)
-	subRouterPublic.Path("/cancel").Methods(http.MethodGet).HandlerFunc(h.GetCheckoutCancel)
-	subRouterPublic.Path("/webhook").Methods(http.MethodPost).HandlerFunc(h.PostWebhook)
+	subRouterPublic := chi.NewRouter()
+	subRouterPublic.Get("/success", h.GetCheckoutSuccess)
+	subRouterPublic.Get("/cancel", h.GetCheckoutCancel)
+	subRouterPublic.Post("/webhook", h.PostWebhook)
 
-	subRouterPrivate := subRouterPublic.PathPrefix("").Subrouter()
+	subRouterPrivate := chi.NewRouter()
 	subRouterPrivate.Use(
 		middlewares.NewAuthenticateMiddleware(h.userSrvc).
 			WithRedirectTarget(defaultErrorRedirectTarget()).
-			WithRedirectErrorMessage("unauthorized").
-			Handler,
+			WithRedirectErrorMessage("unauthorized").Handler,
 	)
-	subRouterPrivate.Path("/checkout").Methods(http.MethodPost).HandlerFunc(h.PostCheckout)
-	subRouterPrivate.Path("/portal").Methods(http.MethodPost).HandlerFunc(h.PostPortal)
+	subRouterPrivate.Post("/checkout", h.PostCheckout)
+	subRouterPrivate.Post("/portal", h.PostPortal)
+
+	subRouterPublic.Mount("/", subRouterPrivate)
+	router.Mount("/subscription", subRouterPublic)
 }
 
 func (h *SubscriptionHandler) PostCheckout(w http.ResponseWriter, r *http.Request) {

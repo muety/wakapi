@@ -2,7 +2,15 @@ package main
 
 import (
 	"embed"
+	"github.com/go-chi/chi/v5"
+	middleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/lpar/gzipped/v2"
+	"github.com/muety/wakapi/middlewares"
+	shieldsV1Routes "github.com/muety/wakapi/routes/compat/shields/v1"
+	wtV1Routes "github.com/muety/wakapi/routes/compat/wakatime/v1"
+	"github.com/muety/wakapi/routes/relay"
+	fsutils "github.com/muety/wakapi/utils/fs"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"io/fs"
 	"log"
 	"net"
@@ -14,23 +22,13 @@ import (
 	"github.com/muety/wakapi/static/docs"
 
 	"github.com/emvi/logbuch"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
-	httpSwagger "github.com/swaggo/http-swagger"
-
 	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/migrations"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/routes"
 	"github.com/muety/wakapi/routes/api"
-	shieldsV1Routes "github.com/muety/wakapi/routes/compat/shields/v1"
-	wtV1Routes "github.com/muety/wakapi/routes/compat/wakatime/v1"
-	"github.com/muety/wakapi/routes/relay"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/services/mail"
-	fsutils "github.com/muety/wakapi/utils/fs"
-
 	_ "gorm.io/driver/mysql"
 	_ "gorm.io/driver/postgres"
 	_ "gorm.io/driver/sqlite"
@@ -225,27 +223,33 @@ func main() {
 	// Other Handlers
 	relayHandler := relay.NewRelayHandler()
 
-	// Setup Routers
-	router := mux.NewRouter()
-	rootRouter := router.PathPrefix("/").Subrouter()
-	apiRouter := router.PathPrefix("/api").Subrouter().StrictSlash(true)
-
-	// https://github.com/gorilla/mux/issues/416
-	router.NotFoundHandler = router.NewRoute().BuildOnly().HandlerFunc(http.NotFound).GetHandler()
-	router.NotFoundHandler = middlewares.NewLoggingMiddleware(logbuch.Info, []string{
-		"/assets",
-		"/favicon",
-		"/service-worker.js",
-	})(router.NotFoundHandler)
-
-	// Globally used middlewares
-	router.Use(middlewares.NewPrincipalMiddleware())
-	router.Use(middlewares.NewLoggingMiddleware(logbuch.Info, []string{"/assets", "/api/health"}))
-	router.Use(handlers.RecoveryHandler())
+	// Setup Routing
+	router := chi.NewRouter()
+	router.Use(
+		middleware.CleanPath,
+		middleware.StripSlashes,
+		middleware.Recoverer,
+		middlewares.NewPrincipalMiddleware(),
+		middlewares.NewLoggingMiddleware(logbuch.Info, []string{
+			"/assets",
+			"/favicon",
+			"/service-worker.js",
+			"/api/health",
+		}),
+	)
 	if config.Sentry.Dsn != "" {
 		router.Use(middlewares.NewSentryMiddleware())
 	}
+
+	// Setup Sub Routers
+	rootRouter := chi.NewRouter()
 	rootRouter.Use(middlewares.NewSecurityMiddleware())
+
+	apiRouter := chi.NewRouter()
+
+	// Hook sub routers
+	router.Mount("/", rootRouter)
+	router.Mount("/api", apiRouter)
 
 	// Route registrations
 	homeHandler.RegisterRoutes(rootRouter)
@@ -286,10 +290,10 @@ func main() {
 	}
 	staticFileServer := http.FileServer(http.FS(fsutils.NeuteredFileSystem{FS: static}))
 
-	router.PathPrefix("/contribute.json").Handler(staticFileServer)
-	router.PathPrefix("/assets").Handler(assetsFileServer)
-	router.Path("/swagger-ui").Handler(http.RedirectHandler("swagger-ui/", http.StatusMovedPermanently)) // https://github.com/swaggo/http-swagger/issues/44
-	router.PathPrefix("/swagger-ui").Handler(httpSwagger.WrapHandler)
+	router.Get("/contribute.json", staticFileServer.ServeHTTP)
+	router.Get("/assets/*", assetsFileServer.ServeHTTP)
+	router.Get("/swagger-ui", http.RedirectHandler("swagger-ui/", http.StatusMovedPermanently).ServeHTTP) // https://github.com/swaggo/http-swagger/issues/44
+	router.Get("/swagger-ui/*", httpSwagger.WrapHandler)
 
 	// Listen HTTP
 	listen(router)

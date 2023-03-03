@@ -2,10 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
@@ -25,9 +25,8 @@ func NewDiagnosticsApiHandler(userService services.IUserService, diagnosticsServ
 	}
 }
 
-func (h *DiagnosticsApiHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/plugins/errors").Subrouter()
-	r.Path("").Methods(http.MethodPost).HandlerFunc(h.Post)
+func (h *DiagnosticsApiHandler) RegisterRoutes(router chi.Router) {
+	router.Post("/plugins/errors", h.Post)
 }
 
 // @Summary Push a new diagnostics object

@@ -3,7 +3,7 @@ package v1
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
@@ -36,9 +36,10 @@ var (
 )
 
 func TestUsersHandler_Get(t *testing.T) {
-	router := mux.NewRouter()
-	apiRouter := router.PathPrefix("/api").Subrouter().StrictSlash(true)
+	router := chi.NewRouter()
+	apiRouter := chi.NewRouter()
 	apiRouter.Use(middlewares.NewPrincipalMiddleware())
+	router.Mount("/api", apiRouter)
 
 	userServiceMock := new(mocks.UserServiceMock)
 	userServiceMock.On("GetUserById", "AdminUser").Return(adminUser, nil)
@@ -61,14 +62,17 @@ func TestUsersHandler_Get(t *testing.T) {
 
 	t.Run("when requesting own user data", func(t *testing.T) {
 		t.Run("should return own data", func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, "/api/compat/wakatime/v1/users/AdminUser", nil)
+			rec := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodGet, "/api/compat/wakatime/v1/users/{user}", nil)
+			req = withUrlParam(req, "user", "AdminUser")
 			req.Header.Add(
 				"Authorization",
 				fmt.Sprintf("Bearer %s", base64.StdEncoding.EncodeToString([]byte(adminUser.ApiKey))),
 			)
-			requestRecorder := httptest.NewRecorder()
-			apiRouter.ServeHTTP(requestRecorder, req)
-			res := requestRecorder.Result()
+
+			router.ServeHTTP(rec, req)
+			res := rec.Result()
 			defer res.Body.Close()
 
 			data, err := ioutil.ReadAll(res.Body)
@@ -84,14 +88,17 @@ func TestUsersHandler_Get(t *testing.T) {
 
 	t.Run("when requesting another users data", func(t *testing.T) {
 		t.Run("should respond with '401 unauthorized' if not an admin user", func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, "/api/compat/wakatime/v1/users/AdminUser", nil)
+			rec := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodGet, "/api/compat/wakatime/v1/users/{user}", nil)
+			req = withUrlParam(req, "user", "AdminUser")
 			req.Header.Add(
 				"Authorization",
 				fmt.Sprintf("Bearer %s", base64.StdEncoding.EncodeToString([]byte(basicUser.ApiKey))),
 			)
-			requestRecorder := httptest.NewRecorder()
-			apiRouter.ServeHTTP(requestRecorder, req)
-			res := requestRecorder.Result()
+
+			router.ServeHTTP(rec, req)
+			res := rec.Result()
 			defer res.Body.Close()
 
 			data, err := ioutil.ReadAll(res.Body)
@@ -105,14 +112,17 @@ func TestUsersHandler_Get(t *testing.T) {
 		})
 
 		t.Run("should receive user data if requesting user is an admin", func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, "/api/compat/wakatime/v1/users/BasicUser", nil)
+			rec := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodGet, "/api/compat/wakatime/v1/users/{user}", nil)
+			req = withUrlParam(req, "user", "BasicUser")
 			req.Header.Add(
 				"Authorization",
 				fmt.Sprintf("Bearer %s", base64.StdEncoding.EncodeToString([]byte(adminUser.ApiKey))),
 			)
-			requestRecorder := httptest.NewRecorder()
-			apiRouter.ServeHTTP(requestRecorder, req)
-			res := requestRecorder.Result()
+
+			router.ServeHTTP(rec, req)
+			res := rec.Result()
 			defer res.Body.Close()
 
 			data, err := ioutil.ReadAll(res.Body)

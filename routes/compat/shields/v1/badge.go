@@ -2,12 +2,12 @@ package v1
 
 import (
 	"fmt"
+	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/shields/v1"
@@ -31,10 +31,9 @@ func NewBadgeHandler(summaryService services.ISummaryService, userService servic
 	}
 }
 
-func (h *BadgeHandler) RegisterRoutes(router *mux.Router) {
+func (h *BadgeHandler) RegisterRoutes(router chi.Router) {
 	// no auth middleware here, handler itself resolves the user
-	r := router.PathPrefix("/compat/shields/v1/{user}").Subrouter()
-	r.Methods(http.MethodGet).HandlerFunc(h.Get)
+	router.Get("/compat/shields/v1/{user}/*", h.Get)
 }
 
 // @Summary Get badge data
@@ -48,7 +47,7 @@ func (h *BadgeHandler) RegisterRoutes(router *mux.Router) {
 // @Success 200 {object} v1.BadgeData
 // @Router /compat/shields/v1/{user}/{interval}/{filter} [get]
 func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
-	user, err := h.userSrvc.GetUserById(mux.Vars(r)["user"])
+	user, err := h.userSrvc.GetUserById(chi.URLParam(r, "user"))
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return

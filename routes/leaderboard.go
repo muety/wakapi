@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/emvi/logbuch"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -34,16 +34,17 @@ func NewLeaderboardHandler(userService services.IUserService, leaderboardService
 	}
 }
 
-func (h *LeaderboardHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/leaderboard").Subrouter()
+func (h *LeaderboardHandler) RegisterRoutes(router chi.Router) {
+	r := chi.NewRouter()
 	r.Use(
 		middlewares.NewAuthenticateMiddleware(h.userService).
 			WithRedirectTarget(defaultErrorRedirectTarget()).
 			WithRedirectErrorMessage("unauthorized").
-			WithOptionalFor([]string{"/"}).
-			Handler,
+			WithOptionalFor([]string{"/"}).Handler,
 	)
-	r.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
+	r.Get("/", h.GetIndex)
+
+	router.Mount("/leaderboard", r)
 }
 
 func (h *LeaderboardHandler) GetIndex(w http.ResponseWriter, r *http.Request) {

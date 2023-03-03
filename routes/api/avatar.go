@@ -2,7 +2,7 @@ package api
 
 import (
 	"codeberg.org/Codeberg/avatars"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	lru "github.com/hashicorp/golang-lru"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
@@ -27,13 +27,12 @@ func NewAvatarHandler() *AvatarHandler {
 	}
 }
 
-func (h *AvatarHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/avatar/{hash}.svg").Subrouter()
-	r.Path("").Methods(http.MethodGet).HandlerFunc(h.Get)
+func (h *AvatarHandler) RegisterRoutes(router chi.Router) {
+	router.Get("/avatar/{hash}.svg", h.Get)
 }
 
 func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
-	hash := mux.Vars(r)["hash"]
+	hash := chi.URLParam(r, "hash")
 
 	if utils.IsNoCache(r, 1*time.Hour) {
 		h.cache.Remove(hash)

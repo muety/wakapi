@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
@@ -21,8 +21,8 @@ func NewImprintHandler(keyValueService services.IKeyValueService) *ImprintHandle
 	}
 }
 
-func (h *ImprintHandler) RegisterRoutes(router *mux.Router) {
-	router.Path("/imprint").Methods(http.MethodGet).HandlerFunc(h.GetImprint)
+func (h *ImprintHandler) RegisterRoutes(router chi.Router) {
+	router.Get("/imprint", h.GetImprint)
 }
 
 func (h *ImprintHandler) GetImprint(w http.ResponseWriter, r *http.Request) {

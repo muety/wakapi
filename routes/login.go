@@ -3,7 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/emvi/logbuch"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -30,24 +30,25 @@ func NewLoginHandler(userService services.IUserService, mailService services.IMa
 	}
 }
 
-func (h *LoginHandler) RegisterRoutes(router *mux.Router) {
-	router.Path("/login").Methods(http.MethodGet).HandlerFunc(h.GetIndex)
-	router.Path("/login").Methods(http.MethodPost).HandlerFunc(h.PostLogin)
-	router.Path("/signup").Methods(http.MethodGet).HandlerFunc(h.GetSignup)
-	router.Path("/signup").Methods(http.MethodPost).HandlerFunc(h.PostSignup)
-	router.Path("/set-password").Methods(http.MethodGet).HandlerFunc(h.GetSetPassword)
-	router.Path("/set-password").Methods(http.MethodPost).HandlerFunc(h.PostSetPassword)
-	router.Path("/reset-password").Methods(http.MethodGet).HandlerFunc(h.GetResetPassword)
-	router.Path("/reset-password").Methods(http.MethodPost).HandlerFunc(h.PostResetPassword)
+func (h *LoginHandler) RegisterRoutes(router chi.Router) {
+	router.Get("/login", h.GetIndex)
+	router.Post("/login", h.PostLogin)
+	router.Get("/signup", h.GetSignup)
+	router.Post("/signup", h.PostSignup)
+	router.Get("/set-password", h.GetSetPassword)
+	router.Post("/set-password", h.PostSetPassword)
+	router.Get("/reset-password", h.GetResetPassword)
+	router.Post("/reset-password", h.PostResetPassword)
 
 	authMiddleware := middlewares.NewAuthenticateMiddleware(h.userSrvc).
 		WithRedirectTarget(defaultErrorRedirectTarget()).
 		WithRedirectErrorMessage("unauthorized").
 		WithOptionalFor([]string{"/logout"})
 
-	logoutRouter := router.PathPrefix("/logout").Subrouter()
+	logoutRouter := chi.NewRouter()
 	logoutRouter.Use(authMiddleware.Handler)
-	logoutRouter.Path("").Methods(http.MethodPost).HandlerFunc(h.PostLogout)
+	logoutRouter.Post("/", h.PostLogout)
+	router.Mount("/logout", logoutRouter)
 }
 
 func (h *LoginHandler) GetIndex(w http.ResponseWriter, r *http.Request) {

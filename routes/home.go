@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/emvi/logbuch"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/schema"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -33,8 +33,8 @@ func NewHomeHandler(keyValueService services.IKeyValueService) *HomeHandler {
 	}
 }
 
-func (h *HomeHandler) RegisterRoutes(router *mux.Router) {
-	router.Path("/").Methods(http.MethodGet).HandlerFunc(h.GetIndex)
+func (h *HomeHandler) RegisterRoutes(router chi.Router) {
+	router.Get("/", h.GetIndex)
 }
 
 func (h *HomeHandler) GetIndex(w http.ResponseWriter, r *http.Request) {

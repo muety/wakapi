@@ -3,7 +3,7 @@ package api
 import (
 	"errors"
 	"github.com/emvi/logbuch"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
@@ -66,18 +66,18 @@ func NewMetricsHandler(userService services.IUserService, summaryService service
 	}
 }
 
-func (h *MetricsHandler) RegisterRoutes(router *mux.Router) {
+func (h *MetricsHandler) RegisterRoutes(router chi.Router) {
 	if !h.config.Security.ExposeMetrics {
 		return
 	}
 
 	logbuch.Info("exposing prometheus metrics under /api/metrics")
 
-	r := router.PathPrefix("/metrics").Subrouter()
-	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
-	)
-	r.Path("").Methods(http.MethodGet).HandlerFunc(h.Get)
+	r := chi.NewRouter()
+	r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler)
+	r.Get("/", h.Get)
+
+	router.Mount("/metrics", r)
 }
 
 func (h *MetricsHandler) Get(w http.ResponseWriter, r *http.Request) {

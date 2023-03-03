@@ -1,10 +1,10 @@
 package api
 
 import (
+	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	customMiddleware "github.com/muety/wakapi/middlewares/custom"
@@ -35,21 +35,22 @@ type heartbeatResponseVm struct {
 	Responses [][]interface{} `json:"responses"`
 }
 
-func (h *HeartbeatApiHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("").Subrouter()
-	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
-		customMiddleware.NewWakatimeRelayMiddleware().Handler,
-	)
-	// see https://github.com/muety/wakapi/issues/203
-	r.Path("/heartbeat").Methods(http.MethodPost).HandlerFunc(h.Post)
-	r.Path("/heartbeats").Methods(http.MethodPost).HandlerFunc(h.Post)
-	r.Path("/users/{user}/heartbeats").Methods(http.MethodPost).HandlerFunc(h.Post)
-	r.Path("/users/{user}/heartbeats.bulk").Methods(http.MethodPost).HandlerFunc(h.Post)
-	r.Path("/v1/users/{user}/heartbeats").Methods(http.MethodPost).HandlerFunc(h.Post)
-	r.Path("/v1/users/{user}/heartbeats.bulk").Methods(http.MethodPost).HandlerFunc(h.Post)
-	r.Path("/compat/wakatime/v1/users/{user}/heartbeats").Methods(http.MethodPost).HandlerFunc(h.Post)
-	r.Path("/compat/wakatime/v1/users/{user}/heartbeats.bulk").Methods(http.MethodPost).HandlerFunc(h.Post)
+func (h *HeartbeatApiHandler) RegisterRoutes(router chi.Router) {
+	router.Group(func(r chi.Router) {
+		r.Use(
+			middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
+			customMiddleware.NewWakatimeRelayMiddleware().Handler,
+		)
+		// see https://github.com/muety/wakapi/issues/203
+		r.Post("/heartbeat", h.Post)
+		r.Post("/heartbeats", h.Post)
+		r.Post("/users/{user}/heartbeats", h.Post)
+		r.Post("/users/{user}/heartbeats.bulk", h.Post)
+		r.Post("/v1/users/{user}/heartbeats", h.Post)
+		r.Post("/v1/users/{user}/heartbeats.bulk", h.Post)
+		r.Post("/compat/wakatime/v1/users/{user}/heartbeats", h.Post)
+		r.Post("/compat/wakatime/v1/users/{user}/heartbeats.bulk", h.Post)
+	})
 }
 
 // @Summary Push a new heartbeat

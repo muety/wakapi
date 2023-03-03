@@ -3,12 +3,12 @@ package v1
 import (
 	"errors"
 	"github.com/duke-git/lancet/v2/datetime"
+	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -32,12 +32,11 @@ func NewSummariesHandler(userService services.IUserService, summaryService servi
 	}
 }
 
-func (h *SummariesHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/compat/wakatime/v1/users/{user}/summaries").Subrouter()
-	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
-	)
-	r.Path("").Methods(http.MethodGet).HandlerFunc(h.Get)
+func (h *SummariesHandler) RegisterRoutes(router chi.Router) {
+	router.Group(func(r chi.Router) {
+		r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler)
+		r.Get("/compat/wakatime/v1/users/{user}/summaries", h.Get)
+	})
 }
 
 // TODO: Support parameters: project, branches, timeout, writes_only

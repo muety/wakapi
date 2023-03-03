@@ -1,11 +1,11 @@
 package v1
 
 import (
+	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"net/http"
 	"strings"
 
-	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -28,12 +28,11 @@ func NewProjectsHandler(userService services.IUserService, heartbeatsService ser
 	}
 }
 
-func (h *ProjectsHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/compat/wakatime/v1/users/{user}/projects").Subrouter()
-	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
-	)
-	r.Path("").Methods(http.MethodGet).HandlerFunc(h.Get)
+func (h *ProjectsHandler) RegisterRoutes(router chi.Router) {
+	router.Group(func(r chi.Router) {
+		r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler)
+		r.Get("/compat/wakatime/v1/users/{user}/projects", h.Get)
+	})
 }
 
 // @Summary Retrieve and fitler the user's projects

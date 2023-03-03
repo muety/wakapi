@@ -1,10 +1,10 @@
 package v1
 
 import (
+	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
@@ -26,12 +26,11 @@ func NewUsersHandler(userService services.IUserService, heartbeatService service
 	}
 }
 
-func (h *UsersHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/compat/wakatime/v1/users/{user}").Subrouter()
-	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
-	)
-	r.Path("").Methods(http.MethodGet).HandlerFunc(h.Get)
+func (h *UsersHandler) RegisterRoutes(router chi.Router) {
+	router.Group(func(r chi.Router) {
+		r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler)
+		r.Get("/compat/wakatime/v1/users/{user}", h.Get)
+	})
 }
 
 // @Summary Retrieve the given user

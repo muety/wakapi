@@ -1,11 +1,11 @@
 package v1
 
 import (
+	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -33,15 +33,13 @@ func NewStatusBarHandler(userService services.IUserService, summaryService servi
 	}
 }
 
-func (h *StatusBarHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("").Subrouter()
-
-	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
-	)
-	r.Path("/users/{user}/statusbar/{range}").Methods(http.MethodGet).HandlerFunc(h.Get)
-	r.Path("/v1/users/{user}/statusbar/{range}").Methods(http.MethodGet).HandlerFunc(h.Get)
-	r.Path("/compat/wakatime/v1/users/{user}/statusbar/{range}").Methods(http.MethodGet).HandlerFunc(h.Get)
+func (h *StatusBarHandler) RegisterRoutes(router chi.Router) {
+	router.Group(func(r chi.Router) {
+		r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler)
+		r.Get("/users/{user}/statusbar/{range}", h.Get)
+		r.Get("/v1/users/{user}/statusbar/{range}", h.Get)
+		r.Get("/compat/wakatime/v1/users/{user}/statusbar/{range}", h.Get)
+	})
 }
 
 // @Summary Retrieve summary for statusbar
@@ -58,9 +56,8 @@ func (h *StatusBarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return // response was already sent by util function
 	}
-	var vars = mux.Vars(r)
 
-	rangeParam := vars["range"]
+	rangeParam := chi.URLParam(r, "range")
 	if rangeParam == "" {
 		rangeParam = (*models.IntervalToday)[0]
 	}

@@ -2,14 +2,14 @@ package utils
 
 import (
 	"context"
-	"fmt"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -70,8 +70,8 @@ func mockUserAwareRequest(requestedUser, authorizedUser string) (*http.Request, 
 		testPrincipal.SetPrincipal(&testUser)
 	}
 
-	r := httptest.NewRequest("GET", fmt.Sprintf("http://localhost:3000/api/%s/data", requestedUser), nil)
-	r = mux.SetURLVars(r, map[string]string{"user": requestedUser})
+	r := httptest.NewRequest("GET", "http://localhost:3000/api/{user}/data", nil)
+	r = withUrlParam(r, "user", requestedUser)
 	r = r.WithContext(context.WithValue(r.Context(), "principal", &testPrincipal))
 
 	userServiceMock := new(mocks.UserServiceMock)
@@ -80,4 +80,13 @@ func mockUserAwareRequest(requestedUser, authorizedUser string) (*http.Request, 
 	userServiceMock.On("GetUserById", "admin").Return(&models.User{ID: "admin"}, nil)
 
 	return r, httptest.NewRecorder(), userServiceMock
+}
+
+func withUrlParam(r *http.Request, key, value string) *http.Request {
+	r.URL.RawPath = strings.Replace(r.URL.RawPath, "{"+key+"}", value, 1)
+	r.URL.Path = strings.Replace(r.URL.Path, "{"+key+"}", value, 1)
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add(key, value)
+	r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
+	return r
 }

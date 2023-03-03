@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 )
 
@@ -16,9 +16,8 @@ func NewHealthApiHandler(db *gorm.DB) *HealthApiHandler {
 	return &HealthApiHandler{db: db}
 }
 
-func (h *HealthApiHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/health").Subrouter()
-	r.Path("").Methods(http.MethodGet).HandlerFunc(h.Get)
+func (h *HealthApiHandler) RegisterRoutes(router chi.Router) {
+	router.Get("/health", h.Get)
 }
 
 // @Summary Check the application's health status

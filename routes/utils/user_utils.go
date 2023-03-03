@@ -2,7 +2,7 @@ package utils
 
 import (
 	"errors"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -20,24 +20,23 @@ func CheckEffectiveUser(w http.ResponseWriter, r *http.Request, userService serv
 		return nil, err
 	}
 
-	var vars = mux.Vars(r)
-
-	if vars["user"] == "" {
-		vars["user"] = fallback
+	userParam := chi.URLParam(r, "user")
+	if userParam == "" {
+		userParam = fallback
 	}
 
 	authorizedUser := middlewares.GetPrincipal(r)
 	if authorizedUser == nil {
 		return respondError(http.StatusUnauthorized, conf.ErrUnauthorized)
-	} else if vars["user"] == "current" {
+	} else if userParam == "current" {
 		return authorizedUser, nil
 	}
 
-	if authorizedUser.ID != vars["user"] && !authorizedUser.IsAdmin {
+	if authorizedUser.ID != userParam && !authorizedUser.IsAdmin {
 		return respondError(http.StatusUnauthorized, conf.ErrUnauthorized)
 	}
 
-	requestedUser, err := userService.GetUserById(vars["user"])
+	requestedUser, err := userService.GetUserById(userParam)
 	if err != nil {
 		return respondError(http.StatusNotFound, "user not found")
 	}

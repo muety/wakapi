@@ -1,11 +1,11 @@
 package api
 
 import (
+	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/services"
@@ -25,12 +25,12 @@ func NewSummaryApiHandler(userService services.IUserService, summaryService serv
 	}
 }
 
-func (h *SummaryApiHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/summary").Subrouter()
-	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
-	)
-	r.Path("").Methods(http.MethodGet).HandlerFunc(h.Get)
+func (h *SummaryApiHandler) RegisterRoutes(router chi.Router) {
+	r := chi.NewRouter()
+	r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler)
+	r.Get("/", h.Get)
+
+	router.Mount("/summary", r)
 }
 
 // @Summary Retrieve a summary

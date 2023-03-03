@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
@@ -27,12 +27,11 @@ func NewAllTimeHandler(userService services.IUserService, summaryService service
 	}
 }
 
-func (h *AllTimeHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/compat/wakatime/v1/users/{user}/all_time_since_today").Subrouter()
-	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
-	)
-	r.Path("").Methods(http.MethodGet).HandlerFunc(h.Get)
+func (h *AllTimeHandler) RegisterRoutes(router chi.Router) {
+	router.Group(func(r chi.Router) {
+		r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler)
+		r.Get("/compat/wakatime/v1/users/{user}/all_time_since_today", h.Get)
+	})
 }
 
 // @Summary Retrieve summary for all time

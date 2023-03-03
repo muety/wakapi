@@ -1,11 +1,11 @@
 package v1
 
 import (
+	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -27,17 +27,18 @@ func NewStatsHandler(userService services.IUserService, summaryService services.
 	}
 }
 
-func (h *StatsHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("").Subrouter()
-	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalFor([]string{"/"}).Handler,
-	)
-	r.Path("/v1/users/{user}/stats/{range}").Methods(http.MethodGet).HandlerFunc(h.Get)
-	r.Path("/compat/wakatime/v1/users/{user}/stats/{range}").Methods(http.MethodGet).HandlerFunc(h.Get)
+func (h *StatsHandler) RegisterRoutes(router chi.Router) {
+	router.Group(func(r chi.Router) {
+		r.Use(
+			middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalFor([]string{"/"}).Handler,
+		)
+		r.Get("/v1/users/{user}/stats/{range}", h.Get)
+		r.Get("/compat/wakatime/v1/users/{user}/stats/{range}", h.Get)
 
-	// Also works without range, see https://github.com/anuraghazra/github-readme-stats/issues/865#issuecomment-776186592
-	r.Path("/v1/users/{user}/stats").Methods(http.MethodGet).HandlerFunc(h.Get)
-	r.Path("/compat/wakatime/v1/users/{user}/stats").Methods(http.MethodGet).HandlerFunc(h.Get)
+		// Also works without range, see https://github.com/anuraghazra/github-readme-stats/issues/865#issuecomment-776186592
+		r.Get("/v1/users/{user}/stats", h.Get)
+		r.Get("/compat/wakatime/v1/users/{user}/stats", h.Get)
+	})
 }
 
 // TODO: support filtering (requires https://github.com/muety/wakapi/issues/108)
@@ -59,22 +60,22 @@ func (h *StatsHandler) RegisterRoutes(router *mux.Router) {
 // @Success 200 {object} v1.StatsViewModel
 // @Router /compat/wakatime/v1/users/{user}/stats/{range} [get]
 func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
-	var vars = mux.Vars(r)
+	userParam := chi.URLParam(r, "user")
+	rangeParam := chi.URLParam(r, "range")
 	var authorizedUser, requestedUser *models.User
 
 	authorizedUser = middlewares.GetPrincipal(r)
-	if authorizedUser != nil && vars["user"] == "current" {
-		vars["user"] = authorizedUser.ID
+	if authorizedUser != nil && userParam == "current" {
+		userParam = authorizedUser.ID
 	}
 
-	requestedUser, err := h.userSrvc.GetUserById(vars["user"])
+	requestedUser, err := h.userSrvc.GetUserById(userParam)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("user not found"))
 		return
 	}
 
-	rangeParam := vars["range"]
 	if rangeParam == "" {
 		rangeParam = (*models.IntervalPast7Days)[0]
 	}

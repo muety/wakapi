@@ -2,7 +2,7 @@ package routes
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
@@ -30,20 +30,15 @@ func NewSummaryHandler(summaryService services.ISummaryService, userService serv
 	}
 }
 
-func (h *SummaryHandler) RegisterRoutes(router *mux.Router) {
-	r1 := router.PathPrefix("/summary").Subrouter()
-	r1.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).
+func (h *SummaryHandler) RegisterRoutes(router chi.Router) {
+	r := chi.NewRouter()
+	r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).
 		WithRedirectTarget(defaultErrorRedirectTarget()).
-		WithRedirectErrorMessage("unauthorized").
-		Handler)
-	r1.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
+		WithRedirectErrorMessage("unauthorized").Handler,
+	)
+	r.Get("/", h.GetIndex)
 
-	r2 := router.PathPrefix("/summary").Subrouter()
-	r2.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).
-		WithRedirectTarget(defaultErrorRedirectTarget()).
-		WithRedirectErrorMessage("unauthorized").
-		Handler)
-	r2.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
+	router.Mount("/summary", r)
 }
 
 func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {

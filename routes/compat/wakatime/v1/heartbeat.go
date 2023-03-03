@@ -2,11 +2,11 @@ package v1
 
 import (
 	"github.com/duke-git/lancet/v2/datetime"
+	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
@@ -33,12 +33,11 @@ func NewHeartbeatHandler(userService services.IUserService, heartbeatService ser
 	}
 }
 
-func (h *HeartbeatHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("").Subrouter()
-	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
-	)
-	r.Path("/compat/wakatime/v1/users/{user}/heartbeats").Methods(http.MethodGet).HandlerFunc(h.Get)
+func (h *HeartbeatHandler) RegisterRoutes(router chi.Router) {
+	router.Group(func(r chi.Router) {
+		r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler)
+		r.Get("/compat/wakatime/v1/users/{user}/heartbeats", h.Get)
+	})
 }
 
 // @Summary Get heartbeats of user for specified date

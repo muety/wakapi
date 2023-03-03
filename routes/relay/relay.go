@@ -1,7 +1,7 @@
 package relay
 
 import (
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"net/http"
 	"net/http/httputil"
@@ -46,14 +46,16 @@ func (m *filteringMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	m.handler.ServeHTTP(w, r)
 }
 
-func (h *RelayHandler) RegisterRoutes(router *mux.Router) {
+func (h *RelayHandler) RegisterRoutes(router chi.Router) {
 	if !h.config.Security.EnableProxy {
 		return
 	}
 
-	r := router.PathPrefix("/relay").Subrouter()
+	r := chi.NewRouter()
 	r.Use(newFilteringMiddleware())
-	r.Path("").HandlerFunc(h.Any)
+	r.HandleFunc("/", h.Any)
+
+	router.Mount("/relay", r)
 }
 
 func (h *RelayHandler) Any(w http.ResponseWriter, r *http.Request) {

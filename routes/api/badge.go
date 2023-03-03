@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/duke-git/lancet/v2/maputil"
 	"github.com/duke-git/lancet/v2/slice"
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/shields/v1"
@@ -33,13 +33,12 @@ func NewBadgeHandler(userService services.IUserService, summaryService services.
 	}
 }
 
-func (h *BadgeHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/badge/{user}").Subrouter()
-	r.Methods(http.MethodGet).HandlerFunc(h.Get)
+func (h *BadgeHandler) RegisterRoutes(router chi.Router) {
+	router.Get("/badge/{user}", h.Get)
 }
 
 func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
-	user, err := h.userSrvc.GetUserById(mux.Vars(r)["user"])
+	user, err := h.userSrvc.GetUserById(chi.URLParam(r, "user"))
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return

@@ -3,6 +3,7 @@ package routes
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 	"sort"
 	"strconv"
@@ -11,7 +12,6 @@ import (
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/emvi/logbuch"
-	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -67,16 +67,17 @@ func NewSettingsHandler(
 	}
 }
 
-func (h *SettingsHandler) RegisterRoutes(router *mux.Router) {
-	r := router.PathPrefix("/settings").Subrouter()
+func (h *SettingsHandler) RegisterRoutes(router chi.Router) {
+	r := chi.NewRouter()
 	r.Use(
 		middlewares.NewAuthenticateMiddleware(h.userSrvc).
 			WithRedirectTarget(defaultErrorRedirectTarget()).
-			WithRedirectErrorMessage("unauthorized").
-			Handler,
+			WithRedirectErrorMessage("unauthorized").Handler,
 	)
-	r.Methods(http.MethodGet).HandlerFunc(h.GetIndex)
-	r.Methods(http.MethodPost).HandlerFunc(h.PostIndex)
+	r.Get("/", h.GetIndex)
+	r.Post("/", h.PostIndex)
+
+	router.Mount("/settings", r)
 }
 
 func (h *SettingsHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
