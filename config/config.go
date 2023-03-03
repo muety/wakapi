@@ -396,18 +396,18 @@ func Load(version string) *Config {
 	config.App.Colors = readColors()
 	config.Db.Dialect = resolveDbDialect(config.Db.Type)
 
-	var hashKey []byte
-	var blockKey []byte
+	hashKey := securecookie.GenerateRandomKey(64)
+	blockKey := securecookie.GenerateRandomKey(32)
+	sessionKey := securecookie.GenerateRandomKey(32)
+
 	if IsDev(env) {
 		logbuch.Warn("using temporary keys to sign and encrypt cookies in dev mode, make sure to set env to production for real-world use")
 		hashKey, blockKey = getTemporarySecureKeys()
-	} else {
-		hashKey = securecookie.GenerateRandomKey(64)
-		blockKey = securecookie.GenerateRandomKey(64)
+		blockKey = hashKey
 	}
 
 	config.Security.SecureCookie = securecookie.New(hashKey, blockKey)
-	config.Security.SessionKey = securecookie.GenerateRandomKey(32)
+	config.Security.SessionKey = sessionKey
 
 	if strings.HasSuffix(config.Server.BasePath, "/") {
 		config.Server.BasePath = config.Server.BasePath[:len(config.Server.BasePath)-1]
