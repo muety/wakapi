@@ -46,6 +46,10 @@ func (h *HomeHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
+	if h.config.Security.DisableFrontpage {
+		http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
+		return
+	}
 
 	templates[conf.IndexTemplate].Execute(w, h.buildViewModel(r, w))
 }
