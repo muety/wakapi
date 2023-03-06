@@ -26,6 +26,8 @@ func NewSMTPSendingService(config conf.SMTPMailConfig) *SMTPSendingService {
 }
 
 func (s *SMTPSendingService) Send(mail *models.Mail) error {
+	mail = mail.Sanitized()
+
 	dial := smtp.Dial
 	if s.config.TLS {
 		dial = func(addr string) (*smtp.Client, error) {

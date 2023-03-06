@@ -1,6 +1,9 @@
 package models
 
-import "regexp"
+import (
+	"regexp"
+	"strings"
+)
 
 const (
 	MailPattern      = "[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+"
@@ -34,6 +37,14 @@ func (m MailAddress) Raw() string {
 		return match[1]
 	}
 	return ""
+}
+
+func (m MailAddress) Domain() string {
+	split := strings.Split(m.Raw(), "@")
+	if len(split) != 2 {
+		return ""
+	}
+	return split[1]
 }
 
 func (m MailAddress) Valid() bool {
