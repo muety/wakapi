@@ -7,6 +7,7 @@ import (
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/repositories"
 	"github.com/patrickmn/go-cache"
 	"sort"
@@ -23,8 +24,6 @@ type SummaryService struct {
 	aliasService        IAliasService
 	projectLabelService IProjectLabelService
 }
-
-type SummaryRetriever func(f, t time.Time, u *models.User, filters *models.Filters) (*models.Summary, error)
 
 func NewSummaryService(summaryRepo repositories.ISummaryRepository, durationService IDurationService, aliasService IAliasService, projectLabelService IProjectLabelService) *SummaryService {
 	srv := &SummaryService{
@@ -50,7 +49,7 @@ func NewSummaryService(summaryRepo repositories.ISummaryRepository, durationServ
 // Public summary generation methods
 
 // Aliased retrieves or computes a new summary based on the given SummaryRetriever and augments it with entity aliases and project labels
-func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f SummaryRetriever, filters *models.Filters, skipCache bool) (*models.Summary, error) {
+func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f types.SummaryRetriever, filters *models.Filters, skipCache bool) (*models.Summary, error) {
 	// Check cache
 	cacheKey := srv.getHash(from.String(), to.String(), user.ID, filters.Hash(), "--aliased")
 	if cacheResult, ok := srv.cache.Get(cacheKey); ok && !skipCache {

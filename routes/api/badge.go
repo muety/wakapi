@@ -34,7 +34,7 @@ func NewBadgeHandler(userService services.IUserService, summaryService services.
 }
 
 func (h *BadgeHandler) RegisterRoutes(router chi.Router) {
-	router.Get("/badge/{user}", h.Get)
+	router.Get("/badge/{user}/*", h.Get)
 }
 
 func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {

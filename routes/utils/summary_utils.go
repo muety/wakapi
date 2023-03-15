@@ -3,6 +3,7 @@ package utils
 import (
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/services"
 	"net/http"
 	"strings"
@@ -17,7 +18,7 @@ func LoadUserSummary(ss services.ISummaryService, r *http.Request) (*models.Summ
 }
 
 func LoadUserSummaryByParams(ss services.ISummaryService, params *models.SummaryParams) (*models.Summary, error, int) {
-	var retrieveSummary services.SummaryRetriever = ss.Retrieve
+	var retrieveSummary types.SummaryRetriever = ss.Retrieve
 	if params.Recompute {
 		retrieveSummary = ss.Summarize
 	}

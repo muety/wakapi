@@ -77,7 +77,7 @@ func TestUsersHandler_Get(t *testing.T) {
 
 			data, err := ioutil.ReadAll(res.Body)
 			if err != nil {
-				t.Errorf("unextected error. Error: %s", err)
+				t.Errorf("unexpected error. Error: %s", err)
 			}
 
 			if !strings.Contains(string(data), "\"username\":\"AdminUser\"") {

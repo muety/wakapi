@@ -3,6 +3,7 @@ package services
 import (
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/utils"
 	"time"
 )
@@ -88,7 +89,7 @@ type IDurationService interface {
 }
 
 type ISummaryService interface {
-	Aliased(time.Time, time.Time, *models.User, SummaryRetriever, *models.Filters, bool) (*models.Summary, error)
+	Aliased(time.Time, time.Time, *models.User, types.SummaryRetriever, *models.Filters, bool) (*models.Summary, error)
 	Retrieve(time.Time, time.Time, *models.User, *models.Filters) (*models.Summary, error)
 	Summarize(time.Time, time.Time, *models.User, *models.Filters) (*models.Summary, error)
 	GetLatestByUser() ([]*models.TimeByUser, error)

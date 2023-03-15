@@ -7,6 +7,7 @@ import (
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
+	"github.com/muety/wakapi/models/types"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"net/http"
@@ -68,7 +69,7 @@ func (h *AllTimeHandler) loadUserSummary(user *models.User, filters *models.Filt
 		Recompute: false,
 	}
 
-	var retrieveSummary services.SummaryRetriever = h.summarySrvc.Retrieve
+	var retrieveSummary types.SummaryRetriever = h.summarySrvc.Retrieve
 	if summaryParams.Recompute {
 		retrieveSummary = h.summarySrvc.Summarize
 	}

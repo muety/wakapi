@@ -3,6 +3,7 @@ package v1
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
+	"github.com/muety/wakapi/models/types"
 	"net/http"
 	"time"
 
@@ -90,7 +91,7 @@ func (h *StatusBarHandler) loadUserSummary(user *models.User, start, end time.Ti
 		Recompute: false,
 	}
 
-	var retrieveSummary services.SummaryRetriever = h.summarySrvc.Retrieve
+	var retrieveSummary types.SummaryRetriever = h.summarySrvc.Retrieve
 	if summaryParams.Recompute {
 		retrieveSummary = h.summarySrvc.Summarize
 	}
