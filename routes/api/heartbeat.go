@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/duke-git/lancet/v2/condition"
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"net/http"
@@ -87,11 +88,22 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		hb.OperatingSystem = opSys
-		hb.Editor = editor
-		hb.Machine = machineName
+		// TODO: unit test this
+		if hb.UserAgent != "" {
+			userAgent = hb.UserAgent
+			localOpSys, localEditor, _ := utils.ParseUserAgent(userAgent)
+			opSys = condition.TernaryOperator[bool, string](localOpSys != "", localOpSys, opSys)
+			editor = condition.TernaryOperator[bool, string](localEditor != "", localEditor, editor)
+		}
+		if hb.Machine != "" {
+			machineName = hb.Machine
+		}
+
 		hb.User = user
 		hb.UserID = user.ID
+		hb.Machine = machineName
+		hb.OperatingSystem = opSys
+		hb.Editor = editor
 		hb.UserAgent = userAgent
 
 		if !hb.Valid() || !hb.Timely(h.config.App.HeartbeatsMaxAge()) {
