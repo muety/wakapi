@@ -13,6 +13,7 @@ const languagesCanvas = document.getElementById('chart-language')
 const machinesCanvas = document.getElementById('chart-machine')
 const labelsCanvas = document.getElementById('chart-label')
 const branchesCanvas = document.getElementById('chart-branches')
+const entitiesCanvas = document.getElementById('chart-entities')
 
 const projectContainer = document.getElementById('project-container')
 const osContainer = document.getElementById('os-container')
@@ -21,10 +22,11 @@ const languageContainer = document.getElementById('language-container')
 const machineContainer = document.getElementById('machine-container')
 const labelContainer = document.getElementById('label-container')
 const branchContainer = document.getElementById('branch-container')
+const entityContainer = document.getElementById('entity-container')
 
-const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer]
-const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas]
-const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches]
+const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer]
+const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas]
+const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches, wakapiData.entities]
 
 let topNPickers = [...document.getElementsByClassName('top-picker')]
 topNPickers.sort(((a, b) => parseInt(a.attributes['data-entity'].value) - parseInt(b.attributes['data-entity'].value)))
@@ -378,6 +380,62 @@ function draw(subselection) {
         })
         : null
 
+    let entityChart = entitiesCanvas && !entitiesCanvas.classList.contains('hidden') && shouldUpdate(7)
+        ? new Chart(entitiesCanvas.getContext('2d'), {
+            //type: 'horizontalBar',
+            type: "bar",
+            data: {
+                datasets: [{
+                    data: wakapiData.entities
+                        .slice(0, Math.min(showTopN[7], wakapiData.entities.length))
+                        .map(p => parseInt(p.total)),
+                    backgroundColor: wakapiData.entities.map((p, i) => {
+                        const c = hexToRgb(vibrantColors ? getRandomColor(p.key) : getColor(p.key, i % baseColors.length))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
+                    }),
+                    hoverBackgroundColor: wakapiData.entities.map((p, i) => {
+                        const c = hexToRgb(vibrantColors ? getRandomColor(p.key) : getColor(p.key, i % baseColors.length))
+                        return `rgba(${c.r}, ${c.g}, ${c.b}, 0.8)`
+                    }),
+                }],
+                labels: wakapiData.entities
+                    .slice(0, Math.min(showTopN[7], wakapiData.entities.length))
+                    .map(p => extractFile(p.key))
+            },
+            options: {
+                indexAxis: 'y',
+                scales: {
+                    xAxes: {
+                        title: {
+                            display: true,
+                            text: 'Duration (hh:mm:ss)',
+                        },
+                        ticks: {
+                            callback: (label) => label.toString().toHHMMSS(),
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    tooltip: getTooltipOptions('entities'),
+                },
+                maintainAspectRatio: false,
+                onClick: (event, data) => {
+                    const idx = data[0].index
+                    const name = wakapiData.entities[idx].key
+                    const url = new URL(window.location.href)
+                    url.searchParams.set('project', name)
+                    window.location.href = url.href
+                },
+                onHover: (event, elem) => {
+                    event.native.target.style.cursor = elem[0] ? 'pointer' : 'default'
+                }
+            }
+        })
+        : null
+
     charts[0] = projectChart ? projectChart : charts[0]
     charts[1] = osChart ? osChart : charts[1]
     charts[2] = editorChart ? editorChart : charts[2]
@@ -385,6 +443,7 @@ function draw(subselection) {
     charts[4] = machineChart ? machineChart : charts[4]
     charts[5] = labelChart ? labelChart : charts[5]
     charts[6] = branchChart ? branchChart : charts[6]
+    charts[7] = entityChart ? entityChart : charts[7]
 }
 
 function parseTopN() {
@@ -445,6 +504,11 @@ function hexToRgb(hex) {
 function swapCharts(showEntity, hideEntity) {
     document.getElementById(`${showEntity}-container`).parentElement.classList.remove('hidden')
     document.getElementById(`${hideEntity}-container`).parentElement.classList.add('hidden')
+}
+
+function extractFile(filePath) {
+    const delimiter = filePath.includes('\\') ? '\\' : '/'  // windows style path?
+    return filePath.split(delimiter).at(-1)
 }
 
 window.addEventListener('load', function () {

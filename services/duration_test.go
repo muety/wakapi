@@ -26,6 +26,8 @@ const (
 	TestOsWin          = "Windows"
 	TestMachine1       = "muety-desktop"
 	TestMachine2       = "muety-work"
+	TestEntity1        = "/home/bob/dev/wakapi.go"
+	TestEntity2        = "/home/bob/dev/SomethingElse.java"
 	TestBranchMaster   = "master"
 	TestBranchDev      = "dev"
 	MinUnixTime1       = 1601510400000 * 1e6

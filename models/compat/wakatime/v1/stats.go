@@ -77,6 +77,8 @@ func NewStatsFrom(summary *models.Summary, filters *models.Filters) *StatsViewMo
 		branches[i] = convertEntry(e, summary.TotalTimeBy(models.SummaryBranch))
 	}
 
+	// entities omitted intentionally
+
 	data.Editors = editors
 	data.Languages = languages
 	data.Machines = machines

@@ -51,6 +51,9 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 		}
 
 		d1 := models.NewDurationFromHeartbeat(h)
+		if !filters.IsProjectDetails() {
+			d1 = d1.WithEntityIgnored() // only for efficiency
+		}
 
 		if list, ok := mapping[d1.GroupHash]; !ok || len(list) < 1 {
 			mapping[d1.GroupHash] = []*models.Duration{d1}

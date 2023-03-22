@@ -90,6 +90,9 @@ func typeName(t uint8) string {
 	if t == models.SummaryBranch {
 		return "branch"
 	}
+	if t == models.SummaryEntity {
+		return "entity"
+	}
 	return "unknown"
 }
 

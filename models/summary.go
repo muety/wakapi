@@ -16,6 +16,7 @@ const (
 	SummaryMachine  uint8 = 4
 	SummaryLabel    uint8 = 5
 	SummaryBranch   uint8 = 6
+	SummaryEntity   uint8 = 7
 )
 
 const UnknownSummaryKey = "unknown"
@@ -34,6 +35,7 @@ type Summary struct {
 	Machines         SummaryItems `json:"machines" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Labels           SummaryItems `json:"labels" gorm:"-"`   // labels are not persisted, but calculated at runtime, i.e. when summary is retrieved
 	Branches         SummaryItems `json:"branches" gorm:"-"` // branches are not persisted, but calculated at runtime in case a project filter is applied
+	Entities         SummaryItems `json:"entities" gorm:"-"` // entities are not persisted, but calculated at runtime in case a project filter is applied
 	NumHeartbeats    int          `json:"-"`
 }
 
@@ -62,11 +64,11 @@ type SummaryParams struct {
 }
 
 func SummaryTypes() []uint8 {
-	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryLabel, SummaryBranch}
+	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryLabel, SummaryBranch, SummaryEntity}
 }
 
 func NativeSummaryTypes() []uint8 {
-	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryBranch}
+	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryBranch, SummaryEntity}
 }
 
 func PersistedSummaryTypes() []uint8 {
@@ -81,6 +83,7 @@ func (s *Summary) Sorted() *Summary {
 	sort.Sort(sort.Reverse(s.Editors))
 	sort.Sort(sort.Reverse(s.Labels))
 	sort.Sort(sort.Reverse(s.Branches))
+	sort.Sort(sort.Reverse(s.Entities))
 	return s
 }
 
@@ -97,6 +100,7 @@ func (s *Summary) MappedItems() map[uint8]*SummaryItems {
 		SummaryMachine:  &s.Machines,
 		SummaryLabel:    &s.Labels,
 		SummaryBranch:   &s.Branches,
+		SummaryEntity:   &s.Entities,
 	}
 }
 
@@ -116,6 +120,8 @@ func (s *Summary) ItemsByType(summaryType uint8) *SummaryItems {
 		return &s.Labels
 	case SummaryBranch:
 		return &s.Branches
+	case SummaryEntity:
+		return &s.Entities
 	}
 	return nil
 }
@@ -325,6 +331,7 @@ func (s *Summary) WithResolvedAliases(resolve AliasResolver) *Summary {
 	s.Machines = processAliases(s.Machines)
 	s.Labels = processAliases(s.Labels)
 	s.Branches = processAliases(s.Branches)
+	// no aliases for entities / files
 
 	return s
 }

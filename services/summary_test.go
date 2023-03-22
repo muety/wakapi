@@ -43,6 +43,7 @@ func (suite *SummaryServiceTestSuite) SetupSuite() {
 			OperatingSystem: TestOsLinux,
 			Machine:         TestMachine1,
 			Branch:          TestBranchMaster,
+			Entity:          TestEntity1,
 			Time:            models.CustomTime(suite.TestStartTime),
 			Duration:        150 * time.Second,
 			NumHeartbeats:   2,
@@ -55,6 +56,7 @@ func (suite *SummaryServiceTestSuite) SetupSuite() {
 			OperatingSystem: TestOsLinux,
 			Machine:         TestMachine1,
 			Branch:          TestBranchMaster,
+			Entity:          TestEntity1,
 			Time:            models.CustomTime(suite.TestStartTime.Add((30 + 130) * time.Second)),
 			Duration:        20 * time.Second,
 			NumHeartbeats:   1,
@@ -67,6 +69,7 @@ func (suite *SummaryServiceTestSuite) SetupSuite() {
 			OperatingSystem: TestOsLinux,
 			Machine:         TestMachine1,
 			Branch:          TestBranchDev,
+			Entity:          TestEntity1,
 			Time:            models.CustomTime(suite.TestStartTime.Add(3 * time.Minute)),
 			Duration:        15 * time.Second,
 			NumHeartbeats:   3,
@@ -154,6 +157,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
 	assert.Equal(suite.T(), 185*time.Second, result.TotalTimeBy(models.SummaryLanguage))
 	assert.Equal(suite.T(), 185*time.Second, result.TotalTimeBy(models.SummaryEditor))
 	assert.Zero(suite.T(), result.TotalTimeBy(models.SummaryBranch)) // no filters -> no branches contained
+	assert.Zero(suite.T(), result.TotalTimeBy(models.SummaryEntity)) // no filters -> no entities contained
 	assert.Zero(suite.T(), result.TotalTimeBy(models.SummaryLabel))
 	assert.Equal(suite.T(), 170*time.Second, result.TotalTimeByKey(models.SummaryEditor, TestEditorGoland))
 	assert.Equal(suite.T(), 15*time.Second, result.TotalTimeByKey(models.SummaryEditor, TestEditorVscode))
@@ -477,6 +481,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
 
 	result, _ := sut.Aliased(from, to, suite.TestUser, sut.Summarize, filters, false)
 	assert.NotNil(suite.T(), result.Branches) // project filters were applied -> include branches
+	assert.NotNil(suite.T(), result.Entities) // project filters were applied -> include entities
 
 	effectiveFilters := suite.DurationService.Calls[0].Arguments[3].(*models.Filters)
 	assert.Contains(suite.T(), effectiveFilters.Project, TestProject1) // because actually requested

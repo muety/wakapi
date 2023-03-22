@@ -169,7 +169,7 @@
                 </div>
             </div>
 
-            <div style="max-width: 100vw;">
+            <div style="max-width: 100vw;" class="{{ if .IsProjectDetails }} hidden {{ end }}">
                 <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col {{ if .IsProjectDetails }} hidden {{ end }}" id="label-container" style="max-height: 300px">
                     <div class="flex justify-between text-lg" style="margin-bottom: -10px">
                         <span class="font-semibold whitespace-nowrap">Labels</span>
@@ -184,6 +184,19 @@
                     <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
                         <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                     </div>
+                </div>
+            </div>
+
+            <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col {{ if not .IsProjectDetails }} hidden {{ end }} col-span-2" id="entity-container" style="max-height: 500px">
+                <div class="flex justify-between">
+                    <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Files</span>
+                    <div class="flex justify-end flex-1 text-xs items-center">
+                        <input type="number" min="1" id="entity-top-picker" data-entity="2" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
+                    </div>
+                </div>
+                <canvas id="chart-entities" class="mt-4"></canvas>
+                <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
+                    <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                 </div>
             </div>
         </div>
@@ -238,8 +251,10 @@
     wakapiData.labels = {{ .Labels | json }}
     {{ if .IsProjectDetails }}
     wakapiData.branches = {{ .Branches | json }}
+    wakapiData.entities = {{ .Entities | json }}
     {{ else }}
     wakapiData.branches = []
+    wakapiData.entities = []
     {{ end }}
 </script>
 <script src="assets/js/summary.js"></script>

@@ -14,6 +14,7 @@ type Filters struct {
 	Machine  OrFilter
 	Label    OrFilter
 	Branch   OrFilter
+	Entity   OrFilter
 }
 
 type OrFilter []string
@@ -65,6 +66,8 @@ func (f *Filters) WithMultiple(entity uint8, keys []string) *Filters {
 		f.Label = append(f.Label, keys...)
 	case SummaryBranch:
 		f.Branch = append(f.Branch, keys...)
+	case SummaryEntity:
+		f.Entity = append(f.Entity, keys...)
 	}
 	return f
 }
@@ -84,6 +87,8 @@ func (f *Filters) One() (bool, uint8, OrFilter) {
 		return true, SummaryLabel, f.Label
 	} else if f.Branch != nil && f.Branch.Exists() {
 		return true, SummaryBranch, f.Branch
+	} else if f.Entity != nil && f.Entity.Exists() {
+		return true, SummaryEntity, f.Entity
 	}
 	return false, 0, OrFilter{}
 }
@@ -102,7 +107,7 @@ func (f *Filters) IsEmpty() bool {
 
 func (f *Filters) Count() int {
 	var count int
-	for i := SummaryProject; i <= SummaryBranch; i++ {
+	for i := SummaryProject; i <= SummaryEntity; i++ {
 		count += f.CountByEntity(i)
 	}
 	return count
@@ -114,7 +119,7 @@ func (f *Filters) CountByEntity(entity uint8) int {
 
 func (f *Filters) EntityCount() int {
 	var count int
-	for i := SummaryProject; i <= SummaryBranch; i++ {
+	for i := SummaryProject; i <= SummaryEntity; i++ {
 		if c := f.CountByEntity(i); c > 0 {
 			count++
 		}
@@ -138,6 +143,8 @@ func (f *Filters) ResolveEntity(entityId uint8) *OrFilter {
 		return &f.Label
 	case SummaryBranch:
 		return &f.Branch
+	case SummaryEntity:
+		return &f.Entity
 	default:
 		return &OrFilter{}
 	}
@@ -209,6 +216,7 @@ func (f *Filters) WithAliases(resolve AliasReverseResolver) *Filters {
 		}
 		f.Branch = updated
 	}
+	// no aliases for entites / files
 	return f
 }
 
@@ -220,4 +228,8 @@ func (f *Filters) WithProjectLabels(resolve ProjectLabelReverseResolver) *Filter
 		f.WithMultiple(SummaryProject, resolve(l))
 	}
 	return f
+}
+
+func (f *Filters) IsProjectDetails() bool {
+	return f != nil && f.Project != nil && f.Project.Exists()
 }

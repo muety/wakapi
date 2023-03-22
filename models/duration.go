@@ -5,6 +5,7 @@ import (
 	"github.com/emvi/logbuch"
 	"github.com/mitchellh/hashstructure/v2"
 	"time"
+	"unicode"
 )
 
 type Duration struct {
@@ -17,8 +18,24 @@ type Duration struct {
 	OperatingSystem string        `json:"operating_system"`
 	Machine         string        `json:"machine"`
 	Branch          string        `json:"branch"`
+	Entity          string        `json:"entity"`
 	NumHeartbeats   int           `json:"-" hash:"ignore"`
 	GroupHash       string        `json:"-" hash:"ignore"`
+	excludeEntity   bool          `json:"-" hash:"ignore"`
+}
+
+func (d *Duration) HashInclude(field string, v interface{}) (bool, error) {
+	if field == "Entity" {
+		return !d.excludeEntity, nil
+	}
+	if field == "Time" ||
+		field == "Duration" ||
+		field == "NumHeartbeats" ||
+		field == "GroupHash" ||
+		unicode.IsLower(rune(field[0])) {
+		return false, nil
+	}
+	return true, nil
 }
 
 func NewDurationFromHeartbeat(h *Heartbeat) *Duration {
@@ -32,9 +49,15 @@ func NewDurationFromHeartbeat(h *Heartbeat) *Duration {
 		OperatingSystem: h.OperatingSystem,
 		Machine:         h.Machine,
 		Branch:          h.Branch,
+		Entity:          h.Entity,
 		NumHeartbeats:   1,
 	}
 	return d.Hashed()
+}
+
+func (d *Duration) WithEntityIgnored() *Duration {
+	d.excludeEntity = true
+	return d
 }
 
 func (d *Duration) Hashed() *Duration {
@@ -60,6 +83,8 @@ func (d *Duration) GetKey(t uint8) (key string) {
 		key = d.Machine
 	case SummaryBranch:
 		key = d.Branch
+	case SummaryEntity:
+		key = d.Entity
 	}
 
 	if key == "" {

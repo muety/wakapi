@@ -67,6 +67,9 @@ func ParseSummaryFilters(r *http.Request) *models.Filters {
 	if q := r.URL.Query().Get("branch"); q != "" {
 		filters.With(models.SummaryBranch, q)
 	}
+	if q := r.URL.Query().Get("entity"); q != "" {
+		filters.With(models.SummaryBranch, q)
+	}
 	return filters
 }
 

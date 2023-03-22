@@ -35,6 +35,7 @@ type SummariesData struct {
 	OperatingSystems []*SummariesEntry    `json:"operating_systems"`
 	Projects         []*SummariesEntry    `json:"projects"`
 	Branches         []*SummariesEntry    `json:"branches,omitempty"`
+	Entities         []*SummariesEntry    `json:"entities,omitempty"`
 	GrandTotal       *SummariesGrandTotal `json:"grand_total"`
 	Range            *SummariesRange      `json:"range"`
 }
@@ -132,8 +133,8 @@ func newDataFrom(s *models.Summary) *SummariesData {
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(6)
 
+	wg.Add(1)
 	go func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.Projects {
@@ -141,6 +142,7 @@ func newDataFrom(s *models.Summary) *SummariesData {
 		}
 	}(data)
 
+	wg.Add(1)
 	go func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.Editors {
@@ -148,6 +150,7 @@ func newDataFrom(s *models.Summary) *SummariesData {
 		}
 	}(data)
 
+	wg.Add(1)
 	go func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.Languages {
@@ -155,6 +158,7 @@ func newDataFrom(s *models.Summary) *SummariesData {
 		}
 	}(data)
 
+	wg.Add(1)
 	go func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.OperatingSystems {
@@ -162,6 +166,7 @@ func newDataFrom(s *models.Summary) *SummariesData {
 		}
 	}(data)
 
+	wg.Add(1)
 	go func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.Machines {
@@ -169,6 +174,7 @@ func newDataFrom(s *models.Summary) *SummariesData {
 		}
 	}(data)
 
+	wg.Add(1)
 	go func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.Branches {
@@ -176,8 +182,19 @@ func newDataFrom(s *models.Summary) *SummariesData {
 		}
 	}(data)
 
+	wg.Add(1)
+	go func(data *SummariesData) {
+		defer wg.Done()
+		for i, e := range s.Entities {
+			data.Entities[i] = convertEntry(e, s.TotalTimeBy(models.SummaryEntity))
+		}
+	}(data)
+
 	if s.Branches == nil {
 		data.Branches = nil
+	}
+	if s.Entities == nil {
+		data.Entities = nil
 	}
 
 	wg.Wait()
