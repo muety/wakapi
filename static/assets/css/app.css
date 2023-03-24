@@ -125,8 +125,12 @@ body {
     @apply border-green-700 bg-gray-800;
 }
 
+.text-gold {
+    color: #DAA520;
+}
+
 .leaderboard-gold {
-    border-color: #ffd700;
+    border-color: #DAA520;
 }
 
 .leaderboard-silver {

@@ -63,7 +63,12 @@
                         {{ else }}
                         <span class="iconify inline cursor-pointer text-gray-500 rounded-full border-green-700" style="width: 24px; height: 24px" data-icon="ic:round-person"></span>
                         {{ end }}
-                        <strong class="text-ellipsis truncate">@{{ $item.UserID }}</strong>
+                        <div>
+                            <strong class="text-ellipsis truncate">@{{ $item.UserID }}</strong>
+                            {{ if $item.User.HasActiveSubscription }}
+                            <span class="iconify inline text-gold ml-1" data-icon="jam:crown-f" style="margin-bottom: -2px" title="{{ $item.UserID }} is a supporter of Wakapi!"></span>
+                            {{ end }}
+                        </div>
                     </div>
                     <div class="flex-1 mx-1 hidden sm:inline-block truncate leading-6 align-middle">
                         {{ range $i, $lang := (index $.UserLanguages $item.UserID) }}
