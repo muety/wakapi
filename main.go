@@ -235,6 +235,7 @@ func main() {
 			"/favicon",
 			"/service-worker.js",
 			"/api/health",
+			"/api/avatar",
 		}),
 	)
 	if config.Sentry.Dsn != "" {
