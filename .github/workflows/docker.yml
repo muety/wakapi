@@ -1,10 +1,9 @@
 name: Publish Docker Image
 
 on:
-  push:
-    tags:
-      - '*.*.*'
-      - '!*.*.*-*'
+  release:
+    types:
+      - published
 
 jobs:
   docker-publish:
