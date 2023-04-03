@@ -65,6 +65,7 @@ func (h *RelayHandler) Any(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte{})
 		return
 	}
+	targetUrl.RawQuery = r.URL.RawQuery
 
 	p := httputil.ReverseProxy{
 		Director: func(r *http.Request) {
