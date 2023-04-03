@@ -2,15 +2,7 @@ package main
 
 import (
 	"embed"
-	"github.com/go-chi/chi/v5"
-	middleware "github.com/go-chi/chi/v5/middleware"
-	"github.com/lpar/gzipped/v2"
-	"github.com/muety/wakapi/middlewares"
-	shieldsV1Routes "github.com/muety/wakapi/routes/compat/shields/v1"
-	wtV1Routes "github.com/muety/wakapi/routes/compat/wakatime/v1"
-	"github.com/muety/wakapi/routes/relay"
-	fsutils "github.com/muety/wakapi/utils/fs"
-	httpSwagger "github.com/swaggo/http-swagger"
+	"flag"
 	"io/fs"
 	"log"
 	"net"
@@ -19,23 +11,30 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/muety/wakapi/static/docs"
-
 	"github.com/emvi/logbuch"
-	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/migrations"
-	"github.com/muety/wakapi/repositories"
-	"github.com/muety/wakapi/routes"
-	"github.com/muety/wakapi/routes/api"
-	"github.com/muety/wakapi/services"
-	"github.com/muety/wakapi/services/mail"
+	"github.com/go-chi/chi/v5"
+	middleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/lpar/gzipped/v2"
+	httpSwagger "github.com/swaggo/http-swagger"
 	_ "gorm.io/driver/mysql"
 	_ "gorm.io/driver/postgres"
 	_ "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	_ "github.com/muety/wakapi/static/docs"
+	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/middlewares"
+	"github.com/muety/wakapi/migrations"
+	"github.com/muety/wakapi/repositories"
+	"github.com/muety/wakapi/routes"
+	"github.com/muety/wakapi/routes/api"
+	shieldsV1Routes "github.com/muety/wakapi/routes/compat/shields/v1"
+	wtV1Routes "github.com/muety/wakapi/routes/compat/wakatime/v1"
+	"github.com/muety/wakapi/routes/relay"
+	"github.com/muety/wakapi/services"
+	"github.com/muety/wakapi/services/mail"
+	docs "github.com/muety/wakapi/static/docs"
+	fsutils "github.com/muety/wakapi/utils/fs"
 )
 
 // Embed version.txt
@@ -106,7 +105,15 @@ var (
 // @name Authorization
 
 func main() {
-	config = conf.Load(version)
+	var versionFlag = flag.Bool("version", false, "print version")
+	var configFlag = flag.String("config", conf.DefaultConfigPath, "config file location")
+	flag.Parse()
+
+	if *versionFlag {
+		print(version)
+		os.Exit(0)
+	}
+	config = conf.Load(*configFlag, version)
 
 	// Configure Swagger docs
 	docs.SwaggerInfo.BasePath = config.Server.BasePath + "/api"
@@ -117,6 +124,7 @@ func main() {
 	} else {
 		logbuch.SetLevel(logbuch.LevelInfo)
 	}
+	logbuch.Info("Wakapi " + version)
 
 	// Set up GORM
 	gormLogger := logger.New(
@@ -184,6 +192,7 @@ func main() {
 	miscService = services.NewMiscService(userService, heartbeatService, summaryService, keyValueService, mailService)
 
 	// Schedule background tasks
+	go conf.StartJobs()
 	go aggregationService.Schedule()
 	go leaderboardService.Schedule()
 	go reportService.Schedule()

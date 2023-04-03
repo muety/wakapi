@@ -2,11 +2,9 @@ package config
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
-	"github.com/robfig/cron/v3"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,11 +15,12 @@ import (
 	"github.com/jinzhu/configor"
 	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/utils"
+	"github.com/robfig/cron/v3"
 	uuid "github.com/satori/go.uuid"
 )
 
 const (
-	defaultConfigPath = "config.yml"
+	DefaultConfigPath = "config.yml"
 
 	SQLDialectMysql    = "mysql"
 	SQLDialectPostgres = "postgres"
@@ -65,7 +64,6 @@ var emailProviders = []string{
 }
 
 var cfg *Config
-var cFlag = flag.String("config", defaultConfigPath, "config file location")
 var env string
 
 type appConfig struct {
@@ -344,7 +342,7 @@ func readColors() map[string]map[string]string {
 
 	raw := data.ColorsFile
 	if IsDev(env) {
-		raw, _ = ioutil.ReadFile("data/colors.json")
+		raw, _ = os.ReadFile("data/colors.json")
 	}
 
 	var colors = make(map[string]map[string]string)
@@ -376,12 +374,10 @@ func Get() *Config {
 	return cfg
 }
 
-func Load(version string) *Config {
+func Load(configFlag string, version string) *Config {
 	config := &Config{}
 
-	flag.Parse()
-
-	if err := configor.New(&configor.Config{}).Load(config, *cFlag); err != nil {
+	if err := configor.New(&configor.Config{}).Load(config, configFlag); err != nil {
 		logbuch.Fatal("failed to read config: %v", err)
 	}
 
@@ -410,9 +406,7 @@ func Load(version string) *Config {
 	config.Security.SecureCookie = securecookie.New(hashKey, blockKey)
 	config.Security.SessionKey = sessionKey
 
-	if strings.HasSuffix(config.Server.BasePath, "/") {
-		config.Server.BasePath = config.Server.BasePath[:len(config.Server.BasePath)-1]
-	}
+	config.Server.BasePath = strings.TrimSuffix(config.Server.BasePath, "/")
 
 	for k, v := range config.App.CustomLanguages {
 		if v == "" {
