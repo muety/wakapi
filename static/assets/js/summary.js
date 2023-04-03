@@ -134,10 +134,9 @@ function draw(subselection) {
                 },
                 maintainAspectRatio: false,
                 onClick: (event, data) => {
-                    const idx = data[0].index
-                    const name = wakapiData.projects[idx].key
                     const url = new URL(window.location.href)
-                    url.searchParams.set('project', name)
+                    const name = wakapiData.projects[data[0].index].key
+                    url.searchParams.set('project', name === 'unknown' ? '-' : name)
                     window.location.href = url.href
                 },
                 onHover: (event, elem) => {

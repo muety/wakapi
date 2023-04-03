@@ -70,7 +70,13 @@
         </div>
         {{ else }}
         <div class="mb-8 w-full">
-        <h1 class="font-semibold text-3xl text-white">Project "{{ .GetProjectFilter }}"</h1>
+        <h1 class="font-semibold text-3xl text-white">
+            {{ if eq .GetProjectFilter "-" }}
+            Unknown project
+            {{ else }}
+            Project "{{ .GetProjectFilter }}"
+            {{ end }}
+        </h1>
         <div class="flex space-x-4 items-center">
             <h4 class="font-semibold text-lg text-gray-500">{{ .TotalTime | duration }}</h4>
             <div v-cloak v-show="currentInterval">

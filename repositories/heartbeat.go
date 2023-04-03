@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"github.com/duke-git/lancet/v2/slice"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
@@ -89,7 +90,13 @@ func (r *HeartbeatRepository) GetAllWithinByFilters(from, to time.Time, user *mo
 		Order("time asc")
 
 	for col, vals := range filterMap {
-		q = q.Where(col+" in ?", vals)
+		q = q.Where(col+" in ?", slice.Map[string, string](vals, func(i int, val string) string {
+			// query for "unknown" projects, languages, etc.
+			if val == "-" {
+				return ""
+			}
+			return val
+		}))
 	}
 
 	if err := q.Find(&heartbeats).Error; err != nil {

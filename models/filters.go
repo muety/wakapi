@@ -25,7 +25,7 @@ func (f OrFilter) Exists() bool {
 
 func (f OrFilter) MatchAny(search string) bool {
 	for _, s := range f {
-		if s == search {
+		if s == search || (s == "-" && search == "") {
 			return true
 		}
 	}
