@@ -1,10 +1,11 @@
 package models
 
 import (
-	conf "github.com/muety/wakapi/config"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	conf "github.com/muety/wakapi/config"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUser_TZ(t *testing.T) {
@@ -21,7 +22,7 @@ func TestUser_TZ(t *testing.T) {
 }
 
 func TestUser_MinDataAge(t *testing.T) {
-	c := conf.Load("")
+	c := conf.Load("", "")
 
 	var sut *User
 

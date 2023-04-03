@@ -2,10 +2,11 @@ package config
 
 import (
 	"fmt"
-	"github.com/emvi/logbuch"
-	"github.com/muety/artifex/v2"
 	"math"
 	"runtime"
+
+	"github.com/emvi/logbuch"
+	"github.com/muety/artifex/v2"
 )
 
 var jobQueues map[string]*artifex.Dispatcher
@@ -28,7 +29,9 @@ type JobQueueMetrics struct {
 
 func init() {
 	jobQueues = make(map[string]*artifex.Dispatcher)
+}
 
+func StartJobs() {
 	InitQueue(QueueDefault, 1)
 	InitQueue(QueueProcessing, halfCPUs())
 	InitQueue(QueueReports, 1)
