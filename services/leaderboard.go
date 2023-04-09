@@ -223,11 +223,13 @@ func (srv *LeaderboardService) GenerateByUser(user *models.User, interval *model
 		return nil, err
 	}
 
+	// exclude unknown language (will also exclude browsing time by chrome-wakatime plugin)
+	total := summary.TotalTime() - summary.TotalTimeByKey(models.SummaryLanguage, models.UnknownSummaryKey)
 	return &models.LeaderboardItem{
 		User:     user,
 		UserID:   user.ID,
 		Interval: (*interval)[0],
-		Total:    summary.TotalTime(),
+		Total:    total,
 	}, nil
 }
 
