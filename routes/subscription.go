@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/emvi/logbuch"
 	"github.com/go-chi/chi/v5"
+	"github.com/leandro-lugaresi/hub"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -16,6 +17,7 @@ import (
 	stripeCheckoutSession "github.com/stripe/stripe-go/v74/checkout/session"
 	stripeCustomer "github.com/stripe/stripe-go/v74/customer"
 	stripePrice "github.com/stripe/stripe-go/v74/price"
+	stripeSubscription "github.com/stripe/stripe-go/v74/subscription"
 	"github.com/stripe/stripe-go/v74/webhook"
 	"io/ioutil"
 	"net/http"
@@ -32,8 +34,11 @@ import (
   4. Copy the publishable API key (https://dashboard.stripe.com/test/apikeys) and save it to 'stripe_api_key'
 */
 
+// TODO: move all logic inside this controller into a separate service
+
 type SubscriptionHandler struct {
 	config       *conf.Config
+	eventBus     *hub.Hub
 	userSrvc     services.IUserService
 	mailSrvc     services.IMailService
 	keyValueSrvc services.IKeyValueService
@@ -46,6 +51,7 @@ func NewSubscriptionHandler(
 	keyValueService services.IKeyValueService,
 ) *SubscriptionHandler {
 	config := conf.Get()
+	eventBus := conf.EventBus()
 
 	if config.Subscriptions.Enabled {
 		stripe.Key = config.Subscriptions.StripeSecretKey
@@ -59,13 +65,32 @@ func NewSubscriptionHandler(
 		logbuch.Info("enabling subscriptions with stripe payment for %s / month", config.Subscriptions.StandardPrice)
 	}
 
-	return &SubscriptionHandler{
+	handler := &SubscriptionHandler{
 		config:       config,
 		userSrvc:     userService,
 		mailSrvc:     mailService,
 		keyValueSrvc: keyValueService,
 		httpClient:   &http.Client{Timeout: 10 * time.Second},
 	}
+
+	onUserDelete := eventBus.Subscribe(0, conf.EventUserDelete)
+	go func(sub *hub.Subscription) {
+		for m := range sub.Receiver {
+			user := m.Fields[conf.FieldPayload].(*models.User)
+			if !user.HasActiveSubscription() {
+				continue
+			}
+
+			logbuch.Info("cancelling subscription for user '%s' (email '%s', stripe customer '%s') upon account deletion", user.ID, user.Email, user.StripeCustomerId)
+			if err := handler.cancelUserSubscription(user); err == nil {
+				logbuch.Info("successfully cancelled subscription for user '%s' (email '%s', stripe customer '%s')", user.ID, user.Email, user.StripeCustomerId)
+			} else {
+				conf.Log().Error("failed to cancel subscription for user '%s' (email '%s', stripe customer '%s') - %v", user.ID, user.Email, user.StripeCustomerId, err)
+			}
+		}
+	}(&onUserDelete)
+
+	return handler
 }
 
 // https://stripe.com/docs/billing/quickstart?lang=go
@@ -325,6 +350,16 @@ func (h *SubscriptionHandler) parseCheckoutSessionEvent(w http.ResponseWriter, r
 	return &checkoutSession, nil
 }
 
+func (h *SubscriptionHandler) cancelUserSubscription(user *models.User) error {
+	// TODO: directly store subscription id with user object
+	subscription, err := h.findCurrentStripeSubscription(user.StripeCustomerId)
+	if err != nil {
+		return err
+	}
+	_, err = stripeSubscription.Cancel(subscription.ID, nil)
+	return err
+}
+
 func (h *SubscriptionHandler) findStripeCustomerByEmail(email string) (*stripe.Customer, error) {
 	params := &stripe.CustomerSearchParams{
 		SearchParams: stripe.SearchParams{
@@ -342,6 +377,24 @@ func (h *SubscriptionHandler) findStripeCustomerByEmail(email string) (*stripe.C
 	} else {
 		return nil, errors.New("no customer found with given criteria")
 	}
+}
+
+func (h *SubscriptionHandler) findCurrentStripeSubscription(customerId string) (*stripe.Subscription, error) {
+	paramStatus := "active"
+	params := &stripe.SubscriptionListParams{
+		Customer: &customerId,
+		Price:    &h.config.Subscriptions.StandardPriceId,
+		Status:   &paramStatus,
+		CurrentPeriodEndRange: &stripe.RangeQueryParams{
+			GreaterThan: time.Now().Unix(),
+		},
+	}
+	params.Filters.AddFilter("limit", "", "1")
+
+	if result := stripeSubscription.List(params); result.Next() {
+		return result.Subscription(), nil
+	}
+	return nil, fmt.Errorf("no active subscription found for customer '%s'", customerId)
 }
 
 func (h *SubscriptionHandler) clearSubscriptionNotificationStatus(userId string) {

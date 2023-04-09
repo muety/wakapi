@@ -214,6 +214,7 @@ func (srv *UserService) Delete(user *models.User) error {
 
 	user.ReportsWeekly = false
 	srv.notifyUpdate(user)
+	srv.notifyDelete(user)
 
 	return srv.repository.Delete(user)
 }
@@ -229,6 +230,13 @@ func (srv *UserService) FlushUserCache(userId string) {
 func (srv *UserService) notifyUpdate(user *models.User) {
 	srv.eventBus.Publish(hub.Message{
 		Name:   config.EventUserUpdate,
+		Fields: map[string]interface{}{config.FieldPayload: user},
+	})
+}
+
+func (srv *UserService) notifyDelete(user *models.User) {
+	srv.eventBus.Publish(hub.Message{
+		Name:   config.EventUserDelete,
 		Fields: map[string]interface{}{config.FieldPayload: user},
 	})
 }

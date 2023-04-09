@@ -12,6 +12,7 @@ const (
 	TopicHeartbeat          = "heartbeat.*"
 	TopicProjectLabel       = "project_label.*"
 	EventUserUpdate         = "user.update"
+	EventUserDelete         = "user.delete"
 	EventHeartbeatCreate    = "heartbeat.create"
 	EventProjectLabelCreate = "project_label.create"
 	EventProjectLabelDelete = "project_label.delete"
