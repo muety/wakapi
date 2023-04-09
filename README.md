@@ -462,4 +462,4 @@ Moreover, thanks to **[Frachtwerk](https://frachtwerk.de)** for sponsoring serve
 
 ## 📓 License
 
-GPL-v3 @ [Ferdinand Mütsch](https://muetsch.io)
+MIT @ [Ferdinand Mütsch](https://muetsch.io)
