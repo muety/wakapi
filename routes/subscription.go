@@ -219,8 +219,7 @@ func (h *SubscriptionHandler) PostWebhook(w http.ResponseWriter, r *http.Request
 		// example payload: https://pastr.de/p/k7bx3alx38b1iawo6amtx09k
 		subscription, err := h.parseSubscriptionEvent(w, r, event)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+			return // status code already written
 		}
 		logbuch.Info("received stripe subscription event of type '%s' for subscription '%s' (customer '%s').", event.Type, subscription.ID, subscription.Customer.ID)
 
@@ -233,14 +232,14 @@ func (h *SubscriptionHandler) PostWebhook(w http.ResponseWriter, r *http.Request
 			customer, err := stripeCustomer.Get(subscription.Customer.ID, nil)
 			if err != nil {
 				conf.Log().Request(r).Error("failed to fetch stripe customer with id '%s', %v", subscription.Customer.ID, err)
-				w.WriteHeader(http.StatusInternalServerError)
+				w.WriteHeader(http.StatusOK) // don't make stripe retry the event
 				return
 			}
 
 			u, err := h.userSrvc.GetUserByEmail(customer.Email)
 			if err != nil {
 				conf.Log().Request(r).Error("failed to get user with email '%s' as stripe customer '%s' for processing event for subscription %s, %v", customer.Email, subscription.Customer.ID, subscription.ID, err)
-				w.WriteHeader(http.StatusInternalServerError)
+				w.WriteHeader(http.StatusOK) // don't make stripe retry the event
 				return
 			}
 			user = u
@@ -248,7 +247,7 @@ func (h *SubscriptionHandler) PostWebhook(w http.ResponseWriter, r *http.Request
 
 		if err := h.handleSubscriptionEvent(subscription, user); err != nil {
 			conf.Log().Request(r).Error("failed to handle subscription event %s (%s) for user %s, %v", event.ID, event.Type, user.ID, err)
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusOK) // don't make stripe retry the event
 			return
 		}
 
@@ -256,16 +255,14 @@ func (h *SubscriptionHandler) PostWebhook(w http.ResponseWriter, r *http.Request
 		// example payload: https://pastr.de/p/d01iniw9naq9hkmvyqtxin2w
 		checkoutSession, err := h.parseCheckoutSessionEvent(w, r, event)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+			return // status code already written
 		}
 		logbuch.Info("received stripe checkout session event of type '%s' for session '%s' (customer '%s' with email '%s').", event.Type, checkoutSession.ID, checkoutSession.Customer.ID, checkoutSession.CustomerEmail)
 
 		user, err := h.userSrvc.GetUserById(checkoutSession.ClientReferenceID)
 		if err != nil {
 			conf.Log().Request(r).Error("failed to find user with id '%s' to update associated stripe customer (%s)", user.ID, checkoutSession.Customer.ID)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+			return // status code already written
 		}
 
 		if user.StripeCustomerId == "" {
