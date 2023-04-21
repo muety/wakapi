@@ -146,17 +146,21 @@ func (w *WakatimeHeartbeatImporter) fetchHeartbeats(day string, baseUrl string) 
 	q.Add("date", day)
 	req.URL.RawQuery = q.Encode()
 
+	var empty []*wakatime.HeartbeatEntry
+
 	res, err := w.httpClient.Do(w.withHeaders(req))
 	if err != nil {
-		return nil, err
+		return empty, err
+	} else if res.StatusCode == 402 {
+		return empty, nil // date outside free plan range -> return empty data, but do not throw error
 	} else if res.StatusCode >= 400 {
-		return nil, errors.New(fmt.Sprintf("got status %d from wakatime api", res.StatusCode))
+		return empty, errors.New(fmt.Sprintf("got status %d from wakatime api", res.StatusCode))
 	}
 	defer res.Body.Close()
 
 	var heartbeatsData wakatime.HeartbeatsViewModel
 	if err := json.NewDecoder(res.Body).Decode(&heartbeatsData); err != nil {
-		return nil, err
+		return empty, err
 	}
 
 	return heartbeatsData.Data, nil
