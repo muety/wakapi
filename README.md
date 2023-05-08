@@ -258,7 +258,7 @@ Wakapi plays well together with [WakaTime](https://wakatime.com). For one thing,
 
 Wakapi also integrates with [GitHub Readme Stats](https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats) to generate fancy cards for you. Here is an example. To use this, don't forget to **enable public data** under [Settings -> Permissions](https://wakapi.dev/settings#permissions).
 
-![](https://github-readme-stats.vercel.app/api/wakatime?username=n1try&api_domain=wakapi.dev&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact)
+![](https://github-readme-stats.vercel.app/api/wakatime?username=n1try&api_domain=wakapi.dev&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact&range=last_7_days)
 
 <details>
 <summary>Click to view code</summary>
