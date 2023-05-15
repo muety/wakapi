@@ -268,16 +268,25 @@ func (srv *MiscService) sendSubscriptionNotificationScheduled(user *models.User,
 }
 
 func (srv *MiscService) existsUsersTotalTime() bool {
-	results, _ := srv.keyValueService.GetByPrefix(config.KeyLatestTotalTime)
+	results, err := srv.keyValueService.GetByPrefix(config.KeyLatestTotalTime)
+	if err != nil {
+		config.Log().Error("failed to fetch latest time key-values, %v", err)
+	}
 	return len(results) > 0
 }
 
 func (srv *MiscService) existsUsersFirstData() bool {
-	results, _ := srv.keyValueService.GetByPrefix(config.KeyFirstHeartbeat)
+	results, err := srv.keyValueService.GetByPrefix(config.KeyFirstHeartbeat)
+	if err != nil {
+		config.Log().Error("failed to fetch first heartbeats key-values, %v", err)
+	}
 	return len(results) > 0
 }
 
 func (srv *MiscService) existsSubscriptionNotifications() bool {
-	results, _ := srv.keyValueService.GetByPrefix(config.KeySubscriptionNotificationSent)
+	results, err := srv.keyValueService.GetByPrefix(config.KeySubscriptionNotificationSent)
+	if err != nil {
+		config.Log().Error("failed to fetch notifications key-values, %v", err)
+	}
 	return len(results) > 0
 }
