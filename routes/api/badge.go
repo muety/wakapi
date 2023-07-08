@@ -51,7 +51,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cacheKey := fmt.Sprintf("%s_%v_%s", user.ID, *interval.Key, filters.Hash())
+	cacheKey := fmt.Sprintf("%s_%v_%s_%s", user.ID, *interval.Key, filters.Hash(), r.URL.RawQuery)
 	noCache := utils.IsNoCache(r, 1*time.Hour)
 	if cacheResult, ok := h.cache.Get(cacheKey); ok && !noCache {
 		respondSvg(w, cacheResult.([]byte))
