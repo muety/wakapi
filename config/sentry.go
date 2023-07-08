@@ -113,8 +113,7 @@ func initSentry(config sentryConfig, debug bool) {
 		AttachStacktrace: true,
 		EnableTracing:    config.EnableTracing,
 		TracesSampler: func(ctx sentry.SamplingContext) float64 {
-			hub := sentry.GetHubFromContext(ctx.Span.Context())
-			txName := hub.Scope().Transaction()
+			txName := ctx.Span.Name
 			for _, ex := range excludedRoutes {
 				if strings.HasPrefix(txName, ex) {
 					return 0.0

@@ -8,7 +8,7 @@ require (
 	github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead
 	github.com/emersion/go-smtp v0.17.0
 	github.com/emvi/logbuch v1.2.0
-	github.com/getsentry/sentry-go v0.17.0
+	github.com/getsentry/sentry-go v0.22.0
 	github.com/glebarez/sqlite v1.8.0
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/gorilla/schema v1.2.0
