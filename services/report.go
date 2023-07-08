@@ -1,12 +1,14 @@
 package services
 
 import (
+	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/emvi/logbuch"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
 	"math/rand"
 	"time"
 )
@@ -100,17 +102,34 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 	end := time.Now().In(user.TZ())
 	start := time.Now().Add(-1 * duration)
 
-	summary, err := srv.summaryService.Aliased(start, end, user, srv.summaryService.Retrieve, nil, false)
+	fullSummary, err := srv.summaryService.Aliased(start, end, user, srv.summaryService.Retrieve, nil, false)
 	if err != nil {
 		config.Log().Error("failed to generate report for '%s' - %v", user.ID, err)
 		return err
 	}
 
+	// generate per-day summaries
+	dayIntervals := utils.SplitRangeByDays(start, end)
+	dailySummaries := make([]*models.Summary, len(dayIntervals))
+
+	for i, interval := range dayIntervals {
+		from, to := datetime.BeginOfDay(interval[0]), interval[1]
+		summary, err := srv.summaryService.Aliased(from, to, user, srv.summaryService.Retrieve, nil, false)
+		if err != nil {
+			config.Log().Error("failed to generate day summary (%v to %v) for report for '%s' - %v", from, to, user.ID, err)
+			break
+		}
+		summary.FromTime = models.CustomTime(from)
+		summary.ToTime = models.CustomTime(to.Add(-1 * time.Second))
+		dailySummaries[i] = summary
+	}
+
 	report := &models.Report{
-		From:    start,
-		To:      end,
-		User:    user,
-		Summary: summary,
+		From:           start,
+		To:             end,
+		User:           user,
+		Summary:        fullSummary,
+		DailySummaries: dailySummaries,
 	}
 
 	if err := srv.mailService.SendReport(user, report); err != nil {
