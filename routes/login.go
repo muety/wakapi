@@ -93,7 +93,7 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !utils.CompareBcrypt(user.Password, login.Password, h.config.Security.PasswordSalt) {
+	if !utils.ComparePassword(user.Password, login.Password, h.config.Security.PasswordSalt) {
 		w.WriteHeader(http.StatusUnauthorized)
 		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w).WithError("invalid credentials"))
 		return
@@ -252,7 +252,7 @@ func (h *LoginHandler) PostSetPassword(w http.ResponseWriter, r *http.Request) {
 
 	user.Password = setRequest.Password
 	user.ResetToken = ""
-	if hash, err := utils.HashBcrypt(user.Password, h.config.Security.PasswordSalt); err != nil {
+	if hash, err := utils.HashPassword(user.Password, h.config.Security.PasswordSalt); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		conf.Log().Request(r).Error("failed to set new password - %v", err)
 		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w).WithError("failed to set new password"))

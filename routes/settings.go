@@ -217,7 +217,7 @@ func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Re
 		return http.StatusBadRequest, "", "missing parameters"
 	}
 
-	if !utils.CompareBcrypt(user.Password, credentials.PasswordOld, h.config.Security.PasswordSalt) {
+	if !utils.ComparePassword(user.Password, credentials.PasswordOld, h.config.Security.PasswordSalt) {
 		return http.StatusUnauthorized, "", "invalid credentials"
 	}
 
@@ -226,7 +226,7 @@ func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Re
 	}
 
 	user.Password = credentials.PasswordNew
-	if hash, err := utils.HashBcrypt(user.Password, h.config.Security.PasswordSalt); err != nil {
+	if hash, err := utils.HashPassword(user.Password, h.config.Security.PasswordSalt); err != nil {
 		return http.StatusInternalServerError, "", conf.ErrInternalServerError
 	} else {
 		user.Password = hash

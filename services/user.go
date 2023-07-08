@@ -157,7 +157,7 @@ func (srv *UserService) CreateOrGet(signup *models.Signup, isAdmin bool) (*model
 		IsAdmin:  isAdmin,
 	}
 
-	if hash, err := utils.HashBcrypt(u.Password, srv.config.Security.PasswordSalt); err != nil {
+	if hash, err := utils.HashPassword(u.Password, srv.config.Security.PasswordSalt); err != nil {
 		return nil, false, err
 	} else {
 		u.Password = hash
@@ -192,17 +192,6 @@ func (srv *UserService) SetWakatimeApiCredentials(user *models.User, apiKey stri
 	}
 
 	return user, nil
-}
-
-func (srv *UserService) MigrateMd5Password(user *models.User, login *models.Login) (*models.User, error) {
-	srv.FlushUserCache(user.ID)
-	user.Password = login.Password
-	if hash, err := utils.HashBcrypt(user.Password, srv.config.Security.PasswordSalt); err != nil {
-		return nil, err
-	} else {
-		user.Password = hash
-	}
-	return srv.repository.UpdateField(user, "password", user.Password)
 }
 
 func (srv *UserService) GenerateResetToken(user *models.User) (*models.User, error) {

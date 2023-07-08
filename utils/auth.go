@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/base64"
 	"errors"
+	"github.com/alexedwards/argon2id"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"regexp"
@@ -42,9 +43,22 @@ func ExtractBearerAuth(r *http.Request) (key string, err error) {
 	return string(keyBytes), err
 }
 
-func CompareBcrypt(wanted, actual, pepper string) bool {
-	plainPassword := []byte(strings.TrimSpace(actual) + pepper)
-	err := bcrypt.CompareHashAndPassword([]byte(wanted), plainPassword)
+// password hashing
+
+func ComparePassword(hashed, plain, pepper string) bool {
+	if hashed[0:10] == "$argon2id$" {
+		return CompareArgon2Id(hashed, plain, pepper)
+	}
+	return CompareBcrypt(hashed, plain, pepper)
+}
+
+func HashPassword(plain, pepper string) (string, error) {
+	return HashArgon2Id(plain, pepper)
+}
+
+func CompareBcrypt(hashed, plain, pepper string) bool {
+	plainPepperedPassword := []byte(strings.TrimSpace(plain) + pepper)
+	err := bcrypt.CompareHashAndPassword([]byte(hashed), plainPepperedPassword)
 	return err == nil
 }
 
@@ -53,6 +67,21 @@ func HashBcrypt(plain, pepper string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword(plainPepperedPassword, bcrypt.DefaultCost)
 	if err == nil {
 		return string(bytes), nil
+	}
+	return "", err
+}
+
+func CompareArgon2Id(hashed, plain, pepper string) bool {
+	plainPepperedPassword := strings.TrimSpace(plain) + pepper
+	match, err := argon2id.ComparePasswordAndHash(plainPepperedPassword, hashed)
+	return err == nil && match
+}
+
+func HashArgon2Id(plain, pepper string) (string, error) {
+	plainPepperedPassword := strings.TrimSpace(plain) + pepper
+	hash, err := argon2id.CreateHash(plainPepperedPassword, argon2id.DefaultParams)
+	if err == nil {
+		return hash, nil
 	}
 	return "", err
 }

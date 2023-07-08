@@ -99,11 +99,6 @@ func (m *UserServiceMock) SetWakatimeApiCredentials(user *models.User, s1, s2 st
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
-func (m *UserServiceMock) MigrateMd5Password(user *models.User, login *models.Login) (*models.User, error) {
-	args := m.Called(user, login)
-	return args.Get(0).(*models.User), args.Error(1)
-}
-
 func (m *UserServiceMock) GenerateResetToken(user *models.User) (*models.User, error) {
 	args := m.Called(user)
 	return args.Get(0).(*models.User), args.Error(1)
