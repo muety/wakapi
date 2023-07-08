@@ -298,6 +298,28 @@ Preview:
 </details>
 <br>
 
+## 📦 Data Export
+You can export your coding activity from Wakapi to CSV in the form of raw heartbeats. While there is no way to accomplish this directly through the web UI, we provide an easy-to-use Python [script](scripts/download_heartbeats.py) instead.
+
+```bash
+$ pip install requests tqdm
+$ python scripts/download_heartbeats.py --api_key API_KEY [--url URL] [--from FROM] [--to TO] [--output OUTPUT]
+```
+
+<details>
+
+<summary>Example</summary>
+
+```bash
+python scripts/download_heartbeats.py --api_key 04648d14-15c9-432b-b901-dbeec70d4eaf \
+  --url https://wakapi.dev/api \
+  --from 2023-01-01 \
+  --to 2023-01-31 \
+  --output wakapi_export.csv
+```
+
+</details>
+
 ## 👍 Best practices
 
 It is recommended to use wakapi behind a **reverse proxy**, like [Caddy](https://caddyserver.com) or [nginx](https://www.nginx.com/), to enable **TLS encryption** (HTTPS).
