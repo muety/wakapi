@@ -46,9 +46,8 @@ trap cleanup EXIT
 
 # Initialise test data
 case $1 in
-    postgres|mysql|mariadb)
+    postgres|mysql|mariadb|cockroach)
     docker compose -f "$script_dir/docker-compose.yml" down
-    docker volume rm "testing_wakapi-$1"
 
     docker_down=1
     docker compose -f "$script_dir/docker-compose.yml" up --wait -d "$1"
@@ -61,8 +60,10 @@ case $1 in
     db_port=0
     if [ "$1" == "postgres" ]; then
         db_port=55432
+    elif [ "$1" == "cockroach" ]; then
+        db_port=56257
     else
-        db_port=53306
+        db_port=26257
     fi
 
     for _ in $(seq 0 30); do
@@ -90,8 +91,8 @@ wait_for_wakapi () {
     counter=0
     echo "Waiting for Wakapi to come up ..."
     until curl --output /dev/null --silent --get --fail http://localhost:3000/api/health; do
-        if [ "$counter" -ge 5 ]; then
-            echo "Waited for 5s, but Wakapi failed to come up ..."
+        if [ "$counter" -ge 30 ]; then
+            echo "Waited for 30s, but Wakapi failed to come up ..."
             exit 1
         fi
 

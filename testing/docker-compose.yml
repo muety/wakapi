@@ -9,8 +9,6 @@ services:
       POSTGRES_DB: "wakapi"
       PGPORT: 55432
     network_mode: host
-    volumes:
-      - wakapi-postgres:/var/lib/postgresql/data
 
   mysql:
     image: mysql:8
@@ -21,8 +19,6 @@ services:
       MYSQL_DATABASE: "wakapi"
       MYSQL_ROOT_PASSWORD: example
     network_mode: host
-    volumes:
-      - wakapi-mysql:/var/lib/mysql
 
   mariadb:
     image: mariadb:10
@@ -33,10 +29,8 @@ services:
       MARIADB_DATABASE: "wakapi"
       MARIADB_ROOT_PASSWORD: example
     network_mode: host
-    volumes:
-      - wakapi-mariadb:/var/lib/mysql
 
-volumes:
-  wakapi-postgres: {}
-  wakapi-mysql: {}
-  wakapi-mariadb: {}
+  cockroach:
+    image: cockroachdb/cockroach
+    entrypoint: '/cockroach/cockroach start-single-node --insecure --sql-addr=:56257'
+    network_mode: host
