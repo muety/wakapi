@@ -55,6 +55,12 @@ func TestCommon_ParseUserAgent(t *testing.T) {
 			"chrome",
 			nil,
 		},
+		{
+			"Chrome/114.0.0.0 linux_x86-64 chrome-wakatime/3.0.17",
+			"linux",
+			"chrome",
+			nil,
+		},
 	}
 
 	for _, test := range tests {

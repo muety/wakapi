@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/emvi/logbuch"
 	"github.com/mitchellh/hashstructure/v2"
 	"strings"
@@ -37,6 +38,22 @@ func (h *Heartbeat) Valid() bool {
 func (h *Heartbeat) Timely(maxAge time.Duration) bool {
 	now := time.Now()
 	return now.Sub(h.Time.T()) <= maxAge && h.Time.T().Sub(now) < 1*time.Hour
+}
+
+func (h *Heartbeat) Sanitize() *Heartbeat {
+	// wakatime has a special keyword that indicates to use the most recent project for a given heartbeat
+	// in chrome, the browser extension sends this keyword for (most?) heartbeats
+	// presumably the idea behind this is that if you're coding, your browsing activity will likely also relate to that coding project
+	// but i don't really like this, i'd rather have all browsing activity under the "unknown" project (as the case with firefox, for whatever reason)
+	// see https://github.com/wakatime/browser-wakatime/pull/206
+	if (h.Type == "url" || h.Type == "domain") && h.Project == "<<LAST_PROJECT>>" {
+		h.Project = ""
+	}
+
+	h.OperatingSystem = strutil.Capitalize(h.OperatingSystem)
+	h.Editor = strutil.Capitalize(h.Editor)
+
+	return h
 }
 
 func (h *Heartbeat) Augment(languageMappings map[string]string) {

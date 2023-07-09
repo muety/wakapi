@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/muety/wakapi/helpers"
 	"html/template"
 	"net/http"
@@ -34,7 +35,7 @@ func DefaultTemplateFuncs() template.FuncMap {
 		"title":          strings.Title,
 		"join":           strings.Join,
 		"add":            add,
-		"capitalize":     utils.Capitalize,
+		"capitalize":     strutil.Capitalize,
 		"lower":          strings.ToLower,
 		"toRunes":        utils.ToRunes,
 		"localTZOffset":  utils.LocalTZOffset,

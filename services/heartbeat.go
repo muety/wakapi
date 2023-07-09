@@ -64,6 +64,7 @@ func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {
 	filteredHeartbeats := make([]*models.Heartbeat, 0, len(heartbeats))
 	for _, hb := range heartbeats {
 		if !hashes.Contain(hb.Hash) {
+			hb = hb.Sanitize()
 			filteredHeartbeats = append(filteredHeartbeats, hb)
 			hashes.Add(hb.Hash)
 		}

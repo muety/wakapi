@@ -78,7 +78,7 @@ func ParsePageParamsWithDefault(r *http.Request, page, size int) *PageParams {
 }
 
 func ParseUserAgent(ua string) (string, string, error) {
-	re := regexp.MustCompile(`(?iU)^(?:(?:wakatime|chrome|firefox)\/(?:v?[\d+.]+|unset)\s)?(?:\((\w+)-.*\)\s.+\s)?([^\/\s]+)-wakatime\/.+$`)
+	re := regexp.MustCompile(`(?iU)^(?:(?:wakatime|chrome|firefox)\/(?:v?[\d+.]+|unset)\s)?(?:\(?(\w+)[-_].*\)?.+\s)?([^\/\s]+)-wakatime\/.+$`)
 	groups := re.FindAllStringSubmatch(ua, -1)
 	if len(groups) == 0 || len(groups[0]) != 3 {
 		return "", "", errors.New("failed to parse user agent string")
