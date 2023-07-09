@@ -12,10 +12,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: ubuntu-18.04
+          - platform: ubuntu-latest
             GOOS: linux
             GOARCH: amd64
-          - platform: ubuntu-18.04
+          - platform: ubuntu-latest
             GOOS: linux
             GOARCH: arm64
           - platform: windows-latest
