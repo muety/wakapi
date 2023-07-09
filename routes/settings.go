@@ -513,19 +513,26 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 
 	go func(user *models.User) {
 		start := time.Now()
-		importer := imports.NewWakatimeHeartbeatImporter(user.WakatimeApiKey)
+		importer := imports.NewWakatimeImporter(user.WakatimeApiKey)
 
 		countBefore, err := h.heartbeatSrvc.CountByUser(user)
 		if err != nil {
 			println(err)
 		}
 
-		var stream <-chan *models.Heartbeat
+		var (
+			stream    <-chan *models.Heartbeat
+			importErr error
+		)
 		if latest, err := h.heartbeatSrvc.GetLatestByOriginAndUser(imports.OriginWakatime, user); latest == nil || err != nil {
-			stream = importer.ImportAll(user)
+			stream, importErr = importer.ImportAll(user)
 		} else {
 			// if an import has happened before, only import heartbeats newer than the latest of the last import
-			stream = importer.Import(user, latest.Time.T(), time.Now())
+			stream, importErr = importer.Import(user, latest.Time.T(), time.Now())
+		}
+		if importErr != nil {
+			conf.Log().Error("wakatime import for user '%s' failed - %v", user.ID, importErr)
+			return
 		}
 
 		count := 0

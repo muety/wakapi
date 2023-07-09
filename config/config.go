@@ -51,6 +51,7 @@ const (
 	WakatimeApiHeartbeatsBulkUrl = "/users/current/heartbeats.bulk"
 	WakatimeApiUserAgentsUrl     = "/users/current/user_agents"
 	WakatimeApiMachineNamesUrl   = "/users/current/machine_names"
+	WakatimeApiDataDumpUrl       = "/users/current/data_dumps"
 )
 
 const (
