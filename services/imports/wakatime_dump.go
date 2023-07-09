@@ -12,11 +12,12 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
+	"github.com/muety/wakapi/utils"
 	"net/http"
 	"time"
 )
 
-// data example: https://pastr.de/p/0viiv8e0rwq27dim8gyq1jrc
+// data example: https://github.com/muety/wakapi/issues/323#issuecomment-1627467052
 
 type WakatimeDumpImporter struct {
 	apiKey     string
@@ -37,13 +38,10 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 	logbuch.Info("running wakatime dump import for user '%s'", user.ID)
 
 	url := config.WakatimeApiUrl + config.WakatimeApiDataDumpUrl // this importer only works with wakatime currently, so no point in using user's custom wakatime api url
-	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer([]byte(`{ "type": "heartbeats", "email_when_finished": "false" }`)))
-
-	res, err := w.httpClient.Do(w.withHeaders(req))
+	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer([]byte(`{ "type": "heartbeats", "email_when_finished": false }`)))
+	res, err := utils.RaiseForStatus(w.httpClient.Do(w.withHeaders(req)))
 	if err != nil {
 		return nil, err
-	} else if res.StatusCode >= 400 {
-		return nil, errors.New(fmt.Sprintf("got status %d from wakatime data dump api (post)", res.StatusCode))
 	}
 	defer res.Body.Close()
 
@@ -52,14 +50,14 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 		return nil, err
 	}
 
+	var readyPollTimer *artifex.DispatchTicker
+
+	// callbacks
 	checkDumpReady := func(dumpId string, user *models.User) (bool, *wakatime.DataDumpData, error) {
 		req, _ := http.NewRequest(http.MethodGet, url, nil)
-
-		res, err := w.httpClient.Do(w.withHeaders(req))
+		res, err := utils.RaiseForStatus(w.httpClient.Do(w.withHeaders(req)))
 		if err != nil {
 			return false, nil, err
-		} else if res.StatusCode >= 400 {
-			return false, nil, errors.New(fmt.Sprintf("got status %d from wakatime data dump api (get)", res.StatusCode))
 		}
 
 		var datadumpData wakatime.DataDumpViewModel
@@ -77,9 +75,6 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 		return dump.Status == "Completed", dump, nil
 	}
 
-	// start polling for dump to be ready
-	var readyPollTimer *artifex.DispatchTicker
-
 	onDumpFailed := func(err error, user *models.User) {
 		config.Log().Error("fetching data dump for user '%s' failed - %v", user.ID, err)
 		readyPollTimer.Stop()
@@ -89,17 +84,13 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 	onDumpReady := func(dump *wakatime.DataDumpData, user *models.User, out chan *models.Heartbeat) {
 		config.Log().Info("data dump for user '%s' is available for download", user.ID)
 		readyPollTimer.Stop()
-
 		defer close(out)
 
 		// download
 		req, _ := http.NewRequest(http.MethodGet, dump.DownloadUrl, nil)
-		res, err := w.httpClient.Do(req)
+		res, err := utils.RaiseForStatus((&http.Client{Timeout: 5 * time.Minute}).Do(req))
 		if err != nil {
 			config.Log().Error("failed to download %s - %v", dump.DownloadUrl, err)
-			return
-		} else if res.StatusCode >= 400 {
-			config.Log().Error("failed to download %s - %v", dump.DownloadUrl, errors.New(fmt.Sprintf("got status %d from wakatime", res.StatusCode)))
 			return
 		}
 		defer res.Body.Close()
@@ -125,6 +116,7 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 			return
 		}
 
+		// stream
 		for _, d := range data.Days {
 			for _, h := range d.Heartbeats {
 				hb := mapHeartbeat(h, userAgents, machinesNames, user)
@@ -136,6 +128,7 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 		}
 	}
 
+	// start polling for dump to be ready
 	readyPollTimer, err = w.queue.DispatchEvery(func() {
 		u := *user
 		ok, dump, err := checkDumpReady(datadumpData.Data.Id, &u)

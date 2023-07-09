@@ -7,6 +7,7 @@ import (
 	"fmt"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
 	"net/http"
 	"time"
 )
@@ -58,12 +59,9 @@ func (s *MailWhaleSendingService) Send(mail *models.Mail) error {
 	req.SetBasicAuth(s.config.ClientId, s.config.ClientSecret)
 	req.Header.Set("Content-Type", "application/json")
 
-	res, err := s.httpClient.Do(req)
+	_, err = utils.RaiseForStatus(s.httpClient.Do(req))
 	if err != nil {
 		return err
-	}
-	if res.StatusCode >= 400 {
-		return errors.New(fmt.Sprintf("got status %d from mailwhale", res.StatusCode))
 	}
 
 	return nil

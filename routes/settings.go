@@ -515,28 +515,25 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 		start := time.Now()
 		importer := imports.NewWakatimeImporter(user.WakatimeApiKey)
 
-		countBefore, err := h.heartbeatSrvc.CountByUser(user)
-		if err != nil {
-			println(err)
-		}
+		countBefore, _ := h.heartbeatSrvc.CountByUser(user)
 
 		var (
-			stream    <-chan *models.Heartbeat
-			importErr error
+			stream      <-chan *models.Heartbeat
+			importError error
 		)
 		if latest, err := h.heartbeatSrvc.GetLatestByOriginAndUser(imports.OriginWakatime, user); latest == nil || err != nil {
-			stream, importErr = importer.ImportAll(user)
+			stream, importError = importer.ImportAll(user)
 		} else {
 			// if an import has happened before, only import heartbeats newer than the latest of the last import
-			stream, importErr = importer.Import(user, latest.Time.T(), time.Now())
+			stream, importError = importer.Import(user, latest.Time.T(), time.Now())
 		}
-		if importErr != nil {
-			conf.Log().Error("wakatime import for user '%s' failed - %v", user.ID, importErr)
+		if importError != nil {
+			conf.Log().Error("wakatime import for user '%s' failed - %v", user.ID, importError)
 			return
 		}
 
 		count := 0
-		batch := make([]*models.Heartbeat, 0)
+		batch := make([]*models.Heartbeat, 0, h.config.App.ImportBatchSize)
 
 		insert := func(batch []*models.Heartbeat) {
 			if err := h.heartbeatSrvc.InsertBatch(batch); err != nil {
@@ -550,10 +547,9 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 
 			if len(batch) == h.config.App.ImportBatchSize {
 				insert(batch)
-				batch = make([]*models.Heartbeat, 0)
+				batch = make([]*models.Heartbeat, 0, h.config.App.ImportBatchSize)
 			}
 		}
-
 		if len(batch) > 0 {
 			insert(batch)
 		}

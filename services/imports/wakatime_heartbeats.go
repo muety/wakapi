@@ -31,14 +31,14 @@ const (
 )
 
 type WakatimeHeartbeatsImporter struct {
-	ApiKey     string
+	apiKey     string
 	httpClient *http.Client
 	queue      *artifex.Dispatcher
 }
 
 func NewWakatimeHeartbeatImporter(apiKey string) *WakatimeHeartbeatsImporter {
 	return &WakatimeHeartbeatsImporter{
-		ApiKey:     apiKey,
+		apiKey:     apiKey,
 		httpClient: &http.Client{Timeout: 10 * time.Second},
 		queue:      config.GetQueue(config.QueueImports),
 	}
@@ -66,7 +66,7 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 		}
 
 		userAgents := map[string]*wakatime.UserAgentEntry{}
-		if data, err := fetchUserAgents(baseUrl, w.ApiKey); err == nil {
+		if data, err := fetchUserAgents(baseUrl, w.apiKey); err == nil {
 			userAgents = data
 		} else if strings.Contains(baseUrl, "wakatime.com") {
 			// when importing from wakatime, resolving user agents is mandatorily required
@@ -75,7 +75,7 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 		}
 
 		machinesNames := map[string]*wakatime.MachineEntry{}
-		if data, err := fetchMachineNames(baseUrl, w.ApiKey); err == nil {
+		if data, err := fetchMachineNames(baseUrl, w.apiKey); err == nil {
 			machinesNames = data
 		} else if strings.Contains(baseUrl, "wakatime.com") {
 			// when importing from wakatime, resolving machine names is mandatorily required
@@ -106,7 +106,11 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 				}
 
 				for _, h := range heartbeats {
-					out <- mapHeartbeat(h, userAgents, machinesNames, user)
+					hb := mapHeartbeat(h, userAgents, machinesNames, user)
+					if hb.Time.T().Before(minFrom) || hb.Time.T().After(maxTo) {
+						continue
+					}
+					out <- hb
 				}
 
 				if c.Dec() == 0 {
@@ -201,7 +205,7 @@ func (w *WakatimeHeartbeatsImporter) fetchRange(baseUrl string) (time.Time, time
 }
 
 func (w *WakatimeHeartbeatsImporter) withHeaders(req *http.Request) *http.Request {
-	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(w.ApiKey))))
+	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(w.apiKey))))
 	return req
 }
 

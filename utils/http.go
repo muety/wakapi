@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -84,4 +85,14 @@ func ParseUserAgent(ua string) (string, string, error) {
 		return "", "", errors.New("failed to parse user agent string")
 	}
 	return groups[0][1], groups[0][2], nil
+}
+
+func RaiseForStatus(res *http.Response, err error) (*http.Response, error) {
+	if err != nil {
+		return res, err
+	}
+	if res.StatusCode >= 400 {
+		return res, fmt.Errorf("got response status %d for '%s %s'", res.StatusCode, res.Request.Method, res.Request.URL.String())
+	}
+	return res, nil
 }
