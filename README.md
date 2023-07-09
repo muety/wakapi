@@ -47,10 +47,6 @@ Installation instructions can be found below and in the [Wiki](https://github.co
 * ✅ Lightning fast
 * ✅ Self-hosted
 
-## 🚧 Roadmap
-
-Plans for the near future mainly include, besides usual improvements and bug fixes, a UI redesign as well as additional types of charts and statistics (see [#101](https://github.com/muety/wakapi/issues/101), [#76](https://github.com/muety/wakapi/issues/76), [#12](https://github.com/muety/wakapi/issues/12)). If you have feature requests or any kind of improvement proposals feel free to open an issue or share them in our [user survey](https://github.com/muety/wakapi/issues/82).
-
 ## ⌨️ How to use?
 
 There are different options for how to use Wakapi, ranging from our hosted cloud service to self-hosting it. Regardless of which option choose, you will always have to do the [client setup](#-client-setup) in addition.
