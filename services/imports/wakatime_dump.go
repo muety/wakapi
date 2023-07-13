@@ -48,7 +48,7 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 			if err := json.NewDecoder(res.Body).Decode(&datadumpError); err != nil {
 				return nil, err
 			}
-			if datadumpError.Error == "Wait for your current export to expire before creating another."{
+			if datadumpError.Error == "Wait for your current export to expire before creating another." {
 				dump_exist = true
 			}
 		} else {
@@ -162,21 +162,19 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 	// start polling for dump to be ready
 	readyPollTimer, err = w.queue.DispatchEvery(func() {
 		u := *user
+		var ok bool
+		var dump *wakatime.DataDumpData
+		var err error
 		if dump_exist {
-			ok, dump, err := getLatestDump(&u)
-			if err != nil {
-				onDumpFailed(err, &u)
-			} else if ok {
-				onDumpReady(dump, &u, out)
-			}
+			ok, dump, err = getLatestDump(&u)
 		} else {
-			ok, dump, err := checkDumpReady(datadumpData.Data.Id, &u)
-			logbuch.Info("waiting for data dump '%s' for user '%s' to become downloadable (%.2f percent complete)", datadumpData.Data.Id, u.ID, dump.PercentComplete)
-			if err != nil {
-				onDumpFailed(err, &u)
-			} else if ok {
-				onDumpReady(dump, &u, out)
-			}	
+			ok, dump, err = checkDumpReady(datadumpData.Data.Id, &u)
+		}
+		logbuch.Info("waiting for data dump '%s' for user '%s' to become downloadable (%.2f percent complete)", dump.Id, u.ID, dump.PercentComplete)
+		if err != nil {
+			onDumpFailed(err, &u)
+		} else if ok {
+			onDumpReady(dump, &u, out)
 		}
 	}, 10*time.Second)
 
