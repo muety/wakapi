@@ -6,6 +6,10 @@ type DataDumpViewModel struct {
 	TotalPages int             `json:"total_pages"`
 }
 
+type DataDumpResultErrorModel struct {
+	Error string `json:"error"`
+}
+
 type DataDumpResultViewModel struct {
 	Data *DataDumpData `json:"data"`
 }
