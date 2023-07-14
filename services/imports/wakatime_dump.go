@@ -6,15 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/duke-git/lancet/v2/slice"
+	"github.com/muety/wakapi/utils"
+	"net/http"
+	"time"
+
 	"github.com/emvi/logbuch"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
-	"github.com/muety/wakapi/utils"
-	"net/http"
-	"time"
 )
 
 // data example: https://github.com/muety/wakapi/issues/323#issuecomment-1627467052
@@ -40,20 +40,28 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 	url := config.WakatimeApiUrl + config.WakatimeApiDataDumpUrl // this importer only works with wakatime currently, so no point in using user's custom wakatime api url
 	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer([]byte(`{ "type": "heartbeats", "email_when_finished": false }`)))
 	res, err := utils.RaiseForStatus(w.httpClient.Do(w.withHeaders(req)))
-	if err != nil {
+
+	if err != nil && res.StatusCode == http.StatusBadRequest {
+		var datadumpError wakatime.DataDumpResultErrorModel
+		if err := json.NewDecoder(res.Body).Decode(&datadumpError); err != nil {
+			return nil, err
+		}
+		// in case of this error message, a dump had already been requested before and can simply be downloaded now
+		// -> just keep going as usual (kick off poll loop), otherwise yield error
+		if datadumpError.Error == "Wait for your current export to expire before creating another." {
+			logbuch.Info("failed to request new dump, because other non-expired dump already existing, using that one")
+		} else {
+			return nil, err
+		}
+	} else if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
 
-	var datadumpData wakatime.DataDumpResultViewModel
-	if err := json.NewDecoder(res.Body).Decode(&datadumpData); err != nil {
-		return nil, err
-	}
-
 	var readyPollTimer *artifex.DispatchTicker
 
 	// callbacks
-	checkDumpReady := func(dumpId string, user *models.User) (bool, *wakatime.DataDumpData, error) {
+	checkDumpAvailable := func(user *models.User) (bool, *wakatime.DataDumpData, error) {
 		req, _ := http.NewRequest(http.MethodGet, url, nil)
 		res, err := utils.RaiseForStatus(w.httpClient.Do(w.withHeaders(req)))
 		if err != nil {
@@ -65,14 +73,11 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 			return false, nil, err
 		}
 
-		dump, ok := slice.FindBy[*wakatime.DataDumpData](datadumpData.Data, func(i int, item *wakatime.DataDumpData) bool {
-			return item.Id == dumpId
-		})
-		if !ok {
-			return false, nil, errors.New(fmt.Sprintf("data dump with id '%s' for user '%s' not found", dumpId, user.ID))
+		if len(datadumpData.Data) < 1 {
+			return false, nil, errors.New("no dumps available")
 		}
 
-		return dump.Status == "Completed", dump, nil
+		return datadumpData.Data[0].Status == "Completed", datadumpData.Data[0], nil
 	}
 
 	onDumpFailed := func(err error, user *models.User) {
@@ -131,11 +136,11 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 	// start polling for dump to be ready
 	readyPollTimer, err = w.queue.DispatchEvery(func() {
 		u := *user
-		ok, dump, err := checkDumpReady(datadumpData.Data.Id, &u)
-		logbuch.Info("waiting for data dump '%s' for user '%s' to become downloadable (%.2f percent complete)", datadumpData.Data.Id, u.ID, dump.PercentComplete)
+		ok, dump, err := checkDumpAvailable(&u)
 		if err != nil {
 			onDumpFailed(err, &u)
 		} else if ok {
+			logbuch.Info("waiting for data dump '%s' for user '%s' to become downloadable (%.2f percent complete)", dump.Id, u.ID, dump.PercentComplete)
 			onDumpReady(dump, &u, out)
 		}
 	}, 10*time.Second)
