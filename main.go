@@ -209,6 +209,7 @@ func main() {
 	diagnosticsHandler := api.NewDiagnosticsApiHandler(userService, diagnosticsService)
 	avatarHandler := api.NewAvatarHandler()
 	badgeHandler := api.NewBadgeHandler(userService, summaryService)
+	oauthHandler := api.NewOAuthHandler(userService)
 
 	// Compat Handlers
 	wakatimeV1StatusBarHandler := wtV1Routes.NewStatusBarHandler(userService, summaryService)
@@ -287,6 +288,7 @@ func main() {
 	wakatimeV1ProjectsHandler.RegisterRoutes(apiRouter)
 	wakatimeV1HeartbeatsHandler.RegisterRoutes(apiRouter)
 	shieldV1BadgeHandler.RegisterRoutes(apiRouter)
+	oauthHandler.RegisterRoutes(apiRouter)
 
 	// Static Routes
 	// https://github.com/golang/go/issues/43431
