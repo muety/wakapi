@@ -144,6 +144,13 @@ type sentryConfig struct {
 	SampleRateHeartbeats float32 `yaml:"sample_rate_heartbeats" default:"0.1" env:"WAKAPI_SENTRY_SAMPLE_RATE_HEARTBEATS"`
 }
 
+type oauthConfig struct {
+	Enabled      bool   `env:"WAKAPI_OAUTH_ENABLED" default:"false"`
+	Provider     string `env:"WAKAPI_OAUTH_PROVIDER" default:"github"`
+	ClientId     string `yaml:"client_id" env:"WAKAPI_OAUTH_CLIENT_ID"`
+	ClientSecret string `yaml:"client_secret" env:"WAKAPI_OAUTH_CLIENT_SECRET"`
+}
+
 type mailConfig struct {
 	Enabled   bool                `env:"WAKAPI_MAIL_ENABLED" default:"true"`
 	Provider  string              `env:"WAKAPI_MAIL_PROVIDER" default:"smtp"`
@@ -178,6 +185,7 @@ type Config struct {
 	Server         serverConfig
 	Subscriptions  subscriptionsConfig
 	Sentry         sentryConfig
+	OAuth          oauthConfig
 	Mail           mailConfig
 }
 

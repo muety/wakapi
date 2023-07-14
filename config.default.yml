@@ -74,6 +74,12 @@ subscriptions:
   stripe_endpoint_secret:
   standard_price_id:
 
+oauth:
+  enabled: false                        # whether to enable oauth
+  provider:                             # one of ['github', 'microsoft', 'google']
+  client_id:                            # oauth client id
+  client_secret:                        # oauth client secret
+
 mail:
   enabled: true                         # whether to enable mails (used for password resets, reports, etc.)
   provider: smtp                        # method for sending mails, currently one of ['smtp', 'mailwhale']
