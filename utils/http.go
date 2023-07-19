@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -92,7 +94,15 @@ func RaiseForStatus(res *http.Response, err error) (*http.Response, error) {
 		return res, err
 	}
 	if res.StatusCode >= 400 {
-		return res, fmt.Errorf("got response status %d for '%s %s'", res.StatusCode, res.Request.Method, res.Request.URL.String())
+		message := "<body omitted or empty>"
+		contentType := res.Header.Get("content-type")
+		if strings.HasPrefix(contentType, "text/") || strings.HasPrefix(contentType, "application/json") {
+			body, _ := io.ReadAll(res.Body)
+			res.Body.Close()
+			res.Body = io.NopCloser(bytes.NewBuffer(body))
+			message = string(body)
+		}
+		return res, fmt.Errorf("got response status %d for '%s %s' - %s", res.StatusCode, res.Request.Method, res.Request.URL.String(), message)
 	}
 	return res, nil
 }
