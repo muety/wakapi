@@ -1,12 +1,13 @@
 package migrations
 
 import (
+	"regexp"
+	"strings"
+
 	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
-	"regexp"
-	"strings"
 )
 
 // due to an error in the model definition, idx_time_user used to only cover 'user_id', but not time column
@@ -37,7 +38,7 @@ func init() {
 				}
 
 				matches := regexp.MustCompile("(?i)\\((.+)\\)$").FindStringSubmatch(ddl)
-				if len(matches) > 0 && !strings.Contains(matches[0], "`user_id`") || !strings.Contains(matches[0], "`time`") {
+				if len(matches) > 0 && (!strings.Contains(matches[0], "`user_id`") || !strings.Contains(matches[0], "`time`")) {
 					drop = true
 				}
 			} else {
