@@ -76,8 +76,14 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// if no range was requested, get the maximum allowed range given the users max shared days, otherwise default to past 7 days (which will fail in the next step, because user didn't allow any sharing)
+	// this "floors" the user's maximum shared date to the supported range buckets (e.g. if user opted to share 12 days, we'll still fallback to "last_7_days") for consistency with wakatime
 	if rangeParam == "" {
-		rangeParam = (*models.IntervalPast7Days)[0]
+		if _, userRange := helpers.ResolveMaximumRange(requestedUser.ShareDataMaxDays); userRange != nil {
+			rangeParam = (*userRange)[1]
+		} else {
+			rangeParam = (*models.IntervalPast7Days)[1]
+		}
 	}
 
 	err, rangeFrom, rangeTo := helpers.ResolveIntervalRawTZ(rangeParam, requestedUser.TZ())
@@ -103,6 +109,10 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	stats := v1.NewStatsFrom(summary, &models.Filters{})
+	stats.Data.Range = rangeParam
+	stats.Data.HumanReadableRange = helpers.MustParseInterval(rangeParam).GetHumanReadable()
+	stats.Data.IsCodingActivityVisible = requestedUser.ShareDataMaxDays != 0
+	stats.Data.IsOtherUsageVisible = requestedUser.AnyDataShared()
 
 	// post filter stats according to user's given sharing permissions
 	if !requestedUser.ShareEditors {

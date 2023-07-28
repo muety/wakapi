@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
 	"math"
 	"time"
@@ -14,19 +15,26 @@ type StatsViewModel struct {
 }
 
 type StatsData struct {
-	Username              string            `json:"username"`
-	UserId                string            `json:"user_id"`
-	Start                 time.Time         `json:"start"`
-	End                   time.Time         `json:"end"`
-	TotalSeconds          float64           `json:"total_seconds"`
-	DailyAverage          float64           `json:"daily_average"`
-	DaysIncludingHolidays int               `json:"days_including_holidays"`
-	Editors               []*SummariesEntry `json:"editors"`
-	Languages             []*SummariesEntry `json:"languages"`
-	Machines              []*SummariesEntry `json:"machines"`
-	Projects              []*SummariesEntry `json:"projects"`
-	OperatingSystems      []*SummariesEntry `json:"operating_systems"`
-	Branches              []*SummariesEntry `json:"branches,omitempty"`
+	Username                  string            `json:"username"`
+	UserId                    string            `json:"user_id"`
+	Start                     time.Time         `json:"start"`
+	End                       time.Time         `json:"end"`
+	Status                    string            `json:"status"`
+	TotalSeconds              float64           `json:"total_seconds"`
+	DailyAverage              float64           `json:"daily_average"`
+	DaysIncludingHolidays     int               `json:"days_including_holidays"`
+	Range                     string            `json:"range"`
+	HumanReadableRange        string            `json:"human_readable_range"`
+	HumanReadableTotal        string            `json:"human_readable_total"`
+	HumanReadableDailyAverage string            `json:"human_readable_daily_average"`
+	IsCodingActivityVisible   bool              `json:"is_coding_activity_visible"`
+	IsOtherUsageVisible       bool              `json:"is_other_usage_visible"`
+	Editors                   []*SummariesEntry `json:"editors"`
+	Languages                 []*SummariesEntry `json:"languages"`
+	Machines                  []*SummariesEntry `json:"machines"`
+	Projects                  []*SummariesEntry `json:"projects"`
+	OperatingSystems          []*SummariesEntry `json:"operating_systems"`
+	Branches                  []*SummariesEntry `json:"branches,omitempty"`
 }
 
 func NewStatsFrom(summary *models.Summary, filters *models.Filters) *StatsViewModel {
@@ -38,11 +46,16 @@ func NewStatsFrom(summary *models.Summary, filters *models.Filters) *StatsViewMo
 		UserId:                summary.UserID,
 		Start:                 summary.FromTime.T(),
 		End:                   summary.ToTime.T(),
+		Status:                "ok",
 		TotalSeconds:          totalTime.Seconds(),
-		DailyAverage:          totalTime.Seconds() / float64(numDays),
 		DaysIncludingHolidays: numDays,
+		HumanReadableTotal:    helpers.FmtWakatimeDuration(totalTime),
 	}
 
+	if numDays > 0 {
+		data.DailyAverage = totalTime.Seconds() / float64(numDays)
+		data.HumanReadableDailyAverage = helpers.FmtWakatimeDuration(totalTime / time.Duration(numDays))
+	}
 	if math.IsInf(data.DailyAverage, 0) || math.IsNaN(data.DailyAverage) {
 		data.DailyAverage = 0
 	}

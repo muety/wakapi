@@ -163,6 +163,10 @@ func (u *User) MinDataAge() time.Time {
 	return time.Now().AddDate(0, -retentionMonths, 0)
 }
 
+func (u *User) AnyDataShared() bool {
+	return u.ShareDataMaxDays != 0 && (u.ShareEditors || u.ShareLanguages || u.ShareProjects || u.ShareOSs || u.ShareMachines || u.ShareLabels)
+}
+
 func (c *CredentialsReset) IsValid() bool {
 	return ValidatePassword(c.PasswordNew) &&
 		c.PasswordNew == c.PasswordRepeat
