@@ -294,6 +294,22 @@ Preview:
 </details>
 <br>
 
+### Browser Plugin (Chrome & Firefox)
+The [browser-wakatime](https://github.com/wakatime/browser-wakatime) plugin enables you to track your web surfing in WakaTime (and Wakapi, of course). Visited websites will appear as "files" in the summary. Follow these instructions to get started:
+
+1. Install the browser extension from the official store ([Firefox](https://addons.mozilla.org/en-US/firefox/addon/wakatimes), [Chrome](https://chrome.google.com/webstore/detail/wakatime/jnbbnacmeggbgdjgaoojpmhdlkkpblgi?hl=de))
+2. Open the extension settings dialog
+3. Configure it like so (see screenshot below):
+    * API Key: Your personal API key (get it at [wakapi.dev](https://wakapi.dev))
+    * Logging Type: _Only the domain_
+    * API URL: `https://wakapi.dev/api/compat/wakatime/v1` (alternatively, replace _wakapi.dev_ with your self-hosted instance hostname)
+4. Save
+5. Start browsing!
+
+![](.github/assets/screenshot_browser_plugin.png)
+
+Note: the plugin will only sync heartbeats once in a while, so it might take some time for them to appear on Wakapi. To "force" it to sync, simply bring up the plugin main dialog.
+
 ## 📦 Data Export
 You can export your coding activity from Wakapi to CSV in the form of raw heartbeats. While there is no way to accomplish this directly through the web UI, we provide an easy-to-use Python [script](scripts/download_heartbeats.py) instead.
 
