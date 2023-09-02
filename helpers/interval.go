@@ -80,7 +80,7 @@ func ResolveIntervalTZ(interval *models.IntervalKey, tz *time.Location) (err err
 	return err, from, to
 }
 
-// ResolveClosestRange returns the interval label (e.g. "last_7_days") of the maximum allowed range when having opted to share this many days or an error for days == 0.
+// ResolveMaximumRange returns the interval label (e.g. "last_7_days") of the maximum allowed range when having opted to share this many days or an error for days == 0.
 func ResolveMaximumRange(days int) (error, *models.IntervalKey) {
 	if days == 0 {
 		return errors.New("no matching interval"), nil
@@ -97,10 +97,10 @@ func ResolveMaximumRange(days int) (error, *models.IntervalKey) {
 	if days < 30 {
 		return nil, models.IntervalPast14Days
 	}
-	if days < 181 { // 3*31 + 2*30 + 1*28
+	if days < 184 { // 4*31 + 2*30 (longest possible 6 months are from jul to dec)
 		return nil, models.IntervalPast30Days
 	}
-	if days < 365 { // 7*31 + 4*30 + 1*28
+	if days < 366 { // 7*31 + 4*30 + 1*29
 		return nil, models.IntervalPast6Months
 	}
 	return nil, models.IntervalPast12Months

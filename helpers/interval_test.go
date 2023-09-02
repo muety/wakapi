@@ -8,7 +8,7 @@ import (
 )
 
 func TestResolveMaximumRange_Default(t *testing.T) {
-	for i := 1; i <= 366; i++ {
+	for i := 1; i <= 367; i++ {
 		err1, maximumInterval := ResolveMaximumRange(i)
 		err2, from, to := ResolveIntervalTZ(maximumInterval, time.UTC)
 
