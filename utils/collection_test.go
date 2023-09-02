@@ -39,13 +39,13 @@ func TestCommon_ParseUserAgent(t *testing.T) {
 		},
 		{
 			"wakatime/v1.18.11 (linux-5.13.8-200.fc34.x86_64-x86_64) go1.16.7 emacs-wakatime/1.0.2",
-			"linux",
+			"Linux",
 			"emacs",
 			nil,
 		},
 		{
 			"wakatime/unset (linux-5.11.0-44-generic-x86_64) go1.16.13 emacs-wakatime/1.0.2",
-			"linux",
+			"Linux",
 			"emacs",
 			nil,
 		},
@@ -57,13 +57,32 @@ func TestCommon_ParseUserAgent(t *testing.T) {
 		},
 		{
 			"Chrome/114.0.0.0 linux_x86-64 chrome-wakatime/3.0.17",
-			"linux",
+			"Linux",
 			"chrome",
+			nil,
+		},
+		{
+			"Chrome/115.0.0.0 mac_arm64 chrome-wakatime/3.0.19",
+			"Mac",
+			"chrome",
+			nil,
+		},
+		{
+			"Chrome/117.0.0.0 win_x86-64 chrome-wakatime/3.0.19",
+			"Windows",
+			"chrome",
+			nil,
+		},
+		{
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 Edg/116.0.1938.62 win_x86-64 edge-wakatime/3.0.18",
+			"Windows",
+			"Edge",
 			nil,
 		},
 	}
 
 	for _, test := range tests {
+		println(test.in)
 		os, editor, err := ParseUserAgent(test.in)
 		assert.True(t, checkErr(err, test.outError))
 		assert.Equal(t, test.outOs, os)

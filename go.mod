@@ -19,6 +19,7 @@ require (
 	github.com/jinzhu/configor v1.2.1
 	github.com/leandro-lugaresi/hub v1.1.1
 	github.com/lpar/gzipped/v2 v2.1.0
+	github.com/mileusna/useragent v1.3.3
 	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/muety/artifex/v2 v2.0.1-0.20221201142708-74e7d3f6feaf
 	github.com/narqo/go-badge v0.0.0-20221212191103-ba83bed45a1a

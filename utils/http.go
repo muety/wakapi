@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/duke-git/lancet/v2/strutil"
+	"github.com/mileusna/useragent"
 	"io"
 	"net/http"
 	"regexp"
@@ -80,13 +82,20 @@ func ParsePageParamsWithDefault(r *http.Request, page, size int) *PageParams {
 	return pageParams
 }
 
-func ParseUserAgent(ua string) (string, string, error) {
-	re := regexp.MustCompile(`(?iU)^(?:(?:wakatime|chrome|firefox)\/(?:v?[\d+.]+|unset)\s)?(?:\(?(\w+)[-_].*\)?.+\s)?([^\/\s]+)-wakatime\/.+$`)
-	groups := re.FindAllStringSubmatch(ua, -1)
-	if len(groups) == 0 || len(groups[0]) != 3 {
-		return "", "", errors.New("failed to parse user agent string")
+func ParseUserAgent(ua string) (string, string, error) { // os, editor, err
+	// try parse wakatime client user agents
+	re := regexp.MustCompile(`(?iU)^(?:(?:wakatime|chrome|firefox|edge)\/(?:v?[\d+.]+|unset)\s)?(?:\(?(\w+)[-_].*\)?.+\s)?([^\/\s]+)-wakatime\/.+$`)
+	if groups := re.FindAllStringSubmatch(ua, -1); len(groups) > 0 && len(groups[0]) == 3 {
+		if groups[0][1] == "win" {
+			groups[0][1] = "windows"
+		}
+		return strutil.Capitalize(groups[0][1]), groups[0][2], nil
 	}
-	return groups[0][1], groups[0][2], nil
+	// try parse browser user agent as a fallback
+	if parsed := useragent.Parse(ua); len(parsed.Name) > 0 && len(parsed.OS) > 0 {
+		return strutil.Capitalize(parsed.OS), parsed.Name, nil
+	}
+	return "", "", errors.New("failed to parse user agent string")
 }
 
 func RaiseForStatus(res *http.Response, err error) (*http.Response, error) {
