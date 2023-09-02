@@ -69,7 +69,7 @@ func (s *SMTPSendingService) Send(mail *models.Mail) error {
 		return err
 	}
 	for _, addr := range mail.To.RawStrings() {
-		if err = c.Rcpt(addr); err != nil {
+		if err = c.Rcpt(addr, nil); err != nil {
 			return err
 		}
 	}
