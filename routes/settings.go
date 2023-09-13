@@ -665,8 +665,7 @@ func (h *SettingsHandler) validateWakatimeKey(apiKey string, baseUrl string) boo
 
 	request.Header = headers
 
-	response, err := h.httpClient.Do(request)
-	if err != nil || response.StatusCode < 200 || response.StatusCode >= 300 {
+	if _, err = utils.RaiseForStatus(h.httpClient.Do(request)); err != nil {
 		return false
 	}
 
