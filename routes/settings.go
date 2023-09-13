@@ -499,15 +499,22 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 		return http.StatusForbidden, "", "not connected to wakatime"
 	}
 
-	kvKey := fmt.Sprintf("%s_%s", conf.KeyLastImportImport, user.ID)
+	kvKeyLastImport := fmt.Sprintf("%s_%s", conf.KeyLastImport, user.ID)
+	kvKeyLastImportSuccess := fmt.Sprintf("%s_%s", conf.KeyLastImportSuccess, user.ID)
 
 	if !h.config.IsDev() {
-		lastImportKv := h.keyValueSrvc.MustGetString(kvKey)
-		lastImport, _ := time.Parse(time.RFC822, lastImportKv.Value)
+		lastImport, _ := time.Parse(time.RFC822, h.keyValueSrvc.MustGetString(kvKeyLastImport).Value)
 		if time.Now().Sub(lastImport) < time.Duration(h.config.App.ImportBackoffMin)*time.Minute {
 			return http.StatusTooManyRequests,
 				"",
-				fmt.Sprintf("Too many data imports. You are only allowed to request an import every %d minutes.", h.config.App.ImportBackoffMin)
+				fmt.Sprintf("Too many data imports - you are only allowed to request an import every %d minutes.", h.config.App.ImportBackoffMin)
+		}
+
+		lastImportSuccess, _ := time.Parse(time.RFC822, h.keyValueSrvc.MustGetString(kvKeyLastImportSuccess).Value)
+		if time.Now().Sub(lastImportSuccess) < time.Duration(h.config.App.ImportMaxRate)*time.Hour {
+			return http.StatusTooManyRequests,
+				"",
+				fmt.Sprintf("Too many data imports - last import ran less than %d hours ago, please wait.", h.config.App.ImportMaxRate)
 		}
 	}
 
@@ -531,6 +538,12 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 			conf.Log().Error("wakatime import for user '%s' failed - %v", user.ID, importError)
 			return
 		}
+
+		// import successful
+		h.keyValueSrvc.PutString(&models.KeyStringValue{
+			Key:   kvKeyLastImportSuccess,
+			Value: time.Now().Format(time.RFC822),
+		})
 
 		count := 0
 		batch := make([]*models.Heartbeat, 0, h.config.App.ImportBatchSize)
@@ -576,7 +589,7 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 	}(user)
 
 	h.keyValueSrvc.PutString(&models.KeyStringValue{
-		Key:   kvKey,
+		Key:   kvKeyLastImport,
 		Value: time.Now().Format(time.RFC822),
 	})
 

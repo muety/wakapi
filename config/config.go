@@ -28,7 +28,8 @@ const (
 
 	KeyLatestTotalTime              = "latest_total_time"
 	KeyLatestTotalUsers             = "latest_total_users"
-	KeyLastImportImport             = "last_import"
+	KeyLastImport                   = "last_import"            // import attempt
+	KeyLastImportSuccess            = "last_successful_import" // last actual successful import
 	KeyFirstHeartbeat               = "first_heartbeat"
 	KeySubscriptionNotificationSent = "sub_reminder"
 	KeyNewsbox                      = "newsbox"
@@ -73,6 +74,7 @@ type appConfig struct {
 	ReportTimeWeekly          string                       `yaml:"report_time_weekly" default:"0 0 18 * * 5" env:"WAKAPI_REPORT_TIME_WEEKLY"`
 	DataCleanupTime           string                       `yaml:"data_cleanup_time" default:"0 0 6 * * 0" env:"WAKAPI_DATA_CLEANUP_TIME"`
 	ImportBackoffMin          int                          `yaml:"import_backoff_min" default:"5" env:"WAKAPI_IMPORT_BACKOFF_MIN"`
+	ImportMaxRate             int                          `yaml:"import_max_rate" default:"24" env:"WAKAPI_IMPORT_MAX_RATE"` // at max one successful import every x hours
 	ImportBatchSize           int                          `yaml:"import_batch_size" default:"50" env:"WAKAPI_IMPORT_BATCH_SIZE"`
 	InactiveDays              int                          `yaml:"inactive_days" default:"7" env:"WAKAPI_INACTIVE_DAYS"`
 	HeartbeatMaxAge           string                       `yaml:"heartbeat_max_age" default:"4320h" env:"WAKAPI_HEARTBEAT_MAX_AGE"`
