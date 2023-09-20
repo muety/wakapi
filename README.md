@@ -188,6 +188,7 @@ You can specify configuration options either via a config file (default: `config
 | `sentry.sample_rate` /<br> `WAKAPI_SENTRY_SAMPLE_RATE`                       | `0.75`                                           | Probability of tracing a request in Sentry                                                                                                                               |
 | `sentry.sample_rate_heartbeats` /<br> `WAKAPI_SENTRY_SAMPLE_RATE_HEARTBEATS` | `0.1`                                            | Probability of tracing a heartbeat request in Sentry                                                                                                                     |
 | `quick_start` /<br> `WAKAPI_QUICK_START`                                     | `false`                                          | Whether to skip initial boot tasks. Use only for development purposes!                                                                                                   |
+| `enable_pprof` /<br> `WAKAPI_ENABLE_PPROF`                                   | `false`                                          | Whether to expose [pprof](https://pkg.go.dev/runtime/pprof) profiling data as an endpoint for debugging                                                                  |
 
 ### Supported databases
 

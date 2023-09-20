@@ -13,7 +13,7 @@ import (
 
 	"github.com/emvi/logbuch"
 	"github.com/go-chi/chi/v5"
-	middleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/lpar/gzipped/v2"
 	httpSwagger "github.com/swaggo/http-swagger"
 	_ "gorm.io/driver/mysql"
@@ -33,8 +33,10 @@ import (
 	"github.com/muety/wakapi/routes/relay"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/services/mail"
-	docs "github.com/muety/wakapi/static/docs"
+	"github.com/muety/wakapi/static/docs"
 	fsutils "github.com/muety/wakapi/utils/fs"
+
+	_ "net/http/pprof"
 )
 
 // Embed version.txt
@@ -304,6 +306,13 @@ func main() {
 	router.Get("/assets/*", assetsFileServer.ServeHTTP)
 	router.Get("/swagger-ui", http.RedirectHandler("swagger-ui/", http.StatusMovedPermanently).ServeHTTP) // https://github.com/swaggo/http-swagger/issues/44
 	router.Get("/swagger-ui/*", httpSwagger.WrapHandler)
+
+	if config.EnablePprof {
+		logbuch.Info("profiling enabled, exposing pprof data at http://127.0.0.1:6060/debug/pprof")
+		go func() {
+			_ = http.ListenAndServe("127.0.0.1:6060", nil)
+		}()
+	}
 
 	// Listen HTTP
 	listen(router)

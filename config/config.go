@@ -174,6 +174,7 @@ type Config struct {
 	QuickStart     bool   `yaml:"quick_start" env:"WAKAPI_QUICK_START"`
 	SkipMigrations bool   `yaml:"skip_migrations" env:"WAKAPI_SKIP_MIGRATIONS"`
 	InstanceId     string `yaml:"-"` // only temporary, changes between runs
+	EnablePprof    bool   `yaml:"enable_pprof" env:"WAKAPI_ENABLE_PPROF"`
 	App            appConfig
 	Security       securityConfig
 	Db             dbConfig
