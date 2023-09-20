@@ -50,10 +50,12 @@ func NewSummaryService(summaryRepo repositories.ISummaryRepository, durationServ
 
 // Aliased retrieves or computes a new summary based on the given SummaryRetriever and augments it with entity aliases and project labels
 func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f types.SummaryRetriever, filters *models.Filters, skipCache bool) (*models.Summary, error) {
-	// Check cache
+	// Check cache (or skip for sub second-level date precision)
 	cacheKey := srv.getHash(from.String(), to.String(), user.ID, filters.Hash(), "--aliased")
-	if cacheResult, ok := srv.cache.Get(cacheKey); ok && !skipCache {
-		return cacheResult.(*models.Summary), nil
+	if to.Truncate(time.Second).Equal(to) && from.Truncate(time.Second).Equal(from) {
+		if cacheResult, ok := srv.cache.Get(cacheKey); ok && !skipCache {
+			return cacheResult.(*models.Summary), nil
+		}
 	}
 
 	// Resolver functions
