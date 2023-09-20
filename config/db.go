@@ -55,6 +55,10 @@ func (c *dbConfig) GetDialector() gorm.Dialector {
 }
 
 func mysqlConnectionString(config *dbConfig) string {
+	if len(config.DSN) > 0 {
+		return config.DSN
+	}
+
 	host := fmt.Sprintf("tcp(%s:%d)", config.Host, config.Port)
 
 	if config.Socket != "" {
