@@ -42,6 +42,8 @@ const (
 
 	DescMemAllocTotal = "Total number of bytes allocated for heap"
 	DescMemSysTotal   = "Total number of bytes obtained from the OS"
+	DescPausedTotal   = "Total nanoseconds stop-the-world pause time due to GC"
+	DescNumGCTotal    = "Total number of GC cycles"
 	DescGoroutines    = "Total number of running goroutines"
 	DescDatabaseSize  = "Total database size in bytes"
 )
@@ -242,6 +244,20 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 		Name:   MetricsPrefix + "_mem_sys_total",
 		Desc:   DescMemSysTotal,
 		Value:  int64(memStats.Sys),
+		Labels: []mm.Label{},
+	})
+
+	metrics = append(metrics, &mm.CounterMetric{
+		Name:   MetricsPrefix + "_paused_total",
+		Desc:   DescPausedTotal,
+		Value:  int64(memStats.PauseTotalNs),
+		Labels: []mm.Label{},
+	})
+
+	metrics = append(metrics, &mm.CounterMetric{
+		Name:   MetricsPrefix + "_num_gc_total",
+		Desc:   DescNumGCTotal,
+		Value:  int64(memStats.NumGC),
 		Labels: []mm.Label{},
 	})
 
