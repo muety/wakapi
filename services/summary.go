@@ -294,6 +294,10 @@ func (srv *SummaryService) withProjectLabels(summary *models.Summary) *models.Su
 }
 
 func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.Summary, error) {
+	// summaries must be sorted by from_date
+	// also, this function implicitly assumes summaries are distinct, i.e. don't cover overlapping time intervals
+	// if they do, activity within the overlap would be counted double
+
 	if len(summaries) < 1 {
 		return nil, errors.New("no summaries given")
 	}
@@ -315,11 +319,17 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 
 	var processed = map[time.Time]bool{}
 
-	for _, s := range summaries {
+	for i, s := range summaries {
 		hash := s.FromTime.T()
 		if _, found := processed[hash]; found {
 			logbuch.Warn("summary from %v to %v (user '%s') was attempted to be processed more often than once", s.FromTime, s.ToTime, s.UserID)
 			continue
+		}
+
+		if i > 0 {
+			if prev := summaries[i-1]; s.FromTime.T().Before(prev.ToTime.T()) {
+				logbuch.Warn("got overlapping summaries (ids %d, %d) for user '%s' from %v to %v", prev.ID, s.ID, s.User, s.FromTime, prev.ToTime)
+			}
 		}
 
 		if s.UserID != finalSummary.UserID {
