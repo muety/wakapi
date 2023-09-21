@@ -1,11 +1,11 @@
 package imports
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/alitto/pond"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/utils"
@@ -18,7 +18,6 @@ import (
 	"github.com/muety/wakapi/models"
 	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
 	"go.uber.org/atomic"
-	"golang.org/x/sync/semaphore"
 )
 
 const OriginWakatime = "wakatime"
@@ -86,20 +85,14 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 		days := generateDays(startDate, endDate)
 
 		c := atomic.NewUint32(uint32(len(days)))
-		ctx := context.TODO()
-		sem := semaphore.NewWeighted(maxWorkers)
+		wp := pond.New(maxWorkers, 0)
 
 		for _, d := range days {
-			if err := sem.Acquire(ctx, 1); err != nil {
-				logbuch.Error("failed to acquire semaphore - %v", err)
-				break
-			}
-
-			go func(day time.Time) {
-				defer sem.Release(1)
+			logbuch.Debug("submitting %v", d)
+			wp.Submit(func() {
 				defer time.Sleep(throttleDelay)
 
-				d := day.Format(config.SimpleDateFormat)
+				d := d.Format(config.SimpleDateFormat)
 				heartbeats, err := w.fetchHeartbeats(d, baseUrl)
 				if err != nil {
 					config.Log().Error("failed to fetch heartbeats for day '%s' and user '%s' - %v", d, user.ID, err)
@@ -116,8 +109,10 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 				if c.Dec() == 0 {
 					close(out)
 				}
-			}(d)
+			})
 		}
+
+		wp.StopAndWait()
 	}
 
 	if minDataAge := user.MinDataAge(); minFrom.Before(minDataAge) {
