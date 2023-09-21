@@ -88,7 +88,6 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 		wp := pond.New(maxWorkers, 0)
 
 		for _, d := range days {
-			logbuch.Debug("submitting %v", d)
 			wp.Submit(func() {
 				defer time.Sleep(throttleDelay)
 
