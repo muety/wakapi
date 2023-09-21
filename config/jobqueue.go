@@ -2,11 +2,9 @@ package config
 
 import (
 	"fmt"
-	"math"
-	"runtime"
-
 	"github.com/emvi/logbuch"
 	"github.com/muety/artifex/v2"
+	"github.com/muety/wakapi/utils"
 )
 
 var jobQueues map[string]*artifex.Dispatcher
@@ -33,11 +31,11 @@ func init() {
 
 func StartJobs() {
 	InitQueue(QueueDefault, 1)
-	InitQueue(QueueProcessing, halfCPUs())
+	InitQueue(QueueProcessing, utils.HalfCPUs())
 	InitQueue(QueueReports, 1)
 	InitQueue(QueueMails, 1)
 	InitQueue(QueueImports, 1)
-	InitQueue(QueueHousekeeping, halfCPUs())
+	InitQueue(QueueHousekeeping, utils.HalfCPUs())
 }
 
 func InitQueue(name string, workers int) error {
@@ -77,12 +75,4 @@ func CloseQueues() {
 	for _, q := range jobQueues {
 		q.Stop()
 	}
-}
-
-func allCPUs() int {
-	return runtime.NumCPU()
-}
-
-func halfCPUs() int {
-	return int(math.Ceil(float64(runtime.NumCPU()) / 2.0))
 }

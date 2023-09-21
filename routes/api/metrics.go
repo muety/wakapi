@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"github.com/alitto/pond"
 	"github.com/emvi/logbuch"
 	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
@@ -12,9 +13,11 @@ import (
 	mm "github.com/muety/wakapi/models/metrics"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/services"
+	"github.com/muety/wakapi/utils"
 	"net/http"
 	"runtime"
 	"sort"
+	"sync"
 	"time"
 )
 
@@ -34,6 +37,7 @@ const (
 	DescAdminTotalTime       = "Total seconds (all users, all time)."
 	DescAdminTotalHeartbeats = "Total number of tracked heartbeats (all users, all time)"
 	DescAdminUserHeartbeats  = "Total number of tracked heartbeats by user (all time)."
+	DescAdminUserTime        = "Total tracked activity in seconds (all time) (active users only)."
 	DescAdminTotalUsers      = "Total number of registered users."
 	DescAdminActiveUsers     = "Number of active users."
 
@@ -297,6 +301,9 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error) {
 	var metrics mm.Metrics
 
+	t0 := time.Now()
+	logbuch.Debug("[metrics] start admin metrics calculation")
+
 	if !user.IsAdmin {
 		return nil, errors.New("unauthorized")
 	}
@@ -310,12 +317,14 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 
 	totalUsers, _ := h.userSrvc.Count()
 	totalHeartbeats, _ := h.heartbeatSrvc.Count(true)
+	logbuch.Debug("[metrics] finished counting users and heartbeats after %v", time.Now().Sub(t0))
 
 	activeUsers, err := h.userSrvc.GetActive(false)
 	if err != nil {
 		logbuch.Error("failed to retrieve active users for metric - %v", err)
 		return nil, err
 	}
+	logbuch.Debug("[metrics] finished getting active users after %v", time.Now().Sub(t0))
 
 	metrics = append(metrics, &mm.GaugeMetric{
 		Name:   MetricsPrefix + "_admin_seconds_total",
@@ -361,6 +370,36 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 			Labels: []mm.Label{{Key: "user", Value: uc.User}},
 		})
 	}
+	logbuch.Debug("[metrics] finished counting heartbeats by user after %v", time.Now().Sub(t0))
+
+	// Get per-user total activity
+
+	_, from, to := helpers.ResolveIntervalTZ(models.IntervalAny, time.Local)
+	to = to.Truncate(time.Hour)
+
+	wp := pond.New(utils.HalfCPUs(), 0)
+	lock := sync.RWMutex{}
+
+	for i := range activeUsers {
+		wp.Submit(func() {
+			summary, err := h.summarySrvc.Aliased(from, to, activeUsers[i], h.summarySrvc.Retrieve, nil, false) // only using aliased because aliased has caching
+			if err != nil {
+				logbuch.Error("failed to get total time for user '%s' as part of metrics, %v", activeUsers[i].ID, err)
+				return
+			}
+			lock.Lock()
+			defer lock.Unlock()
+			metrics = append(metrics, &mm.GaugeMetric{
+				Name:   MetricsPrefix + "_admin_user_time_seconds_total",
+				Desc:   DescAdminUserTime,
+				Value:  int64(summary.TotalTime().Seconds()),
+				Labels: []mm.Label{{Key: "user", Value: activeUsers[i].ID}},
+			})
+		})
+	}
+
+	wp.StopAndWait()
+	logbuch.Debug("[metrics] finished retrieving total activity time by user after %v", time.Now().Sub(t0))
 
 	return &metrics, nil
 }

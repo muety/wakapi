@@ -5,6 +5,7 @@ go 1.20
 require (
 	codeberg.org/Codeberg/avatars v1.0.0
 	github.com/alexedwards/argon2id v0.0.0-20230305115115-4b3c3280a736
+	github.com/alitto/pond v1.8.3
 	github.com/duke-git/lancet/v2 v2.2.5
 	github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead
 	github.com/emersion/go-smtp v0.18.0

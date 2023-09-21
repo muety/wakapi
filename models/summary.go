@@ -22,6 +22,8 @@ const (
 const UnknownSummaryKey = "unknown"
 const DefaultProjectLabel = "default"
 
+type Summaries []*Summary
+
 type Summary struct {
 	ID               uint         `json:"-" gorm:"primary_key; size:32"`
 	User             *User        `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
@@ -369,6 +371,18 @@ func (s *SummaryItem) TotalFixed() time.Duration {
 	// this is a workaround, since currently, the total time of a summary item is mistakenly represented in seconds
 	// TODO: fix some day, while migrating persisted summary items
 	return s.Total * time.Second
+}
+
+func (s Summaries) Len() int {
+	return len(s)
+}
+
+func (s Summaries) Less(i, j int) bool {
+	return s[i].FromTime.T().Before(s[j].FromTime.T())
+}
+
+func (s Summaries) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
 }
 
 func (s SummaryItems) Len() int {

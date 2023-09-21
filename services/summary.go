@@ -126,6 +126,7 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 	}
 
 	// Merge existing and newly generated summary snippets
+	sort.Sort(models.Summaries(summaries))
 	summary, err := srv.mergeSummaries(summaries)
 	if err != nil {
 		return nil, err
@@ -328,7 +329,7 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 
 		if i > 0 {
 			if prev := summaries[i-1]; s.FromTime.T().Before(prev.ToTime.T()) {
-				logbuch.Warn("got overlapping summaries (ids %d, %d) for user '%s' from %v to %v", prev.ID, s.ID, s.User, s.FromTime, prev.ToTime)
+				logbuch.Warn("got overlapping summaries (ids %d, %d) for user '%s' from %v (current.from) to %v (previous.to)", prev.ID, s.ID, s.UserID, s.FromTime, prev.ToTime)
 			}
 		}
 
