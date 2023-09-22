@@ -7,6 +7,7 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/repositories"
 	"github.com/patrickmn/go-cache"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -196,6 +197,20 @@ func (srv *HeartbeatService) DeleteByUser(user *models.User) error {
 func (srv *HeartbeatService) DeleteByUserBefore(user *models.User, t time.Time) error {
 	go srv.cache.Flush()
 	return srv.repository.DeleteByUserBefore(user, t)
+}
+
+func (srv *HeartbeatService) GetUserProjectStats(user *models.User, before time.Time, limit, offset int) ([]*models.ProjectStats, error) {
+	if limit <= 0 {
+		limit = math.MaxInt32
+	}
+	if offset <= 0 {
+		offset = 0
+	}
+	if before.IsZero() {
+		before = time.Now()
+	}
+
+	return srv.repository.GetUserProjectStats(user, before, limit, offset)
 }
 
 func (srv *HeartbeatService) augmented(heartbeats []*models.Heartbeat, userId string) ([]*models.Heartbeat, error) {

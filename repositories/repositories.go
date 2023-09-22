@@ -32,6 +32,7 @@ type IHeartbeatRepository interface {
 	DeleteBefore(time.Time) error
 	DeleteByUser(*models.User) error
 	DeleteByUserBefore(*models.User, time.Time) error
+	GetUserProjectStats(*models.User, time.Time, int, int) ([]*models.ProjectStats, error)
 }
 
 type IDiagnosticsRepository interface {

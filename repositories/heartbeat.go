@@ -216,3 +216,35 @@ func (r *HeartbeatRepository) DeleteByUserBefore(user *models.User, t time.Time)
 	}
 	return nil
 }
+
+func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, before time.Time, limit, offset int) ([]*models.ProjectStats, error) {
+	var projectStats []*models.ProjectStats
+
+	if err := r.db.
+		Raw(`
+            with top_langs as (
+                select distinct project,
+                first_value(language) over (partition by project order by count(*) desc) as top_language
+                from heartbeats
+                where user_id = ?
+                 and language is not null and language != ''
+                 and project is not null and project != ''
+                 and time <= ?
+                group by project, language
+                limit ? offset ?
+            )
+            select project, ? as user_id, min(time) as first, max(time) as last, count(*) as count, top_language
+            from heartbeats
+                     left join top_langs using (project)
+            where user_id = ?
+              and project != ''
+              and time <= ?
+            group by project, top_language
+            order by last desc
+            limit ? offset ?;
+		`, user.ID, before, limit, offset, user.ID, user.ID, before, limit, offset).
+		Scan(&projectStats).Error; err != nil {
+		return nil, err
+	}
+	return projectStats, nil
+}

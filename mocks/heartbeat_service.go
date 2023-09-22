@@ -79,3 +79,8 @@ func (m *HeartbeatServiceMock) DeleteByUserBefore(u *models.User, t time.Time) e
 	args := m.Called(u, t)
 	return args.Error(0)
 }
+
+func (m *HeartbeatServiceMock) GetUserProjectStats(u *models.User, t time.Time, i int, i2 int) ([]*models.ProjectStats, error) {
+	args := m.Called(u, t, i, i2)
+	return args.Get(0).([]*models.ProjectStats), args.Error(1)
+}
