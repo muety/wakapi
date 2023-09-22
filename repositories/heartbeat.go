@@ -177,12 +177,12 @@ func (r *HeartbeatRepository) CountByUsers(users []*models.User) ([]*models.Coun
 	return counts, nil
 }
 
-func (r *HeartbeatRepository) GetEntitySetByUser(entityType uint8, user *models.User) ([]string, error) {
+func (r *HeartbeatRepository) GetEntitySetByUser(entityType uint8, userId string) ([]string, error) {
 	var results []string
 	if err := r.db.
 		Model(&models.Heartbeat{}).
 		Distinct(models.GetEntityColumn(entityType)).
-		Where(&models.Heartbeat{UserID: user.ID}).
+		Where(&models.Heartbeat{UserID: userId}).
 		Find(&results).Error; err != nil {
 		return nil, err
 	}
@@ -217,8 +217,13 @@ func (r *HeartbeatRepository) DeleteByUserBefore(user *models.User, t time.Time)
 	return nil
 }
 
-func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, before time.Time, limit, offset int) ([]*models.ProjectStats, error) {
+func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to time.Time) ([]*models.ProjectStats, error) {
 	var projectStats []*models.ProjectStats
+
+	// note: limit / offset doesn't really improve query performance
+	// query takes quite long, depending on the number of heartbeats (~ 7 seconds for ~ 500k heartbeats)
+	// TODO: refactor this to use summaries once we implemented persisting filtered, multi-interval summaries
+	// see https://github.com/muety/wakapi/issues/524#issuecomment-1731668391
 
 	if err := r.db.
 		Raw(`
@@ -229,22 +234,21 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, before time
                 where user_id = ?
                  and language is not null and language != ''
                  and project is not null and project != ''
-                 and time <= ?
+                 and time between ? and ?
                 group by project, language
-                limit ? offset ?
             )
             select project, ? as user_id, min(time) as first, max(time) as last, count(*) as count, top_language
             from heartbeats
                      left join top_langs using (project)
             where user_id = ?
               and project != ''
-              and time <= ?
+              and time between ? and ?
             group by project, top_language
-            order by last desc
-            limit ? offset ?;
-		`, user.ID, before, limit, offset, user.ID, user.ID, before, limit, offset).
+            order by last desc;
+		`, user.ID, from, to, user.ID, user.ID, from, to).
 		Scan(&projectStats).Error; err != nil {
 		return nil, err
 	}
+
 	return projectStats, nil
 }

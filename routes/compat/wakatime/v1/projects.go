@@ -51,7 +51,7 @@ func (h *ProjectsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return // response was already sent by util function
 	}
 
-	results, err := h.heartbeatSrvc.GetEntitySetByUser(models.SummaryProject, user)
+	results, err := h.heartbeatSrvc.GetEntitySetByUser(models.SummaryProject, user.ID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("something went wrong"))

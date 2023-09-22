@@ -28,11 +28,11 @@ type IHeartbeatRepository interface {
 	Count(bool) (int64, error)
 	CountByUser(*models.User) (int64, error)
 	CountByUsers([]*models.User) ([]*models.CountByUser, error)
-	GetEntitySetByUser(uint8, *models.User) ([]string, error)
+	GetEntitySetByUser(uint8, string) ([]string, error)
 	DeleteBefore(time.Time) error
 	DeleteByUser(*models.User) error
 	DeleteByUserBefore(*models.User, time.Time) error
-	GetUserProjectStats(*models.User, time.Time, int, int) ([]*models.ProjectStats, error)
+	GetUserProjectStats(*models.User, time.Time, time.Time) ([]*models.ProjectStats, error)
 }
 
 type IDiagnosticsRepository interface {

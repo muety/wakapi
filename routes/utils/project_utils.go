@@ -14,7 +14,7 @@ import (
 // See https://github.com/muety/wakapi/issues/231
 func GetEffectiveProjectsList(user *models.User, heartbeatSrvc services.IHeartbeatService, aliasSrvc services.IAliasService) ([]string, error) {
 	// extract actual projects from heartbeats
-	realProjects, err := heartbeatSrvc.GetEntitySetByUser(models.SummaryProject, user)
+	realProjects, err := heartbeatSrvc.GetEntitySetByUser(models.SummaryProject, user.ID)
 	if err != nil {
 		return []string{}, err
 	}

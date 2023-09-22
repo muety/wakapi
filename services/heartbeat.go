@@ -3,11 +3,11 @@ package services
 import (
 	"fmt"
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
+	"github.com/duke-git/lancet/v2/maputil"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/repositories"
 	"github.com/patrickmn/go-cache"
-	"math"
 	"strings"
 	"sync"
 	"time"
@@ -43,6 +43,7 @@ func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, langua
 			heartbeat := m.Fields[config.FieldPayload].(*models.Heartbeat)
 			srv.cache.IncrementInt64(srv.countByUserCacheKey(heartbeat.UserID), 1) // increment doesn't update expiration time
 			srv.cache.IncrementInt64(srv.countTotalCacheKey(), 1)
+			srv.checkInvalidateProjectStatsCache(heartbeat)
 		}
 	}(&sub1)
 
@@ -160,15 +161,15 @@ func (srv *HeartbeatService) GetFirstByUsers() ([]*models.TimeByUser, error) {
 	return srv.repository.GetFirstByUsers()
 }
 
-func (srv *HeartbeatService) GetEntitySetByUser(entityType uint8, user *models.User) ([]string, error) {
-	cacheKey := srv.getEntityUserCacheKey(entityType, user)
+func (srv *HeartbeatService) GetEntitySetByUser(entityType uint8, userId string) ([]string, error) {
+	cacheKey := srv.getEntityUserCacheKey(entityType, userId)
 	if results, found := srv.cache.Get(cacheKey); found {
 		srv.entityCacheLock.RLock()
 		defer srv.entityCacheLock.RUnlock()
 		return results.(datastructure.Set[string]).Values(), nil
 	}
 
-	results, err := srv.repository.GetEntitySetByUser(entityType, user)
+	results, err := srv.repository.GetEntitySetByUser(entityType, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -199,18 +200,26 @@ func (srv *HeartbeatService) DeleteByUserBefore(user *models.User, t time.Time) 
 	return srv.repository.DeleteByUserBefore(user, t)
 }
 
-func (srv *HeartbeatService) GetUserProjectStats(user *models.User, before time.Time, limit, offset int) ([]*models.ProjectStats, error) {
-	if limit <= 0 {
-		limit = math.MaxInt32
-	}
-	if offset <= 0 {
-		offset = 0
-	}
-	if before.IsZero() {
-		before = time.Now()
+func (srv *HeartbeatService) GetUserProjectStats(user *models.User, from, to time.Time, skipCache bool) ([]*models.ProjectStats, error) {
+	// for projects page, call this like: GetUserProjectStats(&models.User{ID: "n1try"}, time.Time{}, utils.BeginOfToday(time.Local), false)
+
+	cacheKey := fmt.Sprintf("project_stats_%s_%v_%v", user.ID, from, to)
+	if results, found := srv.cache.Get(cacheKey); found && !skipCache {
+		return results.([]*models.ProjectStats), nil
 	}
 
-	return srv.repository.GetUserProjectStats(user, before, limit, offset)
+	if to.IsZero() {
+		to = time.Now()
+	}
+
+	results, err := srv.repository.GetUserProjectStats(user, from, to)
+	if err == nil {
+		srv.cache.SetDefault(cacheKey, results)
+	}
+
+	go srv.populateUniqueUserProjects(user.ID)
+
+	return results, err
 }
 
 func (srv *HeartbeatService) augmented(heartbeats []*models.Heartbeat, userId string) ([]*models.Heartbeat, error) {
@@ -226,12 +235,16 @@ func (srv *HeartbeatService) augmented(heartbeats []*models.Heartbeat, userId st
 	return heartbeats, nil
 }
 
-func (srv *HeartbeatService) getEntityUserCacheKey(entityType uint8, user *models.User) string {
-	return fmt.Sprintf("entity_set_%d_%s", entityType, user.ID)
+func (srv *HeartbeatService) getEntityUserCacheKey(entityType uint8, userId string) string {
+	return fmt.Sprintf("entity_set_%d_%s", entityType, userId)
 }
 
-func (srv *HeartbeatService) updateEntityUserCache(entityType uint8, entityKey string, user *models.User) {
-	cacheKey := srv.getEntityUserCacheKey(entityType, user)
+func (srv *HeartbeatService) getUserProjectsCacheKey(userId string) string {
+	return fmt.Sprintf("unique_projects_%s", userId)
+}
+
+func (srv *HeartbeatService) updateEntityUserCache(entityType uint8, entityKey string, userId string) {
+	cacheKey := srv.getEntityUserCacheKey(entityType, userId)
 	if entities, found := srv.cache.Get(cacheKey); found {
 		entitySet := entities.(datastructure.Set[string])
 
@@ -248,13 +261,13 @@ func (srv *HeartbeatService) updateEntityUserCache(entityType uint8, entityKey s
 }
 
 func (srv *HeartbeatService) updateEntityUserCacheByHeartbeat(hb *models.Heartbeat) {
-	go srv.updateEntityUserCache(models.SummaryProject, hb.Project, hb.User)
-	go srv.updateEntityUserCache(models.SummaryLanguage, hb.Language, hb.User)
-	go srv.updateEntityUserCache(models.SummaryEditor, hb.Editor, hb.User)
-	go srv.updateEntityUserCache(models.SummaryOS, hb.OperatingSystem, hb.User)
-	go srv.updateEntityUserCache(models.SummaryMachine, hb.Machine, hb.User)
-	go srv.updateEntityUserCache(models.SummaryBranch, hb.Branch, hb.User)
-	go srv.updateEntityUserCache(models.SummaryEntity, hb.Entity, hb.User)
+	go srv.updateEntityUserCache(models.SummaryProject, hb.Project, hb.UserID)
+	go srv.updateEntityUserCache(models.SummaryLanguage, hb.Language, hb.UserID)
+	go srv.updateEntityUserCache(models.SummaryEditor, hb.Editor, hb.UserID)
+	go srv.updateEntityUserCache(models.SummaryOS, hb.OperatingSystem, hb.UserID)
+	go srv.updateEntityUserCache(models.SummaryMachine, hb.Machine, hb.UserID)
+	go srv.updateEntityUserCache(models.SummaryBranch, hb.Branch, hb.UserID)
+	go srv.updateEntityUserCache(models.SummaryEntity, hb.Entity, hb.UserID)
 }
 
 func (srv *HeartbeatService) notifyBatch(heartbeats []*models.Heartbeat) {
@@ -287,4 +300,28 @@ func (srv *HeartbeatService) filtersToColumnMap(filters *models.Filters) map[str
 		}
 	}
 	return columnMap
+}
+
+func (srv *HeartbeatService) populateUniqueUserProjects(userId string) {
+	userProjectsCacheKey := srv.getUserProjectsCacheKey(userId)
+	if _, found := srv.cache.Get(userProjectsCacheKey); !found {
+		projects, _ := srv.GetEntitySetByUser(models.SummaryProject, userId)
+		srv.cache.Set(userProjectsCacheKey, datastructure.NewSet[string](projects...), cache.NoExpiration)
+	}
+}
+
+func (srv *HeartbeatService) checkInvalidateProjectStatsCache(newHeartbeat *models.Heartbeat) {
+	// checks the cache of unique projects and clears the user's project_stats_* cache items if the new heartbeat is for a new, unseen project
+	var invalidated bool
+	if uniqueProjects, found := srv.cache.Get(srv.getUserProjectsCacheKey(newHeartbeat.UserID)); found && !uniqueProjects.(datastructure.Set[string]).Contain(newHeartbeat.Project) {
+		for _, k := range maputil.Keys[string, cache.Item](srv.cache.Items()) {
+			if strings.HasPrefix(k, fmt.Sprintf("project_stats_%s_", newHeartbeat.UserID)) {
+				srv.cache.Delete(k)
+				invalidated = true
+			}
+		}
+	}
+	if invalidated {
+		go srv.populateUniqueUserProjects(newHeartbeat.UserID)
+	}
 }

@@ -41,11 +41,11 @@ type IHeartbeatService interface {
 	GetFirstByUsers() ([]*models.TimeByUser, error)
 	GetLatestByUser(*models.User) (*models.Heartbeat, error)
 	GetLatestByOriginAndUser(string, *models.User) (*models.Heartbeat, error)
-	GetEntitySetByUser(uint8, *models.User) ([]string, error)
+	GetEntitySetByUser(uint8, string) ([]string, error)
 	DeleteBefore(time.Time) error
 	DeleteByUser(*models.User) error
 	DeleteByUserBefore(*models.User, time.Time) error
-	GetUserProjectStats(*models.User, time.Time, int, int) ([]*models.ProjectStats, error)
+	GetUserProjectStats(*models.User, time.Time, time.Time, bool) ([]*models.ProjectStats, error)
 }
 
 type IDiagnosticsService interface {

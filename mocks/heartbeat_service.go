@@ -60,7 +60,7 @@ func (m *HeartbeatServiceMock) GetLatestByOriginAndUser(s string, user *models.U
 	return args.Get(0).(*models.Heartbeat), args.Error(1)
 }
 
-func (m *HeartbeatServiceMock) GetEntitySetByUser(u uint8, user *models.User) ([]string, error) {
+func (m *HeartbeatServiceMock) GetEntitySetByUser(u uint8, user string) ([]string, error) {
 	args := m.Called(u, user)
 	return args.Get(0).([]string), args.Error(1)
 }
@@ -80,7 +80,7 @@ func (m *HeartbeatServiceMock) DeleteByUserBefore(u *models.User, t time.Time) e
 	return args.Error(0)
 }
 
-func (m *HeartbeatServiceMock) GetUserProjectStats(u *models.User, t time.Time, i int, i2 int) ([]*models.ProjectStats, error) {
-	args := m.Called(u, t, i, i2)
+func (m *HeartbeatServiceMock) GetUserProjectStats(u *models.User, t, t2 time.Time, b bool) ([]*models.ProjectStats, error) {
+	args := m.Called(u, t, t2, b)
 	return args.Get(0).([]*models.ProjectStats), args.Error(1)
 }
