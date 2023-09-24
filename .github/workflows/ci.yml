@@ -7,8 +7,9 @@ jobs:
   test:
     name: 'Unit- & API tests'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-
     - name: Set up Go 1.x
       uses: actions/setup-go@v3
       with:
@@ -32,6 +33,8 @@ jobs:
   migration:
     name: Migration tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     strategy:
       fail-fast: false
