@@ -262,7 +262,7 @@ func (srv *SummaryService) withProjectLabels(summary *models.Summary) *models.Su
 
 	allLabels, err := srv.projectLabelService.GetByUser(summary.UserID)
 	if err != nil {
-		logbuch.Error("failed to retrieve project labels for user summary ('%s', '%s', '%s')", summary.UserID, summary.FromTime.String(), summary.ToTime.String())
+		config.Log().Error("failed to retrieve project labels for user summary ('%s', '%s', '%s')", summary.UserID, summary.FromTime.String(), summary.ToTime.String())
 		return summary
 	}
 

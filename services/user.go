@@ -41,12 +41,12 @@ func NewUserService(mailService IMailService, userRepo repositories.IUserReposit
 			logbuch.Warn("resetting wakatime api key for user %s, because of too many failures (%d)", user.ID, n)
 
 			if _, err := srv.SetWakatimeApiCredentials(user, "", ""); err != nil {
-				logbuch.Error("failed to set wakatime api key for user %s", user.ID)
+				config.Log().Error("failed to set wakatime api key for user %s", user.ID)
 			}
 
 			if user.Email != "" {
 				if err := mailService.SendWakatimeFailureNotification(user, n); err != nil {
-					logbuch.Error("failed to send wakatime failure notification mail to user %s", user.ID)
+					config.Log().Error("failed to send wakatime failure notification mail to user %s", user.ID)
 				} else {
 					logbuch.Info("sent wakatime connection failure mail to %s", user.ID)
 				}

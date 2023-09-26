@@ -3,7 +3,6 @@ package routes
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/emvi/logbuch"
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/schema"
 	conf "github.com/muety/wakapi/config"
@@ -73,7 +72,7 @@ func (h *HomeHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *vi
 
 	if kv, err := h.keyValueSrvc.GetString(conf.KeyNewsbox); err == nil && kv != nil && kv.Value != "" {
 		if err := json.NewDecoder(strings.NewReader(kv.Value)).Decode(&newsbox); err != nil {
-			logbuch.Error("failed to decode newsbox message - %v", err)
+			conf.Log().Request(r).Error("failed to decode newsbox message - %v", err)
 		}
 	}
 

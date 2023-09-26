@@ -131,7 +131,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 
 	summaryAllTime, err := h.summarySrvc.Aliased(time.Time{}, time.Now(), user, h.summarySrvc.Retrieve, nil, false)
 	if err != nil {
-		logbuch.Error("failed to retrieve all time summary for user '%s' for metric", user.ID)
+		conf.Log().Error("failed to retrieve all time summary for user '%s' for metric", user.ID)
 		return nil, err
 	}
 
@@ -139,13 +139,13 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 
 	summaryToday, err := h.summarySrvc.Aliased(from, to, user, h.summarySrvc.Retrieve, nil, false)
 	if err != nil {
-		logbuch.Error("failed to retrieve today's summary for user '%s' for metric", user.ID)
+		conf.Log().Error("failed to retrieve today's summary for user '%s' for metric", user.ID)
 		return nil, err
 	}
 
 	heartbeatCount, err := h.heartbeatSrvc.CountByUser(user)
 	if err != nil {
-		logbuch.Error("failed to count heartbeats for user '%s' for metric", user.ID)
+		conf.Log().Error("failed to count heartbeats for user '%s' for metric", user.ID)
 		return nil, err
 	}
 
@@ -321,7 +321,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 
 	activeUsers, err := h.userSrvc.GetActive(false)
 	if err != nil {
-		logbuch.Error("failed to retrieve active users for metric - %v", err)
+		conf.Log().Error("failed to retrieve active users for metric - %v", err)
 		return nil, err
 	}
 	logbuch.Debug("[metrics] finished getting active users after %v", time.Now().Sub(t0))
@@ -358,7 +358,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 
 	userCounts, err := h.heartbeatSrvc.CountByUsers(activeUsers)
 	if err != nil {
-		logbuch.Error("failed to count heartbeats for active users", err.Error())
+		conf.Log().Error("failed to count heartbeats for active users", err.Error())
 		return nil, err
 	}
 
@@ -384,7 +384,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 		wp.Submit(func() {
 			summary, err := h.summarySrvc.Aliased(from, to, activeUsers[i], h.summarySrvc.Retrieve, nil, false) // only using aliased because aliased has caching
 			if err != nil {
-				logbuch.Error("failed to get total time for user '%s' as part of metrics, %v", activeUsers[i].ID, err)
+				conf.Log().Error("failed to get total time for user '%s' as part of metrics, %v", activeUsers[i].ID, err)
 				return
 			}
 			lock.Lock()

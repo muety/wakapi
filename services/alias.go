@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
@@ -42,7 +41,7 @@ func (srv *AliasService) InitializeUser(userId string) error {
 
 func (srv *AliasService) MayInitializeUser(userId string) {
 	if err := srv.InitializeUser(userId); err != nil {
-		logbuch.Error("failed to initialize user alias map for user %s", userId)
+		config.Log().Error("failed to initialize user alias map for user %s", userId)
 	}
 }
 

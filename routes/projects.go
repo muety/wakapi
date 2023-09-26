@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"github.com/emvi/logbuch"
 	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -45,7 +44,7 @@ func (h *ProjectsHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 	if err := templates[conf.ProjectsTemplate].Execute(w, h.buildViewModel(r, w)); err != nil {
-		logbuch.Error(err.Error())
+		conf.Log().Request(r).Error("failed to get projects page - %v", err)
 	}
 }
 

@@ -3,7 +3,6 @@ package routes
 import (
 	"fmt"
 	"github.com/duke-git/lancet/v2/slice"
-	"github.com/emvi/logbuch"
 	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -52,7 +51,7 @@ func (h *LeaderboardHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 	if err := templates[conf.LeaderboardTemplate].Execute(w, h.buildViewModel(r, w)); err != nil {
-		logbuch.Error(err.Error())
+		conf.Log().Request(r).Error("failed to get leaderboard page - %v", err)
 	}
 }
 

@@ -621,12 +621,12 @@ func (h *SettingsHandler) actionClearData(w http.ResponseWriter, r *http.Request
 	go func(user *models.User) {
 		logbuch.Info("deleting summaries for user '%s'", user.ID)
 		if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
-			logbuch.Error("failed to clear summaries: %v", err)
+			conf.Log().Request(r).Error("failed to clear summaries: %v", err)
 		}
 
 		logbuch.Info("deleting heartbeats for user '%s'", user.ID)
 		if err := h.heartbeatSrvc.DeleteByUser(user); err != nil {
-			logbuch.Error("failed to clear heartbeats: %v", err)
+			conf.Log().Request(r).Error("failed to clear heartbeats: %v", err)
 		}
 	}(user)
 
