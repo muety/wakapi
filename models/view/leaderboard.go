@@ -3,7 +3,6 @@ package view
 import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
-	"strings"
 	"time"
 )
 
@@ -46,36 +45,7 @@ func (s *LeaderboardViewModel) ColorModifier(item *models.LeaderboardItemRanked,
 }
 
 func (s *LeaderboardViewModel) LangIcon(lang string) string {
-	// https://icon-sets.iconify.design/mdi/
-	langs := map[string]string{
-		"c++":        "language-cpp",
-		"cpp":        "language-cpp",
-		"go":         "language-go",
-		"haskell":    "language-haskell",
-		"html":       "language-html5",
-		"java":       "language-java",
-		"javascript": "language-javascript",
-		"jsx":        "language-javascript",
-		"kotlin":     "language-kotlin",
-		"lua":        "language-lua",
-		"php":        "language-php",
-		"python":     "language-python",
-		"r":          "language-r",
-		"ruby":       "language-ruby",
-		"rust":       "language-rust",
-		"swift":      "language-swift",
-		"typescript": "language-typescript",
-		"tsx":        "language-typescript",
-		"markdown":   "language-markdown",
-		"vue":        "vuejs",
-		"react":      "react",
-		"bash":       "bash",
-		"json":       "code-json",
-	}
-	if match, ok := langs[strings.ToLower(lang)]; ok {
-		return "mdi:" + match
-	}
-	return ""
+	return GetLanguageIcon(lang)
 }
 
 func (s *LeaderboardViewModel) LastUpdate() time.Time {

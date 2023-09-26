@@ -79,6 +79,7 @@ let icons = [
     'twemoji:frowning-face',
     'ci:dot-03-m',
     'jam:crown-f',
+    'octicon:project-16',
 ]
 
 const output = path.normalize(path.join(__dirname, '../static/assets/js/icons.dist.js'))
