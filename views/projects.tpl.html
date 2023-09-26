@@ -37,6 +37,11 @@
         {{ else }}
         <p class="text-sm text-gray-300">No project data available, yet... Go start coding! 🤓</p>
         {{ end }}
+
+        <div class="mt-16 flex justify-center">
+            <a class="bg-gray-800 hover:bg-gray-850 text-small text-gray-300 py-2 px-4 rounded-l-full mr-px text-center text-sm {{ if le .PageParams.Page 1 }}disabled{{ end }}" style="width: 90px" href="projects?page={{ add .PageParams.Page -1 }}">Previous</a>
+            <a class="bg-gray-800 hover:bg-gray-850 text-small text-gray-300 py-2 px-4 rounded-r-full ml-px text-center text-sm {{ if lt (len .Projects) .PageParams.PageSize }}disabled{{ end }}" style="width: 90px" href="projects?page={{ add .PageParams.Page 1 }}">Next</a>
+        </div>
     </div>
 </main>
 

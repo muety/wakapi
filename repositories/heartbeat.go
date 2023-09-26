@@ -217,7 +217,7 @@ func (r *HeartbeatRepository) DeleteByUserBefore(user *models.User, t time.Time)
 	return nil
 }
 
-func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to time.Time) ([]*models.ProjectStats, error) {
+func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to time.Time, limit, offset int) ([]*models.ProjectStats, error) {
 	var projectStats []*models.ProjectStats
 
 	// note: limit / offset doesn't really improve query performance
@@ -225,27 +225,23 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 	// TODO: refactor this to use summaries once we implemented persisting filtered, multi-interval summaries
 	// see https://github.com/muety/wakapi/issues/524#issuecomment-1731668391
 
+	// multi-line string with backticks yields an error with the github.com/glebarez/sqlite driver
 	if err := r.db.
-		Raw(`
-            with top_langs as (
-                select distinct project,
-                first_value(language) over (partition by project order by count(*) desc) as top_language
-                from heartbeats
-                where user_id = ?
-                 and language is not null and language != ''
-                 and project is not null and project != ''
-                 and time between ? and ?
-                group by project, language
-            )
-            select project, ? as user_id, min(time) as first, max(time) as last, count(*) as count, top_language
-            from heartbeats
-                     left join top_langs using (project)
-            where user_id = ?
-              and project != ''
-              and time between ? and ?
-            group by project, top_language
-            order by last desc;
-		`, user.ID, from, to, user.ID, user.ID, from, to).
+		Raw("with projects as ( "+
+			"select project, user_id, min(time) as first, max(time) as last, count(*) as cnt "+
+			"from heartbeats "+
+			"where user_id = ? and project != '' "+
+			"and time between ? and ? "+
+			"group by project "+
+			"order by last desc "+
+			"limit ? offset ? "+
+			") "+
+			"select distinct project, first, last, cnt, first_value(language) over (partition by project order by count(*) desc) as top_language "+
+			"from heartbeats "+
+			"inner join projects using (project, user_id) "+
+			"where language is not null and language != '' and project != '' "+
+			"group by project, language "+
+			"order by last desc", user.ID, from, to, limit, offset).
 		Scan(&projectStats).Error; err != nil {
 		return nil, err
 	}

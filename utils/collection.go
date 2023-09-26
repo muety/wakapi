@@ -3,6 +3,9 @@ package utils
 import "strings"
 
 func SubSlice[T any](slice []T, from, to uint) []T {
+	if int(from) > len(slice) {
+		from = 0
+	}
 	if int(to) > len(slice) {
 		to = uint(len(slice))
 	}

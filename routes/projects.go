@@ -55,7 +55,7 @@ func (h *ProjectsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 		return h.buildViewModel(r, w).WithError("unauthorized")
 	}
 
-	pageParams := utils.ParsePageParamsWithDefault(r, 1, 100)
+	pageParams := utils.ParsePageParamsWithDefault(r, 1, 24)
 	// note: pagination is not fully implemented, yet
 	// count function to get total item / total pages is missing
 	// and according ui (+ optionally search bar) is missing, too
@@ -63,7 +63,7 @@ func (h *ProjectsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 	var err error
 	var projects []*models.ProjectStats
 
-	projects, err = h.heartbeatService.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), false)
+	projects, err = h.heartbeatService.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), pageParams, false)
 	if err != nil {
 		conf.Log().Request(r).Error("error while fetching project stats for '%s' - %v", user.ID, err)
 		return &view.ProjectsViewModel{

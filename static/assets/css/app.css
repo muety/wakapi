@@ -155,3 +155,9 @@ body {
 .projects-item a {
     @apply flex flex-col align-middle bg-gray-800 hover:bg-gray-850 py-2 px-4 rounded rounded-md shadow-md hover:shadow-lg;
 }
+
+.disabled {
+    pointer-events: none;
+    cursor: default;
+    opacity: 75%;
+}

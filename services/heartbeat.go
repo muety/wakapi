@@ -7,7 +7,9 @@ import (
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/repositories"
+	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -200,19 +202,31 @@ func (srv *HeartbeatService) DeleteByUserBefore(user *models.User, t time.Time) 
 	return srv.repository.DeleteByUserBefore(user, t)
 }
 
-func (srv *HeartbeatService) GetUserProjectStats(user *models.User, from, to time.Time, skipCache bool) ([]*models.ProjectStats, error) {
+func (srv *HeartbeatService) GetUserProjectStats(user *models.User, from, to time.Time, pageParams *utils.PageParams, skipCache bool) ([]*models.ProjectStats, error) {
 	// for projects page, call this like: GetUserProjectStats(&models.User{ID: "n1try"}, time.Time{}, utils.BeginOfToday(time.Local), false)
 
-	cacheKey := fmt.Sprintf("project_stats_%s_%v_%v", user.ID, from, to)
+	var (
+		limit  = math.MaxInt32
+		offset = 0
+	)
+
+	if pageParams != nil {
+		limit = pageParams.Limit()
+		offset = pageParams.Offset()
+	}
+
+	cacheKey := fmt.Sprintf("project_stats_%s_%d_%d_%d_%d", user.ID, from.Unix(), to.Unix(), limit, offset)
 	if results, found := srv.cache.Get(cacheKey); found && !skipCache {
 		return results.([]*models.ProjectStats), nil
+	} else if results, found := srv.cache.Get(fmt.Sprintf("project_stats_%s_%d_%d_%d_%d", user.ID, from.Unix(), to.Unix(), math.MaxInt32, 0)); found && !skipCache {
+		return utils.SubSlice[*models.ProjectStats](results.([]*models.ProjectStats), uint(offset), uint(offset+limit)), nil
 	}
 
 	if to.IsZero() {
 		to = time.Now()
 	}
 
-	results, err := srv.repository.GetUserProjectStats(user, from, to)
+	results, err := srv.repository.GetUserProjectStats(user, from, to, limit, offset)
 	if err == nil {
 		srv.cache.SetDefault(cacheKey, results)
 	}
