@@ -13,14 +13,15 @@
     <div class="flex flex-col grow mt-10 max-available">
         <h1 class="h1" style="margin-bottom: 0.5rem">Your Projects</h1>
 
-        <p class="block text-sm text-gray-300 w-full lg:w-3/4 mb-8">
-            This is an overview of all your projects.
+        <p class="block text-sm text-gray-300 mb-8">
+            This is an overview of all your projects, ordered by recent activity. Click a project to view project-specific statistics. Please note that this view is cached and thus might not be perfectly up-to-date.
         </p>
 
+        {{ if len .Projects }}
         <ul class="inline-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4 text-gray-300">
             {{ range $i, $project := .Projects }}
             <li class="projects-item">
-                <a href="#">
+                <a href="summary?interval=any&project={{ $project.Project }}">
                     <span class="text-lg font-semibold truncate">{{ $project.Project }}
                         {{ if $.LangIcon $project.TopLanguage }}
                         <span class="align-middle leading-none"><span class="iconify inline text-white text-lg ml-1" data-icon="{{ $.LangIcon $project.TopLanguage | urlSafe }}"></span></span>
@@ -33,6 +34,9 @@
             </li>
             {{ end }}
         </ul>
+        {{ else }}
+        <p class="text-sm text-gray-300">No project data available, yet... Go start coding! 🤓</p>
+        {{ end }}
     </div>
 </main>
 

@@ -50,6 +50,11 @@ func (h *ProjectsHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 
 func (h *ProjectsHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *view.ProjectsViewModel {
 	user := middlewares.GetPrincipal(r)
+	if user == nil { // this should actually never occur, because of auth middleware
+		w.WriteHeader(http.StatusUnauthorized)
+		return h.buildViewModel(r, w).WithError("unauthorized")
+	}
+
 	pageParams := utils.ParsePageParamsWithDefault(r, 1, 100)
 	// note: pagination is not fully implemented, yet
 	// count function to get total item / total pages is missing
@@ -66,15 +71,10 @@ func (h *ProjectsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 		}
 	}
 
-	var apiKey string
-	if user != nil {
-		apiKey = user.ApiKey
-	}
-
 	vm := &view.ProjectsViewModel{
 		User:       user,
 		Projects:   projects,
-		ApiKey:     apiKey,
+		ApiKey:     user.ApiKey,
 		PageParams: pageParams,
 	}
 	return routeutils.WithSessionMessages(vm, r, w)
