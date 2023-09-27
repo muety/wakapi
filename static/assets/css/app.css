@@ -156,6 +156,11 @@ body {
     @apply flex flex-col align-middle bg-gray-800 hover:bg-gray-850 py-2 px-4 rounded rounded-md shadow-md hover:shadow-lg;
 }
 
+.projects-item .color-fading {
+    @apply absolute w-full h-full rounded rounded-md;
+    pointer-events: none;
+}
+
 .disabled {
     pointer-events: none;
     cursor: default;

@@ -14,14 +14,15 @@
         <h1 class="h1" style="margin-bottom: 0.5rem">Your Projects</h1>
 
         <p class="block text-sm text-gray-300 mb-8">
-            This is an overview of all your projects, ordered by recent activity. Click a project to view project-specific statistics. Please note that this view is cached and thus might not be perfectly up-to-date.
+            This is an overview of all your projects, ordered by recent activity. Color intensity indicates the overall activity on that project, that is, project that had been worked on more have stronger colors. Click a project to view project-specific statistics. Please note that this view is cached and thus might not be perfectly up-to-date.
         </p>
 
         {{ if len .Projects }}
         <ul class="inline-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4 text-gray-300">
             {{ range $i, $project := .Projects }}
-            <li class="projects-item">
-                <a href="summary?interval=any&project={{ $project.Project }}">
+            <li class="projects-item relative">
+                <div class="color-fading" style="{{ $.BackgroundIntensity $i | cssSafe }}"></div>
+                <a href="summary?interval=any&project={{ $project.Project }}" title="Project '{{ $project.Project }}' ({{ $project.Count }} heartbeats)">
                     <span class="text-lg font-semibold truncate">{{ $project.Project }}
                         {{ if $.LangIcon $project.TopLanguage }}
                         <span class="align-middle leading-none"><span class="iconify inline text-white text-lg ml-1" data-icon="{{ $.LangIcon $project.TopLanguage | urlSafe }}"></span></span>

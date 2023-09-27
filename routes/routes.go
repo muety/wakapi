@@ -60,6 +60,9 @@ func DefaultTemplateFuncs() template.FuncMap {
 		"urlSafe": func(s string) template.URL {
 			return template.URL(s)
 		},
+		"cssSafe": func(s string) template.CSS {
+			return template.CSS(s)
+		},
 		"avatarUrlTemplate": func() string {
 			return config.Get().App.AvatarURLTemplate
 		},
