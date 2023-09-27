@@ -166,3 +166,16 @@ body {
     cursor: default;
     opacity: 75%;
 }
+
+.entity-filter-control {
+    width: 200px;
+    @apply text-gray-300 text-sm;
+}
+
+.entity-filter-control label {
+    @apply font-semibold capitalize align-text-bottom;
+}
+
+.entity-filter-control select {
+    @apply truncate py-1.5 px-2.5;
+}

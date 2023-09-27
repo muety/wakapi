@@ -4,6 +4,7 @@
 {{ template "head.tpl.html" . }}
 
 <script src="assets/js/components/time-picker.js"></script>
+<script src="assets/js/components/entity-filter.js"></script>
 <script type="module" src="assets/js/components/summary.js"></script>
 
 <body class="relative bg-gray-900 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto">
@@ -13,6 +14,8 @@
 {{ template "alerts.tpl.html" . }}
 
 {{ template "time-picker.tpl.html" . }}
+
+{{ template "entity-filter.tpl.html" . }}
 
 {{ if .User.HasData }}
 
@@ -27,6 +30,32 @@
         </div>
         {{ end }}
 
+        <div class="flex-grow flex-shrink hidden md:flex justify-start space-x-4 flex-wrap">
+            <div v-scope="EntityFilter({
+                type: 'project',
+                options: wakapiData.projects.map(p => p.key).toSorted(),
+                selection: null,
+            })" @vue:mounted="mounted"></div>
+
+            <div v-scope="EntityFilter({
+                type: 'language',
+                options: wakapiData.languages.map(p => p.key).toSorted(),
+                selection: null,
+            })" @vue:mounted="mounted"></div>
+
+            <div v-scope="EntityFilter({
+                type: 'machine',
+                options: wakapiData.machines.map(p => p.key).toSorted(),
+                selection: null,
+            })" @vue:mounted="mounted"></div>
+
+            <div v-scope="EntityFilter({
+                type: 'label',
+                options: wakapiData.labels.map(p => p.key).toSorted(),
+                selection: null,
+            })" @vue:mounted="mounted"></div>
+        </div>
+
         <div class="flex-shrink-0" v-scope="TimePicker({
             fromDate: '{{ .From | simpledate }}',
             toDate: '{{ .To | ceildate | simpledate }}',
@@ -36,7 +65,7 @@
 
     {{ end }}
 
-    <main class="flex flex-col items-center mt-10 grow">
+    <main class="flex flex-col items-center mt-16 grow">
 
         {{ if .User.HasData }}
 
