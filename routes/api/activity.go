@@ -53,7 +53,7 @@ func (h *ActivityApiHandler) GetActivityChart(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	chart, err := h.activityService.GetChart(requestedUser, models.IntervalPast12Months, utils.IsNoCache(r, 6*time.Hour))
+	chart, err := h.activityService.GetChart(requestedUser, models.IntervalPast12Months, r.URL.Query().Has("dark"), utils.IsNoCache(r, 6*time.Hour))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		conf.Log().Request(r).Error("failed to get activity chart for user %s - %v", err)
@@ -61,7 +61,7 @@ func (h *ActivityApiHandler) GetActivityChart(w http.ResponseWriter, r *http.Req
 	}
 
 	w.Header().Set("Content-Type", "image/svg+xml")
-	w.Header().Set("Cache-Control", "max-age=43200") // 12 hours
+	w.Header().Set("Cache-Control", "max-age=21600") // 6 hours
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(chart))
 }

@@ -100,7 +100,7 @@ type ISummaryService interface {
 }
 
 type IActivityService interface {
-	GetChart(*models.User, *models.IntervalKey, bool) (string, error)
+	GetChart(*models.User, *models.IntervalKey, bool, bool) (string, error)
 }
 
 type IReportService interface {
