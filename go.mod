@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	codeberg.org/Codeberg/avatars v1.0.0
+	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
 	github.com/alexedwards/argon2id v0.0.0-20230305115115-4b3c3280a736
 	github.com/alitto/pond v1.8.3
 	github.com/duke-git/lancet/v2 v2.2.5
@@ -33,7 +34,6 @@ require (
 	github.com/swaggo/swag v1.16.2
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.12.0
-	golang.org/x/sync v0.3.0
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/driver/sqlite v1.5.3

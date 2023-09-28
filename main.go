@@ -80,6 +80,7 @@ var (
 	mailService            services.IMailService
 	keyValueService        services.IKeyValueService
 	reportService          services.IReportService
+	activityService        services.IActivityService
 	diagnosticsService     services.IDiagnosticsService
 	housekeepingService    services.IHousekeepingService
 	miscService            services.IMiscService
@@ -189,6 +190,7 @@ func main() {
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
 	keyValueService = services.NewKeyValueService(keyValueRepository)
 	reportService = services.NewReportService(summaryService, userService, mailService)
+	activityService = services.NewActivityService(summaryService)
 	diagnosticsService = services.NewDiagnosticsService(diagnosticsRepository)
 	housekeepingService = services.NewHousekeepingService(userService, heartbeatService, summaryService)
 	miscService = services.NewMiscService(userService, heartbeatService, summaryService, keyValueService, mailService)
@@ -210,6 +212,7 @@ func main() {
 	metricsHandler := api.NewMetricsHandler(userService, summaryService, heartbeatService, keyValueService, metricsRepository)
 	diagnosticsHandler := api.NewDiagnosticsApiHandler(userService, diagnosticsService)
 	avatarHandler := api.NewAvatarHandler()
+	activityHandler := api.NewActivityApiHandler(userService, activityService)
 	badgeHandler := api.NewBadgeHandler(userService, summaryService)
 
 	// Compat Handlers
@@ -282,6 +285,7 @@ func main() {
 	metricsHandler.RegisterRoutes(apiRouter)
 	diagnosticsHandler.RegisterRoutes(apiRouter)
 	avatarHandler.RegisterRoutes(apiRouter)
+	activityHandler.RegisterRoutes(apiRouter)
 	badgeHandler.RegisterRoutes(apiRouter)
 	wakatimeV1StatusBarHandler.RegisterRoutes(apiRouter)
 	wakatimeV1AllHandler.RegisterRoutes(apiRouter)

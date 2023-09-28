@@ -45,6 +45,7 @@ func (p *PageParams) Offset() int {
 	return (p.Page - 1) * p.PageSize
 }
 
+// IsNoCache checks whether returning a cached resource no older than cacheTtl is allowed given the incoming request
 func IsNoCache(r *http.Request, cacheTtl time.Duration) bool {
 	cacheControl := r.Header.Get("cache-control")
 	if strings.Contains(cacheControl, "no-cache") {

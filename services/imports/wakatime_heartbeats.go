@@ -88,6 +88,8 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 		wp := pond.New(maxWorkers, 0)
 
 		for _, d := range days {
+			d := d // https://github.com/golang/go/wiki/CommonMistakes#using-reference-to-loop-iterator-variable
+
 			wp.Submit(func() {
 				defer time.Sleep(throttleDelay)
 

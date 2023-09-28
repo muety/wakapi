@@ -3,6 +3,7 @@ package api
 import (
 	"codeberg.org/Codeberg/avatars"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	lru "github.com/hashicorp/golang-lru"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
@@ -28,7 +29,10 @@ func NewAvatarHandler() *AvatarHandler {
 }
 
 func (h *AvatarHandler) RegisterRoutes(router chi.Router) {
-	router.Get("/avatar/{hash}.svg", h.Get)
+	r := chi.NewRouter()
+	r.Use(middleware.Compress(9, "image/svg+xml"))
+	r.Get("/avatar/{hash}.svg", h.Get)
+	router.Mount("/", r)
 }
 
 func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {

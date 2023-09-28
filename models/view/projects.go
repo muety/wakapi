@@ -48,7 +48,7 @@ func (s *ProjectsViewModel) getMaxCount() int64 {
 }
 
 func fadeColorToTransparent(colorHex string, transparency float64) string {
-	left := utils.ParseHexColor(colorHex)
+	left := utils.HexToRGBA(colorHex)
 	right := &color.RGBA{R: left.R, G: left.G, B: left.B, A: uint8(transparency * 255)}
 	return fmt.Sprintf("background: transparent; background: linear-gradient(90deg, rgba(%d, %d, %d, 0) 0%%, rgba(%d, %d, %d, 0) 50%%, rgba(%d, %d, %d, %.2f) 100%%);",
 		left.R, left.G, left.B,

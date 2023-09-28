@@ -99,6 +99,10 @@ type ISummaryService interface {
 	Insert(*models.Summary) error
 }
 
+type IActivityService interface {
+	GetChart(*models.User, *models.IntervalKey, bool) (string, error)
+}
+
 type IReportService interface {
 	Schedule()
 	SendReport(*models.User, time.Duration) error

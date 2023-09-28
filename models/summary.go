@@ -2,6 +2,8 @@ package models
 
 import (
 	"errors"
+	"github.com/duke-git/lancet/v2/mathutil"
+	"github.com/duke-git/lancet/v2/slice"
 	"sort"
 	"time"
 )
@@ -75,6 +77,19 @@ func NativeSummaryTypes() []uint8 {
 
 func PersistedSummaryTypes() []uint8 {
 	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine}
+}
+
+func NewEmptySummary() *Summary {
+	return &Summary{
+		Projects:         SummaryItems{},
+		Languages:        SummaryItems{},
+		Editors:          SummaryItems{},
+		OperatingSystems: SummaryItems{},
+		Machines:         SummaryItems{},
+		Labels:           SummaryItems{},
+		Branches:         SummaryItems{},
+		Entities:         SummaryItems{},
+	}
 }
 
 func (s *Summary) Sorted() *Summary {
@@ -371,6 +386,12 @@ func (s *SummaryItem) TotalFixed() time.Duration {
 	// this is a workaround, since currently, the total time of a summary item is mistakenly represented in seconds
 	// TODO: fix some day, while migrating persisted summary items
 	return s.Total * time.Second
+}
+
+func (s Summaries) MaxTotalTime() time.Duration {
+	return mathutil.Max(slice.Map[*Summary, time.Duration](s, func(i int, item *Summary) time.Duration {
+		return item.TotalTime()
+	})...)
 }
 
 func (s Summaries) Len() int {

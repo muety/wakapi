@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"github.com/duke-git/lancet/v2/convertor"
 	"github.com/duke-git/lancet/v2/datetime"
@@ -58,6 +59,10 @@ func NewUserService(mailService IMailService, userRepo repositories.IUserReposit
 }
 
 func (srv *UserService) GetUserById(userId string) (*models.User, error) {
+	if userId == "" {
+		return nil, errors.New("user id must not be empty")
+	}
+
 	if u, ok := srv.cache.Get(userId); ok {
 		return u.(*models.User), nil
 	}
@@ -72,6 +77,10 @@ func (srv *UserService) GetUserById(userId string) (*models.User, error) {
 }
 
 func (srv *UserService) GetUserByKey(key string) (*models.User, error) {
+	if key == "" {
+		return nil, errors.New("key must not be empty")
+	}
+
 	if u, ok := srv.cache.Get(key); ok {
 		return u.(*models.User), nil
 	}
@@ -86,14 +95,23 @@ func (srv *UserService) GetUserByKey(key string) (*models.User, error) {
 }
 
 func (srv *UserService) GetUserByEmail(email string) (*models.User, error) {
+	if email == "" {
+		return nil, errors.New("email must not be empty")
+	}
 	return srv.repository.FindOne(models.User{Email: email})
 }
 
 func (srv *UserService) GetUserByResetToken(resetToken string) (*models.User, error) {
+	if resetToken == "" {
+		return nil, errors.New("reset token must not be empty")
+	}
 	return srv.repository.FindOne(models.User{ResetToken: resetToken})
 }
 
 func (srv *UserService) GetUserByStripeCustomerId(customerId string) (*models.User, error) {
+	if customerId == "" {
+		return nil, errors.New("customer id must not be empty")
+	}
 	return srv.repository.FindOne(models.User{StripeCustomerId: customerId})
 }
 
