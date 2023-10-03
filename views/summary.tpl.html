@@ -239,7 +239,7 @@
         <div class="mt-12 flex flex-col space-y-2 text-gray-300 w-full">
             <h2 class="text-lg font-semibold">Activity</h2>
             <!--<object type="image/svg+xml" data="/api/activity/chart/{{ .User.ID }}.svg?dark" />--> <!-- won't resize with outer page -->
-            <img src="/api/activity/chart/{{ .User.ID }}.svg?dark" loading="lazy" />
+            <img src="/api/activity/chart/{{ .User.ID }}.svg?dark" loading="lazy" alt="Activity chart (past year)" />
         </div>
 
         {{ else }}
