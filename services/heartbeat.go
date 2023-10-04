@@ -228,7 +228,7 @@ func (srv *HeartbeatService) GetUserProjectStats(user *models.User, from, to tim
 
 	results, err := srv.repository.GetUserProjectStats(user, from, to, limit, offset)
 	if err == nil {
-		srv.cache.SetDefault(cacheKey, results)
+		srv.cache.Set(cacheKey, results, 12*time.Hour)
 	}
 
 	go srv.populateUniqueUserProjects(user.ID)

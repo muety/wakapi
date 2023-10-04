@@ -233,11 +233,11 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 			"where user_id = ? and project != '' "+
 			"and time between ? and ? "+
 			"and language is not null and language != '' and project != '' "+
-			"group by project "+
+			"group by project, user_id "+
 			"order by last desc "+
 			"limit ? offset ? "+
 			") "+
-			"select distinct project, first, last, cnt as count, first_value(language) over (partition by project order by count(*) desc) as top_language "+
+			"select distinct project, min(first) as first, min(last) as last, min(cnt) as count, first_value(language) over (partition by project order by count(*) desc) as top_language "+
 			"from heartbeats "+
 			"inner join projects using (project, user_id) "+
 			"group by project, language "+

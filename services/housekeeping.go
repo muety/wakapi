@@ -58,7 +58,7 @@ func (s *HousekeepingService) CleanUserDataBefore(user *models.User, before time
 
 func (s *HousekeepingService) WarmUserProjectStatsCache(user *models.User) error {
 	logbuch.Info("pre-warming project stats cache for '%s'", user.ID)
-	if _, err := s.heartbeatSrvc.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), nil, false); err != nil {
+	if _, err := s.heartbeatSrvc.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), nil, true); err != nil {
 		config.Log().Error("failed to pre-warm project stats cache for '%s', %v", user.ID, err)
 	}
 	return nil
@@ -139,7 +139,7 @@ func (s *HousekeepingService) scheduleDataCleanups() {
 func (s *HousekeepingService) scheduleProjectStatsCacheWarming() {
 	logbuch.Info("scheduling project stats cache pre-warming")
 
-	_, err := s.queueDefault.DispatchEvery(s.runWarmProjectStatsCache, 24*time.Hour)
+	_, err := s.queueDefault.DispatchEvery(s.runWarmProjectStatsCache, 12*time.Hour)
 	if err != nil {
 		config.Log().Error("failed to dispatch pre-warming project stats cache, %v", err)
 	}
