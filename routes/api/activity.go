@@ -53,7 +53,10 @@ func (h *ActivityApiHandler) GetActivityChart(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	chart, err := h.activityService.GetChart(requestedUser, models.IntervalPast12Months, r.URL.Query().Has("dark"), utils.IsNoCache(r, 6*time.Hour))
+	paramDark := r.URL.Query().Has("dark") && r.URL.Query().Get("dark") != "false"
+	paramNoAttr := r.URL.Query().Has("noattr") && r.URL.Query().Get("noattr") != "false" // no attribution (no wakapi logo in bottom left corner)
+
+	chart, err := h.activityService.GetChart(requestedUser, models.IntervalPast12Months, paramDark, paramNoAttr, utils.IsNoCache(r, 6*time.Hour))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		conf.Log().Request(r).Error("failed to get activity chart for user %s - %v", err)

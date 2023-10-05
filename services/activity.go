@@ -48,15 +48,15 @@ func NewActivityService(summaryService ISummaryService) *ActivityService {
 
 // GetChart generates an activity chart for a given user and the given time interval, similar to GitHub's contribution timeline. See https://github.com/muety/wakapi/issues/12.
 // Please note: currently, only yearly charts ("last_12_months") are supported. However, we could fairly easily restructure this to support dynamic intervals.
-func (s *ActivityService) GetChart(user *models.User, interval *models.IntervalKey, darkTheme, skipCache bool) (string, error) {
-	cacheKey := fmt.Sprintf("chart_%s_%s", user.ID, (*interval)[0])
+func (s *ActivityService) GetChart(user *models.User, interval *models.IntervalKey, darkTheme, hideAttribution, skipCache bool) (string, error) {
+	cacheKey := fmt.Sprintf("chart_%s_%s_%v_%v", user.ID, (*interval)[0], darkTheme, hideAttribution)
 	if result, found := s.cache.Get(cacheKey); found && !skipCache {
 		return result.(string), nil
 	}
 
 	switch interval {
 	case models.IntervalPast12Months:
-		chart, err := s.getChartPastYear(user, darkTheme)
+		chart, err := s.getChartPastYear(user, darkTheme, hideAttribution)
 		if err == nil {
 			s.cache.SetDefault(cacheKey, chart) // TODO: cache compressed?
 		}
@@ -66,7 +66,7 @@ func (s *ActivityService) GetChart(user *models.User, interval *models.IntervalK
 	}
 }
 
-func (s *ActivityService) getChartPastYear(user *models.User, darkTheme bool) (string, error) {
+func (s *ActivityService) getChartPastYear(user *models.User, darkTheme, hideAttribution bool) (string, error) {
 	err, from, to := helpers.ResolveIntervalTZ(models.IntervalPast12Months, user.TZ())
 	from = datetime.BeginOfWeek(from, time.Monday)
 	if err != nil {
@@ -86,7 +86,6 @@ func (s *ActivityService) getChartPastYear(user *models.User, darkTheme bool) (s
 
 		wp.Submit(func() {
 			summary, err := s.summaryService.Retrieve(interval[0], interval[1], user, nil)
-			fmt.Println(summary == nil)
 			if err != nil {
 				config.Log().Warn("failed to retrieve summary for '%s' between %v and %v for activity chart", user.ID, from, to)
 				summary = models.NewEmptySummary()
@@ -137,10 +136,12 @@ func (s *ActivityService) getChartPastYear(user *models.User, darkTheme bool) (s
 		canvas.Gend()
 	}
 
-	canvas.Group()
-	canvas.Title("Wakapi.dev")
-	canvas.Image(w-60, h-24, 60, 24, "https://wakapi.dev/assets/images/logo-gh.svg")
-	canvas.Gend()
+	if !hideAttribution {
+		canvas.Group()
+		canvas.Title("Wakapi.dev")
+		canvas.Image(w-60, h-24, 60, 24, "https://wakapi.dev/assets/images/logo-gh.svg")
+		canvas.Gend()
+	}
 
 	canvas.End()
 
