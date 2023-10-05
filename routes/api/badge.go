@@ -6,6 +6,7 @@ import (
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/shields/v1"
 	routeutils "github.com/muety/wakapi/routes/utils"
@@ -34,17 +35,21 @@ func NewBadgeHandler(userService services.IUserService, summaryService services.
 }
 
 func (h *BadgeHandler) RegisterRoutes(router chi.Router) {
-	router.Get("/badge/{user}/*", h.Get)
+	r := chi.NewRouter()
+	r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalFor([]string{"/api/badge/"}).Handler)
+	r.Get("/{user}/*", h.Get)
+	router.Mount("/badge", r)
 }
 
 func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
+	authorizedUser := middlewares.GetPrincipal(r)
 	user, err := h.userSrvc.GetUserById(chi.URLParam(r, "user"))
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	interval, filters, err := routeutils.GetBadgeParams(r, user)
+	interval, filters, err := routeutils.GetBadgeParams(r.URL.Path, authorizedUser, user)
 	if err != nil {
 		w.WriteHeader(http.StatusForbidden)
 		w.Write([]byte(err.Error()))

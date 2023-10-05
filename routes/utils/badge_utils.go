@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
-	"net/http"
 	"regexp"
 )
 
@@ -23,14 +22,14 @@ func init() {
 	entityFilterReg = regexp.MustCompile(entityFilterPattern)
 }
 
-func GetBadgeParams(r *http.Request, requestedUser *models.User) (*models.KeyedInterval, *models.Filters, error) {
+func GetBadgeParams(reqPath string, authorizedUser, requestedUser *models.User) (*models.KeyedInterval, *models.Filters, error) {
 	var filterEntity, filterKey string
-	if groups := entityFilterReg.FindStringSubmatch(r.URL.Path); len(groups) > 2 {
+	if groups := entityFilterReg.FindStringSubmatch(reqPath); len(groups) > 2 {
 		filterEntity, filterKey = groups[1], groups[2]
 	}
 
 	var intervalKey = models.IntervalPast30Days
-	if groups := intervalReg.FindStringSubmatch(r.URL.Path); len(groups) > 1 {
+	if groups := intervalReg.FindStringSubmatch(reqPath); len(groups) > 1 {
 		if i, err := helpers.ParseInterval(groups[1]); err == nil {
 			intervalKey = i
 		}
@@ -44,7 +43,7 @@ func GetBadgeParams(r *http.Request, requestedUser *models.User) (*models.KeyedI
 
 	minStart := rangeTo.AddDate(0, 0, -requestedUser.ShareDataMaxDays)
 	// negative value means no limit
-	if rangeFrom.Before(minStart) && requestedUser.ShareDataMaxDays >= 0 {
+	if rangeFrom.Before(minStart) && requestedUser.ShareDataMaxDays >= 0 && !(authorizedUser != nil && authorizedUser.ID == requestedUser.ID) {
 		return nil, nil, errors.New("requested time range too broad")
 	}
 

@@ -54,7 +54,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	interval, filters, err := routeutils.GetBadgeParams(r, user)
+	interval, filters, err := routeutils.GetBadgeParams(r.URL.Path, nil, user)
 	if err != nil {
 		w.WriteHeader(http.StatusForbidden)
 		w.Write([]byte(err.Error()))
