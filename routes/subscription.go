@@ -144,9 +144,10 @@ func (h *SubscriptionHandler) PostCheckout(w http.ResponseWriter, r *http.Reques
 				Quantity: stripe.Int64(1),
 			},
 		},
-		ClientReferenceID: &user.ID,
-		SuccessURL:        stripe.String(fmt.Sprintf("%s%s/subscription/success", h.config.Server.PublicUrl, h.config.Server.BasePath)),
-		CancelURL:         stripe.String(fmt.Sprintf("%s%s/subscription/cancel", h.config.Server.PublicUrl, h.config.Server.BasePath)),
+		ClientReferenceID:   &user.ID,
+		AllowPromotionCodes: stripe.Bool(true),
+		SuccessURL:          stripe.String(fmt.Sprintf("%s%s/subscription/success", h.config.Server.PublicUrl, h.config.Server.BasePath)),
+		CancelURL:           stripe.String(fmt.Sprintf("%s%s/subscription/cancel", h.config.Server.PublicUrl, h.config.Server.BasePath)),
 	}
 
 	if user.StripeCustomerId != "" {
