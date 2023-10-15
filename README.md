@@ -161,6 +161,9 @@ You can specify configuration options either via a config file (default: `config
 | `security.allow_signup` /<br> `WAKAPI_ALLOW_SIGNUP`                          | `true`                                           | Whether to enable user registration                                                                                                                                      |
 | `security.disable_frontpage` /<br> `WAKAPI_DISABLE_FRONTPAGE`                | `false`                                          | Whether to disable landing page (useful for personal instances)                                                                                                          |
 | `security.expose_metrics` /<br> `WAKAPI_EXPOSE_METRICS`                      | `false`                                          | Whether to expose Prometheus metrics under `/api/metrics`                                                                                                                |
+| `security.trusted_header_auth` /<br> `WAKAPI_TRUSTED_HEADER_AUTH`            | `false`                                          | Whether to enable trusted header authentication for reverse proxies (see [#534](https://github.com/muety/wakapi/issues/534)). **Use with caution!**                      |
+| `security.trusted_header_auth_key` /<br> `WAKAPI_TRUSTED_HEADER_AUTH_KEY`    | `Remote-User`                                    | Header field for trusted header authentication. **Caution:** proxy must be configured to strip this header from client requests!                                         |
+| `security.trust_reverse_proxy_ips` /<br> `WAKAPI_TRUST_REVERSE_PROXY_IPS`    | -                                                | Comma-separated list IPv4 or IPv6 addresses of reverse proxies to trust to handle authentication.                                                                        |
 | `db.host` /<br> `WAKAPI_DB_HOST`                                             | -                                                | Database host                                                                                                                                                            |
 | `db.port` /<br> `WAKAPI_DB_PORT`                                             | -                                                | Database port                                                                                                                                                            |
 | `db.socket` /<br> `WAKAPI_DB_SOCKET`                                         | -                                                | Database UNIX socket (alternative to `host`) (for MySQL only)                                                                                                            |
@@ -199,6 +202,17 @@ Wakapi uses [GORM](https://gorm.io) as an ORM. As a consequence, a set of differ
 * [MariaDB](https://hub.docker.com/_/mariadb) (_open-source MySQL alternative_)
 * [Postgres](https://hub.docker.com/_/postgres) (_open-source as well_)
 * [CockroachDB](https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html) (_cloud-native, distributed, Postgres-compatible API_)
+
+## 🔐 Authentication
+Wakapi supports different types of user authentication.
+
+* **Cookie:** This method is used in the browser. Users authenticate by sending along an encrypted, secure, HTTP-only cookie (`wakapi_auth`) that was set in the server's response upon login.
+* **API key:**
+  * **Via header:** This method is inspired by [WakaTime's auth. mechanism](https://wakatime.com/developers/#authentication) and is the common way to authenticate against API endpoints. Users set the `Authorization` header to `Basic <BASE64_TOKEN>`, where the latter part corresponds to your base64-hashed API key.
+  * **Vis query param:** Alternatively, users can also pass their plain API key as a query parameter (e.g. `?api_key=86648d74-19c5-452b-ba01-fb3ec70d4c2f`) in the URL with every request.
+* **Trusted header:** This mechanism allows to delegate authentication to a **reverse proxy** (e.g. for SSO), that Wakapi will then trust blindly. See [#534](https://github.com/muety/wakapi/issues/534) for details.
+  * Must be enabled via `trusted_header_auth` and configuring `trust_reverse_proxy_ip` in the config
+  * Warning: This type of authentication is quite prone to misconfiguration. Make sure that your reverse proxy properly strips relevant headers from client requests.
 
 ## 🔧 API endpoints
 

@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"regexp"
@@ -93,11 +94,15 @@ type securityConfig struct {
 	EnableProxy      bool `yaml:"enable_proxy" default:"false" env:"WAKAPI_ENABLE_PROXY"` // only intended for production instance at wakapi.dev
 	DisableFrontpage bool `yaml:"disable_frontpage" default:"false" env:"WAKAPI_DISABLE_FRONTPAGE"`
 	// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
-	PasswordSalt    string                     `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
-	InsecureCookies bool                       `yaml:"insecure_cookies" default:"false" env:"WAKAPI_INSECURE_COOKIES"`
-	CookieMaxAgeSec int                        `yaml:"cookie_max_age" default:"172800" env:"WAKAPI_COOKIE_MAX_AGE"`
-	SecureCookie    *securecookie.SecureCookie `yaml:"-"`
-	SessionKey      []byte                     `yaml:"-"`
+	PasswordSalt              string                     `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
+	InsecureCookies           bool                       `yaml:"insecure_cookies" default:"false" env:"WAKAPI_INSECURE_COOKIES"`
+	CookieMaxAgeSec           int                        `yaml:"cookie_max_age" default:"172800" env:"WAKAPI_COOKIE_MAX_AGE"`
+	TrustedHeaderAuth         bool                       `yaml:"trusted_header_auth" default:"false" env:"WAKAPI_TRUSTED_HEADER_AUTH"`
+	TrustedHeaderAuthKey      string                     `yaml:"trusted_header_auth_key" default:"Remote-User" env:"WAKAPI_TRUSTED_HEADER_AUTH_KEY"`
+	TrustReverseProxyIps      string                     `yaml:"trust_reverse_proxy_ips" default:"" env:"WAKAPI_TRUST_REVERSE_PROXY_IPS"` // comma-separated list of trusted reverse proxy ips
+	SecureCookie              *securecookie.SecureCookie `yaml:"-"`
+	SessionKey                []byte                     `yaml:"-"`
+	trustReverseProxyIpParsed []net.IP
 }
 
 type dbConfig struct {
@@ -310,6 +315,21 @@ func (c *appConfig) HeartbeatsMaxAge() time.Duration {
 	return d
 }
 
+func (c *securityConfig) ParseTrustReverseProxyIPs() {
+	c.trustReverseProxyIpParsed = make([]net.IP, 0)
+	for _, ip := range strings.Split(c.TrustReverseProxyIps, ",") {
+		if parsedIp := net.ParseIP(strings.TrimSpace(ip)); parsedIp == nil {
+			logbuch.Warn("failed to parse reverse proxy ip")
+		} else {
+			c.trustReverseProxyIpParsed = append(c.trustReverseProxyIpParsed, parsedIp)
+		}
+	}
+}
+
+func (c *securityConfig) TrustReverseProxyIPs() []net.IP {
+	return c.trustReverseProxyIpParsed
+}
+
 func (c *dbConfig) IsSQLite() bool {
 	return c.Dialect == "sqlite3"
 }
@@ -409,6 +429,7 @@ func Load(configFlag string, version string) *Config {
 
 	config.Security.SecureCookie = securecookie.New(hashKey, blockKey)
 	config.Security.SessionKey = sessionKey
+	config.Security.ParseTrustReverseProxyIPs()
 
 	config.Server.BasePath = strings.TrimSuffix(config.Server.BasePath, "/")
 
@@ -450,6 +471,9 @@ func Load(configFlag string, version string) *Config {
 	if _, err := time.ParseDuration(config.App.HeartbeatMaxAge); err != nil {
 		logbuch.Fatal("invalid duration set for heartbeat_max_age")
 	}
+	if config.Security.TrustedHeaderAuth && len(config.Security.trustReverseProxyIpParsed) == 0 {
+		config.Security.TrustedHeaderAuth = false
+	}
 
 	cronParser := cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
 
@@ -478,4 +502,16 @@ func Load(configFlag string, version string) *Config {
 
 	Set(config)
 	return Get()
+}
+
+func Empty() *Config {
+	return &Config{
+		App:           appConfig{},
+		Security:      securityConfig{},
+		Db:            dbConfig{},
+		Server:        serverConfig{},
+		Subscriptions: subscriptionsConfig{},
+		Sentry:        sentryConfig{},
+		Mail:          mailConfig{},
+	}
 }

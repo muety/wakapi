@@ -1,8 +1,11 @@
 package middlewares
 
 import (
+	"errors"
 	"fmt"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/muety/wakapi/helpers"
+	"net"
 	"net/http"
 	"strings"
 
@@ -60,13 +63,16 @@ func (m *AuthenticateMiddleware) Handler(h http.Handler) http.Handler {
 
 func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	var user *models.User
-	user, err := m.tryGetUserByCookie(r)
 
+	user, err := m.tryGetUserByCookie(r)
 	if err != nil {
 		user, err = m.tryGetUserByApiKeyHeader(r)
 	}
 	if err != nil {
 		user, err = m.tryGetUserByApiKeyQuery(r)
+	}
+	if err != nil && m.config.Security.TrustedHeaderAuth {
+		user, err = m.tryGetUserByTrustedHeader(r)
 	}
 
 	if err != nil || user == nil {
@@ -130,6 +136,19 @@ func (m *AuthenticateMiddleware) tryGetUserByApiKeyQuery(r *http.Request) (*mode
 		return nil, err
 	}
 	return user, nil
+}
+
+func (m *AuthenticateMiddleware) tryGetUserByTrustedHeader(r *http.Request) (*models.User, error) {
+	remoteUser := r.Header.Get(m.config.Security.TrustedHeaderAuthKey)
+	if remoteUser == "" {
+		return nil, errors.New("trusted header field empty")
+	}
+	if addr, err := net.ResolveTCPAddr("tcp", r.RemoteAddr); err != nil || !slice.ContainBy[net.IP](m.config.Security.TrustReverseProxyIPs(), func(ip net.IP) bool {
+		return addr.IP.Equal(ip)
+	}) {
+		return nil, errors.New("reverse proxy not trusted")
+	}
+	return m.userSrvc.GetUserById(remoteUser)
 }
 
 func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.User, error) {

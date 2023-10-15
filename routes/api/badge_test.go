@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/go-chi/chi/v5"
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
@@ -39,6 +40,8 @@ var (
 )
 
 func TestBadgeHandler_Get(t *testing.T) {
+	config.Set(config.Empty())
+
 	router := chi.NewRouter()
 	apiRouter := chi.NewRouter()
 	apiRouter.Use(middlewares.NewPrincipalMiddleware())

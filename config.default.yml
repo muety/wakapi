@@ -54,13 +54,16 @@ db:
   automigrate_fail_silently: false    # whether to ignore schema auto-migration failures when starting up
 
 security:
-  password_salt:                      # change this
-  insecure_cookies: true              # should be set to 'false', except when not running with HTTPS (e.g. on localhost)
+  password_salt:                        # change this
+  insecure_cookies: true                # should be set to 'false', except when not running with HTTPS (e.g. on localhost)
   cookie_max_age: 172800
   allow_signup: true
   disable_frontpage: false
   expose_metrics: false
-  enable_proxy: false                 # only intended for production instance at wakapi.dev
+  enable_proxy: false                   # only intended for production instance at wakapi.dev
+  trusted_header_auth: false            # whether to enable trusted header auth for reverse proxies, use with caution!! (https://github.com/muety/wakapi/issues/534)
+  trusted_header_auth_key: Remote-User  # header field for trusted header auth (warning: your proxy must correctly strip this header from client requests!!)
+  trust_reverse_proxy_ips:              # single ip address of the reverse proxy which you trust to pass headers for authentication
 
 sentry:
   dsn:                                # leave blank to disable sentry integration

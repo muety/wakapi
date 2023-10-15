@@ -3,6 +3,7 @@ package middlewares
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/muety/wakapi/config"
 	"net/http"
 	"net/url"
 	"testing"
@@ -98,6 +99,83 @@ func TestAuthenticateMiddleware_tryGetUserByApiKeyQuery_Invalid(t *testing.T) {
 	assert.Error(t, actualErr)
 	assert.Equal(t, errEmptyKey, actualErr)
 	assert.Nil(t, result)
+}
+
+func TestAuthenticateMiddleware_tryGetUserByTrustedHeader_Disabled(t *testing.T) {
+	cfg := config.Empty()
+	cfg.Security.TrustedHeaderAuth = false
+	cfg.Security.TrustedHeaderAuthKey = "Remote-User"
+	cfg.Security.TrustReverseProxyIps = "127.0.0.1,::1"
+	cfg.Security.ParseTrustReverseProxyIPs()
+	config.Set(cfg)
+
+	testUser := &models.User{ID: "user01"}
+
+	mockRequest := &http.Request{
+		Header: http.Header{"Remote-User": []string{testUser.ID}},
+	}
+
+	userServiceMock := new(mocks.UserServiceMock)
+	userServiceMock.On("GetUserById", testUser.ID).Return(testUser, nil)
+
+	sut := NewAuthenticateMiddleware(userServiceMock)
+
+	result, actualErr := sut.tryGetUserByTrustedHeader(mockRequest)
+	assert.Error(t, actualErr)
+	assert.Nil(t, result)
+}
+
+func TestAuthenticateMiddleware_tryGetUserByTrustedHeader_Untrusted(t *testing.T) {
+	cfg := config.Empty()
+	cfg.Security.TrustedHeaderAuth = true
+	cfg.Security.TrustedHeaderAuthKey = "Remote-User"
+	cfg.Security.TrustReverseProxyIps = "192.168.0.1"
+	cfg.Security.ParseTrustReverseProxyIPs()
+	config.Set(cfg)
+
+	testUser := &models.User{ID: "user01"}
+
+	mockRequest := &http.Request{
+		Header: http.Header{
+			"Remote-User":     []string{testUser.ID},
+			"X-Forwarded-For": []string{"192.168.0.1"},
+		},
+		RemoteAddr: "127.0.0.1:54654",
+	}
+
+	userServiceMock := new(mocks.UserServiceMock)
+	userServiceMock.On("GetUserById", testUser.ID).Return(testUser, nil)
+
+	sut := NewAuthenticateMiddleware(userServiceMock)
+
+	result, actualErr := sut.tryGetUserByTrustedHeader(mockRequest)
+	assert.Error(t, actualErr)
+	assert.Nil(t, result)
+}
+
+func TestAuthenticateMiddleware_tryGetUserByTrustedHeader_Success(t *testing.T) {
+	cfg := config.Empty()
+	cfg.Security.TrustedHeaderAuth = true
+	cfg.Security.TrustedHeaderAuthKey = "Remote-User"
+	cfg.Security.TrustReverseProxyIps = "127.0.0.1,::1"
+	cfg.Security.ParseTrustReverseProxyIPs()
+	config.Set(cfg)
+
+	testUser := &models.User{ID: "user01"}
+
+	mockRequest := &http.Request{
+		Header:     http.Header{"Remote-User": []string{testUser.ID}},
+		RemoteAddr: "[::1]:54654",
+	}
+
+	userServiceMock := new(mocks.UserServiceMock)
+	userServiceMock.On("GetUserById", testUser.ID).Return(testUser, nil)
+
+	sut := NewAuthenticateMiddleware(userServiceMock)
+
+	result, actualErr := sut.tryGetUserByTrustedHeader(mockRequest)
+	assert.Equal(t, testUser, result)
+	assert.Nil(t, actualErr)
 }
 
 // TODO: somehow test cookie auth function
