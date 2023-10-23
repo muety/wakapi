@@ -41,6 +41,7 @@ type IHeartbeatService interface {
 	GetFirstByUsers() ([]*models.TimeByUser, error)
 	GetLatestByUser(*models.User) (*models.Heartbeat, error)
 	GetLatestByOriginAndUser(string, *models.User) (*models.Heartbeat, error)
+	GetLatestByFilters(*models.User, *models.Filters) (*models.Heartbeat, error)
 	GetEntitySetByUser(uint8, string) ([]string, error)
 	DeleteBefore(time.Time) error
 	DeleteByUser(*models.User) error

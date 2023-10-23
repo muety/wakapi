@@ -61,6 +61,11 @@ func (m *HeartbeatServiceMock) GetLatestByOriginAndUser(s string, user *models.U
 	return args.Get(0).(*models.Heartbeat), args.Error(1)
 }
 
+func (m *HeartbeatServiceMock) GetLatestByFilters(u *models.User, f *models.Filters) (*models.Heartbeat, error) {
+	args := m.Called(u, f)
+	return args.Get(0).(*models.Heartbeat), args.Error(1)
+}
+
 func (m *HeartbeatServiceMock) GetEntitySetByUser(u uint8, user string) ([]string, error) {
 	args := m.Called(u, user)
 	return args.Get(0).([]string), args.Error(1)

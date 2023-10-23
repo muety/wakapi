@@ -21,6 +21,7 @@ type IHeartbeatRepository interface {
 	GetAll() ([]*models.Heartbeat, error)
 	GetAllWithin(time.Time, time.Time, *models.User) ([]*models.Heartbeat, error)
 	GetAllWithinByFilters(time.Time, time.Time, *models.User, map[string][]string) ([]*models.Heartbeat, error)
+	GetLatestByFilters(*models.User, map[string][]string) (*models.Heartbeat, error)
 	GetFirstByUsers() ([]*models.TimeByUser, error)
 	GetLastByUsers() ([]*models.TimeByUser, error)
 	GetLatestByUser(*models.User) (*models.Heartbeat, error)

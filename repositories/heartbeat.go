@@ -88,21 +88,26 @@ func (r *HeartbeatRepository) GetAllWithinByFilters(from, to time.Time, user *mo
 		Where("time >= ?", from.Local()).
 		Where("time < ?", to.Local()).
 		Order("time asc")
-
-	for col, vals := range filterMap {
-		q = q.Where(col+" in ?", slice.Map[string, string](vals, func(i int, val string) string {
-			// query for "unknown" projects, languages, etc.
-			if val == "-" {
-				return ""
-			}
-			return val
-		}))
-	}
+	q = r.filteredQuery(q, filterMap)
 
 	if err := q.Find(&heartbeats).Error; err != nil {
 		return nil, err
 	}
 	return heartbeats, nil
+}
+
+func (r *HeartbeatRepository) GetLatestByFilters(user *models.User, filterMap map[string][]string) (*models.Heartbeat, error) {
+	var heartbeat *models.Heartbeat
+
+	q := r.db.
+		Where(&models.Heartbeat{UserID: user.ID}).
+		Order("time desc")
+	q = r.filteredQuery(q, filterMap)
+
+	if err := q.First(&heartbeat).Error; err != nil {
+		return nil, err
+	}
+	return heartbeat, nil
 }
 
 func (r *HeartbeatRepository) GetFirstByUsers() ([]*models.TimeByUser, error) {
@@ -247,4 +252,17 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 	}
 
 	return projectStats, nil
+}
+
+func (r *HeartbeatRepository) filteredQuery(q *gorm.DB, filterMap map[string][]string) *gorm.DB {
+	for col, vals := range filterMap {
+		q = q.Where(col+" in ?", slice.Map[string, string](vals, func(i int, val string) string {
+			// query for "unknown" projects, languages, etc.
+			if val == "-" {
+				return ""
+			}
+			return val
+		}))
+	}
+	return q
 }

@@ -99,6 +99,12 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 			machineName = hb.Machine
 		}
 
+		if hb.Branch == "<<LAST_BRANCH>>" {
+			if latest, err := h.heartbeatSrvc.GetLatestByFilters(user, models.NewFiltersWith(models.SummaryProject, hb.Project)); latest != nil && err == nil {
+				hb.Branch = latest.Branch
+			}
+		}
+
 		hb.User = user
 		hb.UserID = user.ID
 		hb.Machine = machineName

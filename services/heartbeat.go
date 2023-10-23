@@ -159,6 +159,10 @@ func (srv *HeartbeatService) GetLatestByOriginAndUser(origin string, user *model
 	return srv.repository.GetLatestByOriginAndUser(origin, user)
 }
 
+func (srv *HeartbeatService) GetLatestByFilters(user *models.User, filters *models.Filters) (*models.Heartbeat, error) {
+	return srv.repository.GetLatestByFilters(user, srv.filtersToColumnMap(filters))
+}
+
 func (srv *HeartbeatService) GetFirstByUsers() ([]*models.TimeByUser, error) {
 	return srv.repository.GetFirstByUsers()
 }
