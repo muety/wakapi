@@ -1,8 +1,10 @@
 package migrations
 
 import (
+	"github.com/alitto/pond"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
 	"gorm.io/gorm"
 )
 
@@ -20,25 +22,29 @@ func init() {
 				return err
 			}
 
+			wp := pond.New(utils.AllCPUs(), 0)
+
 			// this is the most inefficient way to perform the update, but i couldn't find a way to do this is a single query
 			for _, h := range heartbeats {
-				var latest models.Heartbeat
-				if err := db.
-					Where(&models.Heartbeat{UserID: h.UserID, Project: h.Project}).
-					Not("branch", "<<LAST_BRANCH>>").
-					Where("time < ?", h.Time).
-					Order("time desc").
-					First(&latest).Error; err != nil {
-					return err
-				}
-				if err := db.
-					Model(&models.Heartbeat{}).
-					Where("id", h.ID).
-					Update("branch", latest.Branch).
-					Error; err != nil {
-					return err
-				}
+				h := h
+				wp.Submit(func() {
+					var latest models.Heartbeat
+					if err := db.
+						Where(&models.Heartbeat{UserID: h.UserID, Project: h.Project}).
+						Not("branch", "<<LAST_BRANCH>>").
+						Where("time < ?", h.Time).
+						Order("time desc").
+						First(&latest).Error; err != nil {
+						return
+					}
+					db.
+						Model(&models.Heartbeat{}).
+						Where("id", h.ID).
+						Update("branch", latest.Branch)
+				})
 			}
+
+			wp.StopAndWait()
 
 			setHasRun(name, db)
 			return nil
