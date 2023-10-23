@@ -250,8 +250,13 @@
             </div>
             <h1 class="font-semibold text-3xl text-white m-0 w-full">Welcome to Wakapi!</h1>
             <p>
-                It looks like there is no data available for the specified time range.<br>If you logged in to Wakapi for the first time, see the setup instructions below on how to get started.
+                It looks like there is no data available for the specified time range. If you logged in to Wakapi for the first time, see the setup instructions below on how to get started.
             </p>
+            {{ if gt .DataRetentionMonths 0 }}
+            <p>
+                By default, Wakapi will keep your coding activity for {{ .DataRetentionMonths }} months. If you want <strong>unlimited data storage</strong> or simply <strong>support the project</strong> (which the authors would very much appreciate 😊), you can opt for a paid subscription for <strong>only 4 € / month</strong>. Go to <a href="settings#subscription" class="text-gray-400 hover:text-gray-300" rel="noreferrer noopener">Settings → Subscription</a> to purchase one.
+            </p>
+            {{ end }}
             <div class="w-full pt-10 flex flex-col space-y-4">
                 <h1 class="font-semibold text-3xl text-white m-0 mb-2">Setup Instructions</h1>
                 <div class="w-full bg-gray-850 text-left rounded-md py-4 px-8 text-xs font-mono shadow-md">

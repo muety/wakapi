@@ -10,14 +10,15 @@ type SummaryViewModel struct {
 	Messages
 	*models.Summary
 	*models.SummaryParams
-	User           *models.User
-	AvatarURL      string
-	EditorColors   map[string]string
-	LanguageColors map[string]string
-	OSColors       map[string]string
-	ApiKey         string
-	RawQuery       string
-	UserFirstData  time.Time
+	User                *models.User
+	AvatarURL           string
+	EditorColors        map[string]string
+	LanguageColors      map[string]string
+	OSColors            map[string]string
+	ApiKey              string
+	RawQuery            string
+	UserFirstData       time.Time
+	DataRetentionMonths int
 }
 
 func (s SummaryViewModel) UserDataExpiring() bool {

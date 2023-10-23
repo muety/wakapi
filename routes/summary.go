@@ -87,15 +87,16 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vm := view.SummaryViewModel{
-		Summary:        summary,
-		SummaryParams:  summaryParams,
-		User:           user,
-		EditorColors:   su.FilterColors(h.config.App.GetEditorColors(), summary.Editors),
-		LanguageColors: su.FilterColors(h.config.App.GetLanguageColors(), summary.Languages),
-		OSColors:       su.FilterColors(h.config.App.GetOSColors(), summary.OperatingSystems),
-		ApiKey:         user.ApiKey,
-		RawQuery:       rawQuery,
-		UserFirstData:  firstData,
+		Summary:             summary,
+		SummaryParams:       summaryParams,
+		User:                user,
+		EditorColors:        su.FilterColors(h.config.App.GetEditorColors(), summary.Editors),
+		LanguageColors:      su.FilterColors(h.config.App.GetLanguageColors(), summary.Languages),
+		OSColors:            su.FilterColors(h.config.App.GetOSColors(), summary.OperatingSystems),
+		ApiKey:              user.ApiKey,
+		RawQuery:            rawQuery,
+		UserFirstData:       firstData,
+		DataRetentionMonths: h.config.App.DataRetentionMonths,
 	}
 
 	templates[conf.SummaryTemplate].Execute(w, vm)
