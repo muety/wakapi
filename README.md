@@ -108,7 +108,7 @@ $ ./wakapi -config wakapi.yml
 
 ### 💻 Client setup
 
-Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime) client tools. In order to collect statistics for Wakapi, you need to set them up.
+Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime-cli) client tools. In order to collect statistics for Wakapi, you need to set them up.
 
 1. **Set up WakaTime** for your specific IDE or editor. Please refer to the respective [plugin guide](https://wakatime.com/plugins)
 2. **Edit your local `~/.wakatime.cfg`** file as follows.
