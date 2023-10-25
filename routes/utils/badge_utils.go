@@ -23,6 +23,8 @@ func init() {
 }
 
 func GetBadgeParams(reqPath string, authorizedUser, requestedUser *models.User) (*models.KeyedInterval, *models.Filters, error) {
+	isSameUser := authorizedUser != nil && authorizedUser.ID == requestedUser.ID
+
 	var filterEntity, filterKey string
 	if groups := entityFilterReg.FindStringSubmatch(reqPath); len(groups) > 2 {
 		filterEntity, filterKey = groups[1], groups[2]
@@ -43,7 +45,7 @@ func GetBadgeParams(reqPath string, authorizedUser, requestedUser *models.User) 
 
 	minStart := rangeTo.AddDate(0, 0, -requestedUser.ShareDataMaxDays)
 	// negative value means no limit
-	if rangeFrom.Before(minStart) && requestedUser.ShareDataMaxDays >= 0 && !(authorizedUser != nil && authorizedUser.ID == requestedUser.ID) {
+	if rangeFrom.Before(minStart) && requestedUser.ShareDataMaxDays >= 0 && !isSameUser {
 		return nil, nil, errors.New("requested time range too broad")
 	}
 
@@ -75,7 +77,7 @@ func GetBadgeParams(reqPath string, authorizedUser, requestedUser *models.User) 
 		filters = &models.Filters{}
 	}
 
-	if !permitEntity {
+	if !permitEntity && !isSameUser {
 		return nil, nil, errors.New("user did not opt in to share entity-specific data")
 	}
 
