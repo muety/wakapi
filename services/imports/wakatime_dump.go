@@ -41,7 +41,7 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer([]byte(`{ "type": "heartbeats", "email_when_finished": false }`)))
 	res, err := utils.RaiseForStatus(w.httpClient.Do(w.withHeaders(req)))
 
-	if err != nil && res.StatusCode == http.StatusBadRequest {
+	if err != nil && res != nil && res.StatusCode == http.StatusBadRequest {
 		var datadumpError wakatime.DataDumpResultErrorModel
 		if err := json.NewDecoder(res.Body).Decode(&datadumpError); err != nil {
 			return nil, err
