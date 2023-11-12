@@ -16,7 +16,7 @@ type SummariesViewModel struct {
 	Data            []*SummariesData          `json:"data"`
 	End             time.Time                 `json:"end"`
 	Start           time.Time                 `json:"start"`
-	CumulativeTotal *SummariesCumulativeTotal `json:"cummulative_total"` // typo is intended
+	CumulativeTotal *SummariesCumulativeTotal `json:"cumulative_total"`
 }
 
 type SummariesCumulativeTotal struct {
