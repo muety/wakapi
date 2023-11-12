@@ -587,6 +587,11 @@
                         <input type="password" name="api_key" id="wakatime_api_key"
                                class="w-full appearance-none bg-gray-850 text-gray-300 outline-none rounded py-2 px-4 mt-2 {{ if not .User.WakatimeApiKey }}focus:bg-gray-800{{ end }} {{ if .User.WakatimeApiKey }}cursor-not-allowed{{ end }}"
                                placeholder="{{ $placeholderText }}" {{ if .User.WakatimeApiKey }}readonly{{ end }}>
+                        <div class="mt-2 text-gray-300">
+                            <input type="checkbox" name="use_legacy_importer" id="use_legacy_importer_tmp" class="mr-1 cursor-pointer">
+                            <label for="use_legacy_importer_tmp" class="mx-1">Use legacy importer</label>
+                            <span class="cursor-help" title="If WakaTime import fails repeatedly, you may want to fall back to an older, less efficient importer mechanism">&#9432;</span>
+                        </div>
                     </div>
                 </div>
 
@@ -602,6 +607,7 @@
 
             <form action="" method="post" id="form-import-wakatime">
                 <input type="hidden" name="action" value="import_wakatime">
+                <input type="hidden" name="use_legacy_importer" id="use_legacy_importer">
             </form>
 
             <div class="w-full lg:w-3/4">

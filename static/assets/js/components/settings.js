@@ -9,7 +9,7 @@ PetiteVue.createApp({
 	get tzOptions() {
 		return [
 			defaultTzOption,
-			...tzs.sort().map((tz) => ({ value: tz, text: tz })),
+			...tzs.sort().map((tz) => ({value: tz, text: tz})),
 		];
 	},
 	updateTab() {
@@ -25,6 +25,8 @@ PetiteVue.createApp({
 	},
 	confirmWakatimeImport() {
 		if (confirm("Are you sure? The import can not be undone.")) {
+			// weird hack to sync the "legacy importer" form field from the wakatime connection form to the (invisible) import form
+			document.getElementById('use_legacy_importer').value = document.getElementById('use_legacy_importer_tmp').checked.toString()
 			document.querySelector("#form-import-wakatime").submit();
 		}
 	},

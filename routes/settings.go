@@ -499,6 +499,7 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 		return http.StatusForbidden, "", "not connected to wakatime"
 	}
 
+	useLegacyImporter, _ := strconv.ParseBool(r.PostFormValue("use_legacy_importer"))
 	kvKeyLastImport := fmt.Sprintf("%s_%s", conf.KeyLastImport, user.ID)
 	kvKeyLastImportSuccess := fmt.Sprintf("%s_%s", conf.KeyLastImportSuccess, user.ID)
 
@@ -520,7 +521,7 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 
 	go func(user *models.User) {
 		start := time.Now()
-		importer := imports.NewWakatimeImporter(user.WakatimeApiKey)
+		importer := imports.NewWakatimeImporter(user.WakatimeApiKey, useLegacyImporter)
 
 		countBefore, _ := h.heartbeatSrvc.CountByUser(user)
 
