@@ -5,23 +5,23 @@ go 1.20
 require (
 	codeberg.org/Codeberg/avatars v1.0.0
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
-	github.com/alexedwards/argon2id v0.0.0-20230305115115-4b3c3280a736
+	github.com/alexedwards/argon2id v1.0.0
 	github.com/alitto/pond v1.8.3
-	github.com/duke-git/lancet/v2 v2.2.5
-	github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead
-	github.com/emersion/go-smtp v0.18.0
+	github.com/duke-git/lancet/v2 v2.2.7
+	github.com/emersion/go-sasl v0.0.0-20231106173351-e73c9f7bad43
+	github.com/emersion/go-smtp v0.19.0
 	github.com/emvi/logbuch v1.2.0
-	github.com/getsentry/sentry-go v0.23.0
-	github.com/glebarez/sqlite v1.9.0
+	github.com/getsentry/sentry-go v0.25.0
+	github.com/glebarez/sqlite v1.10.0
 	github.com/go-chi/chi/v5 v5.0.10
-	github.com/gorilla/schema v1.2.0
-	github.com/gorilla/securecookie v1.1.1
-	github.com/gorilla/sessions v1.2.1
+	github.com/gorilla/schema v1.2.1
+	github.com/gorilla/securecookie v1.1.2
+	github.com/gorilla/sessions v1.2.2
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/jinzhu/configor v1.2.1
 	github.com/leandro-lugaresi/hub v1.1.1
 	github.com/lpar/gzipped/v2 v2.1.0
-	github.com/mileusna/useragent v1.3.3
+	github.com/mileusna/useragent v1.3.4
 	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/muety/artifex/v2 v2.0.1-0.20221201142708-74e7d3f6feaf
 	github.com/narqo/go-badge v0.0.0-20230821190521-c9a75c019a59
@@ -33,11 +33,11 @@ require (
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.2
 	go.uber.org/atomic v1.11.0
-	golang.org/x/crypto v0.12.0
-	gorm.io/driver/mysql v1.5.1
-	gorm.io/driver/postgres v1.5.2
-	gorm.io/driver/sqlite v1.5.3
-	gorm.io/gorm v1.25.4
+	golang.org/x/crypto v0.15.0
+	gorm.io/driver/mysql v1.5.2
+	gorm.io/driver/postgres v1.5.4
+	gorm.io/driver/sqlite v1.5.4
+	gorm.io/gorm v1.25.5
 )
 
 require (
@@ -52,32 +52,34 @@ require (
 	github.com/go-openapi/swag v0.22.4 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
-	github.com/google/uuid v1.3.1 // indirect
+	github.com/google/uuid v1.4.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/jackc/pgx/v5 v5.4.3 // indirect
+	github.com/jackc/pgx/v5 v5.5.0 // indirect
+	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/kevinpollet/nego v0.0.0-20211010160919-a65cd48cee43 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
-	github.com/mattn/go-sqlite3 v1.14.17 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-sqlite3 v1.14.18 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/swaggo/files v1.0.1 // indirect
-	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63 // indirect
-	golang.org/x/image v0.11.0 // indirect
-	golang.org/x/net v0.14.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
-	golang.org/x/text v0.12.0 // indirect
-	golang.org/x/tools v0.12.1-0.20230815132531-74c255bcf846 // indirect
+	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
+	golang.org/x/image v0.14.0 // indirect
+	golang.org/x/net v0.18.0 // indirect
+	golang.org/x/sync v0.5.0 // indirect
+	golang.org/x/sys v0.14.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/tools v0.15.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.24.1 // indirect
+	modernc.org/libc v1.34.0 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
-	modernc.org/memory v1.7.1 // indirect
-	modernc.org/sqlite v1.25.0 // indirect
+	modernc.org/memory v1.7.2 // indirect
+	modernc.org/sqlite v1.27.0 // indirect
 )
