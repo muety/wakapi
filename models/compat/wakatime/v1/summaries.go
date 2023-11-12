@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
 	"math"
 	"sync"
 	"time"
@@ -17,6 +18,7 @@ type SummariesViewModel struct {
 	End             time.Time                 `json:"end"`
 	Start           time.Time                 `json:"start"`
 	CumulativeTotal *SummariesCumulativeTotal `json:"cumulative_total"`
+	DailyAverage    *SummariesDailyAverage    `json:"daily_average"`
 }
 
 type SummariesCumulativeTotal struct {
@@ -24,6 +26,16 @@ type SummariesCumulativeTotal struct {
 	Digital string  `json:"digital"`
 	Seconds float64 `json:"seconds"`
 	Text    string  `json:"text"`
+}
+
+type SummariesDailyAverage struct {
+	DaysIncludingHolidays         int    `json:"days_including_holidays"`
+	DaysMinusHolidays             int    `json:"days_minus_holidays"`
+	Holidays                      int    `json:"holidays"`
+	Seconds                       int64  `json:"seconds"`
+	SecondsIncludingOtherLanguage int64  `json:"seconds_including_other_language"`
+	Text                          string `json:"text"`
+	TextIncludingOtherLanguage    string `json:"text_including_other_language"`
 }
 
 type SummariesData struct {
@@ -83,11 +95,17 @@ func NewSummariesFrom(summaries []*models.Summary) *SummariesViewModel {
 	}
 
 	var totalTime time.Duration
+	var totalTimeKnown time.Duration // total duration in non-unknown languages
 	for _, s := range summaries {
-		totalTime += s.TotalTime()
+		total := s.TotalTime()
+		totalTime += total
+		totalTimeKnown += (total - s.TotalTimeByKey(models.SummaryLanguage, models.UnknownSummaryKey))
 	}
 
 	totalHrs, totalMins, totalSecs := totalTime.Hours(), (totalTime - time.Duration(totalTime.Hours())*time.Hour).Minutes(), totalTime.Seconds()
+	totalDays := len(utils.SplitRangeByDays(minDate, maxDate))
+	totalTimeAvg, totalTimeKnownAvg := totalTime/time.Duration(totalDays), totalTimeKnown/time.Duration(totalDays)
+	totalSecsAvg, totalSecsKnownAvg := int64(totalTimeAvg.Seconds()), int64(totalTimeKnownAvg.Seconds())
 
 	return &SummariesViewModel{
 		Data:  data,
@@ -98,6 +116,15 @@ func NewSummariesFrom(summaries []*models.Summary) *SummariesViewModel {
 			Digital: fmt.Sprintf("%d:%d", int(totalHrs), int(totalMins)),
 			Seconds: totalSecs,
 			Text:    helpers.FmtWakatimeDuration(totalTime),
+		},
+		DailyAverage: &SummariesDailyAverage{
+			DaysIncludingHolidays:         totalDays,
+			DaysMinusHolidays:             totalDays,
+			Holidays:                      0, // not implemented, because we don't track user location
+			Seconds:                       totalSecsKnownAvg,
+			SecondsIncludingOtherLanguage: totalSecsAvg,
+			Text:                          helpers.FmtWakatimeDuration(totalTimeKnownAvg),
+			TextIncludingOtherLanguage:    helpers.FmtWakatimeDuration(totalTimeAvg),
 		},
 	}
 }

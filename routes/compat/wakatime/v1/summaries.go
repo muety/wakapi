@@ -122,6 +122,10 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request, user *models.User)
 	// see https://github.com/muety/wakapi/issues/192
 	end = datetime.EndOfDay(end)
 
+	if !end.After(start) {
+		return nil, errors.New("'end' date must be after 'start' date"), http.StatusBadRequest
+	}
+
 	overallParams := &models.SummaryParams{
 		From: start,
 		To:   end,
