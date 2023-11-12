@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"github.com/duke-git/lancet/v2/mathutil"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
@@ -103,7 +104,7 @@ func NewSummariesFrom(summaries []*models.Summary) *SummariesViewModel {
 	}
 
 	totalHrs, totalMins, totalSecs := totalTime.Hours(), (totalTime - time.Duration(totalTime.Hours())*time.Hour).Minutes(), totalTime.Seconds()
-	totalDays := len(utils.SplitRangeByDays(minDate, maxDate))
+	totalDays := mathutil.Max[int](len(utils.SplitRangeByDays(minDate, maxDate)), 1)
 	totalTimeAvg, totalTimeKnownAvg := totalTime/time.Duration(totalDays), totalTimeKnown/time.Duration(totalDays)
 	totalSecsAvg, totalSecsKnownAvg := int64(totalTimeAvg.Seconds()), int64(totalTimeKnownAvg.Seconds())
 
