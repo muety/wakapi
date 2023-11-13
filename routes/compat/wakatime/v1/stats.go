@@ -1,10 +1,11 @@
 package v1
 
 import (
-	"github.com/go-chi/chi/v5"
-	"github.com/muety/wakapi/helpers"
 	"net/http"
 	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/muety/wakapi/helpers"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -114,21 +115,23 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	stats.Data.IsCodingActivityVisible = requestedUser.ShareDataMaxDays != 0
 	stats.Data.IsOtherUsageVisible = requestedUser.AnyDataShared()
 
-	// post filter stats according to user's given sharing permissions
-	if !requestedUser.ShareEditors {
-		stats.Data.Editors = nil
-	}
-	if !requestedUser.ShareLanguages {
-		stats.Data.Languages = nil
-	}
-	if !requestedUser.ShareProjects {
-		stats.Data.Projects = nil
-	}
-	if !requestedUser.ShareOSs {
-		stats.Data.OperatingSystems = nil
-	}
-	if !requestedUser.ShareMachines {
-		stats.Data.Machines = nil
+	if authorizedUser == nil {
+		// post filter stats according to user's given sharing permissions
+		if !requestedUser.ShareEditors {
+			stats.Data.Editors = nil
+		}
+		if !requestedUser.ShareLanguages {
+			stats.Data.Languages = nil
+		}
+		if !requestedUser.ShareProjects {
+			stats.Data.Projects = nil
+		}
+		if !requestedUser.ShareOSs {
+			stats.Data.OperatingSystems = nil
+		}
+		if !requestedUser.ShareMachines {
+			stats.Data.Machines = nil
+		}
 	}
 
 	helpers.RespondJSON(w, r, http.StatusOK, stats)
