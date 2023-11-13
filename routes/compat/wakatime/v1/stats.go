@@ -115,7 +115,7 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	stats.Data.IsCodingActivityVisible = requestedUser.ShareDataMaxDays != 0
 	stats.Data.IsOtherUsageVisible = requestedUser.AnyDataShared()
 
-	if authorizedUser == nil {
+	if authorizedUser == nil || requestedUser.ID != authorizedUser.ID {
 		// post filter stats according to user's given sharing permissions
 		if !requestedUser.ShareEditors {
 			stats.Data.Editors = nil
