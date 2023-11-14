@@ -2189,7 +2189,7 @@
 									"",
 									"pm.test(\"Correct content\", function () {",
 									"    const jsonData = pm.response.json();",
-									"    pm.expect(jsonData.data.languages).to.eql(null); // because share_languages is false",
+									"    pm.expect(jsonData.data.languages.length).to.eql(1); // share_languages is false, but user is authorized",
 									"    pm.expect(jsonData.data.projects.length).to.eql(1);",
 									"    pm.expect(jsonData.data.branches).to.be.undefined;",
 									"});"
@@ -2432,6 +2432,7 @@
 									"",
 									"pm.test(\"Correct content\", function () {",
 									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.languages.length).to.eql(0);  // share_languages is false",
 									"    pm.expect(jsonData.data.projects.length).to.eql(1);",
 									"});"
 								],
@@ -2479,7 +2480,7 @@
 									"",
 									"pm.test(\"Correct content\", function () {",
 									"    const jsonData = pm.response.json();",
-									"    pm.expect(jsonData.data.languages).to.eql(null); // because share_languages is false",
+									"    pm.expect(jsonData.data.languages.length).to.eql(1); // share_languages is false, but user is authorized",
 									"    pm.expect(jsonData.data.projects.length).to.eql(1);",
 									"});"
 								],

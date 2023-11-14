@@ -118,19 +118,19 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	if authorizedUser == nil || requestedUser.ID != authorizedUser.ID {
 		// post filter stats according to user's given sharing permissions
 		if !requestedUser.ShareEditors {
-			stats.Data.Editors = nil
+			stats.Data.Editors = make([]*v1.SummariesEntry, 0)
 		}
 		if !requestedUser.ShareLanguages {
-			stats.Data.Languages = nil
+			stats.Data.Languages = make([]*v1.SummariesEntry, 0)
 		}
 		if !requestedUser.ShareProjects {
-			stats.Data.Projects = nil
+			stats.Data.Projects = make([]*v1.SummariesEntry, 0)
 		}
 		if !requestedUser.ShareOSs {
-			stats.Data.OperatingSystems = nil
+			stats.Data.OperatingSystems = make([]*v1.SummariesEntry, 0)
 		}
 		if !requestedUser.ShareMachines {
-			stats.Data.Machines = nil
+			stats.Data.Machines = make([]*v1.SummariesEntry, 0)
 		}
 	}
 
