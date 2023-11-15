@@ -1,17 +1,20 @@
 package v1
 
 import (
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
-	"net/http"
-	"strings"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
-	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
+	"github.com/muety/wakapi/utils"
 )
 
 type ProjectsHandler struct {
@@ -51,7 +54,7 @@ func (h *ProjectsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return // response was already sent by util function
 	}
 
-	results, err := h.heartbeatSrvc.GetEntitySetByUser(models.SummaryProject, user.ID)
+	results, err := h.heartbeatSrvc.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), nil, false)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("something went wrong"))
@@ -63,8 +66,15 @@ func (h *ProjectsHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	projects := make([]*v1.Project, 0, len(results))
 	for _, p := range results {
-		if strings.HasPrefix(p, q) {
-			projects = append(projects, &v1.Project{ID: p, Name: p})
+		if strings.HasPrefix(p.Project, q) {
+			projects = append(projects, &v1.Project{
+				ID:                           p.Project,
+				Name:                         p.Project,
+				LastHeartbeatAt:              p.Last.T(),
+				HumanReadableLastHeartbeatAt: helpers.FormatDateTimeHuman(p.Last.T()),
+				UrlencodedName:               url.QueryEscape(p.Project),
+				CreatedAt:                    p.First.T(),
+			})
 		}
 	}
 
