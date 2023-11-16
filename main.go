@@ -152,12 +152,12 @@ func main() {
 		db = db.Debug()
 	}
 	sqlDb, err := db.DB()
-	sqlDb.SetMaxIdleConns(int(config.Db.MaxConn))
-	sqlDb.SetMaxOpenConns(int(config.Db.MaxConn))
 	if err != nil {
 		logbuch.Error(err.Error())
 		logbuch.Fatal("could not connect to database")
 	}
+	sqlDb.SetMaxIdleConns(int(config.Db.MaxConn))
+	sqlDb.SetMaxOpenConns(int(config.Db.MaxConn))
 	defer sqlDb.Close()
 
 	// Migrate database schema
