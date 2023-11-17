@@ -44,7 +44,7 @@ func NewFromUser(user *models.User) *User {
 
 	return &User{
 		ID:          user.ID,
-		DisplayName: DefaultWakaUserDisplayName,
+		DisplayName: user.ID,
 		Email:       user.Email,
 		TimeZone:    tz,
 		Username:    user.ID,
