@@ -1,8 +1,11 @@
 package v1
 
 import (
-	"github.com/muety/wakapi/models"
+	"fmt"
 	"time"
+
+	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/models"
 )
 
 const DefaultWakaUserDisplayName = "Anonymous User"
@@ -28,9 +31,11 @@ type User struct {
 	Website          string            `json:"website"`
 	CreatedAt        models.CustomTime `json:"created_at"`
 	ModifiedAt       models.CustomTime `json:"modified_at"`
+	Photo            string            `json:"photo"`
 }
 
 func NewFromUser(user *models.User) *User {
+	cfg := config.Get()
 	tz, _ := time.Now().Zone()
 	if user.Location != "" {
 		tz = user.Location
@@ -38,12 +43,13 @@ func NewFromUser(user *models.User) *User {
 
 	return &User{
 		ID:          user.ID,
-		DisplayName: DefaultWakaUserDisplayName,
+		DisplayName: user.ID,
 		Email:       user.Email,
 		TimeZone:    tz,
 		Username:    user.ID,
 		CreatedAt:   user.CreatedAt,
 		ModifiedAt:  user.CreatedAt,
+		Photo:       fmt.Sprintf("%s%s/%s", cfg.Server.GetPublicUrl(), cfg.Server.BasePath, user.AvatarURL(cfg.App.AvatarURLTemplate)),
 	}
 }
 
