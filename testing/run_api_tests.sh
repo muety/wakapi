@@ -1,7 +1,9 @@
 #!/bin/bash
+set -o nounset -o pipefail -o errexit
 
-if ! command -v newman &> /dev/null
-then
+DB_TYPE=${1-sqlite}
+
+if ! command -v newman &> /dev/null; then
     echo "Newman could not be found. Run 'npm install -g newman' first."
     exit 1
 fi
@@ -23,14 +25,12 @@ echo "Compiling."
 cd "$script_dir" || exit 1
 
 # Download previous release (when upgrade testing)
-initial_run_exe="../wakapi"
-if [[ $MIGRATION -eq 1 ]]; then
+if [ "${MIGRATION-0}" -eq 1 ]; then
     if [ ! -f wakapi_linux_amd64.zip ]; then
         echo "Downloading latest release"
         curl https://github.com/muety/wakapi/releases/latest/download/wakapi_linux_amd64.zip -O -L
     fi
     unzip -o wakapi_linux_amd64.zip
-    initial_run_exe="./wakapi"
     echo "Running tests with release version"
 fi
 
@@ -45,22 +45,22 @@ cleanup() {
 trap cleanup EXIT
 
 # Initialise test data
-case $1 in
+case $DB_TYPE in
     postgres|mysql|mariadb|cockroach)
     docker compose -f "$script_dir/docker-compose.yml" down
 
     docker_down=1
-    docker compose -f "$script_dir/docker-compose.yml" up --wait -d "$1"
+    docker compose -f "$script_dir/docker-compose.yml" up --wait --detach "$DB_TYPE"
 
-    config="config.$1.yml"
-    if [ "$1" == "mariadb" ]; then
+    config="config.$DB_TYPE.yml"
+    if [ "$DB_TYPE" == "mariadb" ]; then
         config="config.mysql.yml"
     fi
 
     db_port=0
-    if [ "$1" == "postgres" ]; then
+    if [ "$DB_TYPE" == "postgres" ]; then
         db_port=55432
-    elif [ "$1" == "cockroach" ]; then
+    elif [ "$DB_TYPE" == "cockroach" ]; then
         db_port=56257
     else
         db_port=26257
@@ -75,15 +75,8 @@ case $1 in
     ;;
 
     sqlite|*)
-    rm -f wakapi_testing.db
-
-    echo "Creating database and schema ..."
-    sqlite3 wakapi_testing.db < schema.sql
-
-    echo "Importing seed data ..."
-    sqlite3 wakapi_testing.db < data.sql
-
     config="config.sqlite.yml"
+    rm -f wakapi_testing.db
     ;;
 esac
 
@@ -104,34 +97,46 @@ wait_for_wakapi () {
     printf "\n"
 }
 
-# Run tests
-echo "Running Wakapi testing instance in background ..."
-echo "Configuration file: $config"
-"$initial_run_exe" -config "$config" &
-pid=$!
-wait_for_wakapi
+start_wakapi_background() {
+    path=$1
+    config=$2
 
-if [ "$1" == "sqlite" ] || [ -z "$1" ]; then
-    echo "Running test collection ..."
-    newman run "wakapi_api_tests.postman_collection.json"
-    exit_code=$?
-else
-    exit_code=0
-fi
-
-echo "Shutting down Wakapi ..."
-kill -TERM $pid
-
-# Run upgrade tests
-if [[ $MIGRATION -eq 1 ]]; then
-    echo "Running migrations with build"
-    ../wakapi -config "$config" &
+    "$path" -config "$config" &
     pid=$!
-
     wait_for_wakapi
+}
+
+kill_wakapi() {
     echo "Shutting down Wakapi ..."
     kill -TERM $pid
+}
+
+# Run original wakapi
+echo "Configuration file: $config"
+if [ "${MIGRATION-0}" -eq 1 ]; then
+    echo "Running last release ..."
+    start_wakapi_background "./wakapi" "$config"
+    kill_wakapi
 fi
 
-echo "Exiting with status $exit_code"
-exit $exit_code
+echo "Running current build ..."
+start_wakapi_background "../wakapi" "$config"
+kill_wakapi
+
+# Only sqlite has data
+
+if [ "$DB_TYPE" == "sqlite" ]; then
+    echo "Creating database and schema ..."
+    sqlite3 wakapi_testing.db < schema.sql
+    echo "Importing seed data ..."
+    sqlite3 wakapi_testing.db < data.sql
+
+    start_wakapi_background "../wakapi" "$config"
+    echo "Running test collection ..."
+    if ! newman run "wakapi_api_tests.postman_collection.json"; then
+        exit_code=$?
+        echo "newman failed with exit code $exit_code"
+        exit "$exit_code"
+    fi
+    kill_wakapi
+fi
