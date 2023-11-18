@@ -35,12 +35,11 @@ type User struct {
 }
 
 func NewFromUser(user *models.User) *User {
+	cfg := config.Get()
 	tz, _ := time.Now().Zone()
 	if user.Location != "" {
 		tz = user.Location
 	}
-
-	config := config.Get()
 
 	return &User{
 		ID:          user.ID,
@@ -50,7 +49,7 @@ func NewFromUser(user *models.User) *User {
 		Username:    user.ID,
 		CreatedAt:   user.CreatedAt,
 		ModifiedAt:  user.CreatedAt,
-		Photo:       fmt.Sprintf("%s%s/%s", config.Server.GetPublicUrl(), config.Server.BasePath, user.AvatarURL(config.App.AvatarURLTemplate)),
+		Photo:       fmt.Sprintf("%s%s/%s", cfg.Server.GetPublicUrl(), cfg.Server.BasePath, user.AvatarURL(cfg.App.AvatarURLTemplate)),
 	}
 }
 
