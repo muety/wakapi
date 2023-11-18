@@ -516,6 +516,76 @@
                 }
             }
         },
+        "/compat/wakatime/v1/leaders": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Mimics https://wakatime.com/developers#leaders",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wakatime"
+                ],
+                "summary": "Retrieve the global leaderboard",
+                "operationId": "get-wakatime-leaders",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Range interval identifier",
+                        "name": "range",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project to filter by",
+                        "name": "project",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Language to filter by",
+                        "name": "language",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Editor to filter by",
+                        "name": "editor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "OS to filter by",
+                        "name": "operating_system",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Machine to filter by",
+                        "name": "machine",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project label to filter by",
+                        "name": "label",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.LeadersViewModel"
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "produces": [
@@ -1675,6 +1745,70 @@
             "properties": {
                 "data": {
                     "$ref": "#/definitions/v1.User"
+                }
+            }
+        },
+        "v1.LeadersViewModel": {
+            "type": "object",
+            "properties": {
+                "current_user": {
+                    "type": "object",
+                    "properties": {
+                        "rank": {
+                            "type": "integer"
+                        },
+                        "page": {
+                            "type": "integer"
+                        },
+                        "user": {
+                            "$ref": "#/definitions/v1.User"
+                        }
+                    }
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "rank": {
+                                "type": "integer"
+                            },
+                            "running_total": {
+                                "type": "object",
+                                "properties": {
+                                    "daily_average": {
+                                        "type": "number"
+                                    },
+                                    "human_readable_daily_average": {
+                                        "type": "string"
+                                    },
+                                    "human_readable_total": {
+                                        "type": "string"
+                                    },
+                                    "languages": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "total_seconds": {
+                                                    "type": "number"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "total_seconds": {
+                                        "type": "number"
+                                    }
+                                }
+                            },
+                            "user": {
+                                "$ref": "#/definitions/v1.User"
+                            }
+                        }
+                    }
                 }
             }
         }
