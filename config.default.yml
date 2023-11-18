@@ -21,6 +21,7 @@ app:
   report_time_weekly: '0 0 18 * * 5'                        # time at which to fan out weekly reports (extended cron)
   data_cleanup_time: '0 0 6 * * 0'                          # time at which to run old data cleanup (if enabled through data_retention_months)
   inactive_days: 7                                          # time of previous days within a user must have logged in to be considered active
+  import_enabled: true                                      # whether data import from wakatime or other wakapi instances is allowed
   import_backoff_min: 5                                     # time (in minutes) for "cooldown" before allowing another data import attempt by a user
   import_max_rate: 24                                       # minimum hours to pass after a successful data import by a user before attempting a new one
   import_batch_size: 50                                     # maximum number of heartbeats to insert into the database within one transaction

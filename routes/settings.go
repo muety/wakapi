@@ -494,6 +494,10 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 		loadTemplates()
 	}
 
+	if !h.config.App.ImportEnabled {
+		return http.StatusForbidden, "", "imports are disabled on this server"
+	}
+
 	user := middlewares.GetPrincipal(r)
 	if user.WakatimeApiKey == "" {
 		return http.StatusForbidden, "", "not connected to wakatime"
