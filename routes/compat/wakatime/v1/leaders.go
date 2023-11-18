@@ -43,10 +43,9 @@ func (h *LeadersHandler) RegisterRoutes(router chi.Router) {
 // @Success 200 {object} v1.LeaderboardViewModel
 // @Router /compat/wakatime/v1/leaders [get]
 func (h *LeadersHandler) Get(w http.ResponseWriter, r *http.Request) {
-	wakapiUser, err := h.userSrvc.GetUserById("current")
-	if err != nil {
-		conf.Log().Request(r).Error("error while fetching user - %v", err)
-		helpers.RespondJSON(w, r, http.StatusInternalServerError, nil)
+	wakapiUser := middlewares.GetPrincipal(r)
+	if wakapiUser == nil {
+		helpers.RespondJSON(w, r, http.StatusUnauthorized, nil)
 		return
 	}
 	pageParams := utils.ParsePageParamsWithDefault(r, 1, 100)
@@ -56,14 +55,14 @@ func (h *LeadersHandler) Get(w http.ResponseWriter, r *http.Request) {
 			language - String - optional - Filter leaders by a specific language.
 			is_hireable - Boolean - optional - Filter leaders by the hireable badge.
 			country_code - String - optional - Filter leaders by two-character country code.
-			page - Integer - optional - Page number of leaderboard. If authenticated, defaults to the page containing the currently authenticated user.
 	*/
 
 	by := models.SummaryLanguage
 	leaderboard, err := h.leaderboardSrvc.GetAggregatedByInterval(models.IntervalPast7Days, &by, pageParams, true)
 	if err != nil {
 		conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
-		helpers.RespondJSON(w, r, http.StatusInternalServerError, nil)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("something went wrong"))
 		return
 	}
 

@@ -2,15 +2,17 @@ package v1
 
 import (
 	"github.com/duke-git/lancet/v2/slice"
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
+	"math"
 	"time"
 )
 
 // partially compatible with https://wakatime.com/developers#leaders
 
 type LeaderboardViewModel struct {
-	CurrentUser CurrentUser        `json:"current_user"`
-	Data        []LeaderboardEntry `json:"data"`
+	CurrentUser *CurrentUser        `json:"current_user"`
+	Data        []*LeaderboardEntry `json:"data"`
 }
 
 type CurrentUser struct {
@@ -20,9 +22,14 @@ type CurrentUser struct {
 }
 
 type LeaderboardEntry struct {
-	Rank         int          `json:"rank"`
-	RunningTotal RunningTotal `json:"running_total"`
-	User         *User        `json:"user"`
+	Id           int           `json:"-"`
+	Rank         int           `json:"rank"`
+	RunningTotal *RunningTotal `json:"running_total"`
+	User         *User         `json:"user"`
+}
+
+func (l1 *LeaderboardEntry) Equals(l2 *LeaderboardEntry) bool {
+	return l1.Id == l2.Id
 }
 
 type RunningTotal struct {
@@ -38,18 +45,25 @@ type Language struct {
 	TotalSeconds float64 `json:"total_seconds"`
 }
 
-func NewRunningTotal(entry *models.LeaderboardItemRanked) RunningTotal {
-	return RunningTotal{
-		TotalSeconds:              entry.Total.Seconds(),
-		HumanReadableTotal:        entry.Total.String(),
-		DailyAverage:              entry.Total.Seconds() / 7,
-		HumanReadableDailyAverage: (entry.Total / 7).String(),
-		Languages:                 []Language{},
-	}
+func CalculateNewRunningTotal(entry *RunningTotal, newTotalDuration time.Duration) *RunningTotal {
+	var totalSeconds = math.RoundToEven(newTotalDuration.Seconds())
+	var dailyAvg = math.RoundToEven(totalSeconds / 7)
+	entry.TotalSeconds = totalSeconds
+	entry.HumanReadableTotal = helpers.FmtWakatimeDuration(newTotalDuration)
+	entry.DailyAverage = dailyAvg
+	entry.HumanReadableDailyAverage = helpers.FmtWakatimeDuration(time.Duration(dailyAvg) * time.Second)
+	return entry
 }
 
-func NewLeaderboardEntry(entry *models.LeaderboardItemRanked) LeaderboardEntry {
-	return LeaderboardEntry{
+func NewRunningTotal(entry *models.LeaderboardItemRanked) *RunningTotal {
+	var runningTotal = &RunningTotal{
+		Languages: []Language{},
+	}
+	return CalculateNewRunningTotal(runningTotal, entry.Total)
+}
+
+func NewLeaderboardEntry(entry *models.LeaderboardItemRanked) *LeaderboardEntry {
+	return &LeaderboardEntry{
 		Rank:         int(entry.Rank),
 		RunningTotal: NewRunningTotal(entry),
 		User:         NewFromUser(entry.User),
@@ -57,34 +71,27 @@ func NewLeaderboardEntry(entry *models.LeaderboardItemRanked) LeaderboardEntry {
 }
 
 func NewLeaderboardViewModel(leaderboard *models.Leaderboard, user *models.User) *LeaderboardViewModel {
-	var entries []LeaderboardEntry
-	var currentUserEntry = CurrentUser{}
+	var entries []*LeaderboardEntry
+	var currentUserEntry *CurrentUser
 	for _, entry := range *leaderboard {
-		if user != nil && entry.User.ID == user.ID {
-			currentUserEntry = CurrentUser{
+		if user != nil && entry.User.ID == user.ID &&
+			(currentUserEntry == nil || currentUserEntry.Rank < int(entry.Rank)) {
+			currentUserEntry = &CurrentUser{
 				Rank: int(entry.Rank),
-				Page: 0,
+				Page: 1,
 				User: NewFromUser(user),
 			}
 		}
 
-		if foundEntry, found := slice.Find[LeaderboardEntry](entries, func(i int, entry2 LeaderboardEntry) bool {
+		if foundEntry, found := slice.FindBy[*LeaderboardEntry](entries, func(i int, entry2 *LeaderboardEntry) bool {
 			return entry2.User.ID == entry.User.ID
 		}); found {
+			foundEntry.RunningTotal = CalculateNewRunningTotal(foundEntry.RunningTotal,
+				time.Duration(foundEntry.RunningTotal.TotalSeconds+entry.Total.Seconds())*time.Second)
 			foundEntry.RunningTotal.Languages = append(foundEntry.RunningTotal.Languages, Language{
 				Name:         *entry.Key,
 				TotalSeconds: entry.Total.Seconds(),
 			})
-			foundEntry.RunningTotal.TotalSeconds += entry.Total.Seconds()
-			foundEntry.RunningTotal.DailyAverage = foundEntry.RunningTotal.TotalSeconds / 7
-			var totalDuration time.Duration = time.Duration(foundEntry.RunningTotal.TotalSeconds) * time.Second
-			foundEntry.RunningTotal.HumanReadableTotal = totalDuration.String()
-			foundEntry.RunningTotal.HumanReadableDailyAverage = (totalDuration / 7).String()
-
-			entries = slice.Filter[LeaderboardEntry](entries, func(i int, entry2 LeaderboardEntry) bool {
-				return entry2.User.ID != entry.User.ID
-			})
-			entries = append(entries, *foundEntry)
 			continue
 		}
 		entries = append(entries, NewLeaderboardEntry(entry))
