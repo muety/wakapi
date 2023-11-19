@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"sync"
@@ -48,8 +49,8 @@ type SummariesData struct {
 	Machines         []*SummariesEntry    `json:"machines"`
 	OperatingSystems []*SummariesEntry    `json:"operating_systems"`
 	Projects         []*SummariesEntry    `json:"projects"`
-	Branches         []*SummariesEntry    `json:"branches,omitempty"`
-	Entities         []*SummariesEntry    `json:"entities,omitempty"`
+	Branches         []*SummariesEntry    `json:"branches"`
+	Entities         []*SummariesEntry    `json:"entities"`
 	GrandTotal       *SummariesGrandTotal `json:"grand_total"`
 	Range            *SummariesRange      `json:"range"`
 }
@@ -79,6 +80,19 @@ type SummariesRange struct {
 	Start    time.Time `json:"start"`
 	Text     string    `json:"text"`
 	Timezone string    `json:"timezone"`
+}
+
+// MarshalJSON adds a customized JSON serialization that will include the `branches` and `entities` fields if set to empty arrays, but exclude them if otherwise considered empty.
+func (s *SummariesData) MarshalJSON() ([]byte, error) {
+	type alias SummariesData
+	if s.Branches == nil || s.Entities == nil {
+		return json.Marshal(&struct {
+			*alias
+			Branches []*SummariesEntry `json:"branches,omitempty"`
+			Entities []*SummariesEntry `json:"entities,omitempty"`
+		}{alias: (*alias)(s)})
+	}
+	return json.Marshal((*alias)(s))
 }
 
 func NewSummariesFrom(summaries []*models.Summary) *SummariesViewModel {
