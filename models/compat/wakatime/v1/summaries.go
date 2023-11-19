@@ -179,60 +179,60 @@ func newDataFrom(s *models.Summary) *SummariesData {
 	var wg sync.WaitGroup
 
 	wg.Add(1)
-	go func(data *SummariesData) {
+	go utils.WithRecovery1[*SummariesData](func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.Projects {
 			data.Projects[i] = convertEntry(e, s.TotalTimeBy(models.SummaryProject))
 		}
-	}(data)
+	}, data)
 
 	wg.Add(1)
-	go func(data *SummariesData) {
+	go utils.WithRecovery1[*SummariesData](func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.Editors {
 			data.Editors[i] = convertEntry(e, s.TotalTimeBy(models.SummaryEditor))
 		}
-	}(data)
+	}, data)
 
 	wg.Add(1)
-	go func(data *SummariesData) {
+	go utils.WithRecovery1[*SummariesData](func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.Languages {
 			data.Languages[i] = convertEntry(e, s.TotalTimeBy(models.SummaryLanguage))
 		}
-	}(data)
+	}, data)
 
 	wg.Add(1)
-	go func(data *SummariesData) {
+	go utils.WithRecovery1[*SummariesData](func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.OperatingSystems {
 			data.OperatingSystems[i] = convertEntry(e, s.TotalTimeBy(models.SummaryOS))
 		}
-	}(data)
+	}, data)
 
 	wg.Add(1)
-	go func(data *SummariesData) {
+	go utils.WithRecovery1[*SummariesData](func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.Machines {
 			data.Machines[i] = convertEntry(e, s.TotalTimeBy(models.SummaryMachine))
 		}
-	}(data)
+	}, data)
 
 	wg.Add(1)
-	go func(data *SummariesData) {
+	go utils.WithRecovery1[*SummariesData](func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.Branches {
 			data.Branches[i] = convertEntry(e, s.TotalTimeBy(models.SummaryBranch))
 		}
-	}(data)
+	}, data)
 
 	wg.Add(1)
-	go func(data *SummariesData) {
+	go utils.WithRecovery1[*SummariesData](func(data *SummariesData) {
 		defer wg.Done()
 		for i, e := range s.Entities {
 			data.Entities[i] = convertEntry(e, s.TotalTimeBy(models.SummaryEntity))
 		}
-	}(data)
+	}, data)
 
 	if s.Branches == nil {
 		data.Branches = nil
