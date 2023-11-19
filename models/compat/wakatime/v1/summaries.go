@@ -2,13 +2,14 @@ package v1
 
 import (
 	"fmt"
+	"math"
+	"sync"
+	"time"
+
 	"github.com/duke-git/lancet/v2/mathutil"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
-	"math"
-	"sync"
-	"time"
 )
 
 // https://wakatime.com/developers#summaries
@@ -144,6 +145,7 @@ func newDataFrom(s *models.Summary) *SummariesData {
 		OperatingSystems: make([]*SummariesEntry, len(s.OperatingSystems)),
 		Projects:         make([]*SummariesEntry, len(s.Projects)),
 		Branches:         make([]*SummariesEntry, len(s.Branches)),
+		Entities:         make([]*SummariesEntry, len(s.Entities)),
 		GrandTotal: &SummariesGrandTotal{
 			Digital:      fmt.Sprintf("%d:%d", totalHrs, totalMins),
 			Hours:        totalHrs,
