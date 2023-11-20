@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/muety/wakapi/config"
@@ -41,6 +42,12 @@ func NewFromUser(user *models.User) *User {
 		tz = user.Location
 	}
 
+	avatarURL := user.AvatarURL(cfg.App.AvatarURLTemplate)
+
+	if !strings.HasPrefix(avatarURL, "http") {
+		avatarURL = fmt.Sprintf("%s%s/%s", cfg.Server.GetPublicUrl(), cfg.Server.BasePath, avatarURL)
+	}
+
 	return &User{
 		ID:          user.ID,
 		DisplayName: user.ID,
@@ -49,7 +56,7 @@ func NewFromUser(user *models.User) *User {
 		Username:    user.ID,
 		CreatedAt:   user.CreatedAt,
 		ModifiedAt:  user.CreatedAt,
-		Photo:       fmt.Sprintf("%s%s/%s", cfg.Server.GetPublicUrl(), cfg.Server.BasePath, user.AvatarURL(cfg.App.AvatarURLTemplate)),
+		Photo:       avatarURL,
 	}
 }
 
