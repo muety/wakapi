@@ -46,7 +46,7 @@ const (
 )
 
 const (
-	WakatimeApiUrl               = "https://wakatime.com/api/v1"
+	WakatimeApiUrl               = "https://api.wakatime.com/api/v1"
 	WakatimeApiUserUrl           = "/users/current"
 	WakatimeApiAllTimeUrl        = "/users/current/all_time_since_today"
 	WakatimeApiHeartbeatsUrl     = "/users/current/heartbeats"
