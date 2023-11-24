@@ -198,7 +198,7 @@ func ValidatePassword(password string) bool {
 
 // ValidateEmail checks that, if an email address is given, it has proper syntax and (if not in dev mode) an MX record exists for the domain
 func ValidateEmail(email string) bool {
-	return email == "" || (mailRegex.Match([]byte(email)) && (conf.Get().IsDev() || utils.CheckEmailMX(email)))
+	return email == "" || (mailRegex.MatchString(email) && (conf.Get().IsDev() || utils.CheckEmailMX(email)))
 }
 
 func ValidateTimezone(tz string) bool {

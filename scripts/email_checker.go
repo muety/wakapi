@@ -31,7 +31,7 @@ func CheckEmailMX(email string) bool {
 }
 
 func ValidateEmail(email string) bool {
-	return mailRegex.Match([]byte(email)) && CheckEmailMX(email)
+	return mailRegex.MatchString(email) && CheckEmailMX(email)
 }
 
 func main() {
