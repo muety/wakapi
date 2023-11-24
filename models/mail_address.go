@@ -48,7 +48,7 @@ func (m MailAddress) Domain() string {
 }
 
 func (m MailAddress) Valid() bool {
-	return emailAddrRegex.Match([]byte(m))
+	return emailAddrRegex.MatchString(string(m))
 }
 
 func (m MailAddresses) Strings() []string {
