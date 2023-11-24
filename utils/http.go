@@ -85,7 +85,7 @@ func ParsePageParamsWithDefault(r *http.Request, page, size int) *PageParams {
 
 func ParseUserAgent(ua string) (string, string, error) { // os, editor, err
 	// try parse wakatime client user agents
-	re := regexp.MustCompile(`(?iU)^(?:(?:wakatime|chrome|firefox|edge)\/(?:v?[\d+.]+|unset)\s)?(?:\(?(\w+)[-_].*\)?.+\s)?([^\/\s]+)-wakatime\/.+$`)
+	re := regexp.MustCompile(`(?iU)^(?:(?:wakatime|chrome|firefox|edge)\/(?:v?[\d+.]+|unset)?\s)?(?:\(?(\w+)[-_].*\)?.+\s)?([^\/\s]+)-wakatime\/.+$`)
 	if groups := re.FindAllStringSubmatch(ua, -1); len(groups) > 0 && len(groups[0]) == 3 {
 		if groups[0][1] == "win" {
 			groups[0][1] = "windows"

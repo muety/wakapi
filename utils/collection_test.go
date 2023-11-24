@@ -50,6 +50,12 @@ func TestCommon_ParseUserAgent(t *testing.T) {
 			nil,
 		},
 		{
+			"wakatime/ (Linux-6.0.42-1-lts-foobar-x86_64) KTextEditor/5.111.0 kate-wakatime/1.3.10",
+			"Linux",
+			"kate",
+			nil,
+		},
+		{
 			"Chrome/111.0.0.0 chrome-wakatime/3.0.6",
 			"",
 			"chrome",
