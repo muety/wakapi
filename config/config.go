@@ -42,6 +42,7 @@ const (
 
 	ErrUnauthorized        = "401 unauthorized"
 	ErrBadRequest          = "400 bad request"
+	ErrNotFound            = "404 not found"
 	ErrInternalServerError = "500 internal server error"
 )
 
