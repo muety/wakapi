@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/duke-git/lancet/v2/slice"
 	"net"
 	"net/http"
 	"os"
@@ -67,11 +68,14 @@ var emailProviders = []string{
 	MailProviderMailWhale,
 }
 
+var leaderboardScopes = []string{"24_hours", "week", "month", "year", "7_days", "14_days", "30_days", "6_months", "12_months", "all_time"}
+
 var cfg *Config
 var env string
 
 type appConfig struct {
 	AggregationTime           string                       `yaml:"aggregation_time" default:"0 15 2 * * *" env:"WAKAPI_AGGREGATION_TIME"`
+	LeaderboardScope          string                       `yaml:"leaderboard_scope" default:"7_days" env:"WAKAPI_LEADERBOARD_SCOPE"`
 	LeaderboardGenerationTime string                       `yaml:"leaderboard_generation_time" default:"0 0 6 * * *,0 0 18 * * *" env:"WAKAPI_LEADERBOARD_GENERATION_TIME"`
 	ReportTimeWeekly          string                       `yaml:"report_time_weekly" default:"0 0 18 * * 5" env:"WAKAPI_REPORT_TIME_WEEKLY"`
 	DataCleanupTime           string                       `yaml:"data_cleanup_time" default:"0 0 6 * * 0" env:"WAKAPI_DATA_CLEANUP_TIME"`
@@ -489,6 +493,11 @@ func Load(configFlag string, version string) *Config {
 		if _, err := cronParser.Parse(c); err != nil {
 			logbuch.Fatal("invalid cron expression for leaderboard_generation_time")
 		}
+	}
+
+	// see models/interval.go
+	if !slice.Contain[string](leaderboardScopes, config.App.LeaderboardScope) {
+		logbuch.Fatal("leaderboard scope is not a valid constant")
 	}
 
 	// deprecation notices

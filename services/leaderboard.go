@@ -25,6 +25,7 @@ type LeaderboardService struct {
 	userService    IUserService
 	queueDefault   *artifex.Dispatcher
 	queueWorkers   *artifex.Dispatcher
+	defaultScope   *models.IntervalKey
 }
 
 func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, summaryService ISummaryService, userService IUserService) *LeaderboardService {
@@ -38,6 +39,12 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 		queueDefault:   config.GetDefaultQueue(),
 		queueWorkers:   config.GetQueue(config.QueueProcessing),
 	}
+
+	scope, err := helpers.ParseInterval(srv.config.App.LeaderboardScope)
+	if err != nil {
+		logbuch.Fatal(err.Error())
+	}
+	srv.defaultScope = scope
 
 	onUserUpdate := srv.eventBus.Subscribe(0, config.EventUserUpdate)
 	go func(sub *hub.Subscription) {
@@ -53,7 +60,7 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 
 			if user.PublicLeaderboard && !exists {
 				logbuch.Info("generating leaderboard for '%s' after settings update", user.ID)
-				srv.ComputeLeaderboard([]*models.User{user}, models.IntervalPast7Days, []uint8{models.SummaryLanguage})
+				srv.ComputeLeaderboard([]*models.User{user}, srv.defaultScope, []uint8{models.SummaryLanguage})
 			} else if !user.PublicLeaderboard && exists {
 				logbuch.Info("clearing leaderboard for '%s' after settings update", user.ID)
 				if err := srv.repository.DeleteByUser(user.ID); err != nil {
@@ -67,6 +74,10 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 	return srv
 }
 
+func (srv *LeaderboardService) GetDefaultScope() *models.IntervalKey {
+	return srv.defaultScope
+}
+
 func (srv *LeaderboardService) Schedule() {
 	logbuch.Info("scheduling leaderboard generation")
 
@@ -76,7 +87,7 @@ func (srv *LeaderboardService) Schedule() {
 			config.Log().Error("failed to get users for leaderboard generation - %v", err)
 			return
 		}
-		srv.ComputeLeaderboard(users, models.IntervalPast7Days, []uint8{models.SummaryLanguage})
+		srv.ComputeLeaderboard(users, srv.defaultScope, []uint8{models.SummaryLanguage})
 	}
 
 	for _, cronExp := range srv.config.App.GetLeaderboardGenerationTimeCron() {

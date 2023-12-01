@@ -14,6 +14,7 @@ type LeaderboardViewModel struct {
 	Items         []*models.LeaderboardItemRanked
 	TopKeys       []string
 	UserLanguages map[string][]string
+	IntervalLabel string
 	ApiKey        string
 	PageParams    *utils.PageParams
 }

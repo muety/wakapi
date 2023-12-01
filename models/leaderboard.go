@@ -45,6 +45,13 @@ func (l *Leaderboard) AddMany(items []*LeaderboardItemRanked) {
 	}
 }
 
+// inplace!
+func (l *Leaderboard) FilterEmpty() {
+	*l = slice.Filter[*LeaderboardItemRanked](*l, func(i int, item *LeaderboardItemRanked) bool {
+		return item.Total > 0
+	})
+}
+
 func (l Leaderboard) UserIDs() []string {
 	return slice.Unique[string](slice.Map[*LeaderboardItemRanked, string](l, func(i int, item *LeaderboardItemRanked) string {
 		return item.UserID

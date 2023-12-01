@@ -70,7 +70,7 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWrit
 	var topKeys []string
 
 	if byParam == "" {
-		leaderboard, err = h.leaderboardService.GetByInterval(models.IntervalPast7Days, pageParams, true)
+		leaderboard, err = h.leaderboardService.GetByInterval(h.leaderboardService.GetDefaultScope(), pageParams, true)
 		if err != nil {
 			conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
 			return &view.LeaderboardViewModel{
@@ -82,14 +82,14 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWrit
 		if user != nil && !leaderboard.HasUser(user.ID) {
 			// but only if leaderboard spans multiple pages
 			if count, err := h.leaderboardService.CountUsers(); err == nil && count > int64(pageParams.PageSize) {
-				if l, err := h.leaderboardService.GetByIntervalAndUser(models.IntervalPast7Days, user.ID, true); err == nil && len(l) > 0 {
+				if l, err := h.leaderboardService.GetByIntervalAndUser(h.leaderboardService.GetDefaultScope(), user.ID, true); err == nil && len(l) > 0 {
 					leaderboard = append(leaderboard, l[0])
 				}
 			}
 		}
 	} else {
 		if by, ok := allowedAggregations[byParam]; ok {
-			leaderboard, err = h.leaderboardService.GetAggregatedByInterval(models.IntervalPast7Days, &by, pageParams, true)
+			leaderboard, err = h.leaderboardService.GetAggregatedByInterval(h.leaderboardService.GetDefaultScope(), &by, pageParams, true)
 			if err != nil {
 				conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
 				return &view.LeaderboardViewModel{
@@ -101,7 +101,7 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWrit
 			if user != nil {
 				// but only if leaderboard could, in theory, span multiple pages
 				if count, err := h.leaderboardService.CountUsers(); err == nil && count > int64(pageParams.PageSize) {
-					if l, err := h.leaderboardService.GetAggregatedByIntervalAndUser(models.IntervalPast7Days, user.ID, &by, true); err == nil {
+					if l, err := h.leaderboardService.GetAggregatedByIntervalAndUser(h.leaderboardService.GetDefaultScope(), user.ID, &by, true); err == nil {
 						leaderboard.AddMany(l)
 					} else {
 						conf.Log().Request(r).Error("error while fetching own aggregated user leaderboard - %v", err)
@@ -137,6 +137,8 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWrit
 		apiKey = user.ApiKey
 	}
 
+	leaderboard.FilterEmpty()
+
 	vm := &view.LeaderboardViewModel{
 		User:          user,
 		By:            byParam,
@@ -144,6 +146,7 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWrit
 		Items:         leaderboard,
 		UserLanguages: userLanguages,
 		TopKeys:       topKeys,
+		IntervalLabel: h.leaderboardService.GetDefaultScope().GetHumanReadable(),
 		ApiKey:        apiKey,
 		PageParams:    pageParams,
 	}

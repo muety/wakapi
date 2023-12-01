@@ -20,10 +20,15 @@
 
 <main class="mt-10 grow flex justify-center w-full" id="leaderboard-page">
     <div class="flex flex-col grow mt-10 max-available">
-        <h1 class="h1" style="margin-bottom: 0.5rem">Leaderboard</h1>
+        <div class="flex items-center justify-start" style="margin-bottom: 0.5rem">
+            <h1 class="h1 inline-block">Leaderboard</h1>
+            {{ if .IntervalLabel }}
+            <span class="text-gray-500 text-xl inline-block ml-1">&nbsp;({{ .IntervalLabel }})</span>
+            {{ end }}
+        </div>
 
         <p class="block text-sm text-gray-300 w-full lg:w-3/4 mb-8">
-            Wakapi's leaderboard shows a ranking of the most active users on this server, given they opted in to get listed on the public leaderboard. Statistics are updated at least every 12 hours and are based on the users' total coding time in the past seven days.
+            Wakapi's leaderboard shows a ranking of the most active users on this server, given they opted in to get listed on the public leaderboard. Statistics are updated at least every 12 hours and are based on the users' total coding time in a pre-defined interval.
             To participate, log in, go to <a class="link" href="settings#permissions">Settings 🠒 Permissions</a> and enable leaderboards.
         </p>
 

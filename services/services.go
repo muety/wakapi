@@ -115,6 +115,7 @@ type IHousekeepingService interface {
 }
 
 type ILeaderboardService interface {
+	GetDefaultScope() *models.IntervalKey
 	Schedule()
 	ComputeLeaderboard([]*models.User, *models.IntervalKey, []uint8) error
 	ExistsAnyByUser(string) (bool, error)
