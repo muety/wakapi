@@ -10,10 +10,12 @@
         <span class="text-gray-300 hidden lg:inline-block">Dashboard</span>
     </a>
 
+    {{ if .LeaderboardEnabled }}
     <a class="menu-item" href="leaderboard">
         <span class="iconify inline text-2xl text-gray-400" data-icon="fluent:data-bar-horizontal-24-filled"></span>
         <span class="text-gray-300 hidden lg:inline-block">Leaderboard</span>
     </a>
+    {{ end }}
 
     <a class="menu-item" href="projects">
         <span class="iconify inline text-2xl text-gray-400 p-px" data-icon="octicon:project-16"></span>

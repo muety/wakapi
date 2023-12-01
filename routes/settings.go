@@ -715,7 +715,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 	aliases, err := h.aliasSrvc.GetByUser(user.ID)
 	if err != nil {
 		conf.Log().Request(r).Error("error while building alias map - %v", err)
-		return &view.SettingsViewModel{Messages: view.Messages{Error: criticalError}}
+		return &view.SettingsViewModel{Messages: view.Messages{Error: criticalError}, LeaderboardEnabled: h.config.App.LeaderboardEnabled}
 	}
 	aliasMap := make(map[string][]*models.Alias)
 	for _, a := range aliases {
@@ -744,7 +744,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 	labelMap, err := h.projectLabelSrvc.GetByUserGroupedInverted(user.ID)
 	if err != nil {
 		conf.Log().Request(r).Error("error while building settings project label map - %v", err)
-		return &view.SettingsViewModel{Messages: view.Messages{Error: criticalError}}
+		return &view.SettingsViewModel{Messages: view.Messages{Error: criticalError}, LeaderboardEnabled: h.config.App.LeaderboardEnabled}
 	}
 
 	combinedLabels := make([]*view.SettingsVMCombinedLabel, 0)
@@ -766,7 +766,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 	projects, err := routeutils.GetEffectiveProjectsList(user, h.heartbeatSrvc, h.aliasSrvc)
 	if err != nil {
 		conf.Log().Request(r).Error("error while fetching projects - %v", err)
-		return &view.SettingsViewModel{Messages: view.Messages{Error: criticalError}}
+		return &view.SettingsViewModel{Messages: view.Messages{Error: criticalError}, LeaderboardEnabled: h.config.App.LeaderboardEnabled}
 	}
 
 	// subscriptions
@@ -793,6 +793,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 		SubscriptionPrice:   subscriptionPrice,
 		SupportContact:      h.config.App.SupportContact,
 		DataRetentionMonths: h.config.App.DataRetentionMonths,
+		LeaderboardEnabled:  h.config.App.LeaderboardEnabled,
 	}
 	return routeutils.WithSessionMessages(vm, r, w)
 }

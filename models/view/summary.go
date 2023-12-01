@@ -19,6 +19,7 @@ type SummaryViewModel struct {
 	RawQuery            string
 	UserFirstData       time.Time
 	DataRetentionMonths int
+	LeaderboardEnabled  bool
 }
 
 func (s SummaryViewModel) UserDataExpiring() bool {

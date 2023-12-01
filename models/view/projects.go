@@ -11,11 +11,12 @@ import (
 
 type ProjectsViewModel struct {
 	Messages
-	User       *models.User
-	Projects   []*models.ProjectStats
-	ApiKey     string
-	PageParams *utils.PageParams
-	maxCount   int64
+	User               *models.User
+	Projects           []*models.ProjectStats
+	LeaderboardEnabled bool
+	ApiKey             string
+	PageParams         *utils.PageParams
+	maxCount           int64
 }
 
 func (s *ProjectsViewModel) LangIcon(lang string) string {

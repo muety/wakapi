@@ -16,9 +16,10 @@ server:
   public_url: http://localhost:3000   # required for links (e.g. password reset) in e-mail
 
 app:
-  aggregation_time: '0 15 2 * * *'                          # time at which to run daily aggregation batch jobs
+  leaderboard_enabled: 7_days                               # leaderboard time interval (e.g. 14_days, 6_months, ...)
   leaderboard_scope: 7_days                                 # leaderboard time interval (e.g. 14_days, 6_months, ...)
   leaderboard_generation_time: '0 0 6 * * *,0 0 18 * * *'   # times at which to re-calculate the leaderboard
+  aggregation_time: '0 15 2 * * *'                          # time at which to run daily aggregation batch jobs
   report_time_weekly: '0 0 18 * * 5'                        # time at which to fan out weekly reports (extended cron)
   data_cleanup_time: '0 0 6 * * 0'                          # time at which to run old data cleanup (if enabled through data_retention_months)
   inactive_days: 7                                          # time of previous days within a user must have logged in to be considered active

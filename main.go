@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"flag"
+	"github.com/duke-git/lancet/v2/condition"
 	"io/fs"
 	"log"
 	"net"
@@ -186,7 +187,6 @@ func main() {
 	heartbeatService = services.NewHeartbeatService(heartbeatRepository, languageMappingService)
 	durationService = services.NewDurationService(heartbeatService)
 	summaryService = services.NewSummaryService(summaryRepository, durationService, aliasService, projectLabelService)
-	leaderboardService = services.NewLeaderboardService(leaderboardRepository, summaryService, userService)
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
 	keyValueService = services.NewKeyValueService(keyValueRepository)
 	reportService = services.NewReportService(summaryService, userService, mailService)
@@ -195,13 +195,20 @@ func main() {
 	housekeepingService = services.NewHousekeepingService(userService, heartbeatService, summaryService)
 	miscService = services.NewMiscService(userService, heartbeatService, summaryService, keyValueService, mailService)
 
+	if config.App.LeaderboardEnabled {
+		leaderboardService = services.NewLeaderboardService(leaderboardRepository, summaryService, userService)
+	}
+
 	// Schedule background tasks
 	go conf.StartJobs()
 	go aggregationService.Schedule()
-	go leaderboardService.Schedule()
 	go reportService.Schedule()
 	go housekeepingService.Schedule()
 	go miscService.Schedule()
+
+	if config.App.LeaderboardEnabled {
+		go leaderboardService.Schedule()
+	}
 
 	routes.Init()
 
@@ -229,11 +236,11 @@ func main() {
 	summaryHandler := routes.NewSummaryHandler(summaryService, userService, keyValueService)
 	settingsHandler := routes.NewSettingsHandler(userService, heartbeatService, summaryService, aliasService, aggregationService, languageMappingService, projectLabelService, keyValueService, mailService)
 	subscriptionHandler := routes.NewSubscriptionHandler(userService, mailService, keyValueService)
-	leaderboardHandler := routes.NewLeaderboardHandler(userService, leaderboardService)
 	projectsHandler := routes.NewProjectsHandler(userService, heartbeatService)
 	homeHandler := routes.NewHomeHandler(keyValueService)
 	loginHandler := routes.NewLoginHandler(userService, mailService)
 	imprintHandler := routes.NewImprintHandler(keyValueService)
+	leaderboardHandler := condition.TernaryOperator[bool, routes.Handler](config.App.LeaderboardEnabled, routes.NewLeaderboardHandler(userService, leaderboardService), routes.NewNoopHandler())
 
 	// Other Handlers
 	relayHandler := relay.NewRelayHandler()

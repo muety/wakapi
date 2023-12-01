@@ -16,6 +16,7 @@ type SettingsViewModel struct {
 	DataRetentionMonths int
 	UserFirstData       time.Time
 	SupportContact      string
+	LeaderboardEnabled  bool
 	ApiKey              string
 }
 

@@ -74,9 +74,10 @@ var cfg *Config
 var env string
 
 type appConfig struct {
-	AggregationTime           string                       `yaml:"aggregation_time" default:"0 15 2 * * *" env:"WAKAPI_AGGREGATION_TIME"`
+	LeaderboardEnabled        bool                         `yaml:"leaderboard_enabled" default:"true" env:"WAKAPI_LEADERBOARD_ENABLED"`
 	LeaderboardScope          string                       `yaml:"leaderboard_scope" default:"7_days" env:"WAKAPI_LEADERBOARD_SCOPE"`
 	LeaderboardGenerationTime string                       `yaml:"leaderboard_generation_time" default:"0 0 6 * * *,0 0 18 * * *" env:"WAKAPI_LEADERBOARD_GENERATION_TIME"`
+	AggregationTime           string                       `yaml:"aggregation_time" default:"0 15 2 * * *" env:"WAKAPI_AGGREGATION_TIME"`
 	ReportTimeWeekly          string                       `yaml:"report_time_weekly" default:"0 0 18 * * 5" env:"WAKAPI_REPORT_TIME_WEEKLY"`
 	DataCleanupTime           string                       `yaml:"data_cleanup_time" default:"0 0 6 * * 0" env:"WAKAPI_DATA_CLEANUP_TIME"`
 	ImportEnabled             bool                         `yaml:"import_enabled" default:"true" env:"WAKAPI_IMPORT_ENABLED"`
