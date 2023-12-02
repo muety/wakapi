@@ -33,7 +33,7 @@ func NewLeadersHandler(userService services.IUserService, leaderboardService ser
 
 func (h *LeadersHandler) RegisterRoutes(router chi.Router) {
 	router.Group(func(r chi.Router) {
-		r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler)
+		r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalFor("/").Handler)
 		r.Get("/compat/wakatime/v1/leaders", h.Get)
 	})
 }
@@ -65,6 +65,9 @@ func (h *LeadersHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	loadPrimaryUserLeaderboard := func() (models.Leaderboard, error) {
+		if user == nil {
+			return []*models.LeaderboardItemRanked{}, nil
+		}
 		if languageParam == "" {
 			return h.leaderboardSrvc.GetByIntervalAndUser(h.leaderboardSrvc.GetDefaultScope(), user.ID, true)
 		} else {
@@ -109,7 +112,10 @@ func (h *LeadersHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *LeadersHandler) buildViewModel(globalLeaderboard, languageLeaderboard models.Leaderboard, user *models.User, interval *models.IntervalKey, pageParams *utils.PageParams) *v1.LeadersViewModel {
-	currentUserGlobal := *globalLeaderboard.GetByUser(user.ID)
+	var currentUserGlobal []*models.LeaderboardItemRanked
+	if user != nil {
+		currentUserGlobal = *globalLeaderboard.GetByUser(user.ID)
+	}
 
 	totalUsers, _ := h.leaderboardSrvc.CountUsers(true)
 	totalPages := int(totalUsers/int64(pageParams.PageSize) + 1)

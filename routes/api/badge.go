@@ -36,7 +36,7 @@ func NewBadgeHandler(userService services.IUserService, summaryService services.
 
 func (h *BadgeHandler) RegisterRoutes(router chi.Router) {
 	r := chi.NewRouter()
-	r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalFor([]string{"/api/badge/"}).Handler)
+	r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalFor("/api/badge/").Handler)
 	r.Get("/{user}/*", h.Get)
 	router.Mount("/badge", r)
 }

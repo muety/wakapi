@@ -40,7 +40,7 @@ func NewAuthenticateMiddleware(userService services.IUserService) *AuthenticateM
 	}
 }
 
-func (m *AuthenticateMiddleware) WithOptionalFor(paths []string) *AuthenticateMiddleware {
+func (m *AuthenticateMiddleware) WithOptionalFor(paths ...string) *AuthenticateMiddleware {
 	m.optionalForPaths = paths
 	return m
 }

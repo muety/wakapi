@@ -43,7 +43,7 @@ func (h *LoginHandler) RegisterRoutes(router chi.Router) {
 	authMiddleware := middlewares.NewAuthenticateMiddleware(h.userSrvc).
 		WithRedirectTarget(defaultErrorRedirectTarget()).
 		WithRedirectErrorMessage("unauthorized").
-		WithOptionalFor([]string{"/logout"})
+		WithOptionalFor("/logout")
 
 	logoutRouter := chi.NewRouter()
 	logoutRouter.Use(authMiddleware.Handler)

@@ -31,7 +31,7 @@ func NewStatsHandler(userService services.IUserService, summaryService services.
 func (h *StatsHandler) RegisterRoutes(router chi.Router) {
 	router.Group(func(r chi.Router) {
 		r.Use(
-			middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalFor([]string{"/"}).Handler,
+			middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalFor("/").Handler,
 		)
 		r.Get("/v1/users/{user}/stats/{range}", h.Get)
 		r.Get("/compat/wakatime/v1/users/{user}/stats/{range}", h.Get)

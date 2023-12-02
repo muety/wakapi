@@ -39,7 +39,7 @@ func (h *LeaderboardHandler) RegisterRoutes(router chi.Router) {
 		middlewares.NewAuthenticateMiddleware(h.userService).
 			WithRedirectTarget(defaultErrorRedirectTarget()).
 			WithRedirectErrorMessage("unauthorized").
-			WithOptionalFor([]string{"/"}).Handler,
+			WithOptionalFor("/").Handler,
 	)
 	r.Get("/", h.GetIndex)
 
