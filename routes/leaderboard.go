@@ -81,7 +81,7 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWrit
 		// regardless of page, always show own rank
 		if user != nil && !leaderboard.HasUser(user.ID) {
 			// but only if leaderboard spans multiple pages
-			if count, err := h.leaderboardService.CountUsers(); err == nil && count > int64(pageParams.PageSize) {
+			if count, err := h.leaderboardService.CountUsers(true); err == nil && count > int64(pageParams.PageSize) {
 				if l, err := h.leaderboardService.GetByIntervalAndUser(h.leaderboardService.GetDefaultScope(), user.ID, true); err == nil && len(l) > 0 {
 					leaderboard = append(leaderboard, l[0])
 				}
@@ -100,7 +100,7 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWrit
 			// regardless of page, always show own rank
 			if user != nil {
 				// but only if leaderboard could, in theory, span multiple pages
-				if count, err := h.leaderboardService.CountUsers(); err == nil && count > int64(pageParams.PageSize) {
+				if count, err := h.leaderboardService.CountUsers(true); err == nil && count > int64(pageParams.PageSize) {
 					if l, err := h.leaderboardService.GetAggregatedByIntervalAndUser(h.leaderboardService.GetDefaultScope(), user.ID, &by, true); err == nil {
 						leaderboard.AddMany(l)
 					} else {

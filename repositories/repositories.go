@@ -92,7 +92,7 @@ type IUserRepository interface {
 type ILeaderboardRepository interface {
 	InsertBatch([]*models.LeaderboardItem) error
 	CountAllByUser(string) (int64, error)
-	CountUsers() (int64, error)
+	CountUsers(bool) (int64, error)
 	DeleteByUser(string) error
 	DeleteByUserAndInterval(string, *models.IntervalKey) error
 	GetAllAggregatedByInterval(*models.IntervalKey, *uint8, int, int) ([]*models.LeaderboardItemRanked, error)

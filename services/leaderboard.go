@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"github.com/emvi/logbuch"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/artifex/v2"
@@ -145,14 +146,14 @@ func (srv *LeaderboardService) ExistsAnyByUser(userId string) (bool, error) {
 	return count > 0, err
 }
 
-func (srv *LeaderboardService) CountUsers() (int64, error) {
+func (srv *LeaderboardService) CountUsers(excludeZero bool) (int64, error) {
 	// check cache
-	cacheKey := "count_total"
+	cacheKey := fmt.Sprintf("count_total_%v", excludeZero)
 	if cacheResult, ok := srv.cache.Get(cacheKey); ok {
 		return cacheResult.(int64), nil
 	}
 
-	count, err := srv.repository.CountUsers()
+	count, err := srv.repository.CountUsers(excludeZero)
 	if err != nil {
 		srv.cache.SetDefault(cacheKey, count)
 	}

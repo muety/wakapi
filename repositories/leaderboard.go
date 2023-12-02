@@ -33,12 +33,13 @@ func (r *LeaderboardRepository) CountAllByUser(userId string) (int64, error) {
 	return count, err
 }
 
-func (r *LeaderboardRepository) CountUsers() (int64, error) {
+func (r *LeaderboardRepository) CountUsers(excludeZero bool) (int64, error) {
 	var count int64
-	err := r.db.
-		Table("leaderboard_items").
-		Distinct("user_id").
-		Count(&count).Error
+	q := r.db.Table("leaderboard_items").Distinct("user_id")
+	if excludeZero {
+		q = q.Where("total > 0")
+	}
+	err := q.Count(&count).Error
 	return count, err
 }
 

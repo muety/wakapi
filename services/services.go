@@ -119,7 +119,7 @@ type ILeaderboardService interface {
 	Schedule()
 	ComputeLeaderboard([]*models.User, *models.IntervalKey, []uint8) error
 	ExistsAnyByUser(string) (bool, error)
-	CountUsers() (int64, error)
+	CountUsers(bool) (int64, error)
 	GetByInterval(*models.IntervalKey, *utils.PageParams, bool) (models.Leaderboard, error)
 	GetByIntervalAndUser(*models.IntervalKey, string, bool) (models.Leaderboard, error)
 	GetAggregatedByInterval(*models.IntervalKey, *uint8, *utils.PageParams, bool) (models.Leaderboard, error)

@@ -29,6 +29,11 @@ func (l1 *LeaderboardItemRanked) Equals(l2 *LeaderboardItemRanked) bool {
 	return l1.ID == l2.ID
 }
 
+type LeaderboardKeyTotal struct {
+	Key   string
+	Total time.Duration
+}
+
 type Leaderboard []*LeaderboardItemRanked
 
 func (l *Leaderboard) Add(item *LeaderboardItemRanked) {
@@ -62,6 +67,14 @@ func (l Leaderboard) HasUser(userId string) bool {
 	return slice.Contain(l.UserIDs(), userId)
 }
 
+// be cautious: ranks won't match anymore
+func (l Leaderboard) GetByUser(userId string) *Leaderboard {
+	items := Leaderboard(slice.Filter[*LeaderboardItemRanked](l, func(i int, item *LeaderboardItemRanked) bool {
+		return item.UserID == userId
+	}))
+	return &items
+}
+
 func (l Leaderboard) TopByKey(by uint8, key string) Leaderboard {
 	return slice.Filter[*LeaderboardItemRanked](l, func(i int, item *LeaderboardItemRanked) bool {
 		return item.By != nil && *item.By == by && item.Key != nil && strings.ToLower(*item.Key) == strings.ToLower(key)
@@ -69,12 +82,13 @@ func (l Leaderboard) TopByKey(by uint8, key string) Leaderboard {
 }
 
 func (l Leaderboard) TopKeys(by uint8) []string {
-	type keyTotal struct {
-		Key   string
-		Total time.Duration
-	}
+	return slice.Map[LeaderboardKeyTotal, string](l.TopKeysTotals(by), func(i int, item LeaderboardKeyTotal) string {
+		return item.Key
+	})
+}
 
-	totalsMapped := make(map[string]*keyTotal, len(l))
+func (l Leaderboard) TopKeysTotals(by uint8) []LeaderboardKeyTotal {
+	totalsMapped := make(map[string]*LeaderboardKeyTotal, len(l))
 
 	for _, item := range l {
 		if item.Key == nil || item.By == nil || *item.By != by {
@@ -82,27 +96,31 @@ func (l Leaderboard) TopKeys(by uint8) []string {
 		}
 		key := strings.ToLower(*item.Key)
 		if _, ok := totalsMapped[key]; !ok {
-			totalsMapped[key] = &keyTotal{Key: *item.Key, Total: 0}
+			totalsMapped[key] = &LeaderboardKeyTotal{Key: *item.Key, Total: 0}
 		}
 		totalsMapped[key].Total += item.Total
 	}
 
-	totals := slice.Map[*keyTotal, keyTotal](maputil.Values[string, *keyTotal](totalsMapped), func(i int, item *keyTotal) keyTotal {
+	totals := slice.Map[*LeaderboardKeyTotal, LeaderboardKeyTotal](maputil.Values[string, *LeaderboardKeyTotal](totalsMapped), func(i int, item *LeaderboardKeyTotal) LeaderboardKeyTotal {
 		return *item
 	})
 	if err := slice.SortByField(totals, "Total", "desc"); err != nil {
-		return []string{} // TODO
+		return []LeaderboardKeyTotal{} // TODO
 	}
 
-	return slice.Map[keyTotal, string](totals, func(i int, item keyTotal) string {
+	return totals
+}
+
+func (l Leaderboard) TopKeysByUser(by uint8, userId string) []string {
+	return slice.Map[LeaderboardKeyTotal, string](l.TopKeysTotalsByUser(by, userId), func(i int, item LeaderboardKeyTotal) string {
 		return item.Key
 	})
 }
 
-func (l Leaderboard) TopKeysByUser(by uint8, userId string) []string {
+func (l Leaderboard) TopKeysTotalsByUser(by uint8, userId string) []LeaderboardKeyTotal {
 	return Leaderboard(slice.Filter[*LeaderboardItemRanked](l, func(i int, item *LeaderboardItemRanked) bool {
 		return item.UserID == userId
-	})).TopKeys(by)
+	})).TopKeysTotals(by)
 }
 
 func (l Leaderboard) LastUpdate() time.Time {
