@@ -216,7 +216,7 @@ func main() {
 	healthApiHandler := api.NewHealthApiHandler(db)
 	heartbeatApiHandler := api.NewHeartbeatApiHandler(userService, heartbeatService, languageMappingService)
 	summaryApiHandler := api.NewSummaryApiHandler(userService, summaryService)
-	metricsHandler := api.NewMetricsHandler(userService, summaryService, heartbeatService, keyValueService, metricsRepository)
+	metricsHandler := api.NewMetricsHandler(userService, summaryService, heartbeatService, leaderboardService, keyValueService, metricsRepository)
 	diagnosticsHandler := api.NewDiagnosticsApiHandler(userService, diagnosticsService)
 	avatarHandler := api.NewAvatarHandler()
 	activityHandler := api.NewActivityApiHandler(userService, activityService)

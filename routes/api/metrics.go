@@ -33,6 +33,7 @@ const (
 	DescOperatingSystems = "Total seconds for each operating system."
 	DescMachines         = "Total seconds for each machine."
 	DescLabels           = "Total seconds for each project label."
+	DescRank             = "User's current rank in the public leaderboard."
 
 	DescAdminTotalTime       = "Total seconds (all users, all time)."
 	DescAdminTotalHeartbeats = "Total number of tracked heartbeats (all users, all time)"
@@ -53,22 +54,24 @@ const (
 )
 
 type MetricsHandler struct {
-	config        *conf.Config
-	userSrvc      services.IUserService
-	summarySrvc   services.ISummaryService
-	heartbeatSrvc services.IHeartbeatService
-	keyValueSrvc  services.IKeyValueService
-	metricsRepo   *repositories.MetricsRepository
+	config          *conf.Config
+	userSrvc        services.IUserService
+	summarySrvc     services.ISummaryService
+	heartbeatSrvc   services.IHeartbeatService
+	leaderboardSrvc services.ILeaderboardService
+	keyValueSrvc    services.IKeyValueService
+	metricsRepo     *repositories.MetricsRepository
 }
 
-func NewMetricsHandler(userService services.IUserService, summaryService services.ISummaryService, heartbeatService services.IHeartbeatService, keyValueService services.IKeyValueService, metricsRepo *repositories.MetricsRepository) *MetricsHandler {
+func NewMetricsHandler(userService services.IUserService, summaryService services.ISummaryService, heartbeatService services.IHeartbeatService, leaderboardService services.ILeaderboardService, keyValueService services.IKeyValueService, metricsRepo *repositories.MetricsRepository) *MetricsHandler {
 	return &MetricsHandler{
-		userSrvc:      userService,
-		summarySrvc:   summaryService,
-		heartbeatSrvc: heartbeatService,
-		keyValueSrvc:  keyValueService,
-		metricsRepo:   metricsRepo,
-		config:        conf.Get(),
+		userSrvc:        userService,
+		summarySrvc:     summaryService,
+		heartbeatSrvc:   heartbeatService,
+		leaderboardSrvc: leaderboardService,
+		keyValueSrvc:    keyValueService,
+		metricsRepo:     metricsRepo,
+		config:          conf.Get(),
 	}
 }
 
@@ -149,6 +152,12 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 		return nil, err
 	}
 
+	leaderboard, err := h.leaderboardSrvc.GetByIntervalAndUser(h.leaderboardSrvc.GetDefaultScope(), user.ID, false)
+	if err != nil {
+		conf.Log().Error("failed to fetch leaderboard for user '%s' for metric", user.ID)
+		return nil, err
+	}
+
 	// User Metrics
 
 	metrics = append(metrics, &mm.GaugeMetric{
@@ -225,6 +234,17 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 			Labels: []mm.Label{{Key: "name", Value: m.Key}},
 		})
 	}
+
+	var userRank int64
+	if leaderboard.HasUser(user.ID) {
+		userRank = int64(leaderboard[0].Rank)
+	}
+	metrics = append(metrics, &mm.GaugeMetric{
+		Name:   MetricsPrefix + "_rank",
+		Desc:   DescRank,
+		Value:  userRank,
+		Labels: nil,
+	})
 
 	// Runtime metrics
 	var memStats runtime.MemStats
