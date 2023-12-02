@@ -179,3 +179,9 @@ body {
 .entity-filter-control select {
     @apply truncate py-1.5 px-2.5;
 }
+
+/*
+#summary-page svg rect {
+    cursor: help;
+}
+*/

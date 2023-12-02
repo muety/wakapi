@@ -80,6 +80,7 @@ let icons = [
     'ci:dot-03-m',
     'jam:crown-f',
     'octicon:project-16',
+    'octicon:share-16',
     'mdi:filter',
 ]
 
