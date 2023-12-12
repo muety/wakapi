@@ -152,10 +152,13 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 		return nil, err
 	}
 
-	leaderboard, err := h.leaderboardSrvc.GetByIntervalAndUser(h.leaderboardSrvc.GetDefaultScope(), user.ID, false)
-	if err != nil {
-		conf.Log().Error("failed to fetch leaderboard for user '%s' for metric", user.ID)
-		return nil, err
+	var leaderboard models.Leaderboard
+	if h.config.App.LeaderboardEnabled {
+		leaderboard, err = h.leaderboardSrvc.GetByIntervalAndUser(h.leaderboardSrvc.GetDefaultScope(), user.ID, false)
+		if err != nil {
+			conf.Log().Error("failed to fetch leaderboard for user '%s' for metric", user.ID)
+			return nil, err
+		}
 	}
 
 	// User Metrics
