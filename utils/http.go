@@ -90,6 +90,10 @@ func ParseUserAgent(ua string) (string, string, error) { // os, editor, err
 		if groups[0][1] == "win" {
 			groups[0][1] = "windows"
 		}
+		// special treatment for neovim
+		if groups[0][2] == "vim" && strings.Contains(ua, "neovim/") {
+			groups[0][2] = "neovim"
+		}
 		return strutil.Capitalize(groups[0][1]), groups[0][2], nil
 	}
 	// try parse browser user agent as a fallback

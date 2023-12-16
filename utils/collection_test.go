@@ -85,6 +85,12 @@ func TestCommon_ParseUserAgent(t *testing.T) {
 			"Edge",
 			nil,
 		},
+		{
+			"wakatime/v1.86.5 (linux-6.6.4-200.fc39.x86_64-unknown) go1.21.3 neovim/900 vim-wakatime/11.1.1",
+			"Linux",
+			"neovim",
+			nil,
+		},
 	}
 
 	for _, test := range tests {
