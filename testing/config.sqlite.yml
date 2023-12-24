@@ -55,8 +55,3 @@ mail:
     username:
     password:
     tls:
-
-  mailwhale:
-    url:
-    client_id:
-    client_secret:

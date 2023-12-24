@@ -44,9 +44,7 @@ func NewMailService() services.IMailService {
 	sendingService = &NoopSendingService{}
 
 	if config.Mail.Enabled {
-		if config.Mail.Provider == conf.MailProviderMailWhale {
-			sendingService = NewMailWhaleSendingService(config.Mail.MailWhale)
-		} else if config.Mail.Provider == conf.MailProviderSmtp {
+		if config.Mail.Provider == conf.MailProviderSmtp {
 			sendingService = NewSMTPSendingService(config.Mail.Smtp)
 		}
 	}

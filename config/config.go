@@ -59,13 +59,11 @@ const (
 )
 
 const (
-	MailProviderSmtp      = "smtp"
-	MailProviderMailWhale = "mailwhale"
+	MailProviderSmtp = "smtp"
 )
 
 var emailProviders = []string{
 	MailProviderSmtp,
-	MailProviderMailWhale,
 }
 
 var leaderboardScopes = []string{"24_hours", "week", "month", "year", "7_days", "14_days", "30_days", "6_months", "12_months", "all_time"}
@@ -159,17 +157,10 @@ type sentryConfig struct {
 }
 
 type mailConfig struct {
-	Enabled   bool                `env:"WAKAPI_MAIL_ENABLED" default:"true"`
-	Provider  string              `env:"WAKAPI_MAIL_PROVIDER" default:"smtp"`
-	MailWhale MailwhaleMailConfig `yaml:"mailwhale"`
-	Smtp      SMTPMailConfig      `yaml:"smtp"`
-	Sender    string              `env:"WAKAPI_MAIL_SENDER" yaml:"sender"`
-}
-
-type MailwhaleMailConfig struct {
-	Url          string `env:"WAKAPI_MAIL_MAILWHALE_URL"`
-	ClientId     string `yaml:"client_id" env:"WAKAPI_MAIL_MAILWHALE_CLIENT_ID"`
-	ClientSecret string `yaml:"client_secret" env:"WAKAPI_MAIL_MAILWHALE_CLIENT_SECRET"`
+	Enabled  bool           `env:"WAKAPI_MAIL_ENABLED" default:"true"`
+	Provider string         `env:"WAKAPI_MAIL_PROVIDER" default:"smtp"`
+	Smtp     SMTPMailConfig `yaml:"smtp"`
+	Sender   string         `env:"WAKAPI_MAIL_SENDER" yaml:"sender"`
 }
 
 type SMTPMailConfig struct {
