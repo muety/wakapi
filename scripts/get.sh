@@ -52,8 +52,8 @@ EOA
   fi
 }
 
-if [ "${GETMICRO_HTTP:-x}" != "x" ]; then
-  http="$GETMICRO_HTTP"
+if [ "${GETWAKAPI_HTTP:-x}" != "x" ]; then
+  http="$GETWAKAPI_HTTP"
 elif command -v curl >/dev/null 2>&1 ; then
   http="curl -L"
 elif command -v wget >/dev/null 2>&1 ; then
@@ -70,14 +70,14 @@ To continue with installation, you have two options:
 
 A. Install either wget or curl on your system. You may need to run `hash -r`.
 
-B. Define GETMICRO_HTTP to be a command (with arguments deliminated by spaces)
+B. Define GETWAKAPI_HTTP to be a command (with arguments deliminated by spaces)
     that both follows HTTP redirects AND prints the fetched content to stdout.
 
 For examples of option B, this script uses the below values for wget and curl:
 
-  $ curl https://wakapi.dev/get | GETMICRO_HTTP="curl -L" sh
+  $ curl https://wakapi.dev/get | GETWAKAPI_HTTP="curl -L" sh
 
-  $ wget -O- https://wakapi.dev/get | GETMICRO_HTTP="wget -O-" sh
+  $ wget -O- https://wakapi.dev/get | GETWAKAPI_HTTP="wget -O-" sh
 
 EOA
   exit 1
