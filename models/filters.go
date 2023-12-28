@@ -158,12 +158,20 @@ func (f *Filters) Hash() string {
 	return fmt.Sprintf("%x", hash) // "uint64 values with high bit set are not supported"
 }
 
-func (f *Filters) Match(h *Heartbeat) bool {
+func (f *Filters) MatchHeartbeat(h *Heartbeat) bool {
 	return (f.Project == nil || f.Project.MatchAny(h.Project)) &&
 		(f.OS == nil || f.OS.MatchAny(h.OperatingSystem)) &&
 		(f.Language == nil || f.Language.MatchAny(h.Language)) &&
 		(f.Editor == nil || f.Editor.MatchAny(h.Editor)) &&
 		(f.Machine == nil || f.Machine.MatchAny(h.Machine))
+}
+
+func (f *Filters) MatchDuration(d *Duration) bool {
+	return (f.Project == nil || f.Project.MatchAny(d.Project)) &&
+		(f.OS == nil || f.OS.MatchAny(d.OperatingSystem)) &&
+		(f.Language == nil || f.Language.MatchAny(d.Language)) &&
+		(f.Editor == nil || f.Editor.MatchAny(d.Editor)) &&
+		(f.Machine == nil || f.Machine.MatchAny(d.Machine))
 }
 
 // WithAliases adds OR-conditions for every alias of a filter key as additional filter keys

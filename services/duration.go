@@ -24,15 +24,7 @@ func NewDurationService(heartbeatService IHeartbeatService) *DurationService {
 }
 
 func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *models.Filters) (models.Durations, error) {
-	get := srv.heartbeatService.GetAllWithin
-
-	if filters != nil && !filters.IsEmpty() {
-		get = func(t1 time.Time, t2 time.Time, user *models.User) ([]*models.Heartbeat, error) {
-			return srv.heartbeatService.GetAllWithinByFilters(t1, t2, user, filters)
-		}
-	}
-
-	heartbeats, err := get(from, to, user)
+	heartbeats, err := srv.heartbeatService.GetAllWithin(from, to, user)
 	if err != nil {
 		return nil, err
 	}
@@ -46,14 +38,7 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 	mapping := make(map[string][]*models.Duration)
 
 	for _, h := range heartbeats {
-		if filters != nil && !filters.Match(h) {
-			continue
-		}
-
-		d1 := models.NewDurationFromHeartbeat(h)
-		if !filters.IsProjectDetails() {
-			d1 = d1.WithEntityIgnored() // only for efficiency
-		}
+		d1 := models.NewDurationFromHeartbeat(h).WithEntityIgnored().Hashed()
 
 		if list, ok := mapping[d1.GroupHash]; !ok || len(list) < 1 {
 			mapping[d1.GroupHash] = []*models.Duration{d1}
@@ -100,6 +85,14 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 
 	for _, list := range mapping {
 		for _, d := range list {
+			// even when filters are applied, we'll still have to compute the whole summary first and then filter out non-matching durations
+			// if we fetched only matching heartbeats in the first place, there will be false positive gaps (see HeartbeatDiffThreshold)
+			// in case the user worked on different projects in parallel
+			// see https://github.com/muety/wakapi/issues/535
+			if filters != nil && !filters.MatchDuration(d) {
+				continue
+			}
+
 			// will only happen if two heartbeats with different hashes (e.g. different project) have the same timestamp
 			// that, in turn, will most likely only happen for mysql, where `time` column's precision was set to second for a while
 			// assume that two non-identical heartbeats with identical time are sub-second apart from each other, so round up to expectancy value

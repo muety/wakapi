@@ -89,20 +89,20 @@ func (suite *FiltersTestSuite) TestFilters_Match() {
 	}
 
 	sut1 := NewFiltersWith(SummaryProject, "wakapi")
-	assert.True(suite.T(), sut1.Match(heartbeats[0]))
-	assert.False(suite.T(), sut1.Match(heartbeats[1]))
+	assert.True(suite.T(), sut1.MatchHeartbeat(heartbeats[0]))
+	assert.False(suite.T(), sut1.MatchHeartbeat(heartbeats[1]))
 
 	sut2 := NewFiltersWith(SummaryProject, "Go").With(SummaryLanguage, "JavaScript")
-	assert.False(suite.T(), sut2.Match(heartbeats[0]))
-	assert.False(suite.T(), sut2.Match(heartbeats[1]))
+	assert.False(suite.T(), sut2.MatchHeartbeat(heartbeats[0]))
+	assert.False(suite.T(), sut2.MatchHeartbeat(heartbeats[1]))
 
 	sut3 := NewFilterWithMultiple(SummaryProject, []string{"wakapi", "anchr"})
-	assert.True(suite.T(), sut3.Match(heartbeats[0]))
-	assert.True(suite.T(), sut3.Match(heartbeats[1]))
+	assert.True(suite.T(), sut3.MatchHeartbeat(heartbeats[0]))
+	assert.True(suite.T(), sut3.MatchHeartbeat(heartbeats[1]))
 
 	sut4 := &Filters{}
-	assert.True(suite.T(), sut4.Match(heartbeats[0]))
-	assert.True(suite.T(), sut4.Match(heartbeats[1]))
+	assert.True(suite.T(), sut4.MatchHeartbeat(heartbeats[0]))
+	assert.True(suite.T(), sut4.MatchHeartbeat(heartbeats[1]))
 }
 
 func (suite *FiltersTestSuite) TestFilters_One() {
