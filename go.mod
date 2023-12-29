@@ -18,7 +18,7 @@ require (
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.2.2
 	github.com/hashicorp/golang-lru v1.0.2
-	github.com/jinzhu/configor v1.2.2
+	github.com/jinzhu/configor v1.2.1
 	github.com/leandro-lugaresi/hub v1.1.1
 	github.com/lpar/gzipped/v2 v2.1.0
 	github.com/mileusna/useragent v1.3.4
