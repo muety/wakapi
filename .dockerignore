@@ -5,9 +5,9 @@ config*.yml
 *.exe
 wakapi
 Dockerfile
-docker-compose.yml
+compose.yml
 .dockerignore
 .git*
 node_modules/
-testing/*.zip
-testing/wakapi
+testing/
+coverage/
