@@ -14,7 +14,7 @@ WORKDIR /staging
 RUN mkdir ./data ./app && \
     cp /src/wakapi app/ && \
     cp /src/config.default.yml app/config.yml && \
-    sed -i 's/listen_ipv6: ::1/listen_ipv6: /g' app/config.yml && \
+    sed -i 's/listen_ipv6: ::1/listen_ipv6: "-"/g' app/config.yml && \
     cp /src/wait-for-it.sh app/ && \
     cp /src/entrypoint.sh app/ && \
     chown 1000:1000 ./data
