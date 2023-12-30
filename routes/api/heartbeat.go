@@ -102,6 +102,8 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 		if hb.Branch == "<<LAST_BRANCH>>" {
 			if latest, err := h.heartbeatSrvc.GetLatestByFilters(user, models.NewFiltersWith(models.SummaryProject, hb.Project)); latest != nil && err == nil {
 				hb.Branch = latest.Branch
+			} else {
+				hb.Branch = ""
 			}
 		}
 
