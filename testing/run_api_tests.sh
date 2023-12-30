@@ -39,7 +39,7 @@ cleanup() {
         kill -TERM "$pid"
     fi
     if [ "${docker_down-0}" -eq 1 ]; then
-        docker compose -f "$script_dir/docker-compose.yml" down
+        docker compose -f "$script_dir/compose.yml" down
     fi
 }
 trap cleanup EXIT
@@ -47,10 +47,10 @@ trap cleanup EXIT
 # Initialise test data
 case $DB_TYPE in
     postgres|mysql|mariadb|cockroach)
-    docker compose -f "$script_dir/docker-compose.yml" down
+    docker compose -f "$script_dir/compose.yml" down
 
     docker_down=1
-    docker compose -f "$script_dir/docker-compose.yml" up --wait --detach "$DB_TYPE"
+    docker compose -f "$script_dir/compose.yml" up --wait --detach "$DB_TYPE"
 
     config="config.$DB_TYPE.yml"
     if [ "$DB_TYPE" == "mariadb" ]; then
