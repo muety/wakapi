@@ -45,12 +45,18 @@ const (
 	DescJobQueueEnqueued      = "Number of jobs currently enqueued"
 	DescJobQueueTotalFinished = "Total number of processed jobs"
 
-	DescMemAllocTotal = "Total number of bytes allocated for heap"
-	DescMemSysTotal   = "Total number of bytes obtained from the OS"
-	DescPausedTotal   = "Total nanoseconds stop-the-world pause time due to GC"
-	DescNumGCTotal    = "Total number of GC cycles"
-	DescGoroutines    = "Total number of running goroutines"
-	DescDatabaseSize  = "Total database size in bytes"
+	DescMemAlloc        = "Total number of bytes currently allocated for heap"
+	DescMemSys          = "Total number of bytes currently obtained from the OS"
+	DescMemHeapSys      = "Total number of bytes currently obtained from the OS for heap"
+	DescMemHeapIdle     = "Total number of bytes currently allocated for heap but unused"
+	DescMemHeapReleased = "Total number of idling heap memory in bytes released back to the OD"
+	DescMemHeapInuse    = "Total number of bytes currently allocated and used for heap"
+	DescMemStackSys     = "Total number of bytes currently obtained from the OS for stack"
+	DescMemStackInuse   = "Total number of bytes currently allocated and used for stack"
+	DescPausedTotal     = "Total cumulative nanoseconds stop-the-world pause time due to GC"
+	DescNumGCTotal      = "Total cumulative number of GC cycles"
+	DescGoroutines      = "Total number of currently running goroutines"
+	DescDatabaseSize    = "Total database size in bytes"
 )
 
 type MetricsHandler struct {
@@ -261,16 +267,58 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 	})
 
 	metrics = append(metrics, &mm.GaugeMetric{
-		Name:   MetricsPrefix + "_mem_alloc_total",
-		Desc:   DescMemAllocTotal,
-		Value:  int64(memStats.Alloc),
+		Name:   MetricsPrefix + "_mem_alloc",
+		Desc:   DescMemAlloc,
+		Value:  int64(memStats.Alloc), // same as HeapAlloc
 		Labels: []mm.Label{},
 	})
 
 	metrics = append(metrics, &mm.GaugeMetric{
-		Name:   MetricsPrefix + "_mem_sys_total",
-		Desc:   DescMemSysTotal,
+		Name:   MetricsPrefix + "_mem_sys",
+		Desc:   DescMemSys,
 		Value:  int64(memStats.Sys),
+		Labels: []mm.Label{},
+	})
+
+	metrics = append(metrics, &mm.GaugeMetric{
+		Name:   MetricsPrefix + "_mem_heap_sys",
+		Desc:   DescMemHeapSys,
+		Value:  int64(memStats.HeapSys),
+		Labels: []mm.Label{},
+	})
+
+	metrics = append(metrics, &mm.GaugeMetric{
+		Name:   MetricsPrefix + "_mem_heap_idle",
+		Desc:   DescMemHeapIdle,
+		Value:  int64(memStats.HeapIdle),
+		Labels: []mm.Label{},
+	})
+
+	metrics = append(metrics, &mm.GaugeMetric{
+		Name:   MetricsPrefix + "_mem_heap_released",
+		Desc:   DescMemHeapReleased,
+		Value:  int64(memStats.HeapReleased),
+		Labels: []mm.Label{},
+	})
+
+	metrics = append(metrics, &mm.GaugeMetric{
+		Name:   MetricsPrefix + "_mem_heap_inuse",
+		Desc:   DescMemHeapInuse,
+		Value:  int64(memStats.HeapInuse),
+		Labels: []mm.Label{},
+	})
+
+	metrics = append(metrics, &mm.GaugeMetric{
+		Name:   MetricsPrefix + "_mem_stack_sys",
+		Desc:   DescMemStackSys,
+		Value:  int64(memStats.StackSys),
+		Labels: []mm.Label{},
+	})
+
+	metrics = append(metrics, &mm.GaugeMetric{
+		Name:   MetricsPrefix + "_mem_stack_inuse",
+		Desc:   DescMemStackInuse,
+		Value:  int64(memStats.StackInuse),
 		Labels: []mm.Label{},
 	})
 

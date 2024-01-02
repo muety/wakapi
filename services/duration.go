@@ -81,7 +81,7 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 		count++
 	}
 
-	durations := make(models.Durations, 0, count)
+	durations := make(models.Durations, 0)
 
 	for _, list := range mapping {
 		for _, d := range list {
