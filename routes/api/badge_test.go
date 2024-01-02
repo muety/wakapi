@@ -81,7 +81,7 @@ func TestBadgeHandler_Get(t *testing.T) {
 		t.Run("should not return badge if shared interval exceeded", func(t *testing.T) {
 			rec := httptest.NewRecorder()
 
-			req := httptest.NewRequest(http.MethodGet, "/api/badge/{user}/interval:year/language:go", nil)
+			req := httptest.NewRequest(http.MethodGet, "/api/badge/{user}/interval:last_year/language:go", nil)
 			req = withUrlParam(req, "user", "user1")
 
 			router.ServeHTTP(rec, req)
