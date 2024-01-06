@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/schema"
 	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models/view"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
@@ -18,6 +18,7 @@ import (
 
 type HomeHandler struct {
 	config       *conf.Config
+	userSrvc     services.IUserService
 	keyValueSrvc services.IKeyValueService
 }
 
@@ -25,15 +26,19 @@ var loginDecoder = schema.NewDecoder()
 var signupDecoder = schema.NewDecoder()
 var resetPasswordDecoder = schema.NewDecoder()
 
-func NewHomeHandler(keyValueService services.IKeyValueService) *HomeHandler {
+func NewHomeHandler(userService services.IUserService, keyValueService services.IKeyValueService) *HomeHandler {
 	return &HomeHandler{
 		config:       conf.Get(),
+		userSrvc:     userService,
 		keyValueSrvc: keyValueService,
 	}
 }
 
 func (h *HomeHandler) RegisterRoutes(router chi.Router) {
-	router.Get("/", h.GetIndex)
+	router.Group(func(r chi.Router) {
+		r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalFor("/").Handler)
+		r.Get("/", h.GetIndex)
+	})
 }
 
 func (h *HomeHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +46,7 @@ func (h *HomeHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
-	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
+	if user := middlewares.GetPrincipal(r); user != nil {
 		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
