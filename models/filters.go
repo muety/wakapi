@@ -7,14 +7,15 @@ import (
 )
 
 type Filters struct {
-	Project  OrFilter
-	OS       OrFilter
-	Language OrFilter
-	Editor   OrFilter
-	Machine  OrFilter
-	Label    OrFilter
-	Branch   OrFilter
-	Entity   OrFilter
+	Project            OrFilter
+	OS                 OrFilter
+	Language           OrFilter
+	Editor             OrFilter
+	Machine            OrFilter
+	Label              OrFilter
+	Branch             OrFilter
+	Entity             OrFilter
+	SelectFilteredOnly bool // flag indicating to drop all Entity types from a summary except the single one filtered by
 }
 
 type OrFilter []string
@@ -33,8 +34,8 @@ func (f OrFilter) MatchAny(search string) bool {
 }
 
 type FilterElement struct {
-	entity uint8
-	filter OrFilter
+	Entity uint8
+	Filter OrFilter
 }
 
 func NewFiltersWith(entity uint8, key string) *Filters {
@@ -48,6 +49,15 @@ func NewFilterWithMultiple(entity uint8, keys []string) *Filters {
 
 func (f *Filters) With(entity uint8, key string) *Filters {
 	return f.WithMultiple(entity, []string{key})
+}
+
+func (f *Filters) WithSelectFilteredOnly() *Filters {
+	// use with caution: setting this usually only makes sense when interested only in the entity-specific part of a summary
+	// e.g. when only wanting to retrieve the total time coded in a certain language, while disregarding projects, etc.
+	if f.CountDistinctTypes() <= 1 {
+		f.SelectFilteredOnly = true
+	}
+	return f
 }
 
 func (f *Filters) WithMultiple(entity uint8, keys []string) *Filters {
@@ -95,9 +105,9 @@ func (f *Filters) One() (bool, uint8, OrFilter) {
 
 func (f *Filters) OneOrEmpty() FilterElement {
 	if ok, t, of := f.One(); ok {
-		return FilterElement{entity: t, filter: of}
+		return FilterElement{Entity: t, Filter: of}
 	}
-	return FilterElement{entity: SummaryUnknown, filter: []string{}}
+	return FilterElement{Entity: SummaryUnknown, Filter: []string{}}
 }
 
 func (f *Filters) IsEmpty() bool {
@@ -108,26 +118,36 @@ func (f *Filters) IsEmpty() bool {
 func (f *Filters) Count() int {
 	var count int
 	for i := SummaryProject; i <= SummaryEntity; i++ {
-		count += f.CountByEntity(i)
+		count += f.CountByType(i)
 	}
 	return count
 }
 
-func (f *Filters) CountByEntity(entity uint8) int {
-	return len(*f.ResolveEntity(entity))
+func (f *Filters) CountDistinctTypes() int {
+	var count int
+	for i := SummaryProject; i <= SummaryEntity; i++ {
+		if f.CountByType(i) > 0 {
+			count += f.CountByType(i)
+		}
+	}
+	return count
+}
+
+func (f *Filters) CountByType(entity uint8) int {
+	return len(*f.ResolveType(entity))
 }
 
 func (f *Filters) EntityCount() int {
 	var count int
 	for i := SummaryProject; i <= SummaryEntity; i++ {
-		if c := f.CountByEntity(i); c > 0 {
+		if c := f.CountByType(i); c > 0 {
 			count++
 		}
 	}
 	return count
 }
 
-func (f *Filters) ResolveEntity(entityId uint8) *OrFilter {
+func (f *Filters) ResolveType(entityId uint8) *OrFilter {
 	switch entityId {
 	case SummaryProject:
 		return &f.Project
@@ -174,7 +194,7 @@ func (f *Filters) MatchDuration(d *Duration) bool {
 		(f.Machine == nil || f.Machine.MatchAny(d.Machine))
 }
 
-// WithAliases adds OR-conditions for every alias of a filter key as additional filter keys
+// WithAliases adds OR-conditions for every alias of a Filter key as additional Filter keys
 func (f *Filters) WithAliases(resolve AliasReverseResolver) *Filters {
 	if f.Project != nil {
 		updated := OrFilter(make([]string, 0, len(f.Project)))
@@ -224,7 +244,7 @@ func (f *Filters) WithAliases(resolve AliasReverseResolver) *Filters {
 		}
 		f.Branch = updated
 	}
-	// no aliases for entites / files
+	// no aliases for entities / files
 	return f
 }
 

@@ -38,8 +38,8 @@ type Summary struct {
 	OperatingSystems SummaryItems `json:"operating_systems" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Machines         SummaryItems `json:"machines" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Labels           SummaryItems `json:"labels" gorm:"-"`   // labels are not persisted, but calculated at runtime, i.e. when summary is retrieved
-	Branches         SummaryItems `json:"branches" gorm:"-"` // branches are not persisted, but calculated at runtime in case a project filter is applied
-	Entities         SummaryItems `json:"entities" gorm:"-"` // entities are not persisted, but calculated at runtime in case a project filter is applied
+	Branches         SummaryItems `json:"branches" gorm:"-"` // branches are not persisted, but calculated at runtime in case a project Filter is applied
+	Entities         SummaryItems `json:"entities" gorm:"-"` // entities are not persisted, but calculated at runtime in case a project Filter is applied
 	NumHeartbeats    int          `json:"-"`
 }
 
@@ -121,7 +121,7 @@ func (s *Summary) MappedItems() map[uint8]*SummaryItems {
 	}
 }
 
-func (s *Summary) ItemsByType(summaryType uint8) *SummaryItems {
+func (s *Summary) GetByType(summaryType uint8) *SummaryItems {
 	switch summaryType {
 	case SummaryProject:
 		return &s.Projects
@@ -143,6 +143,35 @@ func (s *Summary) ItemsByType(summaryType uint8) *SummaryItems {
 	return nil
 }
 
+func (s *Summary) SetByType(summaryType uint8, items *SummaryItems) {
+	switch summaryType {
+	case SummaryProject:
+		s.Projects = *items
+		break
+	case SummaryLanguage:
+		s.Languages = *items
+		break
+	case SummaryEditor:
+		s.Editors = *items
+		break
+	case SummaryOS:
+		s.OperatingSystems = *items
+		break
+	case SummaryMachine:
+		s.Machines = *items
+		break
+	case SummaryLabel:
+		s.Labels = *items
+		break
+	case SummaryBranch:
+		s.Branches = *items
+		break
+	case SummaryEntity:
+		s.Entities = *items
+		break
+	}
+}
+
 func (s *Summary) KeepOnly(types map[uint8]bool) *Summary {
 	if len(types) == 0 {
 		return s
@@ -150,15 +179,27 @@ func (s *Summary) KeepOnly(types map[uint8]bool) *Summary {
 
 	for _, t := range SummaryTypes() {
 		if keep, ok := types[t]; !keep || !ok {
-			*s.ItemsByType(t) = []*SummaryItem{}
+			*s.GetByType(t) = []*SummaryItem{}
 		}
 	}
 
 	return s
 }
 
+// ApplyFilter drops all summary elements of the given type that don't match the given query.
+// Please note: this only makes sense if you're eventually interested in nothing but the total time of that specific type,
+// because the summary will be inconsistent after this operation (e.g. when filtering by project, languages, editors, etc. won't match up anymore).
+// Therefore, use with caution.
+func (s *Summary) ApplyFilter(filter FilterElement) *Summary {
+	items := SummaryItems(slice.Filter[*SummaryItem](*s.GetByType(filter.Entity), func(i int, item *SummaryItem) bool {
+		return filter.Filter.MatchAny(item.Key)
+	}))
+	s.SetByType(filter.Entity, &items)
+	return s
+}
+
 /*
-	Augments the summary in a way that at least one item is present for every type.
+Augments the summary in a way that at least one item is present for every type.
 
 If a summary has zero items for a given type, but one or more for any of the other types,
 the total summary duration can be derived from those and inserted as a dummy-item with key "unknown"
@@ -269,8 +310,8 @@ func (s *Summary) TotalTimeByKey(entityType uint8, key string) (timeSum time.Dur
 
 func (s *Summary) TotalTimeByFilter(filter FilterElement) time.Duration {
 	var total time.Duration
-	for _, f := range filter.filter {
-		total += s.TotalTimeByKey(filter.entity, f)
+	for _, f := range filter.Filter {
+		total += s.TotalTimeByKey(filter.Entity, f)
 	}
 	return total
 }

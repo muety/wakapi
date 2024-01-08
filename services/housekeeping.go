@@ -145,7 +145,9 @@ func (s *HousekeepingService) scheduleProjectStatsCacheWarming() {
 	}
 
 	// run once initially, 1 min after start
-	if err := s.queueDefault.DispatchIn(s.runWarmProjectStatsCache, 1*time.Minute); err != nil {
-		config.Log().Error("failed to dispatch pre-warming project stats cache, %v", err)
+	if !s.config.QuickStart {
+		if err := s.queueDefault.DispatchIn(s.runWarmProjectStatsCache, 1*time.Minute); err != nil {
+			config.Log().Error("failed to dispatch pre-warming project stats cache, %v", err)
+		}
 	}
 }

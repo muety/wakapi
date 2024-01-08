@@ -122,7 +122,7 @@ func (r *SummaryRepository) populateItems(summaries []*models.Summary, condition
 		if _, ok := summaryMap[item.SummaryID]; !ok {
 			continue
 		}
-		l := summaryMap[item.SummaryID][0].ItemsByType(item.Type)
+		l := summaryMap[item.SummaryID][0].GetByType(item.Type)
 		*l = append(*l, item)
 	}
 

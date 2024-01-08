@@ -257,3 +257,30 @@ func TestSummaryItems_Sorted(t *testing.T) {
 	assert.Equal(t, testDuration1, sut.Projects[1].Total)
 	assert.Equal(t, testDuration2, sut.Projects[2].Total)
 }
+
+func TestSummary_ApplyFilter(t *testing.T) {
+	var (
+		key1 = "A Banana"
+		key2 = "Bananas are delicious"
+	)
+
+	sut := Summary{
+		Projects: []*SummaryItem{
+			{Type: SummaryProject, Key: key1, Total: 10 * time.Minute / time.Second},
+			{Type: SummaryProject, Key: key2, Total: 20 * time.Minute / time.Second},
+		},
+		Languages: []*SummaryItem{
+			{Type: SummaryLanguage, Key: "Italian", Total: 30 * time.Minute / time.Second},
+		},
+	}
+
+	sut.ApplyFilter(FilterElement{
+		Entity: SummaryProject,
+		Filter: OrFilter{key2},
+	})
+
+	assert.Len(t, *sut.GetByType(SummaryProject), 1)
+	assert.Len(t, *sut.GetByType(SummaryLanguage), 1)
+	assert.Equal(t, key2, sut.Projects[0].Key)
+	assert.Equal(t, 20*time.Minute, sut.TotalTimeBy(SummaryProject))
+}

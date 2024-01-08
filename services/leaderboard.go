@@ -256,7 +256,7 @@ func (srv *LeaderboardService) GenerateAggregatedByUser(user *models.User, inter
 		return nil, err
 	}
 
-	summaryItems := *summary.ItemsByType(by)
+	summaryItems := *summary.GetByType(by)
 	items := make([]*models.LeaderboardItem, summaryItems.Len())
 
 	for i := 0; i < summaryItems.Len(); i++ {

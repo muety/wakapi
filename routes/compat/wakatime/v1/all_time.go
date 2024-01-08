@@ -50,7 +50,7 @@ func (h *AllTimeHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return // response was already sent by util function
 	}
 
-	summary, err, status := h.loadUserSummary(user, helpers.ParseSummaryFilters(r))
+	summary, err, status := h.loadUserSummary(user, helpers.ParseSummaryFilters(r).WithSelectFilteredOnly())
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))

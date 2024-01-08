@@ -1,6 +1,6 @@
 package models
 
-// AliasResolver returns the alias of an entity, given its original name. I.e., it returns Alias.Key, given an Alias.Value
+// AliasResolver returns the alias of an Entity, given its original name. I.e., it returns Alias.Key, given an Alias.Value
 type AliasResolver func(t uint8, k string) string
 
 // AliasReverseResolver returns all original names, which have the given alias as mapping target. I.e., it returns a list of Alias.Value, given an Alias.Key

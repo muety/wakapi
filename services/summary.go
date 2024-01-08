@@ -99,7 +99,9 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 	summaries := make([]*models.Summary, 0)
 
 	// Filtered summaries are not persisted currently
-	if filters == nil || filters.IsEmpty() {
+	// Special case: if (a) filters apply to only one entity type and (b) we're only interested in the summary items of that particular entity type,
+	// we can still fetch the persisted summary and drop all irrelevant parts from it
+	if filters == nil || filters.IsEmpty() || (filters.CountDistinctTypes() == 1 && filters.SelectFilteredOnly) {
 		// Get all already existing, pre-generated summaries that fall into the requested interval
 		result, err := srv.repository.GetByUserWithin(user, from, to)
 		if err == nil {
@@ -130,6 +132,11 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 	summary, err := srv.mergeSummaries(summaries)
 	if err != nil {
 		return nil, err
+	}
+
+	if filters != nil && filters.CountDistinctTypes() == 1 && filters.SelectFilteredOnly {
+		filter := filters.OneOrEmpty()
+		summary.KeepOnly(map[uint8]bool{filter.Entity: true}).ApplyFilter(filter)
 	}
 
 	return summary.Sorted(), nil

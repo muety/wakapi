@@ -18,7 +18,7 @@ type Duration struct {
 	OperatingSystem string        `json:"operating_system"`
 	Machine         string        `json:"machine"`
 	Branch          string        `json:"branch"`
-	Entity          string        `json:"entity"`
+	Entity          string        `json:"Entity"`
 	NumHeartbeats   int           `json:"-" hash:"ignore"`
 	GroupHash       string        `json:"-" hash:"ignore"`
 	excludeEntity   bool          `json:"-" hash:"ignore"`

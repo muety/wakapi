@@ -60,6 +60,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
+	filters.WithSelectFilteredOnly()
 
 	cacheKey := fmt.Sprintf("%s_%v_%s", user.ID, *interval.Key, filters.Hash())
 	if cacheResult, ok := h.cache.Get(cacheKey); ok {
