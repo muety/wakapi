@@ -8,6 +8,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"gorm.io/driver/sqlserver"
+	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 )
 
 const (
@@ -34,6 +38,23 @@ type KeyedInterval struct {
 
 // CustomTime is a wrapper type around time.Time, mainly used for the purpose of transparently unmarshalling Python timestamps in the format <sec>.<nsec> (e.g. 1619335137.3324468)
 type CustomTime time.Time
+
+// sql server doesn't allow multiple columns with timestamp type in a column
+// So we need to change the type to datetimeoffset
+func (j CustomTime) GormDBDataType(db *gorm.DB, field *schema.Field) string {
+
+	t := "timestamp"
+
+	if db.Config.Dialector.Name() == (sqlserver.Dialector{}).Name() {
+		t = "datetimeoffset"
+	}
+
+	if scale, ok := field.TagSettings["TIMESCALE"]; ok {
+		t += fmt.Sprintf("(%s)", scale)
+	}
+
+	return t
+}
 
 func (j *CustomTime) MarshalJSON() ([]byte, error) {
 	return json.Marshal(j.T())

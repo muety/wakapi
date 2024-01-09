@@ -15,7 +15,7 @@ type LeaderboardItem struct {
 	By        *uint8        `json:"aggregated_by" gorm:"index:idx_leaderboard_combined"` // pointer because nullable
 	Total     time.Duration `json:"total" gorm:"not null" swaggertype:"primitive,integer"`
 	Key       *string       `json:"key" gorm:"size:255"` // pointer because nullable
-	CreatedAt CustomTime    `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	CreatedAt CustomTime    `gorm:"default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 }
 
 // https://github.com/go-gorm/gorm/issues/5789
