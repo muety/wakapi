@@ -116,7 +116,7 @@ kill_wakapi() {
 # Need to create database for sqlserver
 if [ "$DB_TYPE" == "sqlserver" ]; then
     echo "Creating database..."
-    docker compose -f "$script_dir/compose.yml" exec \
+    docker compose -f "$script_dir/compose.yml" exec sqlserver -- \
         /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Hard!password123' -Q 'CREATE DATABASE wakapi'
 fi
 
