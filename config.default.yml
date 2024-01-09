@@ -53,7 +53,7 @@ db:
   dialect: sqlite3                    # mysql, postgres, sqlite3, sqlserver
   charset: utf8mb4                    # only used for mysql connections
   max_conn: 2                         # maximum number of concurrent connections to maintain
-  ssl: false                          # whether to use tls for db connection (must be true for cockroachdb) (ignored for mysql and sqlite) (encrypt=true in sqlserver)
+  ssl: false                          # whether to use tls for db connection (must be true for cockroachdb) (ignored for mysql and sqlite) (true means encrypt=true in sqlserver)
   automigrate_fail_silently: false    # whether to ignore schema auto-migration failures when starting up
 
 security:

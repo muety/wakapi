@@ -342,6 +342,10 @@ func (c *dbConfig) IsPostgres() bool {
 	return c.Dialect == "postgres"
 }
 
+func (c *dbConfig) IsSqlserver() bool {
+	return c.Dialect == SQLDialectSqlserver
+}
+
 func (c *serverConfig) GetPublicUrl() string {
 	return strings.TrimSuffix(c.PublicUrl, "/")
 }
