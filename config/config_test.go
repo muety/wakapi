@@ -88,3 +88,19 @@ func Test_sqliteConnectionString(t *testing.T) {
 	}
 	assert.Equal(t, c.Name, sqliteConnectionString(c))
 }
+
+func Test_sqlserverConnectionString(t *testing.T) {
+	c := &dbConfig{
+		Name:     "dbinstance",
+		Host:     "test_host",
+		Port:     1433,
+		User:     "test_user",
+		Password: "test_password",
+		Dialect:  "sqlserver",
+		Ssl:      true,
+	}
+
+	assert.Equal(t,
+		"sqlserver://test_user:test_password@test_host:1433?database=dbinstance&encrypt=true",
+		sqlserverConnectionString(c))
+}

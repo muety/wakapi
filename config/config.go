@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/duke-git/lancet/v2/slice"
 	"net"
 	"net/http"
 	"os"
@@ -11,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/duke-git/lancet/v2/slice"
 
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/securecookie"
@@ -24,9 +25,10 @@ import (
 const (
 	DefaultConfigPath = "config.yml"
 
-	SQLDialectMysql    = "mysql"
-	SQLDialectPostgres = "postgres"
-	SQLDialectSqlite   = "sqlite3"
+	SQLDialectMysql     = "mysql"
+	SQLDialectPostgres  = "postgres"
+	SQLDialectSqlite    = "sqlite3"
+	SQLDialectSqlserver = "sqlserver"
 
 	KeyLatestTotalTime              = "latest_total_time"
 	KeyLatestTotalUsers             = "latest_total_users"

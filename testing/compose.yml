@@ -34,3 +34,11 @@ services:
     image: cockroachdb/cockroach
     entrypoint: '/cockroach/cockroach start-single-node --insecure --sql-addr=:56257'
     network_mode: host
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "Hard!password123"
+      MSSQL_PID: "Developer"
+    network_mode: host
