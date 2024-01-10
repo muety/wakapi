@@ -2,8 +2,10 @@ package repositories
 
 import (
 	"errors"
-	"github.com/muety/wakapi/config"
+	"fmt"
+
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -37,10 +39,8 @@ func (r *KeyValueRepository) GetString(key string) (*models.KeyStringValue, erro
 
 func (r *KeyValueRepository) Search(like string) ([]*models.KeyStringValue, error) {
 	var keyValues []*models.KeyStringValue
-	condition := "key like ?"
-	if r.db.Config.Name() == config.SQLDialectMysql {
-		condition = "`key` like ?"
-	}
+	condition := fmt.Sprintf("%s like ?", utils.QuoteDbIdentifier(r.db, "key"))
+
 	if err := r.db.Table("key_string_values").
 		Where(condition, like).
 		Find(&keyValues).

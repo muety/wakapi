@@ -25,7 +25,7 @@ db:
   user: SA
   password: Hard!password123
   name: wakapi
-  dialect: sqlserver
+  dialect: mssql
   charset:
   max_conn: 2
   ssl: false

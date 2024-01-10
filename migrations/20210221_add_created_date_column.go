@@ -14,7 +14,7 @@ func init() {
 				return nil
 			}
 
-			if err := db.Exec("UPDATE heartbeats SET created_at = time WHERE TRUE").Error; err != nil {
+			if err := db.Exec("UPDATE heartbeats SET created_at = time").Error; err != nil {
 				return err
 			}
 

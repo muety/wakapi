@@ -25,10 +25,10 @@ import (
 const (
 	DefaultConfigPath = "config.yml"
 
-	SQLDialectMysql     = "mysql"
-	SQLDialectPostgres  = "postgres"
-	SQLDialectSqlite    = "sqlite3"
-	SQLDialectSqlserver = "sqlserver"
+	SQLDialectMysql    = "mysql"
+	SQLDialectPostgres = "postgres"
+	SQLDialectSqlite   = "sqlite3"
+	SQLDialectMssql    = "mssql"
 
 	KeyLatestTotalTime              = "latest_total_time"
 	KeyLatestTotalUsers             = "latest_total_users"
@@ -342,8 +342,8 @@ func (c *dbConfig) IsPostgres() bool {
 	return c.Dialect == "postgres"
 }
 
-func (c *dbConfig) IsSqlserver() bool {
-	return c.Dialect == SQLDialectSqlserver
+func (c *dbConfig) IsMssql() bool {
+	return c.Dialect == SQLDialectMssql
 }
 
 func (c *serverConfig) GetPublicUrl() string {

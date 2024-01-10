@@ -3,7 +3,6 @@ package main
 import (
 	"embed"
 	"flag"
-	"github.com/duke-git/lancet/v2/condition"
 	"io/fs"
 	"log"
 	"net"
@@ -11,6 +10,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/duke-git/lancet/v2/condition"
 
 	"github.com/emvi/logbuch"
 	"github.com/go-chi/chi/v5"

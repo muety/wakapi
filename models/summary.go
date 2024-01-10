@@ -2,10 +2,11 @@ package models
 
 import (
 	"errors"
-	"github.com/duke-git/lancet/v2/mathutil"
-	"github.com/duke-git/lancet/v2/slice"
 	"sort"
 	"time"
+
+	"github.com/duke-git/lancet/v2/mathutil"
+	"github.com/duke-git/lancet/v2/slice"
 )
 
 const (
@@ -27,16 +28,20 @@ const DefaultProjectLabel = "default"
 type Summaries []*Summary
 
 type Summary struct {
-	ID               uint         `json:"-" gorm:"primary_key; size:32"`
-	User             *User        `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	UserID           string       `json:"user_id" gorm:"not null; index:idx_time_summary_user"`
-	FromTime         CustomTime   `json:"from" gorm:"not null; default:CURRENT_TIMESTAMP; index:idx_time_summary_user" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
-	ToTime           CustomTime   `json:"to" gorm:"not null; default:CURRENT_TIMESTAMP; index:idx_time_summary_user" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	ID       uint       `json:"-" gorm:"primary_key; size:32"`
+	User     *User      `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	UserID   string     `json:"user_id" gorm:"not null; index:idx_time_summary_user"`
+	FromTime CustomTime `json:"from" gorm:"not null; default:CURRENT_TIMESTAMP; index:idx_time_summary_user" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	ToTime   CustomTime `json:"to" gorm:"not null; default:CURRENT_TIMESTAMP; index:idx_time_summary_user" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	// Previously, all of the following properties created a foreign key constraint on the summary_items table back to this summary table
+	// All of these created foreign key constraints are the same
+	// But mssql will complains about circular cascades on update/delete between these two tables
+	// So, creating one constraint should be enough
 	Projects         SummaryItems `json:"projects" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Languages        SummaryItems `json:"languages" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Editors          SummaryItems `json:"editors" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	OperatingSystems SummaryItems `json:"operating_systems" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Machines         SummaryItems `json:"machines" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Languages        SummaryItems `json:"languages"`
+	Editors          SummaryItems `json:"editors"`
+	OperatingSystems SummaryItems `json:"operating_systems"`
+	Machines         SummaryItems `json:"machines"`
 	Labels           SummaryItems `json:"labels" gorm:"-"`   // labels are not persisted, but calculated at runtime, i.e. when summary is retrieved
 	Branches         SummaryItems `json:"branches" gorm:"-"` // branches are not persisted, but calculated at runtime in case a project Filter is applied
 	Entities         SummaryItems `json:"entities" gorm:"-"` // entities are not persisted, but calculated at runtime in case a project Filter is applied

@@ -46,7 +46,7 @@ trap cleanup EXIT
 
 # Initialise test data
 case $DB_TYPE in
-    postgres|mysql|mariadb|cockroach|sqlserver)
+    postgres|mysql|mariadb|cockroach|mssql)
     docker compose -f "$script_dir/compose.yml" down
 
     docker_down=1
@@ -62,7 +62,7 @@ case $DB_TYPE in
         db_port=55432
     elif [ "$DB_TYPE" == "cockroach" ]; then
         db_port=56257
-    elif [ "$DB_TYPE" == "sqlserver" ]; then
+    elif [ "$DB_TYPE" == "mssql" ]; then
         db_port=1433
     else
         db_port=26257
@@ -113,12 +113,12 @@ kill_wakapi() {
     kill -TERM $pid
 }
 
-# Need to create database for sqlserver
-if [ "$DB_TYPE" == "sqlserver" ]; then
+# Need to create database for mssql
+if [ "$DB_TYPE" == "mssql" ]; then
     echo "Sleep for 5s to wait for db to be ready..."
     sleep 5
-    echo "Creating database in sqlserver..."
-    docker compose -f "$script_dir/compose.yml" exec sqlserver \
+    echo "Creating database in mssql..."
+    docker compose -f "$script_dir/compose.yml" exec mssql \
         /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Hard!password123' -Q 'CREATE DATABASE wakapi'
 fi
 

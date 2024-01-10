@@ -2,9 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
+
 	"github.com/emvi/logbuch"
 	"gorm.io/gorm"
-	"reflect"
 )
 
 func IsCleanDB(db *gorm.DB) bool {
@@ -48,4 +50,26 @@ func WithPaging(query *gorm.DB, limit, skip int) *gorm.DB {
 		query = query.Offset(skip)
 	}
 	return query
+}
+
+type stringWriter struct {
+	*strings.Builder
+}
+
+func (s stringWriter) WriteByte(c byte) error {
+	return s.Builder.WriteByte(c)
+}
+
+func (s stringWriter) WriteString(str string) (int, error) {
+	return s.Builder.WriteString(str)
+}
+
+// QuoteDbIdentifier quotes a column name used in a query.
+func QuoteDbIdentifier(query *gorm.DB, columnName string) string {
+
+	builder := stringWriter{Builder: &strings.Builder{}}
+
+	query.Dialector.QuoteTo(builder, columnName)
+
+	return builder.Builder.String()
 }

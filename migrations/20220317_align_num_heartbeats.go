@@ -30,15 +30,15 @@ func init() {
 
 			// update their heartbeats counter
 			result := db.
-				Table("summaries AS s1").
-				Where("s1.id IN ?", faultyIds).
+				Table("summaries").
+				Where("summaries.id IN ?", faultyIds).
 				Update(
 					"num_heartbeats",
 					db.
 						Model(&models.Heartbeat{}).
 						Select("COUNT(*)").
-						Where("user_id = ?", gorm.Expr("s1.user_id")).
-						Where("time BETWEEN ? AND ?", gorm.Expr("s1.from_time"), gorm.Expr("s1.to_time")),
+						Where("user_id = ?", gorm.Expr("summaries.user_id")).
+						Where("time BETWEEN ? AND ?", gorm.Expr("summaries.from_time"), gorm.Expr("summaries.to_time")),
 				)
 
 			if err := result.Error; err != nil {

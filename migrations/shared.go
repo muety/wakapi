@@ -1,17 +1,17 @@
 package migrations
 
 import (
+	"fmt"
+
 	"github.com/emvi/logbuch"
-	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
 	"gorm.io/gorm"
 )
 
 func hasRun(name string, db *gorm.DB) bool {
-	condition := "key = ?"
-	if config.Get().Db.Dialect == config.SQLDialectMysql {
-		condition = "`key` = ?"
-	}
+	condition := fmt.Sprintf("%s = ?", utils.QuoteDbIdentifier(db, "key"))
+
 	lookupResult := db.Where(condition, name).First(&models.KeyStringValue{})
 	if lookupResult.Error == nil && lookupResult.RowsAffected > 0 {
 		logbuch.Info("no need to migrate '%s'", name)

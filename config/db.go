@@ -52,8 +52,8 @@ func (c *dbConfig) GetDialector() gorm.Dialector {
 		})
 	case SQLDialectSqlite:
 		return sqlite.Open(sqliteConnectionString(c))
-	case SQLDialectSqlserver:
-		return sqlserver.Open(sqlserverConnectionString(c))
+	case SQLDialectMssql:
+		return sqlserver.Open(mssqlConnectionString(c))
 	}
 
 	return nil
@@ -104,7 +104,7 @@ func sqliteConnectionString(config *dbConfig) string {
 	return config.Name
 }
 
-func sqlserverConnectionString(config *dbConfig) string {
+func mssqlConnectionString(config *dbConfig) string {
 
 	query := url.Values{}
 
