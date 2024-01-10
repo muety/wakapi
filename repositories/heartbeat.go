@@ -17,6 +17,10 @@ type HeartbeatRepository struct {
 	config *conf.Config
 }
 
+func (r *HeartbeatRepository) QuoteDbIdentifier(id string) string {
+	return utils.QuoteDbIdentifier(r.db, id)
+}
+
 func NewHeartbeatRepository(db *gorm.DB) *HeartbeatRepository {
 	return &HeartbeatRepository{config: conf.Get(), db: db}
 }
@@ -116,7 +120,7 @@ func (r *HeartbeatRepository) GetLatestByFilters(user *models.User, filterMap ma
 func (r *HeartbeatRepository) GetFirstByUsers() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
 	r.db.Model(&models.User{}).
-		Select(fmt.Sprintf("users.id as %s, min(time) as %s", utils.QuoteDbIdentifier(r.db, "user"), utils.QuoteDbIdentifier(r.db, "time"))).
+		Select(fmt.Sprintf("users.id as %s, min(time) as %s", r.QuoteDbIdentifier("user"), r.QuoteDbIdentifier("time"))).
 		Joins("left join heartbeats on users.id = heartbeats.user_id").
 		Group("users.id").
 		Scan(&result)
@@ -126,7 +130,7 @@ func (r *HeartbeatRepository) GetFirstByUsers() ([]*models.TimeByUser, error) {
 func (r *HeartbeatRepository) GetLastByUsers() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
 	r.db.Model(&models.User{}).
-		Select(fmt.Sprintf("users.id as %s, max(time) as %s", utils.QuoteDbIdentifier(r.db, "user"), utils.QuoteDbIdentifier(r.db, "time"))).
+		Select(fmt.Sprintf("users.id as %s, max(time) as %s", r.QuoteDbIdentifier("user"), r.QuoteDbIdentifier("time"))).
 		Joins("left join heartbeats on users.id = heartbeats.user_id").
 		Group("user").
 		Scan(&result)
@@ -175,7 +179,7 @@ func (r *HeartbeatRepository) CountByUsers(users []*models.User) ([]*models.Coun
 
 	if err := r.db.
 		Model(&models.Heartbeat{}).
-		Select(fmt.Sprintf("user_id as %s, count(id) as %s", utils.QuoteDbIdentifier(r.db, "user"), utils.QuoteDbIdentifier(r.db, "count"))).
+		Select(fmt.Sprintf("user_id as %s, count(id) as %s", r.QuoteDbIdentifier("user"), r.QuoteDbIdentifier("count"))).
 		Where("user_id in ?", userIds).
 		Group("user").
 		Find(&counts).Error; err != nil {
@@ -234,22 +238,29 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 	// see https://github.com/muety/wakapi/issues/524#issuecomment-1731668391
 
 	// multi-line string with backticks yields an error with the github.com/glebarez/sqlite driver
+
+	limitClause := "limit ?"
+
+	if r.config.Db.IsMssql() {
+		limitClause = "ROWS fetch next ? rows only"
+	}
+
 	if err := r.db.
 		Raw("with projects as ( "+
-			"select project, user_id, min(time) as first, max(time) as last, count(*) as cnt "+
+			"select project as p, user_id, min(time) as first, max(time) as last, count(*) as cnt "+
 			"from heartbeats "+
 			"where user_id = ? and project != '' "+
 			"and time between ? and ? "+
 			"and language is not null and language != '' and project != '' "+
 			"group by project, user_id "+
 			"order by last desc "+
-			"limit ? offset ? "+
+			"offset ? "+limitClause+
 			") "+
 			"select distinct project, min(first) as first, min(last) as last, min(cnt) as count, first_value(language) over (partition by project order by count(*) desc) as top_language "+
 			"from heartbeats "+
-			"inner join projects using (project, user_id) "+
+			"inner join projects on heartbeats.project = projects.p and heartbeats.user_id = projects.user_id "+
 			"group by project, language "+
-			"order by last desc", user.ID, from, to, limit, offset).
+			"order by last desc", user.ID, from.Format(time.RFC3339), to.Format(time.RFC3339), offset, limit).
 		Scan(&projectStats).Error; err != nil {
 		return nil, err
 	}

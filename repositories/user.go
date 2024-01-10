@@ -2,9 +2,10 @@ package repositories
 
 import (
 	"errors"
+	"time"
+
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
-	"time"
 )
 
 type UserRepository struct {
@@ -85,12 +86,12 @@ func (r *UserRepository) GetByLoggedInAfter(t time.Time) ([]*models.User, error)
 // NOTE: Only ID field will be populated
 func (r *UserRepository) GetByLastActiveAfter(t time.Time) ([]*models.User, error) {
 	subQuery1 := r.db.Model(&models.Heartbeat{}).
-		Select("user_id as user, max(time) as time").
+		Select("user_id , max(time) as time").
 		Group("user_id")
 
 	var userIds []string
 	if err := r.db.
-		Select("user as id").
+		Select("user").
 		Table("(?) as q", subQuery1).
 		Where("time >= ?", t.Local()).
 		Scan(&userIds).Error; err != nil {
