@@ -41,6 +41,4 @@ services:
       ACCEPT_EULA: "Y"
       SA_PASSWORD: "Hard!password123"
       MSSQL_PID: "Developer"
-    # network_mode: host
-    ports:
-      - 1433:1433
+    network_mode: host

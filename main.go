@@ -138,7 +138,7 @@ func main() {
 		logger.Config{
 			SlowThreshold: time.Minute,
 			Colorful:      false,
-			LogLevel:      logger.Info,
+			LogLevel:      logger.Silent,
 		},
 	)
 
