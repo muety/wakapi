@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
@@ -39,10 +38,8 @@ func (r *KeyValueRepository) GetString(key string) (*models.KeyStringValue, erro
 
 func (r *KeyValueRepository) Search(like string) ([]*models.KeyStringValue, error) {
 	var keyValues []*models.KeyStringValue
-	condition := fmt.Sprintf("%s like ?", utils.QuoteDbIdentifier(r.db, "key"))
-
 	if err := r.db.Table("key_string_values").
-		Where(condition, like).
+		Where(utils.QuoteSql(r.db, "%s like ?", "key"), like).
 		Find(&keyValues).
 		Error; err != nil {
 		return nil, err

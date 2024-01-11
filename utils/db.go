@@ -65,11 +65,23 @@ func (s stringWriter) WriteString(str string) (int, error) {
 }
 
 // QuoteDbIdentifier quotes a column name used in a query.
-func QuoteDbIdentifier(query *gorm.DB, identifier string) string {
+func QuoteDbIdentifier(db *gorm.DB, identifier string) string {
 
 	builder := stringWriter{Builder: &strings.Builder{}}
 
-	query.Dialector.QuoteTo(builder, identifier)
+	db.Dialector.QuoteTo(builder, identifier)
 
 	return builder.Builder.String()
+}
+
+// QuoteSql quotes a SQL statement with the given identifiers.
+func QuoteSql(db *gorm.DB, queryTemplate string, identifiers ...string) string {
+
+	quotedIdentifiers := make([]interface{}, len(identifiers))
+
+	for i, identifier := range identifiers {
+		quotedIdentifiers[i] = QuoteDbIdentifier(db, identifier)
+	}
+
+	return fmt.Sprintf(queryTemplate, quotedIdentifiers...)
 }

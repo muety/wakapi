@@ -1,11 +1,13 @@
 package repositories
 
 import (
+	"time"
+
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"time"
 )
 
 type SummaryRepository struct {
@@ -70,9 +72,9 @@ func (r *SummaryRepository) GetByUserWithin(user *models.User, from, to time.Tim
 func (r *SummaryRepository) GetLastByUser() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
 	r.db.Model(&models.User{}).
-		Select("users.id as user, max(to_time) as time").
+		Select(utils.QuoteSql(r.db, "users.id as %s, max(to_time) as time", "user")).
 		Joins("left join summaries on users.id = summaries.user_id").
-		Group("user").
+		Group("users.id").
 		Scan(&result)
 	return result, nil
 }

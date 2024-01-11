@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/duke-git/lancet/v2/slice"
@@ -15,10 +14,6 @@ import (
 type HeartbeatRepository struct {
 	db     *gorm.DB
 	config *conf.Config
-}
-
-func (r *HeartbeatRepository) QuoteDbIdentifier(id string) string {
-	return utils.QuoteDbIdentifier(r.db, id)
 }
 
 func NewHeartbeatRepository(db *gorm.DB) *HeartbeatRepository {
@@ -120,7 +115,7 @@ func (r *HeartbeatRepository) GetLatestByFilters(user *models.User, filterMap ma
 func (r *HeartbeatRepository) GetFirstByUsers() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
 	r.db.Model(&models.User{}).
-		Select(fmt.Sprintf("users.id as %s, min(time) as %s", r.QuoteDbIdentifier("user"), r.QuoteDbIdentifier("time"))).
+		Select(utils.QuoteSql(r.db, "users.id as %s, min(time) as %s", "user", "time")).
 		Joins("left join heartbeats on users.id = heartbeats.user_id").
 		Group("users.id").
 		Scan(&result)
@@ -130,7 +125,7 @@ func (r *HeartbeatRepository) GetFirstByUsers() ([]*models.TimeByUser, error) {
 func (r *HeartbeatRepository) GetLastByUsers() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
 	r.db.Model(&models.User{}).
-		Select(fmt.Sprintf("users.id as %s, max(time) as %s", r.QuoteDbIdentifier("user"), r.QuoteDbIdentifier("time"))).
+		Select(utils.QuoteSql(r.db, "users.id as %s, max(time) as %s", "user", "time")).
 		Joins("left join heartbeats on users.id = heartbeats.user_id").
 		Group("user").
 		Scan(&result)
@@ -179,7 +174,7 @@ func (r *HeartbeatRepository) CountByUsers(users []*models.User) ([]*models.Coun
 
 	if err := r.db.
 		Model(&models.Heartbeat{}).
-		Select(fmt.Sprintf("user_id as %s, count(id) as %s", r.QuoteDbIdentifier("user"), r.QuoteDbIdentifier("count"))).
+		Select(utils.QuoteSql(r.db, "user_id as %s, count(id) as %s", "user", "count")).
 		Where("user_id in ?", userIds).
 		Group("user").
 		Find(&counts).Error; err != nil {
