@@ -239,7 +239,7 @@
         <div class="mt-12 flex flex-col space-y-2 text-gray-300 w-full">
             <div class="flex justify-start space-x-2 items-center">
                 <h2 class="text-lg font-semibold">Activity</h2>
-                <a v-cloak v-show="activityChartSvg" href="/api/activity/chart/{{ .User.ID }}.svg" target="_blank" rel="noreferrer noopener" class="p-1 rounded hover:bg-gray-850" title="Share...">
+                <a v-cloak v-show="activityChartSvg" href="api/activity/chart/{{ .User.ID }}.svg" target="_blank" rel="noreferrer noopener" class="p-1 rounded hover:bg-gray-850" title="Share...">
                     <span class="iconify inline text-xl text-gray-500 p-px" data-icon="octicon:share-16"></span>
                 </a>
             </div>

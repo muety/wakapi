@@ -8,7 +8,7 @@ PetiteVue.createApp({
         return null
     },
     mounted({userId}) {
-        fetch(`/api/activity/chart/${userId}.svg?dark&noattr`)
+        fetch(`api/activity/chart/${userId}.svg?dark&noattr`)
             .then(res => res.text())
             .then(data => this.activityChartSvg = data)
     }
