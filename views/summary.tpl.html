@@ -25,7 +25,7 @@
         <div class="flex-grow justify-start">
             <div class="flex-grow p-4 text-sm border-2 border-orange-500 rounded shadow text-gray-300 align-middle mb-4 md:mb-0">
                 <span class="iconify inline mr-1" data-icon="emojione-v1:warning"></span>
-                Some of your data is older than this instance's data retention period. This will cause old data to be deleted, unless you opt for a subscription. Go to <a class="font-semibold text-green-700" href="settings#subscription">Settings → Subscription</a> for more details.
+                Some of&nbsp;&nbsp;your data is older than this instance's data retention period. This will cause old data to be deleted, unless you opt for a subscription. Go to <a class="font-semibold text-green-700" href="settings#subscription">Settings → Subscription</a> for more details.
             </div>
         </div>
         {{ end }}
@@ -120,7 +120,9 @@
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Projects</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
+                            <span class="mr-1">Top </span>
                         <input type="number" min="1" id="project-top-picker" data-entity="0" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
+                        <span class="ml-1">of&nbsp;&nbsp;<span class="num-total-items" data-entity="0"></span></span>
                     </div>
                 </div>
                 <canvas id="chart-projects" class="mt-2"></canvas>
@@ -133,7 +135,9 @@
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Branches</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
+                            <span class="mr-1">Top </span>
                         <input type="number" min="1" id="branch-top-picker" data-entity="6" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
+                        <span class="ml-1">of&nbsp;&nbsp;<span class="num-total-items" data-entity="6"></span></span>
                     </div>
                 </div>
                 <canvas id="chart-branches" class="mt-2"></canvas>
@@ -146,7 +150,9 @@
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Languages</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
+                        <span class="mr-1">Top </span>
                         <input type="number" min="1" id="language-top-picker" data-entity="3" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
+                        <span class="ml-1">of&nbsp;&nbsp;<span class="num-total-items" data-entity="3"></span></span>
                     </div>
                 </div>
                 <canvas id="chart-language" class="mt-4"></canvas>
@@ -159,7 +165,9 @@
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Editors</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
+                            <span class="mr-1">Top </span>
                         <input type="number" min="1" id="editor-top-picker" data-entity="2" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
+                        <span class="ml-1">of&nbsp;&nbsp;<span class="num-total-items" data-entity="2"></span></span>
                     </div>
                 </div>
                 <canvas id="chart-editor" class="mt-4"></canvas>
@@ -176,7 +184,9 @@
                             <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap ml-1 cursor-pointer text-gray-600" onclick="swapCharts('machine', 'os')">Machines</span>
                         </div>
                         <div class="flex justify-end flex-1 text-xs items-center">
+                            <span class="mr-1">Top </span>
                             <input type="number" min="1" id="os-top-picker" data-entity="1" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
+                            <span class="ml-1">of&nbsp;&nbsp;<span class="num-total-items" data-entity="1"></span></span>
                         </div>
                     </div>
                     <canvas id="chart-os" class="mt-4"></canvas>
@@ -194,7 +204,9 @@
                             <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap ml-1 cursor-pointer">Machines</span>
                         </div>
                         <div class="flex justify-end flex-1 text-xs items-center">
+                            <span class="mr-1">Top </span>
                             <input type="number" min="1" id="machine-top-picker" data-entity="4" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
+                            <span class="ml-1">of&nbsp;&nbsp;<span class="num-total-items" data-entity="4"></span></span>
                         </div>
                     </div>
                     <canvas id="chart-machine" class="mt-4"></canvas>
@@ -212,7 +224,9 @@
                             <span class="iconify inline" data-icon="twemoji:gear"></span>
                         </a>
                         <div class="flex justify-end flex-1 text-xs items-center">
+                            <span class="mr-1">Top </span>
                             <input type="number" min="1" id="label-top-picker" data-entity="5" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
+                            <span class="ml-1">of&nbsp;&nbsp;<span class="num-total-items" data-entity="5"></span></span>
                         </div>
                     </div>
                     <canvas id="chart-label" class="mt-4"></canvas>
@@ -226,7 +240,9 @@
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Files</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
+                            <span class="mr-1">Top </span>
                         <input type="number" min="1" id="entity-top-picker" data-entity="7" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
+                        <span class="ml-1">of&nbsp;&nbsp;<span class="num-total-items" data-entity="7"></span></span>
                     </div>
                 </div>
                 <canvas id="chart-entities" class="mt-4"></canvas>
@@ -239,7 +255,7 @@
         <div class="mt-12 flex flex-col space-y-2 text-gray-300 w-full">
             <div class="flex justify-start space-x-2 items-center">
                 <h2 class="text-lg font-semibold">Activity</h2>
-                <a v-cloak v-show="activityChartSvg" href="api/activity/chart/{{ .User.ID }}.svg" target="_blank" rel="noreferrer noopener" class="p-1 rounded hover:bg-gray-850" title="Share...">
+                <a v-cloak v-show="activityChartSvg" href="/api/activity/chart/{{ .User.ID }}.svg" target="_blank" rel="noreferrer noopener" class="p-1 rounded hover:bg-gray-850" title="Share...">
                     <span class="iconify inline text-xl text-gray-500 p-px" data-icon="octicon:share-16"></span>
                 </a>
             </div>

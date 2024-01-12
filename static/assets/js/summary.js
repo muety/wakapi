@@ -510,6 +510,12 @@ function extractFile(filePath) {
     return filePath.split(delimiter).at(-1)
 }
 
+function updateNumTotal() {
+    for (let i = 0; i < data.length; i++) {
+        document.querySelector(`span[data-entity='${i}']`).innerText = data[i].length.toString()
+    }
+}
+
 window.addEventListener('load', function () {
     topNPickers.forEach(e => e.addEventListener('change', () => {
         parseTopN()
@@ -519,4 +525,5 @@ window.addEventListener('load', function () {
     parseTopN()
     togglePlaceholders(getPresentDataMask())
     draw()
+    updateNumTotal()
 })
