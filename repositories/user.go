@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
 	"gorm.io/gorm"
 )
 
@@ -86,12 +87,12 @@ func (r *UserRepository) GetByLoggedInAfter(t time.Time) ([]*models.User, error)
 // NOTE: Only ID field will be populated
 func (r *UserRepository) GetByLastActiveAfter(t time.Time) ([]*models.User, error) {
 	subQuery1 := r.db.Model(&models.Heartbeat{}).
-		Select("user_id , max(time) as time").
+		Select(utils.QuoteSql(r.db, "user_id as %s, max(time) as time", "user")).
 		Group("user_id")
 
 	var userIds []string
 	if err := r.db.
-		Select("user").
+		Select(utils.QuoteSql(r.db, "user as %s", "id")).
 		Table("(?) as q", subQuery1).
 		Where("time >= ?", t.Local()).
 		Scan(&userIds).Error; err != nil {

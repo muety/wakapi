@@ -1,8 +1,6 @@
 package migrations
 
 import (
-	"fmt"
-
 	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
@@ -10,7 +8,7 @@ import (
 )
 
 func hasRun(name string, db *gorm.DB) bool {
-	condition := fmt.Sprintf("%s = ?", utils.QuoteDbIdentifier(db, "key"))
+	condition := utils.QuoteSql(db, "%s = ?", "key")
 
 	lookupResult := db.Where(condition, name).First(&models.KeyStringValue{})
 	if lookupResult.Error == nil && lookupResult.RowsAffected > 0 {

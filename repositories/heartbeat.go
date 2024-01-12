@@ -234,10 +234,17 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 
 	// multi-line string with backticks yields an error with the github.com/glebarez/sqlite driver
 
-	limitClause := "limit ?"
+	args := []interface{}{
+		user.ID, from.Format(time.RFC3339), to.Format(time.RFC3339),
+	}
+
+	limitOffsetClause := "limit ? offset ?"
 
 	if r.config.Db.IsMssql() {
-		limitClause = "ROWS fetch next ? rows only"
+		limitOffsetClause = "offset ? ROWS fetch next ? rows only"
+		args = append(args, offset, limit)
+	} else {
+		args = append(args, limit, offset)
 	}
 
 	if err := r.db.
@@ -249,13 +256,13 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 			"and language is not null and language != '' and project != '' "+
 			"group by project, user_id "+
 			"order by last desc "+
-			"offset ? "+limitClause+
+			limitOffsetClause+
 			") "+
 			"select distinct project, min(first) as first, min(last) as last, min(cnt) as count, first_value(language) over (partition by project order by count(*) desc) as top_language "+
 			"from heartbeats "+
 			"inner join projects on heartbeats.project = projects.p and heartbeats.user_id = projects.user_id "+
 			"group by project, language "+
-			"order by last desc", user.ID, from.Format(time.RFC3339), to.Format(time.RFC3339), offset, limit).
+			"order by last desc", args...).
 		Scan(&projectStats).Error; err != nil {
 		return nil, err
 	}

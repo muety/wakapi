@@ -1,8 +1,6 @@
 package migrations
 
 import (
-	"fmt"
-
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
@@ -19,7 +17,7 @@ func init() {
 				return nil
 			}
 
-			condition := fmt.Sprintf("%s = ?", utils.QuoteDbIdentifier(db, "key"))
+			condition := utils.QuoteSql(db, "%s = ?", "key")
 
 			imprintKv := &models.KeyStringValue{Key: "imprint", Value: "no content here"}
 			if err := db.
