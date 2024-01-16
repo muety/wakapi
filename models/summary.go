@@ -34,25 +34,21 @@ type Summary struct {
 	FromTime CustomTime `json:"from" gorm:"not null; default:CURRENT_TIMESTAMP; index:idx_time_summary_user" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	ToTime   CustomTime `json:"to" gorm:"not null; default:CURRENT_TIMESTAMP; index:idx_time_summary_user" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 
-	// Previously, all of the following properties created a cascade foreign key constraint on the summary_items table back to this summary table
-	// resulting in 5 identical foreign key constraints on the summary_items table.
-	// This is not a problem for PostgreSQL, MySQL and SQLite,
-	// but for MSSQL, which complains about circular cascades on update/delete between these two tables.
-	// All of these created foreign key constraints are identical, so only one constraint is enough.
-	// MySQL will create a foreign key constraint for every property referecing other structs,
-	// even no constraint is specified in tags
+	// Previously, all the following properties created a cascade foreign key constraint on the summary_items table
+	// back to this summary table resulting in 5 identical foreign key constraints on the summary_items table.
+	// This is not a problem for PostgreSQL, MySQL and SQLite, but for MSSQL, which complains about circular cascades on
+	// update/delete between these two tables. All of these created foreign key constraints are identical, so only one constraint is enough.
+	// MySQL will create a foreign key constraint for every property referencing other structs, even no constraint is specified in tags.
 	// So explicitly set gorm:"-" in all other properties to avoid creating duplicate foreign key constraints
-	Projects SummaryItems `json:"projects" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-
+	Projects         SummaryItems `json:"projects" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Languages        SummaryItems `json:"languages" gorm:"-"`
 	Editors          SummaryItems `json:"editors" gorm:"-"`
 	OperatingSystems SummaryItems `json:"operating_systems" gorm:"-"`
 	Machines         SummaryItems `json:"machines" gorm:"-"`
-
-	Labels        SummaryItems `json:"labels" gorm:"-"`   // labels are not persisted, but calculated at runtime, i.e. when summary is retrieved
-	Branches      SummaryItems `json:"branches" gorm:"-"` // branches are not persisted, but calculated at runtime in case a project Filter is applied
-	Entities      SummaryItems `json:"entities" gorm:"-"` // entities are not persisted, but calculated at runtime in case a project Filter is applied
-	NumHeartbeats int          `json:"-"`
+	Labels           SummaryItems `json:"labels" gorm:"-"`   // labels are not persisted, but calculated at runtime, i.e. when summary is retrieved
+	Branches         SummaryItems `json:"branches" gorm:"-"` // branches are not persisted, but calculated at runtime in case a project Filter is applied
+	Entities         SummaryItems `json:"entities" gorm:"-"` // entities are not persisted, but calculated at runtime in case a project Filter is applied
+	NumHeartbeats    int          `json:"-"`
 }
 
 type SummaryItems []*SummaryItem
