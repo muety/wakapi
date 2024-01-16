@@ -24,6 +24,11 @@ func init() {
 			}
 
 			var drop bool
+			if cfg.Db.IsMssql() {
+				//mssql migrator doesn't support GetIndexes() currently
+				// mssql is implemented after this migration, so ignore it.
+				return nil
+			}
 			if cfg.Db.IsSQLite() {
 				// sqlite migrator doesn't support GetIndexes() currently
 				var ddl string

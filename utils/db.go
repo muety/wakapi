@@ -2,9 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
+
 	"github.com/emvi/logbuch"
 	"gorm.io/gorm"
-	"reflect"
 )
 
 func IsCleanDB(db *gorm.DB) bool {
@@ -48,4 +50,38 @@ func WithPaging(query *gorm.DB, limit, skip int) *gorm.DB {
 		query = query.Offset(skip)
 	}
 	return query
+}
+
+type stringWriter struct {
+	*strings.Builder
+}
+
+func (s stringWriter) WriteByte(c byte) error {
+	return s.Builder.WriteByte(c)
+}
+
+func (s stringWriter) WriteString(str string) (int, error) {
+	return s.Builder.WriteString(str)
+}
+
+// QuoteDbIdentifier quotes a column name used in a query.
+func QuoteDbIdentifier(db *gorm.DB, identifier string) string {
+
+	builder := stringWriter{Builder: &strings.Builder{}}
+
+	db.Dialector.QuoteTo(builder, identifier)
+
+	return builder.Builder.String()
+}
+
+// QuoteSql quotes a SQL statement with the given identifiers.
+func QuoteSql(db *gorm.DB, queryTemplate string, identifiers ...string) string {
+
+	quotedIdentifiers := make([]interface{}, len(identifiers))
+
+	for i, identifier := range identifiers {
+		quotedIdentifiers[i] = QuoteDbIdentifier(db, identifier)
+	}
+
+	return fmt.Sprintf(queryTemplate, quotedIdentifiers...)
 }

@@ -3,6 +3,7 @@ package migrations
 import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -16,10 +17,7 @@ func init() {
 				return nil
 			}
 
-			condition := "key = ?"
-			if cfg.Db.Dialect == config.SQLDialectMysql {
-				condition = "`key` = ?"
-			}
+			condition := utils.QuoteSql(db, "%s = ?", "key")
 
 			imprintKv := &models.KeyStringValue{Key: "imprint", Value: "no content here"}
 			if err := db.

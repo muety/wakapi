@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/duke-git/lancet/v2/slice"
 	"net"
 	"net/http"
 	"os"
@@ -11,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/duke-git/lancet/v2/slice"
 
 	"github.com/emvi/logbuch"
 	"github.com/gorilla/securecookie"
@@ -27,6 +28,7 @@ const (
 	SQLDialectMysql    = "mysql"
 	SQLDialectPostgres = "postgres"
 	SQLDialectSqlite   = "sqlite3"
+	SQLDialectMssql    = "mssql"
 
 	KeyLatestTotalTime              = "latest_total_time"
 	KeyLatestTotalUsers             = "latest_total_users"
@@ -338,6 +340,10 @@ func (c *dbConfig) IsMySQL() bool {
 
 func (c *dbConfig) IsPostgres() bool {
 	return c.Dialect == "postgres"
+}
+
+func (c *dbConfig) IsMssql() bool {
+	return c.Dialect == SQLDialectMssql
 }
 
 func (c *serverConfig) GetPublicUrl() string {

@@ -20,8 +20,8 @@ type User struct {
 	Email               string      `json:"email" gorm:"index:idx_user_email; size:255"`
 	Location            string      `json:"location"`
 	Password            string      `json:"-"`
-	CreatedAt           CustomTime  `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
-	LastLoggedInAt      CustomTime  `gorm:"type:timestamp; default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	CreatedAt           CustomTime  `gorm:"default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	LastLoggedInAt      CustomTime  `gorm:"default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	ShareDataMaxDays    int         `json:"-"`
 	ShareEditors        bool        `json:"-" gorm:"default:false; type:bool"`
 	ShareLanguages      bool        `json:"-" gorm:"default:false; type:bool"`
@@ -36,8 +36,8 @@ type User struct {
 	ResetToken          string      `json:"-"`
 	ReportsWeekly       bool        `json:"-" gorm:"default:false; type:bool"`
 	PublicLeaderboard   bool        `json:"-" gorm:"default:false; type:bool"`
-	SubscribedUntil     *CustomTime `json:"-" gorm:"type:timestamp" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
-	SubscriptionRenewal *CustomTime `json:"-" gorm:"type:timestamp" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	SubscribedUntil     *CustomTime `json:"-" gorm:"swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	SubscriptionRenewal *CustomTime `json:"-" gorm:"swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	StripeCustomerId    string      `json:"-"`
 }
 

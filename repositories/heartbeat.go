@@ -1,12 +1,16 @@
 package repositories
 
 import (
+	"strings"
+	"time"
+
 	"github.com/duke-git/lancet/v2/slice"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
+	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"time"
 )
 
 type HeartbeatRepository struct {
@@ -28,6 +32,23 @@ func (r *HeartbeatRepository) GetAll() ([]*models.Heartbeat, error) {
 }
 
 func (r *HeartbeatRepository) InsertBatch(heartbeats []*models.Heartbeat) error {
+
+	// sqlserver on conflict has bug https://github.com/go-gorm/sqlserver/issues/100
+	// As a workaround, insert one by one, and ignore duplicate key error
+	if r.db.Dialector.Name() == (sqlserver.Dialector{}).Name() {
+		for _, h := range heartbeats {
+			err := r.db.Create(h).Error
+			if err != nil {
+				if strings.Contains(err.Error(), "Cannot insert duplicate key row in object 'dbo.heartbeats' with unique index 'idx_heartbeats_hash'") {
+					// ignored
+				} else {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+
 	if err := r.db.
 		Clauses(clause.OnConflict{
 			DoNothing: true,
@@ -113,9 +134,9 @@ func (r *HeartbeatRepository) GetLatestByFilters(user *models.User, filterMap ma
 func (r *HeartbeatRepository) GetFirstByUsers() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
 	r.db.Model(&models.User{}).
-		Select("users.id as user, min(time) as time").
+		Select(utils.QuoteSql(r.db, "users.id as %s, min(time) as %s", "user", "time")).
 		Joins("left join heartbeats on users.id = heartbeats.user_id").
-		Group("user").
+		Group("users.id").
 		Scan(&result)
 	return result, nil
 }
@@ -123,7 +144,7 @@ func (r *HeartbeatRepository) GetFirstByUsers() ([]*models.TimeByUser, error) {
 func (r *HeartbeatRepository) GetLastByUsers() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
 	r.db.Model(&models.User{}).
-		Select("users.id as user, max(time) as time").
+		Select(utils.QuoteSql(r.db, "users.id as %s, max(time) as %s", "user", "time")).
 		Joins("left join heartbeats on users.id = heartbeats.user_id").
 		Group("user").
 		Scan(&result)
@@ -172,7 +193,7 @@ func (r *HeartbeatRepository) CountByUsers(users []*models.User) ([]*models.Coun
 
 	if err := r.db.
 		Model(&models.Heartbeat{}).
-		Select("user_id as user, count(id) as count").
+		Select(utils.QuoteSql(r.db, "user_id as %s, count(id) as %s", "user", "count")).
 		Where("user_id in ?", userIds).
 		Group("user").
 		Find(&counts).Error; err != nil {
@@ -231,22 +252,36 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 	// see https://github.com/muety/wakapi/issues/524#issuecomment-1731668391
 
 	// multi-line string with backticks yields an error with the github.com/glebarez/sqlite driver
+
+	args := []interface{}{
+		user.ID, from.Format(time.RFC3339), to.Format(time.RFC3339),
+	}
+
+	limitOffsetClause := "limit ? offset ?"
+
+	if r.config.Db.IsMssql() {
+		limitOffsetClause = "offset ? ROWS fetch next ? rows only"
+		args = append(args, offset, limit)
+	} else {
+		args = append(args, limit, offset)
+	}
+
 	if err := r.db.
 		Raw("with projects as ( "+
-			"select project, user_id, min(time) as first, max(time) as last, count(*) as cnt "+
+			"select project as p, user_id, min(time) as first, max(time) as last, count(*) as cnt "+
 			"from heartbeats "+
 			"where user_id = ? and project != '' "+
 			"and time between ? and ? "+
 			"and language is not null and language != '' and project != '' "+
 			"group by project, user_id "+
 			"order by last desc "+
-			"limit ? offset ? "+
+			limitOffsetClause+
 			") "+
 			"select distinct project, min(first) as first, min(last) as last, min(cnt) as count, first_value(language) over (partition by project order by count(*) desc) as top_language "+
 			"from heartbeats "+
-			"inner join projects using (project, user_id) "+
+			"inner join projects on heartbeats.project = projects.p and heartbeats.user_id = projects.user_id "+
 			"group by project, language "+
-			"order by last desc", user.ID, from, to, limit, offset).
+			"order by last desc", args...).
 		Scan(&projectStats).Error; err != nil {
 		return nil, err
 	}
