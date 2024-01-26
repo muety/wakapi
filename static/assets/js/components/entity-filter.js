@@ -9,6 +9,7 @@ function EntityFilter({type, options, selection}) {
             return this.type.capitalize()
         },
         onSelectionUpdated(e) {
+            this.selection = e.target.value == 'null' ? null : e.target.value
             this.$nextTick(() => {
                 const query = new URLSearchParams(window.location.search)
                 if (this.selection) query.set(type, this.selection)
