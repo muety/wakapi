@@ -10,6 +10,7 @@ import (
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -33,14 +34,24 @@ func (h *ActivityApiHandler) RegisterRoutes(router chi.Router) {
 		middlewares.NewAuthenticateMiddleware(h.userService).WithOptionalFor("/api/activity/chart/").Handler,
 		middleware.Compress(9, "image/svg+xml"),
 	)
-	r.Get("/chart/{user}.svg", h.GetActivityChart)
+	r.Get("/chart/{userWithExt}", h.GetActivityChart)
 
 	router.Mount("/activity", r)
 }
 
 func (h *ActivityApiHandler) GetActivityChart(w http.ResponseWriter, r *http.Request) {
 	authorizedUser := middlewares.GetPrincipal(r)
-	requestedUser, err := h.userService.GetUserById(chi.URLParam(r, "user"))
+
+	// chi currently doesn't support dots in parameters of routes containing a dot themselves, this is a workaround
+	// https://github.com/go-chi/chi/issues/758
+	// https://github.com/go-chi/chi/pull/811
+	userWithExt := chi.URLParam(r, "userWithExt")
+	if !strings.HasSuffix(userWithExt, ".svg") {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(conf.ErrNotFound))
+		return
+	}
+	requestedUser, err := h.userService.GetUserById(strings.TrimRight(userWithExt, ".svg"))
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
