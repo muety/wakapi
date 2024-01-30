@@ -10,9 +10,16 @@ import (
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 )
+
+var userWithExtPattern *regexp.Regexp
+
+func init() {
+	userWithExtPattern = regexp.MustCompile(`\.svg$`)
+}
 
 type ActivityApiHandler struct {
 	config          *conf.Config
@@ -51,7 +58,7 @@ func (h *ActivityApiHandler) GetActivityChart(w http.ResponseWriter, r *http.Req
 		w.Write([]byte(conf.ErrNotFound))
 		return
 	}
-	requestedUser, err := h.userService.GetUserById(strings.TrimRight(userWithExt, ".svg"))
+	requestedUser, err := h.userService.GetUserById(userWithExtPattern.ReplaceAllString(userWithExt, ""))
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return

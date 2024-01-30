@@ -200,7 +200,7 @@ func (srv *MiscService) NotifyExpiringSubscription() {
 	var subscriptionReminders map[string][]*models.KeyStringValue
 	if result, err := srv.keyValueService.GetByPrefix(config.KeySubscriptionNotificationSent); err == nil {
 		subscriptionReminders = slice.GroupWith[*models.KeyStringValue, string](result, func(kv *models.KeyStringValue) string {
-			return strings.TrimPrefix(kv.Key, config.KeySubscriptionNotificationSent+"_")
+			return strings.Replace(kv.Key, config.KeySubscriptionNotificationSent+"_", "", 1)
 		})
 	} else {
 		config.Log().Error("failed to fetch key-values for subscription notifications, %v", err)
