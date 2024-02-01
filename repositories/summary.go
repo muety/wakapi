@@ -35,9 +35,29 @@ func (r *SummaryRepository) GetAll() ([]*models.Summary, error) {
 }
 
 func (r *SummaryRepository) Insert(summary *models.Summary) error {
-	if err := r.db.Create(summary).Error; err != nil {
+
+	itemsToCreate := []interface{}{summary}
+
+	for _, item := range summary.Machines {
+		itemsToCreate = append(itemsToCreate, item)
+	}
+
+	for _, item := range summary.Languages {
+		itemsToCreate = append(itemsToCreate, item)
+	}
+
+	for _, item := range summary.OperatingSystems {
+		itemsToCreate = append(itemsToCreate, item)
+	}
+
+	for _, item := range summary.Editors {
+		itemsToCreate = append(itemsToCreate, item)
+	}
+
+	if err := r.db.Create(itemsToCreate).Error; err != nil {
 		return err
 	}
+
 	return nil
 }
 
