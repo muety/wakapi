@@ -36,28 +36,42 @@ func (r *SummaryRepository) GetAll() ([]*models.Summary, error) {
 
 func (r *SummaryRepository) Insert(summary *models.Summary) error {
 
-	itemsToCreate := []interface{}{summary}
+	if err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := r.db.Create(summary).Error; err != nil {
+			return err
+		}
 
-	// required due to setting gorm:"-" in the model definition
-	// see https://github.com/muety/wakapi/issues/600#issuecomment-1921723789
-	// see https://github.com/muety/wakapi/pull/592#discussion_r1450478355
-	for _, item := range summary.Machines {
-		itemsToCreate = append(itemsToCreate, item)
-	}
+		itemsToCreate := []*models.SummaryItem{}
 
-	for _, item := range summary.Languages {
-		itemsToCreate = append(itemsToCreate, item)
-	}
+		// required due to setting gorm:"-" in the model definition
+		// see https://github.com/muety/wakapi/issues/600#issuecomment-1921723789
+		// see https://github.com/muety/wakapi/pull/592#discussion_r1450478355
+		for _, item := range summary.Machines {
+			item.SummaryID = summary.ID
+			itemsToCreate = append(itemsToCreate, item)
+		}
 
-	for _, item := range summary.OperatingSystems {
-		itemsToCreate = append(itemsToCreate, item)
-	}
+		for _, item := range summary.Languages {
+			item.SummaryID = summary.ID
+			itemsToCreate = append(itemsToCreate, item)
+		}
 
-	for _, item := range summary.Editors {
-		itemsToCreate = append(itemsToCreate, item)
-	}
+		for _, item := range summary.OperatingSystems {
+			item.SummaryID = summary.ID
+			itemsToCreate = append(itemsToCreate, item)
+		}
 
-	if err := r.db.Create(itemsToCreate).Error; err != nil {
+		for _, item := range summary.Editors {
+			item.SummaryID = summary.ID
+			itemsToCreate = append(itemsToCreate, item)
+		}
+
+		if err := r.db.Create(itemsToCreate).Error; err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
 		return err
 	}
 
