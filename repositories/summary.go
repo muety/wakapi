@@ -38,6 +38,9 @@ func (r *SummaryRepository) Insert(summary *models.Summary) error {
 
 	itemsToCreate := []interface{}{summary}
 
+	// required due to setting gorm:"-" in the model definition
+	// see https://github.com/muety/wakapi/issues/600#issuecomment-1921723789
+	// see https://github.com/muety/wakapi/pull/592#discussion_r1450478355
 	for _, item := range summary.Machines {
 		itemsToCreate = append(itemsToCreate, item)
 	}
