@@ -39,7 +39,7 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 
 	url := config.WakatimeApiUrl + config.WakatimeApiDataDumpUrl // this importer only works with wakatime currently, so no point in using user's custom wakatime api url
 	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer([]byte(`{ "type": "heartbeats", "email_when_finished": false }`)))
-	res, err := utils.RaiseForStatus(w.httpClient.Do(w.withHeaders(req)))
+	res, err := utils.RaiseForStatus((&http.Client{Timeout: 10 * time.Second}).Do(w.withHeaders(req)))
 
 	if err != nil && res != nil && res.StatusCode == http.StatusBadRequest {
 		var datadumpError wakatime.DataDumpResultErrorModel
@@ -63,7 +63,7 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 	// callbacks
 	checkDumpAvailable := func(user *models.User) (bool, *wakatime.DataDumpData, error) {
 		req, _ := http.NewRequest(http.MethodGet, url, nil)
-		res, err := utils.RaiseForStatus(w.httpClient.Do(w.withHeaders(req)))
+		res, err := utils.RaiseForStatus((&http.Client{Timeout: 10 * time.Second}).Do(w.withHeaders(req)))
 		if err != nil {
 			return false, nil, err
 		}
@@ -156,5 +156,13 @@ func (w *WakatimeDumpImporter) withHeaders(req *http.Request) *http.Request {
 	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(w.apiKey))))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
+
+	// workaround for https://github.com/muety/wakapi/issues/602
+	// super weird behavior:
+	// when keeping req.Close set to false (keep connection alive), we'll get an "unexpected EOF" error inside checkDumpAvailable(),
+	// even though i can neither reproduce this error with curl, nor in a minimal, stand-alone go example (https://go.dev/play/p/HY_RLtTWnkk works totally fine)
+	// even weirder: even when creating a whole new http.Client for every request, the issue keeps occuring
+	// this used to be working in the past and suddenly broke at some point (change on wakatime's end?)
+	req.Close = true
 	return req
 }
