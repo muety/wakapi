@@ -37,7 +37,7 @@ func (r *SummaryRepository) GetAll() ([]*models.Summary, error) {
 func (r *SummaryRepository) Insert(summary *models.Summary) error {
 
 	if err := r.db.Transaction(func(tx *gorm.DB) error {
-		if err := r.db.Create(summary).Error; err != nil {
+		if err := tx.Create(summary).Error; err != nil {
 			return err
 		}
 
@@ -66,7 +66,7 @@ func (r *SummaryRepository) Insert(summary *models.Summary) error {
 			itemsToCreate = append(itemsToCreate, item)
 		}
 
-		if err := r.db.Create(itemsToCreate).Error; err != nil {
+		if err := tx.Create(itemsToCreate).Error; err != nil {
 			return err
 		}
 
