@@ -257,18 +257,22 @@ func (srv *LeaderboardService) GenerateAggregatedByUser(user *models.User, inter
 	}
 
 	summaryItems := *summary.GetByType(by)
-	items := make([]*models.LeaderboardItem, summaryItems.Len())
+	items := make([]*models.LeaderboardItem, 0, summaryItems.Len())
 
-	for i := 0; i < summaryItems.Len(); i++ {
-		key := summaryItems[i].Key
-		items[i] = &models.LeaderboardItem{
+	for _, item := range summaryItems {
+		// explicitly exclude unknown languages from leaderboard
+		if item.Key == models.UnknownSummaryKey {
+			continue
+		}
+
+		items = append(items, &models.LeaderboardItem{
 			User:     user,
 			UserID:   user.ID,
 			Interval: (*interval)[0],
 			By:       &by,
-			Total:    summary.TotalTimeByKey(by, key),
-			Key:      &key,
-		}
+			Total:    summary.TotalTimeByKey(by, item.Key),
+			Key:      &item.Key,
+		})
 	}
 
 	return items, nil
