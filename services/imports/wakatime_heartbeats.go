@@ -131,7 +131,7 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 }
 
 func (w *WakatimeHeartbeatsImporter) ImportAll(user *models.User) (<-chan *models.Heartbeat, error) {
-	return w.Import(user, time.Time{}, time.Now())
+	return w.Import(user, config.BeginningOfWakatime(), time.Now())
 }
 
 // https://wakatime.com/api/v1/users/current/heartbeats?date=2021-02-05
@@ -169,7 +169,7 @@ func (w *WakatimeHeartbeatsImporter) fetchHeartbeats(day string, baseUrl string)
 // https://wakatime.com/api/v1/users/current/all_time_since_today
 // https://pastr.de/p/w8xb4biv575pu32pox7jj2gr
 func (w *WakatimeHeartbeatsImporter) fetchRange(baseUrl string) (time.Time, time.Time, error) {
-	notime := time.Time{}
+	notime := config.BeginningOfWakatime()
 
 	req, err := http.NewRequest(http.MethodGet, baseUrl+config.WakatimeApiAllTimeUrl, nil)
 	if err != nil {

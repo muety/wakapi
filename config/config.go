@@ -68,6 +68,10 @@ var emailProviders = []string{
 	MailProviderSmtp,
 }
 
+// first wakatime commit was on this day ;-) so no real heartbeats should exist before
+// https://github.com/wakatime/legacy-python-cli/commit/3da94756aa1903c1cca5035803e3f704e818c086
+const heartbeatsMinDate = "2013-07-06"
+
 var leaderboardScopes = []string{"24_hours", "week", "month", "year", "7_days", "14_days", "30_days", "6_months", "12_months", "all_time"}
 
 var cfg *Config
@@ -523,4 +527,9 @@ func Empty() *Config {
 		Sentry:        sentryConfig{},
 		Mail:          mailConfig{},
 	}
+}
+
+func BeginningOfWakatime() time.Time {
+	t, _ := time.Parse(SimpleDateFormat, heartbeatsMinDate)
+	return t
 }

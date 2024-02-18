@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+func MustParseTime(layout, value string) time.Time {
+	t, _ := time.Parse(layout, value)
+	return t
+}
+
 func BeginOfToday(tz *time.Location) time.Time {
 	return datetime.BeginOfDay(time.Now().In(tz))
 }

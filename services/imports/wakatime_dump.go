@@ -149,7 +149,7 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 }
 
 func (w *WakatimeDumpImporter) ImportAll(user *models.User) (<-chan *models.Heartbeat, error) {
-	return w.Import(user, time.Time{}, time.Now())
+	return w.Import(user, config.BeginningOfWakatime(), time.Now())
 }
 
 func (w *WakatimeDumpImporter) withHeaders(req *http.Request) *http.Request {
