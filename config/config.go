@@ -484,6 +484,12 @@ func Load(configFlag string, version string) *Config {
 	if config.Security.TrustedHeaderAuth && len(config.Security.trustReverseProxyIpParsed) == 0 {
 		config.Security.TrustedHeaderAuth = false
 	}
+	if _, err := time.Parse(config.App.DateFormat, "2006-01-02"); err != nil {
+		logbuch.Fatal("invalid date format '%s'", config.App.DateFormat)
+	}
+	if _, err := time.Parse(config.App.DateTimeFormat, "2006-01-02 15:04"); err != nil {
+		logbuch.Fatal("invalid datetime format '%s'", config.App.DateTimeFormat)
+	}
 
 	cronParser := cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
 
