@@ -33,11 +33,11 @@ func FormatDateTime(date time.Time) string {
 }
 
 func FormatDateTimeHuman(date time.Time) string {
-	return date.Format("Mon, 02 Jan 2006 15:04")
+	return date.Format(config.Get().App.DateTimeFormat)
 }
 
 func FormatDateHuman(date time.Time) string {
-	return date.Format("Mon, 02 Jan 2006")
+	return date.Format(config.Get().App.DateFormat)
 }
 
 func FmtWakatimeDuration(d time.Duration) string {

@@ -95,6 +95,8 @@ type appConfig struct {
 	DataCleanupDryRun         bool                         `yaml:"data_cleanup_dry_run" default:"false" env:"WAKAPI_DATA_CLEANUP_DRY_RUN"` // for debugging only
 	AvatarURLTemplate         string                       `yaml:"avatar_url_template" default:"api/avatar/{username_hash}.svg" env:"WAKAPI_AVATAR_URL_TEMPLATE"`
 	SupportContact            string                       `yaml:"support_contact" default:"hostmaster@wakapi.dev" env:"WAKAPI_SUPPORT_CONTACT"`
+	DateFormat                string                       `yaml:"date_format" default:"Mon, 02 Jan 2006" env:"WAKAPI_DATE_FORMAT"`
+	DateTimeFormat            string                       `yaml:"datetime_format" default:"Mon, 02 Jan 2006 15:04" env:"WAKAPI_DATETIME_FORMAT"`
 	CustomLanguages           map[string]string            `yaml:"custom_languages"`
 	Colors                    map[string]map[string]string `yaml:"-"`
 }
@@ -481,6 +483,12 @@ func Load(configFlag string, version string) *Config {
 	}
 	if config.Security.TrustedHeaderAuth && len(config.Security.trustReverseProxyIpParsed) == 0 {
 		config.Security.TrustedHeaderAuth = false
+	}
+	if d, err := time.Parse(config.App.DateFormat, config.App.DateFormat); err != nil || !d.Equal(time.Date(2006, time.January, 2, 0, 0, 0, 0, d.Location())) {
+		logbuch.Fatal("invalid date format '%s'", config.App.DateFormat)
+	}
+	if d, err := time.Parse(config.App.DateTimeFormat, config.App.DateTimeFormat); err != nil || !d.Equal(time.Date(2006, time.January, 2, 15, 4, 0, 0, d.Location())) {
+		logbuch.Fatal("invalid datetime format '%s'", config.App.DateTimeFormat)
 	}
 
 	cronParser := cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)

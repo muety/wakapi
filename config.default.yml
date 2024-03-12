@@ -43,6 +43,11 @@ app:
   # defaults to wakapi's internal avatar rendering powered by https://codeberg.org/Codeberg/avatars
   avatar_url_template: api/avatar/{username_hash}.svg
 
+  # go time format strings to format human-readable dates
+  # for details, check https://pkg.go.dev/time#Time.Format
+  date_format: Mon, 02 Jan 2006
+  datetime_format: Mon, 02 Jan 2006 15:04
+
 db:
   host:                               # leave blank when using sqlite3
   port:                               # leave blank when using sqlite3
