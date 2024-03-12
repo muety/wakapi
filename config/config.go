@@ -484,10 +484,10 @@ func Load(configFlag string, version string) *Config {
 	if config.Security.TrustedHeaderAuth && len(config.Security.trustReverseProxyIpParsed) == 0 {
 		config.Security.TrustedHeaderAuth = false
 	}
-	if _, err := time.Parse(config.App.DateFormat, "2006-01-02"); err != nil {
+	if d, err := time.Parse(config.App.DateFormat, config.App.DateFormat); err != nil || !d.Equal(time.Date(2006, time.January, 2, 0, 0, 0, 0, d.Location())) {
 		logbuch.Fatal("invalid date format '%s'", config.App.DateFormat)
 	}
-	if _, err := time.Parse(config.App.DateTimeFormat, "2006-01-02 15:04"); err != nil {
+	if d, err := time.Parse(config.App.DateTimeFormat, config.App.DateTimeFormat); err != nil || !d.Equal(time.Date(2006, time.January, 2, 15, 4, 0, 0, d.Location())) {
 		logbuch.Fatal("invalid datetime format '%s'", config.App.DateTimeFormat)
 	}
 
