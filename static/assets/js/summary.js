@@ -136,7 +136,7 @@ function draw(subselection) {
                 onClick: (event, data) => {
                     const url = new URL(window.location.href)
                     const name = wakapiData.projects[data[0].index].key
-                    url.searchParams.set('project', name === 'unknown' ? '-' : name)
+                    url.searchParams.set('project', name === 'unknown' ? '-' : name)  // will break if the project is actually named "unknown"
                     window.location.href = url.href
                 },
                 onHover: (event, elem) => {
