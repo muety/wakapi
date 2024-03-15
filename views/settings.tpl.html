@@ -33,10 +33,10 @@
 {{ template "alerts.tpl.html" . }}
 
 <main class="mt-10 grow flex justify-center w-full" v-scope @vue:mounted="mounted" id="settings-page">
-    <div class="flex flex-col grow mt-10">
+    <div class="flex flex-col grow mt-10 max-w-full">
         <h1 class="font-semibold text-3xl text-white m-0 mb-4">Settings</h1>
 
-        <ul class="flex space-x-4 mb-16 text-gray-600">
+        <ul class="flex gap-x-4 mb-16 text-gray-600 flex-wrap sm:flex-nowrap">
             <li class="font-semibold text-2xl" v-bind:class="{ 'text-gray-300': isActive('account'), 'hover:text-gray-500': !isActive('account') }">
                 <a href="settings#account" @click="updateTab">Account</a>
             </li>
@@ -260,7 +260,7 @@
                                      style="line-height: 1.8">
                                     &#9656;&nbsp;&nbsp;<span class="font-semibold text-gray-300">{{ $label.Key }}:</span>
                                     {{ range $j, $value := $label.Values }}
-                                    <form action="" method="post" class="chip inline-flex justify-between items-center space-x-2 text-green-700">
+                                    <form action="" method="post" class="chip inline-flex justify-between items-center gap-x-2 text-green-700">
                                         <input type="hidden" name="action" value="delete_label">
                                         <input type="hidden" name="key" value="{{ $label.Key }}">
                                         <input type="hidden" name="value" value="{{ $value }}">
@@ -274,7 +274,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
                                         </button>
-                                        <form action="" method="post" class="inline-flex space-x-1" v-show="labels[{{ $i }}]">
+                                        <form action="" method="post" class="inline-flex gap-x-1" v-show="labels[{{ $i }}]">
                                             <input type="hidden" name="action" class="block" value="add_label">
                                             <input type="hidden" name="value" value="{{ $label.Key }}">
                                             <select name="key" class="block text-sm select-default !w-auto">
@@ -415,7 +415,7 @@
                     <div class="flex-col w-full md:w-1/2 inline-block space-y-4">
                         <input type="hidden" name="action" value="update_leaderboard">
 
-                        <div class="flex space-x-8">
+                        <div class="flex gap-x-8">
                             <div class="grow">
                                 <label class="font-semibold text-gray-300" for="share_projects">Participate in leaderboard</label>
                             </div>
@@ -455,7 +455,7 @@
                     <div class="flex-col w-full md:w-1/2 inline-block space-y-4">
                         <input type="hidden" name="action" value="update_sharing">
 
-                        <div class="flex space-x-8">
+                        <div class="flex gap-x-8">
                             <div class="grow">
                                 <label class="font-semibold text-gray-300" for="max_days">Time Range</label>
                                 <span class="block text-sm text-gray-600">(in days; 0 = not public, -1 = unlimited)</span>
@@ -467,7 +467,7 @@
                             </div>
                         </div>
 
-                        <div class="flex space-x-8">
+                        <div class="flex gap-x-8">
                             <div class="grow">
                                 <label class="font-semibold text-gray-300" for="share_projects">Share Projects</label>
                             </div>
@@ -481,7 +481,7 @@
                             </div>
                         </div>
 
-                        <div class="flex space-x-8">
+                        <div class="flex gap-x-8">
                             <div class="grow">
                                 <label class="font-semibold text-gray-300" for="share_languages">Share Languages</label>
                             </div>
@@ -495,7 +495,7 @@
                             </div>
                         </div>
 
-                        <div class="flex space-x-8">
+                        <div class="flex gap-x-8">
                             <div class="grow">
                                 <label class="font-semibold text-gray-300" for="share_editors">Share Editors</label>
                             </div>
@@ -509,7 +509,7 @@
                             </div>
                         </div>
 
-                        <div class="flex space-x-8">
+                        <div class="flex gap-x-8">
                             <div class="grow">
                                 <label class="font-semibold text-gray-300" for="share_oss">Share OS'</label>
                             </div>
@@ -523,7 +523,7 @@
                             </div>
                         </div>
 
-                        <div class="flex space-x-8">
+                        <div class="flex gap-x-8">
                             <div class="grow">
                                 <label class="font-semibold text-gray-300" for="share_machines">Share Machines</label>
                             </div>
@@ -537,7 +537,7 @@
                             </div>
                         </div>
 
-                        <div class="flex space-x-8">
+                        <div class="flex gap-x-8">
                             <div class="grow">
                                 <label class="font-semibold text-gray-300" for="share_labels">Share Project Labels</label>
                             </div>
@@ -626,7 +626,7 @@
 
                     <div class="w-full md:w-1/2 ml-4">
                         {{ if ne .User.ShareDataMaxDays 0 }}
-                        <div class="flex space-x-4 mb-4">
+                        <div class="flex gap-x-4 mb-4">
                             <div class="flex items-center w-1/3">
                                 <img class="with-url-src"
                                      src="api/badge/{{ .User.ID }}/interval:today?label=today"
@@ -638,7 +638,7 @@
                                     readonly>
                         </div>
 
-                        <div class="flex space-x-4 mt-4">
+                        <div class="flex gap-x-4 mt-4">
                             <div class="flex items-center w-1/3">
                                 <img class="with-url-src"
                                      src="api/badge/{{ .User.ID }}/interval:30_days?label=last 30d"
@@ -651,7 +651,7 @@
                                     readonly>
                         </div>
 
-                        <div class="flex space-x-4 mt-4">
+                        <div class="flex gap-x-4 mt-4">
                             <div class="flex items-center w-1/3">
                                 <img class="with-url-src"
                                      src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:30_days&label=last 30d"
