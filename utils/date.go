@@ -16,7 +16,7 @@ func BeginOfToday(tz *time.Location) time.Time {
 }
 
 func BeginOfThisWeek(tz *time.Location) time.Time {
-	return datetime.BeginOfWeek(time.Now().In(tz))
+	return datetime.BeginOfWeek(time.Now().In(tz), time.Monday)
 }
 
 func BeginOfThisMonth(tz *time.Location) time.Time {
