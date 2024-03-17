@@ -45,6 +45,14 @@ ENV ENVIRONMENT=prod \
     WAKAPI_ALLOW_SIGNUP='true'
 
 COPY --from=build-env /staging /
+
+LABEL org.opencontainers.image.url="https://github.com/muety/wakapi" \
+      org.opencontainers.image.documentation="https://github.com/muety/wakapi" \
+      org.opencontainers.image.source="https://github.com/muety/wakapi" \
+      org.opencontainers.image.title="Wakapi" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.description="A minimalist, self-hosted WakaTime-compatible backend for coding statistics"
+
 USER app
 
 EXPOSE 3000
