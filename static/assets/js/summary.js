@@ -421,16 +421,6 @@ function draw(subselection) {
                     tooltip: getTooltipOptions('entities'),
                 },
                 maintainAspectRatio: false,
-                onClick: (event, data) => {
-                    const idx = data[0].index
-                    const name = wakapiData.entities[idx].key
-                    const url = new URL(window.location.href)
-                    url.searchParams.set('project', name)
-                    window.location.href = url.href
-                },
-                onHover: (event, elem) => {
-                    event.native.target.style.cursor = elem[0] ? 'pointer' : 'default'
-                }
             }
         })
         : null
