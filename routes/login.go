@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/emvi/logbuch"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/httprate"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -32,13 +33,19 @@ func NewLoginHandler(userService services.IUserService, mailService services.IMa
 
 func (h *LoginHandler) RegisterRoutes(router chi.Router) {
 	router.Get("/login", h.GetIndex)
-	router.Post("/login", h.PostLogin)
-	router.Get("/signup", h.GetSignup)
+	router.
+		With(httprate.LimitByRealIP(h.config.Security.GetLoginMaxRate())).
+		Post("/login", h.PostLogin)
+	router.
+		With(httprate.LimitByRealIP(h.config.Security.GetSignupMaxRate())).
+		Get("/signup", h.GetSignup)
 	router.Post("/signup", h.PostSignup)
 	router.Get("/set-password", h.GetSetPassword)
 	router.Post("/set-password", h.PostSetPassword)
 	router.Get("/reset-password", h.GetResetPassword)
-	router.Post("/reset-password", h.PostResetPassword)
+	router.
+		With(httprate.LimitByRealIP(h.config.Security.GetPasswordResetMaxRate())).
+		Post("/reset-password", h.PostResetPassword)
 
 	authMiddleware := middlewares.NewAuthenticateMiddleware(h.userSrvc).
 		WithRedirectTarget(defaultErrorRedirectTarget()).

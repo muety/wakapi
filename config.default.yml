@@ -72,6 +72,9 @@ security:
   trusted_header_auth: false            # whether to enable trusted header auth for reverse proxies, use with caution!! (https://github.com/muety/wakapi/issues/534)
   trusted_header_auth_key: Remote-User  # header field for trusted header auth (warning: your proxy must correctly strip this header from client requests!!)
   trust_reverse_proxy_ips:              # single ip address of the reverse proxy which you trust to pass headers for authentication
+  signup_max_rate: 5/1h                 # signup endpoint rate limit pattern
+  login_max_rate: 10/1m                 # login endpoint rate limit pattern
+  password_reset_max_rate: 5/1h         # password reset endpoint rate limit pattern
 
 sentry:
   dsn:                                # leave blank to disable sentry integration

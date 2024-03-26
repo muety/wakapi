@@ -37,6 +37,9 @@ security:
   cookie_max_age: 172800
   allow_signup: true
   expose_metrics: true
+  signup_max_rate: 999/1s
+  login_max_rate: 999/1s
+  password_reset_max_rate: 999/1s
 
 sentry:
   dsn:

@@ -113,6 +113,9 @@ type securityConfig struct {
 	TrustedHeaderAuth         bool                       `yaml:"trusted_header_auth" default:"false" env:"WAKAPI_TRUSTED_HEADER_AUTH"`
 	TrustedHeaderAuthKey      string                     `yaml:"trusted_header_auth_key" default:"Remote-User" env:"WAKAPI_TRUSTED_HEADER_AUTH_KEY"`
 	TrustReverseProxyIps      string                     `yaml:"trust_reverse_proxy_ips" default:"" env:"WAKAPI_TRUST_REVERSE_PROXY_IPS"` // comma-separated list of trusted reverse proxy ips
+	SignupMaxRate             string                     `yaml:"signup_max_rate" default:"5/1h" env:"WAKAPI_SIGNUP_MAX_RATE"`
+	LoginMaxRate              string                     `yaml:"login_max_rate" default:"10/1m" env:"WAKAPI_LOGIN_MAX_RATE"`
+	PasswordResetMaxRate      string                     `yaml:"password_reset_max_rate" default:"5/1h" env:"WAKAPI_PASSWORD_RESET_MAX_RATE"`
 	SecureCookie              *securecookie.SecureCookie `yaml:"-"`
 	SessionKey                []byte                     `yaml:"-"`
 	trustReverseProxyIpParsed []net.IP
@@ -334,6 +337,41 @@ func (c *securityConfig) ParseTrustReverseProxyIPs() {
 
 func (c *securityConfig) TrustReverseProxyIPs() []net.IP {
 	return c.trustReverseProxyIpParsed
+}
+
+func (c *securityConfig) GetSignupMaxRate() (int, time.Duration) {
+	return c.parseRate(c.SignupMaxRate)
+}
+
+func (c *securityConfig) GetLoginMaxRate() (int, time.Duration) {
+	return c.parseRate(c.LoginMaxRate)
+}
+
+func (c *securityConfig) GetPasswordResetMaxRate() (int, time.Duration) {
+	return c.parseRate(c.PasswordResetMaxRate)
+}
+
+func (c *securityConfig) parseRate(rate string) (int, time.Duration) {
+	pattern := regexp.MustCompile("(\\d+)/(\\d+)([smh])")
+	matches := pattern.FindStringSubmatch(rate)
+	if len(matches) != 4 {
+		logbuch.Fatal("failed to parse rate pattern '%s'", rate)
+	}
+
+	limit, _ := strconv.Atoi(matches[1])
+	window, _ := strconv.Atoi(matches[2])
+
+	var windowScale time.Duration
+	switch matches[3] {
+	case "s":
+		windowScale = time.Second
+	case "m":
+		windowScale = time.Minute
+	case "h":
+		windowScale = time.Hour
+	}
+
+	return limit, time.Duration(window) * windowScale
 }
 
 func (c *dbConfig) IsSQLite() bool {
