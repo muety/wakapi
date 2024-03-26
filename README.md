@@ -517,9 +517,9 @@ Coding in open source is my passion and I would love to do it on a full-time bas
 
 I highly appreciate the efforts of **[@alanhamlett](https://github.com/alanhamlett)** and the WakaTime team and am thankful for their software being open source.
 
-Moreover, thanks to **[Frachtwerk](https://frachtwerk.de)** for sponsoring server infrastructure for Wakapi.dev.
+Moreover, thanks to **[server.camp](https://server.camp)** for sponsoring server infrastructure for Wakapi.dev.
 
-![](.github/assets/frachtwerk_logo.png)
+<img src=".github/assets/servercamp_logo.png" width="220px" />
 
 ## 📓 License
 
