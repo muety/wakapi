@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
+	"github.com/duke-git/lancet/v2/condition"
 	"time"
 
 	"github.com/muety/wakapi/models"
@@ -74,13 +76,11 @@ func (r *UserRepository) GetAllByLeaderboard(leaderboardEnabled bool) ([]*models
 }
 
 func (r *UserRepository) GetByLoggedInAfter(t time.Time) ([]*models.User, error) {
-	var users []*models.User
-	if err := r.db.
-		Where("last_logged_in_at >= ?", t.Local()).
-		Find(&users).Error; err != nil {
-		return nil, err
-	}
-	return users, nil
+	return r.getByLoggedIn(t, true)
+}
+
+func (r *UserRepository) GetByLoggedInBefore(t time.Time) ([]*models.User, error) {
+	return r.getByLoggedIn(t, false)
 }
 
 // Returns a list of user ids, whose last heartbeat is not older than t
@@ -173,4 +173,15 @@ func (r *UserRepository) UpdateField(user *models.User, key string, value interf
 
 func (r *UserRepository) Delete(user *models.User) error {
 	return r.db.Delete(user).Error
+}
+
+func (r *UserRepository) getByLoggedIn(t time.Time, after bool) ([]*models.User, error) {
+	var users []*models.User
+	comparator := condition.TernaryOperator[bool, string](after, ">=", "<=")
+	if err := r.db.
+		Where(fmt.Sprintf("last_logged_in_at %s ?", comparator), t.Local()).
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
 }
