@@ -84,7 +84,7 @@
                 <a href="login">
                     <button type="button" class="btn-default">Log in</button>
                 </a>
-                {{ if .AllowSignup }}
+                {{ if or (.AllowSignup) (ne .InviteCode "") }}
                 <button type="submit" class="btn-primary">
                     Create Account
                 </button>
