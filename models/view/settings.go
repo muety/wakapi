@@ -18,6 +18,8 @@ type SettingsViewModel struct {
 	SupportContact      string
 	LeaderboardEnabled  bool
 	ApiKey              string
+	InvitesEnabled      bool
+	InviteLink          string
 }
 
 type SettingsVMCombinedAlias struct {

@@ -98,11 +98,12 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		UserFirstData:       firstData,
 		DataRetentionMonths: h.config.App.DataRetentionMonths,
 		LeaderboardEnabled:  h.config.App.LeaderboardEnabled,
+		InvitesEnabled:      h.config.Security.InviteCodes,
 	}
 
 	templates[conf.SummaryTemplate].Execute(w, vm)
 }
 
 func (h *SummaryHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *view.SummaryViewModel {
-	return su.WithSessionMessages(&view.SummaryViewModel{LeaderboardEnabled: h.config.App.LeaderboardEnabled}, r, w)
+	return su.WithSessionMessages(&view.SummaryViewModel{LeaderboardEnabled: h.config.App.LeaderboardEnabled, InvitesEnabled: h.config.Security.InviteCodes}, r, w)
 }

@@ -39,6 +39,7 @@ type User struct {
 	SubscribedUntil     *CustomTime `json:"-" gorm:"swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	SubscriptionRenewal *CustomTime `json:"-" gorm:"swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	StripeCustomerId    string      `json:"-"`
+	InvitedBy           string      `json:"-"`
 }
 
 type Login struct {
@@ -52,6 +53,8 @@ type Signup struct {
 	Password       string `schema:"password"`
 	PasswordRepeat string `schema:"password_repeat"`
 	Location       string `schema:"location"`
+	InviteCode     string `schema:"invite_code"`
+	InvitedBy      string `schema:"-"`
 }
 
 type SetPasswordRequest struct {

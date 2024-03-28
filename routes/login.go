@@ -14,20 +14,23 @@ import (
 	"github.com/muety/wakapi/utils"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
 type LoginHandler struct {
-	config   *conf.Config
-	userSrvc services.IUserService
-	mailSrvc services.IMailService
+	config       *conf.Config
+	userSrvc     services.IUserService
+	mailSrvc     services.IMailService
+	keyValueSrvc services.IKeyValueService
 }
 
-func NewLoginHandler(userService services.IUserService, mailService services.IMailService) *LoginHandler {
+func NewLoginHandler(userService services.IUserService, mailService services.IMailService, keyValueService services.IKeyValueService) *LoginHandler {
 	return &LoginHandler{
-		config:   conf.Get(),
-		userSrvc: userService,
-		mailSrvc: mailService,
+		config:       conf.Get(),
+		userSrvc:     userService,
+		mailSrvc:     mailService,
+		keyValueSrvc: keyValueService,
 	}
 }
 
@@ -151,17 +154,6 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
-	if !h.config.IsDev() && !h.config.Security.AllowSignup {
-		w.WriteHeader(http.StatusForbidden)
-		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w).WithError("registration is disabled on this server"))
-		return
-	}
-
-	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
-		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
-		return
-	}
-
 	var signup models.Signup
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -173,6 +165,40 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w).WithError("missing parameters"))
 		return
 	}
+
+	if !h.config.IsDev() && !h.config.Security.AllowSignup && (!h.config.Security.InviteCodes || signup.InviteCode == "") {
+		w.WriteHeader(http.StatusForbidden)
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w).WithError("registration is disabled on this server"))
+		return
+	}
+
+	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
+		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
+		return
+	}
+
+	var invitedBy string
+	var invitedDate time.Time
+	var inviteCodeKey = fmt.Sprintf("%s_%s", conf.KeyInviteCode, signup.InviteCode)
+
+	if kv, _ := h.keyValueSrvc.GetString(inviteCodeKey); kv != nil && kv.Value != "" {
+		if parts := strings.Split(kv.Value, ","); len(parts) == 2 {
+			invitedBy = parts[0]
+			invitedDate, _ = time.Parse(conf.SimpleDateFormat, parts[1])
+		}
+
+		if err := h.keyValueSrvc.DeleteString(inviteCodeKey); err != nil {
+			conf.Log().Error("failed to revoke %s", inviteCodeKey)
+		}
+	}
+
+	if signup.InviteCode != "" && time.Since(invitedDate) > 24*time.Hour {
+		w.WriteHeader(http.StatusForbidden)
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w).WithError("invite code invalid or expired"))
+		return
+	}
+
+	signup.InvitedBy = invitedBy
 
 	if !signup.IsValid() {
 		w.WriteHeader(http.StatusBadRequest)
@@ -332,6 +358,7 @@ func (h *LoginHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *v
 	vm := &view.LoginViewModel{
 		TotalUsers:  int(numUsers),
 		AllowSignup: h.config.IsDev() || h.config.Security.AllowSignup,
+		InviteCode:  r.URL.Query().Get("invite"),
 	}
 	return routeutils.WithSessionMessages(vm, r, w)
 }

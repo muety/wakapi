@@ -148,6 +148,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"subscribed_until":     user.SubscribedUntil,
 		"subscription_renewal": user.SubscriptionRenewal,
 		"stripe_customer_id":   user.StripeCustomerId,
+		"invited_by":           user.InvitedBy,
 	}
 
 	result := r.db.Model(user).Updates(updateMap)

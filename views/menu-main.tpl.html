@@ -97,6 +97,14 @@
                         <span class="iconify inline" data-icon="fluent:key-32-filled"></span>
                     </button>
                 </div>
+                {{ if .InvitesEnabled }}
+                <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
+                    <a class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold" href="settings#account">
+                        <span class="text-sm">Invite Friend</span>
+                        <span class="iconify inline" data-icon="mdi:invite"></span>
+                    </a>
+                </div>
+                {{ end }}
                 <div class="submenu-item hover:bg-gray-800 rounded p-1 text-right">
                     <form action="logout" method="post" class="grow">
                         <button type="submit" class="flex justify-between w-full text-gray-300 items-center px-2 font-semibold">

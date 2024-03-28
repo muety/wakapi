@@ -20,6 +20,7 @@ type SummaryViewModel struct {
 	UserFirstData       time.Time
 	DataRetentionMonths int
 	LeaderboardEnabled  bool
+	InvitesEnabled      bool
 }
 
 func (s SummaryViewModel) UserDataExpiring() bool {

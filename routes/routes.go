@@ -4,7 +4,6 @@ import (
 	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/muety/wakapi/helpers"
 	"html/template"
-	"net/http"
 	"strings"
 
 	"github.com/duke-git/lancet/v2/datetime"
@@ -13,8 +12,6 @@ import (
 	"github.com/muety/wakapi/utils"
 	"github.com/muety/wakapi/views"
 )
-
-type action func(w http.ResponseWriter, r *http.Request) (int, string, string)
 
 var templates map[string]*template.Template
 
