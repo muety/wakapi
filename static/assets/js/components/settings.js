@@ -4,7 +4,7 @@ PetiteVue.createApp({
     selectedTimezone: userTimeZone,
     vibrantColorsEnabled: JSON.parse(
         localStorage.getItem("wakapi_vibrant_colors"),
-    ),
+    ) || false,
     labels: {},
     get tzOptions() {
         return [
