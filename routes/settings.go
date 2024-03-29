@@ -39,6 +39,7 @@ type SettingsHandler struct {
 	keyValueSrvc        services.IKeyValueService
 	mailSrvc            services.IMailService
 	httpClient          *http.Client
+	aggregationLocks    map[string]bool
 }
 
 type action func(w http.ResponseWriter, r *http.Request) actionResult
@@ -77,6 +78,7 @@ func NewSettingsHandler(
 		keyValueSrvc:        keyValueService,
 		mailSrvc:            mailService,
 		httpClient:          &http.Client{Timeout: 10 * time.Second},
+		aggregationLocks:    make(map[string]bool),
 	}
 }
 
@@ -178,6 +180,8 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 		return h.actionDeleteUser
 	case "generate_invite":
 		return h.actionGenerateInvite
+	case "update_unknown_projects":
+		return h.actionUpdateExcludeUnknownProjects
 	}
 	return nil
 }
@@ -296,6 +300,39 @@ func (h *SettingsHandler) actionUpdateLeaderboard(w http.ResponseWriter, r *http
 		return actionResult{http.StatusInternalServerError, "", "internal sever error", nil}
 	}
 	return actionResult{http.StatusOK, "settings updated", "", nil}
+}
+
+func (h *SettingsHandler) actionUpdateExcludeUnknownProjects(w http.ResponseWriter, r *http.Request) actionResult {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	var err error
+	user := middlewares.GetPrincipal(r)
+	defer h.userSrvc.FlushCache()
+
+	if h.isAggregationLocked(user.ID) {
+		return actionResult{http.StatusConflict, "", "summary regeneration already in progress, please wait", nil}
+	}
+
+	user.ExcludeUnknownProjects, err = strconv.ParseBool(r.PostFormValue("exclude_unknown_projects"))
+
+	if err != nil {
+		return actionResult{http.StatusBadRequest, "", "invalid input", nil}
+	}
+	if _, err := h.userSrvc.Update(user); err != nil {
+		return actionResult{http.StatusInternalServerError, "", "internal sever error", nil}
+	}
+
+	go func(user *models.User) {
+		h.toggleAggregationLock(user.ID, true)
+		defer h.toggleAggregationLock(user.ID, false)
+		if err := h.regenerateSummaries(user); err != nil {
+			conf.Log().Request(r).Error("failed to regenerate summaries for user '%s' - %v", user.ID, err)
+		}
+	}(user)
+
+	return actionResult{http.StatusOK, "regenerating summaries, this might take a while", "", nil}
 }
 
 func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Request) actionResult {
@@ -627,11 +664,19 @@ func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *ht
 		loadTemplates()
 	}
 
+	user := middlewares.GetPrincipal(r)
+
+	if h.isAggregationLocked(user.ID) {
+		return actionResult{http.StatusConflict, "", "summary regeneration already in progress, please wait", nil}
+	}
+
 	go func(user *models.User) {
+		h.toggleAggregationLock(user.ID, true)
+		defer h.toggleAggregationLock(user.ID, false)
 		if err := h.regenerateSummaries(user); err != nil {
 			conf.Log().Request(r).Error("failed to regenerate summaries for user '%s' - %v", user.ID, err)
 		}
-	}(middlewares.GetPrincipal(r))
+	}(user)
 
 	return actionResult{http.StatusAccepted, "summaries are being regenerated - this may take a up to a couple of minutes, please come back later", "", nil}
 }
@@ -848,6 +893,15 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 		InvitesEnabled:      h.config.Security.InviteCodes,
 	}
 	return routeutils.WithSessionMessages(vm, r, w)
+}
+
+func (h *SettingsHandler) toggleAggregationLock(userId string, locked bool) {
+	h.aggregationLocks[userId] = locked
+}
+
+func (h *SettingsHandler) isAggregationLocked(userId string) bool {
+	locked, _ := h.aggregationLocks[userId]
+	return locked
 }
 
 func getVal[T any](values *map[string]interface{}, key string, fallback T) T {

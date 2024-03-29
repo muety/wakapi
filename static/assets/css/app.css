@@ -190,3 +190,7 @@ body {
     cursor: help;
 }
 */
+
+.wi-min {
+    width: min-content !important;
+}

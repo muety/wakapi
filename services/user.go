@@ -119,6 +119,14 @@ func (srv *UserService) GetAll() ([]*models.User, error) {
 	return srv.repository.GetAll()
 }
 
+func (srv *UserService) GetAllMapped() (map[string]*models.User, error) {
+	users, err := srv.repository.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	return srv.MapUsersById(users), nil
+}
+
 func (srv *UserService) GetMany(ids []string) ([]*models.User, error) {
 	return srv.repository.GetMany(ids)
 }
@@ -128,9 +136,7 @@ func (srv *UserService) GetManyMapped(ids []string) (map[string]*models.User, er
 	if err != nil {
 		return nil, err
 	}
-	return convertor.ToMap[*models.User, string, *models.User](users, func(u *models.User) (string, *models.User) {
-		return u.ID, u
-	}), nil
+	return srv.MapUsersById(users), nil
 }
 
 func (srv *UserService) GetAllByReports(reportsEnabled bool) ([]*models.User, error) {
@@ -225,6 +231,12 @@ func (srv *UserService) Delete(user *models.User) error {
 	srv.notifyDelete(user)
 
 	return srv.repository.Delete(user)
+}
+
+func (srv *UserService) MapUsersById(users []*models.User) map[string]*models.User {
+	return convertor.ToMap[*models.User, string, *models.User](users, func(u *models.User) (string, *models.User) {
+		return u.ID, u
+	})
 }
 
 func (srv *UserService) FlushCache() {

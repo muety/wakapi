@@ -93,6 +93,10 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 				continue
 			}
 
+			if user.ExcludeUnknownProjects && d.Project == "" {
+				continue
+			}
+
 			// will only happen if two heartbeats with different hashes (e.g. different project) have the same timestamp
 			// that, in turn, will most likely only happen for mysql, where `time` column's precision was set to second for a while
 			// assume that two non-identical heartbeats with identical time are sub-second apart from each other, so round up to expectancy value
