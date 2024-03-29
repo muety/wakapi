@@ -687,11 +687,11 @@ func (h *SettingsHandler) actionGenerateInvite(w http.ResponseWriter, r *http.Re
 	}
 
 	user := middlewares.GetPrincipal(r)
-	inviteCode := uuid.NewV4().String()
+	inviteCode := uuid.NewV4().String()[0:8]
 
 	if err := h.keyValueSrvc.PutString(&models.KeyStringValue{
 		Key:   fmt.Sprintf("%s_%s", conf.KeyInviteCode, inviteCode),
-		Value: fmt.Sprintf("%s,%s", user.ID, time.Now().Format(conf.SimpleDateFormat)),
+		Value: fmt.Sprintf("%s,%s", user.ID, time.Now().Format(time.RFC3339)),
 	}); err != nil {
 		return actionResult{http.StatusInternalServerError, "", "failed to generate invite code", nil}
 	}

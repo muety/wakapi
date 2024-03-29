@@ -184,7 +184,7 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 	if kv, _ := h.keyValueSrvc.GetString(inviteCodeKey); kv != nil && kv.Value != "" {
 		if parts := strings.Split(kv.Value, ","); len(parts) == 2 {
 			invitedBy = parts[0]
-			invitedDate, _ = time.Parse(conf.SimpleDateFormat, parts[1])
+			invitedDate, _ = time.Parse(time.RFC3339, parts[1])
 		}
 
 		if err := h.keyValueSrvc.DeleteString(inviteCodeKey); err != nil {
