@@ -149,6 +149,9 @@ func (s *HousekeepingService) runCleanData() {
 
 func (s *HousekeepingService) runCleanInactiveUsers() {
 	s.queueWorkers.Dispatch(func() {
+		if s.config.App.MaxInactiveMonths <= 0 {
+			return
+		}
 		if err := s.CleanInactiveUsers(time.Now().AddDate(0, -s.config.App.MaxInactiveMonths, 0)); err != nil {
 			config.Log().Error("failed to clean up inactive users, %v", err)
 		}
