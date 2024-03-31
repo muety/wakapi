@@ -1,6 +1,7 @@
 name: Publish Docker Image
 
 on:
+  workflow_dispatch:
   release:
     types:
       - published
@@ -15,9 +16,7 @@ jobs:
 
       - name: Set version
         run: |
-          (git describe --tags --exact-match \
-            || git symbolic-ref -q --short HEAD \
-            || git rev-parse --short HEAD) > version.txt 2> /dev/null
+          echo "2.11.0" > version.txt 2> /dev/null
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -48,9 +47,9 @@ jobs:
           tags: |
             latest
             alpine
-            type=semver,pattern={{major}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{version}}
+            type=semver,pattern={{major}},value=2.11.0
+            type=semver,pattern={{major}}.{{minor}},value=2.11.0
+            type=semver,pattern={{version}},value=2.11.0
 
       - name: Build and push
         uses: docker/build-push-action@v5
@@ -58,5 +57,5 @@ jobs:
           context: .
           file: Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
