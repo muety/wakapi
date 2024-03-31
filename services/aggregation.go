@@ -34,7 +34,7 @@ func NewAggregationService(userService IUserService, summaryService ISummaryServ
 		userService:      userService,
 		summaryService:   summaryService,
 		heartbeatService: heartbeatService,
-		inProgress:       datastructure.NewSet[string](),
+		inProgress:       datastructure.New[string](),
 		queueDefault:     config.GetDefaultQueue(),
 		queueWorkers:     config.GetQueue(config.QueueProcessing),
 	}
@@ -51,7 +51,7 @@ func (srv *AggregationService) Schedule() {
 	logbuch.Info("scheduling summary aggregation")
 
 	if _, err := srv.queueDefault.DispatchCron(func() {
-		if err := srv.AggregateSummaries(datastructure.NewSet[string]()); err != nil {
+		if err := srv.AggregateSummaries(datastructure.New[string]()); err != nil {
 			config.Log().Error("failed to generate summaries, %v", err)
 		}
 	}, srv.config.App.GetAggregationTimeCron()); err != nil {

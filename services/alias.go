@@ -117,7 +117,7 @@ func (srv *AliasService) Delete(alias *models.Alias) error {
 
 func (srv *AliasService) DeleteMulti(aliases []*models.Alias) error {
 	ids := make([]uint, len(aliases))
-	affectedUsers := datastructure.NewSet[string]()
+	affectedUsers := datastructure.New[string]()
 
 	for i, a := range aliases {
 		if a.UserID == "" {

@@ -25,7 +25,7 @@ func GetEffectiveProjectsList(user *models.User, heartbeatSrvc services.IHeartbe
 		return []string{}, err
 	}
 
-	projects := datastructure.NewSet[string](realProjects...)
+	projects := datastructure.New[string](realProjects...)
 
 	// remove alias values (source of a mapping)
 	// add alias key (target of a mapping) instead

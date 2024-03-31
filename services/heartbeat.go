@@ -62,7 +62,7 @@ func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {
 		return nil
 	}
 
-	hashes := datastructure.NewSet[string]()
+	hashes := datastructure.New[string]()
 
 	// https://github.com/muety/wakapi/issues/139
 	filteredHeartbeats := make([]*models.Heartbeat, 0, len(heartbeats))
@@ -187,7 +187,7 @@ func (srv *HeartbeatService) GetEntitySetByUser(entityType uint8, userId string)
 		}
 	}
 
-	srv.cache.Set(cacheKey, datastructure.NewSet(filtered...), cache.NoExpiration)
+	srv.cache.Set(cacheKey, datastructure.New(filtered...), cache.NoExpiration)
 	return filtered, nil
 }
 
@@ -324,7 +324,7 @@ func (srv *HeartbeatService) populateUniqueUserProjects(userId string) {
 	userProjectsCacheKey := srv.getUserProjectsCacheKey(userId)
 	if _, found := srv.cache.Get(userProjectsCacheKey); !found {
 		projects, _ := srv.GetEntitySetByUser(models.SummaryProject, userId)
-		srv.cache.Set(userProjectsCacheKey, datastructure.NewSet[string](projects...), cache.NoExpiration)
+		srv.cache.Set(userProjectsCacheKey, datastructure.New[string](projects...), cache.NoExpiration)
 	}
 }
 
