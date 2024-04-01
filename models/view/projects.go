@@ -10,13 +10,10 @@ import (
 )
 
 type ProjectsViewModel struct {
-	Messages
-	User               *models.User
-	Projects           []*models.ProjectStats
-	LeaderboardEnabled bool
-	ApiKey             string
-	PageParams         *utils.PageParams
-	maxCount           int64
+	SharedLoggedInViewModel
+	Projects   []*models.ProjectStats
+	PageParams *utils.PageParams
+	maxCount   int64
 }
 
 func (s *ProjectsViewModel) LangIcon(lang string) string {

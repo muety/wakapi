@@ -82,10 +82,10 @@ func (h *HomeHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *vi
 	}
 
 	vm := &view.HomeViewModel{
-		TotalHours:         totalHours,
-		TotalUsers:         totalUsers,
-		Newsbox:            &newsbox,
-		LeaderboardEnabled: h.config.App.LeaderboardEnabled,
+		SharedViewModel: view.NewSharedViewModel(h.config, nil),
+		TotalHours:      totalHours,
+		TotalUsers:      totalUsers,
+		Newsbox:         &newsbox,
 	}
 	return routeutils.WithSessionMessages(vm, r, w)
 }

@@ -74,17 +74,17 @@
     <div class="shrink-0 menu-item relative" @click="state.showDropdownUser = !state.showDropdownUser" data-trigger-for="showDropdownUser">
         <div class="hidden md:flex flex-col text-right">
             <div>
-                {{ if .User.HasActiveSubscription }}
+                {{ if .SharedLoggedInViewModel.User.HasActiveSubscription }}
                 <span class="iconify inline text-gold mr-1" data-icon="jam:crown-f" style="margin-bottom: -2px" title="Thanks for supporting Wakapi!"></span>
                 {{ end }}
-                <a class="text-gray-300">{{ .User.ID }}</a>
+                <a class="text-gray-300">{{ .SharedLoggedInViewModel.User.ID }}</a>
             </div>
-            {{ if .User.Email }}
-            <span class="text-xxs text-gray-500">{{ .User.Email }}</span>
+            {{ if .SharedLoggedInViewModel.User.Email }}
+            <span class="text-xxs text-gray-500">{{ .SharedLoggedInViewModel.User.Email }}</span>
             {{ end }}
         </div>
         {{ if avatarUrlTemplate }}
-        <img src="{{ .User.AvatarURL avatarUrlTemplate }}" width="32px" class="rounded-full border-green-700" alt="User Profile Avatar" title="Looks like you, doesn't it?"/>
+        <img src="{{ .SharedLoggedInViewModel.User.AvatarURL avatarUrlTemplate }}" width="32px" class="rounded-full border-green-700" alt="User Profile Avatar" title="Looks like you, doesn't it?"/>
         {{ else }}
         <span class="iconify inline cursor-pointer text-gray-500 rounded-full border-green-700" style="width: 32px; height: 32px" data-icon="ic:round-person" @click="state.showDropdownUser = !state.showDropdownUser" data-trigger-for="showDropdownUser"></span>
         {{ end }}

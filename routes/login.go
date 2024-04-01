@@ -356,9 +356,10 @@ func (h *LoginHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *v
 	numUsers, _ := h.userSrvc.Count()
 
 	vm := &view.LoginViewModel{
-		TotalUsers:  int(numUsers),
-		AllowSignup: h.config.IsDev() || h.config.Security.AllowSignup,
-		InviteCode:  r.URL.Query().Get("invite"),
+		SharedViewModel: view.NewSharedViewModel(h.config, nil),
+		TotalUsers:      int(numUsers),
+		AllowSignup:     h.config.IsDev() || h.config.Security.AllowSignup,
+		InviteCode:      r.URL.Query().Get("invite"),
 	}
 	return routeutils.WithSessionMessages(vm, r, w)
 }

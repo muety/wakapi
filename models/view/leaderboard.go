@@ -7,17 +7,14 @@ import (
 )
 
 type LeaderboardViewModel struct {
-	Messages
-	User               *models.User
-	By                 string
-	Key                string
-	Items              []*models.LeaderboardItemRanked
-	TopKeys            []string
-	UserLanguages      map[string][]string
-	IntervalLabel      string
-	LeaderboardEnabled bool
-	ApiKey             string
-	PageParams         *utils.PageParams
+	SharedLoggedInViewModel
+	By            string
+	Key           string
+	Items         []*models.LeaderboardItemRanked
+	TopKeys       []string
+	UserLanguages map[string][]string
+	IntervalLabel string
+	PageParams    *utils.PageParams
 }
 
 func (s *LeaderboardViewModel) WithSuccess(m string) *LeaderboardViewModel {

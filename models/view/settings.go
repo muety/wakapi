@@ -6,8 +6,7 @@ import (
 )
 
 type SettingsViewModel struct {
-	Messages
-	User                *models.User
+	SharedLoggedInViewModel
 	LanguageMappings    []*models.LanguageMapping
 	Aliases             []*SettingsVMCombinedAlias
 	Labels              []*SettingsVMCombinedLabel
@@ -16,9 +15,6 @@ type SettingsViewModel struct {
 	DataRetentionMonths int
 	UserFirstData       time.Time
 	SupportContact      string
-	LeaderboardEnabled  bool
-	ApiKey              string
-	InvitesEnabled      bool
 	InviteLink          string
 }
 

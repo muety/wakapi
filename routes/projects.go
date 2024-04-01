@@ -67,17 +67,22 @@ func (h *ProjectsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 	if err != nil {
 		conf.Log().Request(r).Error("error while fetching project stats for '%s' - %v", user.ID, err)
 		return &view.ProjectsViewModel{
-			Messages:           view.Messages{Error: criticalError},
-			LeaderboardEnabled: h.config.App.LeaderboardEnabled,
+			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
+				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
+				User:            user,
+				ApiKey:          user.ApiKey,
+			},
 		}
 	}
 
 	vm := &view.ProjectsViewModel{
-		User:               user,
-		Projects:           projects,
-		LeaderboardEnabled: h.config.App.LeaderboardEnabled,
-		ApiKey:             user.ApiKey,
-		PageParams:         pageParams,
+		SharedLoggedInViewModel: view.SharedLoggedInViewModel{
+			SharedViewModel: view.NewSharedViewModel(h.config, nil),
+			User:            user,
+			ApiKey:          user.ApiKey,
+		},
+		Projects:   projects,
+		PageParams: pageParams,
 	}
 	return routeutils.WithSessionMessages(vm, r, w)
 }

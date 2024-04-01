@@ -1,7 +1,7 @@
 package view
 
 type LoginViewModel struct {
-	Messages
+	SharedViewModel
 	TotalUsers  int
 	AllowSignup bool
 	InviteCode  string
