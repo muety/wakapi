@@ -169,7 +169,7 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 
 	if !h.config.IsDev() && !h.config.Security.AllowSignup && (!h.config.Security.InviteCodes || signup.InviteCode == "") {
 		w.WriteHeader(http.StatusForbidden)
-		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w).WithError("registration is disabled on this server"))
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("registration is disabled on this server"))
 		return
 	}
 
@@ -195,7 +195,7 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 
 	if signup.InviteCode != "" && time.Since(invitedDate) > 24*time.Hour {
 		w.WriteHeader(http.StatusForbidden)
-		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w).WithError("invite code invalid or expired"))
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("invite code invalid or expired"))
 		return
 	}
 
