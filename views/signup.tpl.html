@@ -39,6 +39,7 @@
         <form class="mt-10" action="signup" method="post">
             <input type="hidden" name="location" id="input-location" v-model="timezone">
             <input type="hidden" name="captcha_id" value="{{ .CaptchaId }}">
+            <input type="hidden" name="invite_code" id="input-invite-code" value="{{ .InviteCode }}">
 
             <div class="flex space-x-4">
                 <div class="mt-1">
@@ -97,7 +98,7 @@
                 <a href="login">
                     <button type="button" class="btn-default">Log in</button>
                 </a>
-                {{ if .AllowSignup }}
+                {{ if or (.AllowSignup) (ne .InviteCode "") }}
                 <button type="submit" class="btn-primary">
                     Create Account
                 </button>

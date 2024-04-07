@@ -5,6 +5,7 @@ import (
 	"github.com/dchest/captcha"
 	"github.com/emvi/logbuch"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/httprate"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -14,32 +15,41 @@ import (
 	"github.com/muety/wakapi/utils"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
 type LoginHandler struct {
-	config   *conf.Config
-	userSrvc services.IUserService
-	mailSrvc services.IMailService
+	config       *conf.Config
+	userSrvc     services.IUserService
+	mailSrvc     services.IMailService
+	keyValueSrvc services.IKeyValueService
 }
 
-func NewLoginHandler(userService services.IUserService, mailService services.IMailService) *LoginHandler {
+func NewLoginHandler(userService services.IUserService, mailService services.IMailService, keyValueService services.IKeyValueService) *LoginHandler {
 	return &LoginHandler{
-		config:   conf.Get(),
-		userSrvc: userService,
-		mailSrvc: mailService,
+		config:       conf.Get(),
+		userSrvc:     userService,
+		mailSrvc:     mailService,
+		keyValueSrvc: keyValueService,
 	}
 }
 
 func (h *LoginHandler) RegisterRoutes(router chi.Router) {
 	router.Get("/login", h.GetIndex)
-	router.Post("/login", h.PostLogin)
-	router.Get("/signup", h.GetSignup)
+	router.
+		With(httprate.LimitByRealIP(h.config.Security.GetLoginMaxRate())).
+		Post("/login", h.PostLogin)
+	router.
+		With(httprate.LimitByRealIP(h.config.Security.GetSignupMaxRate())).
+		Get("/signup", h.GetSignup)
 	router.Post("/signup", h.PostSignup)
 	router.Get("/set-password", h.GetSetPassword)
 	router.Post("/set-password", h.PostSetPassword)
 	router.Get("/reset-password", h.GetResetPassword)
-	router.Post("/reset-password", h.PostResetPassword)
+	router.
+		With(httprate.LimitByRealIP(h.config.Security.GetPasswordResetMaxRate())).
+		Post("/reset-password", h.PostResetPassword)
 
 	authMiddleware := middlewares.NewAuthenticateMiddleware(h.userSrvc).
 		WithRedirectTarget(defaultErrorRedirectTarget()).
@@ -145,17 +155,6 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
-	if !h.config.IsDev() && !h.config.Security.AllowSignup {
-		w.WriteHeader(http.StatusForbidden)
-		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("registration is disabled on this server"))
-		return
-	}
-
-	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
-		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
-		return
-	}
-
 	var signup models.Signup
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -167,6 +166,40 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("missing parameters"))
 		return
 	}
+
+	if !h.config.IsDev() && !h.config.Security.AllowSignup && (!h.config.Security.InviteCodes || signup.InviteCode == "") {
+		w.WriteHeader(http.StatusForbidden)
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w).WithError("registration is disabled on this server"))
+		return
+	}
+
+	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
+		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
+		return
+	}
+
+	var invitedBy string
+	var invitedDate time.Time
+	var inviteCodeKey = fmt.Sprintf("%s_%s", conf.KeyInviteCode, signup.InviteCode)
+
+	if kv, _ := h.keyValueSrvc.GetString(inviteCodeKey); kv != nil && kv.Value != "" {
+		if parts := strings.Split(kv.Value, ","); len(parts) == 2 {
+			invitedBy = parts[0]
+			invitedDate, _ = time.Parse(time.RFC3339, parts[1])
+		}
+
+		if err := h.keyValueSrvc.DeleteString(inviteCodeKey); err != nil {
+			conf.Log().Error("failed to revoke %s", inviteCodeKey)
+		}
+	}
+
+	if signup.InviteCode != "" && time.Since(invitedDate) > 24*time.Hour {
+		w.WriteHeader(http.StatusForbidden)
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w).WithError("invite code invalid or expired"))
+		return
+	}
+
+	signup.InvitedBy = invitedBy
 
 	if !signup.IsValid() {
 		w.WriteHeader(http.StatusBadRequest)
@@ -324,8 +357,10 @@ func (h *LoginHandler) buildViewModel(r *http.Request, w http.ResponseWriter, wi
 	numUsers, _ := h.userSrvc.Count()
 
 	vm := &view.LoginViewModel{
-		TotalUsers:  int(numUsers),
-		AllowSignup: h.config.IsDev() || h.config.Security.AllowSignup,
+		SharedViewModel: view.NewSharedViewModel(h.config, nil),
+		TotalUsers:      int(numUsers),
+		AllowSignup:     h.config.IsDev() || h.config.Security.AllowSignup,
+		InviteCode:      r.URL.Query().Get("invite"),
 	}
 
 	if withCaptcha {

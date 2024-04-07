@@ -1,7 +1,7 @@
 package view
 
 type ImprintViewModel struct {
-	Messages
+	SharedViewModel
 	HtmlText string
 }
 

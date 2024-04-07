@@ -80,6 +80,7 @@ type IUserRepository interface {
 	GetMany([]string) ([]*models.User, error)
 	GetAllByReports(bool) ([]*models.User, error)
 	GetAllByLeaderboard(bool) ([]*models.User, error)
+	GetByLoggedInBefore(time.Time) ([]*models.User, error)
 	GetByLoggedInAfter(time.Time) ([]*models.User, error)
 	GetByLastActiveAfter(time.Time) ([]*models.User, error)
 	Count() (int64, error)

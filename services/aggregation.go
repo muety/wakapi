@@ -34,16 +34,16 @@ func NewAggregationService(userService IUserService, summaryService ISummaryServ
 		userService:      userService,
 		summaryService:   summaryService,
 		heartbeatService: heartbeatService,
-		inProgress:       datastructure.NewSet[string](),
+		inProgress:       datastructure.New[string](),
 		queueDefault:     config.GetDefaultQueue(),
 		queueWorkers:     config.GetQueue(config.QueueProcessing),
 	}
 }
 
 type AggregationJob struct {
-	UserID string
-	From   time.Time
-	To     time.Time
+	User *models.User
+	From time.Time
+	To   time.Time
 }
 
 // Schedule a job to (re-)generate summaries every day shortly after midnight
@@ -51,7 +51,7 @@ func (srv *AggregationService) Schedule() {
 	logbuch.Info("scheduling summary aggregation")
 
 	if _, err := srv.queueDefault.DispatchCron(func() {
-		if err := srv.AggregateSummaries(datastructure.NewSet[string]()); err != nil {
+		if err := srv.AggregateSummaries(datastructure.New[string]()); err != nil {
 			config.Log().Error("failed to generate summaries, %v", err)
 		}
 	}, srv.config.App.GetAggregationTimeCron()); err != nil {
@@ -96,10 +96,21 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 			if err := srv.queueWorkers.Dispatch(func() {
 				srv.process(job)
 			}); err != nil {
-				config.Log().Error("failed to dispatch summary generation job for user '%s'", job.UserID)
+				config.Log().Error("failed to dispatch summary generation job for user '%s'", job.User.ID)
 			}
 		}
 	}()
+
+	// Fetch complete user objects
+	var users map[string]*models.User
+	if userIds != nil && !userIds.IsEmpty() {
+		users, err = srv.userService.GetManyMapped(userIds.Values())
+	} else {
+		users, err = srv.userService.GetAllMapped()
+	}
+	if err != nil {
+		return err
+	}
 
 	// Generate summary aggregation jobs
 	for _, e := range lastUserSummaryTimes {
@@ -107,14 +118,16 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 			continue
 		}
 
+		u, _ := users[e.User]
+
 		if e.Time.Valid() {
 			// Case 1: User has aggregated summaries already
 			// -> Spawn jobs to create summaries from their latest aggregation to now
-			generateUserJobs(e.User, e.Time.T(), jobs)
+			generateUserJobs(u, e.Time.T(), jobs)
 		} else if t := firstUserHeartbeatLookup[e.User]; t.Valid() {
 			// Case 2: User has no aggregated summaries, yet, but has heartbeats
 			// -> Spawn jobs to create summaries from their first heartbeat to now
-			generateUserJobs(e.User, t.T(), jobs)
+			generateUserJobs(u, t.T(), jobs)
 		}
 		// Case 3: User doesn't have heartbeats at all
 		// -> Nothing to do
@@ -124,17 +137,17 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 }
 
 func (srv *AggregationService) process(job AggregationJob) {
-	if summary, err := srv.summaryService.Summarize(job.From, job.To, &models.User{ID: job.UserID}, nil); err != nil {
-		config.Log().Error("failed to generate summary (%v, %v, %s) - %v", job.From, job.To, job.UserID, err)
+	if summary, err := srv.summaryService.Summarize(job.From, job.To, job.User, nil); err != nil {
+		config.Log().Error("failed to generate summary (%v, %v, %s) - %v", job.From, job.To, job.User.ID, err)
 	} else {
-		logbuch.Info("successfully generated summary (%v, %v, %s)", job.From, job.To, job.UserID)
+		logbuch.Info("successfully generated summary (%v, %v, %s)", job.From, job.To, job.User.ID)
 		if err := srv.summaryService.Insert(summary); err != nil {
 			config.Log().Error("failed to save summary (%v, %v, %s) - %v", summary.UserID, summary.FromTime, summary.ToTime, err)
 		}
 	}
 }
 
-func generateUserJobs(userId string, from time.Time, jobs chan<- *AggregationJob) {
+func generateUserJobs(user *models.User, from time.Time, jobs chan<- *AggregationJob) {
 	var to time.Time
 
 	// Go to next day of either user's first heartbeat or latest aggregation
@@ -157,7 +170,7 @@ func generateUserJobs(userId string, from time.Time, jobs chan<- *AggregationJob
 			0, 0, 0, 0,
 			from.Location(),
 		)
-		jobs <- &AggregationJob{userId, from, to}
+		jobs <- &AggregationJob{user, from, to}
 		from = to
 	}
 }

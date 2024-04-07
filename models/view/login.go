@@ -1,10 +1,11 @@
 package view
 
 type LoginViewModel struct {
-	Messages
+	SharedViewModel
 	TotalUsers  int
 	AllowSignup bool
 	CaptchaId   string
+	InviteCode  string
 }
 
 type SetPasswordViewModel struct {

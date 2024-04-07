@@ -3,7 +3,9 @@ package routes
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/duke-git/lancet/v2/condition"
 	"github.com/go-chi/chi/v5"
+	uuid "github.com/satori/go.uuid"
 	"net/http"
 	"sort"
 	"strconv"
@@ -37,7 +39,19 @@ type SettingsHandler struct {
 	keyValueSrvc        services.IKeyValueService
 	mailSrvc            services.IMailService
 	httpClient          *http.Client
+	aggregationLocks    map[string]bool
 }
+
+type action func(w http.ResponseWriter, r *http.Request) actionResult
+
+type actionResult struct {
+	code    int
+	success string
+	error   string
+	values  *map[string]interface{}
+}
+
+const valueInviteCode = "invite_code"
 
 var credentialsDecoder = schema.NewDecoder()
 
@@ -64,6 +78,7 @@ func NewSettingsHandler(
 		keyValueSrvc:        keyValueService,
 		mailSrvc:            mailService,
 		httpClient:          &http.Client{Timeout: 10 * time.Second},
+		aggregationLocks:    make(map[string]bool),
 	}
 }
 
@@ -84,7 +99,7 @@ func (h *SettingsHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
-	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w))
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w, nil))
 }
 
 func (h *SettingsHandler) PostIndex(w http.ResponseWriter, r *http.Request) {
@@ -94,7 +109,7 @@ func (h *SettingsHandler) PostIndex(w http.ResponseWriter, r *http.Request) {
 
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w).WithError("missing form values"))
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w, nil).WithError("missing form values"))
 		return
 	}
 
@@ -105,28 +120,28 @@ func (h *SettingsHandler) PostIndex(w http.ResponseWriter, r *http.Request) {
 	if actionFunc == nil {
 		logbuch.Warn("failed to dispatch action '%s'", action)
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w).WithError("unknown action requests"))
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w, nil).WithError("unknown action requests"))
 		return
 	}
 
-	status, successMsg, errorMsg := actionFunc(w, r)
+	result := actionFunc(w, r)
 
 	// action responded itself
-	if status == -1 {
+	if result.code == -1 {
 		return
 	}
 
-	if errorMsg != "" {
-		w.WriteHeader(status)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w).WithError(errorMsg))
+	if result.error != "" {
+		w.WriteHeader(result.code)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w, result.values).WithError(result.error))
 		return
 	}
-	if successMsg != "" {
-		w.WriteHeader(status)
-		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w).WithSuccess(successMsg))
+	if result.success != "" {
+		w.WriteHeader(result.code)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w, result.values).WithSuccess(result.success))
 		return
 	}
-	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w))
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w, result.values))
 }
 
 func (h *SettingsHandler) dispatchAction(action string) action {
@@ -163,11 +178,15 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 		return h.actionClearData
 	case "delete_account":
 		return h.actionDeleteUser
+	case "generate_invite":
+		return h.actionGenerateInvite
+	case "update_unknown_projects":
+		return h.actionUpdateExcludeUnknownProjects
 	}
 	return nil
 }
 
-func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -176,18 +195,18 @@ func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Reques
 
 	var payload models.UserDataUpdate
 	if err := r.ParseForm(); err != nil {
-		return http.StatusBadRequest, "", "missing parameters"
+		return actionResult{http.StatusBadRequest, "", "missing parameters", nil}
 	}
 	if err := credentialsDecoder.Decode(&payload, r.PostForm); err != nil {
-		return http.StatusBadRequest, "", "missing parameters"
+		return actionResult{http.StatusBadRequest, "", "missing parameters", nil}
 	}
 
 	if !payload.IsValid() {
-		return http.StatusBadRequest, "", "invalid parameters - perhaps invalid e-mail address?"
+		return actionResult{http.StatusBadRequest, "", "invalid parameters - perhaps invalid e-mail address?", nil}
 	}
 
 	if payload.Email == "" && user.HasActiveSubscription() {
-		return http.StatusBadRequest, "", "cannot unset email while subscription is active"
+		return actionResult{http.StatusBadRequest, "", "cannot unset email while subscription is active", nil}
 	}
 
 	user.Email = payload.Email
@@ -196,13 +215,13 @@ func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Reques
 	user.PublicLeaderboard = payload.PublicLeaderboard
 
 	if _, err := h.userSrvc.Update(user); err != nil {
-		return http.StatusInternalServerError, "", conf.ErrInternalServerError
+		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
 	}
 
-	return http.StatusOK, "user updated successfully", ""
+	return actionResult{http.StatusOK, "user updated successfully", "", nil}
 }
 
-func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -211,29 +230,29 @@ func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Re
 
 	var credentials models.CredentialsReset
 	if err := r.ParseForm(); err != nil {
-		return http.StatusBadRequest, "", "missing parameters"
+		return actionResult{http.StatusBadRequest, "", "missing parameters", nil}
 	}
 	if err := credentialsDecoder.Decode(&credentials, r.PostForm); err != nil {
-		return http.StatusBadRequest, "", "missing parameters"
+		return actionResult{http.StatusBadRequest, "", "missing parameters", nil}
 	}
 
 	if !utils.ComparePassword(user.Password, credentials.PasswordOld, h.config.Security.PasswordSalt) {
-		return http.StatusUnauthorized, "", "invalid credentials"
+		return actionResult{http.StatusUnauthorized, "", "invalid credentials", nil}
 	}
 
 	if !credentials.IsValid() {
-		return http.StatusBadRequest, "", "invalid parameters"
+		return actionResult{http.StatusBadRequest, "", "invalid parameters", nil}
 	}
 
 	user.Password = credentials.PasswordNew
 	if hash, err := utils.HashPassword(user.Password, h.config.Security.PasswordSalt); err != nil {
-		return http.StatusInternalServerError, "", conf.ErrInternalServerError
+		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
 	} else {
 		user.Password = hash
 	}
 
 	if _, err := h.userSrvc.Update(user); err != nil {
-		return http.StatusInternalServerError, "", conf.ErrInternalServerError
+		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
 	}
 
 	login := &models.Login{
@@ -242,28 +261,28 @@ func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Re
 	}
 	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, login.Username)
 	if err != nil {
-		return http.StatusInternalServerError, "", conf.ErrInternalServerError
+		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
 	}
 
 	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded))
-	return http.StatusOK, "password was updated successfully", ""
+	return actionResult{http.StatusOK, "password was updated successfully", "", nil}
 }
 
-func (h *SettingsHandler) actionResetApiKey(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionResetApiKey(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
 
 	user := middlewares.GetPrincipal(r)
 	if _, err := h.userSrvc.ResetApiKey(user); err != nil {
-		return http.StatusInternalServerError, "", conf.ErrInternalServerError
+		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
 	}
 
 	msg := fmt.Sprintf("your new api key is: %s", user.ApiKey)
-	return http.StatusOK, msg, ""
+	return actionResult{http.StatusOK, msg, "", nil}
 }
 
-func (h *SettingsHandler) actionUpdateLeaderboard(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionUpdateLeaderboard(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -275,15 +294,48 @@ func (h *SettingsHandler) actionUpdateLeaderboard(w http.ResponseWriter, r *http
 	user.PublicLeaderboard, err = strconv.ParseBool(r.PostFormValue("enable_leaderboard"))
 
 	if err != nil {
-		return http.StatusBadRequest, "", "invalid input"
+		return actionResult{http.StatusBadRequest, "", "invalid input", nil}
 	}
 	if _, err := h.userSrvc.Update(user); err != nil {
-		return http.StatusInternalServerError, "", "internal sever error"
+		return actionResult{http.StatusInternalServerError, "", "internal sever error", nil}
 	}
-	return http.StatusOK, "settings updated", ""
+	return actionResult{http.StatusOK, "settings updated", "", nil}
 }
 
-func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionUpdateExcludeUnknownProjects(w http.ResponseWriter, r *http.Request) actionResult {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	var err error
+	user := middlewares.GetPrincipal(r)
+	defer h.userSrvc.FlushCache()
+
+	if h.isAggregationLocked(user.ID) {
+		return actionResult{http.StatusConflict, "", "summary regeneration already in progress, please wait", nil}
+	}
+
+	user.ExcludeUnknownProjects, err = strconv.ParseBool(r.PostFormValue("exclude_unknown_projects"))
+
+	if err != nil {
+		return actionResult{http.StatusBadRequest, "", "invalid input", nil}
+	}
+	if _, err := h.userSrvc.Update(user); err != nil {
+		return actionResult{http.StatusInternalServerError, "", "internal sever error", nil}
+	}
+
+	go func(user *models.User) {
+		h.toggleAggregationLock(user.ID, true)
+		defer h.toggleAggregationLock(user.ID, false)
+		if err := h.regenerateSummaries(user); err != nil {
+			conf.Log().Request(r).Error("failed to regenerate summaries for user '%s' - %v", user.ID, err)
+		}
+	}(user)
+
+	return actionResult{http.StatusOK, "regenerating summaries, this might take a while", "", nil}
+}
+
+func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -302,17 +354,17 @@ func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Req
 	user.ShareDataMaxDays, err = strconv.Atoi(r.PostFormValue("max_days"))
 
 	if err != nil {
-		return http.StatusBadRequest, "", "invalid input"
+		return actionResult{http.StatusBadRequest, "", "invalid input", nil}
 	}
 
 	if _, err := h.userSrvc.Update(user); err != nil {
-		return http.StatusInternalServerError, "", "internal sever error"
+		return actionResult{http.StatusInternalServerError, "", "internal sever error", nil}
 	}
 
-	return http.StatusOK, "settings updated", ""
+	return actionResult{http.StatusOK, "settings updated", "", nil}
 }
 
-func (h *SettingsHandler) actionDeleteAlias(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionDeleteAlias(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -325,15 +377,15 @@ func (h *SettingsHandler) actionDeleteAlias(w http.ResponseWriter, r *http.Reque
 	}
 
 	if aliases, err := h.aliasSrvc.GetByUserAndKeyAndType(user.ID, aliasKey, uint8(aliasType)); err != nil {
-		return http.StatusNotFound, "", "aliases not found"
+		return actionResult{http.StatusNotFound, "", "aliases not found", nil}
 	} else if err := h.aliasSrvc.DeleteMulti(aliases); err != nil {
-		return http.StatusInternalServerError, "", "could not delete aliases"
+		return actionResult{http.StatusInternalServerError, "", "could not delete aliases", nil}
 	}
 
-	return http.StatusOK, "aliases deleted successfully", ""
+	return actionResult{http.StatusOK, "aliases deleted successfully", "", nil}
 }
 
-func (h *SettingsHandler) actionAddAlias(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionAddAlias(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -354,13 +406,13 @@ func (h *SettingsHandler) actionAddAlias(w http.ResponseWriter, r *http.Request)
 
 	if _, err := h.aliasSrvc.Create(alias); err != nil {
 		// TODO: distinguish between bad request, conflict and server error
-		return http.StatusBadRequest, "", "invalid input"
+		return actionResult{http.StatusBadRequest, "", "invalid input", nil}
 	}
 
-	return http.StatusOK, "alias added successfully", ""
+	return actionResult{http.StatusOK, "alias added successfully", "", nil}
 }
 
-func (h *SettingsHandler) actionAddLabel(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionAddLabel(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -380,17 +432,17 @@ func (h *SettingsHandler) actionAddLabel(w http.ResponseWriter, r *http.Request)
 	for _, label := range labels {
 		msg := "invalid input for project: " + label.ProjectKey
 		if !label.IsValid() {
-			return http.StatusBadRequest, "", msg
+			return actionResult{http.StatusBadRequest, "", msg, nil}
 		}
 		if _, err := h.projectLabelSrvc.Create(label); err != nil {
 			// TODO: distinguish between bad request, conflict and server error
-			return http.StatusBadRequest, "", msg
+			return actionResult{http.StatusBadRequest, "", msg, nil}
 		}
 	}
-	return http.StatusOK, "label added to project successfully", ""
+	return actionResult{http.StatusOK, "label added to project successfully", "", nil}
 }
 
-func (h *SettingsHandler) actionDeleteLabel(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionDeleteLabel(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -401,21 +453,21 @@ func (h *SettingsHandler) actionDeleteLabel(w http.ResponseWriter, r *http.Reque
 
 	labels, err := h.projectLabelSrvc.GetByUser(user.ID)
 	if err != nil {
-		return http.StatusInternalServerError, "", "could not delete label"
+		return actionResult{http.StatusInternalServerError, "", "could not delete label", nil}
 	}
 
 	for _, l := range labels {
 		if l.Label == labelKey && l.ProjectKey == labelValue {
 			if err := h.projectLabelSrvc.Delete(l); err != nil {
-				return http.StatusInternalServerError, "", "could not delete label"
+				return actionResult{http.StatusInternalServerError, "", "could not delete label", nil}
 			}
-			return http.StatusOK, "label deleted successfully", ""
+			return actionResult{http.StatusOK, "label deleted successfully", "", nil}
 		}
 	}
-	return http.StatusNotFound, "", "label not found"
+	return actionResult{http.StatusNotFound, "", "label not found", nil}
 }
 
-func (h *SettingsHandler) actionDeleteLanguageMapping(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionDeleteLanguageMapping(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -423,24 +475,24 @@ func (h *SettingsHandler) actionDeleteLanguageMapping(w http.ResponseWriter, r *
 	user := middlewares.GetPrincipal(r)
 	id, err := strconv.Atoi(r.PostFormValue("mapping_id"))
 	if err != nil {
-		return http.StatusInternalServerError, "", "could not delete mapping"
+		return actionResult{http.StatusInternalServerError, "", "could not delete mapping", nil}
 	}
 
 	mapping, err := h.languageMappingSrvc.GetById(uint(id))
 	if err != nil || mapping == nil {
-		return http.StatusNotFound, "", "mapping not found"
+		return actionResult{http.StatusNotFound, "", "mapping not found", nil}
 	} else if mapping.UserID != user.ID {
-		return http.StatusForbidden, "", "not allowed to delete mapping"
+		return actionResult{http.StatusForbidden, "", "not allowed to delete mapping", nil}
 	}
 
 	if err := h.languageMappingSrvc.Delete(mapping); err != nil {
-		return http.StatusInternalServerError, "", "could not delete mapping"
+		return actionResult{http.StatusInternalServerError, "", "could not delete mapping", nil}
 	}
 
-	return http.StatusOK, "mapping deleted successfully", ""
+	return actionResult{http.StatusOK, "mapping deleted successfully", "", nil}
 }
 
-func (h *SettingsHandler) actionAddLanguageMapping(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionAddLanguageMapping(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -459,13 +511,13 @@ func (h *SettingsHandler) actionAddLanguageMapping(w http.ResponseWriter, r *htt
 	}
 
 	if _, err := h.languageMappingSrvc.Create(mapping); err != nil {
-		return http.StatusConflict, "", "mapping already exists"
+		return actionResult{http.StatusConflict, "", "mapping already exists", nil}
 	}
 
-	return http.StatusOK, "mapping added successfully", ""
+	return actionResult{http.StatusOK, "mapping added successfully", "", nil}
 }
 
-func (h *SettingsHandler) actionSetWakatimeApiKey(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionSetWakatimeApiKey(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -479,28 +531,28 @@ func (h *SettingsHandler) actionSetWakatimeApiKey(w http.ResponseWriter, r *http
 
 	// Healthcheck, if a new API key is set, i.e. the feature is activated
 	if (user.WakatimeApiKey == "" && apiKey != "") && !h.validateWakatimeKey(apiKey, apiUrl) {
-		return http.StatusBadRequest, "", "failed to connect to WakaTime, API key or endpoint URL invalid?"
+		return actionResult{http.StatusBadRequest, "", "failed to connect to WakaTime, API key or endpoint URL invalid?", nil}
 	}
 
 	if _, err := h.userSrvc.SetWakatimeApiCredentials(user, apiKey, apiUrl); err != nil {
-		return http.StatusInternalServerError, "", conf.ErrInternalServerError
+		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
 	}
 
-	return http.StatusOK, "Wakatime API Key updated successfully", ""
+	return actionResult{http.StatusOK, "Wakatime API Key updated successfully", "", nil}
 }
 
-func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
 
 	if !h.config.App.ImportEnabled {
-		return http.StatusForbidden, "", "imports are disabled on this server"
+		return actionResult{http.StatusForbidden, "", "imports are disabled on this server", nil}
 	}
 
 	user := middlewares.GetPrincipal(r)
 	if user.WakatimeApiKey == "" {
-		return http.StatusForbidden, "", "not connected to wakatime"
+		return actionResult{http.StatusForbidden, "", "not connected to wakatime", nil}
 	}
 
 	useLegacyImporter, _ := strconv.ParseBool(r.PostFormValue("use_legacy_importer"))
@@ -510,16 +562,22 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 	if !h.config.IsDev() {
 		lastImport, _ := time.Parse(time.RFC822, h.keyValueSrvc.MustGetString(kvKeyLastImport).Value)
 		if time.Now().Sub(lastImport) < time.Duration(h.config.App.ImportBackoffMin)*time.Minute {
-			return http.StatusTooManyRequests,
+			return actionResult{
+				http.StatusTooManyRequests,
 				"",
-				fmt.Sprintf("Too many data imports - you are only allowed to request an import every %d minutes.", h.config.App.ImportBackoffMin)
+				fmt.Sprintf("Too many data imports - you are only allowed to request an import every %d minutes.", h.config.App.ImportBackoffMin),
+				nil,
+			}
 		}
 
 		lastImportSuccess, _ := time.Parse(time.RFC822, h.keyValueSrvc.MustGetString(kvKeyLastImportSuccess).Value)
 		if time.Now().Sub(lastImportSuccess) < time.Duration(h.config.App.ImportMaxRate)*time.Hour {
-			return http.StatusTooManyRequests,
+			return actionResult{
+				http.StatusTooManyRequests,
 				"",
-				fmt.Sprintf("Too many data imports - last import ran less than %d hours ago, please wait.", h.config.App.ImportMaxRate)
+				fmt.Sprintf("Too many data imports - last import ran less than %d hours ago, please wait.", h.config.App.ImportMaxRate),
+				nil,
+			}
 		}
 	}
 
@@ -598,24 +656,32 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 		Value: time.Now().Format(time.RFC822),
 	})
 
-	return http.StatusAccepted, "Import started. This will take several minutes. Please check back later.", ""
+	return actionResult{http.StatusAccepted, "Import started. This will take several minutes. Please check back later.", "", nil}
 }
 
-func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
 
+	user := middlewares.GetPrincipal(r)
+
+	if h.isAggregationLocked(user.ID) {
+		return actionResult{http.StatusConflict, "", "summary regeneration already in progress, please wait", nil}
+	}
+
 	go func(user *models.User) {
+		h.toggleAggregationLock(user.ID, true)
+		defer h.toggleAggregationLock(user.ID, false)
 		if err := h.regenerateSummaries(user); err != nil {
 			conf.Log().Request(r).Error("failed to regenerate summaries for user '%s' - %v", user.ID, err)
 		}
-	}(middlewares.GetPrincipal(r))
+	}(user)
 
-	return http.StatusAccepted, "summaries are being regenerated - this may take a up to a couple of minutes, please come back later", ""
+	return actionResult{http.StatusAccepted, "summaries are being regenerated - this may take a up to a couple of minutes, please come back later", "", nil}
 }
 
-func (h *SettingsHandler) actionClearData(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionClearData(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -635,10 +701,10 @@ func (h *SettingsHandler) actionClearData(w http.ResponseWriter, r *http.Request
 		}
 	}(user)
 
-	return http.StatusAccepted, "deletion in progress, this may take a couple of seconds", ""
+	return actionResult{http.StatusAccepted, "deletion in progress, this may take a couple of seconds", "", nil}
 }
 
-func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Request) (int, string, string) {
+func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
@@ -657,7 +723,32 @@ func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Reques
 	routeutils.SetSuccess(r, w, "Your account will be deleted in a few minutes. Sorry to you go.")
 	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey))
 	http.Redirect(w, r, h.config.Server.BasePath, http.StatusFound)
-	return -1, "", ""
+	return actionResult{-1, "", "", nil}
+}
+
+func (h *SettingsHandler) actionGenerateInvite(w http.ResponseWriter, r *http.Request) actionResult {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	user := middlewares.GetPrincipal(r)
+	inviteCode := uuid.NewV4().String()[0:8]
+
+	if err := h.keyValueSrvc.PutString(&models.KeyStringValue{
+		Key:   fmt.Sprintf("%s_%s", conf.KeyInviteCode, inviteCode),
+		Value: fmt.Sprintf("%s,%s", user.ID, time.Now().Format(time.RFC3339)),
+	}); err != nil {
+		return actionResult{http.StatusInternalServerError, "", "failed to generate invite code", nil}
+	}
+
+	return actionResult{
+		http.StatusOK,
+		"Successfully generated new invite code (see below)",
+		"",
+		&map[string]interface{}{
+			valueInviteCode: inviteCode,
+		},
+	}
 }
 
 func (h *SettingsHandler) validateWakatimeKey(apiKey string, baseUrl string) bool {
@@ -697,7 +788,7 @@ func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
 		return err
 	}
 
-	if err := h.aggregationSrvc.AggregateSummaries(datastructure.NewSet(user.ID)); err != nil {
+	if err := h.aggregationSrvc.AggregateSummaries(datastructure.New(user.ID)); err != nil {
 		conf.Log().Error("failed to regenerate summaries: %v", err)
 		return err
 	}
@@ -705,7 +796,7 @@ func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
 	return nil
 }
 
-func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *view.SettingsViewModel {
+func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter, args *map[string]interface{}) *view.SettingsViewModel {
 	user := middlewares.GetPrincipal(r)
 
 	// mappings
@@ -715,7 +806,13 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 	aliases, err := h.aliasSrvc.GetByUser(user.ID)
 	if err != nil {
 		conf.Log().Request(r).Error("error while building alias map - %v", err)
-		return &view.SettingsViewModel{Messages: view.Messages{Error: criticalError}, LeaderboardEnabled: h.config.App.LeaderboardEnabled}
+		return &view.SettingsViewModel{
+			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
+				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
+				User:            user,
+				ApiKey:          user.ApiKey,
+			},
+		}
 	}
 	aliasMap := make(map[string][]*models.Alias)
 	for _, a := range aliases {
@@ -744,7 +841,13 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 	labelMap, err := h.projectLabelSrvc.GetByUserGroupedInverted(user.ID)
 	if err != nil {
 		conf.Log().Request(r).Error("error while building settings project label map - %v", err)
-		return &view.SettingsViewModel{Messages: view.Messages{Error: criticalError}, LeaderboardEnabled: h.config.App.LeaderboardEnabled}
+		return &view.SettingsViewModel{
+			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
+				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
+				User:            user,
+				ApiKey:          user.ApiKey,
+			},
+		}
 	}
 
 	combinedLabels := make([]*view.SettingsVMCombinedLabel, 0)
@@ -766,7 +869,13 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 	projects, err := routeutils.GetEffectiveProjectsList(user, h.heartbeatSrvc, h.aliasSrvc)
 	if err != nil {
 		conf.Log().Request(r).Error("error while fetching projects - %v", err)
-		return &view.SettingsViewModel{Messages: view.Messages{Error: criticalError}, LeaderboardEnabled: h.config.App.LeaderboardEnabled}
+		return &view.SettingsViewModel{
+			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
+				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
+				User:            user,
+				ApiKey:          user.ApiKey,
+			},
+		}
 	}
 
 	// subscriptions
@@ -782,18 +891,46 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 		firstData, _ = time.Parse(time.RFC822Z, firstDataKv.Value)
 	}
 
+	// invite link
+	inviteCode := getVal[string](args, valueInviteCode, "")
+	inviteLink := condition.TernaryOperator[bool, string](inviteCode == "", "", fmt.Sprintf("%s/signup?invite=%s", h.config.Server.GetPublicUrl(), inviteCode))
+
 	vm := &view.SettingsViewModel{
-		User:                user,
+		SharedLoggedInViewModel: view.SharedLoggedInViewModel{
+			SharedViewModel: view.NewSharedViewModel(h.config, nil),
+			User:            user,
+			ApiKey:          user.ApiKey,
+		},
 		LanguageMappings:    mappings,
 		Aliases:             combinedAliases,
 		Labels:              combinedLabels,
 		Projects:            projects,
-		ApiKey:              user.ApiKey,
 		UserFirstData:       firstData,
 		SubscriptionPrice:   subscriptionPrice,
 		SupportContact:      h.config.App.SupportContact,
 		DataRetentionMonths: h.config.App.DataRetentionMonths,
-		LeaderboardEnabled:  h.config.App.LeaderboardEnabled,
+		InviteLink:          inviteLink,
 	}
 	return routeutils.WithSessionMessages(vm, r, w)
+}
+
+func (h *SettingsHandler) toggleAggregationLock(userId string, locked bool) {
+	h.aggregationLocks[userId] = locked
+}
+
+func (h *SettingsHandler) isAggregationLocked(userId string) bool {
+	locked, _ := h.aggregationLocks[userId]
+	return locked
+}
+
+func getVal[T any](values *map[string]interface{}, key string, fallback T) T {
+	if values == nil {
+		return fallback
+	}
+	valuesMap := *values
+	val, ok := valuesMap[key]
+	if !ok {
+		return fallback
+	}
+	return val.(T)
 }

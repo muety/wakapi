@@ -1,8 +1,9 @@
 {
 	"info": {
-		"_postman_id": "5c0749a5-6ddf-41ea-82f1-140578788bc3",
+		"_postman_id": "e0534bd9-167f-48a1-a47d-2c02296f9e52",
 		"name": "Wakapi API Tests",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "15969615"
 	},
 	"item": [
 		{
@@ -3356,6 +3357,311 @@
 							"response": []
 						}
 					]
+				}
+			]
+		},
+		{
+			"name": "Web Views",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Full template is rendered\", function() {",
+									"    pm.expect(pm.response.text()).to.include(\"</html>\")",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": false,
+						"followRedirects": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "username",
+									"value": "writeuser",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{WRITEUSER_PASSWORD}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Summary",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Full template is rendered\", function() {",
+									"    pm.expect(pm.response.text()).to.include('</html>')",
+									"    pm.expect(pm.response.text()).to.include('<span class=\"text-sm\">Logout</span>')",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": false,
+						"followRedirects": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/summary",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"summary"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Leaderboard",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Full template is rendered\", function() {",
+									"    pm.expect(pm.response.text()).to.include(\"</html>\")",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": false,
+						"followRedirects": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/leaderboard",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"leaderboard"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Projects",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Full template is rendered\", function() {",
+									"    pm.expect(pm.response.text()).to.include(\"</html>\")",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": false,
+						"followRedirects": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/projects",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"projects"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Settings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Full template is rendered\", function() {",
+									"    pm.expect(pm.response.text()).to.include(\"</html>\")",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": false,
+						"followRedirects": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/settings",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"settings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Full template is rendered\", function() {",
+									"    pm.expect(pm.response.text()).to.include(\"</html>\")",
+									"})",
+									"",
+									"pm.test(\"User is not logged in\", function() {",
+									"    pm.expect(pm.response.text()).to.not.include(\"User Profile Avatar\")",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": false,
+						"followRedirects": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/logout",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Imprint",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Full template is rendered\", function() {",
+									"    pm.expect(pm.response.text()).to.include(\"</html>\")",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": false,
+						"followRedirects": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/imprint",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"imprint"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Leaderboard (public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Full template is rendered\", function() {",
+									"    pm.expect(pm.response.text()).to.include(\"</html>\")",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableCookies": true,
+						"followRedirects": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/leaderboard",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"leaderboard"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}

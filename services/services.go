@@ -135,6 +135,7 @@ type IUserService interface {
 	GetUserByResetToken(string) (*models.User, error)
 	GetUserByStripeCustomerId(string) (*models.User, error)
 	GetAll() ([]*models.User, error)
+	GetAllMapped() (map[string]*models.User, error)
 	GetMany([]string) ([]*models.User, error)
 	GetManyMapped([]string) (map[string]*models.User, error)
 	GetAllByReports(bool) ([]*models.User, error)

@@ -29,6 +29,7 @@ app:
   import_batch_size: 50                                     # maximum number of heartbeats to insert into the database within one transaction
   heartbeat_max_age: '4320h'                                # maximum acceptable age of a heartbeat (see https://pkg.go.dev/time#ParseDuration)
   data_retention_months: -1                                 # maximum retention period on months for user data (heartbeats) (-1 for infinity)
+  max_inactive_months: 12                                   # maximum months of inactivity before deleting user accounts
   custom_languages:
     vue: Vue
     jsx: JSX
@@ -67,12 +68,16 @@ security:
   cookie_max_age: 172800
   allow_signup: true
   signup_captcha: false
+  invite_codes: true                    # whether to enable invite codes for overriding disabled signups
   disable_frontpage: false
   expose_metrics: false
   enable_proxy: false                   # only intended for production instance at wakapi.dev
   trusted_header_auth: false            # whether to enable trusted header auth for reverse proxies, use with caution!! (https://github.com/muety/wakapi/issues/534)
   trusted_header_auth_key: Remote-User  # header field for trusted header auth (warning: your proxy must correctly strip this header from client requests!!)
   trust_reverse_proxy_ips:              # single ip address of the reverse proxy which you trust to pass headers for authentication
+  signup_max_rate: 5/1h                 # signup endpoint rate limit pattern
+  login_max_rate: 10/1m                 # login endpoint rate limit pattern
+  password_reset_max_rate: 5/1h         # password reset endpoint rate limit pattern
 
 sentry:
   dsn:                                # leave blank to disable sentry integration

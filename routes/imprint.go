@@ -39,5 +39,7 @@ func (h *ImprintHandler) GetImprint(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ImprintHandler) buildViewModel(r *http.Request) *view.ImprintViewModel {
-	return &view.ImprintViewModel{}
+	return &view.ImprintViewModel{
+		SharedViewModel: view.NewSharedViewModel(h.config, nil),
+	}
 }

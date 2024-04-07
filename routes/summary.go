@@ -87,22 +87,28 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vm := view.SummaryViewModel{
+		SharedLoggedInViewModel: view.SharedLoggedInViewModel{
+			SharedViewModel: view.NewSharedViewModel(h.config, nil),
+			User:            user,
+			ApiKey:          user.ApiKey,
+		},
 		Summary:             summary,
 		SummaryParams:       summaryParams,
-		User:                user,
 		EditorColors:        su.FilterColors(h.config.App.GetEditorColors(), summary.Editors),
 		LanguageColors:      su.FilterColors(h.config.App.GetLanguageColors(), summary.Languages),
 		OSColors:            su.FilterColors(h.config.App.GetOSColors(), summary.OperatingSystems),
-		ApiKey:              user.ApiKey,
 		RawQuery:            rawQuery,
 		UserFirstData:       firstData,
 		DataRetentionMonths: h.config.App.DataRetentionMonths,
-		LeaderboardEnabled:  h.config.App.LeaderboardEnabled,
 	}
 
 	templates[conf.SummaryTemplate].Execute(w, vm)
 }
 
 func (h *SummaryHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *view.SummaryViewModel {
-	return su.WithSessionMessages(&view.SummaryViewModel{LeaderboardEnabled: h.config.App.LeaderboardEnabled}, r, w)
+	return su.WithSessionMessages(&view.SummaryViewModel{
+		SharedLoggedInViewModel: view.SharedLoggedInViewModel{
+			SharedViewModel: view.NewSharedViewModel(h.config, nil),
+		},
+	}, r, w)
 }

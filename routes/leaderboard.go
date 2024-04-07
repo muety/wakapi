@@ -74,7 +74,9 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWrit
 		if err != nil {
 			conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
 			return &view.LeaderboardViewModel{
-				Messages: view.Messages{Error: criticalError}, LeaderboardEnabled: true,
+				SharedLoggedInViewModel: view.SharedLoggedInViewModel{
+					SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
+				},
 			}
 		}
 
@@ -93,7 +95,9 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWrit
 			if err != nil {
 				conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
 				return &view.LeaderboardViewModel{
-					Messages: view.Messages{Error: criticalError}, LeaderboardEnabled: true,
+					SharedLoggedInViewModel: view.SharedLoggedInViewModel{
+						SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
+					},
 				}
 			}
 
@@ -127,8 +131,9 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWrit
 			}
 		} else {
 			return &view.LeaderboardViewModel{
-				Messages:           view.Messages{Error: fmt.Sprintf("unsupported aggregation '%s'", byParam)},
-				LeaderboardEnabled: true,
+				SharedLoggedInViewModel: view.SharedLoggedInViewModel{
+					SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: fmt.Sprintf("unsupported aggregation '%s'", byParam)}),
+				},
 			}
 		}
 	}
@@ -141,16 +146,18 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWrit
 	leaderboard.FilterEmpty()
 
 	vm := &view.LeaderboardViewModel{
-		User:               user,
-		By:                 byParam,
-		Key:                keyParam,
-		Items:              leaderboard,
-		UserLanguages:      userLanguages,
-		TopKeys:            topKeys,
-		IntervalLabel:      h.leaderboardService.GetDefaultScope().GetHumanReadable(),
-		LeaderboardEnabled: true,
-		ApiKey:             apiKey,
-		PageParams:         pageParams,
+		SharedLoggedInViewModel: view.SharedLoggedInViewModel{
+			SharedViewModel: view.NewSharedViewModel(h.config, nil),
+			User:            user,
+			ApiKey:          apiKey,
+		},
+		By:            byParam,
+		Key:           keyParam,
+		Items:         leaderboard,
+		UserLanguages: userLanguages,
+		TopKeys:       topKeys,
+		IntervalLabel: h.leaderboardService.GetDefaultScope().GetHumanReadable(),
+		PageParams:    pageParams,
 	}
 	return routeutils.WithSessionMessages(vm, r, w)
 }

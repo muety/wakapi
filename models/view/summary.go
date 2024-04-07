@@ -7,19 +7,16 @@ import (
 )
 
 type SummaryViewModel struct {
-	Messages
+	SharedLoggedInViewModel
 	*models.Summary
 	*models.SummaryParams
-	User                *models.User
 	AvatarURL           string
 	EditorColors        map[string]string
 	LanguageColors      map[string]string
 	OSColors            map[string]string
-	ApiKey              string
 	RawQuery            string
 	UserFirstData       time.Time
 	DataRetentionMonths int
-	LeaderboardEnabled  bool
 }
 
 func (s SummaryViewModel) UserDataExpiring() bool {
@@ -27,7 +24,7 @@ func (s SummaryViewModel) UserDataExpiring() bool {
 	return cfg.Subscriptions.Enabled &&
 		cfg.App.DataRetentionMonths > 0 &&
 		!s.UserFirstData.IsZero() &&
-		!s.User.HasActiveSubscription() &&
+		!s.SharedLoggedInViewModel.User.HasActiveSubscription() &&
 		time.Now().AddDate(0, -cfg.App.DataRetentionMonths, 0).After(s.UserFirstData)
 }
 

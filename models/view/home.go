@@ -6,11 +6,10 @@ type Newsbox struct {
 }
 
 type HomeViewModel struct {
-	Messages
-	TotalHours         int
-	TotalUsers         int
-	LeaderboardEnabled bool
-	Newsbox            *Newsbox
+	SharedViewModel
+	TotalHours int
+	TotalUsers int
+	Newsbox    *Newsbox
 }
 
 func (s *HomeViewModel) WithSuccess(m string) *HomeViewModel {

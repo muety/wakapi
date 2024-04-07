@@ -37,6 +37,7 @@ const (
 	KeyFirstHeartbeat               = "first_heartbeat"
 	KeySubscriptionNotificationSent = "sub_reminder"
 	KeyNewsbox                      = "newsbox"
+	KeyInviteCode                   = "invite"
 
 	SessionKeyDefault = "default"
 
@@ -93,6 +94,7 @@ type appConfig struct {
 	CountCacheTTLMin          int                          `yaml:"count_cache_ttl_min" default:"30" env:"WAKAPI_COUNT_CACHE_TTL_MIN"`
 	DataRetentionMonths       int                          `yaml:"data_retention_months" default:"-1" env:"WAKAPI_DATA_RETENTION_MONTHS"`
 	DataCleanupDryRun         bool                         `yaml:"data_cleanup_dry_run" default:"false" env:"WAKAPI_DATA_CLEANUP_DRY_RUN"` // for debugging only
+	MaxInactiveMonths         int                          `yaml:"max_inactive_months" default:"-1" env:"WAKAPI_MAX_INACTIVE_MONTHS"`
 	AvatarURLTemplate         string                       `yaml:"avatar_url_template" default:"api/avatar/{username_hash}.svg" env:"WAKAPI_AVATAR_URL_TEMPLATE"`
 	SupportContact            string                       `yaml:"support_contact" default:"hostmaster@wakapi.dev" env:"WAKAPI_SUPPORT_CONTACT"`
 	DateFormat                string                       `yaml:"date_format" default:"Mon, 02 Jan 2006" env:"WAKAPI_DATE_FORMAT"`
@@ -104,6 +106,7 @@ type appConfig struct {
 type securityConfig struct {
 	AllowSignup      bool `yaml:"allow_signup" default:"true" env:"WAKAPI_ALLOW_SIGNUP"`
 	SignupCaptcha    bool `yaml:"signup_captcha" default:"false" env:"WAKAPI_SIGNUP_CAPTCHA"`
+	InviteCodes      bool `yaml:"invite_codes" default:"true" env:"WAKAPI_INVITE_CODES"`
 	ExposeMetrics    bool `yaml:"expose_metrics" default:"false" env:"WAKAPI_EXPOSE_METRICS"`
 	EnableProxy      bool `yaml:"enable_proxy" default:"false" env:"WAKAPI_ENABLE_PROXY"` // only intended for production instance at wakapi.dev
 	DisableFrontpage bool `yaml:"disable_frontpage" default:"false" env:"WAKAPI_DISABLE_FRONTPAGE"`
@@ -114,6 +117,9 @@ type securityConfig struct {
 	TrustedHeaderAuth         bool                       `yaml:"trusted_header_auth" default:"false" env:"WAKAPI_TRUSTED_HEADER_AUTH"`
 	TrustedHeaderAuthKey      string                     `yaml:"trusted_header_auth_key" default:"Remote-User" env:"WAKAPI_TRUSTED_HEADER_AUTH_KEY"`
 	TrustReverseProxyIps      string                     `yaml:"trust_reverse_proxy_ips" default:"" env:"WAKAPI_TRUST_REVERSE_PROXY_IPS"` // comma-separated list of trusted reverse proxy ips
+	SignupMaxRate             string                     `yaml:"signup_max_rate" default:"5/1h" env:"WAKAPI_SIGNUP_MAX_RATE"`
+	LoginMaxRate              string                     `yaml:"login_max_rate" default:"10/1m" env:"WAKAPI_LOGIN_MAX_RATE"`
+	PasswordResetMaxRate      string                     `yaml:"password_reset_max_rate" default:"5/1h" env:"WAKAPI_PASSWORD_RESET_MAX_RATE"`
 	SecureCookie              *securecookie.SecureCookie `yaml:"-"`
 	SessionKey                []byte                     `yaml:"-"`
 	trustReverseProxyIpParsed []net.IP
@@ -335,6 +341,41 @@ func (c *securityConfig) ParseTrustReverseProxyIPs() {
 
 func (c *securityConfig) TrustReverseProxyIPs() []net.IP {
 	return c.trustReverseProxyIpParsed
+}
+
+func (c *securityConfig) GetSignupMaxRate() (int, time.Duration) {
+	return c.parseRate(c.SignupMaxRate)
+}
+
+func (c *securityConfig) GetLoginMaxRate() (int, time.Duration) {
+	return c.parseRate(c.LoginMaxRate)
+}
+
+func (c *securityConfig) GetPasswordResetMaxRate() (int, time.Duration) {
+	return c.parseRate(c.PasswordResetMaxRate)
+}
+
+func (c *securityConfig) parseRate(rate string) (int, time.Duration) {
+	pattern := regexp.MustCompile("(\\d+)/(\\d+)([smh])")
+	matches := pattern.FindStringSubmatch(rate)
+	if len(matches) != 4 {
+		logbuch.Fatal("failed to parse rate pattern '%s'", rate)
+	}
+
+	limit, _ := strconv.Atoi(matches[1])
+	window, _ := strconv.Atoi(matches[2])
+
+	var windowScale time.Duration
+	switch matches[3] {
+	case "s":
+		windowScale = time.Second
+	case "m":
+		windowScale = time.Minute
+	case "h":
+		windowScale = time.Hour
+	}
+
+	return limit, time.Duration(window) * windowScale
 }
 
 func (c *dbConfig) IsSQLite() bool {

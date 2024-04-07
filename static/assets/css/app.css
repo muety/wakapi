@@ -22,8 +22,13 @@ body {
     background-color: #242b3a;
 }
 
+.text-xsi {
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
+}
+
 .text-xxs {
-    font-size: 0.65rem;
+    font-size: 0.65rem !important;
 }
 
 .mt-14 {
@@ -185,3 +190,7 @@ body {
     cursor: help;
 }
 */
+
+.wi-min {
+    width: min-content !important;
+}
