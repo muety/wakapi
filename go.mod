@@ -7,6 +7,7 @@ require (
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
 	github.com/alexedwards/argon2id v1.0.0
 	github.com/alitto/pond v1.8.3
+	github.com/dchest/captcha v1.0.0
 	github.com/duke-git/lancet/v2 v2.2.9
 	github.com/emersion/go-sasl v0.0.0-20231106173351-e73c9f7bad43
 	github.com/emersion/go-smtp v0.20.2

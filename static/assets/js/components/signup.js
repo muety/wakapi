@@ -4,6 +4,7 @@ PetiteVue.createApp({
     timezone: guessTimezone(),
     username: '',
     email: '',
+    captcha: '',
     avatarUrl: defaultAvatarUrl,
     updateAvatar() {
         if (!avatarUrlTemplate) return

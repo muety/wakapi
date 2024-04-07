@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/dchest/captcha"
 	"github.com/emvi/logbuch"
 	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
@@ -61,7 +62,7 @@ func (h *LoginHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w))
+	templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false))
 }
 
 func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
@@ -77,25 +78,25 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 	var login models.Login
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w).WithError("missing parameters"))
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("missing parameters"))
 		return
 	}
 	if err := loginDecoder.Decode(&login, r.PostForm); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w).WithError("missing parameters"))
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("missing parameters"))
 		return
 	}
 
 	user, err := h.userSrvc.GetUserById(login.Username)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w).WithError("resource not found"))
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("resource not found"))
 		return
 	}
 
 	if !utils.ComparePassword(user.Password, login.Password, h.config.Security.PasswordSalt) {
 		w.WriteHeader(http.StatusUnauthorized)
-		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w).WithError("invalid credentials"))
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("invalid credentials"))
 		return
 	}
 
@@ -103,7 +104,7 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		conf.Log().Request(r).Error("failed to encode secure cookie - %v", err)
-		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w).WithError("internal server error"))
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
 		return
 	}
 
@@ -136,7 +137,7 @@ func (h *LoginHandler) GetSignup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w))
+	templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha))
 }
 
 func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
@@ -146,7 +147,7 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 
 	if !h.config.IsDev() && !h.config.Security.AllowSignup {
 		w.WriteHeader(http.StatusForbidden)
-		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w).WithError("registration is disabled on this server"))
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("registration is disabled on this server"))
 		return
 	}
 
@@ -158,18 +159,18 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 	var signup models.Signup
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w).WithError("missing parameters"))
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("missing parameters"))
 		return
 	}
 	if err := signupDecoder.Decode(&signup, r.PostForm); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w).WithError("missing parameters"))
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("missing parameters"))
 		return
 	}
 
 	if !signup.IsValid() {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w).WithError("invalid parameters"))
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("invalid parameters"))
 		return
 	}
 
@@ -179,12 +180,12 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		conf.Log().Request(r).Error("failed to create new user - %v", err)
-		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w).WithError("failed to create new user"))
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("failed to create new user"))
 		return
 	}
 	if !created {
 		w.WriteHeader(http.StatusConflict)
-		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w).WithError("user already existing"))
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("user already existing"))
 		return
 	}
 
@@ -196,7 +197,7 @@ func (h *LoginHandler) GetResetPassword(w http.ResponseWriter, r *http.Request) 
 	if h.config.IsDev() {
 		loadTemplates()
 	}
-	templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r, w))
+	templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false))
 }
 
 func (h *LoginHandler) GetSetPassword(w http.ResponseWriter, r *http.Request) {
@@ -208,12 +209,12 @@ func (h *LoginHandler) GetSetPassword(w http.ResponseWriter, r *http.Request) {
 	token := values.Get("token")
 	if token == "" {
 		w.WriteHeader(http.StatusUnauthorized)
-		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w).WithError("invalid or missing token"))
+		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("invalid or missing token"))
 		return
 	}
 
 	vm := &view.SetPasswordViewModel{
-		LoginViewModel: *h.buildViewModel(r, w),
+		LoginViewModel: *h.buildViewModel(r, w, false),
 		Token:          token,
 	}
 
@@ -228,25 +229,25 @@ func (h *LoginHandler) PostSetPassword(w http.ResponseWriter, r *http.Request) {
 	var setRequest models.SetPasswordRequest
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w).WithError("missing parameters"))
+		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("missing parameters"))
 		return
 	}
 	if err := signupDecoder.Decode(&setRequest, r.PostForm); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w).WithError("missing parameters"))
+		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("missing parameters"))
 		return
 	}
 
 	user, err := h.userSrvc.GetUserByResetToken(setRequest.Token)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w).WithError("invalid token"))
+		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("invalid token"))
 		return
 	}
 
 	if !setRequest.IsValid() {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w).WithError("invalid parameters"))
+		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("invalid parameters"))
 		return
 	}
 
@@ -255,7 +256,7 @@ func (h *LoginHandler) PostSetPassword(w http.ResponseWriter, r *http.Request) {
 	if hash, err := utils.HashPassword(user.Password, h.config.Security.PasswordSalt); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		conf.Log().Request(r).Error("failed to set new password - %v", err)
-		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w).WithError("failed to set new password"))
+		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("failed to set new password"))
 		return
 	} else {
 		user.Password = hash
@@ -264,7 +265,7 @@ func (h *LoginHandler) PostSetPassword(w http.ResponseWriter, r *http.Request) {
 	if _, err := h.userSrvc.Update(user); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		conf.Log().Request(r).Error("failed to save new password - %v", err)
-		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w).WithError("failed to save new password"))
+		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("failed to save new password"))
 		return
 	}
 
@@ -279,19 +280,19 @@ func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request)
 
 	if !h.config.Mail.Enabled {
 		w.WriteHeader(http.StatusNotImplemented)
-		templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r, w).WithError("mailing is disabled on this server"))
+		templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("mailing is disabled on this server"))
 		return
 	}
 
 	var resetRequest models.ResetPasswordRequest
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r, w).WithError("missing parameters"))
+		templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("missing parameters"))
 		return
 	}
 	if err := resetPasswordDecoder.Decode(&resetRequest, r.PostForm); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r, w).WithError("missing parameters"))
+		templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("missing parameters"))
 		return
 	}
 
@@ -299,7 +300,7 @@ func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request)
 		if u, err := h.userSrvc.GenerateResetToken(user); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			conf.Log().Request(r).Error("failed to generate password reset token - %v", err)
-			templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r, w).WithError("failed to generate password reset token"))
+			templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("failed to generate password reset token"))
 			return
 		} else {
 			go func(user *models.User) {
@@ -319,12 +320,17 @@ func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request)
 	http.Redirect(w, r, h.config.Server.BasePath, http.StatusFound)
 }
 
-func (h *LoginHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *view.LoginViewModel {
+func (h *LoginHandler) buildViewModel(r *http.Request, w http.ResponseWriter, withCaptcha bool) *view.LoginViewModel {
 	numUsers, _ := h.userSrvc.Count()
 
 	vm := &view.LoginViewModel{
 		TotalUsers:  int(numUsers),
 		AllowSignup: h.config.IsDev() || h.config.Security.AllowSignup,
 	}
+
+	if withCaptcha {
+		vm.CaptchaId = captcha.New()
+	}
+
 	return routeutils.WithSessionMessages(vm, r, w)
 }

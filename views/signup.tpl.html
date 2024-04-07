@@ -38,6 +38,7 @@
 
         <form class="mt-10" action="signup" method="post">
             <input type="hidden" name="location" id="input-location" v-model="timezone">
+            <input type="hidden" name="captcha_id" value="{{ .CaptchaId }}">
 
             <div class="flex space-x-4">
                 <div class="mt-1">
@@ -72,6 +73,19 @@
                        type="password" id="password_repeat"
                        name="password_repeat" placeholder="And again..." minlength="6" required>
             </div>
+            {{ if .CaptchaId }}
+            <div class="mb-4 flex">
+                <img id="captchaimage" src="api/captcha/{{.CaptchaId}}.png" class="rounded-md" style="max-height: 64px; background: rgba(255, 255, 255, 0.75)" alt="Captcha image">
+                <div class="flex-grow flex-col ml-4">
+                    <input class="input-default"
+                           v-model="captcha"
+                           type="text" id="captcha"
+                           name="captcha" placeholder="Verification"
+                           required>
+                    <div class="text-xs text-gray-600 mt-1 ml-1 underline"><a href="https://github.com/muety/wakapi/issues/635" target="_blank" rel="noreferrer nofollow">Why am I seeing this?<a></div>
+                </div>
+            </div>
+            {{ end }}
 
             {{ if eq .TotalUsers 0 }}
             <p class="text-sm text-gray-300 mt-4 mb-8">

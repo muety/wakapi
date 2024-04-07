@@ -103,6 +103,7 @@ type appConfig struct {
 
 type securityConfig struct {
 	AllowSignup      bool `yaml:"allow_signup" default:"true" env:"WAKAPI_ALLOW_SIGNUP"`
+	SignupCaptcha    bool `yaml:"signup_captcha" default:"false" env:"WAKAPI_SIGNUP_CAPTCHA"`
 	ExposeMetrics    bool `yaml:"expose_metrics" default:"false" env:"WAKAPI_EXPOSE_METRICS"`
 	EnableProxy      bool `yaml:"enable_proxy" default:"false" env:"WAKAPI_ENABLE_PROXY"` // only intended for production instance at wakapi.dev
 	DisableFrontpage bool `yaml:"disable_frontpage" default:"false" env:"WAKAPI_DISABLE_FRONTPAGE"`

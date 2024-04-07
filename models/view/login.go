@@ -4,6 +4,7 @@ type LoginViewModel struct {
 	Messages
 	TotalUsers  int
 	AllowSignup bool
+	CaptchaId   string
 }
 
 type SetPasswordViewModel struct {
