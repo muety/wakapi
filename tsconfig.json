@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "petite-vue/*": [
+        "node_modules/petite-vue/dist/types/*",
+        "node_modules/petite-vue/dist/*.es.js"
+      ],
+      "petite-vue": [
+        "node_modules/petite-vue/dist/types/index.d.ts",
+        "node_modules/petite-vue/dist/petite-vue.es.js"
+      ]
+    }
+  },
+  "include": [
+    "static/src/",
+    "vite.config.ts",
+    "uno.config.ts"
+  ]
+}

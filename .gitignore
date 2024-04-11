@@ -12,3 +12,5 @@ config*.yml
 pkged.go
 package-lock.json
 node_modules
+
+/static/assets/

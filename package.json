@@ -1,18 +1,75 @@
 {
+  "name": "wakapi",
+  "private": true,
+  "license": "GPL-3.0-only",
   "scripts": {
-    "build": "npm run build:icons && npm run build:tailwind",
-    "build:tailwind": "tailwindcss build -i static/assets/css/app.css -o static/assets/css/app.dist.css --minify",
-    "build:icons": "node scripts/bundle_icons.js",
-    "build:all:compress": "npm run build && npm run compress",
-    "watch": "chokidar \"./views/**/*.html\" \"./static/assets/js/**/*.js\" \"./static/assets/css/**/*.css\" -i \"**/vendor/*\" -i \"**/*.dist.*\" -c \"npm run build\"",
-    "watch:compress": "chokidar \"./views/**/*.html\" \"./static/assets/js/**/*.js\" \"./static/assets/css/**/*.css\" -i \"**/vendor/*\" -i \"**/*.dist.*\" -c \"npm run build:all:compress\"",
-    "compress": "brotli -f static/assets/css/*.dist.css && brotli -f static/assets/js/*.dist.js"
+    "build": "vite build",
+    "watch": "vite"
+  },
+  "browserslist": "Firefox ESR, iOS >= 12.5, Chrome >= 87",
+  "eslintConfig": {
+    "env": {
+      "es2024": true,
+      "browser": true
+    },
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+    },
+    "extends": [
+      "xo",
+      "./node_modules/xo/config/plugins.cjs"
+    ],
+    "rules": {
+      "import/extensions": "off",
+      "import/no-named-as-default": "off",
+      "unicorn/filename-case": "off",
+      "n/prefer-global/process": "off"
+    },
+    "overrides": [
+      {
+        "files": [
+          "*.ts",
+          "*.tsx"
+        ],
+        "extends": [
+          "xo-typescript"
+        ],
+        "rules": {
+          "@typescript-eslint/naming-convention": "warn"
+        }
+      }
+    ],
+    "ignorePatterns": [
+      "dist",
+      "public"
+    ],
+    "root": true
+  },
+  "resolutions": {
+    "eslint-import-resolver-webpack": "npm:noop3"
+  },
+  "dependencies": {
+    "@fontsource/source-sans-3": "^5.0.19",
+    "chart.js": "^4.4.2",
+    "md5-hex": "^5.0.0",
+    "petite-vue": "^0.4.1",
+    "seedrandom": "^3.0.5"
   },
   "devDependencies": {
-    "@iconify/json": "^2.2.120",
-    "@iconify/json-tools": "^1.0.10",
-    "chokidar-cli": "^3.0.0",
-    "tailwindcss": "^3.1.8"
-  },
-  "dependencies": {}
+    "@types/seedrandom": "^3.0.8",
+    "@typescript-eslint/eslint-plugin": "^7.4.0",
+    "@typescript-eslint/parser": "^7.4.0",
+    "autoprefixer": "^10.4.19",
+    "browserslist": "^4.23.0",
+    "browserslist-to-esbuild": "^2.1.1",
+    "eslint": "^8.57.0",
+    "eslint-config-xo-typescript": "^4.0.0",
+    "postcss": "^8.4.38",
+    "typed-query-selector": "^2.11.2",
+    "typescript": "^5.4.3",
+    "unocss": "^0.58.6",
+    "vite": "^5.2.6",
+    "xo": "^0.58.0"
+  }
 }
