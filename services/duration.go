@@ -30,8 +30,11 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 	}
 
 	// Aggregation
-	// the below logic is approximately equivalent to the SQL query at scripts/aggregate_durations.sql,
-	// but unfortunately we cannot use it, as it features mysql-specific functions (lag(), timediff(), ...)
+	// the below logic is approximately equivalent to the SQL query at scripts/aggregate_durations_mysql.sql
+	// a postgres-compatible script was contributed by @cwilby and is available at scripts/aggregate_durations_postgres.sql
+	// i'm hesitant to replicate that logic for sqlite and mssql too (because probably painful to impossible), but we could
+	// think about adding a distrinctio here to use pure-sql aggregation for mysql and postgres, and traditional, programmatic
+	// aggregation for all other databases
 	var count int
 	var latest *models.Duration
 
