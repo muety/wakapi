@@ -3,8 +3,8 @@ package utils
 import (
 	"encoding/json"
 	"html/template"
+	"io"
 	"io/fs"
-	"io/ioutil"
 	"path"
 )
 
@@ -44,7 +44,7 @@ func LoadTemplates(templateFs fs.FS, funcs template.FuncMap) (TemplateMap, error
 		if err != nil {
 			return nil, err
 		}
-		templateData, err := ioutil.ReadAll(templateFile)
+		templateData, err := io.ReadAll(templateFile)
 		if err != nil {
 			return nil, err
 		}
