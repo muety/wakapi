@@ -19,7 +19,7 @@ import (
 	stripePrice "github.com/stripe/stripe-go/v74/price"
 	stripeSubscription "github.com/stripe/stripe-go/v74/subscription"
 	"github.com/stripe/stripe-go/v74/webhook"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -197,7 +197,7 @@ func (h *SubscriptionHandler) PostPortal(w http.ResponseWriter, r *http.Request)
 
 func (h *SubscriptionHandler) PostWebhook(w http.ResponseWriter, r *http.Request) {
 	bodyReader := http.MaxBytesReader(w, r.Body, int64(65536))
-	payload, err := ioutil.ReadAll(bodyReader)
+	payload, err := io.ReadAll(bodyReader)
 	if err != nil {
 		conf.Log().Request(r).Error("error in stripe webhook request: %v", err)
 		w.WriteHeader(http.StatusServiceUnavailable)

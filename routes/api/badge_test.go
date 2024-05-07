@@ -8,7 +8,7 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -69,7 +69,7 @@ func TestBadgeHandler_Get(t *testing.T) {
 
 			assert.Equal(t, http.StatusOK, res.StatusCode)
 
-			data, err := ioutil.ReadAll(res.Body)
+			data, err := io.ReadAll(res.Body)
 			if err != nil {
 				t.Errorf("unextected error. Error: %s", err)
 			}
@@ -90,7 +90,7 @@ func TestBadgeHandler_Get(t *testing.T) {
 
 			assert.Equal(t, http.StatusForbidden, res.StatusCode)
 
-			data, err := ioutil.ReadAll(res.Body)
+			data, err := io.ReadAll(res.Body)
 			if err != nil {
 				t.Errorf("unextected error. Error: %s", err)
 			}
@@ -110,7 +110,7 @@ func TestBadgeHandler_Get(t *testing.T) {
 
 			assert.Equal(t, http.StatusForbidden, res.StatusCode)
 
-			data, err := ioutil.ReadAll(res.Body)
+			data, err := io.ReadAll(res.Body)
 			if err != nil {
 				t.Errorf("unextected error. Error: %s", err)
 			}

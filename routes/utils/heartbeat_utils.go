@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/muety/wakapi/models"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -25,11 +25,11 @@ func ParseHeartbeats(r *http.Request) ([]*models.Heartbeat, error) {
 func tryParseBulk(r *http.Request) ([]*models.Heartbeat, error) {
 	var heartbeats []*models.Heartbeat
 
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := io.ReadAll(r.Body)
 	r.Body.Close()
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+	r.Body = io.NopCloser(bytes.NewBuffer(body))
 
-	dec := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(body)))
+	dec := json.NewDecoder(io.NopCloser(bytes.NewBuffer(body)))
 	if err := dec.Decode(&heartbeats); err != nil {
 		return nil, err
 	}
@@ -40,11 +40,11 @@ func tryParseBulk(r *http.Request) ([]*models.Heartbeat, error) {
 func tryParseSingle(r *http.Request) ([]*models.Heartbeat, error) {
 	var heartbeat models.Heartbeat
 
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := io.ReadAll(r.Body)
 	r.Body.Close()
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+	r.Body = io.NopCloser(bytes.NewBuffer(body))
 
-	dec := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(body)))
+	dec := json.NewDecoder(io.NopCloser(bytes.NewBuffer(body)))
 	if err := dec.Decode(&heartbeat); err != nil {
 		return nil, err
 	}

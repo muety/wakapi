@@ -7,7 +7,7 @@ import (
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -58,7 +58,7 @@ func TestHomeHandler_Get_NotLoggedIn(t *testing.T) {
 
 			assert.Equal(t, http.StatusOK, res.StatusCode)
 
-			data, err := ioutil.ReadAll(res.Body)
+			data, err := io.ReadAll(res.Body)
 			if err != nil {
 				t.Errorf("unextected error. Error: %s", err)
 			}

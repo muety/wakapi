@@ -8,7 +8,7 @@ import (
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -78,7 +78,7 @@ func TestUsersHandler_Get(t *testing.T) {
 			res := rec.Result()
 			defer res.Body.Close()
 
-			data, err := ioutil.ReadAll(res.Body)
+			data, err := io.ReadAll(res.Body)
 			if err != nil {
 				t.Errorf("unexpected error. Error: %s", err)
 			}
@@ -104,7 +104,7 @@ func TestUsersHandler_Get(t *testing.T) {
 			res := rec.Result()
 			defer res.Body.Close()
 
-			data, err := ioutil.ReadAll(res.Body)
+			data, err := io.ReadAll(res.Body)
 			if err != nil {
 				t.Errorf("unextected error. Error: %s", err)
 			}
@@ -128,7 +128,7 @@ func TestUsersHandler_Get(t *testing.T) {
 			res := rec.Result()
 			defer res.Body.Close()
 
-			data, err := ioutil.ReadAll(res.Body)
+			data, err := io.ReadAll(res.Body)
 			if err != nil {
 				t.Errorf("unextected error. Error: %s", err)
 			}

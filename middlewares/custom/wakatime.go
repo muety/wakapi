@@ -14,7 +14,6 @@ import (
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/patrickmn/go-cache"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -67,9 +66,9 @@ func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := io.ReadAll(r.Body)
 	r.Body.Close()
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+	r.Body = io.NopCloser(bytes.NewBuffer(body))
 
 	// prevent cycles
 	downstreamInstanceId := ownInstanceId
@@ -149,12 +148,12 @@ func (m *WakatimeRelayMiddleware) filterByCache(r *http.Request) error {
 		return err
 	}
 
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := io.ReadAll(r.Body)
 	r.Body.Close()
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+	r.Body = io.NopCloser(bytes.NewBuffer(body))
 
 	var rawData interface{}
-	if err := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(body))).Decode(&rawData); err != nil {
+	if err := json.NewDecoder(io.NopCloser(bytes.NewBuffer(body))).Decode(&rawData); err != nil {
 		return err
 	}
 
@@ -190,7 +189,7 @@ func (m *WakatimeRelayMiddleware) filterByCache(r *http.Request) error {
 	if err := json.NewEncoder(&buf).Encode(newData); err != nil {
 		return err
 	}
-	r.Body = ioutil.NopCloser(&buf)
+	r.Body = io.NopCloser(&buf)
 
 	return nil
 }
