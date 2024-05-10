@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/muety/wakapi/utils"
 	"net/http"
 	"time"
@@ -73,11 +74,12 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 			return false, nil, err
 		}
 
-		if len(datadumpData.Data) < 1 {
-			return false, nil, errors.New("no dumps available")
+		if dump, ok := slice.FindBy[*wakatime.DataDumpData](datadumpData.Data, func(i int, item *wakatime.DataDumpData) bool {
+			return item.Type == "heartbeats"
+		}); ok {
+			return dump.Status == "Completed", dump, nil
 		}
-
-		return datadumpData.Data[0].Status == "Completed", datadumpData.Data[0], nil
+		return false, nil, errors.New("no dumps available")
 	}
 
 	onDumpFailed := func(err error, user *models.User) {
