@@ -83,6 +83,7 @@ let icons = [
     'octicon:share-16',
     'mdi:filter',
     'mdi:invite',
+    'octicon:info-16',
 ]
 
 const output = path.normalize(path.join(__dirname, '../static/assets/js/icons.dist.js'))
