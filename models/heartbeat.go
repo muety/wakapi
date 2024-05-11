@@ -83,6 +83,8 @@ func (h *Heartbeat) GetKey(t uint8) (key string) {
 		key = h.Branch
 	case SummaryEntity:
 		key = h.Entity
+	case SummaryCategory:
+		key = h.Category
 	}
 
 	if key == "" {

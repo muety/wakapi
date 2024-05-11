@@ -35,6 +35,7 @@ type StatsData struct {
 	Projects                  []*SummariesEntry `json:"projects"`
 	OperatingSystems          []*SummariesEntry `json:"operating_systems"`
 	Branches                  []*SummariesEntry `json:"branches,omitempty"`
+	Categories                []*SummariesEntry `json:"categories"`
 }
 
 func NewStatsFrom(summary *models.Summary, filters *models.Filters) *StatsViewModel {
@@ -90,6 +91,11 @@ func NewStatsFrom(summary *models.Summary, filters *models.Filters) *StatsViewMo
 		branches[i] = convertEntry(e, summary.TotalTimeBy(models.SummaryBranch))
 	}
 
+	categories := make([]*SummariesEntry, len(summary.Categories))
+	for i, e := range summary.Categories {
+		categories[i] = convertEntry(e, summary.TotalTimeBy(models.SummaryCategory))
+	}
+
 	// entities omitted intentionally
 
 	data.Editors = editors
@@ -98,6 +104,7 @@ func NewStatsFrom(summary *models.Summary, filters *models.Filters) *StatsViewMo
 	data.Projects = projects
 	data.OperatingSystems = oss
 	data.Branches = branches
+	data.Categories = categories
 
 	if summary.Branches == nil {
 		data.Branches = nil

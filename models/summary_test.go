@@ -69,6 +69,7 @@ func TestSummary_TotalTimeBy(t *testing.T) {
 	assert.Equal(t, testDuration3, sut.TotalTimeBy(SummaryLanguage))
 	assert.Zero(t, sut.TotalTimeBy(SummaryEditor))
 	assert.Zero(t, sut.TotalTimeBy(SummaryMachine))
+	assert.Zero(t, sut.TotalTimeBy(SummaryCategory))
 	assert.Zero(t, sut.TotalTimeBy(SummaryOS))
 }
 

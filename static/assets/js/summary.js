@@ -14,6 +14,7 @@ const machinesCanvas = document.getElementById('chart-machine')
 const labelsCanvas = document.getElementById('chart-label')
 const branchesCanvas = document.getElementById('chart-branches')
 const entitiesCanvas = document.getElementById('chart-entities')
+const categoriesCanvas = document.getElementById('chart-categories')
 
 const projectContainer = document.getElementById('project-container')
 const osContainer = document.getElementById('os-container')
@@ -23,10 +24,11 @@ const machineContainer = document.getElementById('machine-container')
 const labelContainer = document.getElementById('label-container')
 const branchContainer = document.getElementById('branch-container')
 const entityContainer = document.getElementById('entity-container')
+const categoryContainer = document.getElementById('category-container')
 
-const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer]
-const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas]
-const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches, wakapiData.entities]
+const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer, categoryContainer]
+const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas, categoriesCanvas]
+const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches, wakapiData.entities, wakapiData.categories]
 
 let topNPickers = [...document.getElementsByClassName('top-picker')]
 topNPickers.sort(((a, b) => parseInt(a.attributes['data-entity'].value) - parseInt(b.attributes['data-entity'].value)))
@@ -62,12 +64,14 @@ String.prototype.toHHMMSS = function () {
 }
 
 function draw(subselection) {
-    function getTooltipOptions(key) {
+    function getTooltipOptions(key, stacked) {
         return {
             callbacks: {
                 label: (item) => {
-                    const d = wakapiData[key][item.dataIndex]
-                    return ` ${d.key}: ${d.total.toString().toHHMMSS()}`
+                    const d = stacked
+                        ? [item.chart.data.datasets[item.datasetIndex].data[item.dataIndex], item.chart.data.datasets[item.datasetIndex].label]
+                        : [item.chart.data.datasets[item.datasetIndex].data[item.dataIndex], item.chart.data.labels[item.dataIndex]]
+                    return ` ${d[1]}: ${d[0].toString().toHHMMSS()}`
                 },
                 title: () => 'Total Time',
                 footer: () => key === 'projects' ? 'Click for details' : null
@@ -98,7 +102,7 @@ function draw(subselection) {
             data: {
                 datasets: [{
                     data: wakapiData.projects
-                        .slice(0, Math.min(showTopN[0], wakapiData.projects.length))
+                    .slice(0, Math.min(showTopN[0], wakapiData.projects.length))
                         .map(p => parseInt(p.total)),
                     backgroundColor: wakapiData.projects.map((p, i) => {
                         const c = hexToRgb(vibrantColors ? getRandomColor(p.key) : getColor(p.key, i % baseColors.length))
@@ -425,6 +429,46 @@ function draw(subselection) {
         })
         : null
 
+    let categoryChart = categoriesCanvas && !categoriesCanvas.classList.contains('hidden') && shouldUpdate(8)
+        ? new Chart(categoriesCanvas.getContext('2d'), {
+            type: "bar",
+            data: {
+                labels: ['Categories'],
+                datasets: wakapiData.categories
+                    .slice(0, Math.min(showTopN[8], wakapiData.categories.length))
+                    .map((p, i) => ({
+                        label: p.key,
+                        data: [parseInt(p.total)],
+                        backgroundColor: vibrantColors ? getRandomColor(p.key) : getColor(p.key, i % baseColors.length),
+                        barPercentage: 1.0
+                    })),
+            },
+            options: {
+                indexAxis: 'y',
+                scales: {
+                    xAxes: {
+                        title: {
+                            display: true,
+                            text: 'Duration (hh:mm:ss)',
+                        },
+                        ticks: {
+                            callback: (label) => label.toString().toHHMMSS(),
+                        },
+                        stacked: true,
+                    },
+                    y: {
+                        stacked: true,
+                        display: false,
+                    }
+                },
+                plugins: {
+                    tooltip: getTooltipOptions('categories', true),
+                },
+                maintainAspectRatio: false,
+            }
+        })
+        : null
+
     charts[0] = projectChart ? projectChart : charts[0]
     charts[1] = osChart ? osChart : charts[1]
     charts[2] = editorChart ? editorChart : charts[2]
@@ -433,6 +477,7 @@ function draw(subselection) {
     charts[5] = labelChart ? labelChart : charts[5]
     charts[6] = branchChart ? branchChart : charts[6]
     charts[7] = entityChart ? entityChart : charts[7]
+    charts[8] = categoryChart ? categoryChart : charts[8]
 }
 
 function parseTopN() {

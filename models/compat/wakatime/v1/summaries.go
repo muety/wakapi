@@ -234,6 +234,14 @@ func newDataFrom(s *models.Summary) *SummariesData {
 		}
 	}, data)
 
+	wg.Add(1)
+	go utils.WithRecovery1[*SummariesData](func(data *SummariesData) {
+		defer wg.Done()
+		for i, e := range s.Categories {
+			data.Categories[i] = convertEntry(e, s.TotalTimeBy(models.SummaryCategory))
+		}
+	}, data)
+
 	if s.Branches == nil {
 		data.Branches = nil
 	}

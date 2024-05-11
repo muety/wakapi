@@ -60,6 +60,7 @@ func TestHeartbeat_GetKey(t *testing.T) {
 	assert.Equal(t, "wakapi", sut.GetKey(SummaryProject))
 	assert.Equal(t, UnknownSummaryKey, sut.GetKey(SummaryOS))
 	assert.Equal(t, UnknownSummaryKey, sut.GetKey(SummaryMachine))
+	assert.Equal(t, UnknownSummaryKey, sut.GetKey(SummaryCategory))
 	assert.Equal(t, UnknownSummaryKey, sut.GetKey(SummaryLanguage))
 	assert.Equal(t, UnknownSummaryKey, sut.GetKey(SummaryEditor))
 	assert.Equal(t, UnknownSummaryKey, sut.GetKey(255))

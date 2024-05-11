@@ -33,6 +33,7 @@ const (
 	DescOperatingSystems = "Total seconds for each operating system."
 	DescMachines         = "Total seconds for each machine."
 	DescLabels           = "Total seconds for each project label."
+	DescCategories       = "Total seconds for each category."
 	DescRank             = "User's current rank in the public leaderboard."
 
 	DescAdminTotalTime       = "Total seconds (all users, all time)."
@@ -240,6 +241,15 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 			Name:   MetricsPrefix + "_label_seconds_total",
 			Desc:   DescLabels,
 			Value:  int64(summaryToday.TotalTimeByKey(models.SummaryLabel, m.Key).Seconds()),
+			Labels: []mm.Label{{Key: "name", Value: m.Key}},
+		})
+	}
+
+	for _, m := range summaryToday.Categories {
+		metrics = append(metrics, &mm.GaugeMetric{
+			Name:   MetricsPrefix + "_category_seconds_total",
+			Desc:   DescCategories,
+			Value:  int64(summaryToday.TotalTimeByKey(models.SummaryCategory, m.Key).Seconds()),
 			Labels: []mm.Label{{Key: "name", Value: m.Key}},
 		})
 	}

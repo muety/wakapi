@@ -15,6 +15,7 @@ type Filters struct {
 	Label              OrFilter
 	Branch             OrFilter
 	Entity             OrFilter
+	Category           OrFilter
 	SelectFilteredOnly bool // flag indicating to drop all Entity types from a summary except the single one filtered by
 }
 
@@ -78,6 +79,8 @@ func (f *Filters) WithMultiple(entity uint8, keys []string) *Filters {
 		f.Branch = append(f.Branch, keys...)
 	case SummaryEntity:
 		f.Entity = append(f.Entity, keys...)
+	case SummaryCategory:
+		f.Category = append(f.Category, keys...)
 	}
 	return f
 }
@@ -99,6 +102,8 @@ func (f *Filters) One() (bool, uint8, OrFilter) {
 		return true, SummaryBranch, f.Branch
 	} else if f.Entity != nil && f.Entity.Exists() {
 		return true, SummaryEntity, f.Entity
+	} else if f.Category != nil && f.Category.Exists() {
+		return true, SummaryCategory, f.Category
 	}
 	return false, 0, OrFilter{}
 }
@@ -165,6 +170,8 @@ func (f *Filters) ResolveType(entityId uint8) *OrFilter {
 		return &f.Branch
 	case SummaryEntity:
 		return &f.Entity
+	case SummaryCategory:
+		return &f.Category
 	default:
 		return &OrFilter{}
 	}
@@ -183,7 +190,8 @@ func (f *Filters) MatchHeartbeat(h *Heartbeat) bool {
 		(f.OS == nil || f.OS.MatchAny(h.OperatingSystem)) &&
 		(f.Language == nil || f.Language.MatchAny(h.Language)) &&
 		(f.Editor == nil || f.Editor.MatchAny(h.Editor)) &&
-		(f.Machine == nil || f.Machine.MatchAny(h.Machine))
+		(f.Machine == nil || f.Machine.MatchAny(h.Machine)) &&
+		(f.Category == nil || f.Machine.MatchAny(h.Category))
 }
 
 func (f *Filters) MatchDuration(d *Duration) bool {
@@ -191,7 +199,8 @@ func (f *Filters) MatchDuration(d *Duration) bool {
 		(f.OS == nil || f.OS.MatchAny(d.OperatingSystem)) &&
 		(f.Language == nil || f.Language.MatchAny(d.Language)) &&
 		(f.Editor == nil || f.Editor.MatchAny(d.Editor)) &&
-		(f.Machine == nil || f.Machine.MatchAny(d.Machine))
+		(f.Machine == nil || f.Machine.MatchAny(d.Machine)) &&
+		(f.Category == nil || f.Category.MatchAny(d.Category))
 }
 
 // WithAliases adds OR-conditions for every alias of a Filter key as additional Filter keys
@@ -243,6 +252,14 @@ func (f *Filters) WithAliases(resolve AliasReverseResolver) *Filters {
 			updated = append(updated, resolve(SummaryBranch, e)...)
 		}
 		f.Branch = updated
+	}
+	if f.Category != nil {
+		updated := OrFilter(make([]string, 0, len(f.Category)))
+		for _, e := range f.Category {
+			updated = append(updated, e)
+			updated = append(updated, resolve(SummaryCategory, e)...)
+		}
+		f.Category = updated
 	}
 	// no aliases for entities / files
 	return f

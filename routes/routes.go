@@ -94,6 +94,9 @@ func typeName(t uint8) string {
 	if t == models.SummaryEntity {
 		return "entity"
 	}
+	if t == models.SummaryCategory {
+		return "category"
+	}
 	return "unknown"
 }
 

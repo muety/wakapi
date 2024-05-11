@@ -44,6 +44,7 @@ func (suite *SummaryServiceTestSuite) SetupSuite() {
 			Machine:         TestMachine1,
 			Branch:          TestBranchMaster,
 			Entity:          TestEntity1,
+			Category:        TestCategoryCoding,
 			Time:            models.CustomTime(suite.TestStartTime),
 			Duration:        150 * time.Second,
 			NumHeartbeats:   2,
@@ -57,6 +58,7 @@ func (suite *SummaryServiceTestSuite) SetupSuite() {
 			Machine:         TestMachine1,
 			Branch:          TestBranchMaster,
 			Entity:          TestEntity1,
+			Category:        TestCategoryCoding,
 			Time:            models.CustomTime(suite.TestStartTime.Add((30 + 130) * time.Second)),
 			Duration:        20 * time.Second,
 			NumHeartbeats:   1,
@@ -70,6 +72,7 @@ func (suite *SummaryServiceTestSuite) SetupSuite() {
 			Machine:         TestMachine1,
 			Branch:          TestBranchDev,
 			Entity:          TestEntity1,
+			Category:        TestCategoryBrowsing,
 			Time:            models.CustomTime(suite.TestStartTime.Add(3 * time.Minute)),
 			Duration:        15 * time.Second,
 			NumHeartbeats:   3,
@@ -161,6 +164,8 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
 	assert.Zero(suite.T(), result.TotalTimeBy(models.SummaryLabel))
 	assert.Equal(suite.T(), 170*time.Second, result.TotalTimeByKey(models.SummaryEditor, TestEditorGoland))
 	assert.Equal(suite.T(), 15*time.Second, result.TotalTimeByKey(models.SummaryEditor, TestEditorVscode))
+	assert.Equal(suite.T(), 170*time.Second, result.TotalTimeByKey(models.SummaryCategory, TestCategoryCoding))
+	assert.Equal(suite.T(), 15*time.Second, result.TotalTimeByKey(models.SummaryCategory, TestCategoryBrowsing))
 	assert.Equal(suite.T(), 6, result.NumHeartbeats)
 	assert.Len(suite.T(), result.Editors, 2)
 	assertNumAllItems(suite.T(), 1, result, "e")

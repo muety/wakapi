@@ -286,6 +286,7 @@ func (srv *HeartbeatService) updateEntityUserCacheByHeartbeat(hb *models.Heartbe
 	go srv.updateEntityUserCache(models.SummaryMachine, hb.Machine, hb.UserID)
 	go srv.updateEntityUserCache(models.SummaryBranch, hb.Branch, hb.UserID)
 	go srv.updateEntityUserCache(models.SummaryEntity, hb.Entity, hb.UserID)
+	go srv.updateEntityUserCache(models.SummaryCategory, hb.Category, hb.UserID)
 }
 
 func (srv *HeartbeatService) notifyBatch(heartbeats []*models.Heartbeat) {

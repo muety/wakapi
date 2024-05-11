@@ -169,6 +169,7 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filt
 	var machineItems []*models.SummaryItem
 	var branchItems []*models.SummaryItem
 	var entityItems []*models.SummaryItem
+	var categoryItems []*models.SummaryItem
 
 	for i := 0; i < len(types); i++ {
 		item := <-typedAggregations
@@ -187,6 +188,8 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filt
 			branchItems = item.Items
 		case models.SummaryEntity:
 			entityItems = item.Items
+		case models.SummaryCategory:
+			categoryItems = item.Items
 		}
 	}
 
@@ -206,6 +209,7 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filt
 		Machines:         machineItems,
 		Branches:         branchItems,
 		Entities:         entityItems,
+		Categories:       categoryItems,
 		NumHeartbeats:    durations.TotalNumHeartbeats(),
 	}
 
@@ -323,6 +327,7 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 		Labels:           make([]*models.SummaryItem, 0),
 		Branches:         make([]*models.SummaryItem, 0),
 		Entities:         make([]*models.SummaryItem, 0),
+		Categories:       make([]*models.SummaryItem, 0),
 	}
 
 	var processed = map[time.Time]bool{}
@@ -360,6 +365,7 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 		finalSummary.Labels = srv.mergeSummaryItems(finalSummary.Labels, s.Labels)
 		finalSummary.Branches = srv.mergeSummaryItems(finalSummary.Branches, s.Branches)
 		finalSummary.Entities = srv.mergeSummaryItems(finalSummary.Entities, s.Entities)
+		finalSummary.Categories = srv.mergeSummaryItems(finalSummary.Categories, s.Categories)
 		finalSummary.NumHeartbeats += s.NumHeartbeats
 
 		processed[hash] = true

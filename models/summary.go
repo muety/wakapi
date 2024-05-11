@@ -20,6 +20,7 @@ const (
 	SummaryLabel    uint8 = 5
 	SummaryBranch   uint8 = 6
 	SummaryEntity   uint8 = 7
+	SummaryCategory uint8 = 8
 )
 
 const UnknownSummaryKey = "unknown"
@@ -48,6 +49,7 @@ type Summary struct {
 	Labels           SummaryItems `json:"labels" gorm:"-"`   // labels are not persisted, but calculated at runtime, i.e. when summary is retrieved
 	Branches         SummaryItems `json:"branches" gorm:"-"` // branches are not persisted, but calculated at runtime in case a project Filter is applied
 	Entities         SummaryItems `json:"entities" gorm:"-"` // entities are not persisted, but calculated at runtime in case a project Filter is applied
+	Categories       SummaryItems `json:"categories" gorm:"-"`
 	NumHeartbeats    int          `json:"-"`
 }
 
@@ -76,15 +78,15 @@ type SummaryParams struct {
 }
 
 func SummaryTypes() []uint8 {
-	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryLabel, SummaryBranch, SummaryEntity}
+	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryLabel, SummaryBranch, SummaryEntity, SummaryCategory}
 }
 
 func NativeSummaryTypes() []uint8 {
-	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryBranch, SummaryEntity}
+	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryBranch, SummaryEntity, SummaryCategory}
 }
 
 func PersistedSummaryTypes() []uint8 {
-	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine}
+	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryCategory}
 }
 
 func NewEmptySummary() *Summary {
@@ -97,6 +99,7 @@ func NewEmptySummary() *Summary {
 		Labels:           SummaryItems{},
 		Branches:         SummaryItems{},
 		Entities:         SummaryItems{},
+		Categories:       SummaryItems{},
 	}
 }
 
@@ -109,6 +112,7 @@ func (s *Summary) Sorted() *Summary {
 	sort.Sort(sort.Reverse(s.Labels))
 	sort.Sort(sort.Reverse(s.Branches))
 	sort.Sort(sort.Reverse(s.Entities))
+	sort.Sort(sort.Reverse(s.Categories))
 	return s
 }
 
@@ -126,6 +130,7 @@ func (s *Summary) MappedItems() map[uint8]*SummaryItems {
 		SummaryLabel:    &s.Labels,
 		SummaryBranch:   &s.Branches,
 		SummaryEntity:   &s.Entities,
+		SummaryCategory: &s.Categories,
 	}
 }
 
@@ -147,6 +152,8 @@ func (s *Summary) GetByType(summaryType uint8) *SummaryItems {
 		return &s.Branches
 	case SummaryEntity:
 		return &s.Entities
+	case SummaryCategory:
+		return &s.Categories
 	}
 	return nil
 }
@@ -176,6 +183,9 @@ func (s *Summary) SetByType(summaryType uint8, items *SummaryItems) {
 		break
 	case SummaryEntity:
 		s.Entities = *items
+		break
+	case SummaryCategory:
+		s.Categories = *items
 		break
 	}
 }
@@ -397,6 +407,7 @@ func (s *Summary) WithResolvedAliases(resolve AliasResolver) *Summary {
 	s.Machines = processAliases(s.Machines)
 	s.Labels = processAliases(s.Labels)
 	s.Branches = processAliases(s.Branches)
+	s.Categories = processAliases(s.Categories)
 	// no aliases for entities / files
 
 	return s

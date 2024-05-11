@@ -66,6 +66,11 @@ func (r *SummaryRepository) Insert(summary *models.Summary) error {
 			itemsToCreate = append(itemsToCreate, item)
 		}
 
+		for _, item := range summary.Categories {
+			item.SummaryID = summary.ID
+			itemsToCreate = append(itemsToCreate, item)
+		}
+
 		if len(itemsToCreate) > 0 {
 			if err := tx.Create(itemsToCreate).Error; err != nil {
 				return err

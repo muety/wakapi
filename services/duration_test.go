@@ -11,25 +11,27 @@ import (
 )
 
 const (
-	TestUserId         = "muety"
-	TestProject1       = "test-project-1"
-	TestProject2       = "test-project-2"
-	TestProject3       = "test-project-3"
-	TestLanguageGo     = "Go"
-	TestLanguageJava   = "Java"
-	TestLanguagePython = "Python"
-	TestEditorGoland   = "GoLand"
-	TestEditorIntellij = "idea"
-	TestEditorVscode   = "vscode"
-	TestOsLinux        = "Linux"
-	TestOsWin          = "Windows"
-	TestMachine1       = "muety-desktop"
-	TestMachine2       = "muety-work"
-	TestEntity1        = "/home/bob/dev/wakapi.go"
-	TestEntity2        = "/home/bob/dev/SomethingElse.java"
-	TestBranchMaster   = "master"
-	TestBranchDev      = "dev"
-	MinUnixTime1       = 1601510400000 * 1e6
+	TestUserId           = "muety"
+	TestProject1         = "test-project-1"
+	TestProject2         = "test-project-2"
+	TestProject3         = "test-project-3"
+	TestLanguageGo       = "Go"
+	TestLanguageJava     = "Java"
+	TestLanguagePython   = "Python"
+	TestEditorGoland     = "GoLand"
+	TestEditorIntellij   = "idea"
+	TestEditorVscode     = "vscode"
+	TestOsLinux          = "Linux"
+	TestOsWin            = "Windows"
+	TestMachine1         = "muety-desktop"
+	TestMachine2         = "muety-work"
+	TestEntity1          = "/home/bob/dev/wakapi.go"
+	TestEntity2          = "/home/bob/dev/SomethingElse.java"
+	TestBranchMaster     = "master"
+	TestBranchDev        = "dev"
+	TestCategoryCoding   = "coding"
+	TestCategoryBrowsing = "browsing"
+	MinUnixTime1         = 1601510400000 * 1e6
 )
 
 type DurationServiceTestSuite struct {

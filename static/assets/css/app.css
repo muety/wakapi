@@ -173,7 +173,7 @@ body {
 }
 
 .entity-filter-control {
-    width: 200px;
+    width: 180px; 
     @apply text-gray-300 text-sm;
 }
 
