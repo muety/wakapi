@@ -151,7 +151,6 @@ func newDataFrom(s *models.Summary) *SummariesData {
 	totalHrs, totalMins := int(total.Hours()), int((total - time.Duration(total.Hours())*time.Hour).Minutes())
 
 	data := &SummariesData{
-		Categories:       make([]*SummariesEntry, 0),
 		Dependencies:     make([]*SummariesEntry, 0),
 		Editors:          make([]*SummariesEntry, len(s.Editors)),
 		Languages:        make([]*SummariesEntry, len(s.Languages)),
@@ -160,6 +159,7 @@ func newDataFrom(s *models.Summary) *SummariesData {
 		Projects:         make([]*SummariesEntry, len(s.Projects)),
 		Branches:         make([]*SummariesEntry, len(s.Branches)),
 		Entities:         make([]*SummariesEntry, len(s.Entities)),
+		Categories:       make([]*SummariesEntry, len(s.Categories)),
 		GrandTotal: &SummariesGrandTotal{
 			Digital:      fmt.Sprintf("%d:%d", totalHrs, totalMins),
 			Hours:        totalHrs,
