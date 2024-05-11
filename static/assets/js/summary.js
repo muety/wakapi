@@ -455,6 +455,7 @@ function draw(subselection) {
                             callback: (label) => label.toString().toHHMMSS(),
                         },
                         stacked: true,
+                        max: wakapiData.categories.map(c => c.total).reduce((a, b) => a+b, 0)
                     },
                     y: {
                         stacked: true,
