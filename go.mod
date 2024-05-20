@@ -3,6 +3,7 @@ module github.com/muety/wakapi
 go 1.23
 
 require (
+	github.com/golang-jwt/jwt/v4 v4.5.0
 	codeberg.org/Codeberg/avatars v1.0.0
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
 	github.com/alexedwards/argon2id v1.0.0

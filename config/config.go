@@ -113,6 +113,7 @@ type securityConfig struct {
 	DisableFrontpage bool `yaml:"disable_frontpage" default:"false" env:"WAKAPI_DISABLE_FRONTPAGE"`
 	// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
 	PasswordSalt               string                     `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
+	JWT_SECRET                string                     `yaml:"jwt_secret" default:"" env:"JWT_SECRET"`
 	InsecureCookies            bool                       `yaml:"insecure_cookies" default:"false" env:"WAKAPI_INSECURE_COOKIES"`
 	CookieMaxAgeSec            int                        `yaml:"cookie_max_age" default:"172800" env:"WAKAPI_COOKIE_MAX_AGE"`
 	TrustedHeaderAuth          bool                       `yaml:"trusted_header_auth" default:"false" env:"WAKAPI_TRUSTED_HEADER_AUTH"`
