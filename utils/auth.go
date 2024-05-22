@@ -2,13 +2,21 @@ package utils
 
 import (
 	"encoding/base64"
-	"errors"
-	"github.com/alexedwards/argon2id"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
+
+	"github.com/pkg/errors"
+
+	"github.com/alexedwards/argon2id"
+	"github.com/golang-jwt/jwt"
+	"golang.org/x/crypto/bcrypt"
 )
+
+type AuthJwtClaim struct {
+	UID string `json:"uid"`
+}
 
 var md5Regex = regexp.MustCompile(`^[a-f0-9]{32}$`)
 
@@ -41,6 +49,21 @@ func ExtractBearerAuth(r *http.Request) (key string, err error) {
 
 	keyBytes, err := base64.StdEncoding.DecodeString(authHeader[1])
 	return string(keyBytes), err
+}
+
+func ExtractUserIDFromAuthToken(r *http.Request, authSecret string) (key string, err error) {
+	token := r.Header.Get("Token")
+
+	if token == "" {
+		return key, errors.New("failed to extract API Token from header")
+	}
+
+	claims, err := GetTokenClaims(token, authSecret)
+	if err != nil {
+		return key, errors.New("Invalid JWT token")
+	}
+
+	return claims.UID, err
 }
 
 // password hashing
@@ -84,4 +107,43 @@ func HashArgon2Id(plain, pepper string) (string, error) {
 		return hash, nil
 	}
 	return "", err
+}
+
+func authenticateToken(tokenString string, jwtSecret string) (jwt.MapClaims, error) {
+	claims := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(jwtSecret), nil
+	})
+	if err != nil {
+		return claims, errors.Wrap(err, "invalid id token")
+	}
+
+	exp, ok := claims["exp"]
+	if !ok {
+		return claims, errors.Wrap(err, "invalid exp claim")
+	}
+
+	expClaim := int64(exp.(float64))
+	if time.Now().After(time.Unix(expClaim, 0)) {
+		return claims, errors.Wrap(err, "token expired")
+	}
+
+	return claims, nil
+}
+
+func GetTokenClaims(token string, jwtSecret string) (*AuthJwtClaim, error) {
+	var uid string
+
+	if token != "" {
+		claims, err := authenticateToken(token, jwtSecret)
+		if err != nil {
+			return nil, err
+		}
+
+		uid = claims["uid"].(string)
+
+		return &AuthJwtClaim{UID: uid}, nil
+	}
+
+	return nil, nil
 }

@@ -98,7 +98,7 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userSrvc.GetUserById(login.Username)
+	user, err := h.userSrvc.GetUserByEmail(login.Username)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("resource not found"))

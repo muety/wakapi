@@ -3,7 +3,6 @@ module github.com/muety/wakapi
 go 1.23
 
 require (
-	github.com/golang-jwt/jwt/v4 v4.5.0
 	codeberg.org/Codeberg/avatars v1.0.0
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
 	github.com/alexedwards/argon2id v1.0.0
@@ -17,6 +16,7 @@ require (
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-chi/httprate v0.14.1
 	github.com/gofrs/uuid/v5 v5.3.0
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/gorilla/schema v1.4.1
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.4.0
@@ -29,6 +29,7 @@ require (
 	github.com/muety/artifex/v2 v2.0.1-0.20221201142708-74e7d3f6feaf
 	github.com/narqo/go-badge v0.0.0-20230821190521-c9a75c019a59
 	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.9.0
 	github.com/stripe/stripe-go/v74 v74.30.0

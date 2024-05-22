@@ -3,11 +3,12 @@ package middlewares
 import (
 	"errors"
 	"fmt"
-	"github.com/duke-git/lancet/v2/slice"
-	"github.com/muety/wakapi/helpers"
 	"net"
 	"net/http"
 	"strings"
+
+	"github.com/duke-git/lancet/v2/slice"
+	"github.com/muety/wakapi/helpers"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -78,6 +79,9 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		user, err = m.tryGetUserByApiKeyQuery(r)
 	}
+	if err != nil {
+		user, err = m.tryGetUserByTokenHeader(r)
+	}
 	if err != nil && m.config.Security.TrustedHeaderAuth {
 		user, err = m.tryGetUserByTrustedHeader(r)
 	}
@@ -136,6 +140,19 @@ func (m *AuthenticateMiddleware) tryGetUserByApiKeyHeader(r *http.Request) (*mod
 	return user, nil
 }
 
+func (m *AuthenticateMiddleware) tryGetUserByTokenHeader(r *http.Request) (*models.User, error) {
+	userId, err := utils.ExtractUserIDFromAuthToken(r, m.config.Security.JWT_SECRET)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := m.userSrvc.GetUserById(userId)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
 func (m *AuthenticateMiddleware) tryGetUserByApiKeyQuery(r *http.Request) (*models.User, error) {
 	key := r.URL.Query().Get(queryApiKey)
 	var user *models.User
@@ -174,7 +191,7 @@ func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.Us
 		return nil, err
 	}
 
-	user, err := m.userSrvc.GetUserById(*username)
+	user, err := m.userSrvc.GetUserByEmail(*username)
 	if err != nil {
 		return nil, err
 	}

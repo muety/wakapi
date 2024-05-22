@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt"
-	"github.com/pkg/errors"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
@@ -45,10 +44,6 @@ type SignUpParams struct {
 type LoginParams struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
-}
-
-type AuthJwtClaim struct {
-	UID string `json:"uid"`
 }
 
 // @Summary register a new user
@@ -146,15 +141,15 @@ func (h *AuthApiHandler) Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helpers.RespondJSON(w, r, http.StatusAccepted, map[string]interface{}{
+	helpers.RespondJSON(w, r, http.StatusCreated, map[string]interface{}{
 		"message": "Login successful",
-		"status":  http.StatusInternalServerError,
+		"status":  http.StatusCreated,
 		"data": map[string]interface{}{
 			"token": token,
 			"user": map[string]interface{}{
 				"id":     user.ID,
 				"email":  user.Email,
-				"avatar": user.AvatarURL(h.config.App.AvatarURLTemplate),
+				"avatar": h.config.Server.PublicUrl + "/" + user.AvatarURL(h.config.App.AvatarURLTemplate),
 			},
 		},
 	})
@@ -184,7 +179,7 @@ func (h *AuthApiHandler) ValidateAuthToken(w http.ResponseWriter, r *http.Reques
 		})
 	}
 
-	claim, err := getTokenClaims(token, h.config)
+	claim, err := utils.GetTokenClaims(token, h.config.Security.JWT_SECRET)
 	if err != nil || claim.UID == "" {
 		helpers.RespondJSON(w, r, http.StatusUnauthorized, map[string]interface{}{
 			"message": "Unauthorized: Invalid or expired token",
@@ -197,43 +192,4 @@ func (h *AuthApiHandler) ValidateAuthToken(w http.ResponseWriter, r *http.Reques
 		"message": "Token is valid",
 		"status":  http.StatusAccepted,
 	})
-}
-
-func authenticateToken(tokenString string, conf *conf.Config) (jwt.MapClaims, error) {
-	claims := jwt.MapClaims{}
-	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(conf.Security.JWT_SECRET), nil
-	})
-	if err != nil {
-		return claims, errors.Wrap(err, "invalid id token")
-	}
-
-	exp, ok := claims["exp"]
-	if !ok {
-		return claims, errors.Wrap(err, "invalid exp claim")
-	}
-
-	expClaim := int64(exp.(float64))
-	if time.Now().After(time.Unix(expClaim, 0)) {
-		return claims, errors.Wrap(err, "token expired")
-	}
-
-	return claims, nil
-}
-
-func getTokenClaims(token string, config *conf.Config) (*AuthJwtClaim, error) {
-	var uid string
-
-	if token != "" {
-		claims, err := authenticateToken(token, config)
-		if err != nil {
-			return nil, err
-		}
-
-		uid = claims["uid"].(string)
-
-		return &AuthJwtClaim{UID: uid}, nil
-	}
-
-	return nil, nil
 }
