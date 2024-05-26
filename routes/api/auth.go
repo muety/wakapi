@@ -30,7 +30,7 @@ func NewAuthApiHandler(db *gorm.DB, userService services.IUserService) *AuthApiH
 }
 
 func (h *AuthApiHandler) RegisterRoutes(router chi.Router) {
-	router.Post("/auth/signup", h.SignUp)
+	router.Post("/auth/signup", h.PostSignup)
 	router.Post("/auth/login", h.Signin)
 	router.Get("/auth/validate", h.ValidateAuthToken)
 }
@@ -125,6 +125,78 @@ func (h *AuthApiHandler) Signin(w http.ResponseWriter, r *http.Request) {
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
 			"message": "Invalid credentials",
 			"status":  http.StatusBadRequest,
+		})
+		return
+	}
+
+	user.LastLoggedInAt = models.CustomTime(time.Now())
+	h.userService.Update(user)
+
+	token, err := MakeLoginJWT(user.ID, h.config)
+	if err != nil {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message": "Internal Server Error. Try again",
+			"status":  http.StatusInternalServerError,
+		})
+		return
+	}
+
+	helpers.RespondJSON(w, r, http.StatusCreated, map[string]interface{}{
+		"message": "Login successful",
+		"status":  http.StatusCreated,
+		"data": map[string]interface{}{
+			"token": token,
+			"user": map[string]interface{}{
+				"id":     user.ID,
+				"email":  user.Email,
+				"avatar": h.config.Server.PublicUrl + "/" + user.AvatarURL(h.config.App.AvatarURLTemplate),
+			},
+		},
+	})
+}
+
+func (h *AuthApiHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
+
+	var signup = &models.SignupJson{}
+	jsonDecoder := json.NewDecoder(r.Body)
+	err := jsonDecoder.Decode(signup)
+
+	if err != nil {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message": "Bad Request",
+			"status":  http.StatusBadRequest,
+		})
+		return
+	}
+	if signup.Email == "" || signup.Password == "" {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message": "Missing Parameters",
+			"status":  http.StatusBadRequest,
+		})
+		return
+	}
+
+	if !h.config.IsDev() && !h.config.Security.AllowSignup && (!h.config.Security.InviteCodes || signup.InviteCode == "") {
+		helpers.RespondJSON(w, r, http.StatusForbidden, map[string]interface{}{
+			"message": "Registration is disabled on this server",
+			"status":  http.StatusForbidden,
+		})
+		return
+	}
+
+	user, created, err := h.userService.CreateOrGet(&models.Signup{Email: signup.Email, Password: signup.Password}, false)
+	if err != nil {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message": "Internal Server Error. Failed to create new user",
+			"status":  http.StatusInternalServerError,
+		})
+		return
+	}
+
+	if !created {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message": fmt.Sprintf("Account with email %s already exists", signup.Email),
+			"status":  http.StatusInternalServerError,
 		})
 		return
 	}

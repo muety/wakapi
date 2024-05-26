@@ -69,6 +69,18 @@ type Signup struct {
 	InvitedBy      string `schema:"-"`
 }
 
+type SignupJson struct {
+	Username       string `json:"username"`
+	Email          string `json:"email"`
+	Password       string `json:"password"`
+	PasswordRepeat string `json:"password_repeat"`
+	Location       string `json:"location"`
+	CaptchaId      string `json:"captcha_id"`
+	Captcha        string `json:"captcha"`
+	InviteCode     string `json:"invite_code"`
+	InvitedBy      string `json:"-"`
+}
+
 type SetPasswordRequest struct {
 	Password       string `schema:"password"`
 	PasswordRepeat string `schema:"password_repeat"`
