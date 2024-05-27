@@ -29,7 +29,7 @@ FROM alpine:3
 WORKDIR /app
 
 RUN addgroup -g 1000 app && \
-    adduser -u 1000 -G app -s /bin/sh -D app && \
+    adduser -u 1000 -G app -s /bin/sh -D app && chown app -R /app && \
     apk add --no-cache bash ca-certificates tzdata
 
 # See README.md and config.default.yml for all config options
