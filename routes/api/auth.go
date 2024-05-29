@@ -132,7 +132,7 @@ func (h *AuthApiHandler) Signin(w http.ResponseWriter, r *http.Request) {
 	user.LastLoggedInAt = models.CustomTime(time.Now())
 	h.userService.Update(user)
 
-	token, err := MakeLoginJWT(user.ID, h.config)
+	token, ttl, err := MakeLoginJWT(user.ID, h.config)
 	if err != nil {
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
 			"message": "Internal Server Error. Try again",
@@ -145,11 +145,13 @@ func (h *AuthApiHandler) Signin(w http.ResponseWriter, r *http.Request) {
 		"message": "Login successful",
 		"status":  http.StatusCreated,
 		"data": map[string]interface{}{
-			"token": token,
+			"token":     token,
+			"token_ttl": ttl,
 			"user": map[string]interface{}{
-				"id":     user.ID,
-				"email":  user.Email,
-				"avatar": h.config.Server.PublicUrl + "/" + user.AvatarURL(h.config.App.AvatarURLTemplate),
+				"api_key": user.ApiKey,
+				"id":      user.ID,
+				"email":   user.Email,
+				"avatar":  h.config.Server.PublicUrl + "/" + user.AvatarURL(h.config.App.AvatarURLTemplate),
 			},
 		},
 	})
@@ -204,7 +206,7 @@ func (h *AuthApiHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 	user.LastLoggedInAt = models.CustomTime(time.Now())
 	h.userService.Update(user)
 
-	token, err := MakeLoginJWT(user.ID, h.config)
+	token, ttl, err := MakeLoginJWT(user.ID, h.config)
 	if err != nil {
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
 			"message": "Internal Server Error. Try again",
@@ -214,31 +216,34 @@ func (h *AuthApiHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helpers.RespondJSON(w, r, http.StatusCreated, map[string]interface{}{
-		"message": "Login successful",
+		"message": "Signup successful",
 		"status":  http.StatusCreated,
 		"data": map[string]interface{}{
-			"token": token,
+			"token":     token,
+			"token_ttl": ttl,
 			"user": map[string]interface{}{
-				"id":     user.ID,
-				"email":  user.Email,
-				"avatar": h.config.Server.PublicUrl + "/" + user.AvatarURL(h.config.App.AvatarURLTemplate),
+				"api_key": user.ApiKey,
+				"id":      user.ID,
+				"email":   user.Email,
+				"avatar":  h.config.Server.PublicUrl + "/" + user.AvatarURL(h.config.App.AvatarURLTemplate),
 			},
 		},
 	})
 }
 
-func MakeLoginJWT(userId string, conf *conf.Config) (string, error) {
+func MakeLoginJWT(userId string, conf *conf.Config) (string, int64, error) {
+	ttl := time.Now().Add(JWT_TOKEN_DURATION).Unix()
 	atClaims := jwt.MapClaims{}
-	atClaims["exp"] = time.Now().Add(JWT_TOKEN_DURATION).Unix()
+	atClaims["exp"] = ttl
 	atClaims["uid"] = userId
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 
 	token, err := at.SignedString([]byte(conf.Security.JWT_SECRET))
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 
-	return token, nil
+	return token, ttl / 1000000, nil // kinda wonder if its bad ide to return ttl in seconds
 }
 
 func (h *AuthApiHandler) ValidateAuthToken(w http.ResponseWriter, r *http.Request) {
