@@ -371,6 +371,17 @@ get started:
 Note: the plugin will only sync heartbeats once in a while, so it might take some time for them to appear on Wakapi.
 To "force" it to sync, simply bring up the plugin main dialog.
 
+### Gnome Extension
+If you're using the GNOME desktop, there is a quick way to display your today's coding statistics in the status bar.
+
+![](.github/assets/screenshot_gnome.png)
+
+Simply install the [Executor](https://extensions.gnome.org/extension/2932/executor/) extension and add the following command as a status bar indicator:
+
+```bash
+~/.wakatime/wakatime-cli-linux-amd64 --today
+```
+
 ## 📦 Data Export
 
 You can export your coding activity from Wakapi to CSV in the form of raw heartbeats. While there is no way to
