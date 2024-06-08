@@ -68,6 +68,7 @@ var (
 	keyValueRepository        repositories.IKeyValueRepository
 	diagnosticsRepository     repositories.IDiagnosticsRepository
 	metricsRepository         *repositories.MetricsRepository
+	goalRepository            repositories.IGoalRepository
 )
 
 var (
@@ -87,6 +88,7 @@ var (
 	diagnosticsService     services.IDiagnosticsService
 	housekeepingService    services.IHousekeepingService
 	miscService            services.IMiscService
+	goalService            services.IGoalService
 )
 
 // TODO: Refactor entire project to be structured after business domains
@@ -167,6 +169,7 @@ func main() {
 	languageMappingRepository = repositories.NewLanguageMappingRepository(db)
 	projectLabelRepository = repositories.NewProjectLabelRepository(db)
 	summaryRepository = repositories.NewSummaryRepository(db)
+	goalRepository = repositories.NewGoalRepository(db)
 	leaderboardRepository = repositories.NewLeaderboardRepository(db)
 	keyValueRepository = repositories.NewKeyValueRepository(db)
 	diagnosticsRepository = repositories.NewDiagnosticsRepository(db)
@@ -181,6 +184,7 @@ func main() {
 	heartbeatService = services.NewHeartbeatService(heartbeatRepository, languageMappingService)
 	durationService = services.NewDurationService(heartbeatService)
 	summaryService = services.NewSummaryService(summaryRepository, heartbeatService, durationService, aliasService, projectLabelService)
+	goalService = services.NewGoalService(goalRepository)
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
 	keyValueService = services.NewKeyValueService(keyValueRepository)
 	reportService = services.NewReportService(summaryService, userService, mailService)
@@ -222,6 +226,7 @@ func main() {
 	wakatimeV1StatusBarHandler := wtV1Routes.NewStatusBarHandler(userService, summaryService)
 	wakatimeV1AllHandler := wtV1Routes.NewAllTimeHandler(userService, summaryService)
 	wakatimeV1SummariesHandler := wtV1Routes.NewSummariesHandler(userService, summaryService)
+	wakatimeV1GoalsHandler := wtV1Routes.NewGoalsApiHandler(db, goalService, userService)
 	wakatimeV1StatsHandler := wtV1Routes.NewStatsHandler(userService, summaryService)
 	wakatimeV1UsersHandler := wtV1Routes.NewUsersHandler(userService, heartbeatService)
 	wakatimeV1ProjectsHandler := wtV1Routes.NewProjectsHandler(userService, heartbeatService)
@@ -296,6 +301,7 @@ func main() {
 	wakatimeV1AllHandler.RegisterRoutes(apiRouter)
 	wakatimeV1SummariesHandler.RegisterRoutes(apiRouter)
 	wakatimeV1StatsHandler.RegisterRoutes(apiRouter)
+	wakatimeV1GoalsHandler.RegisterRoutes(apiRouter)
 	wakatimeV1UsersHandler.RegisterRoutes(apiRouter)
 	wakatimeV1ProjectsHandler.RegisterRoutes(apiRouter)
 	wakatimeV1HeartbeatsHandler.RegisterRoutes(apiRouter)

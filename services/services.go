@@ -1,11 +1,12 @@
 package services
 
 import (
+	"time"
+
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/utils"
-	"time"
 )
 
 type IAggregationService interface {
@@ -51,6 +52,13 @@ type IHeartbeatService interface {
 
 type IDiagnosticsService interface {
 	Create(*models.Diagnostics) (*models.Diagnostics, error)
+}
+
+type IGoalService interface {
+	Create(*models.Goal) (*models.Goal, error)
+	GetGoalForUser(id, userID string) (*models.Goal, error)
+	DeleteGoal(id string, userID string) error
+	FetchUserGoals(id string) ([]*models.Goal, error)
 }
 
 type IKeyValueService interface {

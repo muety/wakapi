@@ -1,12 +1,13 @@
 package migrations
 
 import (
+	"sort"
+	"strings"
+
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
 	"log/slog"
-	"sort"
-	"strings"
 )
 
 type gormMigrationFunc func(db *gorm.DB) error
@@ -55,6 +56,9 @@ func GetMigrationFunc(cfg *config.Config) gormMigrationFunc {
 				return err
 			}
 			if err := db.AutoMigrate(&models.LeaderboardItem{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
+				return err
+			}
+			if err := db.AutoMigrate(&models.Goal{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
 				return err
 			}
 			return nil
