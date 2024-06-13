@@ -77,6 +77,32 @@
                 }
             }
         },
+        "/compat/wakatime/v1/leaders": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Mimics https://wakatime.com/developers#leaders",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wakatime"
+                ],
+                "summary": "List of users ranked by coding activity in descending order.",
+                "operationId": "get-wakatime-leaders",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.LeadersViewModel"
+                        }
+                    }
+                }
+            }
+        },
         "/compat/wakatime/v1/users/{user}": {
             "get": {
                 "security": [
@@ -224,7 +250,7 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": ""
+                        "description": "Created"
                     }
                 }
             }
@@ -267,7 +293,7 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": ""
+                        "description": "Created"
                     }
                 }
             }
@@ -286,7 +312,7 @@
                 "tags": [
                     "wakatime"
                 ],
-                "summary": "Retrieve and fitler the user's projects",
+                "summary": "Retrieve and filter the user's projects",
                 "operationId": "get-wakatime-projects",
                 "parameters": [
                     {
@@ -309,6 +335,48 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/v1.ProjectsViewModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/compat/wakatime/v1/users/{user}/projects/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Mimics undocumented endpoint related to https://wakatime.com/developers#projects",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wakatime"
+                ],
+                "summary": "Retrieve a single project",
+                "operationId": "get-wakatime-project",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID to fetch data for (or 'current')",
+                        "name": "user",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project ID to fetch",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ProjectViewModel"
                         }
                     }
                 }
@@ -564,7 +632,7 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": ""
+                        "description": "Created"
                     }
                 }
             }
@@ -600,7 +668,7 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": ""
+                        "description": "Created"
                     }
                 }
             }
@@ -628,7 +696,7 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": ""
+                        "description": "Created"
                     }
                 }
             }
@@ -925,7 +993,7 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": ""
+                        "description": "Created"
                     }
                 }
             }
@@ -968,7 +1036,7 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": ""
+                        "description": "Created"
                     }
                 }
             }
@@ -1043,7 +1111,7 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": ""
+                        "description": "Created"
                     }
                 }
             }
@@ -1086,7 +1154,7 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": ""
+                        "description": "Created"
                     }
                 }
             }
@@ -1122,6 +1190,9 @@
         "models.Heartbeat": {
             "type": "object",
             "properties": {
+                "Entity": {
+                    "type": "string"
+                },
                 "branch": {
                     "type": "string"
                 },
@@ -1134,9 +1205,6 @@
                 },
                 "editor": {
                     "description": "ignored because editor might be parsed differently by wakatime",
-                    "type": "string"
-                },
-                "entity": {
                     "type": "string"
                 },
                 "id": {
@@ -1174,13 +1242,26 @@
             "type": "object",
             "properties": {
                 "branches": {
-                    "description": "branches are not persisted, but calculated at runtime in case a project filter is applied",
+                    "description": "branches are not persisted, but calculated at runtime in case a project Filter is applied",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.SummaryItem"
+                    }
+                },
+                "categories": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.SummaryItem"
                     }
                 },
                 "editors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.SummaryItem"
+                    }
+                },
+                "entities": {
+                    "description": "entities are not persisted, but calculated at runtime in case a project Filter is applied",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.SummaryItem"
@@ -1217,6 +1298,7 @@
                     }
                 },
                 "projects": {
+                    "description": "Previously, all the following properties created a cascade foreign key constraint on the summary_items table\nback to this summary table resulting in 5 identical foreign key constraints on the summary_items table.\nThis is not a problem for PostgreSQL, MySQL and SQLite, but for MSSQL, which complains about circular cascades on\nupdate/delete between these two tables. All of these created foreign key constraints are identical, so only one constraint is enough.\nMySQL will create a foreign key constraint for every property referencing other structs, even no constraint is specified in tags.\nSo explicitly set gorm:\"-\" in all other properties to avoid creating duplicate foreign key constraints",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.SummaryItem"
@@ -1372,17 +1454,145 @@
                 }
             }
         },
-        "v1.Project": {
+        "v1.LeadersCurrentUser": {
             "type": "object",
             "properties": {
-                "id": {
+                "page": {
+                    "type": "integer"
+                },
+                "rank": {
+                    "type": "integer"
+                },
+                "user": {
+                    "$ref": "#/definitions/v1.User"
+                }
+            }
+        },
+        "v1.LeadersEntry": {
+            "type": "object",
+            "properties": {
+                "rank": {
+                    "type": "integer"
+                },
+                "running_total": {
+                    "$ref": "#/definitions/v1.LeadersRunningTotal"
+                },
+                "user": {
+                    "$ref": "#/definitions/v1.User"
+                }
+            }
+        },
+        "v1.LeadersLanguage": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "total_seconds": {
+                    "type": "number"
+                }
+            }
+        },
+        "v1.LeadersRange": {
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "type": "string"
+                },
+                "end_text": {
                     "type": "string"
                 },
                 "name": {
                     "type": "string"
                 },
-                "repository": {
+                "start_date": {
                     "type": "string"
+                },
+                "start_text": {
+                    "type": "string"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.LeadersRunningTotal": {
+            "type": "object",
+            "properties": {
+                "daily_average": {
+                    "type": "number"
+                },
+                "human_readable_daily_average": {
+                    "type": "string"
+                },
+                "human_readable_total": {
+                    "type": "string"
+                },
+                "languages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.LeadersLanguage"
+                    }
+                },
+                "total_seconds": {
+                    "type": "number"
+                }
+            }
+        },
+        "v1.LeadersViewModel": {
+            "type": "object",
+            "properties": {
+                "current_user": {
+                    "$ref": "#/definitions/v1.LeadersCurrentUser"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.LeadersEntry"
+                    }
+                },
+                "language": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "range": {
+                    "$ref": "#/definitions/v1.LeadersRange"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.Project": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "human_readable_last_heartbeat_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_heartbeat_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "urlencoded_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.ProjectViewModel": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/v1.Project"
                 }
             }
         },
@@ -1406,6 +1616,12 @@
                         "$ref": "#/definitions/v1.SummariesEntry"
                     }
                 },
+                "categories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.SummariesEntry"
+                    }
+                },
                 "daily_average": {
                     "type": "number"
                 },
@@ -1420,6 +1636,21 @@
                 },
                 "end": {
                     "type": "string"
+                },
+                "human_readable_daily_average": {
+                    "type": "string"
+                },
+                "human_readable_range": {
+                    "type": "string"
+                },
+                "human_readable_total": {
+                    "type": "string"
+                },
+                "is_coding_activity_visible": {
+                    "type": "boolean"
+                },
+                "is_other_usage_visible": {
+                    "type": "boolean"
                 },
                 "languages": {
                     "type": "array",
@@ -1445,7 +1676,13 @@
                         "$ref": "#/definitions/v1.SummariesEntry"
                     }
                 },
+                "range": {
+                    "type": "string"
+                },
                 "start": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 },
                 "total_seconds": {
@@ -1478,6 +1715,49 @@
                 }
             }
         },
+        "v1.SummariesCumulativeTotal": {
+            "type": "object",
+            "properties": {
+                "decimal": {
+                    "type": "string"
+                },
+                "digital": {
+                    "type": "string"
+                },
+                "seconds": {
+                    "type": "number"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.SummariesDailyAverage": {
+            "type": "object",
+            "properties": {
+                "days_including_holidays": {
+                    "type": "integer"
+                },
+                "days_minus_holidays": {
+                    "type": "integer"
+                },
+                "holidays": {
+                    "type": "integer"
+                },
+                "seconds": {
+                    "type": "integer"
+                },
+                "seconds_including_other_language": {
+                    "type": "integer"
+                },
+                "text": {
+                    "type": "string"
+                },
+                "text_including_other_language": {
+                    "type": "string"
+                }
+            }
+        },
         "v1.SummariesData": {
             "type": "object",
             "properties": {
@@ -1500,6 +1780,12 @@
                     }
                 },
                 "editors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.SummariesEntry"
+                    }
+                },
+                "entities": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/v1.SummariesEntry"
@@ -1609,6 +1895,12 @@
         "v1.SummariesViewModel": {
             "type": "object",
             "properties": {
+                "cumulative_total": {
+                    "$ref": "#/definitions/v1.SummariesCumulativeTotal"
+                },
+                "daily_average": {
+                    "$ref": "#/definitions/v1.SummariesDailyAverage"
+                },
                 "data": {
                     "type": "array",
                     "items": {
@@ -1657,6 +1949,9 @@
                     "type": "string"
                 },
                 "modified_at": {
+                    "type": "string"
+                },
+                "photo": {
                     "type": "string"
                 },
                 "timezone": {

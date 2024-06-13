@@ -18,6 +18,8 @@ definitions:
     type: object
   models.Heartbeat:
     properties:
+      Entity:
+        type: string
       branch:
         type: string
       category:
@@ -27,8 +29,6 @@ definitions:
         type: number
       editor:
         description: ignored because editor might be parsed differently by wakatime
-        type: string
-      entity:
         type: string
       id:
         type: integer
@@ -55,11 +55,21 @@ definitions:
     properties:
       branches:
         description: branches are not persisted, but calculated at runtime in case
-          a project filter is applied
+          a project Filter is applied
+        items:
+          $ref: '#/definitions/models.SummaryItem'
+        type: array
+      categories:
         items:
           $ref: '#/definitions/models.SummaryItem'
         type: array
       editors:
+        items:
+          $ref: '#/definitions/models.SummaryItem'
+        type: array
+      entities:
+        description: entities are not persisted, but calculated at runtime in case
+          a project Filter is applied
         items:
           $ref: '#/definitions/models.SummaryItem'
         type: array
@@ -86,6 +96,13 @@ definitions:
           $ref: '#/definitions/models.SummaryItem'
         type: array
       projects:
+        description: |-
+          Previously, all the following properties created a cascade foreign key constraint on the summary_items table
+          back to this summary table resulting in 5 identical foreign key constraints on the summary_items table.
+          This is not a problem for PostgreSQL, MySQL and SQLite, but for MSSQL, which complains about circular cascades on
+          update/delete between these two tables. All of these created foreign key constraints are identical, so only one constraint is enough.
+          MySQL will create a foreign key constraint for every property referencing other structs, even no constraint is specified in tags.
+          So explicitly set gorm:"-" in all other properties to avoid creating duplicate foreign key constraints
         items:
           $ref: '#/definitions/models.SummaryItem'
         type: array
@@ -189,14 +206,97 @@ definitions:
       timezone:
         type: string
     type: object
-  v1.Project:
+  v1.LeadersCurrentUser:
     properties:
-      id:
+      page:
+        type: integer
+      rank:
+        type: integer
+      user:
+        $ref: '#/definitions/v1.User'
+    type: object
+  v1.LeadersEntry:
+    properties:
+      rank:
+        type: integer
+      running_total:
+        $ref: '#/definitions/v1.LeadersRunningTotal'
+      user:
+        $ref: '#/definitions/v1.User'
+    type: object
+  v1.LeadersLanguage:
+    properties:
+      name:
+        type: string
+      total_seconds:
+        type: number
+    type: object
+  v1.LeadersRange:
+    properties:
+      end_date:
+        type: string
+      end_text:
         type: string
       name:
         type: string
-      repository:
+      start_date:
         type: string
+      start_text:
+        type: string
+      text:
+        type: string
+    type: object
+  v1.LeadersRunningTotal:
+    properties:
+      daily_average:
+        type: number
+      human_readable_daily_average:
+        type: string
+      human_readable_total:
+        type: string
+      languages:
+        items:
+          $ref: '#/definitions/v1.LeadersLanguage'
+        type: array
+      total_seconds:
+        type: number
+    type: object
+  v1.LeadersViewModel:
+    properties:
+      current_user:
+        $ref: '#/definitions/v1.LeadersCurrentUser'
+      data:
+        items:
+          $ref: '#/definitions/v1.LeadersEntry'
+        type: array
+      language:
+        type: string
+      page:
+        type: integer
+      range:
+        $ref: '#/definitions/v1.LeadersRange'
+      total_pages:
+        type: integer
+    type: object
+  v1.Project:
+    properties:
+      created_at:
+        type: string
+      human_readable_last_heartbeat_at:
+        type: string
+      id:
+        type: string
+      last_heartbeat_at:
+        type: string
+      name:
+        type: string
+      urlencoded_name:
+        type: string
+    type: object
+  v1.ProjectViewModel:
+    properties:
+      data:
+        $ref: '#/definitions/v1.Project'
     type: object
   v1.ProjectsViewModel:
     properties:
@@ -211,6 +311,10 @@ definitions:
         items:
           $ref: '#/definitions/v1.SummariesEntry'
         type: array
+      categories:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
       daily_average:
         type: number
       days_including_holidays:
@@ -221,6 +325,16 @@ definitions:
         type: array
       end:
         type: string
+      human_readable_daily_average:
+        type: string
+      human_readable_range:
+        type: string
+      human_readable_total:
+        type: string
+      is_coding_activity_visible:
+        type: boolean
+      is_other_usage_visible:
+        type: boolean
       languages:
         items:
           $ref: '#/definitions/v1.SummariesEntry'
@@ -237,7 +351,11 @@ definitions:
         items:
           $ref: '#/definitions/v1.SummariesEntry'
         type: array
+      range:
+        type: string
       start:
+        type: string
+      status:
         type: string
       total_seconds:
         type: number
@@ -258,6 +376,34 @@ definitions:
       data:
         $ref: '#/definitions/v1.SummariesData'
     type: object
+  v1.SummariesCumulativeTotal:
+    properties:
+      decimal:
+        type: string
+      digital:
+        type: string
+      seconds:
+        type: number
+      text:
+        type: string
+    type: object
+  v1.SummariesDailyAverage:
+    properties:
+      days_including_holidays:
+        type: integer
+      days_minus_holidays:
+        type: integer
+      holidays:
+        type: integer
+      seconds:
+        type: integer
+      seconds_including_other_language:
+        type: integer
+      text:
+        type: string
+      text_including_other_language:
+        type: string
+    type: object
   v1.SummariesData:
     properties:
       branches:
@@ -273,6 +419,10 @@ definitions:
           $ref: '#/definitions/v1.SummariesEntry'
         type: array
       editors:
+        items:
+          $ref: '#/definitions/v1.SummariesEntry'
+        type: array
+      entities:
         items:
           $ref: '#/definitions/v1.SummariesEntry'
         type: array
@@ -344,6 +494,10 @@ definitions:
     type: object
   v1.SummariesViewModel:
     properties:
+      cumulative_total:
+        $ref: '#/definitions/v1.SummariesCumulativeTotal'
+      daily_average:
+        $ref: '#/definitions/v1.SummariesDailyAverage'
       data:
         items:
           $ref: '#/definitions/v1.SummariesData'
@@ -376,6 +530,8 @@ definitions:
       last_project:
         type: string
       modified_at:
+        type: string
+      photo:
         type: string
       timezone:
         type: string
@@ -455,6 +611,22 @@ paths:
       summary: Get badge data
       tags:
       - badges
+  /compat/wakatime/v1/leaders:
+    get:
+      description: Mimics https://wakatime.com/developers#leaders
+      operationId: get-wakatime-leaders
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.LeadersViewModel'
+      security:
+      - ApiKeyAuth: []
+      summary: List of users ranked by coding activity in descending order.
+      tags:
+      - wakatime
   /compat/wakatime/v1/users/{user}:
     get:
       description: Mimics https://wakatime.com/developers#users
@@ -545,7 +717,7 @@ paths:
         type: string
       responses:
         "201":
-          description: ""
+          description: Created
       security:
       - ApiKeyAuth: []
       summary: Push a new heartbeat
@@ -572,7 +744,7 @@ paths:
         type: string
       responses:
         "201":
-          description: ""
+          description: Created
       security:
       - ApiKeyAuth: []
       summary: Push new heartbeats
@@ -602,7 +774,34 @@ paths:
             $ref: '#/definitions/v1.ProjectsViewModel'
       security:
       - ApiKeyAuth: []
-      summary: Retrieve and fitler the user's projects
+      summary: Retrieve and filter the user's projects
+      tags:
+      - wakatime
+  /compat/wakatime/v1/users/{user}/projects/{id}:
+    get:
+      description: Mimics undocumented endpoint related to https://wakatime.com/developers#projects
+      operationId: get-wakatime-project
+      parameters:
+      - description: User ID to fetch data for (or 'current')
+        in: path
+        name: user
+        required: true
+        type: string
+      - description: Project ID to fetch
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.ProjectViewModel'
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieve a single project
       tags:
       - wakatime
   /compat/wakatime/v1/users/{user}/stats/{range}:
@@ -774,7 +973,7 @@ paths:
           $ref: '#/definitions/models.Heartbeat'
       responses:
         "201":
-          description: ""
+          description: Created
       security:
       - ApiKeyAuth: []
       summary: Push a new heartbeat
@@ -796,7 +995,7 @@ paths:
           type: array
       responses:
         "201":
-          description: ""
+          description: Created
       security:
       - ApiKeyAuth: []
       summary: Push new heartbeats
@@ -816,7 +1015,7 @@ paths:
           $ref: '#/definitions/models.Diagnostics'
       responses:
         "201":
-          description: ""
+          description: Created
       summary: Push a new diagnostics object
       tags:
       - diagnostics
@@ -1013,7 +1212,7 @@ paths:
         type: string
       responses:
         "201":
-          description: ""
+          description: Created
       security:
       - ApiKeyAuth: []
       summary: Push a new heartbeat
@@ -1040,7 +1239,7 @@ paths:
         type: string
       responses:
         "201":
-          description: ""
+          description: Created
       security:
       - ApiKeyAuth: []
       summary: Push new heartbeats
@@ -1088,7 +1287,7 @@ paths:
         type: string
       responses:
         "201":
-          description: ""
+          description: Created
       security:
       - ApiKeyAuth: []
       summary: Push a new heartbeat
@@ -1115,7 +1314,7 @@ paths:
         type: string
       responses:
         "201":
-          description: ""
+          description: Created
       security:
       - ApiKeyAuth: []
       summary: Push new heartbeats
