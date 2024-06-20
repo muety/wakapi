@@ -708,25 +708,27 @@
                         <div class="flex gap-x-4 mt-4">
                             <div class="flex items-center w-1/3">
                                 <img class="with-url-src"
-                                     src="api/badge/{{ .User.ID }}/interval:30_days?label=last 30d"
+                                     src="api/badge/{{ .User.ID }}/interval:30_days?label=last%2030d"
                                      alt="Badge"
                                 />
                             </div>
                             <input
                                     class="with-url-value w-2/3 font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed"
-                                    value="%s/api/badge/{{ .User.ID }}/{{ .User.ID }}/interval:30_days?label=last 30d"
+                                    value="%s/api/badge/{{ .User.ID }}/{{ .User.ID }}/interval:30_days?label=last%2030d"
                                     readonly>
                         </div>
 
                         <div class="flex gap-x-4 mt-4">
                             <div class="flex items-center w-1/3">
                                 <img class="with-url-src"
-                                     src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:30_days&label=last 30d"
+                                     src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{
+				     .User.ID }}/interval:30_days&label=last%2030d"
                                      alt="Shields.io badge"/>
                             </div>
                             <input
                                     class="with-url-value w-2/3 font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed"
-                                    value="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:30_days&label=last 30d"
+                                    value="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{
+				    .User.ID }}/interval:30_days&label=last%2030d"
                                     readonly>
                         </div>
                         {{ end }}
