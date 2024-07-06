@@ -2,12 +2,13 @@ package v1
 
 import (
 	"errors"
-	"github.com/duke-git/lancet/v2/datetime"
-	"github.com/go-chi/chi/v5"
-	"github.com/muety/wakapi/helpers"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/duke-git/lancet/v2/datetime"
+	"github.com/go-chi/chi/v5"
+	"github.com/muety/wakapi/helpers"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"

@@ -16,14 +16,15 @@ import (
 )
 
 type GoalsApiHandler struct {
-	db          *gorm.DB
-	config      *conf.Config
-	goalService services.IGoalService
-	userSrvc    services.IUserService
+	db             *gorm.DB
+	config         *conf.Config
+	goalService    services.IGoalService
+	userSrvc       services.IUserService
+	summaryService services.ISummaryService
 }
 
-func NewGoalsApiHandler(db *gorm.DB, goalService services.IGoalService, userSrvc services.IUserService) *GoalsApiHandler {
-	return &GoalsApiHandler{db: db, goalService: goalService, userSrvc: userSrvc, config: conf.Get()}
+func NewGoalsApiHandler(db *gorm.DB, goalService services.IGoalService, userSrvc services.IUserService, summaryService services.ISummaryService) *GoalsApiHandler {
+	return &GoalsApiHandler{db: db, goalService: goalService, userSrvc: userSrvc, config: conf.Get(), summaryService: summaryService}
 }
 
 func (h *GoalsApiHandler) RegisterRoutes(router chi.Router) {
@@ -32,6 +33,7 @@ func (h *GoalsApiHandler) RegisterRoutes(router chi.Router) {
 		r.Post("/compat/wakatime/v1/users/{user}/goals", h.CreateGoal)
 		r.Get("/compat/wakatime/v1/users/{user}/goals", h.FetchUserGoals)
 		r.Get("/compat/wakatime/v1/users/{user}/goals/{id}", h.GetGoal)
+		r.Put("/compat/wakatime/v1/users/{user}/goals/{id}", h.UpdateGoal)
 		r.Delete("/compat/wakatime/v1/users/{user}/goals/{id}", h.DeleteGoal)
 	})
 }
@@ -44,6 +46,57 @@ func extractUser(r *http.Request) *models.User {
 		return p.(principalGetter).GetPrincipal()
 	}
 	return nil
+}
+
+func (h *GoalsApiHandler) UpdateGoal(w http.ResponseWriter, r *http.Request) {
+	user := extractUser(r)
+	goalID := chi.URLParam(r, "id")
+
+	if goalID == "" {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message": "Bad Request",
+			"status":  http.StatusBadRequest,
+		})
+		return
+	}
+
+	var params = &models.Goal{}
+
+	jsonDecoder := json.NewDecoder(r.Body)
+	err := jsonDecoder.Decode(params)
+
+	fmt.Println("Callisto", params)
+
+	if err != nil {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message": "Invalid Input",
+			"status":  http.StatusBadRequest,
+		})
+	}
+
+	goal, err := h.goalService.GetGoalForUser(goalID, user.ID)
+	if err != nil {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message": "Goal Cannot Be Found",
+			"status":  http.StatusBadRequest,
+		})
+		return
+	}
+
+	goal.CustomTitle = &params.Title
+
+	_, err = h.goalService.Update(goal)
+	if err != nil {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message":       "Error updating goal",
+			"error_message": err.Error(),
+		})
+		return
+	}
+	response := map[string]interface{}{
+		"data": goal,
+	}
+	helpers.RespondJSON(w, r, http.StatusCreated, response)
 }
 
 func (h *GoalsApiHandler) GetGoal(w http.ResponseWriter, r *http.Request) {
@@ -66,6 +119,15 @@ func (h *GoalsApiHandler) GetGoal(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	chartData, err := h.goalService.LoadGoalChartData(goal, user, h.summaryService)
+	if err != nil {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message":       "Error loading chart data",
+			"error_message": err.Error(),
+		})
+		return
+	}
+	goal.ChartData = chartData
 	response := map[string]interface{}{
 		"data": goal,
 	}
@@ -127,6 +189,15 @@ func (h *GoalsApiHandler) CreateGoal(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	chartData, err := h.goalService.LoadGoalChartData(params, user, h.summaryService)
+	if err != nil {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message":       "Error loading chart data",
+			"error_message": err.Error(),
+		})
+		return
+	}
+	params.ChartData = chartData
 	response := map[string]interface{}{
 		"data": params,
 	}
@@ -142,6 +213,17 @@ func (h *GoalsApiHandler) FetchUserGoals(w http.ResponseWriter, r *http.Request)
 			"message": "Error fetching goals. Try later.",
 		})
 		return
+	}
+	for _, goal := range goals {
+		chartData, err := h.goalService.LoadGoalChartData(goal, user, h.summaryService)
+		if err != nil {
+			helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+				"message":       "Error loading chart data",
+				"error_message": err.Error(),
+			})
+			return
+		}
+		goal.ChartData = chartData
 	}
 	response := map[string]interface{}{
 		"data": goals,

@@ -31,6 +31,19 @@ func (r *GoalRepository) FindOne(attributes models.Goal) (*models.Goal, error) {
 	return u, nil
 }
 
+func (r *GoalRepository) Update(goal *models.Goal) (*models.Goal, error) {
+	updateMap := map[string]interface{}{
+		"custom_title": goal.CustomTitle,
+	}
+
+	result := r.db.Model(goal).Updates(updateMap)
+	if err := result.Error; err != nil {
+		return nil, err
+	}
+
+	return goal, nil
+}
+
 func (r *GoalRepository) GetByIdForUser(goalID, userID string) (*models.Goal, error) {
 	g := &models.Goal{}
 
@@ -50,15 +63,15 @@ func (r *GoalRepository) Create(goal *models.Goal) (*models.Goal, error) {
 	if err := result.Error; err != nil {
 		return nil, err
 	}
-
 	return goal, nil
 }
 
 func (r *GoalRepository) FetchUserGoals(userID string) ([]*models.Goal, error) {
 	var goals []*models.Goal
 	if err := r.db.
+		Order("created_at desc").
 		Limit(100). // TODO: paginate
-		Where(&models.Goal{}).
+		Where(&models.Goal{UserID: userID}).
 		Find(&goals).Error; err != nil {
 		return nil, err
 	}

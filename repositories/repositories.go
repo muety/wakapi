@@ -96,6 +96,7 @@ type IGoalRepository interface {
 	GetByIdForUser(id, userID string) (*models.Goal, error)
 	DeleteByIdAndUser(id, userID string) error
 	FetchUserGoals(id string) ([]*models.Goal, error)
+	Update(goal *models.Goal) (*models.Goal, error)
 }
 
 type ILeaderboardRepository interface {
