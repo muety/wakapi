@@ -334,8 +334,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Query to filter projects by",
                         "name": "q",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {

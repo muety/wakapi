@@ -46,7 +46,7 @@ func (h *ProjectsHandler) RegisterRoutes(router chi.Router) {
 // @Tags wakatime
 // @Produce json
 // @Param user path string true "User ID to fetch data for (or 'current')"
-// @Param q query string true "Query to filter projects by"
+// @Param q query string false "Query to filter projects by"
 // @Security ApiKeyAuth
 // @Success 200 {object} v1.ProjectsViewModel
 // @Router /compat/wakatime/v1/users/{user}/projects [get]

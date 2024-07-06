@@ -763,7 +763,6 @@ paths:
       - description: Query to filter projects by
         in: query
         name: q
-        required: true
         type: string
       produces:
       - application/json
