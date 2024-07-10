@@ -1,6 +1,7 @@
 package mail
 
 import (
+	"crypto/tls"
 	"errors"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
@@ -31,7 +32,7 @@ func (s *SMTPSendingService) Send(mail *models.Mail) error {
 	dial := smtp.Dial
 	if s.config.TLS {
 		dial = func(addr string) (*smtp.Client, error) {
-			return smtp.DialTLS(addr, nil)
+			return smtp.DialTLS(addr, &tls.Config{InsecureSkipVerify: s.config.SkipVerify})
 		}
 	}
 
@@ -43,10 +44,12 @@ func (s *SMTPSendingService) Send(mail *models.Mail) error {
 	defer c.Close()
 
 	if ok, _ := c.Extension("STARTTLS"); ok {
-		if err = c.StartTLS(nil); err != nil {
-			errCode := err.(*smtp.SMTPError).Code
-			if errCode == 503 {
-				// TLS already active
+		if err = c.StartTLS(&tls.Config{InsecureSkipVerify: s.config.SkipVerify}); err != nil {
+			if errSmtp, ok := err.(*smtp.SMTPError); ok {
+				if errSmtp.Code == 503 {
+					// TLS already active
+				}
+				return err
 			} else {
 				return err
 			}

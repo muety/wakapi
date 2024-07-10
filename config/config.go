@@ -179,11 +179,12 @@ type mailConfig struct {
 }
 
 type SMTPMailConfig struct {
-	Host     string `env:"WAKAPI_MAIL_SMTP_HOST"`
-	Port     uint   `env:"WAKAPI_MAIL_SMTP_PORT"`
-	Username string `env:"WAKAPI_MAIL_SMTP_USER"`
-	Password string `env:"WAKAPI_MAIL_SMTP_PASS"`
-	TLS      bool   `env:"WAKAPI_MAIL_SMTP_TLS"`
+	Host       string `env:"WAKAPI_MAIL_SMTP_HOST"`
+	Port       uint   `env:"WAKAPI_MAIL_SMTP_PORT"`
+	Username   string `env:"WAKAPI_MAIL_SMTP_USER"`
+	Password   string `env:"WAKAPI_MAIL_SMTP_PASS"`
+	TLS        bool   `env:"WAKAPI_MAIL_SMTP_TLS"`
+	SkipVerify bool   `env:"WAKAPI_MAIL_SMTP_SKIP_VERIFY"`
 }
 
 type Config struct {
