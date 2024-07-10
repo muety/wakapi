@@ -10,7 +10,7 @@ require (
 	github.com/dchest/captcha v1.0.0
 	github.com/duke-git/lancet/v2 v2.3.0
 	github.com/emersion/go-sasl v0.0.0-20231106173351-e73c9f7bad43
-	github.com/emersion/go-smtp v0.20.2
+	github.com/emersion/go-smtp v0.21.2
 	github.com/emvi/logbuch v1.2.0
 	github.com/getsentry/sentry-go v0.27.0
 	github.com/glebarez/sqlite v1.11.0
