@@ -1,9 +1,9 @@
 package mail
 
 /*
-Uses smtp4dev (https://github.com/rnwood/smtp4dev) mock SMTP server to test against.
-To spawn an smtp4dev instance in Docker, run:
-$ docker run --rm -it -p 5000:80 -p 2525:25 -p 8080:80 rnwood/smtp4dev
+Uses smtp4Dev (https://github.com/rnwood/smtp4dev) mock SMTP server to test against.
+To spawn an smtp4Dev instance in Docker, run:
+$ docker run --rm -it -p 5000:80 -p 2525:25 -p 8080:80 rnwood/smtp4Dev
 */
 
 // TODO: test actual message content / title / recipients / etc.
@@ -34,29 +34,27 @@ const (
 
 type SmtpTestSuite struct {
 	suite.Suite
-	smtp4dev *Smtp4DevClient
+	smtp4Dev *Smtp4DevClient
 }
 
 func (suite *SmtpTestSuite) SetupSuite() {
-	suite.smtp4dev = newSmtp4DevClient()
+	suite.smtp4Dev = newSmtp4DevClient()
 }
 
 func (suite *SmtpTestSuite) BeforeTest(suiteName, testName string) {
-	suite.smtp4dev.Setup()
+	suite.smtp4Dev.Setup()
 }
 
 func TestSmtpTestSuite(t *testing.T) {
 	if smtp4dev := newSmtp4DevClient(); smtp4dev.Check() != nil {
-		t.Skip(fmt.Sprintf("WARNING: smtp4dev not available at %s - skipping smtp tests", smtp4dev.ApiBaseUrl))
+		t.Skip(fmt.Sprintf("WARNING: smtp4Dev not available at %s - skipping smtp tests", smtp4dev.ApiBaseUrl))
 		return
 	}
 	suite.Run(t, new(SmtpTestSuite))
 }
 
 func (suite *SmtpTestSuite) TestSMTPSendingService_SendPlain() {
-	smtp4Dev := newSmtp4DevClient()
-	smtp4Dev.Setup()
-	if err := smtp4Dev.SetNoTls(); err != nil {
+	if err := suite.smtp4Dev.SetNoTls(); err != nil {
 		suite.Error(err)
 	}
 
@@ -65,15 +63,13 @@ func (suite *SmtpTestSuite) TestSMTPSendingService_SendPlain() {
 	sut := NewSMTPSendingService(cfg)
 	err := sut.Send(createTestMail())
 
-	msgCount, _ := smtp4Dev.CountMessages()
+	msgCount, _ := suite.smtp4Dev.CountMessages()
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), 1, msgCount)
 }
 
 func (suite *SmtpTestSuite) TestSMTPSendingService_SendTLS() {
-	smtp4Dev := newSmtp4DevClient()
-	smtp4Dev.Setup()
-	if err := smtp4Dev.SetForcedTls(); err != nil {
+	if err := suite.smtp4Dev.SetForcedTls(); err != nil {
 		suite.Error(err)
 	}
 
@@ -83,15 +79,13 @@ func (suite *SmtpTestSuite) TestSMTPSendingService_SendTLS() {
 	sut := NewSMTPSendingService(cfg)
 	err := sut.Send(createTestMail())
 
-	msgCount, _ := smtp4Dev.CountMessages()
+	msgCount, _ := suite.smtp4Dev.CountMessages()
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), 1, msgCount)
 }
 
 func (suite *SmtpTestSuite) TestSMTPSendingService_SendStartTLS() {
-	smtp4Dev := newSmtp4DevClient()
-	smtp4Dev.Setup()
-	if err := smtp4Dev.SetStartTls(); err != nil {
+	if err := suite.smtp4Dev.SetStartTls(); err != nil {
 		suite.Error(err)
 	}
 
@@ -101,7 +95,7 @@ func (suite *SmtpTestSuite) TestSMTPSendingService_SendStartTLS() {
 	sut := NewSMTPSendingService(cfg)
 	err := sut.Send(createTestMail())
 
-	msgCount, _ := smtp4Dev.CountMessages()
+	msgCount, _ := suite.smtp4Dev.CountMessages()
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), 1, msgCount)
 }
@@ -154,7 +148,7 @@ func (c *Smtp4DevClient) Check() error {
 
 func (c *Smtp4DevClient) Setup() error {
 	if c.Check() != nil {
-		return fmt.Errorf("smtp4dev is unavailable at %s", c.ApiBaseUrl)
+		return fmt.Errorf("smtp4Dev is unavailable at %s", c.ApiBaseUrl)
 	}
 
 	if err := c.CreateTestUsers(); err != nil {
@@ -205,28 +199,28 @@ func (c *Smtp4DevClient) CountMessages() (int, error) {
 }
 
 func (c *Smtp4DevClient) SetNoTls() error {
-	logbuch.Info("[smtp4dev] disabling tls encryption")
+	logbuch.Info("[smtp4Dev] disabling tls encryption")
 	err := c.SetConfigValue("tlsMode", "None")
 	time.Sleep(1 * time.Second)
 	return err
 }
 
 func (c *Smtp4DevClient) SetForcedTls() error {
-	logbuch.Info("[smtp4dev] enabling forced tls encryption")
+	logbuch.Info("[smtp4Dev] enabling forced tls encryption")
 	err := c.SetConfigValue("tlsMode", "ImplicitTls")
 	time.Sleep(1 * time.Second)
 	return err
 }
 
 func (c *Smtp4DevClient) SetStartTls() error {
-	logbuch.Info("[smtp4dev] enabling tls encryption via starttls")
+	logbuch.Info("[smtp4Dev] enabling tls encryption via starttls")
 	err := c.SetConfigValue("tlsMode", "StartTls")
 	time.Sleep(1 * time.Second)
 	return err
 }
 
 func (c *Smtp4DevClient) CreateTestUsers() error {
-	logbuch.Info("[smtp4dev] creating test users")
+	logbuch.Info("[smtp4Dev] creating test users")
 	err := c.SetConfigValue("users", []map[string]interface{}{
 		{
 			"username":       TestSmtpUser,
@@ -239,7 +233,7 @@ func (c *Smtp4DevClient) CreateTestUsers() error {
 }
 
 func (c *Smtp4DevClient) ClearInboxes() error {
-	logbuch.Info("[smtp4dev] clearing inboxes")
+	logbuch.Info("[smtp4Dev] clearing inboxes")
 	req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/Messages/*", c.ApiBaseUrl), nil)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
