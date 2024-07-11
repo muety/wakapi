@@ -30,6 +30,9 @@ jobs:
         npm -g install newman
         ./testing/run_api_tests.sh
 
+    - name: Mail Tests
+      run: ./testing/run_mail_tests.sh
+
   migration:
     name: Migration tests
     runs-on: ubuntu-latest
