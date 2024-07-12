@@ -13,15 +13,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"net/http"
-	"testing"
-	"time"
 )
 
 const (
@@ -46,10 +48,22 @@ func (suite *SmtpTestSuite) BeforeTest(suiteName, testName string) {
 }
 
 func TestSmtpTestSuite(t *testing.T) {
-	if smtp4dev := newSmtp4DevClient(); smtp4dev.Check() != nil {
-		t.Skip(fmt.Sprintf("WARNING: smtp4Dev not available at %s - skipping smtp tests", smtp4dev.ApiBaseUrl))
+	address := net.JoinHostPort(Smtp4DevHost, fmt.Sprintf("%d", Smtp4DevPort))
+	_, err := net.DialTimeout("tcp", address, time.Second)
+	if err != nil {
+		t.Skipf("WARNING: smtp4Dev not available at %s - skipping smtp tests", address)
 		return
 	}
+
+	smtp4dev := newSmtp4DevClient()
+	for i := 0; i < 5; i++ {
+		if smtp4dev.Check() == nil {
+			break
+		}
+		t.Logf("smtp4Dev not ready at %s, retrying...", smtp4dev.ApiBaseUrl)
+		time.Sleep(1 * time.Second)
+	}
+
 	suite.Run(t, new(SmtpTestSuite))
 }
 
@@ -201,21 +215,21 @@ func (c *Smtp4DevClient) CountMessages() (int, error) {
 func (c *Smtp4DevClient) SetNoTls() error {
 	logbuch.Info("[smtp4Dev] disabling tls encryption")
 	err := c.SetConfigValue("tlsMode", "None")
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 	return err
 }
 
 func (c *Smtp4DevClient) SetForcedTls() error {
 	logbuch.Info("[smtp4Dev] enabling forced tls encryption")
 	err := c.SetConfigValue("tlsMode", "ImplicitTls")
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 	return err
 }
 
 func (c *Smtp4DevClient) SetStartTls() error {
 	logbuch.Info("[smtp4Dev] enabling tls encryption via starttls")
 	err := c.SetConfigValue("tlsMode", "StartTls")
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 	return err
 }
 

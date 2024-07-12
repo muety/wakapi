@@ -4,7 +4,7 @@ set -o nounset -o pipefail -o errexit
 DB_TYPE=${1-sqlite}
 
 if ! command -v newman &> /dev/null; then
-    echo "Newman could not be found. Run 'npm install -g newman' first."
+    echo "newman could not be found. Run 'npm install -g newman' first."
     exit 1
 fi
 
@@ -135,7 +135,6 @@ start_wakapi_background "../wakapi" "$config"
 kill_wakapi
 
 # Only sqlite has data
-
 if [ "$DB_TYPE" == "sqlite" ]; then
     echo "Creating database and schema ..."
     sqlite3 wakapi_testing.db < schema.sql
@@ -145,10 +144,9 @@ if [ "$DB_TYPE" == "sqlite" ]; then
     start_wakapi_background "../wakapi" "$config"
     echo "Running test collection ..."
     if ! newman run "wakapi_api_tests.postman_collection.json"; then
-        exit_code=$?
-        echo "newman failed with exit code $exit_code"
-        exit "$exit_code"
+        echo "newman failed"
+        exit 1
     fi
+
     kill_wakapi
 fi
-
