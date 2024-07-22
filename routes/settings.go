@@ -720,7 +720,7 @@ func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Reques
 		}
 	}(user)
 
-	routeutils.SetSuccess(r, w, "Your account will be deleted in a few minutes. Sorry to you go.")
+	routeutils.SetSuccess(r, w, "Your account will be deleted in a few minutes. Sorry to see you go.")
 	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey))
 	http.Redirect(w, r, h.config.Server.BasePath, http.StatusFound)
 	return actionResult{-1, "", "", nil}
