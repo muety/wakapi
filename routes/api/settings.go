@@ -84,10 +84,8 @@ func (h *SettingsHandler) actionSetWakatimeApiKey(wakatimeSettings *SettingsPayl
 		return actionResult{http.StatusBadRequest, "", "invalid input: failed to validate api key against wakatime server", nil}
 	}
 
-	user.WakatimeApiKey = wakatimeSettings.ApiKey
-
-	if _, err := h.userSrvc.Update(user); err != nil {
-		return actionResult{http.StatusInternalServerError, "", "Internal server error", nil}
+	if _, err := h.userSrvc.SetWakatimeApiCredentials(user, wakatimeSettings.ApiKey, wakatimeSettings.ApiUrl); err != nil {
+		return actionResult{http.StatusInternalServerError, "", config.ErrInternalServerError, nil}
 	}
 
 	return actionResult{http.StatusOK, "Wakatime API key set", "", nil}
@@ -96,7 +94,7 @@ func (h *SettingsHandler) actionSetWakatimeApiKey(wakatimeSettings *SettingsPayl
 func (h *SettingsHandler) respondWithJSON(w http.ResponseWriter, status int, payload interface{}) {
 	response, err := json.Marshal(payload)
 	if err != nil {
-		h.respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		h.respondWithError(w, http.StatusInternalServerError, config.ErrInternalServerError)
 		return
 	}
 
