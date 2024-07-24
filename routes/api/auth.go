@@ -148,10 +148,11 @@ func (h *AuthApiHandler) Signin(w http.ResponseWriter, r *http.Request) {
 			"token":     token,
 			"token_ttl": ttl,
 			"user": map[string]interface{}{
-				"api_key": user.ApiKey,
-				"id":      user.ID,
-				"email":   user.Email,
-				"avatar":  h.config.Server.PublicUrl + "/" + user.AvatarURL(h.config.App.AvatarURLTemplate),
+				"api_key":                  user.ApiKey,
+				"id":                       user.ID,
+				"has_wakatime_integration": user.WakatimeApiKey != "",
+				"email":                    user.Email,
+				"avatar":                   h.config.Server.PublicUrl + "/" + user.AvatarURL(h.config.App.AvatarURLTemplate),
 			},
 		},
 	})
@@ -222,10 +223,11 @@ func (h *AuthApiHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 			"token":     token,
 			"token_ttl": ttl,
 			"user": map[string]interface{}{
-				"api_key": user.ApiKey,
-				"id":      user.ID,
-				"email":   user.Email,
-				"avatar":  h.config.Server.PublicUrl + "/" + user.AvatarURL(h.config.App.AvatarURLTemplate),
+				"api_key":                  user.ApiKey,
+				"id":                       user.ID,
+				"email":                    user.Email,
+				"has_wakatime_integration": user.WakatimeApiKey != "",
+				"avatar":                   h.config.Server.PublicUrl + "/" + user.AvatarURL(h.config.App.AvatarURLTemplate),
 			},
 		},
 	})
