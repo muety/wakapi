@@ -2,7 +2,7 @@ package models
 
 import (
 	"fmt"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid/v5"
 	"strings"
 	"time"
 )
@@ -40,7 +40,7 @@ func (m *Mail) Sanitized() *Mail {
 		m.Date = time.Now()
 	}
 	if m.MessageID == "" {
-		m.MessageID = fmt.Sprintf("<%s@%s>", uuid.NewV4().String(), m.From.Domain())
+		m.MessageID = fmt.Sprintf("<%s@%s>", uuid.Must(uuid.NewV4()).String(), m.From.Domain())
 	}
 	return m
 }

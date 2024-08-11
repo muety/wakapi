@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/go-chi/chi/v5"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid/v5"
 	"net/http"
 	"sort"
 	"strconv"
@@ -732,7 +732,7 @@ func (h *SettingsHandler) actionGenerateInvite(w http.ResponseWriter, r *http.Re
 	}
 
 	user := middlewares.GetPrincipal(r)
-	inviteCode := uuid.NewV4().String()[0:8]
+	inviteCode := uuid.Must(uuid.NewV4()).String()[0:8]
 
 	if err := h.keyValueSrvc.PutString(&models.KeyStringValue{
 		Key:   fmt.Sprintf("%s_%s", conf.KeyInviteCode, inviteCode),

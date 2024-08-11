@@ -6,13 +6,13 @@ import (
 	"github.com/duke-git/lancet/v2/convertor"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/emvi/logbuch"
+	"github.com/gofrs/uuid/v5"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
-	uuid "github.com/satori/go.uuid"
 	"time"
 )
 
@@ -174,7 +174,7 @@ func (srv *UserService) Count() (int64, error) {
 func (srv *UserService) CreateOrGet(signup *models.Signup, isAdmin bool) (*models.User, bool, error) {
 	u := &models.User{
 		ID:        signup.Username,
-		ApiKey:    uuid.NewV4().String(),
+		ApiKey:    uuid.Must(uuid.NewV4()).String(),
 		Email:     signup.Email,
 		Location:  signup.Location,
 		Password:  signup.Password,
@@ -199,7 +199,7 @@ func (srv *UserService) Update(user *models.User) (*models.User, error) {
 
 func (srv *UserService) ResetApiKey(user *models.User) (*models.User, error) {
 	srv.FlushUserCache(user.ID)
-	user.ApiKey = uuid.NewV4().String()
+	user.ApiKey = uuid.Must(uuid.NewV4()).String()
 	return srv.Update(user)
 }
 
@@ -220,7 +220,7 @@ func (srv *UserService) SetWakatimeApiCredentials(user *models.User, apiKey stri
 }
 
 func (srv *UserService) GenerateResetToken(user *models.User) (*models.User, error) {
-	return srv.repository.UpdateField(user, "reset_token", uuid.NewV4())
+	return srv.repository.UpdateField(user, "reset_token", uuid.Must(uuid.NewV4()))
 }
 
 func (srv *UserService) Delete(user *models.User) error {
