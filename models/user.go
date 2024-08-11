@@ -11,6 +11,12 @@ import (
 	"time"
 )
 
+const (
+	DefaultHeartbeatsTimeout = 2 * time.Minute
+	MinHeartbeatsTimeout     = 30 * time.Second
+	MaxHeartbeatsTimeout     = 5 * time.Minute
+)
+
 func init() {
 	mailRegex = regexp.MustCompile(MailPattern)
 }
@@ -42,6 +48,7 @@ type User struct {
 	StripeCustomerId       string      `json:"-"`
 	InvitedBy              string      `json:"-"`
 	ExcludeUnknownProjects bool        `json:"-"`
+	HeartbeatsTimeoutSec   int         `json:"-" gorm:"default:120"` // https://github.com/muety/wakapi/issues/156
 }
 
 type Login struct {
@@ -126,6 +133,13 @@ func (u *User) AvatarURL(urlTemplate string) string {
 		urlTemplate = strings.ReplaceAll(urlTemplate, "{email_hash}", fmt.Sprintf("%x", md5.Sum([]byte(u.Email))))
 	}
 	return urlTemplate
+}
+
+func (u *User) HeartbeatsTimeout() time.Duration {
+	if u.HeartbeatsTimeoutSec > 0 {
+		return time.Duration(u.HeartbeatsTimeoutSec) * time.Second
+	}
+	return DefaultHeartbeatsTimeout
 }
 
 // WakaTimeURL returns the user's effective WakaTime URL, i.e. a custom one (which could also point to another Wakapi instance) or fallback if not specified otherwise.

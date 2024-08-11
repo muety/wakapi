@@ -182,6 +182,8 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 		return h.actionGenerateInvite
 	case "update_unknown_projects":
 		return h.actionUpdateExcludeUnknownProjects
+	case "update_heartbeats_timeout":
+		return h.actionUpdateHeartbeatsTimeout
 	}
 	return nil
 }
@@ -333,6 +335,28 @@ func (h *SettingsHandler) actionUpdateExcludeUnknownProjects(w http.ResponseWrit
 	}(user)
 
 	return actionResult{http.StatusOK, "regenerating summaries, this might take a while", "", nil}
+}
+
+func (h *SettingsHandler) actionUpdateHeartbeatsTimeout(w http.ResponseWriter, r *http.Request) actionResult {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	var err error
+	user := middlewares.GetPrincipal(r)
+	defer h.userSrvc.FlushCache()
+
+	val, err := strconv.ParseInt(r.PostFormValue("heartbeats_timeout"), 0, 0)
+	if dur := time.Duration(val) * time.Second; err != nil || dur < models.MinHeartbeatsTimeout || dur > models.MaxHeartbeatsTimeout {
+		return actionResult{http.StatusBadRequest, "", "invalid input", nil}
+	}
+	user.HeartbeatsTimeoutSec = int(val)
+
+	if _, err := h.userSrvc.Update(user); err != nil {
+		return actionResult{http.StatusInternalServerError, "", "internal sever error", nil}
+	}
+
+	return actionResult{http.StatusOK, "Done. To apply this change to already existing data, please regenerate your summaries.", "", nil}
 }
 
 func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Request) actionResult {

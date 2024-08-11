@@ -218,7 +218,7 @@
                     <div class="flex-col w-full md:w-2/3 inline-block space-y-4">
                         <div class="flex justify-between items-center">
                             <div class="flex flex-col gap-y-1">
-                                <label class="font-semibold text-gray-300" for="share_projects">Exclude unknown projects</label>
+                                <label class="font-semibold text-gray-300" for="unknown-projects-toggle">Exclude unknown projects</label>
                                 <select autocomplete="off" id="unknown-projects-toggle" name="exclude_unknown_projects" class="select-default wi-min">
                                     <option value="false" class="cursor-pointer" {{ if not .User.ExcludeUnknownProjects }} selected {{ end }}>No
                                     </option>
@@ -405,7 +405,7 @@
                             {{ range $i, $mapping := .LanguageMappings }}
                             <div class="flex items-center mb-2">
                                 <div class="text-gray-300 border-1 w-full inline-block my-1 py-1 text-align text-sm">
-                                    &#9656;&nbsp; When filename ends in <span
+                                        &#9656;&nbsp; When filename ends in <span
                                         class="text-green-700 chip mr-1">{{ $mapping.Extension }}</span>
                                     then change the <span class="font-semibold">language</span> to <span
                                         class="text-green-700 chip mr-1">{{ $mapping.Language }}</span>
@@ -426,11 +426,11 @@
                             <input type="hidden" name="action" value="add_mapping">
                             <div class="flex items-center w-full text-gray-500 text-sm">
                                 <span class="mr-2">When filename ends in</span>
-                                <input class="select-default grow"
+                                <input class="input-default grow"
                                        type="text" id="extension" style="width: 70px"
                                        name="extension" placeholder=".py" minlength="1" required>
                                 <span class="mx-2">change language to</span>
-                                <input class="select-default grow"
+                                <input class="input-default grow"
                                        type="text" id="language" style="width: 100px"
                                        name="language" placeholder="Python" minlength="1" required>
                                 <div class="flex justify-end ml-4">
@@ -443,6 +443,36 @@
                     </div>
                 </div>
             </div>
+
+            <div class="w-full">
+                <hr class="border-t border-gray-800 my-4">
+            </div>
+
+            <!-- Heartbeats Timeout -->
+            <form class="w-full" action="" method="post">
+                <input type="hidden" name="action" value="update_heartbeats_timeout">
+                <div class="flex flex-wrap md:flex-nowrap mb-2 gap-x-4">
+                    <div class="w-full md:w-1/3 mb-2 md:mb-0 inline-block">
+                        <span class="font-semibold text-gray-300 text-lg">Heartbeats Timeout</span>
+                        <p class="block text-sm text-gray-600">
+                            This parameter affects the heuristic based on which a series of consecutive heartbeats sent by your IDE are aggregated to total coding time. Please see the <i>"How are durations calculated?"</i> section in our <a class="link" href="https://github.com/muety/wakapi?tab=readme-ov-file#-faqs" rel="noreferrer noopener" target="_blank">FAQs</a> as well as the discussion in <a class="link" href="https://github.com/muety/wakapi/issues/156" rel="noreferrer noopener" target="_blank">#156</a>.
+                        </p>
+                    </div>
+
+                    <div class="flex-col w-full md:w-2/3 inline-block space-y-4">
+                        <div class="flex justify-between items-center">
+                            <div class="flex flex-col flex-grow gap-y-1">
+                                <label class="font-semibold text-gray-300" for="heartbeats_timeout">Timeout / offset (seconds)</label>
+                                <div class="flex gap-x-2 items-center">
+                                    <input class="input-default" type="number" id="heartbeats_timeout" name="heartbeats_timeout" style="max-width: 100px;" placeholder="120" min="30" max="300" step="10" required value="{{ .User.HeartbeatsTimeoutSec }}">
+                                    <span class="text-gray-600 text-sm">(min. 30 seconds, max. 5 minutes)</span>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-primary h-min">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
 
             <div class="w-full">
                 <hr class="border-t border-gray-800 my-4">
@@ -484,7 +514,7 @@
 
                         <div class="flex gap-x-8">
                             <div class="grow">
-                                <label class="font-semibold text-gray-300" for="share_projects">Participate in leaderboard</label>
+                                <label class="font-semibold text-gray-300" for="enable_leaderboard">Participate in leaderboard</label>
                             </div>
                             <div>
                                 <select autocomplete="off" id="enable_leaderboard" name="enable_leaderboard" class="select-default grow">

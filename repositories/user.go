@@ -150,6 +150,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"stripe_customer_id":       user.StripeCustomerId,
 		"invited_by":               user.InvitedBy,
 		"exclude_unknown_projects": user.ExcludeUnknownProjects,
+		"heartbeats_timeout_sec":   user.HeartbeatsTimeoutSec,
 	}
 
 	result := r.db.Model(user).Updates(updateMap)
