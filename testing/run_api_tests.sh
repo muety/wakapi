@@ -119,7 +119,7 @@ if [ "$DB_TYPE" == "mssql" ]; then
     sleep 5
     echo "Creating database in mssql..."
     docker compose -f "$script_dir/compose.yml" exec mssql \
-        /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Hard!password123' -Q 'CREATE DATABASE wakapi'
+        /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U SA -P 'Hard!password123' -Q 'CREATE DATABASE wakapi'
 fi
 
 # Run original wakapi
