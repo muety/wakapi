@@ -1,12 +1,12 @@
-FROM golang:1.21-alpine AS build-env
+FROM golang:alpine AS build-env
 WORKDIR /src
 
 RUN wget "https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh" -O wait-for-it.sh && \
     chmod +x wait-for-it.sh
 
-ADD ./go.mod ./go.sum ./
+COPY ./go.mod ./go.sum ./
 RUN go mod download
-ADD . .
+COPY . .
 
 RUN CGO_ENABLED=0 go build -ldflags "-s -w" -v -o wakapi main.go
 
