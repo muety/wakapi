@@ -105,12 +105,15 @@ type appConfig struct {
 }
 
 type securityConfig struct {
-	AllowSignup      bool `yaml:"allow_signup" default:"true" env:"WAKAPI_ALLOW_SIGNUP"`
-	SignupCaptcha    bool `yaml:"signup_captcha" default:"false" env:"WAKAPI_SIGNUP_CAPTCHA"`
-	InviteCodes      bool `yaml:"invite_codes" default:"true" env:"WAKAPI_INVITE_CODES"`
-	ExposeMetrics    bool `yaml:"expose_metrics" default:"false" env:"WAKAPI_EXPOSE_METRICS"`
-	EnableProxy      bool `yaml:"enable_proxy" default:"false" env:"WAKAPI_ENABLE_PROXY"` // only intended for production instance at wakapi.dev
-	DisableFrontpage bool `yaml:"disable_frontpage" default:"false" env:"WAKAPI_DISABLE_FRONTPAGE"`
+	GithubClientId     string `yaml:"github_client_id" default:"" env:"GITHUB_CLIENT_ID"`
+	GithubClientSecret string `yaml:"github_client_secret" default:"" env:"GITHUB_CLIENT_SECRET"`
+	FrontendUri        string `yaml:"frontend_uri" default:"" env:"FRONTEND_URI"`
+	AllowSignup        bool   `yaml:"allow_signup" default:"true" env:"WAKAPI_ALLOW_SIGNUP"`
+	SignupCaptcha      bool   `yaml:"signup_captcha" default:"false" env:"WAKAPI_SIGNUP_CAPTCHA"`
+	InviteCodes        bool   `yaml:"invite_codes" default:"true" env:"WAKAPI_INVITE_CODES"`
+	ExposeMetrics      bool   `yaml:"expose_metrics" default:"false" env:"WAKAPI_EXPOSE_METRICS"`
+	EnableProxy        bool   `yaml:"enable_proxy" default:"false" env:"WAKAPI_ENABLE_PROXY"` // only intended for production instance at wakapi.dev
+	DisableFrontpage   bool   `yaml:"disable_frontpage" default:"false" env:"WAKAPI_DISABLE_FRONTPAGE"`
 	// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
 	PasswordSalt               string                     `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
 	JWT_SECRET                string                     `yaml:"jwt_secret" default:"" env:"JWT_SECRET"`

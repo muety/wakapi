@@ -2,13 +2,14 @@ package helpers
 
 import (
 	"errors"
-	"github.com/muety/wakapi/models"
 	"net/http"
 	"time"
+
+	"github.com/muety/wakapi/models"
 )
 
 func ParseSummaryParams(r *http.Request) (*models.SummaryParams, error) {
-	user := extractUser(r)
+	user := ExtractUser(r)
 	params := r.URL.Query()
 
 	var err error
@@ -73,14 +74,4 @@ func ParseSummaryFilters(r *http.Request) *models.Filters {
 		filters.With(models.SummaryCategory, q)
 	}
 	return filters
-}
-
-func extractUser(r *http.Request) *models.User {
-	type principalGetter interface {
-		GetPrincipal() *models.User
-	}
-	if p := r.Context().Value("principal"); p != nil {
-		return p.(principalGetter).GetPrincipal()
-	}
-	return nil
 }

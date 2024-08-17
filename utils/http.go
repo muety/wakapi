@@ -2,16 +2,23 @@ package utils
 
 import (
 	"bytes"
+	"crypto/rand"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/duke-git/lancet/v2/strutil"
-	"github.com/mileusna/useragent"
 	"io"
 	"net/http"
+	nUrl "net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	nerrors "github.com/pkg/errors"
+
+	"github.com/duke-git/lancet/v2/strutil"
+	"github.com/mileusna/useragent"
 )
 
 const (
@@ -137,4 +144,85 @@ func RaiseForStatus(res *http.Response, err error) (*http.Response, error) {
 		return res, fmt.Errorf("got response status %d for '%s %s' - %s", res.StatusCode, res.Request.Method, res.Request.URL.String(), message)
 	}
 	return res, nil
+}
+
+type JsonHttpRequestConfig struct {
+	Method      string
+	Url         string
+	BaseUrl     string
+	Body        string
+	AccessToken string
+}
+
+func MakeJSONHttpRequest[T any](config *JsonHttpRequestConfig) (T, error) {
+	var parsedResponse T
+	client := &http.Client{}
+
+	var finalUrl = fmt.Sprintf("%s%s", config.BaseUrl, config.Url)
+	parsedUrl, err := nUrl.Parse(config.Url)
+
+	if err != nil {
+		return parsedResponse, nerrors.Wrap(err, "error parsing url") // this really should not happen
+	}
+
+	if parsedUrl.IsAbs() {
+		finalUrl = config.Url
+	}
+
+	req, err := http.NewRequest(config.Method, finalUrl, strings.NewReader(config.Body))
+	if err != nil {
+		return parsedResponse, nerrors.Wrap(err, "error making json api request")
+	}
+
+	if config.AccessToken != "" {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", config.AccessToken))
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return parsedResponse, nerrors.Wrap(err, fmt.Sprintf("error getting response from url %s", finalUrl))
+	}
+
+	b, err := io.ReadAll(res.Body)
+	if res.StatusCode != 200 && res.StatusCode != 201 {
+		return parsedResponse, nerrors.New("Response with error; status_code=" + res.Status + "; body=" + string(b))
+	}
+
+	if err != nil {
+		return parsedResponse, nerrors.Wrap(err, "error reading response body")
+	}
+
+	err = json.Unmarshal(b, &parsedResponse)
+	if err != nil {
+		return parsedResponse, nerrors.Wrap(err, "error unmarshalling api response"+string(b))
+	}
+
+	return parsedResponse, nil
+}
+
+func MakeQueryParams(params map[string]string) string {
+	queryParams := nUrl.Values{}
+	for key, value := range params {
+		queryParams.Set(key, value)
+	}
+	return queryParams.Encode()
+}
+
+func GenerateRandomPassword(length int) (string, error) {
+	// Create a slice to hold the random bytes
+	bytes := make([]byte, length)
+
+	// Generate random bytes
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+
+	// Encode bytes to a hexadecimal string
+	password := hex.EncodeToString(bytes)
+
+	return password, nil
 }

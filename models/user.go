@@ -31,6 +31,7 @@ type User struct {
 	CreatedAt              CustomTime  `gorm:"default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	LastLoggedInAt         CustomTime  `gorm:"default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	ShareDataMaxDays       int         `json:"-"`
+	EmailVerified          bool        `json:"email_verified" gorm:"default:false; type:bool"`
 	ShareEditors           bool        `json:"-" gorm:"default:false; type:bool"`
 	ShareLanguages         bool        `json:"-" gorm:"default:false; type:bool"`
 	ShareProjects          bool        `json:"-" gorm:"default:false; type:bool"`

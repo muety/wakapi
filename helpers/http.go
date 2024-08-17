@@ -3,9 +3,10 @@ package helpers
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
+
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
-	"net/http"
 )
 
 func ExtractCookieAuth(r *http.Request, config *config.Config) (username *string, err error) {
@@ -27,4 +28,14 @@ func RespondJSON(w http.ResponseWriter, r *http.Request, status int, object inte
 	if err := json.NewEncoder(w).Encode(object); err != nil {
 		config.Log().Request(r).Error("error while writing json response", "error", err)
 	}
+}
+
+func ExtractUser(r *http.Request) *models.User {
+	type principalGetter interface {
+		GetPrincipal() *models.User
+	}
+	if p := r.Context().Value("principal"); p != nil {
+		return p.(principalGetter).GetPrincipal()
+	}
+	return nil
 }

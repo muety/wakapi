@@ -38,18 +38,8 @@ func (h *GoalsApiHandler) RegisterRoutes(router chi.Router) {
 	})
 }
 
-func extractUser(r *http.Request) *models.User {
-	type principalGetter interface {
-		GetPrincipal() *models.User
-	}
-	if p := r.Context().Value("principal"); p != nil {
-		return p.(principalGetter).GetPrincipal()
-	}
-	return nil
-}
-
 func (h *GoalsApiHandler) UpdateGoal(w http.ResponseWriter, r *http.Request) {
-	user := extractUser(r)
+	user := helpers.ExtractUser(r)
 	goalID := chi.URLParam(r, "id")
 
 	if goalID == "" {
@@ -100,7 +90,7 @@ func (h *GoalsApiHandler) UpdateGoal(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *GoalsApiHandler) GetGoal(w http.ResponseWriter, r *http.Request) {
-	user := extractUser(r)
+	user := helpers.ExtractUser(r)
 	goalID := chi.URLParam(r, "id")
 
 	if goalID == "" {
@@ -135,7 +125,7 @@ func (h *GoalsApiHandler) GetGoal(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *GoalsApiHandler) DeleteGoal(w http.ResponseWriter, r *http.Request) {
-	user := extractUser(r)
+	user := helpers.ExtractUser(r)
 	fmt.Println("User", user)
 	goalID := chi.URLParam(r, "id")
 
@@ -162,7 +152,7 @@ func (h *GoalsApiHandler) DeleteGoal(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *GoalsApiHandler) CreateGoal(w http.ResponseWriter, r *http.Request) {
-	user := extractUser(r)
+	user := helpers.ExtractUser(r)
 
 	var params = &models.Goal{}
 
@@ -205,7 +195,7 @@ func (h *GoalsApiHandler) CreateGoal(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *GoalsApiHandler) FetchUserGoals(w http.ResponseWriter, r *http.Request) {
-	user := extractUser(r)
+	user := helpers.ExtractUser(r)
 
 	goals, err := h.goalService.FetchUserGoals(user.ID)
 	if err != nil {

@@ -78,6 +78,9 @@ security:
   signup_max_rate: 5/1h                 # signup endpoint rate limit pattern
   login_max_rate: 10/1m                 # login endpoint rate limit pattern
   password_reset_max_rate: 5/1h         # password reset endpoint rate limit pattern
+  frontend_uri:                         #construct redirect uri for frontend
+  github_client_id:                     # leave blank to disable github oauth
+  github_client_secret:                 # leave blank to disable github oauth 
 
 sentry:
   dsn:                                # leave blank to disable sentry integration

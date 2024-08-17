@@ -99,6 +99,13 @@ type IGoalRepository interface {
 	Update(goal *models.Goal) (*models.Goal, error)
 }
 
+type IOauthUserRepository interface {
+	Create(userOauth *models.UserOauth) (*models.UserOauth, error)
+	GetById(userOauthID string) (*models.UserOauth, error)
+	FindOne(attributes models.UserOauth) (*models.UserOauth, error)
+	DeleteById(id string) error
+}
+
 type ILeaderboardRepository interface {
 	InsertBatch([]*models.LeaderboardItem) error
 	CountAllByUser(string) (int64, error)
