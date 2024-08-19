@@ -1,9 +1,9 @@
 package migrations
 
 import (
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"gorm.io/gorm"
+	"log/slog"
 )
 
 func init() {
@@ -15,7 +15,7 @@ func init() {
 				return nil
 			}
 
-			logbuch.Info("running migration '%s'", name)
+			slog.Info("running migration '%s'", name)
 
 			if err := db.Exec("UPDATE heartbeats SET language = 'Astro' where language = '' and entity like '%.astro'").Error; err != nil {
 				return err

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/duke-git/lancet/v2/strutil"
-	"github.com/emvi/logbuch"
 	"github.com/mitchellh/hashstructure/v2"
+	"log/slog"
 )
 
 type Heartbeat struct {
@@ -121,7 +121,7 @@ func (h *Heartbeat) String() string {
 func (h *Heartbeat) Hashed() *Heartbeat {
 	hash, err := hashstructure.Hash(h, hashstructure.FormatV2, nil)
 	if err != nil {
-		logbuch.Error("CRITICAL ERROR: failed to hash struct - %v", err)
+		slog.Error("CRITICAL ERROR: failed to hash struct", "error", err)
 	}
 	h.Hash = fmt.Sprintf("%x", hash) // "uint64 values with high bit set are not supported"
 	return h

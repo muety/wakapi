@@ -4,10 +4,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"log/slog"
 )
 
 // due to an error in the model definition, idx_time_user used to only cover 'user_id', but not time column
@@ -25,7 +25,7 @@ func init() {
 
 			var drop bool
 			if cfg.Db.IsMssql() {
-				//mssql migrator doesn't support GetIndexes() currently
+				// mssql migrator doesn't support GetIndexes() currently
 				// mssql is implemented after this migration, so ignore it.
 				return nil
 			}
@@ -67,7 +67,7 @@ func init() {
 			if err := migrator.DropIndex(&models.Heartbeat{}, "idx_time_user"); err != nil {
 				return err
 			}
-			logbuch.Info("index 'idx_time_user' needs to be recreated, this may take a while")
+			slog.Info("index 'idx_time_user' needs to be recreated, this may take a while")
 
 			return nil
 		},

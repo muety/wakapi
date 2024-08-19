@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"github.com/emvi/logbuch"
+	"log/slog"
 	"runtime"
 )
 
@@ -12,7 +12,7 @@ func WithRecovery(fn func(...interface{}), args ...interface{}) (err error) {
 		if r := recover(); r != nil {
 			stackbuf := make([]byte, 1<<16)
 			err = fmt.Errorf("got panic: %v\n%s", r, stackbuf[:runtime.Stack(stackbuf, false)])
-			logbuch.Error(err.Error())
+			slog.Error(err.Error())
 		}
 	}()
 	fn(args...)

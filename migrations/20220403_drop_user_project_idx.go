@@ -1,10 +1,10 @@
 package migrations
 
 import (
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"log/slog"
 )
 
 // migration to fix https://github.com/muety/wakapi/issues/346
@@ -25,9 +25,9 @@ func init() {
 			}
 
 			if cfg.Db.IsSQLite() && db.Migrator().HasIndex(&models.Heartbeat{}, idxName) {
-				logbuch.Info("running migration '%s'", name)
+				slog.Info("running migration '%s'", name)
 				if err := db.Migrator().DropIndex(&models.Heartbeat{}, idxName); err != nil {
-					logbuch.Warn("failed to drop %s", idxName)
+					slog.Warn("failed to drop %s", idxName)
 				}
 			}
 

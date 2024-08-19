@@ -2,10 +2,10 @@ package migrations
 
 import (
 	"database/sql"
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"log/slog"
 )
 
 func init() {
@@ -17,7 +17,7 @@ func init() {
 				return nil
 			}
 
-			logbuch.Info("this may take a while!")
+			slog.Info("this may take a while!")
 
 			// this turns out to actually be way faster than using joins and instead has the benefit of being cross-dialect compatible
 
@@ -35,7 +35,7 @@ func init() {
 			}
 			if err := tx.Commit().Error; err != nil {
 				tx.Rollback()
-				logbuch.Error("failed to retroactively determine total summary heartbeats")
+				slog.Error("failed to retroactively determine total summary heartbeats")
 				return err
 			}
 

@@ -3,9 +3,9 @@ package services
 import (
 	"errors"
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
-	"github.com/emvi/logbuch"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -48,7 +48,7 @@ type AggregationJob struct {
 
 // Schedule a job to (re-)generate summaries every day shortly after midnight
 func (srv *AggregationService) Schedule() {
-	logbuch.Info("scheduling summary aggregation")
+	slog.Info("scheduling summary aggregation")
 
 	if _, err := srv.queueDefault.DispatchCron(func() {
 		if err := srv.AggregateSummaries(datastructure.New[string]()); err != nil {
@@ -65,7 +65,7 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 	}
 	defer srv.unlockUsers(userIds)
 
-	logbuch.Info("generating summaries")
+	slog.Info("generating summaries")
 
 	// Get a map from user ids to the time of their latest summary or nil if none exists yet
 	lastUserSummaryTimes, err := srv.summaryService.GetLatestByUser()
@@ -140,7 +140,7 @@ func (srv *AggregationService) process(job AggregationJob) {
 	if summary, err := srv.summaryService.Summarize(job.From, job.To, job.User, nil); err != nil {
 		config.Log().Error("failed to generate summary (%v, %v, %s) - %v", job.From, job.To, job.User.ID, err)
 	} else {
-		logbuch.Info("successfully generated summary (%v, %v, %s)", job.From, job.To, job.User.ID)
+		slog.Info("successfully generated summary (%v, %v, %s)", job.From, job.To, job.User.ID)
 		if err := srv.summaryService.Insert(summary); err != nil {
 			config.Log().Error("failed to save summary (%v, %v, %s) - %v", summary.UserID, summary.FromTime, summary.ToTime, err)
 		}

@@ -11,11 +11,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/emvi/logbuch"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
+	"log/slog"
 )
 
 // data example: https://github.com/muety/wakapi/issues/323#issuecomment-1627467052
@@ -36,7 +36,7 @@ func NewWakatimeDumpImporter(apiKey string) *WakatimeDumpImporter {
 
 func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxTo time.Time) (<-chan *models.Heartbeat, error) {
 	out := make(chan *models.Heartbeat)
-	logbuch.Info("running wakatime dump import for user '%s'", user.ID)
+	slog.Info("running wakatime dump import for user", "userID", user.ID)
 
 	url := config.WakatimeApiUrl + config.WakatimeApiDataDumpUrl // this importer only works with wakatime currently, so no point in using user's custom wakatime api url
 	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer([]byte(`{ "type": "heartbeats", "email_when_finished": false }`)))
@@ -50,7 +50,7 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 		// in case of this error message, a dump had already been requested before and can simply be downloaded now
 		// -> just keep going as usual (kick off poll loop), otherwise yield error
 		if datadumpError.Error == "Wait for your current export to expire before creating another." {
-			logbuch.Info("failed to request new dump, because other non-expired dump already existing, using that one")
+			slog.Info("failed to request new dump, because other non-expired dump already existing, using that one")
 		} else {
 			return nil, err
 		}
@@ -102,7 +102,7 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 		}
 		defer res.Body.Close()
 
-		logbuch.Info("fetched %d bytes data dump for user '%s'", res.ContentLength, user.ID)
+		slog.Info("fetched data dump for users in bytes", "userID", user.ID, "contentLength", res.ContentLength)
 
 		// decode
 		var data wakatime.JsonExportViewModel
@@ -142,7 +142,7 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 		if err != nil {
 			onDumpFailed(err, &u)
 		} else if ok {
-			logbuch.Info("waiting for data dump '%s' for user '%s' to become downloadable (%.2f percent complete)", dump.Id, u.ID, dump.PercentComplete)
+			slog.Info("waiting for data dump to become downloadable", "userID", u.ID, "dumpID", dump.Id, "percentComplete", dump.PercentComplete)
 			onDumpReady(dump, &u, out)
 		}
 	}, 10*time.Second)

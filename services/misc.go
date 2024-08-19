@@ -3,11 +3,11 @@ package services
 import (
 	"fmt"
 	"github.com/duke-git/lancet/v2/slice"
-	"github.com/emvi/logbuch"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
 	"go.uber.org/atomic"
+	"log/slog"
 	"strconv"
 	"strings"
 	"sync"
@@ -56,18 +56,18 @@ func NewMiscService(userService IUserService, heartbeatService IHeartbeatService
 }
 
 func (srv *MiscService) Schedule() {
-	logbuch.Info("scheduling total time counting")
+	slog.Info("scheduling total time counting")
 	if _, err := srv.queueDefault.DispatchEvery(srv.CountTotalTime, countUsersEvery); err != nil {
 		config.Log().Error("failed to schedule user counting jobs, %v", err)
 	}
 
-	logbuch.Info("scheduling first data computing")
+	slog.Info("scheduling first data computing")
 	if _, err := srv.queueDefault.DispatchEvery(srv.ComputeOldestHeartbeats, computeOldestDataEvery); err != nil {
 		config.Log().Error("failed to schedule first data computing jobs, %v", err)
 	}
 
 	if srv.config.Subscriptions.Enabled && srv.config.Subscriptions.ExpiryNotifications && srv.config.App.DataRetentionMonths > 0 {
-		logbuch.Info("scheduling subscription notifications")
+		slog.Info("scheduling subscription notifications")
 		if _, err := srv.queueDefault.DispatchEvery(srv.NotifyExpiringSubscription, notifyExpiringSubscriptionsEvery); err != nil {
 			config.Log().Error("failed to schedule subscription notification jobs, %v", err)
 		}
@@ -92,7 +92,7 @@ func (srv *MiscService) Schedule() {
 }
 
 func (srv *MiscService) CountTotalTime() {
-	logbuch.Info("counting users total time")
+	slog.Info("counting users total time")
 	if ok := countLock.TryLock(); !ok {
 		config.Log().Warn("couldn't acquire lock for counting users total time, job is still pending")
 	}
@@ -142,7 +142,7 @@ func (srv *MiscService) CountTotalTime() {
 }
 
 func (srv *MiscService) ComputeOldestHeartbeats() {
-	logbuch.Info("computing users' first data")
+	slog.Info("computing users' first data")
 
 	if err := srv.queueWorkers.Dispatch(func() {
 		if ok := firstDataLock.TryLock(); !ok {
@@ -189,7 +189,7 @@ func (srv *MiscService) NotifyExpiringSubscription() {
 	}
 
 	now := time.Now()
-	logbuch.Info("notifying users about soon to expire subscriptions")
+	slog.Info("notifying users about soon to expire subscriptions")
 
 	users, err := srv.userService.GetAll()
 	if err != nil {
@@ -250,7 +250,7 @@ func (srv *MiscService) countUserTotalTime(userId string) time.Duration {
 func (srv *MiscService) sendSubscriptionNotificationScheduled(user *models.User, hasExpired bool) {
 	u := *user
 	srv.queueMails.Dispatch(func() {
-		logbuch.Info("sending subscription expiry notification mail to %s (expired: %v)", u.ID, hasExpired)
+		slog.Info("sending subscription expiry notification mail to %s (expired: %v)", u.ID, hasExpired)
 		defer time.Sleep(10 * time.Second)
 
 		if err := srv.mailService.SendSubscriptionNotification(&u, hasExpired); err != nil {

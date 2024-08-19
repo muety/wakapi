@@ -1,9 +1,9 @@
 package migrations
 
 import (
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"gorm.io/gorm"
+	"log/slog"
 )
 
 func init() {
@@ -15,7 +15,7 @@ func init() {
 				return nil
 			}
 
-			logbuch.Info("this may take a while!")
+			slog.Info("this may take a while!")
 
 			if cfg.Db.IsMySQL() {
 				tx := db.Begin()
@@ -40,7 +40,7 @@ func init() {
 			} else {
 				// sqlite doesn't allow for changing column type easily
 				// https://stackoverflow.com/a/2083562/3112139
-				logbuch.Warn("unable to migrate id columns to bigint on %s", cfg.Db.Dialect)
+				slog.Warn("unable to migrate id columns to bigint on %s", cfg.Db.Dialect)
 			}
 
 			setHasRun(name, db)

@@ -3,7 +3,6 @@ package api
 import (
 	"errors"
 	"github.com/alitto/pond"
-	"github.com/emvi/logbuch"
 	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
@@ -14,6 +13,7 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
+	"log/slog"
 	"net/http"
 	"runtime"
 	"sort"
@@ -87,7 +87,7 @@ func (h *MetricsHandler) RegisterRoutes(router chi.Router) {
 		return
 	}
 
-	logbuch.Info("exposing prometheus metrics under /api/metrics")
+	slog.Info("exposing prometheus metrics under /api/metrics")
 
 	r := chi.NewRouter()
 	r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler)
@@ -349,7 +349,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 	// Database metrics
 	dbSize, err := h.metricsRepo.GetDatabaseSize()
 	if err != nil {
-		logbuch.Warn("failed to get database size (%v)", err)
+		slog.Warn("failed to get database size (%v)", err)
 	}
 
 	metrics = append(metrics, &mm.GaugeMetric{
@@ -383,7 +383,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 	var metrics mm.Metrics
 
 	t0 := time.Now()
-	logbuch.Debug("[metrics] start admin metrics calculation")
+	slog.Debug("[metrics] start admin metrics calculation")
 
 	if !user.IsAdmin {
 		return nil, errors.New("unauthorized")
@@ -398,14 +398,14 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 
 	totalUsers, _ := h.userSrvc.Count()
 	totalHeartbeats, _ := h.heartbeatSrvc.Count(true)
-	logbuch.Debug("[metrics] finished counting users and heartbeats after %v", time.Now().Sub(t0))
+	slog.Debug("[metrics] finished counting users and heartbeats after %v", time.Now().Sub(t0))
 
 	activeUsers, err := h.userSrvc.GetActive(false)
 	if err != nil {
 		conf.Log().Error("failed to retrieve active users for metric - %v", err)
 		return nil, err
 	}
-	logbuch.Debug("[metrics] finished getting active users after %v", time.Now().Sub(t0))
+	slog.Debug("[metrics] finished getting active users after %v", time.Now().Sub(t0))
 
 	metrics = append(metrics, &mm.GaugeMetric{
 		Name:   MetricsPrefix + "_admin_seconds_total",
@@ -451,7 +451,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 			Labels: []mm.Label{{Key: "user", Value: uc.User}},
 		})
 	}
-	logbuch.Debug("[metrics] finished counting heartbeats by user after %v", time.Now().Sub(t0))
+	slog.Debug("[metrics] finished counting heartbeats by user after %v", time.Now().Sub(t0))
 
 	// Get per-user total activity
 
@@ -480,7 +480,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 	}
 
 	wp.StopAndWait()
-	logbuch.Debug("[metrics] finished retrieving total activity time by user after %v", time.Now().Sub(t0))
+	slog.Debug("[metrics] finished retrieving total activity time by user after %v", time.Now().Sub(t0))
 
 	return &metrics, nil
 }

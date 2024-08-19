@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"github.com/emvi/logbuch"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
@@ -11,6 +10,8 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
+	"log"
+	"log/slog"
 	"reflect"
 	"strconv"
 	"strings"
@@ -43,7 +44,7 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 
 	scope, err := helpers.ParseInterval(srv.config.App.LeaderboardScope)
 	if err != nil {
-		logbuch.Fatal(err.Error())
+		log.Fatal(err.Error())
 	}
 	srv.defaultScope = scope
 
@@ -60,10 +61,10 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 			}
 
 			if user.PublicLeaderboard && !exists {
-				logbuch.Info("generating leaderboard for '%s' after settings update", user.ID)
+				slog.Info("generating leaderboard for '%s' after settings update", user.ID)
 				srv.ComputeLeaderboard([]*models.User{user}, srv.defaultScope, []uint8{models.SummaryLanguage})
 			} else if !user.PublicLeaderboard && exists {
-				logbuch.Info("clearing leaderboard for '%s' after settings update", user.ID)
+				slog.Info("clearing leaderboard for '%s' after settings update", user.ID)
 				if err := srv.repository.DeleteByUser(user.ID); err != nil {
 					config.Log().Error("failed to clear leaderboard for user '%s' - %v", user.ID, err)
 				}
@@ -80,7 +81,7 @@ func (srv *LeaderboardService) GetDefaultScope() *models.IntervalKey {
 }
 
 func (srv *LeaderboardService) Schedule() {
-	logbuch.Info("scheduling leaderboard generation")
+	slog.Info("scheduling leaderboard generation")
 
 	generate := func() {
 		users, err := srv.userService.GetAllByLeaderboard(true)
@@ -99,7 +100,7 @@ func (srv *LeaderboardService) Schedule() {
 }
 
 func (srv *LeaderboardService) ComputeLeaderboard(users []*models.User, interval *models.IntervalKey, by []uint8) error {
-	logbuch.Info("generating leaderboard (%s) for %d users (%d aggregations)", (*interval)[0], len(users), len(by))
+	slog.Info("generating leaderboard (%s) for %d users (%d aggregations)", (*interval)[0], len(users), len(by))
 
 	for _, user := range users {
 		if err := srv.repository.DeleteByUserAndInterval(user.ID, interval); err != nil {
@@ -137,7 +138,7 @@ func (srv *LeaderboardService) ComputeLeaderboard(users []*models.User, interval
 	}
 
 	srv.cache.Flush()
-	logbuch.Info("finished leaderboard generation")
+	slog.Info("finished leaderboard generation")
 	return nil
 }
 

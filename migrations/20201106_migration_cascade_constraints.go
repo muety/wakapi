@@ -1,10 +1,10 @@
 package migrations
 
 import (
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"log/slog"
 )
 
 func init() {
@@ -22,12 +22,12 @@ func init() {
 				// https://stackoverflow.com/a/1884893/3112139
 				// unfortunately, we can't migrate existing sqlite databases to the newly introduced cascade settings
 				// things like deleting all summaries won't work in those cases unless an entirely new db is created
-				logbuch.Info("not attempting to drop and regenerate constraints on sqlite")
+				slog.Info("not attempting to drop and regenerate constraints on sqlite")
 				return nil
 			}
 
 			if !migrator.HasTable(&models.KeyStringValue{}) {
-				logbuch.Info("key-value table not yet existing")
+				slog.Info("key-value table not yet existing")
 				return nil
 			}
 
@@ -51,7 +51,7 @@ func init() {
 
 			for name, table := range constraints {
 				if migrator.HasConstraint(table, name) {
-					logbuch.Info("dropping constraint '%s'", name)
+					slog.Info("dropping constraint '%s'", name)
 					if err := migrator.DropConstraint(table, name); err != nil {
 						return err
 					}

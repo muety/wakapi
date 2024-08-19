@@ -1,10 +1,10 @@
 package migrations
 
 import (
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"log/slog"
 )
 
 func init() {
@@ -38,14 +38,14 @@ func init() {
 			}
 
 			if cfg.Db.Dialect == config.SQLDialectSqlite {
-				logbuch.Info("not attempting to drop column 'badges_enabled' on sqlite")
+				slog.Info("not attempting to drop column 'badges_enabled' on sqlite")
 				return nil
 			}
 
 			if err := migrator.DropColumn(&models.User{}, "badges_enabled"); err != nil {
 				return err
 			}
-			logbuch.Info("dropped column 'badges_enabled' after substituting it by sharing indicators")
+			slog.Info("dropped column 'badges_enabled' after substituting it by sharing indicators")
 
 			return nil
 		},

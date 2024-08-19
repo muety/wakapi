@@ -13,11 +13,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
 	"go.uber.org/atomic"
+	"log/slog"
 )
 
 const OriginWakatime = "wakatime"
@@ -47,7 +47,7 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 	out := make(chan *models.Heartbeat)
 
 	process := func(user *models.User, minFrom time.Time, maxTo time.Time, out chan *models.Heartbeat) {
-		logbuch.Info("running wakatime import for user '%s'", user.ID)
+		slog.Info("running wakatime import for user", "userID", user.ID)
 
 		baseUrl := user.WakaTimeURL(config.WakatimeApiUrl)
 
@@ -117,10 +117,10 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 	}
 
 	if minDataAge := user.MinDataAge(); minFrom.Before(minDataAge) {
-		logbuch.Info("wakatime data import for user '%s' capped to [%v, &v]", user.ID, minDataAge, maxTo)
+		slog.Info("wakatime data import for user capped", "userID", user.ID, "capped to", fmt.Sprintf("[%v, %v]", minDataAge, maxTo))
 	}
 
-	logbuch.Info("scheduling wakatime import for user '%s' (interval [%v, %v])", user.ID, minFrom, maxTo)
+	slog.Info("scheduling wakatime import for user", "userID", user.ID, "interval", fmt.Sprintf("[%v, %v]", minFrom, maxTo))
 	if err := w.queue.Dispatch(func() {
 		process(user, minFrom, maxTo, out)
 	}); err != nil {

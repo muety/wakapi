@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/duke-git/lancet/v2/convertor"
 	"github.com/duke-git/lancet/v2/datetime"
-	"github.com/emvi/logbuch"
 	"github.com/gofrs/uuid/v5"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
@@ -13,6 +12,7 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
+	"log/slog"
 	"time"
 )
 
@@ -39,7 +39,7 @@ func NewUserService(mailService IMailService, userRepo repositories.IUserReposit
 			user := m.Fields[config.FieldUser].(*models.User)
 			n := m.Fields[config.FieldPayload].(int)
 
-			logbuch.Warn("resetting wakatime api key for user %s, because of too many failures (%d)", user.ID, n)
+			slog.Warn("resetting wakatime api key for user %s, because of too many failures (%d)", user.ID, n)
 
 			if _, err := srv.SetWakatimeApiCredentials(user, "", ""); err != nil {
 				config.Log().Error("failed to set wakatime api key for user %s", user.ID)
@@ -49,7 +49,7 @@ func NewUserService(mailService IMailService, userRepo repositories.IUserReposit
 				if err := mailService.SendWakatimeFailureNotification(user, n); err != nil {
 					config.Log().Error("failed to send wakatime failure notification mail to user %s", user.ID)
 				} else {
-					logbuch.Info("sent wakatime connection failure mail to %s", user.ID)
+					slog.Info("sent wakatime connection failure mail to %s", user.ID)
 				}
 			}
 		}

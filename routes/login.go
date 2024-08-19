@@ -3,7 +3,6 @@ package routes
 import (
 	"fmt"
 	"github.com/dchest/captcha"
-	"github.com/emvi/logbuch"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httprate"
 	conf "github.com/muety/wakapi/config"
@@ -13,6 +12,7 @@ import (
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -341,7 +341,7 @@ func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request)
 				if err := h.mailSrvc.SendPasswordReset(user, link); err != nil {
 					conf.Log().Request(r).Error("failed to send password reset mail to %s - %v", user.ID, err)
 				} else {
-					logbuch.Info("sent password reset mail to %s", user.ID)
+					slog.Info("sent password reset mail to %s", user.ID)
 				}
 			}(u)
 		}

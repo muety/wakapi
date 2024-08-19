@@ -3,13 +3,13 @@ package services
 import (
 	"errors"
 	"github.com/duke-git/lancet/v2/datetime"
-	"github.com/emvi/logbuch"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/repositories"
 	"github.com/patrickmn/go-cache"
+	"log/slog"
 	"sort"
 	"strings"
 	"time"
@@ -293,7 +293,7 @@ func (srv *SummaryService) withProjectLabels(summary *models.Summary) *models.Su
 			totalLabelTime += p.Total
 		}
 	}
-	//labelMap[models.DefaultProjectLabel] = newEntry(models.DefaultProjectLabel, summary.TotalTimeBy(models.SummaryProject) / time.Second-totalLabelTime)
+	// labelMap[models.DefaultProjectLabel] = newEntry(models.DefaultProjectLabel, summary.TotalTimeBy(models.SummaryProject) / time.Second-totalLabelTime)
 
 	labels := make([]*models.SummaryItem, 0, len(labelMap))
 	for _, v := range labelMap {
@@ -335,13 +335,13 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 	for i, s := range summaries {
 		hash := s.FromTime.T()
 		if _, found := processed[hash]; found {
-			logbuch.Warn("summary from %v to %v (user '%s') was attempted to be processed more often than once", s.FromTime, s.ToTime, s.UserID)
+			slog.Warn("summary from %v to %v (user '%s') was attempted to be processed more often than once", s.FromTime, s.ToTime, s.UserID)
 			continue
 		}
 
 		if i > 0 {
 			if prev := summaries[i-1]; s.FromTime.T().Before(prev.ToTime.T()) {
-				logbuch.Warn("got overlapping summaries (ids %d, %d) for user '%s' from %v (current.from) to %v (previous.to)", prev.ID, s.ID, s.UserID, s.FromTime, prev.ToTime)
+				slog.Warn("got overlapping summaries (ids %d, %d) for user '%s' from %v (current.from) to %v (previous.to)", prev.ID, s.ID, s.UserID, s.FromTime, prev.ToTime)
 			}
 		}
 

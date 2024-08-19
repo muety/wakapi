@@ -13,7 +13,6 @@ import (
 	"time"
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
-	"github.com/emvi/logbuch"
 	"github.com/gorilla/schema"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -23,6 +22,7 @@ import (
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/services/imports"
 	"github.com/muety/wakapi/utils"
+	"log/slog"
 )
 
 const criticalError = "a critical error has occurred, sorry"
@@ -118,7 +118,7 @@ func (h *SettingsHandler) PostIndex(w http.ResponseWriter, r *http.Request) {
 
 	actionFunc := h.dispatchAction(action)
 	if actionFunc == nil {
-		logbuch.Warn("failed to dispatch action '%s'", action)
+		slog.Warn("failed to dispatch action '%s'", action)
 		w.WriteHeader(http.StatusBadRequest)
 		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w, nil).WithError("unknown action requests"))
 		return
@@ -637,7 +637,7 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 
 		insert := func(batch []*models.Heartbeat) {
 			if err := h.heartbeatSrvc.InsertBatch(batch); err != nil {
-				logbuch.Warn("failed to insert imported heartbeat, already existing? - %v", err)
+				slog.Warn("failed to insert imported heartbeat, already existing? - %v", err)
 			}
 		}
 
@@ -655,7 +655,7 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 		}
 
 		countAfter, _ := h.heartbeatSrvc.CountByUser(user)
-		logbuch.Info("downloaded %d heartbeats for user '%s' (%d actually imported)", count, user.ID, countAfter-countBefore)
+		slog.Info("downloaded %d heartbeats for user '%s' (%d actually imported)", count, user.ID, countAfter-countBefore)
 
 		h.regenerateSummaries(user)
 
@@ -670,7 +670,7 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 			if err := h.mailSrvc.SendImportNotification(user, time.Now().Sub(start), int(countAfter-countBefore)); err != nil {
 				conf.Log().Request(r).Error("failed to send import notification mail to %s - %v", user.ID, err)
 			} else {
-				logbuch.Info("sent import notification mail to %s", user.ID)
+				slog.Info("sent import notification mail to %s", user.ID)
 			}
 		}
 	}(user)
@@ -711,15 +711,15 @@ func (h *SettingsHandler) actionClearData(w http.ResponseWriter, r *http.Request
 	}
 
 	user := middlewares.GetPrincipal(r)
-	logbuch.Info("user '%s' requested to delete all data", user.ID)
+	slog.Info("user '%s' requested to delete all data", user.ID)
 
 	go func(user *models.User) {
-		logbuch.Info("deleting summaries for user '%s'", user.ID)
+		slog.Info("deleting summaries for user '%s'", user.ID)
 		if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
 			conf.Log().Request(r).Error("failed to clear summaries: %v", err)
 		}
 
-		logbuch.Info("deleting heartbeats for user '%s'", user.ID)
+		slog.Info("deleting heartbeats for user '%s'", user.ID)
 		if err := h.heartbeatSrvc.DeleteByUser(user); err != nil {
 			conf.Log().Request(r).Error("failed to clear heartbeats: %v", err)
 		}
@@ -735,12 +735,12 @@ func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Reques
 
 	user := middlewares.GetPrincipal(r)
 	go func(user *models.User) {
-		logbuch.Info("deleting user '%s' shortly", user.ID)
+		slog.Info("deleting user '%s' shortly", user.ID)
 		time.Sleep(5 * time.Minute)
 		if err := h.userSrvc.Delete(user); err != nil {
 			conf.Log().Request(r).Error("failed to delete user '%s' - %v", user.ID, err)
 		} else {
-			logbuch.Info("successfully deleted user '%s'", user.ID)
+			slog.Info("successfully deleted user '%s'", user.ID)
 		}
 	}(user)
 
@@ -806,7 +806,7 @@ func (h *SettingsHandler) validateWakatimeKey(apiKey string, baseUrl string) boo
 }
 
 func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
-	logbuch.Info("clearing summaries for user '%s'", user.ID)
+	slog.Info("clearing summaries for user '%s'", user.ID)
 	if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
 		conf.Log().Error("failed to clear summaries: %v", err)
 		return err

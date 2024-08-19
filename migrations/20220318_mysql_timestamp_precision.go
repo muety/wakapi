@@ -1,9 +1,9 @@
 package migrations
 
 import (
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"gorm.io/gorm"
+	"log/slog"
 )
 
 func init() {
@@ -16,7 +16,7 @@ func init() {
 			}
 
 			if cfg.Db.IsMySQL() {
-				logbuch.Info("altering heartbeats table, this may take a while (up to hours)")
+				slog.Info("altering heartbeats table, this may take a while (up to hours)")
 
 				db.Exec("SET foreign_key_checks=0;")
 				db.Exec("SET unique_checks=0;")
@@ -29,7 +29,7 @@ func init() {
 				db.Exec("SET foreign_key_checks=1;")
 				db.Exec("SET unique_checks=1;")
 
-				logbuch.Info("migrated timestamp columns to millisecond precision")
+				slog.Info("migrated timestamp columns to millisecond precision")
 			}
 
 			setHasRun(name, db)

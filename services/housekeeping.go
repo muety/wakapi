@@ -2,11 +2,11 @@ package services
 
 import (
 	"github.com/duke-git/lancet/v2/slice"
-	"github.com/emvi/logbuch"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
+	"log/slog"
 	"time"
 )
 
@@ -37,9 +37,9 @@ func (s *HousekeepingService) Schedule() {
 }
 
 func (s *HousekeepingService) CleanUserDataBefore(user *models.User, before time.Time) error {
-	logbuch.Warn("cleaning up user data for '%s' older than %v", user.ID, before)
+	slog.Warn("cleaning up user data for '%s' older than %v", user.ID, before)
 	if s.config.App.DataCleanupDryRun {
-		logbuch.Info("skipping actual data deletion for '%v', because this is just a dry run", user.ID)
+		slog.Info("skipping actual data deletion for '%v', because this is just a dry run", user.ID)
 		return nil
 	}
 
@@ -49,7 +49,7 @@ func (s *HousekeepingService) CleanUserDataBefore(user *models.User, before time
 	}
 
 	// clear old summaries
-	logbuch.Info("clearing summaries for user '%s' older than %v", user.ID, before)
+	slog.Info("clearing summaries for user '%s' older than %v", user.ID, before)
 	if err := s.summarySrvc.DeleteByUserBefore(user.ID, before); err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (s *HousekeepingService) CleanUserDataBefore(user *models.User, before time
 }
 
 func (s *HousekeepingService) CleanInactiveUsers(before time.Time) error {
-	logbuch.Info("cleaning up users inactive since %v", before)
+	slog.Info("cleaning up users inactive since %v", before)
 	users, err := s.userSrvc.GetAll()
 	if err != nil {
 		return err
@@ -70,20 +70,20 @@ func (s *HousekeepingService) CleanInactiveUsers(before time.Time) error {
 			continue
 		}
 
-		logbuch.Warn("deleting user '%s', because inactive and not having data", u.ID)
+		slog.Warn("deleting user '%s', because inactive and not having data", u.ID)
 		if err := s.userSrvc.Delete(u); err != nil {
 			config.Log().Error("failed to delete user '%s'", u.ID)
 		} else {
 			i++
 		}
 	}
-	logbuch.Info("deleted %d (of %d total) users due to inactivity", i, len(users))
+	slog.Info("deleted %d (of %d total) users due to inactivity", i, len(users))
 
 	return nil
 }
 
 func (s *HousekeepingService) WarmUserProjectStatsCache(user *models.User) error {
-	logbuch.Info("pre-warming project stats cache for '%s'", user.ID)
+	slog.Info("pre-warming project stats cache for '%s'", user.ID)
 	if _, err := s.heartbeatSrvc.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), nil, true); err != nil {
 		config.Log().Error("failed to pre-warm project stats cache for '%s', %v", user.ID, err)
 	}
@@ -165,7 +165,7 @@ func (s *HousekeepingService) scheduleDataCleanups() {
 		return
 	}
 
-	logbuch.Info("scheduling data cleanup")
+	slog.Info("scheduling data cleanup")
 
 	_, err := s.queueDefault.DispatchCron(s.runCleanData, s.config.App.DataCleanupTime)
 	if err != nil {
@@ -178,7 +178,7 @@ func (s *HousekeepingService) scheduleInactiveUsersCleanup() {
 		return
 	}
 
-	logbuch.Info("scheduling inactive users cleanup")
+	slog.Info("scheduling inactive users cleanup")
 
 	_, err := s.queueDefault.DispatchCron(s.runCleanInactiveUsers, s.config.App.DataCleanupTime)
 	if err != nil {
@@ -187,7 +187,7 @@ func (s *HousekeepingService) scheduleInactiveUsersCleanup() {
 }
 
 func (s *HousekeepingService) scheduleProjectStatsCacheWarming() {
-	logbuch.Info("scheduling project stats cache pre-warming")
+	slog.Info("scheduling project stats cache pre-warming")
 
 	_, err := s.queueDefault.DispatchEvery(s.runWarmProjectStatsCache, 12*time.Hour)
 	if err != nil {

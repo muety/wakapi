@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/emvi/logbuch"
 	"github.com/go-chi/chi/v5"
 	"github.com/leandro-lugaresi/hub"
 	conf "github.com/muety/wakapi/config"
@@ -20,6 +19,8 @@ import (
 	stripeSubscription "github.com/stripe/stripe-go/v74/subscription"
 	"github.com/stripe/stripe-go/v74/webhook"
 	"io"
+	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -58,11 +59,11 @@ func NewSubscriptionHandler(
 
 		price, err := stripePrice.Get(config.Subscriptions.StandardPriceId, nil)
 		if err != nil {
-			logbuch.Fatal("failed to fetch stripe plan details: %v", err)
+			log.Fatal("failed to fetch stripe plan details: %v", err)
 		}
 		config.Subscriptions.StandardPrice = strings.TrimSpace(fmt.Sprintf("%2.f €", price.UnitAmountDecimal/100.0)) // TODO: respect actual currency
 
-		logbuch.Info("enabling subscriptions with stripe payment for %s / month", config.Subscriptions.StandardPrice)
+		slog.Info("enabling subscriptions with stripe payment for %s / month", config.Subscriptions.StandardPrice)
 	}
 
 	handler := &SubscriptionHandler{
@@ -81,9 +82,9 @@ func NewSubscriptionHandler(
 				continue
 			}
 
-			logbuch.Info("cancelling subscription for user '%s' (email '%s', stripe customer '%s') upon account deletion", user.ID, user.Email, user.StripeCustomerId)
+			slog.Info("cancelling subscription for user '%s' (email '%s', stripe customer '%s') upon account deletion", user.ID, user.Email, user.StripeCustomerId)
 			if err := handler.cancelUserSubscription(user); err == nil {
-				logbuch.Info("successfully cancelled subscription for user '%s' (email '%s', stripe customer '%s')", user.ID, user.Email, user.StripeCustomerId)
+				slog.Info("successfully cancelled subscription for user '%s' (email '%s', stripe customer '%s')", user.ID, user.Email, user.StripeCustomerId)
 			} else {
 				conf.Log().Error("failed to cancel subscription for user '%s' (email '%s', stripe customer '%s') - %v", user.ID, user.Email, user.StripeCustomerId, err)
 			}
@@ -222,7 +223,7 @@ func (h *SubscriptionHandler) PostWebhook(w http.ResponseWriter, r *http.Request
 		if err != nil {
 			return // status code already written
 		}
-		logbuch.Info("received stripe subscription event of type '%s' for subscription '%s' (customer '%s').", event.Type, subscription.ID, subscription.Customer.ID)
+		slog.Info("received stripe subscription event of type '%s' for subscription '%s' (customer '%s').", event.Type, subscription.ID, subscription.Customer.ID)
 
 		// first, try to get user by associated customer id (requires checkout.session.completed event to have been processed before)
 		user, err := h.userSrvc.GetUserByStripeCustomerId(subscription.Customer.ID)
@@ -258,7 +259,7 @@ func (h *SubscriptionHandler) PostWebhook(w http.ResponseWriter, r *http.Request
 		if err != nil {
 			return // status code already written
 		}
-		logbuch.Info("received stripe checkout session event of type '%s' for session '%s' (customer '%s' with email '%s').", event.Type, checkoutSession.ID, checkoutSession.Customer.ID, checkoutSession.CustomerEmail)
+		slog.Info("received stripe checkout session event of type '%s' for session '%s' (customer '%s' with email '%s').", event.Type, checkoutSession.ID, checkoutSession.Customer.ID, checkoutSession.CustomerEmail)
 
 		user, err := h.userSrvc.GetUserById(checkoutSession.ClientReferenceID)
 		if err != nil {
@@ -271,14 +272,14 @@ func (h *SubscriptionHandler) PostWebhook(w http.ResponseWriter, r *http.Request
 			if _, err := h.userSrvc.Update(user); err != nil {
 				conf.Log().Request(r).Error("failed to update stripe customer id (%s) for user '%s', %v", checkoutSession.Customer.ID, user.ID, err)
 			} else {
-				logbuch.Info("associated user '%s' with stripe customer '%s'", user.ID, checkoutSession.Customer.ID)
+				slog.Info("associated user '%s' with stripe customer '%s'", user.ID, checkoutSession.Customer.ID)
 			}
 		} else if user.StripeCustomerId != checkoutSession.Customer.ID {
 			conf.Log().Request(r).Error("invalid state: tried to associate user '%s' with stripe customer '%s', but '%s' already assigned", user.ID, checkoutSession.Customer.ID, user.StripeCustomerId)
 		}
 
 	default:
-		logbuch.Warn("got stripe event '%s' with no handler defined", event.Type)
+		slog.Warn("got stripe event '%s' with no handler defined", event.Type)
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -304,19 +305,19 @@ func (h *SubscriptionHandler) handleSubscriptionEvent(subscription *stripe.Subsc
 			hasSubscribed = true
 			user.SubscribedUntil = &until
 			user.SubscriptionRenewal = &until
-			logbuch.Info("user %s got active subscription %s until %v", user.ID, subscription.ID, user.SubscribedUntil)
+			slog.Info("user %s got active subscription %s until %v", user.ID, subscription.ID, user.SubscribedUntil)
 		}
 
 		if cancelAt := time.Unix(subscription.CancelAt, 0); !cancelAt.IsZero() && cancelAt.After(time.Now()) {
 			user.SubscriptionRenewal = nil
-			logbuch.Info("user %s chose to cancel subscription %s by %v", user.ID, subscription.ID, cancelAt)
+			slog.Info("user %s chose to cancel subscription %s by %v", user.ID, subscription.ID, cancelAt)
 		}
 	case "canceled", "unpaid", "incomplete_expired":
 		user.SubscribedUntil = nil
 		user.SubscriptionRenewal = nil
-		logbuch.Info("user %s's subscription %s got canceled, because of status update to '%s'", user.ID, subscription.ID, subscription.Status)
+		slog.Info("user %s's subscription %s got canceled, because of status update to '%s'", user.ID, subscription.ID, subscription.Status)
 	default:
-		logbuch.Info("got subscription (%s) status update to '%s' for user '%s'", subscription.ID, subscription.Status, user.ID)
+		slog.Info("got subscription (%s) status update to '%s' for user '%s'", subscription.ID, subscription.Status, user.ID)
 		return nil
 	}
 
@@ -398,6 +399,6 @@ func (h *SubscriptionHandler) findCurrentStripeSubscription(customerId string) (
 func (h *SubscriptionHandler) clearSubscriptionNotificationStatus(userId string) {
 	key := fmt.Sprintf("%s_%s", conf.KeySubscriptionNotificationSent, userId)
 	if err := h.keyValueSrvc.DeleteString(key); err != nil {
-		logbuch.Warn("failed to delete '%s', %v", key, err)
+		slog.Warn("failed to delete '%s', %v", key, err)
 	}
 }
