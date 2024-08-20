@@ -62,7 +62,7 @@ func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	err := m.filterByCache(r)
 	if err != nil {
-		slog.Warn("%v", err)
+		slog.Warn("filter cache error", "error", err)
 		return
 	}
 
@@ -104,7 +104,7 @@ func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reque
 func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, headers http.Header, forUser *models.User) {
 	request, err := http.NewRequest(method, url, body)
 	if err != nil {
-		slog.Warn("error constructing relayed request - %v", err)
+		slog.Warn("error constructing relayed request", "error", err)
 		return
 	}
 
@@ -116,12 +116,12 @@ func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, heade
 
 	response, err := m.httpClient.Do(request)
 	if err != nil {
-		slog.Warn("error executing relayed request - %v", err)
+		slog.Warn("error executing relayed request", "error", err)
 		return
 	}
 
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		slog.Warn("failed to relay request for user %s, got status %d", forUser.ID, response.StatusCode)
+		slog.Warn("failed to relay request for user", "userID", forUser.ID, "statusCode", response.StatusCode)
 
 		// TODO: use leaky bucket instead of expiring cache?
 		if _, found := m.failureCache.Get(forUser.ID); !found {
@@ -133,7 +133,7 @@ func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, heade
 				Fields: map[string]interface{}{config.FieldUser: forUser, config.FieldPayload: n},
 			})
 		} else if n%10 == 0 {
-			slog.Warn("%d / %d failed wakatime heartbeat relaying attempts for user %s within last 24 hours", n, maxFailuresPerDay, forUser.ID)
+			slog.Warn("failed wakatime heartbeat relaying attempts for user", "failedCount", n, "maxFailures", maxFailuresPerDay, "userID", forUser.ID)
 		}
 	}
 }
@@ -182,7 +182,7 @@ func (m *WakatimeRelayMiddleware) filterByCache(r *http.Request) error {
 
 	if len(newData) != len(heartbeats) {
 		user := middlewares.GetPrincipal(r)
-		slog.Warn("only relaying %d of %d heartbeats for user %s", len(newData), len(heartbeats), user.ID)
+		slog.Warn("only relaying partial heartbeats for user", "relayedCount", len(newData), "totalCount", len(heartbeats), "userID", user.ID)
 	}
 
 	buf := bytes.Buffer{}

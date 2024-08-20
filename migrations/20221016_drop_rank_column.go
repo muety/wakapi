@@ -19,10 +19,10 @@ func init() {
 			migrator := db.Migrator()
 
 			if migrator.HasTable(&models.LeaderboardItem{}) && migrator.HasColumn(&models.LeaderboardItem{}, "rank") {
-				slog.Info("running migration '%s'", name)
+				slog.Info("running migration", "name", name)
 
 				if err := migrator.DropColumn(&models.LeaderboardItem{}, "rank"); err != nil {
-					slog.Warn("failed to drop 'rank' column (%v)", err)
+					slog.Warn("failed to drop column", "column", "rank", "error", err)
 				}
 			}
 

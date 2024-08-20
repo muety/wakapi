@@ -140,7 +140,7 @@ func (srv *AggregationService) process(job AggregationJob) {
 	if summary, err := srv.summaryService.Summarize(job.From, job.To, job.User, nil); err != nil {
 		config.Log().Error("failed to generate summary (%v, %v, %s) - %v", job.From, job.To, job.User.ID, err)
 	} else {
-		slog.Info("successfully generated summary (%v, %v, %s)", job.From, job.To, job.User.ID)
+		slog.Info("successfully generated summary", "from", job.From, "to", job.To, "userID", job.User.ID)
 		if err := srv.summaryService.Insert(summary); err != nil {
 			config.Log().Error("failed to save summary (%v, %v, %s) - %v", summary.UserID, summary.FromTime, summary.ToTime, err)
 		}

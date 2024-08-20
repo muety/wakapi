@@ -15,7 +15,7 @@ func init() {
 				return nil
 			}
 
-			slog.Info("running migration '%s'", name)
+			slog.Info("running migration", "name", name)
 
 			if err := db.Exec("UPDATE heartbeats SET language = 'Astro' where language = '' and entity like '%.astro'").Error; err != nil {
 				return err

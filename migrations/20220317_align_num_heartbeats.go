@@ -45,7 +45,7 @@ func init() {
 				return err
 			}
 
-			slog.Info("corrected heartbeats counter of %d summaries", result.RowsAffected)
+			slog.Info("corrected heartbeats counter of summaries", "count", result.RowsAffected)
 
 			setHasRun(name, db)
 			return nil

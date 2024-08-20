@@ -51,7 +51,7 @@ func init() {
 
 			for name, table := range constraints {
 				if migrator.HasConstraint(table, name) {
-					slog.Info("dropping constraint '%s'", name)
+					slog.Info("dropping constraint", "name", name)
 					if err := migrator.DropConstraint(table, name); err != nil {
 						return err
 					}

@@ -16,12 +16,12 @@ func init() {
 			oldIndexName, newIndexName := "idx_customrule_user", "idx_language_mapping_user"
 
 			if migrator.HasTable(oldTableName) {
-				slog.Info("renaming '%s' table to '%s'", oldTableName, newTableName)
+				slog.Info("renaming table", "oldName", oldTableName, "newName", newTableName)
 				if err := migrator.RenameTable(oldTableName, &models.LanguageMapping{}); err != nil {
 					return err
 				}
 
-				slog.Info("renaming '%s' index to '%s'", oldIndexName, newIndexName)
+				slog.Info("renaming index", "oldName", oldIndexName, "newName", newIndexName)
 				return migrator.RenameIndex(&models.LanguageMapping{}, oldIndexName, newIndexName)
 			}
 			return nil

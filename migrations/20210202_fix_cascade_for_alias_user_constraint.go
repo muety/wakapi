@@ -31,7 +31,7 @@ func init() {
 			}
 
 			if migrator.HasConstraint(&models.Alias{}, "fk_aliases_user") {
-				slog.Info("dropping constraint 'fk_aliases_user'")
+				slog.Info("dropping constraint", "name", "fk_aliases_user")
 				if err := migrator.DropConstraint(&models.Alias{}, "fk_aliases_user"); err != nil {
 					return err
 				}

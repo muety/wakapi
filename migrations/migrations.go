@@ -87,7 +87,7 @@ func RunPreMigrations(db *gorm.DB, cfg *config.Config) {
 	sort.Sort(preMigrations)
 
 	for _, m := range preMigrations {
-		slog.Info("potentially running migration '%s'", m.name)
+		slog.Info("potentially running migration", "name", m.name)
 		if err := m.f(db, cfg); err != nil {
 			log.Fatalf("migration '%s' failed - %v", m.name, err)
 		}
@@ -98,7 +98,7 @@ func RunPostMigrations(db *gorm.DB, cfg *config.Config) {
 	sort.Sort(postMigrations)
 
 	for _, m := range postMigrations {
-		slog.Info("potentially running migration '%s'", m.name)
+		slog.Info("potentially running migration", "name", m.name)
 		if err := m.f(db, cfg); err != nil {
 			log.Fatalf("migration '%s' failed - %v", m.name, err)
 		}

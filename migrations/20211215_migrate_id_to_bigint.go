@@ -40,7 +40,7 @@ func init() {
 			} else {
 				// sqlite doesn't allow for changing column type easily
 				// https://stackoverflow.com/a/2083562/3112139
-				slog.Warn("unable to migrate id columns to bigint on %s", cfg.Db.Dialect)
+				slog.Warn("unable to migrate id columns to bigint", "dialect", cfg.Db.Dialect)
 			}
 
 			setHasRun(name, db)

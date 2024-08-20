@@ -61,10 +61,10 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 			}
 
 			if user.PublicLeaderboard && !exists {
-				slog.Info("generating leaderboard for '%s' after settings update", user.ID)
+				slog.Info("generating leaderboard after settings update", "userID", user.ID)
 				srv.ComputeLeaderboard([]*models.User{user}, srv.defaultScope, []uint8{models.SummaryLanguage})
 			} else if !user.PublicLeaderboard && exists {
-				slog.Info("clearing leaderboard for '%s' after settings update", user.ID)
+				slog.Info("clearing leaderboard after settings update", "userID", user.ID)
 				if err := srv.repository.DeleteByUser(user.ID); err != nil {
 					config.Log().Error("failed to clear leaderboard for user '%s' - %v", user.ID, err)
 				}
@@ -100,7 +100,7 @@ func (srv *LeaderboardService) Schedule() {
 }
 
 func (srv *LeaderboardService) ComputeLeaderboard(users []*models.User, interval *models.IntervalKey, by []uint8) error {
-	slog.Info("generating leaderboard (%s) for %d users (%d aggregations)", (*interval)[0], len(users), len(by))
+	slog.Info("generating leaderboard", "interval", (*interval)[0], "userCount", len(users), "aggregationCount", len(by))
 
 	for _, user := range users {
 		if err := srv.repository.DeleteByUserAndInterval(user.ID, interval); err != nil {

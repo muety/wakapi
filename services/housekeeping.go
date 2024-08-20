@@ -37,9 +37,9 @@ func (s *HousekeepingService) Schedule() {
 }
 
 func (s *HousekeepingService) CleanUserDataBefore(user *models.User, before time.Time) error {
-	slog.Warn("cleaning up user data for '%s' older than %v", user.ID, before)
+	slog.Warn("cleaning up user data older than", "userID", user.ID, "date", before)
 	if s.config.App.DataCleanupDryRun {
-		slog.Info("skipping actual data deletion for '%v', because this is just a dry run", user.ID)
+		slog.Info("skipping actual data deletion for dry run", "userID", user.ID)
 		return nil
 	}
 
@@ -49,7 +49,7 @@ func (s *HousekeepingService) CleanUserDataBefore(user *models.User, before time
 	}
 
 	// clear old summaries
-	slog.Info("clearing summaries for user '%s' older than %v", user.ID, before)
+	slog.Info("clearing summaries for user older than", "userID", user.ID, "date", before)
 	if err := s.summarySrvc.DeleteByUserBefore(user.ID, before); err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (s *HousekeepingService) CleanUserDataBefore(user *models.User, before time
 }
 
 func (s *HousekeepingService) CleanInactiveUsers(before time.Time) error {
-	slog.Info("cleaning up users inactive since %v", before)
+	slog.Info("cleaning up users inactive since", "date", before)
 	users, err := s.userSrvc.GetAll()
 	if err != nil {
 		return err
@@ -70,20 +70,20 @@ func (s *HousekeepingService) CleanInactiveUsers(before time.Time) error {
 			continue
 		}
 
-		slog.Warn("deleting user '%s', because inactive and not having data", u.ID)
+		slog.Warn("deleting user due to inactivity and no data", "userID", u.ID)
 		if err := s.userSrvc.Delete(u); err != nil {
 			config.Log().Error("failed to delete user '%s'", u.ID)
 		} else {
 			i++
 		}
 	}
-	slog.Info("deleted %d (of %d total) users due to inactivity", i, len(users))
+	slog.Info("deleted users due to inactivity", "deletedCount", i, "totalCount", len(users))
 
 	return nil
 }
 
 func (s *HousekeepingService) WarmUserProjectStatsCache(user *models.User) error {
-	slog.Info("pre-warming project stats cache for '%s'", user.ID)
+	slog.Info("pre-warming project stats cache for user", "userID", user.ID)
 	if _, err := s.heartbeatSrvc.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), nil, true); err != nil {
 		config.Log().Error("failed to pre-warm project stats cache for '%s', %v", user.ID, err)
 	}

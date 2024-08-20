@@ -117,7 +117,7 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 	}
 
 	if minDataAge := user.MinDataAge(); minFrom.Before(minDataAge) {
-		slog.Info("wakatime data import for user capped", "userID", user.ID, "capped to", fmt.Sprintf("[%v, %v]", minDataAge, maxTo))
+		slog.Info("wakatime data import for user capped", "userID", user.ID, "cappedTo", fmt.Sprintf("[%v, %v]", minDataAge, maxTo))
 	}
 
 	slog.Info("scheduling wakatime import for user", "userID", user.ID, "interval", fmt.Sprintf("[%v, %v]", minFrom, maxTo))

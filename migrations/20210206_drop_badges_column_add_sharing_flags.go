@@ -38,14 +38,14 @@ func init() {
 			}
 
 			if cfg.Db.Dialect == config.SQLDialectSqlite {
-				slog.Info("not attempting to drop column 'badges_enabled' on sqlite")
+				slog.Info("not attempting to drop column on sqlite", "column", "badges_enabled")
 				return nil
 			}
 
 			if err := migrator.DropColumn(&models.User{}, "badges_enabled"); err != nil {
 				return err
 			}
-			slog.Info("dropped column 'badges_enabled' after substituting it by sharing indicators")
+			slog.Info("dropped column after substituting it by sharing indicators", "column", "badges_enabled")
 
 			return nil
 		},

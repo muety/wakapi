@@ -59,11 +59,11 @@ func NewSubscriptionHandler(
 
 		price, err := stripePrice.Get(config.Subscriptions.StandardPriceId, nil)
 		if err != nil {
-			log.Fatal("failed to fetch stripe plan details: %v", err)
+			log.Fatalf("failed to fetch stripe plan details: %v", err)
 		}
 		config.Subscriptions.StandardPrice = strings.TrimSpace(fmt.Sprintf("%2.f €", price.UnitAmountDecimal/100.0)) // TODO: respect actual currency
 
-		slog.Info("enabling subscriptions with stripe payment for %s / month", config.Subscriptions.StandardPrice)
+		slog.Info("enabling subscriptions with stripe payment", "price", config.Subscriptions.StandardPrice)
 	}
 
 	handler := &SubscriptionHandler{
@@ -82,9 +82,9 @@ func NewSubscriptionHandler(
 				continue
 			}
 
-			slog.Info("cancelling subscription for user '%s' (email '%s', stripe customer '%s') upon account deletion", user.ID, user.Email, user.StripeCustomerId)
+			slog.Info("cancelling subscription for user upon account deletion", "userID", user.ID, "email", user.Email, "stripeCustomerID", user.StripeCustomerId)
 			if err := handler.cancelUserSubscription(user); err == nil {
-				slog.Info("successfully cancelled subscription for user '%s' (email '%s', stripe customer '%s')", user.ID, user.Email, user.StripeCustomerId)
+				slog.Info("successfully cancelled subscription for user", "userID", user.ID, "email", user.Email, "stripeCustomerID", user.StripeCustomerId)
 			} else {
 				conf.Log().Error("failed to cancel subscription for user '%s' (email '%s', stripe customer '%s') - %v", user.ID, user.Email, user.StripeCustomerId, err)
 			}
@@ -223,7 +223,7 @@ func (h *SubscriptionHandler) PostWebhook(w http.ResponseWriter, r *http.Request
 		if err != nil {
 			return // status code already written
 		}
-		slog.Info("received stripe subscription event of type '%s' for subscription '%s' (customer '%s').", event.Type, subscription.ID, subscription.Customer.ID)
+		slog.Info("received stripe subscription event", "eventType", event.Type, "subscriptionID", subscription.ID, "customerID", subscription.Customer.ID)
 
 		// first, try to get user by associated customer id (requires checkout.session.completed event to have been processed before)
 		user, err := h.userSrvc.GetUserByStripeCustomerId(subscription.Customer.ID)
@@ -259,7 +259,7 @@ func (h *SubscriptionHandler) PostWebhook(w http.ResponseWriter, r *http.Request
 		if err != nil {
 			return // status code already written
 		}
-		slog.Info("received stripe checkout session event of type '%s' for session '%s' (customer '%s' with email '%s').", event.Type, checkoutSession.ID, checkoutSession.Customer.ID, checkoutSession.CustomerEmail)
+		slog.Info("received stripe checkout session event", "eventType", event.Type, "sessionID", checkoutSession.ID, "customerID", checkoutSession.Customer.ID, "customerEmail", checkoutSession.CustomerEmail)
 
 		user, err := h.userSrvc.GetUserById(checkoutSession.ClientReferenceID)
 		if err != nil {
@@ -272,14 +272,14 @@ func (h *SubscriptionHandler) PostWebhook(w http.ResponseWriter, r *http.Request
 			if _, err := h.userSrvc.Update(user); err != nil {
 				conf.Log().Request(r).Error("failed to update stripe customer id (%s) for user '%s', %v", checkoutSession.Customer.ID, user.ID, err)
 			} else {
-				slog.Info("associated user '%s' with stripe customer '%s'", user.ID, checkoutSession.Customer.ID)
+				slog.Info("associated user with stripe customer", "userID", user.ID, "stripeCustomerID", checkoutSession.Customer.ID)
 			}
 		} else if user.StripeCustomerId != checkoutSession.Customer.ID {
 			conf.Log().Request(r).Error("invalid state: tried to associate user '%s' with stripe customer '%s', but '%s' already assigned", user.ID, checkoutSession.Customer.ID, user.StripeCustomerId)
 		}
 
 	default:
-		slog.Warn("got stripe event '%s' with no handler defined", event.Type)
+		slog.Warn("got stripe event with no handler defined", "eventType", event.Type)
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -305,19 +305,19 @@ func (h *SubscriptionHandler) handleSubscriptionEvent(subscription *stripe.Subsc
 			hasSubscribed = true
 			user.SubscribedUntil = &until
 			user.SubscriptionRenewal = &until
-			slog.Info("user %s got active subscription %s until %v", user.ID, subscription.ID, user.SubscribedUntil)
+			slog.Info("user got active subscription", "userID", user.ID, "subscriptionID", subscription.ID, "subscribedUntil", user.SubscribedUntil)
 		}
 
 		if cancelAt := time.Unix(subscription.CancelAt, 0); !cancelAt.IsZero() && cancelAt.After(time.Now()) {
 			user.SubscriptionRenewal = nil
-			slog.Info("user %s chose to cancel subscription %s by %v", user.ID, subscription.ID, cancelAt)
+			slog.Info("user chose to cancel subscription", "userID", user.ID, "subscriptionID", subscription.ID, "cancelAt", cancelAt)
 		}
 	case "canceled", "unpaid", "incomplete_expired":
 		user.SubscribedUntil = nil
 		user.SubscriptionRenewal = nil
-		slog.Info("user %s's subscription %s got canceled, because of status update to '%s'", user.ID, subscription.ID, subscription.Status)
+		slog.Info("user's subscription got canceled due to status update", "userID", user.ID, "subscriptionID", subscription.ID, "status", subscription.Status)
 	default:
-		slog.Info("got subscription (%s) status update to '%s' for user '%s'", subscription.ID, subscription.Status, user.ID)
+		slog.Info("got subscription status update", "subscriptionID", subscription.ID, "status", subscription.Status, "userID", user.ID)
 		return nil
 	}
 
@@ -399,6 +399,6 @@ func (h *SubscriptionHandler) findCurrentStripeSubscription(customerId string) (
 func (h *SubscriptionHandler) clearSubscriptionNotificationStatus(userId string) {
 	key := fmt.Sprintf("%s_%s", conf.KeySubscriptionNotificationSent, userId)
 	if err := h.keyValueSrvc.DeleteString(key); err != nil {
-		slog.Warn("failed to delete '%s', %v", key, err)
+		slog.Warn("failed to delete", "key", key, "error", err)
 	}
 }

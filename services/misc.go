@@ -250,7 +250,7 @@ func (srv *MiscService) countUserTotalTime(userId string) time.Duration {
 func (srv *MiscService) sendSubscriptionNotificationScheduled(user *models.User, hasExpired bool) {
 	u := *user
 	srv.queueMails.Dispatch(func() {
-		slog.Info("sending subscription expiry notification mail to %s (expired: %v)", u.ID, hasExpired)
+		slog.Info("sending subscription expiry notification mail", "userID", u.ID, "expired", hasExpired)
 		defer time.Sleep(10 * time.Second)
 
 		if err := srv.mailService.SendSubscriptionNotification(&u, hasExpired); err != nil {

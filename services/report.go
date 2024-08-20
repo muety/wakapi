@@ -58,7 +58,7 @@ func (srv *ReportService) Schedule() {
 
 			// make the job take at least reportDelay seconds
 			if diff := reportDelay - time.Now().Sub(t0); diff > 0 {
-				slog.Debug("waiting for %v before sending next report", diff)
+				slog.Debug("waiting before sending next report", "duration", diff)
 				time.Sleep(diff)
 			}
 		}); err != nil {
@@ -80,7 +80,7 @@ func (srv *ReportService) Schedule() {
 		})
 
 		// schedule jobs, throttled by one job per x seconds
-		slog.Info("scheduling report generation for %d users", len(users))
+		slog.Info("scheduling report generation", "userCount", len(users))
 		for _, u := range users {
 			scheduleUserReport(u)
 		}
@@ -93,11 +93,11 @@ func (srv *ReportService) Schedule() {
 
 func (srv *ReportService) SendReport(user *models.User, duration time.Duration) error {
 	if user.Email == "" {
-		slog.Warn("not generating report for '%s' as no e-mail address is set")
+		slog.Warn("not generating report as no e-mail address is set", "userID", user.ID)
 		return nil
 	}
 
-	slog.Info("generating report for '%s'", user.ID)
+	slog.Info("generating report for user", "userID", user.ID)
 
 	end := time.Now().In(user.TZ())
 	start := time.Now().Add(-1 * duration)
@@ -137,6 +137,6 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 		return err
 	}
 
-	slog.Info("sent report to user '%s'", user.ID)
+	slog.Info("sent report to user", "userID", user.ID)
 	return nil
 }

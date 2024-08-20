@@ -341,7 +341,7 @@ func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request)
 				if err := h.mailSrvc.SendPasswordReset(user, link); err != nil {
 					conf.Log().Request(r).Error("failed to send password reset mail to %s - %v", user.ID, err)
 				} else {
-					slog.Info("sent password reset mail to %s", user.ID)
+					slog.Info("sent password reset mail", "userID", user.ID)
 				}
 			}(u)
 		}

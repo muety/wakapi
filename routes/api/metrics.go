@@ -349,7 +349,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 	// Database metrics
 	dbSize, err := h.metricsRepo.GetDatabaseSize()
 	if err != nil {
-		slog.Warn("failed to get database size (%v)", err)
+		slog.Warn("failed to get database size", "error", err)
 	}
 
 	metrics = append(metrics, &mm.GaugeMetric{
@@ -383,7 +383,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 	var metrics mm.Metrics
 
 	t0 := time.Now()
-	slog.Debug("[metrics] start admin metrics calculation")
+	slog.Debug("start admin metrics calculation")
 
 	if !user.IsAdmin {
 		return nil, errors.New("unauthorized")
@@ -398,14 +398,14 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 
 	totalUsers, _ := h.userSrvc.Count()
 	totalHeartbeats, _ := h.heartbeatSrvc.Count(true)
-	slog.Debug("[metrics] finished counting users and heartbeats after %v", time.Now().Sub(t0))
+	slog.Debug("finished counting users and heartbeats", "duration", time.Since(t0))
 
 	activeUsers, err := h.userSrvc.GetActive(false)
 	if err != nil {
 		conf.Log().Error("failed to retrieve active users for metric - %v", err)
 		return nil, err
 	}
-	slog.Debug("[metrics] finished getting active users after %v", time.Now().Sub(t0))
+	slog.Debug("finished getting active users", "duration", time.Since(t0))
 
 	metrics = append(metrics, &mm.GaugeMetric{
 		Name:   MetricsPrefix + "_admin_seconds_total",
@@ -451,7 +451,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 			Labels: []mm.Label{{Key: "user", Value: uc.User}},
 		})
 	}
-	slog.Debug("[metrics] finished counting heartbeats by user after %v", time.Now().Sub(t0))
+	slog.Debug("finished counting heartbeats by user", "duration", time.Since(t0))
 
 	// Get per-user total activity
 
@@ -480,7 +480,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 	}
 
 	wp.StopAndWait()
-	slog.Debug("[metrics] finished retrieving total activity time by user after %v", time.Now().Sub(t0))
+	slog.Debug("finished retrieving total activity time by user", "duration", time.Since(t0))
 
 	return &metrics, nil
 }

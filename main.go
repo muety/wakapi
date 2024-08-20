@@ -143,7 +143,7 @@ func main() {
 	slog.Info("starting with database", "dialect", config.Db.Dialect)
 	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{Logger: gormLogger}, conf.GetWakapiDBOpts(&config.Db))
 	if err != nil {
-		slog.Error("could not connect to database", "error", err.Error())
+		slog.Error("could not connect to database", "error", err)
 		log.Fatal("could not open database")
 	}
 
@@ -152,7 +152,7 @@ func main() {
 	}
 	sqlDb, err := db.DB()
 	if err != nil {
-		slog.Error("could not connect to database", "error", err.Error())
+		slog.Error("could not connect to database", "error", err)
 		log.Fatal("could not connect to database")
 	}
 	sqlDb.SetMaxIdleConns(int(config.Db.MaxConn))
@@ -452,4 +452,5 @@ func initLogger() {
 	}
 	l := slog.New(handler)
 	slog.SetDefault(l)
+	slog.Info("logger initialized", "env", config.Env)
 }

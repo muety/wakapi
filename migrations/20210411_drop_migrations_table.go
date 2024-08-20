@@ -12,7 +12,7 @@ func init() {
 		name: name,
 		f: func(db *gorm.DB, cfg *config.Config) error {
 			if err := db.Migrator().DropTable("gorp_migrations"); err == nil {
-				slog.Info("dropped table 'gorp_migrations'")
+				slog.Info("dropped table", "table", "gorp_migrations")
 			}
 			return nil
 		},

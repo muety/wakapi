@@ -25,9 +25,9 @@ func init() {
 			}
 
 			if cfg.Db.IsSQLite() && db.Migrator().HasIndex(&models.Heartbeat{}, idxName) {
-				slog.Info("running migration '%s'", name)
+				slog.Info("running migration", "name", name)
 				if err := db.Migrator().DropIndex(&models.Heartbeat{}, idxName); err != nil {
-					slog.Warn("failed to drop %s", idxName)
+					slog.Warn("failed to drop index", "indexName", idxName)
 				}
 			}
 
