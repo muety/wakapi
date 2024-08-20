@@ -82,6 +82,9 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		user, err = m.tryGetUserByTokenHeader(r)
 	}
+	if err != nil {
+		user, err = m.tryGetUserByTokenKeyQuery(r)
+	}
 	if err != nil && m.config.Security.TrustedHeaderAuth {
 		user, err = m.tryGetUserByTrustedHeader(r)
 	}
@@ -141,7 +144,31 @@ func (m *AuthenticateMiddleware) tryGetUserByApiKeyHeader(r *http.Request) (*mod
 }
 
 func (m *AuthenticateMiddleware) tryGetUserByTokenHeader(r *http.Request) (*models.User, error) {
-	userId, err := utils.ExtractUserIDFromAuthToken(r, m.config.Security.JWT_SECRET)
+	token := r.Header.Get("token")
+
+	if token == "" {
+		return nil, errors.New("failed to extract API Token from header")
+	}
+	userId, err := utils.ExtractUserIDFromAuthToken(token, m.config.Security.JWT_SECRET)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := m.userSrvc.GetUserById(userId)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (m *AuthenticateMiddleware) tryGetUserByTokenKeyQuery(r *http.Request) (*models.User, error) {
+	key := r.URL.Query().Get("token")
+	token := strings.TrimSpace(key)
+	if token == "" {
+		return nil, errEmptyKey
+	}
+
+	userId, err := utils.ExtractUserIDFromAuthToken(token, m.config.Security.JWT_SECRET)
 	if err != nil {
 		return nil, err
 	}

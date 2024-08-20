@@ -2,6 +2,9 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/duke-git/lancet/v2/maputil"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/go-chi/chi/v5"
@@ -14,8 +17,6 @@ import (
 	"github.com/muety/wakapi/utils"
 	"github.com/narqo/go-badge"
 	"github.com/patrickmn/go-cache"
-	"net/http"
-	"time"
 )
 
 type BadgeHandler struct {

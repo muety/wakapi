@@ -51,11 +51,9 @@ func ExtractBearerAuth(r *http.Request) (key string, err error) {
 	return string(keyBytes), err
 }
 
-func ExtractUserIDFromAuthToken(r *http.Request, authSecret string) (key string, err error) {
-	token := r.Header.Get("Token")
-
+func ExtractUserIDFromAuthToken(token string, authSecret string) (key string, err error) {
 	if token == "" {
-		return key, errors.New("failed to extract API Token from header")
+		return key, errors.New("invalid api token provided")
 	}
 
 	claims, err := GetTokenClaims(token, authSecret)
