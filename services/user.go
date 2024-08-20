@@ -42,12 +42,12 @@ func NewUserService(mailService IMailService, userRepo repositories.IUserReposit
 			slog.Warn("resetting wakatime api key for user due to too many failures", "userID", user.ID, "failureCount", n)
 
 			if _, err := srv.SetWakatimeApiCredentials(user, "", ""); err != nil {
-				config.Log().Error("failed to set wakatime api key for user %s", user.ID)
+				config.Log().Error("failed to set wakatime api key for user", "userID", user.ID)
 			}
 
 			if user.Email != "" {
 				if err := mailService.SendWakatimeFailureNotification(user, n); err != nil {
-					config.Log().Error("failed to send wakatime failure notification mail to user %s", user.ID)
+					config.Log().Error("failed to send wakatime failure notification mail to user", "userID", user.ID)
 				} else {
 					slog.Info("sent wakatime connection failure mail", "userID", user.ID)
 				}

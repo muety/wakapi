@@ -83,13 +83,13 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 	}
 
 	onDumpFailed := func(err error, user *models.User) {
-		config.Log().Error("fetching data dump for user '%s' failed - %v", user.ID, err)
+		config.Log().Error("fetching data dump for user failed", "userID", user.ID, "error", err)
 		readyPollTimer.Stop()
 		close(out)
 	}
 
 	onDumpReady := func(dump *wakatime.DataDumpData, user *models.User, out chan *models.Heartbeat) {
-		config.Log().Info("data dump for user '%s' is available for download", user.ID)
+		config.Log().Info("data dump for user is available for download", "userID", user.ID)
 		readyPollTimer.Stop()
 		defer close(out)
 
@@ -97,7 +97,7 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 		req, _ := http.NewRequest(http.MethodGet, dump.DownloadUrl, nil)
 		res, err := utils.RaiseForStatus((&http.Client{Timeout: 5 * time.Minute}).Do(req))
 		if err != nil {
-			config.Log().Error("failed to download %s - %v", dump.DownloadUrl, err)
+			config.Log().Error("failed to download data dump", "url", dump.DownloadUrl, "error", err)
 			return
 		}
 		defer res.Body.Close()
@@ -107,19 +107,19 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 		// decode
 		var data wakatime.JsonExportViewModel
 		if err := json.NewDecoder(res.Body).Decode(&data); err != nil {
-			config.Log().Error("failed to decode data dump for user '%s' ('%s') - %v", user.ID, dump.DownloadUrl, err)
+			config.Log().Error("failed to decode data dump for user", "userID", user.ID, "url", dump.DownloadUrl, "error", err)
 			return
 		}
 
 		// fetch user agents and machine names
 		var userAgents map[string]*wakatime.UserAgentEntry
 		if userAgents, err = fetchUserAgents(config.WakatimeApiUrl, w.apiKey); err != nil {
-			config.Log().Error("failed to fetch user agents while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
+			config.Log().Error("failed to fetch user agents while importing wakatime heartbeats", "userID", user.ID, "error", err)
 			return
 		}
 		var machinesNames map[string]*wakatime.MachineEntry
 		if machinesNames, err = fetchMachineNames(config.WakatimeApiUrl, w.apiKey); err != nil {
-			config.Log().Error("failed to fetch machine names while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
+			config.Log().Error("failed to fetch machine names while importing wakatime heartbeats", "userID", user.ID, "error", err)
 			return
 		}
 

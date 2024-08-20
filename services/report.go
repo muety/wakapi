@@ -53,7 +53,7 @@ func (srv *ReportService) Schedule() {
 			t0 := time.Now()
 
 			if err := srv.SendReport(u, reportRange); err != nil {
-				config.Log().Error("failed to generate report for '%s', %v", u.ID, err)
+				config.Log().Error("failed to generate report", "userID", u.ID, "error", err)
 			}
 
 			// make the job take at least reportDelay seconds
@@ -62,7 +62,7 @@ func (srv *ReportService) Schedule() {
 				time.Sleep(diff)
 			}
 		}); err != nil {
-			config.Log().Error("failed to dispatch report generation job for user '%s', %v", u.ID, err)
+			config.Log().Error("failed to dispatch report generation job for user", "userID", u.ID, "error", err)
 		}
 	}
 
@@ -70,7 +70,7 @@ func (srv *ReportService) Schedule() {
 		// fetch all users with reports enabled
 		users, err := srv.userService.GetAllByReports(true)
 		if err != nil {
-			config.Log().Error("failed to get users for report generation, %v", err)
+			config.Log().Error("failed to get users for report generation", "error", err)
 			return
 		}
 
@@ -87,7 +87,7 @@ func (srv *ReportService) Schedule() {
 	}, srv.config.App.GetWeeklyReportCron())
 
 	if err != nil {
-		config.Log().Error("failed to dispatch report generation jobs, %v", err)
+		config.Log().Error("failed to dispatch report generation jobs", "error", err)
 	}
 }
 
@@ -104,7 +104,7 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 
 	fullSummary, err := srv.summaryService.Aliased(start, end, user, srv.summaryService.Retrieve, nil, false)
 	if err != nil {
-		config.Log().Error("failed to generate report for '%s' - %v", user.ID, err)
+		config.Log().Error("failed to generate report", "userID", user.ID, "error", err)
 		return err
 	}
 
@@ -116,7 +116,7 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 		from, to := datetime.BeginOfDay(interval[0]), interval[1]
 		summary, err := srv.summaryService.Aliased(from, to, user, srv.summaryService.Retrieve, nil, false)
 		if err != nil {
-			config.Log().Error("failed to generate day summary (%v to %v) for report for '%s' - %v", from, to, user.ID, err)
+			config.Log().Error("failed to generate day summary for report", "from", from, "to", to, "userID", user.ID, "error", err)
 			break
 		}
 		summary.FromTime = models.CustomTime(from)
@@ -133,7 +133,7 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 	}
 
 	if err := srv.mailService.SendReport(user, report); err != nil {
-		config.Log().Error("failed to send report for '%s', %v", user.ID, err)
+		config.Log().Error("failed to send report", "userID", user.ID, "error", err)
 		return err
 	}
 

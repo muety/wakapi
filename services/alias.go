@@ -41,7 +41,7 @@ func (srv *AliasService) InitializeUser(userId string) error {
 
 func (srv *AliasService) MayInitializeUser(userId string) {
 	if err := srv.InitializeUser(userId); err != nil {
-		config.Log().Error("failed to initialize user alias map for user %s", userId)
+		config.Log().Error("failed to initialize user alias map", "userID", userId)
 	}
 }
 

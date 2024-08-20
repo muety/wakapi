@@ -53,7 +53,7 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 
 		startDate, endDate, err := w.fetchRange(baseUrl)
 		if err != nil {
-			config.Log().Error("failed to fetch date range while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
+			config.Log().Error("failed to fetch date range while importing wakatime heartbeats", "userID", user.ID, "error", err)
 			return
 		}
 
@@ -69,7 +69,7 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 			userAgents = data
 		} else if strings.Contains(baseUrl, "wakatime.com") {
 			// when importing from wakatime, resolving user agents is mandatorily required
-			config.Log().Error("failed to fetch user agents while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
+			config.Log().Error("failed to fetch user agents while importing wakatime heartbeats", "userID", user.ID, "error", err)
 			return
 		}
 
@@ -78,7 +78,7 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 			machinesNames = data
 		} else if strings.Contains(baseUrl, "wakatime.com") {
 			// when importing from wakatime, resolving machine names is mandatorily required
-			config.Log().Error("failed to fetch machine names while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
+			config.Log().Error("failed to fetch machine names while importing wakatime heartbeats", "userID", user.ID, "error", err)
 			return
 		}
 
@@ -96,7 +96,7 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 				d := d.Format(config.SimpleDateFormat)
 				heartbeats, err := w.fetchHeartbeats(d, baseUrl)
 				if err != nil {
-					config.Log().Error("failed to fetch heartbeats for day '%s' and user '%s' - %v", d, user.ID, err)
+					config.Log().Error("failed to fetch heartbeats for day and user", "day", d, "userID", user.ID, "error", err)
 				}
 
 				for _, h := range heartbeats {
@@ -124,7 +124,7 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 	if err := w.queue.Dispatch(func() {
 		process(user, minFrom, maxTo, out)
 	}); err != nil {
-		config.Log().Error("failed to dispatch wakatime import job for user '%s', %v", user.ID, err)
+		config.Log().Error("failed to dispatch wakatime import job for user", "userID", user.ID, "error", err)
 	}
 
 	return out, nil

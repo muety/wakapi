@@ -87,7 +87,7 @@ func (s *ActivityService) getChartPastYear(user *models.User, darkTheme, hideAtt
 		wp.Submit(func() {
 			summary, err := s.summaryService.Retrieve(interval[0], interval[1], user, nil)
 			if err != nil {
-				config.Log().Warn("failed to retrieve summary for '%s' between %v and %v for activity chart", user.ID, from, to)
+				config.Log().Warn("failed to retrieve summary for activity chart", "userID", user.ID, "from", from, "to", to)
 				summary = models.NewEmptySummary()
 				summary.FromTime = models.CustomTime(from)
 				summary.ToTime = models.CustomTime(to)

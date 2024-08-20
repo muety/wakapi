@@ -25,6 +25,6 @@ func RespondJSON(w http.ResponseWriter, r *http.Request, status int, object inte
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(object); err != nil {
-		config.Log().Request(r).Error("error while writing json response: %v", err)
+		config.Log().Request(r).Error("error while writing json response", "error", err)
 	}
 }
