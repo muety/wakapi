@@ -42,15 +42,14 @@ func (lg *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	lg.logFunc(
-		"[request] status=%d, method=%s, uri=%s, duration=%v, bytes=%d, addr=%s, user=%s",
-		ww.Status(),
-		r.Method,
-		r.URL.String(),
-		duration,
-		ww.BytesWritten(),
-		readUserIP(r),
-		readUserID(r),
+	lg.logFunc("[request]",
+		"status", ww.Status(),
+		"method", r.Method,
+		"uri", r.URL.String(),
+		"duration", duration,
+		"bytes", ww.BytesWritten(),
+		"addr", readUserIP(r),
+		"user", readUserID(r),
 	)
 }
 

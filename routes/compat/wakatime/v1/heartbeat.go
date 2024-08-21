@@ -71,7 +71,7 @@ func (h *HeartbeatHandler) Get(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(conf.ErrInternalServerError))
-		conf.Log().Request(r).Error("failed to retrieve heartbeats - %v", err)
+		conf.Log().Request(r).Error("failed to retrieve heartbeats", "error", err)
 		return
 	}
 

@@ -40,7 +40,7 @@ func Log() *SentryWrapperLogger {
 	ow, ew := &capturingWriter{Writer: os.Stdout}, &capturingWriter{Writer: os.Stderr}
 
 	// Create a custom handler that writes to both output and error writers
-	handler := slog.NewTextHandler(io.MultiWriter(ow, ew), &slog.HandlerOptions{
+	handler := slog.NewJSONHandler(io.MultiWriter(ow, ew), &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	})
 

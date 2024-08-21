@@ -143,8 +143,7 @@ func main() {
 	slog.Info("starting with database", "dialect", config.Db.Dialect)
 	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{Logger: gormLogger}, conf.GetWakapiDBOpts(&config.Db))
 	if err != nil {
-		slog.Error("could not connect to database", "error", err)
-		log.Fatal("could not open database")
+		log.Fatal("could not connect to database", "error", err)
 	}
 
 	if config.IsDev() {

@@ -77,7 +77,7 @@ func (h *ActivityApiHandler) GetActivityChart(w http.ResponseWriter, r *http.Req
 	chart, err := h.activityService.GetChart(requestedUser, models.IntervalPast12Months, paramDark, paramNoAttr, utils.IsNoCache(r, 6*time.Hour))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		conf.Log().Request(r).Error("failed to get activity chart for user %s - %v", err)
+		conf.Log().Request(r).Error("failed to get activity chart for user", "userID", requestedUser.ID, "error", err)
 		return
 	}
 

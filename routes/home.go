@@ -77,7 +77,7 @@ func (h *HomeHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *vi
 
 	if kv, err := h.keyValueSrvc.GetString(conf.KeyNewsbox); err == nil && kv != nil && kv.Value != "" {
 		if err := json.NewDecoder(strings.NewReader(kv.Value)).Decode(&newsbox); err != nil {
-			conf.Log().Request(r).Error("failed to decode newsbox message - %v", err)
+			conf.Log().Request(r).Error("failed to decode newsbox message", "error", err)
 		}
 	}
 

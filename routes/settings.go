@@ -330,7 +330,7 @@ func (h *SettingsHandler) actionUpdateExcludeUnknownProjects(w http.ResponseWrit
 		h.toggleAggregationLock(user.ID, true)
 		defer h.toggleAggregationLock(user.ID, false)
 		if err := h.regenerateSummaries(user); err != nil {
-			conf.Log().Request(r).Error("failed to regenerate summaries for user '%s' - %v", user.ID, err)
+			conf.Log().Request(r).Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
 		}
 	}(user)
 
@@ -662,13 +662,13 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 		if !user.HasData {
 			user.HasData = true
 			if _, err := h.userSrvc.Update(user); err != nil {
-				conf.Log().Request(r).Error("failed to set 'has_data' flag for user %s - %v", user.ID, err)
+				conf.Log().Request(r).Error("failed to set 'has_data' flag for user", "userID", user.ID, "error", err)
 			}
 		}
 
 		if user.Email != "" {
 			if err := h.mailSrvc.SendImportNotification(user, time.Now().Sub(start), int(countAfter-countBefore)); err != nil {
-				conf.Log().Request(r).Error("failed to send import notification mail to %s - %v", user.ID, err)
+				conf.Log().Request(r).Error("failed to send import notification mail", "userID", user.ID, "error", err)
 			} else {
 				slog.Info("sent import notification mail", "userID", user.ID)
 			}
@@ -698,7 +698,7 @@ func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *ht
 		h.toggleAggregationLock(user.ID, true)
 		defer h.toggleAggregationLock(user.ID, false)
 		if err := h.regenerateSummaries(user); err != nil {
-			conf.Log().Request(r).Error("failed to regenerate summaries for user '%s' - %v", user.ID, err)
+			conf.Log().Request(r).Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
 		}
 	}(user)
 
@@ -716,12 +716,12 @@ func (h *SettingsHandler) actionClearData(w http.ResponseWriter, r *http.Request
 	go func(user *models.User) {
 		slog.Info("deleting summaries for user", "userID", user.ID)
 		if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
-			conf.Log().Request(r).Error("failed to clear summaries: %v", err)
+			conf.Log().Request(r).Error("failed to clear summaries", "error", err)
 		}
 
 		slog.Info("deleting heartbeats for user", "userID", user.ID)
 		if err := h.heartbeatSrvc.DeleteByUser(user); err != nil {
-			conf.Log().Request(r).Error("failed to clear heartbeats: %v", err)
+			conf.Log().Request(r).Error("failed to clear heartbeats", "error", err)
 		}
 	}(user)
 
@@ -738,7 +738,7 @@ func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Reques
 		slog.Info("deleting user shortly", "userID", user.ID)
 		time.Sleep(5 * time.Minute)
 		if err := h.userSrvc.Delete(user); err != nil {
-			conf.Log().Request(r).Error("failed to delete user '%s' - %v", user.ID, err)
+			conf.Log().Request(r).Error("failed to delete user", "userID", user.ID, "error", err)
 		} else {
 			slog.Info("successfully deleted user", "userID", user.ID)
 		}
@@ -829,7 +829,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 	// aliases
 	aliases, err := h.aliasSrvc.GetByUser(user.ID)
 	if err != nil {
-		conf.Log().Request(r).Error("error while building alias map - %v", err)
+		conf.Log().Request(r).Error("error while building alias map", "error", err)
 		return &view.SettingsViewModel{
 			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
@@ -864,7 +864,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 	// labels
 	labelMap, err := h.projectLabelSrvc.GetByUserGroupedInverted(user.ID)
 	if err != nil {
-		conf.Log().Request(r).Error("error while building settings project label map - %v", err)
+		conf.Log().Request(r).Error("error while building settings project label map", "error", err)
 		return &view.SettingsViewModel{
 			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
@@ -892,7 +892,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 	// projects
 	projects, err := routeutils.GetEffectiveProjectsList(user, h.heartbeatSrvc, h.aliasSrvc)
 	if err != nil {
-		conf.Log().Request(r).Error("error while fetching projects - %v", err)
+		conf.Log().Request(r).Error("error while fetching projects", "error", err)
 		return &view.SettingsViewModel{
 			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
