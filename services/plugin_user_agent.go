@@ -27,6 +27,11 @@ func (srv *PluginUserAgentService) CreateOrUpdate(useragent, user_id string) (*m
 	return srv.repository.CreateOrUpdate(useragent, user_id)
 }
 
+func (srv *PluginUserAgentService) FetchUserAgents(user_id string) ([]*models.PluginUserAgent, error) {
+	return srv.repository.FetchUserAgents(user_id)
+}
+
 type IPluginUserAgentService interface {
 	CreateOrUpdate(useragent, user_id string) (*models.PluginUserAgent, error)
+	FetchUserAgents(user_id string) ([]*models.PluginUserAgent, error)
 }

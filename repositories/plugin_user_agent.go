@@ -80,10 +80,9 @@ func (r *PluginUserAgentRepository) CreateOrUpdate(useragent_string, user_id str
 func (r *PluginUserAgentRepository) FetchUserAgents(userID string) ([]*models.PluginUserAgent, error) {
 	var plugins []*models.PluginUserAgent
 	if err := r.db.
-		Order("created_at desc").
-		Limit(100). // TODO: paginate
+		Order("last_seen_at desc").
+		Limit(10).
 		Where(&models.PluginUserAgent{UserID: userID}).
-		Distinct("plugin").
 		Find(&plugins).Error; err != nil {
 		return nil, err
 	}
