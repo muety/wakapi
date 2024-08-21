@@ -55,8 +55,6 @@ func (h *GoalsApiHandler) UpdateGoal(w http.ResponseWriter, r *http.Request) {
 	jsonDecoder := json.NewDecoder(r.Body)
 	err := jsonDecoder.Decode(params)
 
-	fmt.Println("Callisto", params)
-
 	if err != nil {
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
 			"message": "Invalid Input",

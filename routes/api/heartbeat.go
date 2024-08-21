@@ -1,6 +1,8 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
@@ -19,13 +21,14 @@ import (
 )
 
 type HeartbeatApiHandler struct {
-	config              *conf.Config
-	userSrvc            services.IUserService
-	heartbeatSrvc       services.IHeartbeatService
-	languageMappingSrvc services.ILanguageMappingService
+	config                 *conf.Config
+	userSrvc               services.IUserService
+	heartbeatSrvc          services.IHeartbeatService
+	languageMappingSrvc    services.ILanguageMappingService
+	userAgentPluginService services.IPluginUserAgentService
 }
 
-func NewHeartbeatApiHandler(userService services.IUserService, heartbeatService services.IHeartbeatService, languageMappingService services.ILanguageMappingService) *HeartbeatApiHandler {
+func NewHeartbeatApiHandler(userService services.IUserService, heartbeatService services.IHeartbeatService, languageMappingService services.ILanguageMappingService, userAgentPluginService services.IPluginUserAgentService) *HeartbeatApiHandler {
 	return &HeartbeatApiHandler{
 		config:              conf.Get(),
 		userSrvc:            userService,
@@ -136,6 +139,13 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	go func() {
+		_, err := h.userAgentPluginService.CreateOrUpdate(userAgent, user.ID) // fire and forget
+		if err != nil {
+			conf.Log().Error("failed to create/update user agent plugin - %v", err)
+		}
+	}()
 
 	defer func() {}()
 
