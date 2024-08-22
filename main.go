@@ -143,7 +143,7 @@ func main() {
 	slog.Info("starting with database", "dialect", config.Db.Dialect)
 	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{Logger: gormLogger}, conf.GetWakapiDBOpts(&config.Db))
 	if err != nil {
-		log.Fatal("could not connect to database", "error", err)
+		conf.Log().Fatal("could not connect to database", "error", err)
 	}
 
 	if config.IsDev() {
@@ -151,8 +151,7 @@ func main() {
 	}
 	sqlDb, err := db.DB()
 	if err != nil {
-		slog.Error("could not connect to database", "error", err)
-		log.Fatal("could not connect to database")
+		conf.Log().Fatal("could not connect to database", "error", err)
 	}
 	sqlDb.SetMaxIdleConns(int(config.Db.MaxConn))
 	sqlDb.SetMaxOpenConns(int(config.Db.MaxConn))
@@ -363,7 +362,7 @@ func listen(handler http.Handler) {
 		if _, err := os.Stat(config.Server.ListenSocket); err == nil {
 			slog.Info("👉 Removing unix socket", "listenSocket", config.Server.ListenSocket)
 			if err := os.Remove(config.Server.ListenSocket); err != nil {
-				log.Fatal(err.Error())
+				conf.Log().Fatal(err.Error())
 			}
 		}
 		sSocket = &http.Server{
@@ -378,7 +377,7 @@ func listen(handler http.Handler) {
 			slog.Info("👉 Listening for HTTPS... ✅", "address", s4.Addr)
 			go func() {
 				if err := s4.ListenAndServeTLS(config.Server.TlsCertPath, config.Server.TlsKeyPath); err != nil {
-					log.Fatal(err.Error())
+					conf.Log().Fatal(err.Error())
 				}
 			}()
 		}
@@ -386,7 +385,7 @@ func listen(handler http.Handler) {
 			slog.Info("👉 Listening for HTTPS... ✅", "address", s6.Addr)
 			go func() {
 				if err := s6.ListenAndServeTLS(config.Server.TlsCertPath, config.Server.TlsKeyPath); err != nil {
-					log.Fatal(err.Error())
+					conf.Log().Fatal(err.Error())
 				}
 			}()
 		}
@@ -395,13 +394,13 @@ func listen(handler http.Handler) {
 			go func() {
 				unixListener, err := net.Listen("unix", config.Server.ListenSocket)
 				if err != nil {
-					log.Fatal(err.Error())
+					conf.Log().Fatal(err.Error())
 				}
 				if err := os.Chmod(config.Server.ListenSocket, os.FileMode(config.Server.ListenSocketMode)); err != nil {
 					slog.Warn("failed to set user permissions for unix socket", "error", err)
 				}
 				if err := sSocket.ServeTLS(unixListener, config.Server.TlsCertPath, config.Server.TlsKeyPath); err != nil {
-					log.Fatal(err.Error())
+					conf.Log().Fatal(err.Error())
 				}
 			}()
 		}
@@ -410,7 +409,7 @@ func listen(handler http.Handler) {
 			slog.Info("👉 Listening for HTTP... ✅", "address", s4.Addr)
 			go func() {
 				if err := s4.ListenAndServe(); err != nil {
-					log.Fatal(err.Error())
+					conf.Log().Fatal(err.Error())
 				}
 			}()
 		}
@@ -418,7 +417,7 @@ func listen(handler http.Handler) {
 			slog.Info("👉 Listening for HTTP... ✅", "address", s6.Addr)
 			go func() {
 				if err := s6.ListenAndServe(); err != nil {
-					log.Fatal(err.Error())
+					conf.Log().Fatal(err.Error())
 				}
 			}()
 		}
@@ -427,13 +426,13 @@ func listen(handler http.Handler) {
 			go func() {
 				unixListener, err := net.Listen("unix", config.Server.ListenSocket)
 				if err != nil {
-					log.Fatal(err.Error())
+					conf.Log().Fatal(err.Error())
 				}
 				if err := os.Chmod(config.Server.ListenSocket, os.FileMode(config.Server.ListenSocketMode)); err != nil {
 					slog.Warn("failed to set user permissions for unix socket", "error", err)
 				}
 				if err := sSocket.Serve(unixListener); err != nil {
-					log.Fatal(err.Error())
+					conf.Log().Fatal(err.Error())
 				}
 			}()
 		}
@@ -451,5 +450,4 @@ func initLogger() {
 	}
 	l := slog.New(handler)
 	slog.SetDefault(l)
-	slog.Info("logger initialized", "env", config.Env)
 }

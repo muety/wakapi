@@ -19,7 +19,6 @@ import (
 	stripeSubscription "github.com/stripe/stripe-go/v74/subscription"
 	"github.com/stripe/stripe-go/v74/webhook"
 	"io"
-	"log"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -59,7 +58,7 @@ func NewSubscriptionHandler(
 
 		price, err := stripePrice.Get(config.Subscriptions.StandardPriceId, nil)
 		if err != nil {
-			log.Fatalf("failed to fetch stripe plan details: %v", err)
+			conf.Log().Fatal("failed to fetch stripe plan details", "error", err)
 		}
 		config.Subscriptions.StandardPrice = strings.TrimSpace(fmt.Sprintf("%2.f €", price.UnitAmountDecimal/100.0)) // TODO: respect actual currency
 

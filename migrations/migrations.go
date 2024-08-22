@@ -4,7 +4,6 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
-	"log"
 	"log/slog"
 	"sort"
 	"strings"
@@ -79,7 +78,7 @@ func Run(db *gorm.DB, cfg *config.Config) {
 
 func RunSchemaMigrations(db *gorm.DB, cfg *config.Config) {
 	if err := GetMigrationFunc(cfg)(db); err != nil {
-		log.Fatal(err.Error())
+		config.Log().Fatal("migration failed", "error", err)
 	}
 }
 
@@ -89,7 +88,7 @@ func RunPreMigrations(db *gorm.DB, cfg *config.Config) {
 	for _, m := range preMigrations {
 		slog.Info("potentially running migration", "name", m.name)
 		if err := m.f(db, cfg); err != nil {
-			log.Fatalf("migration '%s' failed - %v", m.name, err)
+			config.Log().Fatal("migration failed", "name", m.name, "error", err)
 		}
 	}
 }
@@ -100,7 +99,7 @@ func RunPostMigrations(db *gorm.DB, cfg *config.Config) {
 	for _, m := range postMigrations {
 		slog.Info("potentially running migration", "name", m.name)
 		if err := m.f(db, cfg); err != nil {
-			log.Fatalf("migration '%s' failed - %v", m.name, err)
+			config.Log().Fatal("migration failed", "name", m.name, "error", err)
 		}
 	}
 }

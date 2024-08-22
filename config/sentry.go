@@ -3,7 +3,6 @@ package config
 import (
 	"github.com/getsentry/sentry-go"
 	"io"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -13,6 +12,8 @@ import (
 // How to: Logging
 // Use slog.[Debug|Info|Warn|Error|Fatal]() by default
 // Use config.Log().[Debug|Info|Warn|Error|Fatal]() when wanting the log to appear in Sentry as well
+
+var sentryWrapperLogger *SentryWrapperLogger
 
 type capturingWriter struct {
 	Writer  io.Writer
@@ -37,18 +38,29 @@ type SentryWrapperLogger struct {
 }
 
 func Log() *SentryWrapperLogger {
+	if sentryWrapperLogger != nil {
+		return sentryWrapperLogger
+	}
+
 	ow, ew := &capturingWriter{Writer: os.Stdout}, &capturingWriter{Writer: os.Stderr}
+	var handler slog.Handler
+	if Get().IsDev() {
+		handler = slog.NewTextHandler(io.MultiWriter(ow, ew), &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		})
+	} else {
+		handler = slog.NewJSONHandler(io.MultiWriter(ow, ew), &slog.HandlerOptions{
+			Level: slog.LevelInfo,
+		})
+	}
 
 	// Create a custom handler that writes to both output and error writers
-	handler := slog.NewJSONHandler(io.MultiWriter(ow, ew), &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	})
-
-	return &SentryWrapperLogger{
+	sentryWrapperLogger = &SentryWrapperLogger{
 		Logger:    slog.New(handler),
 		outWriter: ow,
 		errWriter: ew,
 	}
+	return sentryWrapperLogger
 }
 
 func (l *SentryWrapperLogger) Request(req *http.Request) *SentryWrapperLogger {
@@ -143,7 +155,7 @@ func initSentry(config sentryConfig, debug bool) {
 			return event
 		},
 	}); err != nil {
-		log.Fatal("failed to initialized sentry -", err)
+		Log().Fatal("failed to initialized sentry", "error", err)
 	}
 }
 

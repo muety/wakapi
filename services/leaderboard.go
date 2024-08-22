@@ -10,7 +10,6 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
-	"log"
 	"log/slog"
 	"reflect"
 	"strconv"
@@ -44,7 +43,7 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 
 	scope, err := helpers.ParseInterval(srv.config.App.LeaderboardScope)
 	if err != nil {
-		log.Fatal(err.Error())
+		config.Log().Fatal(err.Error())
 	}
 	srv.defaultScope = scope
 
