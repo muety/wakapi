@@ -84,7 +84,16 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userAgent := r.Header.Get("User-Agent")
-	opSys, editor, _ := utils.ParseUserAgent(userAgent)
+	ua, err := models.NewPluginUserAgent(userAgent, "")
+	var opSys, editor string
+	if err == nil {
+		opSys = ua.OS
+		editor = ua.Editor
+	} else {
+		operatingSystem, agentEditor, _ := utils.ParseUserAgent(userAgent)
+		opSys = operatingSystem
+		editor = agentEditor
+	}
 	machineName := r.Header.Get("X-Machine-Name")
 
 	for _, hb := range heartbeats {
@@ -97,9 +106,15 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 		// TODO: unit test this
 		if hb.UserAgent != "" {
 			userAgent = hb.UserAgent
-			localOpSys, localEditor, _ := utils.ParseUserAgent(userAgent)
-			opSys = condition.TernaryOperator[bool, string](localOpSys != "", localOpSys, opSys)
-			editor = condition.TernaryOperator[bool, string](localEditor != "", localEditor, editor)
+			ua, err := models.NewPluginUserAgent(hb.UserAgent, "")
+			if err == nil {
+				opSys = ua.OS
+				editor = ua.Editor
+			} else {
+				localOpSys, localEditor, _ := utils.ParseUserAgent(userAgent)
+				opSys = condition.TernaryOperator[bool, string](localOpSys != "", localOpSys, opSys)
+				editor = condition.TernaryOperator[bool, string](localEditor != "", localEditor, editor)
+			}
 		}
 		if hb.Machine != "" {
 			machineName = hb.Machine

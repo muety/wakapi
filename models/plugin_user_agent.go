@@ -47,38 +47,18 @@ func parseUserAgent(ua string) (string, string, error) { // os, editor, err
 	return "", "", errors.New("failed to parse user agent string")
 }
 
+// Checks if user agent belongs to a browser
 func IsBrowserUserAgent(userAgent string) bool {
-	userAgent = strings.ToLower(userAgent)
-
 	browserPatterns := []string{
-		"chrome",  // Chrome browser
-		"firefox", // Firefox browser
-		"safari",  // Safari browser (Note: Safari also includes 'Version')
-		"msie",    // Internet Explorer
-		"trident", // Internet Explorer (Trident is used in newer versions)
-		"edge",    // Edge browser
+		"chrome", "firefox", "safari", "msie", "trident", "edge",
+		"seamonkey", "opera", "vivaldi", "camino", "konqueror",
 	}
-
+	userAgent = strings.ToLower(userAgent)
 	for _, pattern := range browserPatterns {
 		if strings.Contains(userAgent, pattern) {
 			return true
 		}
 	}
-
-	browserSpecificPatterns := []string{
-		"seamonkey", // SeaMonkey browser
-		"opera",     // Opera browser
-		"vivaldi",   // Vivaldi browser
-		"camino",    // Camino browser
-		"konqueror", // Konqueror browser
-	}
-
-	for _, pattern := range browserSpecificPatterns {
-		if strings.Contains(userAgent, pattern) {
-			return true
-		}
-	}
-
 	return false
 }
 
@@ -129,15 +109,7 @@ func ExtractPluginInfo(userAgent string) (string, string) {
 	return pluginType, version
 }
 
-func formatEditor(editor string) string {
-	if strings.ToLower(editor) == "vscode" {
-		return "VS Code"
-	}
-	// TODO: add support for others
-	return editor
-}
-
-func NewPluginUserAgent(agent, user_id string) (*PluginUserAgent, error) {
+func ParseWakatimeUserAgent(agent, user_id string) (*PluginUserAgent, error) {
 	parsed := useragent.Parse(agent)
 	os, editor, err := parseUserAgent(agent)
 	if err != nil {
@@ -148,32 +120,94 @@ func NewPluginUserAgent(agent, user_id string) (*PluginUserAgent, error) {
 		ID:                 uuid.NewV4().String(),
 		Value:              agent,
 		OS:                 os,
-		Editor:             formatEditor(editor),
+		Editor:             strutil.Capitalize(editor),
 		IsBrowserExtension: IsBrowserUserAgent(agent),
 		IsDesktopApp:       parsed.Desktop,
 		Plugin:             nil,
 		Version:            nil,
 	}
-	goVersion, err := ExtractGoVersion(agent)
-	if err == nil {
+
+	if goVersion, err := ExtractGoVersion(agent); err == nil {
 		ua.GoVersion = goVersion
 	}
 
-	cliVersion, err := ExtractGoVersion(agent)
-	if err == nil {
-		ua.CliVersion = cliVersion
-	}
-
-	wakatimeCliVersion, err := ExtractWakatimeCliVersion(agent)
-	if err == nil {
+	if wakatimeCliVersion, err := ExtractWakatimeCliVersion(agent); err == nil {
 		ua.CliVersion = wakatimeCliVersion
 	}
 
-	pluginType, version := ExtractPluginInfo(agent)
-	if pluginType != "" {
-		ua.Version = &version
+	if pluginType, version := ExtractPluginInfo(agent); pluginType != "" {
 		ua.Plugin = &pluginType
+		ua.Version = &version
 	}
 
 	return &ua, nil
+}
+
+type NameVersion struct {
+	Name    string
+	Version string
+}
+
+// Creates a NameVersion object from a string formatted as "name/version"
+func MakeNameVersion(input string) (*NameVersion, error) {
+	parts := strings.Split(input, "/")
+	if len(parts) != 2 {
+		return nil, errors.New("invalid input string")
+	}
+
+	textPart := parts[0]
+	version := parts[1]
+
+	re := regexp.MustCompile(`[^vV]+`)
+	numericPart := strings.Join(re.FindAllString(version, -1), "")
+
+	return &NameVersion{Name: textPart, Version: numericPart}, nil
+}
+
+// parses the given section based on the index and 'mutates' pluginUserAgent accordingly
+func parseSection(index int, portion string, pluginUserAgent *PluginUserAgent) {
+	switch index {
+	case 0: // wakatime cli
+		if nameVersion, err := MakeNameVersion(portion); err == nil {
+			pluginUserAgent.CliVersion = nameVersion.Version
+		}
+	case 1: // os
+		parts := strings.Split(portion, "-")
+		if len(parts) >= 2 {
+			pluginUserAgent.OS = strutil.Capitalize(strings.TrimLeft(parts[0], "("))
+		}
+	case 2: // go version
+		pluginUserAgent.GoVersion = strings.TrimLeft(portion, "go")
+	case 3: // Editor
+		if editor, err := MakeNameVersion(portion); err == nil {
+			pluginUserAgent.Editor = strutil.Capitalize(editor.Name)
+		}
+	case 4: // Plugin
+		if plugin, err := MakeNameVersion(portion); err == nil {
+			pluginUserAgent.Plugin = &plugin.Name
+			pluginUserAgent.Version = &plugin.Version
+		}
+	default:
+		fmt.Println("No matching index")
+	}
+}
+
+func NewPluginUserAgent(agent, user_id string) (*PluginUserAgent, error) {
+	parsed := useragent.Parse(agent)
+	ua := &PluginUserAgent{
+		UserID:             user_id,
+		Value:              agent,
+		IsDesktopApp:       parsed.Desktop,
+		ID:                 uuid.NewV4().String(),
+		IsBrowserExtension: IsBrowserUserAgent(agent),
+	}
+
+	parts := strings.Split(agent, " ")
+	if len(parts) == 5 {
+		for index, portion := range parts {
+			parseSection(index, portion, ua)
+		}
+		return ua, nil
+	}
+	return ParseWakatimeUserAgent(agent, user_id)
 }

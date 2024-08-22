@@ -1,11 +1,21 @@
 package repositories
 
 import (
+	"strings"
 	"time"
 
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
 )
+
+// feels more like a computed property. editor names should be saved in their original version
+func formatEditor(editor string) string {
+	if strings.ToLower(editor) == "vscode" {
+		return "VS Code"
+	}
+	// TODO: add support for others
+	return editor
+}
 
 type PluginUserAgentRepository struct {
 	db *gorm.DB
@@ -52,8 +62,9 @@ func (r *PluginUserAgentRepository) CreateOrUpdate(useragent_string, user_id str
 		return nil, err
 	}
 
+	useragent.Editor = formatEditor(useragent.Editor)
+
 	findQuery := models.PluginUserAgent{
-		Plugin: useragent.Plugin,
 		UserID: useragent.UserID,
 		Editor: useragent.Editor,
 	}
