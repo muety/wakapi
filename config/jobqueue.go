@@ -2,9 +2,9 @@ package config
 
 import (
 	"fmt"
-	"github.com/emvi/logbuch"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/utils"
+	"log/slog"
 )
 
 var jobQueues map[string]*artifex.Dispatcher
@@ -42,7 +42,7 @@ func InitQueue(name string, workers int) error {
 	if _, ok := jobQueues[name]; ok {
 		return fmt.Errorf("queue '%s' already existing", name)
 	}
-	logbuch.Info("creating job queue '%s' (%d workers)", name, workers)
+	slog.Info("creating job queue", "name", name, "workers", workers)
 	jobQueues[name] = artifex.NewDispatcher(workers, 4096)
 	jobQueues[name].Start()
 	return nil

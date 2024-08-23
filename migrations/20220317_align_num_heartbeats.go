@@ -1,10 +1,10 @@
 package migrations
 
 import (
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"log/slog"
 )
 
 func init() {
@@ -16,7 +16,7 @@ func init() {
 				return nil
 			}
 
-			logbuch.Info("this may take a while!")
+			slog.Info("this may take a while!")
 
 			// find all summaries whose num_heartbeats is zero even though they have items
 			var faultyIds []uint
@@ -45,7 +45,7 @@ func init() {
 				return err
 			}
 
-			logbuch.Info("corrected heartbeats counter of %d summaries", result.RowsAffected)
+			slog.Info("corrected heartbeats counter of summaries", "count", result.RowsAffected)
 
 			setHasRun(name, db)
 			return nil

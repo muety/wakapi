@@ -1,10 +1,10 @@
 package migrations
 
 import (
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"log/slog"
 )
 
 func init() {
@@ -19,14 +19,14 @@ func init() {
 			migrator := db.Migrator()
 
 			if migrator.HasColumn(&models.Diagnostics{}, "user_id") {
-				logbuch.Info("running migration '%s'", name)
+				slog.Info("running migration", "name", name)
 
 				if err := migrator.DropConstraint(&models.Diagnostics{}, "fk_diagnostics_user"); err != nil {
-					logbuch.Warn("failed to drop 'fk_diagnostics_user' constraint (%v)", err)
+					slog.Warn("failed to drop constraint", "constraint", "fk_diagnostics_user", "error", err)
 				}
 
 				if err := migrator.DropColumn(&models.Diagnostics{}, "user_id"); err != nil {
-					logbuch.Warn("failed to drop user_id column of diagnostics (%v)", err)
+					slog.Warn("failed to drop column", "table", "diagnostics", "column", "user_id", "error", err)
 				}
 			}
 

@@ -2,8 +2,8 @@ package models
 
 import (
 	"fmt"
-	"github.com/emvi/logbuch"
 	"github.com/mitchellh/hashstructure/v2"
+	"log/slog"
 )
 
 type Filters struct {
@@ -180,7 +180,7 @@ func (f *Filters) ResolveType(entityId uint8) *OrFilter {
 func (f *Filters) Hash() string {
 	hash, err := hashstructure.Hash(f, hashstructure.FormatV2, nil)
 	if err != nil {
-		logbuch.Error("CRITICAL ERROR: failed to hash struct - %v", err)
+		slog.Error("CRITICAL ERROR: failed to hash struct", "error", err)
 	}
 	return fmt.Sprintf("%x", hash) // "uint64 values with high bit set are not supported"
 }

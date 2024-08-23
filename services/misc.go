@@ -3,11 +3,11 @@ package services
 import (
 	"fmt"
 	"github.com/duke-git/lancet/v2/slice"
-	"github.com/emvi/logbuch"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
 	"go.uber.org/atomic"
+	"log/slog"
 	"strconv"
 	"strings"
 	"sync"
@@ -56,43 +56,43 @@ func NewMiscService(userService IUserService, heartbeatService IHeartbeatService
 }
 
 func (srv *MiscService) Schedule() {
-	logbuch.Info("scheduling total time counting")
+	slog.Info("scheduling total time counting")
 	if _, err := srv.queueDefault.DispatchEvery(srv.CountTotalTime, countUsersEvery); err != nil {
-		config.Log().Error("failed to schedule user counting jobs, %v", err)
+		config.Log().Error("failed to schedule user counting jobs", "error", err)
 	}
 
-	logbuch.Info("scheduling first data computing")
+	slog.Info("scheduling first data computing")
 	if _, err := srv.queueDefault.DispatchEvery(srv.ComputeOldestHeartbeats, computeOldestDataEvery); err != nil {
-		config.Log().Error("failed to schedule first data computing jobs, %v", err)
+		config.Log().Error("failed to schedule first data computing jobs", "error", err)
 	}
 
 	if srv.config.Subscriptions.Enabled && srv.config.Subscriptions.ExpiryNotifications && srv.config.App.DataRetentionMonths > 0 {
-		logbuch.Info("scheduling subscription notifications")
+		slog.Info("scheduling subscription notifications")
 		if _, err := srv.queueDefault.DispatchEvery(srv.NotifyExpiringSubscription, notifyExpiringSubscriptionsEvery); err != nil {
-			config.Log().Error("failed to schedule subscription notification jobs, %v", err)
+			config.Log().Error("failed to schedule subscription notification jobs", "error", err)
 		}
 	}
 
 	// run once initially for a fresh instance
 	if !srv.existsUsersTotalTime() {
 		if err := srv.queueDefault.Dispatch(srv.CountTotalTime); err != nil {
-			config.Log().Error("failed to dispatch user counting jobs, %v", err)
+			config.Log().Error("failed to dispatch user counting jobs", "error", err)
 		}
 	}
 	if !srv.existsUsersFirstData() {
 		if err := srv.queueDefault.Dispatch(srv.ComputeOldestHeartbeats); err != nil {
-			config.Log().Error("failed to dispatch first data computing jobs, %v", err)
+			config.Log().Error("failed to dispatch first data computing jobs", "error", err)
 		}
 	}
 	if !srv.existsSubscriptionNotifications() && srv.config.Subscriptions.Enabled && srv.config.Subscriptions.ExpiryNotifications && srv.config.App.DataRetentionMonths > 0 {
 		if err := srv.queueDefault.Dispatch(srv.NotifyExpiringSubscription); err != nil {
-			config.Log().Error("failed to schedule subscription notification jobs, %v", err)
+			config.Log().Error("failed to schedule subscription notification jobs", "error", err)
 		}
 	}
 }
 
 func (srv *MiscService) CountTotalTime() {
-	logbuch.Info("counting users total time")
+	slog.Info("counting users total time")
 	if ok := countLock.TryLock(); !ok {
 		config.Log().Warn("couldn't acquire lock for counting users total time, job is still pending")
 	}
@@ -100,7 +100,7 @@ func (srv *MiscService) CountTotalTime() {
 
 	users, err := srv.userService.GetAll()
 	if err != nil {
-		config.Log().Error("failed to fetch users for time counting, %v", err)
+		config.Log().Error("failed to fetch users for time counting", "error", err)
 		return
 	}
 
@@ -114,7 +114,7 @@ func (srv *MiscService) CountTotalTime() {
 			defer pendingJobs.Done()
 			totalTime.Add(srv.countUserTotalTime(user.ID))
 		}); err != nil {
-			config.Log().Error("failed to enqueue counting job for user '%s'", user.ID)
+			config.Log().Error("failed to enqueue counting job for user", "userID", user.ID)
 			pendingJobs.Done()
 		}
 	}
@@ -126,14 +126,14 @@ func (srv *MiscService) CountTotalTime() {
 				Key:   config.KeyLatestTotalTime,
 				Value: totalTime.Load().String(),
 			}); err != nil {
-				config.Log().Error("failed to save total time count: %v", err)
+				config.Log().Error("failed to save total time count", "error", err)
 			}
 
 			if err := srv.keyValueService.PutString(&models.KeyStringValue{
 				Key:   config.KeyLatestTotalUsers,
 				Value: strconv.Itoa(len(users)),
 			}); err != nil {
-				config.Log().Error("failed to save total users count: %v", err)
+				config.Log().Error("failed to save total users count", "error", err)
 			}
 		} else {
 			config.Log().Error("waiting for user counting jobs timed out")
@@ -142,7 +142,7 @@ func (srv *MiscService) CountTotalTime() {
 }
 
 func (srv *MiscService) ComputeOldestHeartbeats() {
-	logbuch.Info("computing users' first data")
+	slog.Info("computing users' first data")
 
 	if err := srv.queueWorkers.Dispatch(func() {
 		if ok := firstDataLock.TryLock(); !ok {
@@ -153,7 +153,7 @@ func (srv *MiscService) ComputeOldestHeartbeats() {
 
 		results, err := srv.heartbeatService.GetFirstByUsers()
 		if err != nil {
-			config.Log().Error("failed to compute users' first data, %v", err)
+			config.Log().Error("failed to compute users' first data", "error", err)
 			return
 		}
 
@@ -167,11 +167,11 @@ func (srv *MiscService) ComputeOldestHeartbeats() {
 				Key:   kvKey,
 				Value: entry.Time.T().Format(time.RFC822Z),
 			}); err != nil {
-				config.Log().Error("failed to save user's first heartbeat time: %v", err)
+				config.Log().Error("failed to save user's first heartbeat time", "error", err)
 			}
 		}
 	}); err != nil {
-		config.Log().Error("failed to enqueue computing first data for user, %v", err)
+		config.Log().Error("failed to enqueue computing first data for user", "error", err)
 	}
 }
 
@@ -189,11 +189,11 @@ func (srv *MiscService) NotifyExpiringSubscription() {
 	}
 
 	now := time.Now()
-	logbuch.Info("notifying users about soon to expire subscriptions")
+	slog.Info("notifying users about soon to expire subscriptions")
 
 	users, err := srv.userService.GetAll()
 	if err != nil {
-		config.Log().Error("failed to fetch users for subscription notifications, %v", err)
+		config.Log().Error("failed to fetch users for subscription notifications", "error", err)
 		return
 	}
 
@@ -203,13 +203,13 @@ func (srv *MiscService) NotifyExpiringSubscription() {
 			return strings.Replace(kv.Key, config.KeySubscriptionNotificationSent+"_", "", 1)
 		})
 	} else {
-		config.Log().Error("failed to fetch key-values for subscription notifications, %v", err)
+		config.Log().Error("failed to fetch key-values for subscription notifications", "error", err)
 		return
 	}
 
 	for _, u := range users {
 		if u.HasActiveSubscription() && u.Email == "" {
-			config.Log().Warn("invalid state: user '%s' has active subscription but no e-mail address set", u.ID)
+			config.Log().Warn("invalid state: user has active subscription but no e-mail address set", "userID", u.ID)
 		}
 
 		var alreadySent bool
@@ -218,7 +218,7 @@ func (srv *MiscService) NotifyExpiringSubscription() {
 			if sendDate, err := time.Parse(time.RFC822Z, kvs[0].Value); err == nil && now.Sub(sendDate) <= notifyBeforeSubscriptionExpiry {
 				alreadySent = true
 			} else if err != nil {
-				config.Log().Error("failed to parse date for last sent subscription notification mail for user '%s', %v", u.ID, err)
+				config.Log().Error("failed to parse date for last sent subscription notification mail", "userID", u.ID, "error", err)
 				alreadySent = true
 			}
 		}
@@ -241,7 +241,7 @@ func (srv *MiscService) NotifyExpiringSubscription() {
 func (srv *MiscService) countUserTotalTime(userId string) time.Duration {
 	result, err := srv.summaryService.Aliased(time.Time{}, time.Now(), &models.User{ID: userId}, srv.summaryService.Retrieve, nil, false)
 	if err != nil {
-		config.Log().Error("failed to count total for user %s: %v", userId, err)
+		config.Log().Error("failed to count total for user", "userID", userId, "error", err)
 		return 0
 	}
 	return result.TotalTime()
@@ -250,11 +250,11 @@ func (srv *MiscService) countUserTotalTime(userId string) time.Duration {
 func (srv *MiscService) sendSubscriptionNotificationScheduled(user *models.User, hasExpired bool) {
 	u := *user
 	srv.queueMails.Dispatch(func() {
-		logbuch.Info("sending subscription expiry notification mail to %s (expired: %v)", u.ID, hasExpired)
+		slog.Info("sending subscription expiry notification mail", "userID", u.ID, "expired", hasExpired)
 		defer time.Sleep(10 * time.Second)
 
 		if err := srv.mailService.SendSubscriptionNotification(&u, hasExpired); err != nil {
-			config.Log().Error("failed to send subscription notification mail to user '%s', %v", u.ID, err)
+			config.Log().Error("failed to send subscription notification mail to user", "userID", u.ID, "error", err)
 			return
 		}
 
@@ -262,7 +262,7 @@ func (srv *MiscService) sendSubscriptionNotificationScheduled(user *models.User,
 			Key:   fmt.Sprintf("%s_%s", config.KeySubscriptionNotificationSent, u.ID),
 			Value: time.Now().Format(time.RFC822Z),
 		}); err != nil {
-			config.Log().Error("failed to update subscription notification status key-value for user %s, %v", u.ID, err)
+			config.Log().Error("failed to update subscription notification status key-value for user", "userID", u.ID, "error", err)
 		}
 	})
 }
@@ -270,7 +270,7 @@ func (srv *MiscService) sendSubscriptionNotificationScheduled(user *models.User,
 func (srv *MiscService) existsUsersTotalTime() bool {
 	results, err := srv.keyValueService.GetByPrefix(config.KeyLatestTotalTime)
 	if err != nil {
-		config.Log().Error("failed to fetch latest time key-values, %v", err)
+		config.Log().Error("failed to fetch latest time key-values", "error", err)
 	}
 	return len(results) > 0
 }
@@ -278,7 +278,7 @@ func (srv *MiscService) existsUsersTotalTime() bool {
 func (srv *MiscService) existsUsersFirstData() bool {
 	results, err := srv.keyValueService.GetByPrefix(config.KeyFirstHeartbeat)
 	if err != nil {
-		config.Log().Error("failed to fetch first heartbeats key-values, %v", err)
+		config.Log().Error("failed to fetch first heartbeats key-values", "error", err)
 	}
 	return len(results) > 0
 }
@@ -286,7 +286,7 @@ func (srv *MiscService) existsUsersFirstData() bool {
 func (srv *MiscService) existsSubscriptionNotifications() bool {
 	results, err := srv.keyValueService.GetByPrefix(config.KeySubscriptionNotificationSent)
 	if err != nil {
-		config.Log().Error("failed to fetch notifications key-values, %v", err)
+		config.Log().Error("failed to fetch notifications key-values", "error", err)
 	}
 	return len(results) > 0
 }

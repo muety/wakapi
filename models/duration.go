@@ -2,8 +2,8 @@ package models
 
 import (
 	"fmt"
-	"github.com/emvi/logbuch"
 	"github.com/mitchellh/hashstructure/v2"
+	"log/slog"
 	"time"
 	"unicode"
 )
@@ -65,7 +65,7 @@ func (d *Duration) WithEntityIgnored() *Duration {
 func (d *Duration) Hashed() *Duration {
 	hash, err := hashstructure.Hash(d, hashstructure.FormatV2, nil)
 	if err != nil {
-		logbuch.Error("CRITICAL ERROR: failed to hash struct - %v", err)
+		slog.Error("CRITICAL ERROR: failed to hash struct", "error", err)
 	}
 	d.GroupHash = fmt.Sprintf("%x", hash)
 	return d

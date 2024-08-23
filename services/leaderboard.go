@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"github.com/emvi/logbuch"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
@@ -11,6 +10,7 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
+	"log/slog"
 	"reflect"
 	"strconv"
 	"strings"
@@ -43,7 +43,7 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 
 	scope, err := helpers.ParseInterval(srv.config.App.LeaderboardScope)
 	if err != nil {
-		logbuch.Fatal(err.Error())
+		config.Log().Fatal(err.Error())
 	}
 	srv.defaultScope = scope
 
@@ -56,16 +56,16 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 
 			exists, err := srv.ExistsAnyByUser(user.ID)
 			if err != nil {
-				config.Log().Error("failed to check existing leaderboards upon user update - %v", err)
+				config.Log().Error("failed to check existing leaderboards upon user update", "error", err)
 			}
 
 			if user.PublicLeaderboard && !exists {
-				logbuch.Info("generating leaderboard for '%s' after settings update", user.ID)
+				slog.Info("generating leaderboard after settings update", "userID", user.ID)
 				srv.ComputeLeaderboard([]*models.User{user}, srv.defaultScope, []uint8{models.SummaryLanguage})
 			} else if !user.PublicLeaderboard && exists {
-				logbuch.Info("clearing leaderboard for '%s' after settings update", user.ID)
+				slog.Info("clearing leaderboard after settings update", "userID", user.ID)
 				if err := srv.repository.DeleteByUser(user.ID); err != nil {
-					config.Log().Error("failed to clear leaderboard for user '%s' - %v", user.ID, err)
+					config.Log().Error("failed to clear leaderboard for user", "userID", user.ID, "error", err)
 				}
 				srv.cache.Flush()
 			}
@@ -80,12 +80,12 @@ func (srv *LeaderboardService) GetDefaultScope() *models.IntervalKey {
 }
 
 func (srv *LeaderboardService) Schedule() {
-	logbuch.Info("scheduling leaderboard generation")
+	slog.Info("scheduling leaderboard generation")
 
 	generate := func() {
 		users, err := srv.userService.GetAllByLeaderboard(true)
 		if err != nil {
-			config.Log().Error("failed to get users for leaderboard generation - %v", err)
+			config.Log().Error("failed to get users for leaderboard generation", "error", err)
 			return
 		}
 		srv.ComputeLeaderboard(users, srv.defaultScope, []uint8{models.SummaryLanguage})
@@ -93,35 +93,35 @@ func (srv *LeaderboardService) Schedule() {
 
 	for _, cronExp := range srv.config.App.GetLeaderboardGenerationTimeCron() {
 		if _, err := srv.queueDefault.DispatchCron(generate, cronExp); err != nil {
-			config.Log().Error("failed to schedule leaderboard generation (%s), %v", cronExp, err)
+			config.Log().Error("failed to schedule leaderboard generation", "cronExpression", cronExp, "error", err)
 		}
 	}
 }
 
 func (srv *LeaderboardService) ComputeLeaderboard(users []*models.User, interval *models.IntervalKey, by []uint8) error {
-	logbuch.Info("generating leaderboard (%s) for %d users (%d aggregations)", (*interval)[0], len(users), len(by))
+	slog.Info("generating leaderboard", "interval", (*interval)[0], "userCount", len(users), "aggregationCount", len(by))
 
 	for _, user := range users {
 		if err := srv.repository.DeleteByUserAndInterval(user.ID, interval); err != nil {
-			config.Log().Error("failed to delete leaderboard items for user %s (interval %s) - %v", user.ID, (*interval)[0], err)
+			config.Log().Error("failed to delete leaderboard items for user", "userID", user.ID, "interval", (*interval)[0], "error", err)
 			continue
 		}
 
 		item, err := srv.GenerateByUser(user, interval)
 		if err != nil {
-			config.Log().Error("failed to generate general leaderboard for user %s - %v", user.ID, err)
+			config.Log().Error("failed to generate general leaderboard for user", "userID", user.ID, "error", err)
 			continue
 		}
 
 		if err := srv.repository.InsertBatch([]*models.LeaderboardItem{item}); err != nil {
-			config.Log().Error("failed to persist general leaderboard for user %s - %v", user.ID, err)
+			config.Log().Error("failed to persist general leaderboard for user", "userID", user.ID, "error", err)
 			continue
 		}
 
 		for _, by := range by {
 			items, err := srv.GenerateAggregatedByUser(user, interval, by)
 			if err != nil {
-				config.Log().Error("failed to generate aggregated (by %s) leaderboard for user %s - %v", models.GetEntityColumn(by), user.ID, err)
+				config.Log().Error("failed to generate aggregated leaderboard for user", "aggregatedBy", models.GetEntityColumn(by), "userID", user.ID, "error", err)
 				continue
 			}
 
@@ -130,14 +130,14 @@ func (srv *LeaderboardService) ComputeLeaderboard(users []*models.User, interval
 			}
 
 			if err := srv.repository.InsertBatch(items); err != nil {
-				config.Log().Error("failed to persist aggregated (by %s) leaderboard for user %s - %v", models.GetEntityColumn(by), user.ID, err)
+				config.Log().Error("failed to persist aggregated leaderboard for user", "aggregatedBy", models.GetEntityColumn(by), "userID", user.ID, "error", err)
 				continue
 			}
 		}
 	}
 
 	srv.cache.Flush()
-	logbuch.Info("finished leaderboard generation")
+	slog.Info("finished leaderboard generation")
 	return nil
 }
 
@@ -183,7 +183,7 @@ func (srv *LeaderboardService) GetAggregatedByInterval(interval *models.Interval
 	if resolveUsers {
 		users, err := srv.userService.GetManyMapped(models.Leaderboard(items).UserIDs())
 		if err != nil {
-			config.Log().Error("failed to resolve users for leaderboard item - %v", err)
+			config.Log().Error("failed to resolve users for leaderboard item", "error", err)
 		} else {
 			for _, item := range items {
 				if u, ok := users[item.UserID]; ok {
@@ -212,7 +212,7 @@ func (srv *LeaderboardService) GetAggregatedByIntervalAndUser(interval *models.I
 	if resolveUser {
 		u, err := srv.userService.GetUserById(userId)
 		if err != nil {
-			config.Log().Error("failed to resolve user for leaderboard item - %v", err)
+			config.Log().Error("failed to resolve user for leaderboard item", "error", err)
 		} else {
 			for _, item := range items {
 				item.User = u

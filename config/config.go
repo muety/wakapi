@@ -13,13 +13,13 @@ import (
 
 	"github.com/duke-git/lancet/v2/slice"
 
-	"github.com/emvi/logbuch"
 	"github.com/gofrs/uuid/v5"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
 	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/utils"
 	"github.com/robfig/cron/v3"
+	"log/slog"
 )
 
 const (
@@ -253,12 +253,12 @@ func (c *appConfig) GetAggregationTimeCron() string {
 		timeParts := strings.Split(c.AggregationTime, ":")
 		h, err := strconv.Atoi(timeParts[0])
 		if err != nil {
-			logbuch.Fatal(err.Error())
+			Log().Fatal(err.Error())
 		}
 
 		m, err := strconv.Atoi(timeParts[1])
 		if err != nil {
-			logbuch.Fatal(err.Error())
+			Log().Fatal(err.Error())
 		}
 
 		return fmt.Sprintf("0 %d %d * * *", m, h)
@@ -276,12 +276,12 @@ func (c *appConfig) GetWeeklyReportCron() string {
 
 		h, err := strconv.Atoi(timeParts[0])
 		if err != nil {
-			logbuch.Fatal(err.Error())
+			Log().Fatal(err.Error())
 		}
 
 		m, err := strconv.Atoi(timeParts[1])
 		if err != nil {
-			logbuch.Fatal(err.Error())
+			Log().Fatal(err.Error())
 		}
 
 		return fmt.Sprintf("0 %d %d * * %d", m, h, weekday)
@@ -301,12 +301,12 @@ func (c *appConfig) GetLeaderboardGenerationTimeCron() []string {
 			timeParts := strings.Split(s, ":")
 			h, err := strconv.Atoi(timeParts[0])
 			if err != nil {
-				logbuch.Fatal(err.Error())
+				Log().Fatal(err.Error())
 			}
 
 			m, err := strconv.Atoi(timeParts[1])
 			if err != nil {
-				logbuch.Fatal(err.Error())
+				Log().Fatal(err.Error())
 			}
 
 			return fmt.Sprintf("0 %d %d * * *", m, h)
@@ -333,7 +333,7 @@ func (c *securityConfig) ParseTrustReverseProxyIPs() {
 	c.trustReverseProxyIpParsed = make([]net.IP, 0)
 	for _, ip := range strings.Split(c.TrustReverseProxyIps, ",") {
 		if parsedIp := net.ParseIP(strings.TrimSpace(ip)); parsedIp == nil {
-			logbuch.Warn("failed to parse reverse proxy ip")
+			slog.Warn("failed to parse reverse proxy ip")
 		} else {
 			c.trustReverseProxyIpParsed = append(c.trustReverseProxyIpParsed, parsedIp)
 		}
@@ -360,7 +360,7 @@ func (c *securityConfig) parseRate(rate string) (int, time.Duration) {
 	pattern := regexp.MustCompile("(\\d+)/(\\d+)([smh])")
 	matches := pattern.FindStringSubmatch(rate)
 	if len(matches) != 4 {
-		logbuch.Fatal("failed to parse rate pattern '%s'", rate)
+		Log().Fatal("failed to parse rate pattern", "rate", rate)
 	}
 
 	limit, _ := strconv.Atoi(matches[1])
@@ -424,7 +424,7 @@ func readColors() map[string]map[string]string {
 
 	var colors = make(map[string]map[string]string)
 	if err := json.Unmarshal(raw, &colors); err != nil {
-		logbuch.Fatal(err.Error())
+		Log().Fatal(err.Error())
 	}
 
 	return colors
@@ -455,7 +455,7 @@ func Load(configFlag string, version string) *Config {
 	config := &Config{}
 
 	if err := configor.New(&configor.Config{}).Load(config, configFlag); err != nil {
-		logbuch.Fatal("failed to read config: %v", err)
+		Log().Fatal("failed to read config", "error", err)
 	}
 
 	env = config.Env
@@ -475,7 +475,7 @@ func Load(configFlag string, version string) *Config {
 	sessionKey := securecookie.GenerateRandomKey(32)
 
 	if IsDev(env) {
-		logbuch.Warn("using temporary keys to sign and encrypt cookies in dev mode, make sure to set env to production for real-world use")
+		slog.Warn("using temporary keys to sign and encrypt cookies in dev mode, make sure to set env to production for real-world use")
 		hashKey, blockKey = getTemporarySecureKeys()
 		blockKey = hashKey
 	}
@@ -493,75 +493,75 @@ func Load(configFlag string, version string) *Config {
 	}
 
 	if config.Sentry.Dsn != "" {
-		logbuch.Info("enabling sentry integration")
+		slog.Info("enabling sentry integration")
 		initSentry(config.Sentry, config.IsDev())
 	}
 
 	if config.App.DataRetentionMonths <= 0 {
-		logbuch.Info("disabling data retention policy, keeping data forever")
+		slog.Info("disabling data retention policy, keeping data forever")
 	} else {
 		dataRetentionWarning := fmt.Sprintf("⚠️ data retention policy will cause user data older than %d months to be deleted", config.App.DataRetentionMonths)
 		if config.Subscriptions.Enabled {
 			dataRetentionWarning += " (except for users with active subscriptions)"
 		}
-		logbuch.Warn(dataRetentionWarning)
+		slog.Warn(dataRetentionWarning)
 	}
 
 	// some validation checks
 	if config.Server.ListenIpV4 == "-" && config.Server.ListenIpV6 == "-" && config.Server.ListenSocket == "" {
-		logbuch.Fatal("either of listen_ipv4 or listen_ipv6 or listen_socket must be set")
+		Log().Fatal("either of listen_ipv4 or listen_ipv6 or listen_socket must be set")
 	}
 	if config.Db.MaxConn <= 0 {
-		logbuch.Fatal("you must allow at least one database connection")
+		Log().Fatal("you must allow at least one database connection")
 	}
 	if config.Db.MaxConn > 1 && config.Db.IsSQLite() {
-		logbuch.Warn("with sqlite, only a single connection is supported") // otherwise 'PRAGMA foreign_keys=ON' would somehow have to be set for every connection in the pool
+		slog.Warn("with sqlite, only a single connection is supported") // otherwise 'PRAGMA foreign_keys=ON' would somehow have to be set for every connection in the pool
 		config.Db.MaxConn = 1
 	}
 	if config.Mail.Provider != "" && utils.FindString(config.Mail.Provider, emailProviders, "") == "" {
-		logbuch.Fatal("unknown mail provider '%s'", config.Mail.Provider)
+		Log().Fatal("unknown mail provider", "provider", config.Mail.Provider)
 	}
 	if _, err := time.ParseDuration(config.App.HeartbeatMaxAge); err != nil {
-		logbuch.Fatal("invalid duration set for heartbeat_max_age")
+		Log().Fatal("invalid duration set for heartbeat_max_age")
 	}
 	if config.Security.TrustedHeaderAuth && len(config.Security.trustReverseProxyIpParsed) == 0 {
 		config.Security.TrustedHeaderAuth = false
 	}
 	if d, err := time.Parse(config.App.DateFormat, config.App.DateFormat); err != nil || !d.Equal(time.Date(2006, time.January, 2, 0, 0, 0, 0, d.Location())) {
-		logbuch.Fatal("invalid date format '%s'", config.App.DateFormat)
+		Log().Fatal("invalid date format", "format", config.App.DateFormat)
 	}
 	if d, err := time.Parse(config.App.DateTimeFormat, config.App.DateTimeFormat); err != nil || !d.Equal(time.Date(2006, time.January, 2, 15, 4, 0, 0, d.Location())) {
-		logbuch.Fatal("invalid datetime format '%s'", config.App.DateTimeFormat)
+		Log().Fatal("invalid datetime format", "format", config.App.DateTimeFormat)
 	}
 
 	cronParser := cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
 
 	if _, err := cronParser.Parse(config.App.GetWeeklyReportCron()); err != nil {
-		logbuch.Fatal("invalid cron expression for report_time_weekly")
+		Log().Fatal("invalid cron expression for report_time_weekly")
 	}
 	if _, err := cronParser.Parse(config.App.GetAggregationTimeCron()); err != nil {
-		logbuch.Fatal("invalid cron expression for aggregation_time")
+		Log().Fatal("invalid cron expression for aggregation_time")
 	}
 	for _, c := range config.App.GetLeaderboardGenerationTimeCron() {
 		if _, err := cronParser.Parse(c); err != nil {
-			logbuch.Fatal("invalid cron expression for leaderboard_generation_time")
+			Log().Fatal("invalid cron expression for leaderboard_generation_time")
 		}
 	}
 
 	// see models/interval.go
 	if !slice.Contain[string](leaderboardScopes, config.App.LeaderboardScope) {
-		logbuch.Fatal("leaderboard scope is not a valid constant")
+		Log().Fatal("leaderboard scope is not a valid constant")
 	}
 
 	// deprecation notices
 	if strings.Contains(config.App.AggregationTime, ":") {
-		logbuch.Warn("you're using deprecated syntax for 'aggregation_time', please change it to a valid cron expression")
+		slog.Warn("you're using deprecated syntax for 'aggregation_time', please change it to a valid cron expression")
 	}
 	if strings.Contains(config.App.ReportTimeWeekly, ":") {
-		logbuch.Warn("you're using deprecated syntax for 'report_time_weekly', please change it to a valid cron expression")
+		slog.Warn("you're using deprecated syntax for 'report_time_weekly', please change it to a valid cron expression")
 	}
 	if strings.Contains(config.App.LeaderboardGenerationTime, ":") {
-		logbuch.Warn("you're using deprecated syntax for 'leaderboard_generation_time', please change it to a semicolon-separated list if valid cron expressions")
+		slog.Warn("you're using deprecated syntax for 'leaderboard_generation_time', please change it to a semicolon-separated list if valid cron expressions")
 	}
 
 	Set(config)

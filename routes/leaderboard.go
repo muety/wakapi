@@ -51,7 +51,7 @@ func (h *LeaderboardHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 	if err := templates[conf.LeaderboardTemplate].Execute(w, h.buildViewModel(r, w)); err != nil {
-		conf.Log().Request(r).Error("failed to get leaderboard page - %v", err)
+		conf.Log().Request(r).Error("failed to get leaderboard page", "error", err)
 	}
 }
 
@@ -72,7 +72,7 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWrit
 	if byParam == "" {
 		leaderboard, err = h.leaderboardService.GetByInterval(h.leaderboardService.GetDefaultScope(), pageParams, true)
 		if err != nil {
-			conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
+			conf.Log().Request(r).Error("error while fetching general leaderboard items", "error", err)
 			return &view.LeaderboardViewModel{
 				SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 					SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
@@ -93,7 +93,7 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWrit
 		if by, ok := allowedAggregations[byParam]; ok {
 			leaderboard, err = h.leaderboardService.GetAggregatedByInterval(h.leaderboardService.GetDefaultScope(), &by, pageParams, true)
 			if err != nil {
-				conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
+				conf.Log().Request(r).Error("error while fetching general leaderboard items", "error", err)
 				return &view.LeaderboardViewModel{
 					SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 						SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
@@ -108,7 +108,7 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWrit
 					if l, err := h.leaderboardService.GetAggregatedByIntervalAndUser(h.leaderboardService.GetDefaultScope(), user.ID, &by, true); err == nil {
 						leaderboard.AddMany(l)
 					} else {
-						conf.Log().Request(r).Error("error while fetching own aggregated user leaderboard - %v", err)
+						conf.Log().Request(r).Error("error while fetching own aggregated user leaderboard", "error", err)
 					}
 				}
 			}

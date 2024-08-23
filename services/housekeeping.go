@@ -2,11 +2,11 @@ package services
 
 import (
 	"github.com/duke-git/lancet/v2/slice"
-	"github.com/emvi/logbuch"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
+	"log/slog"
 	"time"
 )
 
@@ -37,9 +37,9 @@ func (s *HousekeepingService) Schedule() {
 }
 
 func (s *HousekeepingService) CleanUserDataBefore(user *models.User, before time.Time) error {
-	logbuch.Warn("cleaning up user data for '%s' older than %v", user.ID, before)
+	slog.Warn("cleaning up user data older than", "userID", user.ID, "date", before)
 	if s.config.App.DataCleanupDryRun {
-		logbuch.Info("skipping actual data deletion for '%v', because this is just a dry run", user.ID)
+		slog.Info("skipping actual data deletion for dry run", "userID", user.ID)
 		return nil
 	}
 
@@ -49,7 +49,7 @@ func (s *HousekeepingService) CleanUserDataBefore(user *models.User, before time
 	}
 
 	// clear old summaries
-	logbuch.Info("clearing summaries for user '%s' older than %v", user.ID, before)
+	slog.Info("clearing summaries for user older than", "userID", user.ID, "date", before)
 	if err := s.summarySrvc.DeleteByUserBefore(user.ID, before); err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (s *HousekeepingService) CleanUserDataBefore(user *models.User, before time
 }
 
 func (s *HousekeepingService) CleanInactiveUsers(before time.Time) error {
-	logbuch.Info("cleaning up users inactive since %v", before)
+	slog.Info("cleaning up users inactive since", "date", before)
 	users, err := s.userSrvc.GetAll()
 	if err != nil {
 		return err
@@ -70,22 +70,22 @@ func (s *HousekeepingService) CleanInactiveUsers(before time.Time) error {
 			continue
 		}
 
-		logbuch.Warn("deleting user '%s', because inactive and not having data", u.ID)
+		slog.Warn("deleting user due to inactivity and no data", "userID", u.ID)
 		if err := s.userSrvc.Delete(u); err != nil {
-			config.Log().Error("failed to delete user '%s'", u.ID)
+			config.Log().Error("failed to delete user", "userID", u.ID)
 		} else {
 			i++
 		}
 	}
-	logbuch.Info("deleted %d (of %d total) users due to inactivity", i, len(users))
+	slog.Info("deleted users due to inactivity", "deletedCount", i, "totalCount", len(users))
 
 	return nil
 }
 
 func (s *HousekeepingService) WarmUserProjectStatsCache(user *models.User) error {
-	logbuch.Info("pre-warming project stats cache for '%s'", user.ID)
+	slog.Info("pre-warming project stats cache for user", "userID", user.ID)
 	if _, err := s.heartbeatSrvc.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), nil, true); err != nil {
-		config.Log().Error("failed to pre-warm project stats cache for '%s', %v", user.ID, err)
+		config.Log().Error("failed to pre-warm project stats cache", "userID", user.ID, "error", err)
 	}
 	return nil
 }
@@ -94,14 +94,14 @@ func (s *HousekeepingService) runWarmProjectStatsCache() {
 	// fetch active users
 	users, err := s.userSrvc.GetActive(false)
 	if err != nil {
-		config.Log().Error("failed to get active users for project stats cache warming, %v\n", err)
+		config.Log().Error("failed to get active users for project stats cache warming", "error", err)
 		return
 	}
 
 	// fetch user heartbeat counts
 	userHeartbeatCounts, err := s.heartbeatSrvc.CountByUsers(users)
 	if err != nil {
-		config.Log().Error("failed to count user heartbeats for project stats cache warming, %v\n", err)
+		config.Log().Error("failed to count user heartbeats for project stats cache warming", "error", err)
 		return
 	}
 
@@ -117,7 +117,7 @@ func (s *HousekeepingService) runWarmProjectStatsCache() {
 		})
 		s.queueWorkers.Dispatch(func() {
 			if err := s.WarmUserProjectStatsCache(user); err != nil {
-				config.Log().Error("failed to pre-warm project stats cache for '%s'", user.ID)
+				config.Log().Error("failed to pre-warm project stats cache", "userID", user.ID)
 			}
 		})
 	}
@@ -127,7 +127,7 @@ func (s *HousekeepingService) runCleanData() {
 	// fetch all users
 	users, err := s.userSrvc.GetAll()
 	if err != nil {
-		config.Log().Error("failed to get users for data cleanup, %v", err)
+		config.Log().Error("failed to get users for data cleanup", "error", err)
 		return
 	}
 
@@ -141,7 +141,7 @@ func (s *HousekeepingService) runCleanData() {
 		user := *u
 		s.queueWorkers.Dispatch(func() {
 			if err := s.CleanUserDataBefore(&user, user.MinDataAge()); err != nil {
-				config.Log().Error("failed to clear old user data for '%s'", user.ID)
+				config.Log().Error("failed to clear old user data", "userID", user.ID)
 			}
 		})
 	}
@@ -153,7 +153,7 @@ func (s *HousekeepingService) runCleanInactiveUsers() {
 			return
 		}
 		if err := s.CleanInactiveUsers(time.Now().AddDate(0, -s.config.App.MaxInactiveMonths, 0)); err != nil {
-			config.Log().Error("failed to clean up inactive users, %v", err)
+			config.Log().Error("failed to clean up inactive users", "error", err)
 		}
 	})
 }
@@ -165,11 +165,11 @@ func (s *HousekeepingService) scheduleDataCleanups() {
 		return
 	}
 
-	logbuch.Info("scheduling data cleanup")
+	slog.Info("scheduling data cleanup")
 
 	_, err := s.queueDefault.DispatchCron(s.runCleanData, s.config.App.DataCleanupTime)
 	if err != nil {
-		config.Log().Error("failed to dispatch data cleanup jobs, %v", err)
+		config.Log().Error("failed to dispatch data cleanup jobs", "error", err)
 	}
 }
 
@@ -178,26 +178,26 @@ func (s *HousekeepingService) scheduleInactiveUsersCleanup() {
 		return
 	}
 
-	logbuch.Info("scheduling inactive users cleanup")
+	slog.Info("scheduling inactive users cleanup")
 
 	_, err := s.queueDefault.DispatchCron(s.runCleanInactiveUsers, s.config.App.DataCleanupTime)
 	if err != nil {
-		config.Log().Error("failed to dispatch inactive users cleanup job, %v", err)
+		config.Log().Error("failed to dispatch inactive users cleanup job", "error", err)
 	}
 }
 
 func (s *HousekeepingService) scheduleProjectStatsCacheWarming() {
-	logbuch.Info("scheduling project stats cache pre-warming")
+	slog.Info("scheduling project stats cache pre-warming")
 
 	_, err := s.queueDefault.DispatchEvery(s.runWarmProjectStatsCache, 12*time.Hour)
 	if err != nil {
-		config.Log().Error("failed to dispatch pre-warming project stats cache, %v", err)
+		config.Log().Error("failed to dispatch pre-warming project stats cache", "error", err)
 	}
 
 	// run once initially, 1 min after start
 	if !s.config.QuickStart {
 		if err := s.queueDefault.DispatchIn(s.runWarmProjectStatsCache, 1*time.Minute); err != nil {
-			config.Log().Error("failed to dispatch pre-warming project stats cache, %v", err)
+			config.Log().Error("failed to dispatch pre-warming project stats cache", "error", err)
 		}
 	}
 }

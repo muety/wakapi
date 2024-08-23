@@ -13,11 +13,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
 	"go.uber.org/atomic"
+	"log/slog"
 )
 
 const OriginWakatime = "wakatime"
@@ -47,13 +47,13 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 	out := make(chan *models.Heartbeat)
 
 	process := func(user *models.User, minFrom time.Time, maxTo time.Time, out chan *models.Heartbeat) {
-		logbuch.Info("running wakatime import for user '%s'", user.ID)
+		slog.Info("running wakatime import for user", "userID", user.ID)
 
 		baseUrl := user.WakaTimeURL(config.WakatimeApiUrl)
 
 		startDate, endDate, err := w.fetchRange(baseUrl)
 		if err != nil {
-			config.Log().Error("failed to fetch date range while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
+			config.Log().Error("failed to fetch date range while importing wakatime heartbeats", "userID", user.ID, "error", err)
 			return
 		}
 
@@ -69,7 +69,7 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 			userAgents = data
 		} else if strings.Contains(baseUrl, "wakatime.com") {
 			// when importing from wakatime, resolving user agents is mandatorily required
-			config.Log().Error("failed to fetch user agents while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
+			config.Log().Error("failed to fetch user agents while importing wakatime heartbeats", "userID", user.ID, "error", err)
 			return
 		}
 
@@ -78,7 +78,7 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 			machinesNames = data
 		} else if strings.Contains(baseUrl, "wakatime.com") {
 			// when importing from wakatime, resolving machine names is mandatorily required
-			config.Log().Error("failed to fetch machine names while importing wakatime heartbeats for user '%s' - %v", user.ID, err)
+			config.Log().Error("failed to fetch machine names while importing wakatime heartbeats", "userID", user.ID, "error", err)
 			return
 		}
 
@@ -96,7 +96,7 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 				d := d.Format(config.SimpleDateFormat)
 				heartbeats, err := w.fetchHeartbeats(d, baseUrl)
 				if err != nil {
-					config.Log().Error("failed to fetch heartbeats for day '%s' and user '%s' - %v", d, user.ID, err)
+					config.Log().Error("failed to fetch heartbeats for day and user", "day", d, "userID", user.ID, "error", err)
 				}
 
 				for _, h := range heartbeats {
@@ -117,14 +117,14 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 	}
 
 	if minDataAge := user.MinDataAge(); minFrom.Before(minDataAge) {
-		logbuch.Info("wakatime data import for user '%s' capped to [%v, &v]", user.ID, minDataAge, maxTo)
+		slog.Info("wakatime data import for user capped", "userID", user.ID, "cappedTo", fmt.Sprintf("[%v, %v]", minDataAge, maxTo))
 	}
 
-	logbuch.Info("scheduling wakatime import for user '%s' (interval [%v, %v])", user.ID, minFrom, maxTo)
+	slog.Info("scheduling wakatime import for user", "userID", user.ID, "interval", fmt.Sprintf("[%v, %v]", minFrom, maxTo))
 	if err := w.queue.Dispatch(func() {
 		process(user, minFrom, maxTo, out)
 	}); err != nil {
-		config.Log().Error("failed to dispatch wakatime import job for user '%s', %v", user.ID, err)
+		config.Log().Error("failed to dispatch wakatime import job for user", "userID", user.ID, "error", err)
 	}
 
 	return out, nil

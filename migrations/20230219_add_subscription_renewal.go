@@ -1,10 +1,10 @@
 package migrations
 
 import (
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"log/slog"
 )
 
 func init() {
@@ -19,7 +19,7 @@ func init() {
 			migrator := db.Migrator()
 
 			if migrator.HasColumn(&models.User{}, "subscription_renewal") {
-				logbuch.Info("running migration '%s'", name)
+				slog.Info("running migration", "name", name)
 
 				if err := db.Exec("UPDATE users SET subscription_renewal = subscribed_until WHERE subscribed_until is not null").Error; err != nil {
 					return err

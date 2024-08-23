@@ -44,7 +44,7 @@ func (h *ProjectsHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 	if err := templates[conf.ProjectsTemplate].Execute(w, h.buildViewModel(r, w)); err != nil {
-		conf.Log().Request(r).Error("failed to get projects page - %v", err)
+		conf.Log().Request(r).Error("failed to get projects page", "error", err)
 	}
 }
 
@@ -65,7 +65,7 @@ func (h *ProjectsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 
 	projects, err = h.heartbeatService.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), pageParams, false)
 	if err != nil {
-		conf.Log().Request(r).Error("error while fetching project stats for '%s' - %v", user.ID, err)
+		conf.Log().Request(r).Error("error while fetching project stats", "userID", user.ID, "error", err)
 		return &view.ProjectsViewModel{
 			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),

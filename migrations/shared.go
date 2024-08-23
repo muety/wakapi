@@ -1,10 +1,10 @@
 package migrations
 
 import (
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
 	"gorm.io/gorm"
+	"log/slog"
 )
 
 func hasRun(name string, db *gorm.DB) bool {
@@ -12,7 +12,7 @@ func hasRun(name string, db *gorm.DB) bool {
 
 	lookupResult := db.Where(condition, name).First(&models.KeyStringValue{})
 	if lookupResult.Error == nil && lookupResult.RowsAffected > 0 {
-		logbuch.Info("no need to migrate '%s'", name)
+		slog.Info("no need to migrate", "name", name)
 		return true
 	}
 	return false
@@ -23,6 +23,6 @@ func setHasRun(name string, db *gorm.DB) {
 		Key:   name,
 		Value: "done",
 	}).Error; err != nil {
-		logbuch.Error("failed to mark migration %s as run - %v", name, err)
+		slog.Error("failed to mark migration as run", "name", name, "error", err)
 	}
 }

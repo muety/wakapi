@@ -52,7 +52,7 @@ func (h *UsersHandler) Get(w http.ResponseWriter, r *http.Request) {
 	if hb, err := h.heartbeatSrvc.GetLatestByUser(wakapiUser); err == nil {
 		user = user.WithLatestHeartbeat(hb)
 	} else {
-		conf.Log().Request(r).Error("%v", err)
+		conf.Log().Request(r).Error("error occurred", "error", err)
 	}
 
 	helpers.RespondJSON(w, r, http.StatusOK, v1.UserViewModel{Data: user})

@@ -1,10 +1,10 @@
 package migrations
 
 import (
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"log/slog"
 )
 
 func init() {
@@ -16,12 +16,12 @@ func init() {
 			oldIndexName, newIndexName := "idx_customrule_user", "idx_language_mapping_user"
 
 			if migrator.HasTable(oldTableName) {
-				logbuch.Info("renaming '%s' table to '%s'", oldTableName, newTableName)
+				slog.Info("renaming table", "oldName", oldTableName, "newName", newTableName)
 				if err := migrator.RenameTable(oldTableName, &models.LanguageMapping{}); err != nil {
 					return err
 				}
 
-				logbuch.Info("renaming '%s' index to '%s'", oldIndexName, newIndexName)
+				slog.Info("renaming index", "oldName", oldIndexName, "newName", newIndexName)
 				return migrator.RenameIndex(&models.LanguageMapping{}, oldIndexName, newIndexName)
 			}
 			return nil

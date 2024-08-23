@@ -1,17 +1,19 @@
 package config
 
 import (
-	"github.com/emvi/logbuch"
 	"github.com/getsentry/sentry-go"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"strings"
 )
 
 // How to: Logging
-// Use logbuch.[Debug|Info|Warn|Error|Fatal]() by default
+// Use slog.[Debug|Info|Warn|Error|Fatal]() by default
 // Use config.Log().[Debug|Info|Warn|Error|Fatal]() when wanting the log to appear in Sentry as well
+
+var sentryWrapperLogger *SentryWrapperLogger
 
 type capturingWriter struct {
 	Writer  io.Writer
@@ -27,21 +29,38 @@ func (c *capturingWriter) Write(p []byte) (n int, err error) {
 	return c.Writer.Write(p)
 }
 
-// SentryWrapperLogger is a wrapper around a logbuch.Logger that forwards events to Sentry in addition and optionally allows to attach a request context
+// SentryWrapperLogger is a wrapper around a slog.Logger that forwards events to Sentry in addition and optionally allows to attach a request context
 type SentryWrapperLogger struct {
-	*logbuch.Logger
+	Logger    *slog.Logger
 	req       *http.Request
 	outWriter *capturingWriter
 	errWriter *capturingWriter
 }
 
 func Log() *SentryWrapperLogger {
+	if sentryWrapperLogger != nil {
+		return sentryWrapperLogger
+	}
+
 	ow, ew := &capturingWriter{Writer: os.Stdout}, &capturingWriter{Writer: os.Stderr}
-	return &SentryWrapperLogger{
-		Logger:    logbuch.NewLogger(ow, ew),
+	var handler slog.Handler
+	if Get().IsDev() {
+		handler = slog.NewTextHandler(io.MultiWriter(ow, ew), &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		})
+	} else {
+		handler = slog.NewJSONHandler(io.MultiWriter(ow, ew), &slog.HandlerOptions{
+			Level: slog.LevelInfo,
+		})
+	}
+
+	// Create a custom handler that writes to both output and error writers
+	sentryWrapperLogger = &SentryWrapperLogger{
+		Logger:    slog.New(handler),
 		outWriter: ow,
 		errWriter: ew,
 	}
+	return sentryWrapperLogger
 }
 
 func (l *SentryWrapperLogger) Request(req *http.Request) *SentryWrapperLogger {
@@ -75,8 +94,9 @@ func (l *SentryWrapperLogger) Error(msg string, params ...interface{}) {
 
 func (l *SentryWrapperLogger) Fatal(msg string, params ...interface{}) {
 	l.errWriter.Clear()
-	l.Logger.Fatal(msg, params...)
+	l.Logger.Error(msg, params...)
 	l.log(l.errWriter.Message, sentry.LevelFatal)
+	os.Exit(1)
 }
 
 func (l *SentryWrapperLogger) log(msg string, level sentry.Level) {
@@ -135,7 +155,7 @@ func initSentry(config sentryConfig, debug bool) {
 			return event
 		},
 	}); err != nil {
-		logbuch.Fatal("failed to initialized sentry - %v", err)
+		Log().Fatal("failed to initialized sentry", "error", err)
 	}
 }
 

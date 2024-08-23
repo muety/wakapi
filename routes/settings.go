@@ -13,7 +13,6 @@ import (
 	"time"
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
-	"github.com/emvi/logbuch"
 	"github.com/gorilla/schema"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -23,6 +22,7 @@ import (
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/services/imports"
 	"github.com/muety/wakapi/utils"
+	"log/slog"
 )
 
 const criticalError = "a critical error has occurred, sorry"
@@ -118,7 +118,7 @@ func (h *SettingsHandler) PostIndex(w http.ResponseWriter, r *http.Request) {
 
 	actionFunc := h.dispatchAction(action)
 	if actionFunc == nil {
-		logbuch.Warn("failed to dispatch action '%s'", action)
+		slog.Warn("failed to dispatch action", "action", action)
 		w.WriteHeader(http.StatusBadRequest)
 		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w, nil).WithError("unknown action requests"))
 		return
@@ -330,7 +330,7 @@ func (h *SettingsHandler) actionUpdateExcludeUnknownProjects(w http.ResponseWrit
 		h.toggleAggregationLock(user.ID, true)
 		defer h.toggleAggregationLock(user.ID, false)
 		if err := h.regenerateSummaries(user); err != nil {
-			conf.Log().Request(r).Error("failed to regenerate summaries for user '%s' - %v", user.ID, err)
+			conf.Log().Request(r).Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
 		}
 	}(user)
 
@@ -637,7 +637,7 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 
 		insert := func(batch []*models.Heartbeat) {
 			if err := h.heartbeatSrvc.InsertBatch(batch); err != nil {
-				logbuch.Warn("failed to insert imported heartbeat, already existing? - %v", err)
+				slog.Warn("failed to insert imported heartbeat, already existing?", "error", err)
 			}
 		}
 
@@ -655,22 +655,22 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 		}
 
 		countAfter, _ := h.heartbeatSrvc.CountByUser(user)
-		logbuch.Info("downloaded %d heartbeats for user '%s' (%d actually imported)", count, user.ID, countAfter-countBefore)
+		slog.Info("downloaded heartbeats for user", "count", count, "userID", user.ID, "importedCount", countAfter-countBefore)
 
 		h.regenerateSummaries(user)
 
 		if !user.HasData {
 			user.HasData = true
 			if _, err := h.userSrvc.Update(user); err != nil {
-				conf.Log().Request(r).Error("failed to set 'has_data' flag for user %s - %v", user.ID, err)
+				conf.Log().Request(r).Error("failed to set 'has_data' flag for user", "userID", user.ID, "error", err)
 			}
 		}
 
 		if user.Email != "" {
 			if err := h.mailSrvc.SendImportNotification(user, time.Now().Sub(start), int(countAfter-countBefore)); err != nil {
-				conf.Log().Request(r).Error("failed to send import notification mail to %s - %v", user.ID, err)
+				conf.Log().Request(r).Error("failed to send import notification mail", "userID", user.ID, "error", err)
 			} else {
-				logbuch.Info("sent import notification mail to %s", user.ID)
+				slog.Info("sent import notification mail", "userID", user.ID)
 			}
 		}
 	}(user)
@@ -698,7 +698,7 @@ func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *ht
 		h.toggleAggregationLock(user.ID, true)
 		defer h.toggleAggregationLock(user.ID, false)
 		if err := h.regenerateSummaries(user); err != nil {
-			conf.Log().Request(r).Error("failed to regenerate summaries for user '%s' - %v", user.ID, err)
+			conf.Log().Request(r).Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
 		}
 	}(user)
 
@@ -711,17 +711,17 @@ func (h *SettingsHandler) actionClearData(w http.ResponseWriter, r *http.Request
 	}
 
 	user := middlewares.GetPrincipal(r)
-	logbuch.Info("user '%s' requested to delete all data", user.ID)
+	slog.Info("user requested to delete all data", "userID", user.ID)
 
 	go func(user *models.User) {
-		logbuch.Info("deleting summaries for user '%s'", user.ID)
+		slog.Info("deleting summaries for user", "userID", user.ID)
 		if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
-			conf.Log().Request(r).Error("failed to clear summaries: %v", err)
+			conf.Log().Request(r).Error("failed to clear summaries", "error", err)
 		}
 
-		logbuch.Info("deleting heartbeats for user '%s'", user.ID)
+		slog.Info("deleting heartbeats for user", "userID", user.ID)
 		if err := h.heartbeatSrvc.DeleteByUser(user); err != nil {
-			conf.Log().Request(r).Error("failed to clear heartbeats: %v", err)
+			conf.Log().Request(r).Error("failed to clear heartbeats", "error", err)
 		}
 	}(user)
 
@@ -735,12 +735,12 @@ func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Reques
 
 	user := middlewares.GetPrincipal(r)
 	go func(user *models.User) {
-		logbuch.Info("deleting user '%s' shortly", user.ID)
+		slog.Info("deleting user shortly", "userID", user.ID)
 		time.Sleep(5 * time.Minute)
 		if err := h.userSrvc.Delete(user); err != nil {
-			conf.Log().Request(r).Error("failed to delete user '%s' - %v", user.ID, err)
+			conf.Log().Request(r).Error("failed to delete user", "userID", user.ID, "error", err)
 		} else {
-			logbuch.Info("successfully deleted user '%s'", user.ID)
+			slog.Info("successfully deleted user", "userID", user.ID)
 		}
 	}(user)
 
@@ -806,7 +806,7 @@ func (h *SettingsHandler) validateWakatimeKey(apiKey string, baseUrl string) boo
 }
 
 func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
-	logbuch.Info("clearing summaries for user '%s'", user.ID)
+	slog.Info("clearing summaries for user", "userID", user.ID)
 	if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
 		conf.Log().Error("failed to clear summaries: %v", err)
 		return err
@@ -829,7 +829,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 	// aliases
 	aliases, err := h.aliasSrvc.GetByUser(user.ID)
 	if err != nil {
-		conf.Log().Request(r).Error("error while building alias map - %v", err)
+		conf.Log().Request(r).Error("error while building alias map", "error", err)
 		return &view.SettingsViewModel{
 			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
@@ -864,7 +864,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 	// labels
 	labelMap, err := h.projectLabelSrvc.GetByUserGroupedInverted(user.ID)
 	if err != nil {
-		conf.Log().Request(r).Error("error while building settings project label map - %v", err)
+		conf.Log().Request(r).Error("error while building settings project label map", "error", err)
 		return &view.SettingsViewModel{
 			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
@@ -892,7 +892,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 	// projects
 	projects, err := routeutils.GetEffectiveProjectsList(user, h.heartbeatSrvc, h.aliasSrvc)
 	if err != nil {
-		conf.Log().Request(r).Error("error while fetching projects - %v", err)
+		conf.Log().Request(r).Error("error while fetching projects", "error", err)
 		return &view.SettingsViewModel{
 			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),

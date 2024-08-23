@@ -3,12 +3,12 @@ package services
 import (
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/slice"
-	"github.com/emvi/logbuch"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
+	"log/slog"
 	"math/rand"
 	"time"
 )
@@ -46,23 +46,23 @@ func NewReportService(summaryService ISummaryService, userService IUserService, 
 }
 
 func (srv *ReportService) Schedule() {
-	logbuch.Info("scheduling report generation")
+	slog.Info("scheduling report generation")
 
 	scheduleUserReport := func(u *models.User) {
 		if err := srv.queueWorkers.Dispatch(func() {
 			t0 := time.Now()
 
 			if err := srv.SendReport(u, reportRange); err != nil {
-				config.Log().Error("failed to generate report for '%s', %v", u.ID, err)
+				config.Log().Error("failed to generate report", "userID", u.ID, "error", err)
 			}
 
 			// make the job take at least reportDelay seconds
 			if diff := reportDelay - time.Now().Sub(t0); diff > 0 {
-				logbuch.Debug("waiting for %v before sending next report", diff)
+				slog.Debug("waiting before sending next report", "duration", diff)
 				time.Sleep(diff)
 			}
 		}); err != nil {
-			config.Log().Error("failed to dispatch report generation job for user '%s', %v", u.ID, err)
+			config.Log().Error("failed to dispatch report generation job for user", "userID", u.ID, "error", err)
 		}
 	}
 
@@ -70,7 +70,7 @@ func (srv *ReportService) Schedule() {
 		// fetch all users with reports enabled
 		users, err := srv.userService.GetAllByReports(true)
 		if err != nil {
-			config.Log().Error("failed to get users for report generation, %v", err)
+			config.Log().Error("failed to get users for report generation", "error", err)
 			return
 		}
 
@@ -80,31 +80,31 @@ func (srv *ReportService) Schedule() {
 		})
 
 		// schedule jobs, throttled by one job per x seconds
-		logbuch.Info("scheduling report generation for %d users", len(users))
+		slog.Info("scheduling report generation", "userCount", len(users))
 		for _, u := range users {
 			scheduleUserReport(u)
 		}
 	}, srv.config.App.GetWeeklyReportCron())
 
 	if err != nil {
-		config.Log().Error("failed to dispatch report generation jobs, %v", err)
+		config.Log().Error("failed to dispatch report generation jobs", "error", err)
 	}
 }
 
 func (srv *ReportService) SendReport(user *models.User, duration time.Duration) error {
 	if user.Email == "" {
-		logbuch.Warn("not generating report for '%s' as no e-mail address is set")
+		slog.Warn("not generating report as no e-mail address is set", "userID", user.ID)
 		return nil
 	}
 
-	logbuch.Info("generating report for '%s'", user.ID)
+	slog.Info("generating report for user", "userID", user.ID)
 
 	end := time.Now().In(user.TZ())
 	start := time.Now().Add(-1 * duration)
 
 	fullSummary, err := srv.summaryService.Aliased(start, end, user, srv.summaryService.Retrieve, nil, false)
 	if err != nil {
-		config.Log().Error("failed to generate report for '%s' - %v", user.ID, err)
+		config.Log().Error("failed to generate report", "userID", user.ID, "error", err)
 		return err
 	}
 
@@ -116,7 +116,7 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 		from, to := datetime.BeginOfDay(interval[0]), interval[1]
 		summary, err := srv.summaryService.Aliased(from, to, user, srv.summaryService.Retrieve, nil, false)
 		if err != nil {
-			config.Log().Error("failed to generate day summary (%v to %v) for report for '%s' - %v", from, to, user.ID, err)
+			config.Log().Error("failed to generate day summary for report", "from", from, "to", to, "userID", user.ID, "error", err)
 			break
 		}
 		summary.FromTime = models.CustomTime(from)
@@ -133,10 +133,10 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 	}
 
 	if err := srv.mailService.SendReport(user, report); err != nil {
-		config.Log().Error("failed to send report for '%s', %v", user.ID, err)
+		config.Log().Error("failed to send report", "userID", user.ID, "error", err)
 		return err
 	}
 
-	logbuch.Info("sent report to user '%s'", user.ID)
+	slog.Info("sent report to user", "userID", user.ID)
 	return nil
 }

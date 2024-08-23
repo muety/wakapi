@@ -3,9 +3,9 @@ package services
 import (
 	"errors"
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
-	"github.com/emvi/logbuch"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -48,14 +48,14 @@ type AggregationJob struct {
 
 // Schedule a job to (re-)generate summaries every day shortly after midnight
 func (srv *AggregationService) Schedule() {
-	logbuch.Info("scheduling summary aggregation")
+	slog.Info("scheduling summary aggregation")
 
 	if _, err := srv.queueDefault.DispatchCron(func() {
 		if err := srv.AggregateSummaries(datastructure.New[string]()); err != nil {
-			config.Log().Error("failed to generate summaries, %v", err)
+			config.Log().Error("failed to generate summaries", "error", err)
 		}
 	}, srv.config.App.GetAggregationTimeCron()); err != nil {
-		config.Log().Error("failed to schedule summary generation, %v", err)
+		config.Log().Error("failed to schedule summary generation", "error", err)
 	}
 }
 
@@ -65,19 +65,19 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 	}
 	defer srv.unlockUsers(userIds)
 
-	logbuch.Info("generating summaries")
+	slog.Info("generating summaries")
 
 	// Get a map from user ids to the time of their latest summary or nil if none exists yet
 	lastUserSummaryTimes, err := srv.summaryService.GetLatestByUser()
 	if err != nil {
-		config.Log().Error(err.Error())
+		config.Log().Error("error occurred", "error", err)
 		return err
 	}
 
 	// Get a map from user ids to the time of their earliest heartbeats or nil if none exists yet
 	firstUserHeartbeatTimes, err := srv.heartbeatService.GetFirstByUsers()
 	if err != nil {
-		config.Log().Error(err.Error())
+		config.Log().Error("error occurred", "error", err)
 		return err
 	}
 
@@ -96,7 +96,7 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 			if err := srv.queueWorkers.Dispatch(func() {
 				srv.process(job)
 			}); err != nil {
-				config.Log().Error("failed to dispatch summary generation job for user '%s'", job.User.ID)
+				config.Log().Error("failed to dispatch summary generation job", "userID", job.User.ID)
 			}
 		}
 	}()
@@ -138,11 +138,11 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 
 func (srv *AggregationService) process(job AggregationJob) {
 	if summary, err := srv.summaryService.Summarize(job.From, job.To, job.User, nil); err != nil {
-		config.Log().Error("failed to generate summary (%v, %v, %s) - %v", job.From, job.To, job.User.ID, err)
+		config.Log().Error("failed to generate summary", "from", job.From, "to", job.To, "userID", job.User.ID, "error", err)
 	} else {
-		logbuch.Info("successfully generated summary (%v, %v, %s)", job.From, job.To, job.User.ID)
+		slog.Info("successfully generated summary", "from", job.From, "to", job.To, "userID", job.User.ID)
 		if err := srv.summaryService.Insert(summary); err != nil {
-			config.Log().Error("failed to save summary (%v, %v, %s) - %v", summary.UserID, summary.FromTime, summary.ToTime, err)
+			config.Log().Error("failed to save summary", "userID", summary.UserID, "fromTime", summary.FromTime, "toTime", summary.ToTime, "error", err)
 		}
 	}
 }

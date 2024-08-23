@@ -1,10 +1,10 @@
 package migrations
 
 import (
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"log/slog"
 	"sort"
 	"strings"
 )
@@ -78,7 +78,7 @@ func Run(db *gorm.DB, cfg *config.Config) {
 
 func RunSchemaMigrations(db *gorm.DB, cfg *config.Config) {
 	if err := GetMigrationFunc(cfg)(db); err != nil {
-		logbuch.Fatal(err.Error())
+		config.Log().Fatal("migration failed", "error", err)
 	}
 }
 
@@ -86,9 +86,9 @@ func RunPreMigrations(db *gorm.DB, cfg *config.Config) {
 	sort.Sort(preMigrations)
 
 	for _, m := range preMigrations {
-		logbuch.Info("potentially running migration '%s'", m.name)
+		slog.Info("potentially running migration", "name", m.name)
 		if err := m.f(db, cfg); err != nil {
-			logbuch.Fatal("migration '%s' failed - %v", m.name, err)
+			config.Log().Fatal("migration failed", "name", m.name, "error", err)
 		}
 	}
 }
@@ -97,9 +97,9 @@ func RunPostMigrations(db *gorm.DB, cfg *config.Config) {
 	sort.Sort(postMigrations)
 
 	for _, m := range postMigrations {
-		logbuch.Info("potentially running migration '%s'", m.name)
+		slog.Info("potentially running migration", "name", m.name)
 		if err := m.f(db, cfg); err != nil {
-			logbuch.Fatal("migration '%s' failed - %v", m.name, err)
+			config.Log().Fatal("migration failed", "name", m.name, "error", err)
 		}
 	}
 }

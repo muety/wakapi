@@ -18,12 +18,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"log/slog"
 )
 
 const (
@@ -213,28 +213,28 @@ func (c *Smtp4DevClient) CountMessages() (int, error) {
 }
 
 func (c *Smtp4DevClient) SetNoTls() error {
-	logbuch.Info("[smtp4Dev] disabling tls encryption")
+	slog.Info("[smtp4Dev] disabling tls encryption")
 	err := c.SetConfigValue("tlsMode", "None")
 	time.Sleep(2 * time.Second)
 	return err
 }
 
 func (c *Smtp4DevClient) SetForcedTls() error {
-	logbuch.Info("[smtp4Dev] enabling forced tls encryption")
+	slog.Info("[smtp4Dev] enabling forced tls encryption")
 	err := c.SetConfigValue("tlsMode", "ImplicitTls")
 	time.Sleep(2 * time.Second)
 	return err
 }
 
 func (c *Smtp4DevClient) SetStartTls() error {
-	logbuch.Info("[smtp4Dev] enabling tls encryption via starttls")
+	slog.Info("[smtp4Dev] enabling tls encryption via starttls")
 	err := c.SetConfigValue("tlsMode", "StartTls")
 	time.Sleep(2 * time.Second)
 	return err
 }
 
 func (c *Smtp4DevClient) CreateTestUsers() error {
-	logbuch.Info("[smtp4Dev] creating test users")
+	slog.Info("[smtp4Dev] creating test users")
 	err := c.SetConfigValue("users", []map[string]interface{}{
 		{
 			"username":       TestSmtpUser,
@@ -247,7 +247,7 @@ func (c *Smtp4DevClient) CreateTestUsers() error {
 }
 
 func (c *Smtp4DevClient) ClearInboxes() error {
-	logbuch.Info("[smtp4Dev] clearing inboxes")
+	slog.Info("[smtp4Dev] clearing inboxes")
 	req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/Messages/*", c.ApiBaseUrl), nil)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {

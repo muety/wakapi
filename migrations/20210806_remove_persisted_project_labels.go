@@ -2,10 +2,10 @@ package migrations
 
 import (
 	"fmt"
-	"github.com/emvi/logbuch"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+	"log/slog"
 )
 
 func init() {
@@ -19,14 +19,14 @@ func init() {
 
 			rawDb, err := db.DB()
 			if err != nil {
-				logbuch.Error("failed to retrieve raw sql db instance")
+				slog.Error("failed to retrieve raw sql db instance")
 				return err
 			}
 			if _, err := rawDb.Exec(fmt.Sprintf("delete from summary_items where type = %d", models.SummaryLabel)); err != nil {
-				logbuch.Error("failed to delete project label summary items")
+				slog.Error("failed to delete project label summary items")
 				return err
 			}
-			logbuch.Info("successfully deleted project label summary items")
+			slog.Info("successfully deleted project label summary items")
 
 			setHasRun(name, db)
 			return nil

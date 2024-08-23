@@ -81,7 +81,7 @@ func (h *LeadersHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	primaryLeaderboard, err := loadPrimaryLeaderboard()
 	if err != nil {
-		conf.Log().Request(r).Error("error while fetching general leaderboard items - %v", err)
+		conf.Log().Request(r).Error("error while fetching general leaderboard items", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("something went wrong"))
 		return
@@ -90,7 +90,7 @@ func (h *LeadersHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	languageLeaderboard, err := h.leaderboardSrvc.GetAggregatedByInterval(h.leaderboardSrvc.GetDefaultScope(), &by, &utils.PageParams{Page: 1, PageSize: math.MaxUint16}, true)
 	if err != nil {
-		conf.Log().Request(r).Error("error while fetching language-specific leaderboard items - %v", err)
+		conf.Log().Request(r).Error("error while fetching language-specific leaderboard items", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("something went wrong"))
 		return
@@ -101,7 +101,7 @@ func (h *LeadersHandler) Get(w http.ResponseWriter, r *http.Request) {
 		if l, err := loadPrimaryUserLeaderboard(); err == nil {
 			primaryLeaderboard.AddMany(l)
 		} else {
-			conf.Log().Request(r).Error("error while fetching own general user leaderboard - %v", err)
+			conf.Log().Request(r).Error("error while fetching own general user leaderboard", "userID", user.ID, "error", err)
 		}
 		// no need to fetch language-leaderboard for user, because not using pagination above
 	}

@@ -3,7 +3,6 @@ package routes
 import (
 	"fmt"
 	"github.com/dchest/captcha"
-	"github.com/emvi/logbuch"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httprate"
 	conf "github.com/muety/wakapi/config"
@@ -13,6 +12,7 @@ import (
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -113,7 +113,7 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, login.Username)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		conf.Log().Request(r).Error("failed to encode secure cookie - %v", err)
+		conf.Log().Request(r).Error("failed to encode secure cookie", "error", err)
 		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
 		return
 	}
@@ -212,7 +212,7 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 	_, created, err := h.userSrvc.CreateOrGet(&signup, numUsers == 0)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		conf.Log().Request(r).Error("failed to create new user - %v", err)
+		conf.Log().Request(r).Error("failed to create new user", "error", err)
 		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("failed to create new user"))
 		return
 	}
@@ -288,7 +288,7 @@ func (h *LoginHandler) PostSetPassword(w http.ResponseWriter, r *http.Request) {
 	user.ResetToken = ""
 	if hash, err := utils.HashPassword(user.Password, h.config.Security.PasswordSalt); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		conf.Log().Request(r).Error("failed to set new password - %v", err)
+		conf.Log().Request(r).Error("failed to set new password", "error", err)
 		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("failed to set new password"))
 		return
 	} else {
@@ -297,7 +297,7 @@ func (h *LoginHandler) PostSetPassword(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := h.userSrvc.Update(user); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		conf.Log().Request(r).Error("failed to save new password - %v", err)
+		conf.Log().Request(r).Error("failed to save new password", "error", err)
 		templates[conf.SetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("failed to save new password"))
 		return
 	}
@@ -332,21 +332,21 @@ func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request)
 	if user, err := h.userSrvc.GetUserByEmail(resetRequest.Email); user != nil && err == nil {
 		if u, err := h.userSrvc.GenerateResetToken(user); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			conf.Log().Request(r).Error("failed to generate password reset token - %v", err)
+			conf.Log().Request(r).Error("failed to generate password reset token", "error", err)
 			templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("failed to generate password reset token"))
 			return
 		} else {
 			go func(user *models.User) {
 				link := fmt.Sprintf("%s/set-password?token=%s", h.config.Server.GetPublicUrl(), user.ResetToken)
 				if err := h.mailSrvc.SendPasswordReset(user, link); err != nil {
-					conf.Log().Request(r).Error("failed to send password reset mail to %s - %v", user.ID, err)
+					conf.Log().Request(r).Error("failed to send password reset mail", "userID", user.ID, "error", err)
 				} else {
-					logbuch.Info("sent password reset mail to %s", user.ID)
+					slog.Info("sent password reset mail", "userID", user.ID)
 				}
 			}(u)
 		}
 	} else {
-		conf.Log().Request(r).Warn("password reset requested for unregistered address '%s'", resetRequest.Email)
+		conf.Log().Request(r).Warn("password reset requested for unregistered address", "email", resetRequest.Email)
 	}
 
 	routeutils.SetSuccess(r, w, "an e-mail was sent to you in case your e-mail address was registered")

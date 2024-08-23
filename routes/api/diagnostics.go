@@ -42,14 +42,14 @@ func (h *DiagnosticsApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&diagnostics); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(conf.ErrBadRequest))
-		conf.Log().Request(r).Error("failed to parse diagnostics for user %s - %v", err)
+		conf.Log().Request(r).Error("failed to parse diagnostics for user", "error", err)
 		return
 	}
 
 	if _, err := h.diagnosticsSrvc.Create(&diagnostics); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(conf.ErrInternalServerError))
-		conf.Log().Request(r).Error("failed to insert diagnostics for user %s - %v", err)
+		conf.Log().Request(r).Error("failed to insert diagnostics for user", "error", err)
 		return
 	}
 

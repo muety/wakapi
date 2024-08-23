@@ -71,7 +71,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	var heartbeats []*models.Heartbeat
 	heartbeats, err = routeutils.ParseHeartbeats(r)
 	if err != nil {
-		conf.Log().Request(r).Error(err.Error())
+		conf.Log().Request(r).Error("error occurred", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
@@ -126,7 +126,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	if err := h.heartbeatSrvc.InsertBatch(heartbeats); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(conf.ErrInternalServerError))
-		conf.Log().Request(r).Error("failed to batch-insert heartbeats - %v", err)
+		conf.Log().Request(r).Error("failed to batch-insert heartbeats", "error", err)
 		return
 	}
 
@@ -135,7 +135,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 		if _, err := h.userSrvc.Update(user); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(conf.ErrInternalServerError))
-			conf.Log().Request(r).Error("failed to update user - %v", err)
+			conf.Log().Request(r).Error("failed to update user", "userID", user.ID, "error", err)
 			return
 		}
 	}
