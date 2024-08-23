@@ -139,15 +139,20 @@ func (m *AuthenticateMiddleware) tryGetUserByApiKeyQuery(r *http.Request) (*mode
 }
 
 func (m *AuthenticateMiddleware) tryGetUserByTrustedHeader(r *http.Request) (*models.User, error) {
+	if !m.config.Security.TrustedHeaderAuth {
+		return nil, errors.New("trusted header auth disabled")
+	}
+
 	remoteUser := r.Header.Get(m.config.Security.TrustedHeaderAuthKey)
 	if remoteUser == "" {
 		return nil, errors.New("trusted header field empty")
 	}
-	if addr, err := net.ResolveTCPAddr("tcp", r.RemoteAddr); err != nil || !slice.ContainBy[net.IP](m.config.Security.TrustReverseProxyIPs(), func(ip net.IP) bool {
-		return addr.IP.Equal(ip)
+	if addr, err := net.ResolveTCPAddr("tcp", r.RemoteAddr); err != nil || !slice.ContainBy[net.IPNet](m.config.Security.TrustReverseProxyIPs(), func(ipNet net.IPNet) bool {
+		return ipNet.Contains(addr.IP) // if err != nil, addr is nil
 	}) {
 		return nil, errors.New("reverse proxy not trusted")
 	}
+
 	return m.userSrvc.GetUserById(remoteUser)
 }
 

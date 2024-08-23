@@ -122,7 +122,7 @@ type securityConfig struct {
 	PasswordResetMaxRate      string                     `yaml:"password_reset_max_rate" default:"5/1h" env:"WAKAPI_PASSWORD_RESET_MAX_RATE"`
 	SecureCookie              *securecookie.SecureCookie `yaml:"-"`
 	SessionKey                []byte                     `yaml:"-"`
-	trustReverseProxyIpParsed []net.IP
+	trustReverseProxyIpParsed []net.IPNet
 }
 
 type dbConfig struct {
@@ -331,17 +331,33 @@ func (c *appConfig) HeartbeatsMaxAge() time.Duration {
 }
 
 func (c *securityConfig) ParseTrustReverseProxyIPs() {
-	c.trustReverseProxyIpParsed = make([]net.IP, 0)
+	c.trustReverseProxyIpParsed = make([]net.IPNet, 0)
+
 	for _, ip := range strings.Split(c.TrustReverseProxyIps, ",") {
-		if parsedIp := net.ParseIP(strings.TrimSpace(ip)); parsedIp == nil {
-			slog.Warn("failed to parse reverse proxy ip")
-		} else {
-			c.trustReverseProxyIpParsed = append(c.trustReverseProxyIpParsed, parsedIp)
+		// try parse as address range
+		_, parsedIpNet, err := net.ParseCIDR(ip)
+		if err == nil {
+			c.trustReverseProxyIpParsed = append(c.trustReverseProxyIpParsed, *parsedIpNet)
+			continue
 		}
+
+		// try parse as single ip
+		parsedIp := net.ParseIP(strings.TrimSpace(ip))
+		if parsedIp != nil {
+			ipBits := net.IPv4len * 8
+			if parsedIp.To4() == nil {
+				ipBits = net.IPv6len * 8
+			}
+			ipNet := net.IPNet{IP: parsedIp, Mask: net.CIDRMask(ipBits, ipBits)}
+			c.trustReverseProxyIpParsed = append(c.trustReverseProxyIpParsed, ipNet)
+			continue
+		}
+
+		slog.Warn("failed to parse reverse proxy ip")
 	}
 }
 
-func (c *securityConfig) TrustReverseProxyIPs() []net.IP {
+func (c *securityConfig) TrustReverseProxyIPs() []net.IPNet {
 	return c.trustReverseProxyIpParsed
 }
 

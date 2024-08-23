@@ -112,7 +112,8 @@ func TestAuthenticateMiddleware_tryGetUserByTrustedHeader_Disabled(t *testing.T)
 	testUser := &models.User{ID: "user01"}
 
 	mockRequest := &http.Request{
-		Header: http.Header{"Remote-User": []string{testUser.ID}},
+		Header:     http.Header{"Remote-User": []string{testUser.ID}},
+		RemoteAddr: "127.0.0.1:54654",
 	}
 
 	userServiceMock := new(mocks.UserServiceMock)
@@ -129,53 +130,59 @@ func TestAuthenticateMiddleware_tryGetUserByTrustedHeader_Untrusted(t *testing.T
 	cfg := config.Empty()
 	cfg.Security.TrustedHeaderAuth = true
 	cfg.Security.TrustedHeaderAuthKey = "Remote-User"
-	cfg.Security.TrustReverseProxyIps = "192.168.0.1"
+	cfg.Security.TrustReverseProxyIps = "127.0.0.1,::1,192.168.0.1,192.168.178.0/24,33b7:08d8:c07a:c2ee:0fac:cb95:dadc:dafb,1ddc:e2d6:dcce:ab6c::1/64"
 	cfg.Security.ParseTrustReverseProxyIPs()
 	config.Set(cfg)
 
+	testIps := []string{"192.168.0.2", "192.168.179.35", "[33b7:08d8:c07a:c2ee:0fac:cb95:dadc:dafa]", "[1ddc:e2d6:dcce:ab6b:1ba7:7aaa:58dc:a42b]"} // none of these should be authorized
 	testUser := &models.User{ID: "user01"}
 
-	mockRequest := &http.Request{
-		Header: http.Header{
-			"Remote-User":     []string{testUser.ID},
-			"X-Forwarded-For": []string{"192.168.0.1"},
-		},
-		RemoteAddr: "127.0.0.1:54654",
+	for _, ip := range testIps {
+		mockRequest := &http.Request{
+			Header: http.Header{
+				"Remote-User":     []string{testUser.ID},
+				"X-Forwarded-For": []string{"192.168.0.1"}, // forward for some trusted ip -> header should be ignored for auth. checks, because only actual reverse proxy must be legitimized
+			},
+			RemoteAddr: fmt.Sprintf("%s:54654", ip),
+		}
+
+		userServiceMock := new(mocks.UserServiceMock)
+		userServiceMock.On("GetUserById", testUser.ID).Return(testUser, nil)
+
+		sut := NewAuthenticateMiddleware(userServiceMock)
+
+		result, actualErr := sut.tryGetUserByTrustedHeader(mockRequest)
+		assert.Error(t, actualErr)
+		assert.Nil(t, result)
 	}
-
-	userServiceMock := new(mocks.UserServiceMock)
-	userServiceMock.On("GetUserById", testUser.ID).Return(testUser, nil)
-
-	sut := NewAuthenticateMiddleware(userServiceMock)
-
-	result, actualErr := sut.tryGetUserByTrustedHeader(mockRequest)
-	assert.Error(t, actualErr)
-	assert.Nil(t, result)
 }
 
 func TestAuthenticateMiddleware_tryGetUserByTrustedHeader_Success(t *testing.T) {
 	cfg := config.Empty()
 	cfg.Security.TrustedHeaderAuth = true
 	cfg.Security.TrustedHeaderAuthKey = "Remote-User"
-	cfg.Security.TrustReverseProxyIps = "127.0.0.1,::1"
+	cfg.Security.TrustReverseProxyIps = "127.0.0.1,::1,192.168.0.1,192.168.178.0/24,33b7:08d8:c07a:c2ee:0fac:cb95:dadc:dafb,1ddc:e2d6:dcce:ab6c::1/64"
 	cfg.Security.ParseTrustReverseProxyIPs()
 	config.Set(cfg)
 
+	testIps := []string{"127.0.0.1", "[::1]", "192.168.0.1", "192.168.178.1", "192.168.178.35", "[33b7:08d8:c07a:c2ee:0fac:cb95:dadc:dafb]", "[1ddc:e2d6:dcce:ab6c:2ba7:7aaa:58dc:a42b]", "[1ddc:e2d6:dcce:ab6c:1ba7:7aaa:58dc:a42b]"} // all of these should be authorized
 	testUser := &models.User{ID: "user01"}
 
-	mockRequest := &http.Request{
-		Header:     http.Header{"Remote-User": []string{testUser.ID}},
-		RemoteAddr: "[::1]:54654",
+	for _, ip := range testIps {
+		mockRequest := &http.Request{
+			Header:     http.Header{"Remote-User": []string{testUser.ID}},
+			RemoteAddr: fmt.Sprintf("%s:54654", ip),
+		}
+
+		userServiceMock := new(mocks.UserServiceMock)
+		userServiceMock.On("GetUserById", testUser.ID).Return(testUser, nil)
+
+		sut := NewAuthenticateMiddleware(userServiceMock)
+
+		result, actualErr := sut.tryGetUserByTrustedHeader(mockRequest)
+		assert.Equal(t, testUser, result)
+		assert.Nil(t, actualErr)
 	}
-
-	userServiceMock := new(mocks.UserServiceMock)
-	userServiceMock.On("GetUserById", testUser.ID).Return(testUser, nil)
-
-	sut := NewAuthenticateMiddleware(userServiceMock)
-
-	result, actualErr := sut.tryGetUserByTrustedHeader(mockRequest)
-	assert.Equal(t, testUser, result)
-	assert.Nil(t, actualErr)
 }
 
 // TODO: somehow test cookie auth function
