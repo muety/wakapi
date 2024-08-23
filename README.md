@@ -86,43 +86,7 @@ $ docker run -d \
   ghcr.io/muety/wakapi:latest
 ```
 
-or you can use docker compose with `docker-compose.yml`
-
-```yaml
-services:
-  wakapi:
-    image: ghcr.io/muety/wakapi:latest
-    container_name: wakapi
-    restart: always
-    ports:
-      - 3000:3000
-    volumes:
-      - wakapi-data:/data
-    environment:
-      - WAKAPI_DB_NAME=/data/wakapi_db.db
-      - WAKAPI_PASSWORD_SALT=${SALT}
-
-volumes:
-  wakapi-data:
-```
-
-if you prefer to use a local directory to persist data, please add `user: ":"`
-
-```yaml
-services:
-  wakapi:
-    image: ghcr.io/muety/wakapi:latest
-    container_name: wakapi
-    restart: always
-    user: ":"
-    ports:
-      - 3000:3000
-    volumes:
-      - ./data:/data
-    environment:
-      - WAKAPI_DB_NAME=/data/wakapi_db.db
-      - WAKAPI_PASSWORD_SALT=${SALT}
-```
+Alternatively, you can use Docker Compose (`docker compose up -d`) for a more straightforward deployment. See [compose.yml](https://github.com/muety/wakapi/blob/master/compose.yml) for configuration details. If you prefer to persist data in a local directory while using SQLite as the database, make sure to set the correct `user` option in the Docker Compose configuration to avoid permission issues.
 
 **Note:** By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres,
 see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile)
