@@ -86,6 +86,8 @@ $ docker run -d \
   ghcr.io/muety/wakapi:latest
 ```
 
+Alternatively, you can use Docker Compose (`docker compose up -d`) for a more straightforward deployment. See [compose.yml](https://github.com/muety/wakapi/blob/master/compose.yml) for configuration details. If you prefer to persist data in a local directory while using SQLite as the database, make sure to set the correct `user` option in the Docker Compose configuration to avoid permission issues.
+
 **Note:** By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres,
 see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile)
 and [config.default.yml](https://github.com/muety/wakapi/blob/master/config.default.yml) for further options.
