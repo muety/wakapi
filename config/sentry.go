@@ -130,6 +130,7 @@ func initSentry(config sentryConfig, debug bool) {
 	if err := sentry.Init(sentry.ClientOptions{
 		Dsn:              config.Dsn,
 		Debug:            debug,
+		Environment:      config.Environment,
 		AttachStacktrace: true,
 		EnableTracing:    config.EnableTracing,
 		TracesSampler: func(ctx sentry.SamplingContext) float64 {

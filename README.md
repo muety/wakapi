@@ -86,7 +86,10 @@ $ docker run -d \
   ghcr.io/muety/wakapi:latest
 ```
 
-Alternatively, you can use Docker Compose (`docker compose up -d`) for a more straightforward deployment. See [compose.yml](https://github.com/muety/wakapi/blob/master/compose.yml) for configuration details. If you prefer to persist data in a local directory while using SQLite as the database, make sure to set the correct `user` option in the Docker Compose configuration to avoid permission issues.
+Alternatively, you can use Docker Compose (`docker compose up -d`) for a more straightforward deployment.
+See [compose.yml](https://github.com/muety/wakapi/blob/master/compose.yml) for configuration details. If you prefer to
+persist data in a local directory while using SQLite as the database, make sure to set the correct `user` option in the
+Docker Compose configuration to avoid permission issues.
 
 **Note:** By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres,
 see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile)
@@ -209,6 +212,7 @@ argument) or via environment variables. Here is an overview of all options.
 | `mail.smtp.tls` /<br> `WAKAPI_MAIL_SMTP_TLS`                                 | `false`                                          | Whether the SMTP server requires TLS encryption (`false` for STARTTLS or no encryption)                                                                                         |
 | `mail.smtp.skip_verify` /<br> `WAKAPI_MAIL_SMTP_SKIP_VERIFY`                 | `false`                                          | Whether to allow invalid or self-signed certificates for TLS-encrypted SMTP                                                                                                     |
 | `sentry.dsn` /<br> `WAKAPI_SENTRY_DSN`                                       | –                                                | DSN for to integrate [Sentry](https://sentry.io) for error logging and tracing (leave empty to disable)                                                                         |
+| `sentry.environment` /<br> `WAKAPI_SENTRY_ENVIRONMENT`                       | (`env`)                                          | Sentry [environment](https://docs.sentry.io/concepts/key-terms/environments/) tag (defaults to `env` / `ENV`)                                                                   |
 | `sentry.enable_tracing` /<br> `WAKAPI_SENTRY_TRACING`                        | `false`                                          | Whether to enable Sentry request tracing                                                                                                                                        |
 | `sentry.sample_rate` /<br> `WAKAPI_SENTRY_SAMPLE_RATE`                       | `0.75`                                           | Probability of tracing a request in Sentry                                                                                                                                      |
 | `sentry.sample_rate_heartbeats` /<br> `WAKAPI_SENTRY_SAMPLE_RATE_HEARTBEATS` | `0.1`                                            | Probability of tracing a heartbeat request in Sentry                                                                                                                            |
@@ -375,11 +379,13 @@ Note: the plugin will only sync heartbeats once in a while, so it might take som
 To "force" it to sync, simply bring up the plugin main dialog.
 
 ### Gnome Extension
+
 If you're using the GNOME desktop, there is a quick way to display your today's coding statistics in the status bar.
 
 ![](.github/assets/screenshot_gnome.png)
 
-Simply install the [Executor](https://extensions.gnome.org/extension/2932/executor/) extension and add the following command as a status bar indicator:
+Simply install the [Executor](https://extensions.gnome.org/extension/2932/executor/) extension and add the following
+command as a status bar indicator:
 
 ```bash
 ~/.wakatime/wakatime-cli-linux-amd64 --today
@@ -484,7 +490,8 @@ New icons can be added by editing the `icons` array in [scripts/bundle_icons.js]
 As explained in [#284](https://github.com/muety/wakapi/issues/284), precompressed (using Brotli) versions of some of the
 assets are delivered to save additional bandwidth. This was inspired by
 Caddy's [`precompressed`](https://caddyserver.com/docs/caddyfile/directives/file_server)
-directive. [`gzipped.FileServer`](https://github.com/muety/wakapi/blob/07a367ce0a97c7738ba8e255e9c72df273fd43a3/main.go#L249)
+directive. [
+`gzipped.FileServer`](https://github.com/muety/wakapi/blob/07a367ce0a97c7738ba8e255e9c72df273fd43a3/main.go#L249)
 checks for every static file's `.br` or `.gz` equivalents and, if present, delivers those instead of the actual file,
 alongside `Content-Encoding: br`. Currently, compressed assets are simply checked in to Git. Later we might want to have
 this be part of a new build step.
@@ -598,7 +605,8 @@ Wakapi and WakaTime.
 * 💻 [Code] Discord integration for
   Wakapi - [LLoneDev6/Wakapi-Discord](https://github.com/LoneDev6/Wakapi-Discord) (`JavaScript`)
 * 💻 [Code] Alternative heartbeats export
-  script - [wakapiexporter.nim](https://github.com/theAkito/mini-tools-nim/tree/master/generic/web/wakapiexporter) (`Nim`)
+  script - [wakapiexporter.nim](https://github.com/theAkito/mini-tools-nim/tree/master/generic/web/wakapiexporter) (
+  `Nim`)
 * 💻 [Code] Wakapi Helm chart for K8s
   deployments - [andreymaznyak/wakapi-helm-chart](https://github.com/andreymaznyak/wakapi-helm-chart) (`YAML`)
 * 🗒 [Article] [Wakamonth: hours reporting tool](https://bitstillery.com/2024/01/09/wakamonth-hours-reporting-tool/)

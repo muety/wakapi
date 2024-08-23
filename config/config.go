@@ -166,6 +166,7 @@ type subscriptionsConfig struct {
 
 type sentryConfig struct {
 	Dsn                  string  `env:"WAKAPI_SENTRY_DSN"`
+	Environment          string  `env:"WAKAPI_SENTRY_ENVIRONMENT"`
 	EnableTracing        bool    `yaml:"enable_tracing" env:"WAKAPI_SENTRY_TRACING"`
 	SampleRate           float32 `yaml:"sample_rate" default:"0.75" env:"WAKAPI_SENTRY_SAMPLE_RATE"`
 	SampleRateHeartbeats float32 `yaml:"sample_rate_heartbeats" default:"0.1" env:"WAKAPI_SENTRY_SAMPLE_RATE_HEARTBEATS"`
@@ -494,6 +495,9 @@ func Load(configFlag string, version string) *Config {
 
 	if config.Sentry.Dsn != "" {
 		slog.Info("enabling sentry integration")
+		if config.Sentry.Environment == "" {
+			config.Sentry.Environment = config.Env
+		}
 		initSentry(config.Sentry, config.IsDev())
 	}
 
