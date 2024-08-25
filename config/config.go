@@ -111,18 +111,18 @@ type securityConfig struct {
 	EnableProxy      bool `yaml:"enable_proxy" default:"false" env:"WAKAPI_ENABLE_PROXY"` // only intended for production instance at wakapi.dev
 	DisableFrontpage bool `yaml:"disable_frontpage" default:"false" env:"WAKAPI_DISABLE_FRONTPAGE"`
 	// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
-	PasswordSalt              string                     `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
-	InsecureCookies           bool                       `yaml:"insecure_cookies" default:"false" env:"WAKAPI_INSECURE_COOKIES"`
-	CookieMaxAgeSec           int                        `yaml:"cookie_max_age" default:"172800" env:"WAKAPI_COOKIE_MAX_AGE"`
-	TrustedHeaderAuth         bool                       `yaml:"trusted_header_auth" default:"false" env:"WAKAPI_TRUSTED_HEADER_AUTH"`
-	TrustedHeaderAuthKey      string                     `yaml:"trusted_header_auth_key" default:"Remote-User" env:"WAKAPI_TRUSTED_HEADER_AUTH_KEY"`
-	TrustReverseProxyIps      string                     `yaml:"trust_reverse_proxy_ips" default:"" env:"WAKAPI_TRUST_REVERSE_PROXY_IPS"` // comma-separated list of trusted reverse proxy ips
-	SignupMaxRate             string                     `yaml:"signup_max_rate" default:"5/1h" env:"WAKAPI_SIGNUP_MAX_RATE"`
-	LoginMaxRate              string                     `yaml:"login_max_rate" default:"10/1m" env:"WAKAPI_LOGIN_MAX_RATE"`
-	PasswordResetMaxRate      string                     `yaml:"password_reset_max_rate" default:"5/1h" env:"WAKAPI_PASSWORD_RESET_MAX_RATE"`
-	SecureCookie              *securecookie.SecureCookie `yaml:"-"`
-	SessionKey                []byte                     `yaml:"-"`
-	trustReverseProxyIpParsed []net.IP
+	PasswordSalt               string                     `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
+	InsecureCookies            bool                       `yaml:"insecure_cookies" default:"false" env:"WAKAPI_INSECURE_COOKIES"`
+	CookieMaxAgeSec            int                        `yaml:"cookie_max_age" default:"172800" env:"WAKAPI_COOKIE_MAX_AGE"`
+	TrustedHeaderAuth          bool                       `yaml:"trusted_header_auth" default:"false" env:"WAKAPI_TRUSTED_HEADER_AUTH"`
+	TrustedHeaderAuthKey       string                     `yaml:"trusted_header_auth_key" default:"Remote-User" env:"WAKAPI_TRUSTED_HEADER_AUTH_KEY"`
+	TrustReverseProxyIps       string                     `yaml:"trust_reverse_proxy_ips" default:"" env:"WAKAPI_TRUST_REVERSE_PROXY_IPS"` // comma-separated list of trusted reverse proxy ips
+	SignupMaxRate              string                     `yaml:"signup_max_rate" default:"5/1h" env:"WAKAPI_SIGNUP_MAX_RATE"`
+	LoginMaxRate               string                     `yaml:"login_max_rate" default:"10/1m" env:"WAKAPI_LOGIN_MAX_RATE"`
+	PasswordResetMaxRate       string                     `yaml:"password_reset_max_rate" default:"5/1h" env:"WAKAPI_PASSWORD_RESET_MAX_RATE"`
+	SecureCookie               *securecookie.SecureCookie `yaml:"-"`
+	SessionKey                 []byte                     `yaml:"-"`
+	trustReverseProxyIpsParsed []net.IPNet
 }
 
 type dbConfig struct {
@@ -331,18 +331,34 @@ func (c *appConfig) HeartbeatsMaxAge() time.Duration {
 }
 
 func (c *securityConfig) ParseTrustReverseProxyIPs() {
-	c.trustReverseProxyIpParsed = make([]net.IP, 0)
+	c.trustReverseProxyIpsParsed = make([]net.IPNet, 0)
+
 	for _, ip := range strings.Split(c.TrustReverseProxyIps, ",") {
-		if parsedIp := net.ParseIP(strings.TrimSpace(ip)); parsedIp == nil {
-			slog.Warn("failed to parse reverse proxy ip")
-		} else {
-			c.trustReverseProxyIpParsed = append(c.trustReverseProxyIpParsed, parsedIp)
+		// try parse as address range
+		_, parsedIpNet, err := net.ParseCIDR(ip)
+		if err == nil {
+			c.trustReverseProxyIpsParsed = append(c.trustReverseProxyIpsParsed, *parsedIpNet)
+			continue
 		}
+
+		// try parse as single ip
+		parsedIp := net.ParseIP(strings.TrimSpace(ip))
+		if parsedIp != nil {
+			ipBits := net.IPv4len * 8
+			if parsedIp.To4() == nil {
+				ipBits = net.IPv6len * 8
+			}
+			ipNet := net.IPNet{IP: parsedIp, Mask: net.CIDRMask(ipBits, ipBits)}
+			c.trustReverseProxyIpsParsed = append(c.trustReverseProxyIpsParsed, ipNet)
+			continue
+		}
+
+		slog.Warn("failed to parse reverse proxy ip ranges")
 	}
 }
 
-func (c *securityConfig) TrustReverseProxyIPs() []net.IP {
-	return c.trustReverseProxyIpParsed
+func (c *securityConfig) TrustReverseProxyIPs() []net.IPNet {
+	return c.trustReverseProxyIpsParsed
 }
 
 func (c *securityConfig) GetSignupMaxRate() (int, time.Duration) {
@@ -528,7 +544,7 @@ func Load(configFlag string, version string) *Config {
 	if _, err := time.ParseDuration(config.App.HeartbeatMaxAge); err != nil {
 		Log().Fatal("invalid duration set for heartbeat_max_age")
 	}
-	if config.Security.TrustedHeaderAuth && len(config.Security.trustReverseProxyIpParsed) == 0 {
+	if config.Security.TrustedHeaderAuth && len(config.Security.trustReverseProxyIpsParsed) == 0 {
 		config.Security.TrustedHeaderAuth = false
 	}
 	if d, err := time.Parse(config.App.DateFormat, config.App.DateFormat); err != nil || !d.Equal(time.Date(2006, time.January, 2, 0, 0, 0, 0, d.Location())) {
