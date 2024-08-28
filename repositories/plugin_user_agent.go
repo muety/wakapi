@@ -74,7 +74,7 @@ func (r *PluginUserAgentRepository) CreateOrUpdate(useragent_string, user_id str
 	}
 
 	if existing != nil {
-		result := r.db.Model(existing).Updates(map[string]interface{}{"last_seen_at": time.Now()})
+		result := r.db.Model(existing).Updates(map[string]interface{}{"last_seen_at": time.Now()}) // use json tags and avoid this rotten fix.
 		if err := result.Error; err != nil {
 			return nil, err
 		}

@@ -35,15 +35,9 @@ func (r *ClientRepository) Create(client *models.Client) (*models.Client, error)
 	return client, nil
 }
 
-func (r *ClientRepository) Update(client *models.Client) (*models.Client, error) {
-	updateMap := map[string]interface{}{
-		"hourly_rate": client.HourlyRate,
-		"currency":    client.Currency,
-		"name":        client.Name,
-		"projects":    client.Projects,
-	}
+func (r *ClientRepository) Update(client *models.Client, update *models.ClientUpdate) (*models.Client, error) {
 
-	result := r.db.Model(client).Updates(updateMap)
+	result := r.db.Model(client).Updates(update)
 	if err := result.Error; err != nil {
 		return nil, err
 	}
@@ -96,7 +90,7 @@ func (r *ClientRepository) GetByIdForUser(clientID, userID string) (*models.Clie
 type IClientRepository interface {
 	FindOne(attributes models.Client) (*models.Client, error)
 	Create(client *models.Client) (*models.Client, error)
-	Update(client *models.Client) (*models.Client, error)
+	Update(client *models.Client, update *models.ClientUpdate) (*models.Client, error)
 	FetchUserClients(userID, query string) ([]*models.Client, error)
 	DeleteByIdAndUser(clientID, userID string) error
 	GetByIdForUser(clientID, userID string) (*models.Client, error)

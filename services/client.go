@@ -27,8 +27,8 @@ func (srv *ClientService) Create(newClient *models.Client) (*models.Client, erro
 	return srv.repository.Create(newClient)
 }
 
-func (srv *ClientService) Update(newClient *models.Client) (*models.Client, error) {
-	return srv.repository.Update(newClient)
+func (srv *ClientService) Update(client *models.Client, update *models.ClientUpdate) (*models.Client, error) {
+	return srv.repository.Update(client, update)
 }
 
 func (srv *ClientService) GetClientForUser(id, userID string) (*models.Client, error) {
@@ -45,7 +45,7 @@ func (srv *ClientService) FetchUserClients(id, query string) ([]*models.Client, 
 
 type IClientService interface {
 	Create(client *models.Client) (*models.Client, error)
-	Update(client *models.Client) (*models.Client, error)
+	Update(client *models.Client, update *models.ClientUpdate) (*models.Client, error)
 	GetClientForUser(id, userID string) (*models.Client, error)
 	DeleteClient(id, userID string) error
 	FetchUserClients(id, query string) ([]*models.Client, error)

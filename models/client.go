@@ -22,3 +22,10 @@ type NewClient struct {
 	HourlyRate float64  `json:"hourly_rate"`
 	Projects   []string `json:"projects"`
 }
+
+type ClientUpdate struct {
+	Name       string         `json:"name"`
+	Currency   string         `json:"currency"`
+	HourlyRate float64        `json:"hourly_rate"`
+	Projects   pq.StringArray `json:"projects" gorm:"type:text[]"`
+}

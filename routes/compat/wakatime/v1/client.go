@@ -60,7 +60,7 @@ func (h *ClientsApiHandler) UpdateClient(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var params = &models.Client{}
+	var params = &models.ClientUpdate{}
 
 	jsonDecoder := json.NewDecoder(r.Body)
 	err := jsonDecoder.Decode(params)
@@ -81,7 +81,7 @@ func (h *ClientsApiHandler) UpdateClient(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	_, err = h.clientService.Update(params)
+	_, err = h.clientService.Update(client, params)
 	if err != nil {
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
 			"message":       "Error updating client",
