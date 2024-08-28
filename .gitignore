@@ -13,5 +13,6 @@ pkged.go
 package-lock.json
 node_modules
 tmp
-*log.DS_Store
+*log
+notes.DS_Store
 notes

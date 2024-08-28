@@ -162,6 +162,8 @@ github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/leandro-lugaresi/hub v1.1.1 h1:zqp0HzFvj4HtqjMBXM2QF17o6PNmR8MJOChgeKl/aw8=
 github.com/leandro-lugaresi/hub v1.1.1/go.mod h1:XEFWanhHv6Rt3XlteHMxuNDYi8dJcpJjodpqkU+BtIo=
+github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
+github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 github.com/lpar/gzipped/v2 v2.1.0 h1:87/ug239roEqXLVOnXZg6NjDfFvMwmkGTKnFWJPUA9U=
 github.com/lpar/gzipped/v2 v2.1.0/go.mod h1:G3UlFoFYzjCx6NV4zDmD1BIWMNBaJuKoUvxrEWJuZ3Y=
 github.com/mailru/easyjson v0.7.7 h1:UGYAvKxe3sBsEDzO8ZeWOSlIQfWFlxbzLZe7hwFURr0=
