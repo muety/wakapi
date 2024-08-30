@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-type StringArray []string
-
 type Goal struct {
 	ID               string           `json:"id" gorm:"primary_key"`
 	UserID           string           `json:"user_id"`
@@ -24,10 +22,10 @@ type Goal struct {
 	Status           string           `json:"status" gorm:"size:1055"`
 	IsSnoozed        bool             `json:"is_snoozed"`
 	IsEnabled        bool             `json:"is_enabled"`
-	Languages        StringArray      `json:"languages" gorm:"serializer:json"`
-	Projects         StringArray      `json:"projects" gorm:"serializer:json"`
-	Editors          StringArray      `json:"editors" gorm:"serializer:json"`
-	Categories       StringArray      `json:"categories" gorm:"serializer:json"`
+	Languages        []string         `json:"languages" gorm:"serializer:json"`
+	Projects         []string         `json:"projects" gorm:"serializer:json"`
+	Editors          []string         `json:"editors" gorm:"serializer:json"`
+	Categories       []string         `json:"categories" gorm:"serializer:json"`
 	ChartData        []*GoalChartData `json:"chart_data" gorm:"-"`
 }
 

@@ -248,7 +248,7 @@ func main() {
 	wakatimeV1HeartbeatsHandler := wtV1Routes.NewHeartbeatHandler(userService, heartbeatService)
 	wakatimeV1LeadersHandler := wtV1Routes.NewLeadersHandler(userService, leaderboardService)
 	shieldV1BadgeHandler := shieldsV1Routes.NewBadgeHandler(summaryService, userService)
-	wakatimeV1ClientsHandler := wtV1Routes.NewClientsApiHandler(db, clientService, userService)
+	wakatimeV1ClientsHandler := wtV1Routes.NewClientsApiHandler(db, clientService, userService, summaryService)
 
 	// MVC Handlers
 	summaryHandler := routes.NewSummaryHandler(summaryService, userService, keyValueService)

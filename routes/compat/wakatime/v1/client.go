@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -15,18 +16,20 @@ import (
 )
 
 type ClientsApiHandler struct {
-	db            *gorm.DB
-	config        *conf.Config
-	clientService services.IClientService
-	userService   services.IUserService
+	db             *gorm.DB
+	config         *conf.Config
+	clientService  services.IClientService
+	userService    services.IUserService
+	summaryService services.ISummaryService
 }
 
-func NewClientsApiHandler(db *gorm.DB, clientService services.IClientService, userService services.IUserService) *ClientsApiHandler {
+func NewClientsApiHandler(db *gorm.DB, clientService services.IClientService, userService services.IUserService, summaryService services.ISummaryService) *ClientsApiHandler {
 	return &ClientsApiHandler{
-		db:            db,
-		clientService: clientService,
-		userService:   userService,
-		config:        conf.Get(),
+		db:             db,
+		clientService:  clientService,
+		userService:    userService,
+		config:         conf.Get(),
+		summaryService: summaryService,
 	}
 }
 
@@ -38,6 +41,7 @@ func (h *ClientsApiHandler) RegisterRoutes(router chi.Router) {
 		r.Get("/compat/wakatime/v1/users/{user}/clients/{id}", h.GetClient)
 		r.Put("/compat/wakatime/v1/users/{user}/clients/{id}", h.UpdateClient)
 		r.Delete("/compat/wakatime/v1/users/{user}/clients/{id}", h.DeleteClient)
+		r.Get("/compat/wakatime/v1/users/{user}/clients/{id}/invoice/items", h.FetchInvoiceLineItems)
 	})
 }
 
@@ -188,6 +192,7 @@ func (h *ClientsApiHandler) FetchUserClients(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
 			"message": "Error fetching clients. Try later.",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -195,4 +200,63 @@ func (h *ClientsApiHandler) FetchUserClients(w http.ResponseWriter, r *http.Requ
 		"data": clients,
 	}
 	helpers.RespondJSON(w, r, http.StatusCreated, response)
+}
+
+func (h *ClientsApiHandler) FetchInvoiceLineItems(w http.ResponseWriter, r *http.Request) {
+	user := helpers.ExtractUser(r)
+	clientID := chi.URLParam(r, "id")
+
+	from := r.URL.Query().Get("from")
+	to := r.URL.Query().Get("to")
+
+	if from == "" || to == "" {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message": "from and to fields are required for the invoice duration",
+			"status":  http.StatusBadRequest,
+		})
+		return
+	}
+
+	client, err := h.clientService.GetClientForUser(clientID, user.ID)
+	if err != nil {
+		helpers.RespondJSON(w, r, http.StatusNotFound, map[string]interface{}{
+			"message": "Client cannot be found",
+			"status":  http.StatusBadRequest,
+		})
+		return
+	}
+
+	start, err := helpers.ParseDateTimeTZ(from, user.TZ())
+	if err != nil {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message": fmt.Sprintf("Invalid date %s provided", from),
+			"status":  http.StatusBadRequest,
+		})
+		return
+	}
+
+	end, err := helpers.ParseDateTimeTZ(to, user.TZ())
+	if err != nil {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message": fmt.Sprintf("Invalid date %s provided", end),
+			"status":  http.StatusBadRequest,
+		})
+		return
+	}
+
+	summary, err := h.clientService.FetchClientInvoiceLineItems(client, user, h.summaryService, start, end)
+	if err != nil {
+		helpers.RespondJSON(w, r, http.StatusInternalServerError, map[string]interface{}{
+			"message": "Error fetching invoice data for client. Try later.",
+			"error":   err.Error(),
+		})
+		return
+	}
+	response := map[string]interface{}{
+		"data": map[string]interface{}{
+			"client":     client,
+			"line_items": summary.Projects,
+		},
+	}
+	helpers.RespondJSON(w, r, http.StatusAccepted, response)
 }

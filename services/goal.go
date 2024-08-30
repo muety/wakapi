@@ -162,3 +162,12 @@ func prepareGoalSummary(s *models.Summary, goal *models.Goal) *models.GoalChartD
 		Range:                  goalRange,
 	}
 }
+
+type IGoalService interface {
+	Create(*models.Goal) (*models.Goal, error)
+	GetGoalForUser(id, userID string) (*models.Goal, error)
+	Update(newGoal *models.Goal) (*models.Goal, error)
+	DeleteGoal(id string, userID string) error
+	FetchUserGoals(id string) ([]*models.Goal, error)
+	LoadGoalChartData(goal *models.Goal, user *models.User, summarySrvc ISummaryService) ([]*models.GoalChartData, error)
+}
