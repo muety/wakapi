@@ -189,7 +189,7 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if err := h.keyValueSrvc.DeleteString(inviteCodeKey); err != nil {
-			conf.Log().Error("failed to revoke %s", inviteCodeKey)
+			conf.Log().Error("failed to revoke invite code", "inviteCodeKey", inviteCodeKey, "error", err)
 		}
 	}
 

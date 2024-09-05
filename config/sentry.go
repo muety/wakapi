@@ -2,121 +2,50 @@ package config
 
 import (
 	"github.com/getsentry/sentry-go"
-	"io"
+	slogsentry "github.com/samber/slog-sentry/v2"
 	"log/slog"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 // How to: Logging
 // Use slog.[Debug|Info|Warn|Error|Fatal]() by default
 // Use config.Log().[Debug|Info|Warn|Error|Fatal]() when wanting the log to appear in Sentry as well
 
-var sentryWrapperLogger *SentryWrapperLogger
-
-type capturingWriter struct {
-	Writer  io.Writer
-	Message string
+// SentryLogger wraps slog.Logger and provides a Fatal method
+type SentryLogger struct {
+	*slog.Logger
 }
 
-func (c *capturingWriter) Clear() {
-	c.Message = ""
-}
+var sentryLogger *SentryLogger
 
-func (c *capturingWriter) Write(p []byte) (n int, err error) {
-	c.Message = string(p)
-	return c.Writer.Write(p)
-}
-
-// SentryWrapperLogger is a wrapper around a slog.Logger that forwards events to Sentry in addition and optionally allows to attach a request context
-type SentryWrapperLogger struct {
-	Logger    *slog.Logger
-	req       *http.Request
-	outWriter *capturingWriter
-	errWriter *capturingWriter
-}
-
-func Log() *SentryWrapperLogger {
-	if sentryWrapperLogger != nil {
-		return sentryWrapperLogger
+func Log() *SentryLogger {
+	if sentryLogger != nil {
+		return sentryLogger
 	}
 
-	ow, ew := &capturingWriter{Writer: os.Stdout}, &capturingWriter{Writer: os.Stderr}
-	var handler slog.Handler
+	level := slog.LevelInfo
 	if Get().IsDev() {
-		handler = slog.NewTextHandler(io.MultiWriter(ow, ew), &slog.HandlerOptions{
-			Level: slog.LevelDebug,
-		})
-	} else {
-		handler = slog.NewJSONHandler(io.MultiWriter(ow, ew), &slog.HandlerOptions{
-			Level: slog.LevelInfo,
-		})
+		level = slog.LevelDebug
 	}
+	handler := slogsentry.Option{Level: level}.NewSentryHandler()
+	logger := slog.New(handler)
 
-	// Create a custom handler that writes to both output and error writers
-	sentryWrapperLogger = &SentryWrapperLogger{
-		Logger:    slog.New(handler),
-		outWriter: ow,
-		errWriter: ew,
-	}
-	return sentryWrapperLogger
+	sentryLogger = &SentryLogger{Logger: logger}
+
+	return sentryLogger
 }
 
-func (l *SentryWrapperLogger) Request(req *http.Request) *SentryWrapperLogger {
-	l.req = req
-	return l
-}
-
-func (l *SentryWrapperLogger) Debug(msg string, params ...interface{}) {
-	l.outWriter.Clear()
-	l.Logger.Debug(msg, params...)
-	l.log(l.errWriter.Message, sentry.LevelDebug)
-}
-
-func (l *SentryWrapperLogger) Info(msg string, params ...interface{}) {
-	l.outWriter.Clear()
-	l.Logger.Info(msg, params...)
-	l.log(l.errWriter.Message, sentry.LevelInfo)
-}
-
-func (l *SentryWrapperLogger) Warn(msg string, params ...interface{}) {
-	l.outWriter.Clear()
-	l.Logger.Warn(msg, params...)
-	l.log(l.errWriter.Message, sentry.LevelWarning)
-}
-
-func (l *SentryWrapperLogger) Error(msg string, params ...interface{}) {
-	l.errWriter.Clear()
-	l.Logger.Error(msg, params...)
-	l.log(l.errWriter.Message, sentry.LevelError)
-}
-
-func (l *SentryWrapperLogger) Fatal(msg string, params ...interface{}) {
-	l.errWriter.Clear()
-	l.Logger.Error(msg, params...)
-	l.log(l.errWriter.Message, sentry.LevelFatal)
+func (l *SentryLogger) Fatal(msg string, args ...any) {
+	l.Error(msg, args...)
+	sentry.Flush(2 * time.Second)
 	os.Exit(1)
 }
 
-func (l *SentryWrapperLogger) log(msg string, level sentry.Level) {
-	event := sentry.NewEvent()
-	event.Level = level
-	event.Message = msg
-
-	if l.req != nil {
-		if h := l.req.Context().Value(sentry.HubContextKey); h != nil {
-			hub := h.(*sentry.Hub)
-			hub.Scope().SetRequest(l.req)
-			if uid := getPrincipal(l.req); uid != "" {
-				hub.Scope().SetUser(sentry.User{ID: uid})
-			}
-			hub.CaptureEvent(event)
-			return
-		}
-	}
-
-	sentry.CaptureEvent(event)
+func (l *SentryLogger) Request(r *http.Request) *slog.Logger {
+	return l.Logger.With(slog.Any("http_request", r))
 }
 
 var excludedRoutes = []string{
@@ -146,11 +75,10 @@ func initSentry(config sentryConfig, debug bool) {
 			return float64(config.SampleRate)
 		},
 		BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
-			if hint.Context != nil {
-				if req, ok := hint.Context.Value(sentry.RequestContextKey).(*http.Request); ok {
-					if uid := getPrincipal(req); uid != "" {
-						event.User.ID = uid
-					}
+			r, ok := event.Contexts["extra"]["http_request"]
+			if ok {
+				if uid := getPrincipal(r.(*http.Request)); uid != "" {
+					event.User.ID = uid
 				}
 			}
 			return event

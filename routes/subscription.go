@@ -85,7 +85,7 @@ func NewSubscriptionHandler(
 			if err := handler.cancelUserSubscription(user); err == nil {
 				slog.Info("successfully cancelled subscription for user", "userID", user.ID, "email", user.Email, "stripeCustomerID", user.StripeCustomerId)
 			} else {
-				conf.Log().Error("failed to cancel subscription for user '%s' (email '%s', stripe customer '%s') - %v", user.ID, user.Email, user.StripeCustomerId, err)
+				conf.Log().Error("failed to cancel subscription for user", "userID", user.ID, "email", user.Email, "stripeCustomerID", user.StripeCustomerId, "error", err)
 			}
 		}
 	}(&onUserDelete)

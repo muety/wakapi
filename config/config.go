@@ -510,10 +510,10 @@ func Load(configFlag string, version string) *Config {
 	}
 
 	if config.Sentry.Dsn != "" {
-		slog.Info("enabling sentry integration")
 		if config.Sentry.Environment == "" {
 			config.Sentry.Environment = config.Env
 		}
+		slog.Info("enabling sentry integration", "environment", config.Sentry.Environment)
 		initSentry(config.Sentry, config.IsDev())
 	}
 

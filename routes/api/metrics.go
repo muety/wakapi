@@ -141,7 +141,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 
 	summaryAllTime, err := h.summarySrvc.Aliased(time.Time{}, time.Now(), user, h.summarySrvc.Retrieve, nil, false)
 	if err != nil {
-		conf.Log().Error("failed to retrieve all time summary for user '%s' for metric", user.ID)
+		conf.Log().Error("failed to retrieve all time summary for metric", "userID", user.ID, "error", err)
 		return nil, err
 	}
 
@@ -149,13 +149,13 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 
 	summaryToday, err := h.summarySrvc.Aliased(from, to, user, h.summarySrvc.Retrieve, nil, false)
 	if err != nil {
-		conf.Log().Error("failed to retrieve today's summary for user '%s' for metric", user.ID)
+		conf.Log().Error("failed to retrieve today's summary for metric", "userID", user.ID, "error", err)
 		return nil, err
 	}
 
 	heartbeatCount, err := h.heartbeatSrvc.CountByUser(user)
 	if err != nil {
-		conf.Log().Error("failed to count heartbeats for user '%s' for metric", user.ID)
+		conf.Log().Error("failed to count heartbeats for metric", "userID", user.ID, "error", err)
 		return nil, err
 	}
 
@@ -163,7 +163,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 	if h.config.App.LeaderboardEnabled {
 		leaderboard, err = h.leaderboardSrvc.GetByIntervalAndUser(h.leaderboardSrvc.GetDefaultScope(), user.ID, false)
 		if err != nil {
-			conf.Log().Error("failed to fetch leaderboard for user '%s' for metric", user.ID)
+			conf.Log().Error("failed to fetch leaderboard for metric", "userID", user.ID, "error", err)
 			return nil, err
 		}
 	}
@@ -402,7 +402,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 
 	activeUsers, err := h.userSrvc.GetActive(false)
 	if err != nil {
-		conf.Log().Error("failed to retrieve active users for metric - %v", err)
+		conf.Log().Error("failed to retrieve active users for metric", "error", err)
 		return nil, err
 	}
 	slog.Debug("finished getting active users", "duration", time.Since(t0))
@@ -439,7 +439,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 
 	userCounts, err := h.heartbeatSrvc.CountByUsers(activeUsers)
 	if err != nil {
-		conf.Log().Error("failed to count heartbeats for active users", err.Error())
+		conf.Log().Error("failed to count heartbeats for active users", "error", err.Error())
 		return nil, err
 	}
 
@@ -465,7 +465,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 		wp.Submit(func() {
 			summary, err := h.summarySrvc.Aliased(from, to, activeUsers[i], h.summarySrvc.Retrieve, nil, false) // only using aliased because aliased has caching
 			if err != nil {
-				conf.Log().Error("failed to get total time for user '%s' as part of metrics, %v", activeUsers[i].ID, err)
+				conf.Log().Error("failed to get total time for user as part of metrics", "userID", activeUsers[i].ID, "error", err)
 				return
 			}
 			lock.Lock()

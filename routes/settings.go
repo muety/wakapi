@@ -622,7 +622,7 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 			stream, importError = importer.Import(user, latest.Time.T(), time.Now())
 		}
 		if importError != nil {
-			conf.Log().Error("wakatime import for user '%s' failed - %v", user.ID, importError)
+			conf.Log().Error("wakatime import for user failed", "userID", user.ID, "error", importError)
 			return
 		}
 
@@ -808,12 +808,12 @@ func (h *SettingsHandler) validateWakatimeKey(apiKey string, baseUrl string) boo
 func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
 	slog.Info("clearing summaries for user", "userID", user.ID)
 	if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
-		conf.Log().Error("failed to clear summaries: %v", err)
+		conf.Log().Error("failed to clear summaries", "error", err)
 		return err
 	}
 
 	if err := h.aggregationSrvc.AggregateSummaries(datastructure.New(user.ID)); err != nil {
-		conf.Log().Error("failed to regenerate summaries: %v", err)
+		conf.Log().Error("failed to regenerate summaries", "error", err)
 		return err
 	}
 
