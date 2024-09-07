@@ -45,7 +45,11 @@ func (l *SentryLogger) Fatal(msg string, args ...any) {
 }
 
 func (l *SentryLogger) Request(r *http.Request) *slog.Logger {
-	return l.Logger.With(slog.Any("http_request", r))
+	l.Logger = l.Logger.With("request", r)
+	if uid := getPrincipal(r); uid != "" {
+		l.Logger = l.Logger.With(slog.Group("user", slog.String("id", uid)))
+	}
+	return l.Logger
 }
 
 var excludedRoutes = []string{
@@ -55,11 +59,12 @@ var excludedRoutes = []string{
 	"GET /docs",
 }
 
-func initSentry(config sentryConfig, debug bool) {
+func initSentry(config sentryConfig, debug bool, releaseVersion string) {
 	if err := sentry.Init(sentry.ClientOptions{
 		Dsn:              config.Dsn,
 		Debug:            debug,
 		Environment:      config.Environment,
+		Release:          releaseVersion,
 		AttachStacktrace: true,
 		EnableTracing:    config.EnableTracing,
 		TracesSampler: func(ctx sentry.SamplingContext) float64 {
@@ -75,12 +80,7 @@ func initSentry(config sentryConfig, debug bool) {
 			return float64(config.SampleRate)
 		},
 		BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
-			r, ok := event.Contexts["extra"]["http_request"]
-			if ok {
-				if uid := getPrincipal(r.(*http.Request)); uid != "" {
-					event.User.ID = uid
-				}
-			}
+			// optional pre-processing before sending the event off
 			return event
 		},
 	}); err != nil {

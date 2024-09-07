@@ -470,12 +470,13 @@ func Get() *Config {
 
 func Load(configFlag string, version string) *Config {
 	config := &Config{}
-
 	if err := configor.New(&configor.Config{}).Load(config, configFlag); err != nil {
 		Log().Fatal("failed to read config", "error", err)
 	}
 
 	env = config.Env
+
+	InitLogger(config.IsDev())
 
 	config.Version = strings.TrimSpace(version)
 	tagVersionMatch, _ := regexp.MatchString(`\d+\.\d+\.\d+`, version)
@@ -514,7 +515,7 @@ func Load(configFlag string, version string) *Config {
 			config.Sentry.Environment = config.Env
 		}
 		slog.Info("enabling sentry integration", "environment", config.Sentry.Environment)
-		initSentry(config.Sentry, config.IsDev())
+		initSentry(config.Sentry, config.IsDev(), config.Version)
 	}
 
 	if config.App.DataRetentionMonths <= 0 {

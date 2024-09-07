@@ -124,8 +124,6 @@ func main() {
 	// Configure Swagger docs
 	docs.SwaggerInfo.BasePath = config.Server.BasePath + "/api"
 
-	initLogger()
-
 	slog.Info("Wakapi", "version", version)
 
 	// Set up GORM
@@ -439,15 +437,4 @@ func listen(handler http.Handler) {
 	}
 
 	<-make(chan interface{}, 1)
-}
-
-func initLogger() {
-	var handler slog.Handler
-	if config.IsDev() {
-		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
-	} else {
-		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
-	}
-	l := slog.New(handler)
-	slog.SetDefault(l)
 }

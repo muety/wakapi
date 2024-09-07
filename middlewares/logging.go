@@ -1,6 +1,7 @@
 package middlewares
 
 // Borrowed from https://gist.github.com/elithrar/887d162dfd0c539b700ab4049c76e22b
+// Alternatively, we could use https://github.com/samber/slog-chi, however, it pulls in another bunch of dependencies and log messages are more verbose and feel almost little bloated
 
 import (
 	"io"
