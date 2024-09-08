@@ -40,10 +40,10 @@ func (h *LoginHandler) RegisterRoutes(router chi.Router) {
 	router.
 		With(httprate.LimitByRealIP(h.config.Security.GetLoginMaxRate())).
 		Post("/login", h.PostLogin)
+	router.Get("/signup", h.GetSignup)
 	router.
 		With(httprate.LimitByRealIP(h.config.Security.GetSignupMaxRate())).
-		Get("/signup", h.GetSignup)
-	router.Post("/signup", h.PostSignup)
+		Post("/signup", h.PostSignup)
 	router.Get("/set-password", h.GetSetPassword)
 	router.Post("/set-password", h.PostSetPassword)
 	router.Get("/reset-password", h.GetResetPassword)
