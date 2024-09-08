@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/getsentry/sentry-go"
+	slogmulti "github.com/samber/slog-multi"
 	slogsentry "github.com/samber/slog-sentry/v2"
 	"log/slog"
 	"net/http"
@@ -30,10 +31,23 @@ func Log() *SentryLogger {
 	if Get().IsDev() {
 		level = slog.LevelDebug
 	}
-	handler := slogsentry.Option{Level: level}.NewSentryHandler()
-	logger := slog.New(handler)
 
-	sentryLogger = &SentryLogger{Logger: logger}
+	filterRequestInfo := slogmulti.NewWithAttrsInlineMiddleware(func(attrs []slog.Attr, next func([]slog.Attr) slog.Handler) slog.Handler {
+		attrsNew := []slog.Attr{}
+		for _, attr := range attrs {
+			if attr.Key != "request" {
+				attrsNew = append(attrsNew, attr)
+			}
+		}
+		return next(attrsNew)
+	})
+
+	sentryLogger = &SentryLogger{Logger: slog.New(
+		slogmulti.Fanout(
+			slogmulti.Pipe(filterRequestInfo).Handler(slog.Default().Handler()),
+			slogsentry.Option{Level: level}.NewSentryHandler(),
+		),
+	)}
 
 	return sentryLogger
 }

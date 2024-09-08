@@ -42,6 +42,8 @@ require (
 	gorm.io/gorm v1.25.11
 )
 
+require github.com/samber/slog-multi v1.2.1 // indirect
+
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
