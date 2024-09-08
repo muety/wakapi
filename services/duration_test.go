@@ -15,6 +15,7 @@ const (
 	TestProject1         = "test-project-1"
 	TestProject2         = "test-project-2"
 	TestProject3         = "test-project-3"
+	TestProject4         = "something-completely-different-4"
 	TestLanguageGo       = "Go"
 	TestLanguageJava     = "Java"
 	TestLanguagePython   = "Python"

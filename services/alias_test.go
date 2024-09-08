@@ -25,6 +25,12 @@ func (suite *AliasServiceTestSuite) SetupSuite() {
 			Key:    "wakapi",
 			Value:  "wakapi-mobile",
 		},
+		{
+			Type:   models.SummaryProject,
+			UserID: suite.TestUserId,
+			Key:    "telepush",
+			Value:  "telepush-*",
+		},
 	}
 
 	aliasRepoMock := new(mocks.AliasRepositoryMock)
@@ -44,6 +50,8 @@ func (suite *AliasServiceTestSuite) TestAliasService_GetAliasOrDefault() {
 	result1, err1 := sut.GetAliasOrDefault(suite.TestUserId, models.SummaryProject, "wakapi-mobile")
 	result2, err2 := sut.GetAliasOrDefault(suite.TestUserId, models.SummaryProject, "wakapi")
 	result3, err3 := sut.GetAliasOrDefault(suite.TestUserId, models.SummaryProject, "anchr")
+	result4, err4 := sut.GetAliasOrDefault(suite.TestUserId, models.SummaryProject, "telepush-mobile")
+	result5, err5 := sut.GetAliasOrDefault(suite.TestUserId, models.SummaryLanguage, "telepush-mobile")
 
 	assert.Equal(suite.T(), "wakapi", result1)
 	assert.Nil(suite.T(), err1)
@@ -51,4 +59,8 @@ func (suite *AliasServiceTestSuite) TestAliasService_GetAliasOrDefault() {
 	assert.Nil(suite.T(), err2)
 	assert.Equal(suite.T(), "anchr", result3)
 	assert.Nil(suite.T(), err3)
+	assert.Equal(suite.T(), "telepush", result4)
+	assert.Nil(suite.T(), err4)
+	assert.Equal(suite.T(), "telepush-mobile", result5)
+	assert.Nil(suite.T(), err5)
 }

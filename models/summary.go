@@ -356,15 +356,14 @@ func (s *Summary) MaxByToString(entityType uint8) string {
 }
 
 func (s *Summary) WithResolvedAliases(resolve AliasResolver) *Summary {
-	processAliases := func(origin []*SummaryItem) []*SummaryItem {
-		if origin == nil {
+	processAliases := func(items []*SummaryItem) []*SummaryItem {
+		if items == nil {
 			return nil
 		}
-
-		target := make([]*SummaryItem, 0)
+		itemsAliased := make([]*SummaryItem, 0)
 
 		findItem := func(key string) *SummaryItem {
-			for _, item := range target {
+			for _, item := range itemsAliased {
 				if item.Key == key {
 					return item
 				}
@@ -372,20 +371,20 @@ func (s *Summary) WithResolvedAliases(resolve AliasResolver) *Summary {
 			return nil
 		}
 
-		for _, item := range origin {
+		for _, item := range items {
 			// Add all "top-level" items, i.e. such without aliases
 			if key := resolve(item.Type, item.Key); key == item.Key {
-				target = append(target, item)
+				itemsAliased = append(itemsAliased, item)
 			}
 		}
 
-		for _, item := range origin {
+		for _, item := range items {
 			// Add all remaining projects and merge with their alias
 			if key := resolve(item.Type, item.Key); key != item.Key {
 				if targetItem := findItem(key); targetItem != nil {
 					targetItem.Total += item.Total
 				} else {
-					target = append(target, &SummaryItem{
+					itemsAliased = append(itemsAliased, &SummaryItem{
 						ID:        item.ID,
 						SummaryID: item.SummaryID,
 						Type:      item.Type,
@@ -396,7 +395,7 @@ func (s *Summary) WithResolvedAliases(resolve AliasResolver) *Summary {
 			}
 		}
 
-		return target
+		return itemsAliased
 	}
 
 	// Resolve aliases

@@ -2,7 +2,9 @@ package services
 
 import (
 	"errors"
+	"github.com/becheran/wildmatch-go"
 	"github.com/duke-git/lancet/v2/datetime"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -20,17 +22,19 @@ type SummaryService struct {
 	cache               *cache.Cache
 	eventBus            *hub.Hub
 	repository          repositories.ISummaryRepository
+	heartbeatService    IHeartbeatService
 	durationService     IDurationService
 	aliasService        IAliasService
 	projectLabelService IProjectLabelService
 }
 
-func NewSummaryService(summaryRepo repositories.ISummaryRepository, durationService IDurationService, aliasService IAliasService, projectLabelService IProjectLabelService) *SummaryService {
+func NewSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatService IHeartbeatService, durationService IDurationService, aliasService IAliasService, projectLabelService IProjectLabelService) *SummaryService {
 	srv := &SummaryService{
 		config:              config.Get(),
 		cache:               cache.New(24*time.Hour, 24*time.Hour),
 		eventBus:            config.EventBus(),
 		repository:          summaryRepo,
+		heartbeatService:    heartbeatService,
 		durationService:     durationService,
 		aliasService:        aliasService,
 		projectLabelService: projectLabelService,
@@ -481,11 +485,36 @@ func (srv *SummaryService) getAliasReverseResolver(user *models.User) models.Ali
 	return func(t uint8, k string) []string {
 		aliases, err := srv.aliasService.GetByUserAndKeyAndType(user.ID, k, t)
 		if err != nil {
+			config.Log().Error("failed to fetch aliases for user", "user", user.ID, "error", err)
 			aliases = []*models.Alias{}
 		}
+
+		projects, err := srv.heartbeatService.GetEntitySetByUser(models.SummaryProject, user.ID)
+		if err != nil {
+			config.Log().Error("failed to fetch projects for alias resolution for user", "user", user.ID, "error", err)
+		}
+
+		isWildcard := func(alias string) bool {
+			return strings.Contains(alias, "*") || strings.Contains(alias, "?")
+		}
+
+		// for wildcard patterns like "anchr-" (e.g. resolving to "anchr-mobile", "anchr-web", ...), we need to fetch all projects matching the pattern
+		// this is mainly used for the filtering functionality
+		// proper way would be to make the filters support wildcards as well instead
+		matchProjects := func(aliasWildcard string) []string {
+			pattern := wildmatch.NewWildMatch(aliasWildcard)
+			return slice.Filter[string](projects, func(i int, project string) bool {
+				return pattern.IsMatch(project)
+			})
+		}
+
 		aliasStrings := make([]string, 0, len(aliases))
 		for _, a := range aliases {
-			aliasStrings = append(aliasStrings, a.Value)
+			if isWildcard(a.Value) {
+				aliasStrings = append(aliasStrings, matchProjects(a.Value)...)
+			} else {
+				aliasStrings = append(aliasStrings, a.Value)
+			}
 		}
 		return aliasStrings
 	}

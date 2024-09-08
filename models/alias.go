@@ -1,5 +1,7 @@
 package models
 
+import "strings"
+
 // AliasResolver returns the alias of an Entity, given its original name. I.e., it returns Alias.Key, given an Alias.Value
 type AliasResolver func(t uint8, k string) string
 
@@ -16,7 +18,10 @@ type Alias struct {
 }
 
 func (a *Alias) IsValid() bool {
-	return a.Key != "" && a.Value != "" && a.validateType()
+	return a.Key != "" &&
+		a.Value != "" &&
+		a.validateType() &&
+		a.validateWildcard()
 }
 
 func (a *Alias) validateType() bool {
@@ -26,4 +31,14 @@ func (a *Alias) validateType() bool {
 		}
 	}
 	return false
+}
+
+func (a *Alias) validateWildcard() bool {
+	if !strings.Contains(a.Value, "*") && !strings.Contains(a.Value, "?") {
+		return true
+	}
+	v := a.Value
+	v = strings.ReplaceAll(v, "*", "")
+	v = strings.ReplaceAll(v, "?", "")
+	return len(v) >= 3 // don't allow "*" or "a*" or sth.
 }

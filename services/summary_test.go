@@ -25,6 +25,7 @@ type SummaryServiceTestSuite struct {
 	TestDurations       []*models.Duration
 	TestLabels          []*models.ProjectLabel
 	SummaryRepository   *mocks.SummaryRepositoryMock
+	HeartbeatService    *mocks.HeartbeatServiceMock
 	DurationService     *mocks.DurationServiceMock
 	AliasService        *mocks.AliasServiceMock
 	ProjectLabelService *mocks.ProjectLabelServiceMock
@@ -96,6 +97,7 @@ func (suite *SummaryServiceTestSuite) SetupSuite() {
 
 func (suite *SummaryServiceTestSuite) BeforeTest(suiteName, testName string) {
 	suite.SummaryRepository = new(mocks.SummaryRepositoryMock)
+	suite.HeartbeatService = new(mocks.HeartbeatServiceMock)
 	suite.DurationService = new(mocks.DurationServiceMock)
 	suite.AliasService = new(mocks.AliasServiceMock)
 	suite.ProjectLabelService = new(mocks.ProjectLabelServiceMock)
@@ -106,7 +108,7 @@ func TestSummaryServiceTestSuite(t *testing.T) {
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
-	sut := NewSummaryService(suite.SummaryRepository, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
 
 	var (
 		from   time.Time
@@ -172,7 +174,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve() {
-	sut := NewSummaryService(suite.SummaryRepository, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
 
 	var (
 		summaries []*models.Summary
@@ -331,7 +333,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve() {
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve_DuplicateSummaries() {
-	sut := NewSummaryService(suite.SummaryRepository, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
 
 	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return([]*models.ProjectLabel{}, nil)
 
@@ -379,7 +381,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve_DuplicateSumma
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
-	sut := NewSummaryService(suite.SummaryRepository, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
 
 	suite.AliasService.On("InitializeUser", suite.TestUser.ID).Return(nil)
 	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return([]*models.ProjectLabel{}, nil)
@@ -423,7 +425,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased_ProjectLabels() {
-	sut := NewSummaryService(suite.SummaryRepository, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
 
 	var (
 		from   time.Time
@@ -462,8 +464,9 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased_ProjectLabels()
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
-	sut := NewSummaryService(suite.SummaryRepository, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
 
+	suite.HeartbeatService.On("GetEntitySetByUser", models.SummaryProject, suite.TestUser.ID).Return([]string{TestProject1, TestProject2, TestProject3, TestProject4}, nil)
 	suite.AliasService.On("InitializeUser", suite.TestUser.ID).Return(nil)
 	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return([]*models.ProjectLabel{}, nil)
 
@@ -477,6 +480,11 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
 			Type:  models.SummaryProject,
 			Key:   TestProject1,
 			Value: TestProject2,
+		},
+		{
+			Type:  models.SummaryProject,
+			Key:   TestProject1,
+			Value: TestProject4[0:3] + "*", // wildcard alias
 		},
 	}, nil)
 	suite.ProjectLabelService.On("GetByUserGroupedInverted", suite.TestUser.ID).Return(map[string][]*models.ProjectLabel{
@@ -492,11 +500,12 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
 	assert.Contains(suite.T(), effectiveFilters.Project, TestProject1) // because actually requested
 	assert.Contains(suite.T(), effectiveFilters.Project, TestProject2) // because of alias
 	assert.Contains(suite.T(), effectiveFilters.Project, TestProject3) // because of label
+	assert.Contains(suite.T(), effectiveFilters.Project, TestProject4) // because of wildcard alias
 	assert.Contains(suite.T(), effectiveFilters.Label, TestProjectLabel3)
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_getMissingIntervals() {
-	sut := NewSummaryService(suite.SummaryRepository, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
 
 	from1, _ := time.Parse(time.RFC822, "25 Mar 22 11:00 UTC")
 	to1, _ := time.Parse(time.RFC822, "25 Mar 22 13:00 UTC")
