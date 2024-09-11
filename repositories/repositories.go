@@ -91,14 +91,6 @@ type IUserRepository interface {
 	Delete(*models.User) error
 }
 
-type IGoalRepository interface {
-	Create(*models.Goal) (*models.Goal, error)
-	GetByIdForUser(id, userID string) (*models.Goal, error)
-	DeleteByIdAndUser(id, userID string) error
-	FetchUserGoals(id string) ([]*models.Goal, error)
-	Update(goal *models.Goal) (*models.Goal, error)
-}
-
 type IOauthUserRepository interface {
 	Create(userOauth *models.UserOauth) (*models.UserOauth, error)
 	GetById(userOauthID string) (*models.UserOauth, error)

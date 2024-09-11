@@ -77,3 +77,11 @@ func (r *GoalRepository) FetchUserGoals(userID string) ([]*models.Goal, error) {
 	}
 	return goals, nil
 }
+
+type IGoalRepository interface {
+	Create(*models.Goal) (*models.Goal, error)
+	GetByIdForUser(id, userID string) (*models.Goal, error)
+	DeleteByIdAndUser(id, userID string) error
+	FetchUserGoals(id string) ([]*models.Goal, error)
+	Update(goal *models.Goal) (*models.Goal, error)
+}

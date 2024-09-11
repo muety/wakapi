@@ -13,6 +13,7 @@ type Goal struct {
 	UpdatedAt        CustomTime       `json:"updated_at" gorm:"default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	SnoozeUntil      int64            `json:"snooze_until"`
 	Seconds          int64            `json:"seconds"`
+	TargetDirection  string           `json:"target_direction" gorm:"size:1055"`
 	ImproveByPercent int64            `json:"improve_by_percent"`
 	Delta            string           `json:"delta" gorm:"size:1055"`
 	Type             string           `json:"type" gorm:"size:1055"`
@@ -79,7 +80,14 @@ func (g *Goal) GetTitle() string {
 		g.GetGoalSuffix("categories", g.Categories),
 		g.GetGoalSuffix("projects", g.Projects),
 	}
-	return fmt.Sprintf("Code %.2f hrs per %s %s", hours, g.Delta, strings.Join(suffixes, ""))
+	direction := g.TargetDirection
+	if direction == "less" {
+		direction = "less than"
+	} else {
+		direction = "at least"
+	}
+
+	return fmt.Sprintf("Code %s %.2f hrs per %s %s", direction+" than", hours, g.Delta, strings.Join(suffixes, ""))
 }
 
 func (g *Goal) GetGoalSummaryFilter() *Filters {
