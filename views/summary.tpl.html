@@ -62,7 +62,7 @@
             })" @vue:mounted="mounted"></div>
         </div>
 
-        <div class="flex-shrink-0" v-scope="TimePicker({
+        <div class="flex-shrink-1 sm:flex-shrink-0" v-scope="TimePicker({
             fromDate: '{{ .From | simpledate }}',
             toDate: '{{ .To | ceildate | simpledate }}',
             timeSelection: '{{ .From | datetime }} - {{ .To | ceildate | datetime }}'
@@ -121,8 +121,8 @@
         </div>
         {{ end }}
 
-        <div class="grid gap-2 grid-cols-1 md:grid-cols-2 w-full mt-4">
-            <div class="row-span-1 col-start-1 col-span-1 md:row-span-2 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if .IsProjectDetails }} hidden {{ end }}" id="project-container" style="max-height: 608px;">
+        <div class="grid gap-2 grid-cols-1 sm:grid-cols-2 w-full mt-4">
+            <div class="row-span-1 col-start-1 col-span-1 sm:row-span-2 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if .IsProjectDetails }} hidden {{ end }}" id="project-container" style="max-height: 608px;">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Projects</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
@@ -223,7 +223,7 @@
             </div>
 
             <div class="{{ if .IsProjectDetails }} hidden {{ end }} row-span-1 col-start-1 sm:col-start-2 col-span-1 sm:row-span-2 w-full">
-                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col {{ if .IsProjectDetails }} hidden {{ end }}" id="label-container" style="max-height: 300px">
+                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if .IsProjectDetails }} hidden {{ end }}" id="label-container" style="max-height: 300px">
                     <div class="flex justify-between text-lg" style="margin-bottom: -10px">
                         <span class="font-semibold whitespace-nowrap">Labels</span>
                         <a href="settings#data" class="ml-4 inline p-2 hover:bg-gray-800 rounded" style="margin-top: -5px">
