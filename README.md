@@ -35,17 +35,17 @@ Installation instructions can be found below and in the [Wiki](https://github.co
 
 ## 🚀 Features
 
-* ✅ Free and open-source
-* ✅ Built by developers for developers
-* ✅ Statistics for projects, languages, editors, hosts and operating systems
-* ✅ Badges
-* ✅ Weekly E-Mail reports
-* ✅ REST API
-* ✅ Partially compatible with WakaTime
-* ✅ WakaTime integration
-* ✅ Support for Prometheus exports
-* ✅ Lightning fast
-* ✅ Self-hosted
+- ✅ Free and open-source
+- ✅ Built by developers for developers
+- ✅ Statistics for projects, languages, editors, hosts and operating systems
+- ✅ Badges
+- ✅ Weekly E-Mail reports
+- ✅ REST API
+- ✅ Partially compatible with WakaTime
+- ✅ WakaTime integration
+- ✅ Support for Prometheus exports
+- ✅ Lightning fast
+- ✅ Self-hosted
 
 ## ⌨️ How to use?
 
@@ -146,7 +146,7 @@ You can specify configuration options either via a config file (default: `config
 argument) or via environment variables. Here is an overview of all options.
 
 | YAML key / Env. variable                                                     | Default                                          | Description                                                                                                                                                                     |
-|------------------------------------------------------------------------------|--------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ---------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `env` /<br>`ENVIRONMENT`                                                     | `dev`                                            | Whether to use development- or production settings                                                                                                                              |
 | `app.leaderboard_enabled` /<br>`WAKAPI_LEADERBOARD_ENABLED`                  | `true`                                           | Whether to enable the public leaderboard                                                                                                                                        |
 | `app.leaderboard_scope` /<br>`WAKAPI_LEADERBOARD_SCOPE`                      | `7_days`                                         | Aggregation interval for public leaderboard (see [here](https://github.com/muety/wakapi/blob/7d156cd3edeb93af2997bd95f12933b0aabef0c9/config/config.go#L71) for allowed values) |
@@ -223,32 +223,32 @@ argument) or via environment variables. Here is an overview of all options.
 
 Wakapi uses [GORM](https://gorm.io) as an ORM. As a consequence, a set of different relational databases is supported.
 
-* [SQLite](https://sqlite.org/) (_default, easy setup_)
-* [MySQL](https://hub.docker.com/_/mysql) (_recommended, because most extensively tested_)
-* [MariaDB](https://hub.docker.com/_/mariadb) (_open-source MySQL alternative_)
-* [Postgres](https://hub.docker.com/_/postgres) (_open-source as well_)
-* [CockroachDB](https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html) (_cloud-native, distributed,
+- [SQLite](https://sqlite.org/) (_default, easy setup_)
+- [MySQL](https://hub.docker.com/_/mysql) (_recommended, because most extensively tested_)
+- [MariaDB](https://hub.docker.com/_/mariadb) (_open-source MySQL alternative_)
+- [Postgres](https://hub.docker.com/_/postgres) (_open-source as well_)
+- [CockroachDB](https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html) (_cloud-native, distributed,
   Postgres-compatible API_)
-* [Microsoft SQL Server](https://hub.docker.com/_/microsoft-mssql-server) (_Microsoft SQL Server_)
+- [Microsoft SQL Server](https://hub.docker.com/_/microsoft-mssql-server) (_Microsoft SQL Server_)
 
 ## 🔐 Authentication
 
 Wakapi supports different types of user authentication.
 
-* **Cookie:** This method is used in the browser. Users authenticate by sending along an encrypted, secure, HTTP-only
+- **Cookie:** This method is used in the browser. Users authenticate by sending along an encrypted, secure, HTTP-only
   cookie (`wakapi_auth`) that was set in the server's response upon login.
-* **API key:**
-    * **Via header:** This method is inspired
-      by [WakaTime's auth. mechanism](https://wakatime.com/developers/#authentication) and is the common way to
-      authenticate against API endpoints. Users set the `Authorization` header to `Basic <BASE64_TOKEN>`, where the
-      latter part corresponds to your base64-hashed API key.
-    * **Vis query param:** Alternatively, users can also pass their plain API key as a query parameter (
-      e.g. `?api_key=86648d74-19c5-452b-ba01-fb3ec70d4c2f`) in the URL with every request.
-* **Trusted header:** This mechanism allows to delegate authentication to a **reverse proxy** (e.g. for SSO), that
+- **API key:**
+  - **Via header:** This method is inspired
+    by [WakaTime's auth. mechanism](https://wakatime.com/developers/#authentication) and is the common way to
+    authenticate against API endpoints. Users set the `Authorization` header to `Basic <BASE64_TOKEN>`, where the
+    latter part corresponds to your base64-hashed API key.
+  - **Vis query param:** Alternatively, users can also pass their plain API key as a query parameter (
+    e.g. `?api_key=86648d74-19c5-452b-ba01-fb3ec70d4c2f`) in the URL with every request.
+- **Trusted header:** This mechanism allows to delegate authentication to a **reverse proxy** (e.g. for SSO), that
   Wakapi will then trust blindly. See [#534](https://github.com/muety/wakapi/issues/534) for details.
-    * Must be enabled via `trusted_header_auth` and configuring `trust_reverse_proxy_ip` in the config
-    * Warning: This type of authentication is quite prone to misconfiguration. Make sure that your reverse proxy
-      properly strips relevant headers from client requests.
+  - Must be enabled via `trusted_header_auth` and configuring `trust_reverse_proxy_ip` in the config
+  - Warning: This type of authentication is quite prone to misconfiguration. Make sure that your reverse proxy
+    properly strips relevant headers from client requests.
 
 ## 🔧 API endpoints
 
@@ -285,12 +285,12 @@ $ echo "<YOUR_API_KEY>" | base64
 # (assuming your Wakapi instance listens at localhost, port 3000)
 
 scrape_configs:
-  - job_name: 'wakapi'
+  - job_name: "wakapi"
     scrape_interval: 1m
-    metrics_path: '/api/metrics'
-    bearer_token: '<YOUR_BASE64_HASHED_TOKEN>'
+    metrics_path: "/api/metrics"
+    bearer_token: "<YOUR_BASE64_HASHED_TOKEN>"
     static_configs:
-      - targets: [ 'localhost:3000' ]
+      - targets: ["localhost:3000"]
 ```
 
 #### Grafana
@@ -344,13 +344,12 @@ Preview:
   with:
     # ... other options
     plugin_wakatime: yes
-    plugin_wakatime_token: ${{ secrets.WAKATIME_TOKEN }}      # Required
-    plugin_wakatime_days: 7                                   # Display last week stats
+    plugin_wakatime_token: ${{ secrets.WAKATIME_TOKEN }} # Required
+    plugin_wakatime_days: 7 # Display last week stats
     plugin_wakatime_sections: time, projects, projects-graphs # Display time and projects sections, along with projects graphs
-    plugin_wakatime_limit: 4                                  # Show 4 entries per graph
-    plugin_wakatime_url: http://wakapi.dev                    # Wakatime url endpoint
-    plugin_wakatime_user: .user.login                         # User
-
+    plugin_wakatime_limit: 4 # Show 4 entries per graph
+    plugin_wakatime_url: http://wakapi.dev # Wakatime url endpoint
+    plugin_wakatime_user: .user.login # User
 ```
 
 </details>
@@ -366,10 +365,10 @@ get started:
    store ([Firefox](https://addons.mozilla.org/en-US/firefox/addon/wakatimes), [Chrome](https://chrome.google.com/webstore/detail/wakatime/jnbbnacmeggbgdjgaoojpmhdlkkpblgi?hl=de))
 2. Open the extension settings dialog
 3. Configure it like so (see screenshot below):
-    * API Key: Your personal API key (get it at [wakapi.dev](https://wakapi.dev))
-    * Logging Type: _Only the domain_
-    * API URL: `https://wakapi.dev/api/compat/wakatime/v1` (alternatively, replace _wakapi.dev_ with your self-hosted
-      instance hostname)
+   - API Key: Your personal API key (get it at [wakapi.dev](https://wakapi.dev))
+   - Logging Type: _Only the domain_
+   - API URL: `https://wakapi.dev/api/compat/wakatime/v1` (alternatively, replace _wakapi.dev_ with your self-hosted
+     instance hostname)
 4. Save
 5. Start browsing!
 
@@ -534,12 +533,14 @@ See the related [WakaTime FAQ section](https://wakatime.com/faq#data-collected) 
 If you host Wakapi yourself, you have control over all your data. However, if you use our webservice and are concerned
 about privacy, you can also [exclude or obfuscate](https://wakatime.com/faq#exclude-paths) certain file- or project
 names.
+
 </details>
 
 <details>
 <summary><b>What happens if I'm offline?</b></summary>
 
 All data are cached locally on your machine and sent in batches once you're online again.
+
 </details>
 
 <details>
@@ -548,6 +549,7 @@ All data are cached locally on your machine and sent in batches once you're onli
 Wakapi was started when I was a student, who wanted to track detailed statistics about my coding time. Although I'm a
 big fan of WakaTime I didn't want to pay <a href="https://wakatime.com/pricing">$9 a month</a> back then. Luckily, most
 parts of WakaTime are open source!
+
 </details>
 
 <details>
@@ -567,6 +569,7 @@ include:
 
 WakaTime is worth the price. However, if you only need basic statistics and like to keep sovereignty over your data, you
 might want to go with Wakapi.
+
 </details>
 
 <details>
@@ -596,20 +599,21 @@ typing code?
 
 Wakapi adds a "padding" of two minutes before the third heartbeat. This is why total times will slightly vary between
 Wakapi and WakaTime.
+
 </details>
 
 ## 👥 Community contributions
 
-* 💻 [Code] Image generator from Wakapi
+- 💻 [Code] Image generator from Wakapi
   stats – [LacazeThomas/wakapi-stats](https://github.com/LacazeThomas/wakapi-stats) (`Go`)
-* 💻 [Code] Discord integration for
+- 💻 [Code] Discord integration for
   Wakapi - [LLoneDev6/Wakapi-Discord](https://github.com/LoneDev6/Wakapi-Discord) (`JavaScript`)
-* 💻 [Code] Alternative heartbeats export
+- 💻 [Code] Alternative heartbeats export
   script - [wakapiexporter.nim](https://github.com/theAkito/mini-tools-nim/tree/master/generic/web/wakapiexporter) (
   `Nim`)
-* 💻 [Code] Wakapi Helm chart for K8s
+- 💻 [Code] Wakapi Helm chart for K8s
   deployments - [andreymaznyak/wakapi-helm-chart](https://github.com/andreymaznyak/wakapi-helm-chart) (`YAML`)
-* 🗒 [Article] [Wakamonth: hours reporting tool](https://bitstillery.com/2024/01/09/wakamonth-hours-reporting-tool/)
+- 🗒 [Article] [Wakamonth: hours reporting tool](https://bitstillery.com/2024/01/09/wakamonth-hours-reporting-tool/)
 
 ## 👏 Support
 

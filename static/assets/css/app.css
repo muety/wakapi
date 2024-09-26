@@ -4,185 +4,186 @@
 
 /* Base definition */
 body {
-    font-family: 'Source Sans 3', 'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  font-family: "Source Sans 3", "Roboto", "Helvetica Neue", "Helvetica", "Arial",
+    sans-serif;
 }
 
 [v-cloak] {
-    display: none;
+  display: none;
 }
 
 /* Additional classes */
 
 .bg-gray-850 {
-    background-color: #242b3a;
+  background-color: #242b3a;
 }
 
 .hover\:bg-gray-850:hover {
-    --bg-opacity: 1;
-    background-color: #242b3a;
+  --bg-opacity: 1;
+  background-color: #242b3a;
 }
 
 .text-xsi {
-    font-size: 0.75rem !important;
-    line-height: 1rem !important;
+  font-size: 0.75rem !important;
+  line-height: 1rem !important;
 }
 
 .text-xxs {
-    font-size: 0.65rem !important;
+  font-size: 0.65rem !important;
 }
 
 .mt-14 {
-    margin-top: 3.5rem;
+  margin-top: 3.5rem;
 }
 
 .text-7xl {
-    font-size: 4.5rem;
-    line-height: 1.1;
+  font-size: 4.5rem;
+  line-height: 1.1;
 }
 
 .text-8xl {
-    font-size: 5rem;
-    line-height: 1.1;
+  font-size: 5rem;
+  line-height: 1.1;
 }
 
 .imp\:cursor-not-allowed {
-    @apply cursor-not-allowed !important;
+  @apply cursor-not-allowed !important;
 }
 
 /* Custom classes */
 .h1 {
-    @apply font-semibold text-3xl text-white m-0
+  @apply font-semibold text-3xl text-white m-0;
 }
 
 .h1-subcaption {
-    @apply text-gray-600 text-sm;
+  @apply text-gray-600 text-sm;
 }
 
 .btn-default {
-    @apply py-2 px-4 font-semibold rounded bg-gray-800 hover:bg-gray-850 text-white text-sm;
+  @apply py-2 px-4 font-semibold rounded bg-gray-800 hover:bg-gray-850 text-white text-sm;
 }
 
 .btn-disabled {
-    @apply py-2 px-4 font-semibold rounded bg-gray-800 text-gray-600 text-sm;
+  @apply py-2 px-4 font-semibold rounded bg-gray-800 text-gray-600 text-sm;
 }
 
 .btn-primary {
-    @apply py-2 px-4 font-semibold rounded bg-green-700 hover:bg-green-800 text-white text-sm;
+  @apply py-2 px-4 font-semibold rounded bg-green-700 hover:bg-green-800 text-white text-sm;
 }
 
 .btn-danger {
-    @apply py-2 px-4 font-semibold rounded bg-red-600 hover:bg-red-700 text-white text-sm;
+  @apply py-2 px-4 font-semibold rounded bg-red-600 hover:bg-red-700 text-white text-sm;
 }
 
 .btn-small {
-    @apply py-1 px-2;
+  @apply py-1 px-2;
 }
 
 .input-default {
-    @apply appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded w-full py-2 px-4;
+  @apply appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded w-full py-2 px-4;
 }
 
 .select-default {
-    @apply input-default cursor-pointer;
+  @apply input-default cursor-pointer;
 }
 
 .menu-item {
-    @apply flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer;
+  @apply flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer;
 }
 
 .submenu-item {
-    @apply hover:bg-gray-800 rounded p-1 text-right;
+  @apply hover:bg-gray-800 rounded p-1 text-right;
 }
 
 .chip {
-    @apply text-xs bg-gray-850 rounded rounded-full py-1 px-2 font-semibold inline-block mb-1;
+  @apply text-xs bg-gray-850 rounded rounded-full py-1 px-2 font-semibold inline-block mb-1;
 }
 
 .link {
-    @apply font-semibold text-gray-400 hover:text-gray-300;
+  @apply font-semibold text-gray-400 hover:text-gray-300;
 }
 
 .newsbox {
-    @apply px-4 py-2 border-2 border-red-700 bg-gray-850 rounded-md text-white border-green-700;
+  @apply px-4 py-2 border-2 border-red-700 bg-gray-850 rounded-md text-white border-green-700;
 }
 
 .newsbox-default {
-    @apply border-green-700;
+  @apply border-green-700;
 }
 
 .newsbox-warning {
-    @apply border-yellow-600;
+  @apply border-yellow-600;
 }
 
 .newsbox-danger {
-    @apply border-red-700;
+  @apply border-red-700;
 }
 
 .leaderboard-default {
-    @apply border-gray-700;
+  @apply border-gray-700;
 }
 
 .leaderboard-self {
-    margin-left: -10px;
-    margin-right: -10px;
-    padding-left: calc(1rem + 10px);
-    padding-right: calc(1rem + 10px);
-    @apply border-green-700 bg-gray-800;
+  margin-left: -10px;
+  margin-right: -10px;
+  padding-left: calc(1rem + 10px);
+  padding-right: calc(1rem + 10px);
+  @apply border-green-700 bg-gray-800;
 }
 
 .text-gold {
-    color: #DAA520;
+  color: #daa520;
 }
 
 .leaderboard-gold {
-    border-color: #DAA520;
+  border-color: #daa520;
 }
 
 .leaderboard-silver {
-    border-color: #c0c0c0;
+  border-color: #c0c0c0;
 }
 
 .leaderboard-bronze {
-    border-color: #cd7f32;
+  border-color: #cd7f32;
 }
 
 ::-webkit-calendar-picker-indicator {
-    filter: invert(1);
-    cursor: pointer;
+  filter: invert(1);
+  cursor: pointer;
 }
 
 .max-available {
-    max-width: -moz-available;
-    max-width: -webkit-fill-available;
-    max-width: fill-available;
+  max-width: -moz-available;
+  max-width: -webkit-fill-available;
+  max-width: fill-available;
 }
 
 .projects-item a {
-    @apply flex flex-col align-middle bg-gray-800 hover:bg-gray-850 py-2 px-4 rounded rounded-md shadow-md hover:shadow-lg;
+  @apply flex flex-col align-middle bg-gray-800 hover:bg-gray-850 py-2 px-4 rounded rounded-md shadow-md hover:shadow-lg;
 }
 
 .projects-item .color-fading {
-    @apply absolute w-full h-full rounded rounded-md;
-    pointer-events: none;
+  @apply absolute w-full h-full rounded rounded-md;
+  pointer-events: none;
 }
 
 .disabled {
-    pointer-events: none;
-    cursor: default;
-    opacity: 75%;
+  pointer-events: none;
+  cursor: default;
+  opacity: 75%;
 }
 
 .entity-filter-control {
-    width: 180px; 
-    @apply text-gray-300 text-sm;
+  width: 180px;
+  @apply text-gray-300 text-sm;
 }
 
 .entity-filter-control label {
-    @apply font-semibold capitalize align-text-bottom;
+  @apply font-semibold capitalize align-text-bottom;
 }
 
 .entity-filter-control select {
-    @apply truncate py-1.5 px-2.5;
+  @apply truncate py-1.5 px-2.5;
 }
 
 /*
@@ -192,5 +193,5 @@ body {
 */
 
 .wi-min {
-    width: min-content !important;
+  width: min-content !important;
 }

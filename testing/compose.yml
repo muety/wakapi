@@ -30,7 +30,7 @@ services:
 
   cockroach:
     image: cockroachdb/cockroach
-    entrypoint: '/cockroach/cockroach start-single-node --insecure --sql-addr=:56257'
+    entrypoint: "/cockroach/cockroach start-single-node --insecure --sql-addr=:56257"
     network_mode: host
 
   mssql:

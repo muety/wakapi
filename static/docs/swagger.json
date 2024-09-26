@@ -1,1983 +1,1891 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "description": "REST API to interact with [Wakapi](https://wakapi.dev)\n\n## Authentication\nSet header `Authorization` to your API Key encoded as Base64 and prefixed with `Basic`\n**Example:** `Basic ODY2NDhkNzQtMTljNS00NTJiLWJhMDEtZmIzZWM3MGQ0YzJmCg==`",
-        "title": "Wakapi API",
-        "contact": {
-            "name": "Ferdinand Mütsch",
-            "url": "https://github.com/muety",
-            "email": "ferdinand@muetsch.io"
-        },
-        "license": {
-            "name": "GPL-3.0",
-            "url": "https://github.com/muety/wakapi/blob/master/LICENSE"
-        },
-        "version": "1.0"
+  "swagger": "2.0",
+  "info": {
+    "description": "REST API to interact with [Wakapi](https://wakapi.dev)\n\n## Authentication\nSet header `Authorization` to your API Key encoded as Base64 and prefixed with `Basic`\n**Example:** `Basic ODY2NDhkNzQtMTljNS00NTJiLWJhMDEtZmIzZWM3MGQ0YzJmCg==`",
+    "title": "Wakapi API",
+    "contact": {
+      "name": "Ferdinand Mütsch",
+      "url": "https://github.com/muety",
+      "email": "ferdinand@muetsch.io"
     },
-    "paths": {
-        "/compat/shields/v1/{user}/{interval}/{filter}": {
-            "get": {
-                "description": "Retrieve total time for a given entity (e.g. a project) within a given range (e.g. one week) in a format compatible with [Shields.io](https://shields.io/endpoint). Requires public data access to be allowed.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "badges"
-                ],
-                "summary": "Get badge data",
-                "operationId": "get-badge",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID to fetch data for",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "enum": [
-                            "today",
-                            "yesterday",
-                            "week",
-                            "month",
-                            "year",
-                            "7_days",
-                            "last_7_days",
-                            "30_days",
-                            "last_30_days",
-                            "6_months",
-                            "last_6_months",
-                            "12_months",
-                            "last_12_months",
-                            "last_year",
-                            "any",
-                            "all_time"
-                        ],
-                        "type": "string",
-                        "description": "Interval to aggregate data for",
-                        "name": "interval",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter to apply (e.g. 'project:wakapi' or 'language:Go')",
-                        "name": "filter",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.BadgeData"
-                        }
-                    }
-                }
-            }
-        },
-        "/compat/wakatime/v1/leaders": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Mimics https://wakatime.com/developers#leaders",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "wakatime"
-                ],
-                "summary": "List of users ranked by coding activity in descending order.",
-                "operationId": "get-wakatime-leaders",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.LeadersViewModel"
-                        }
-                    }
-                }
-            }
-        },
-        "/compat/wakatime/v1/users/{user}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Mimics https://wakatime.com/developers#users",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "wakatime"
-                ],
-                "summary": "Retrieve the given user",
-                "operationId": "get-wakatime-user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID to fetch (or 'current')",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.UserViewModel"
-                        }
-                    }
-                }
-            }
-        },
-        "/compat/wakatime/v1/users/{user}/all_time_since_today": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Mimics https://wakatime.com/developers#all_time_since_today",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "wakatime"
-                ],
-                "summary": "Retrieve summary for all time",
-                "operationId": "get-all-time",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID to fetch data for (or 'current')",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.AllTimeViewModel"
-                        }
-                    }
-                }
-            }
-        },
-        "/compat/wakatime/v1/users/{user}/heartbeats": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "tags": [
-                    "heartbeat"
-                ],
-                "summary": "Get heartbeats of user for specified date",
-                "operationId": "get-heartbeats",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Date",
-                        "name": "date",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Username (or current)",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.HeartbeatsResult"
-                        }
-                    },
-                    "400": {
-                        "description": "bad date",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "heartbeat"
-                ],
-                "summary": "Push a new heartbeat",
-                "operationId": "post-heartbeat-3",
-                "parameters": [
-                    {
-                        "description": "A single heartbeat",
-                        "name": "heartbeat",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Heartbeat"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Username (or current)",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    }
-                }
-            }
-        },
-        "/compat/wakatime/v1/users/{user}/heartbeats.bulk": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "heartbeat"
-                ],
-                "summary": "Push new heartbeats",
-                "operationId": "post-heartbeat-7",
-                "parameters": [
-                    {
-                        "description": "Multiple heartbeats",
-                        "name": "heartbeat",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Heartbeat"
-                            }
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Username (or current)",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    }
-                }
-            }
-        },
-        "/compat/wakatime/v1/users/{user}/projects": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Mimics https://wakatime.com/developers#projects",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "wakatime"
-                ],
-                "summary": "Retrieve and filter the user's projects",
-                "operationId": "get-wakatime-projects",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID to fetch data for (or 'current')",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query to filter projects by",
-                        "name": "q",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.ProjectsViewModel"
-                        }
-                    }
-                }
-            }
-        },
-        "/compat/wakatime/v1/users/{user}/projects/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Mimics undocumented endpoint related to https://wakatime.com/developers#projects",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "wakatime"
-                ],
-                "summary": "Retrieve a single project",
-                "operationId": "get-wakatime-project",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID to fetch data for (or 'current')",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Project ID to fetch",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.ProjectViewModel"
-                        }
-                    }
-                }
-            }
-        },
-        "/compat/wakatime/v1/users/{user}/stats/{range}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Mimics https://wakatime.com/developers#stats",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "wakatime"
-                ],
-                "summary": "Retrieve statistics for a given user",
-                "operationId": "get-wakatimes-tats",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID to fetch data for (or 'current')",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "enum": [
-                            "today",
-                            "yesterday",
-                            "week",
-                            "month",
-                            "year",
-                            "7_days",
-                            "last_7_days",
-                            "30_days",
-                            "last_30_days",
-                            "6_months",
-                            "last_6_months",
-                            "12_months",
-                            "last_12_months",
-                            "last_year",
-                            "any",
-                            "all_time"
-                        ],
-                        "type": "string",
-                        "description": "Range interval identifier",
-                        "name": "range",
-                        "in": "path"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Project to filter by",
-                        "name": "project",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Language to filter by",
-                        "name": "language",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Editor to filter by",
-                        "name": "editor",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "OS to filter by",
-                        "name": "operating_system",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Machine to filter by",
-                        "name": "machine",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Project label to filter by",
-                        "name": "label",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.StatsViewModel"
-                        }
-                    }
-                }
-            }
-        },
-        "/compat/wakatime/v1/users/{user}/summaries": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Mimics https://wakatime.com/developers#summaries.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "wakatime"
-                ],
-                "summary": "Retrieve WakaTime-compatible summaries",
-                "operationId": "get-wakatime-summaries",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID to fetch data for (or 'current')",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "enum": [
-                            "today",
-                            "yesterday",
-                            "week",
-                            "month",
-                            "year",
-                            "7_days",
-                            "last_7_days",
-                            "30_days",
-                            "last_30_days",
-                            "6_months",
-                            "last_6_months",
-                            "12_months",
-                            "last_12_months",
-                            "last_year",
-                            "any",
-                            "all_time"
-                        ],
-                        "type": "string",
-                        "description": "Range interval identifier",
-                        "name": "range",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Start date (e.g. '2021-02-07')",
-                        "name": "start",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "End date (e.g. '2021-02-08')",
-                        "name": "end",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Project to filter by",
-                        "name": "project",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Language to filter by",
-                        "name": "language",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Editor to filter by",
-                        "name": "editor",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "OS to filter by",
-                        "name": "operating_system",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Machine to filter by",
-                        "name": "machine",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Project label to filter by",
-                        "name": "label",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.SummariesViewModel"
-                        }
-                    }
-                }
-            }
-        },
-        "/health": {
-            "get": {
-                "produces": [
-                    "text/plain"
-                ],
-                "tags": [
-                    "misc"
-                ],
-                "summary": "Check the application's health status",
-                "operationId": "get-health",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/heartbeat": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "heartbeat"
-                ],
-                "summary": "Push a new heartbeat",
-                "operationId": "post-heartbeat",
-                "parameters": [
-                    {
-                        "description": "A single heartbeat",
-                        "name": "heartbeat",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Heartbeat"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    }
-                }
-            }
-        },
-        "/heartbeats": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "heartbeat"
-                ],
-                "summary": "Push new heartbeats",
-                "operationId": "post-heartbeat-5",
-                "parameters": [
-                    {
-                        "description": "Multiple heartbeats",
-                        "name": "heartbeat",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Heartbeat"
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    }
-                }
-            }
-        },
-        "/plugins/errors": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "diagnostics"
-                ],
-                "summary": "Push a new diagnostics object",
-                "operationId": "post-diagnostics",
-                "parameters": [
-                    {
-                        "description": "A single diagnostics object sent by WakaTime CLI",
-                        "name": "diagnostics",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Diagnostics"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    }
-                }
-            }
-        },
-        "/relay": {
-            "get": {
-                "tags": [
-                    "relay"
-                ],
-                "summary": "Proxy an GET API request to another Wakapi instance",
-                "operationId": "relay-get",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Original URL to perform the request to",
-                        "name": "X-Target-URL",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "403": {
-                        "description": "Returned if request path is not whitelisted",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "502": {
-                        "description": "Returned if upstream host is down",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "tags": [
-                    "relay"
-                ],
-                "summary": "Proxy an PUT API request to another Wakapi instance",
-                "operationId": "relay-put",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Original URL to perform the request to",
-                        "name": "X-Target-URL",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "403": {
-                        "description": "Returned if request path is not whitelisted",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "502": {
-                        "description": "Returned if upstream host is down",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "tags": [
-                    "relay"
-                ],
-                "summary": "Proxy an POST API request to another Wakapi instance",
-                "operationId": "relay-post",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Original URL to perform the request to",
-                        "name": "X-Target-URL",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "403": {
-                        "description": "Returned if request path is not whitelisted",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "502": {
-                        "description": "Returned if upstream host is down",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "relay"
-                ],
-                "summary": "Proxy an DELETE API request to another Wakapi instance",
-                "operationId": "relay-delete",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Original URL to perform the request to",
-                        "name": "X-Target-URL",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "403": {
-                        "description": "Returned if request path is not whitelisted",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "502": {
-                        "description": "Returned if upstream host is down",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "tags": [
-                    "relay"
-                ],
-                "summary": "Proxy an PATCH API request to another Wakapi instance",
-                "operationId": "relay-patch",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Original URL to perform the request to",
-                        "name": "X-Target-URL",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "403": {
-                        "description": "Returned if request path is not whitelisted",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "502": {
-                        "description": "Returned if upstream host is down",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/summary": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "summary"
-                ],
-                "summary": "Retrieve a summary",
-                "operationId": "get-summary",
-                "parameters": [
-                    {
-                        "enum": [
-                            "today",
-                            "yesterday",
-                            "week",
-                            "month",
-                            "year",
-                            "7_days",
-                            "last_7_days",
-                            "30_days",
-                            "last_30_days",
-                            "6_months",
-                            "last_6_months",
-                            "12_months",
-                            "last_12_months",
-                            "last_year",
-                            "any",
-                            "all_time"
-                        ],
-                        "type": "string",
-                        "description": "Interval identifier",
-                        "name": "interval",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Start date (e.g. '2021-02-07')",
-                        "name": "from",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "End date (e.g. '2021-02-08')",
-                        "name": "to",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Whether to recompute the summary from raw heartbeat or use cache",
-                        "name": "recompute",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Project to filter by",
-                        "name": "project",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Language to filter by",
-                        "name": "language",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Editor to filter by",
-                        "name": "editor",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "OS to filter by",
-                        "name": "operating_system",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Machine to filter by",
-                        "name": "machine",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Project label to filter by",
-                        "name": "label",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Summary"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{user}/heartbeats": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "heartbeat"
-                ],
-                "summary": "Push a new heartbeat",
-                "operationId": "post-heartbeat-4",
-                "parameters": [
-                    {
-                        "description": "A single heartbeat",
-                        "name": "heartbeat",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Heartbeat"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Username (or current)",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    }
-                }
-            }
-        },
-        "/users/{user}/heartbeats.bulk": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "heartbeat"
-                ],
-                "summary": "Push new heartbeats",
-                "operationId": "post-heartbeat-8",
-                "parameters": [
-                    {
-                        "description": "Multiple heartbeats",
-                        "name": "heartbeat",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Heartbeat"
-                            }
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Username (or current)",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    }
-                }
-            }
-        },
-        "/users/{user}/statusbar/today": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Mimics https://wakatime.com/api/v1/users/current/statusbar/today. Have no official documentation",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "wakatime"
-                ],
-                "summary": "Retrieve summary for statusbar",
-                "operationId": "statusbar",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID to fetch data for (or 'current')",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.StatusBarViewModel"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/users/{user}/heartbeats": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "heartbeat"
-                ],
-                "summary": "Push a new heartbeat",
-                "operationId": "post-heartbeat-2",
-                "parameters": [
-                    {
-                        "description": "A single heartbeat",
-                        "name": "heartbeat",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Heartbeat"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Username (or current)",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    }
-                }
-            }
-        },
-        "/v1/users/{user}/heartbeats.bulk": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "heartbeat"
-                ],
-                "summary": "Push new heartbeats",
-                "operationId": "post-heartbeat-6",
-                "parameters": [
-                    {
-                        "description": "Multiple heartbeats",
-                        "name": "heartbeat",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Heartbeat"
-                            }
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Username (or current)",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    }
-                }
-            }
-        }
+    "license": {
+      "name": "GPL-3.0",
+      "url": "https://github.com/muety/wakapi/blob/master/LICENSE"
     },
-    "definitions": {
-        "models.Diagnostics": {
-            "type": "object",
-            "properties": {
-                "architecture": {
-                    "type": "string"
-                },
-                "cli_version": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "logs": {
-                    "type": "string"
-                },
-                "platform": {
-                    "type": "string"
-                },
-                "plugin": {
-                    "type": "string"
-                },
-                "stacktrace": {
-                    "type": "string"
-                }
+    "version": "1.0"
+  },
+  "paths": {
+    "/compat/shields/v1/{user}/{interval}/{filter}": {
+      "get": {
+        "description": "Retrieve total time for a given entity (e.g. a project) within a given range (e.g. one week) in a format compatible with [Shields.io](https://shields.io/endpoint). Requires public data access to be allowed.",
+        "produces": ["application/json"],
+        "tags": ["badges"],
+        "summary": "Get badge data",
+        "operationId": "get-badge",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID to fetch data for",
+            "name": "user",
+            "in": "path",
+            "required": true
+          },
+          {
+            "enum": [
+              "today",
+              "yesterday",
+              "week",
+              "month",
+              "year",
+              "7_days",
+              "last_7_days",
+              "30_days",
+              "last_30_days",
+              "6_months",
+              "last_6_months",
+              "12_months",
+              "last_12_months",
+              "last_year",
+              "any",
+              "all_time"
+            ],
+            "type": "string",
+            "description": "Interval to aggregate data for",
+            "name": "interval",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Filter to apply (e.g. 'project:wakapi' or 'language:Go')",
+            "name": "filter",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1.BadgeData"
             }
-        },
-        "models.Heartbeat": {
-            "type": "object",
-            "properties": {
-                "Entity": {
-                    "type": "string"
-                },
-                "branch": {
-                    "type": "string"
-                },
-                "category": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "description": "https://gorm.io/docs/conventions.html#CreatedAt",
-                    "type": "number"
-                },
-                "editor": {
-                    "description": "ignored because editor might be parsed differently by wakatime",
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_write": {
-                    "type": "boolean"
-                },
-                "language": {
-                    "type": "string"
-                },
-                "machine": {
-                    "description": "ignored because wakatime api doesn't return machines currently",
-                    "type": "string"
-                },
-                "operating_system": {
-                    "description": "ignored because os might be parsed differently by wakatime",
-                    "type": "string"
-                },
-                "project": {
-                    "type": "string"
-                },
-                "time": {
-                    "type": "number"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "user_agent": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.Summary": {
-            "type": "object",
-            "properties": {
-                "branches": {
-                    "description": "branches are not persisted, but calculated at runtime in case a project Filter is applied",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.SummaryItem"
-                    }
-                },
-                "categories": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.SummaryItem"
-                    }
-                },
-                "editors": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.SummaryItem"
-                    }
-                },
-                "entities": {
-                    "description": "entities are not persisted, but calculated at runtime in case a project Filter is applied",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.SummaryItem"
-                    }
-                },
-                "from": {
-                    "type": "string",
-                    "format": "date",
-                    "example": "2006-01-02 15:04:05.000"
-                },
-                "labels": {
-                    "description": "labels are not persisted, but calculated at runtime, i.e. when summary is retrieved",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.SummaryItem"
-                    }
-                },
-                "languages": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.SummaryItem"
-                    }
-                },
-                "machines": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.SummaryItem"
-                    }
-                },
-                "operating_systems": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.SummaryItem"
-                    }
-                },
-                "projects": {
-                    "description": "Previously, all the following properties created a cascade foreign key constraint on the summary_items table\nback to this summary table resulting in 5 identical foreign key constraints on the summary_items table.\nThis is not a problem for PostgreSQL, MySQL and SQLite, but for MSSQL, which complains about circular cascades on\nupdate/delete between these two tables. All of these created foreign key constraints are identical, so only one constraint is enough.\nMySQL will create a foreign key constraint for every property referencing other structs, even no constraint is specified in tags.\nSo explicitly set gorm:\"-\" in all other properties to avoid creating duplicate foreign key constraints",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.SummaryItem"
-                    }
-                },
-                "to": {
-                    "type": "string",
-                    "format": "date",
-                    "example": "2006-01-02 15:04:05.000"
-                },
-                "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.SummaryItem": {
-            "type": "object",
-            "properties": {
-                "key": {
-                    "type": "string"
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "v1.AllTimeData": {
-            "type": "object",
-            "properties": {
-                "is_up_to_date": {
-                    "description": "true if the stats are up to date; when false, a 202 response code is returned and stats will be refreshed soon\u003e",
-                    "type": "boolean"
-                },
-                "range": {
-                    "$ref": "#/definitions/v1.AllTimeRange"
-                },
-                "text": {
-                    "description": "total time logged since account created as human readable string\u003e",
-                    "type": "string"
-                },
-                "total_seconds": {
-                    "description": "total number of seconds logged since account created",
-                    "type": "number"
-                }
-            }
-        },
-        "v1.AllTimeRange": {
-            "type": "object",
-            "properties": {
-                "end": {
-                    "type": "string"
-                },
-                "end_date": {
-                    "type": "string"
-                },
-                "start": {
-                    "type": "string"
-                },
-                "start_date": {
-                    "type": "string"
-                },
-                "timezone": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.AllTimeViewModel": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/v1.AllTimeData"
-                }
-            }
-        },
-        "v1.BadgeData": {
-            "type": "object",
-            "properties": {
-                "color": {
-                    "type": "string"
-                },
-                "label": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "schemaVersion": {
-                    "type": "integer"
-                }
-            }
-        },
-        "v1.HeartbeatEntry": {
-            "type": "object",
-            "properties": {
-                "branch": {
-                    "type": "string"
-                },
-                "category": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "entity": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_write": {
-                    "type": "boolean"
-                },
-                "language": {
-                    "type": "string"
-                },
-                "machine_name_id": {
-                    "type": "string"
-                },
-                "project": {
-                    "type": "string"
-                },
-                "time": {
-                    "type": "number"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "user_agent_id": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.HeartbeatsResult": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.HeartbeatEntry"
-                    }
-                },
-                "end": {
-                    "type": "string"
-                },
-                "start": {
-                    "type": "string"
-                },
-                "timezone": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.LeadersCurrentUser": {
-            "type": "object",
-            "properties": {
-                "page": {
-                    "type": "integer"
-                },
-                "rank": {
-                    "type": "integer"
-                },
-                "user": {
-                    "$ref": "#/definitions/v1.User"
-                }
-            }
-        },
-        "v1.LeadersEntry": {
-            "type": "object",
-            "properties": {
-                "rank": {
-                    "type": "integer"
-                },
-                "running_total": {
-                    "$ref": "#/definitions/v1.LeadersRunningTotal"
-                },
-                "user": {
-                    "$ref": "#/definitions/v1.User"
-                }
-            }
-        },
-        "v1.LeadersLanguage": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "total_seconds": {
-                    "type": "number"
-                }
-            }
-        },
-        "v1.LeadersRange": {
-            "type": "object",
-            "properties": {
-                "end_date": {
-                    "type": "string"
-                },
-                "end_text": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "start_date": {
-                    "type": "string"
-                },
-                "start_text": {
-                    "type": "string"
-                },
-                "text": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.LeadersRunningTotal": {
-            "type": "object",
-            "properties": {
-                "daily_average": {
-                    "type": "number"
-                },
-                "human_readable_daily_average": {
-                    "type": "string"
-                },
-                "human_readable_total": {
-                    "type": "string"
-                },
-                "languages": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.LeadersLanguage"
-                    }
-                },
-                "total_seconds": {
-                    "type": "number"
-                }
-            }
-        },
-        "v1.LeadersViewModel": {
-            "type": "object",
-            "properties": {
-                "current_user": {
-                    "$ref": "#/definitions/v1.LeadersCurrentUser"
-                },
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.LeadersEntry"
-                    }
-                },
-                "language": {
-                    "type": "string"
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "range": {
-                    "$ref": "#/definitions/v1.LeadersRange"
-                },
-                "total_pages": {
-                    "type": "integer"
-                }
-            }
-        },
-        "v1.Project": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "human_readable_last_heartbeat_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "last_heartbeat_at": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "urlencoded_name": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.ProjectViewModel": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/v1.Project"
-                }
-            }
-        },
-        "v1.ProjectsViewModel": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.Project"
-                    }
-                }
-            }
-        },
-        "v1.StatsData": {
-            "type": "object",
-            "properties": {
-                "branches": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "categories": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "daily_average": {
-                    "type": "number"
-                },
-                "days_including_holidays": {
-                    "type": "integer"
-                },
-                "editors": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "end": {
-                    "type": "string"
-                },
-                "human_readable_daily_average": {
-                    "type": "string"
-                },
-                "human_readable_range": {
-                    "type": "string"
-                },
-                "human_readable_total": {
-                    "type": "string"
-                },
-                "is_coding_activity_visible": {
-                    "type": "boolean"
-                },
-                "is_other_usage_visible": {
-                    "type": "boolean"
-                },
-                "languages": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "machines": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "operating_systems": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "projects": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "range": {
-                    "type": "string"
-                },
-                "start": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "total_seconds": {
-                    "type": "number"
-                },
-                "user_id": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.StatsViewModel": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/v1.StatsData"
-                }
-            }
-        },
-        "v1.StatusBarViewModel": {
-            "type": "object",
-            "properties": {
-                "cached_at": {
-                    "type": "string"
-                },
-                "data": {
-                    "$ref": "#/definitions/v1.SummariesData"
-                }
-            }
-        },
-        "v1.SummariesCumulativeTotal": {
-            "type": "object",
-            "properties": {
-                "decimal": {
-                    "type": "string"
-                },
-                "digital": {
-                    "type": "string"
-                },
-                "seconds": {
-                    "type": "number"
-                },
-                "text": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.SummariesDailyAverage": {
-            "type": "object",
-            "properties": {
-                "days_including_holidays": {
-                    "type": "integer"
-                },
-                "days_minus_holidays": {
-                    "type": "integer"
-                },
-                "holidays": {
-                    "type": "integer"
-                },
-                "seconds": {
-                    "type": "integer"
-                },
-                "seconds_including_other_language": {
-                    "type": "integer"
-                },
-                "text": {
-                    "type": "string"
-                },
-                "text_including_other_language": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.SummariesData": {
-            "type": "object",
-            "properties": {
-                "branches": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "categories": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "dependencies": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "editors": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "entities": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "grand_total": {
-                    "$ref": "#/definitions/v1.SummariesGrandTotal"
-                },
-                "languages": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "machines": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "operating_systems": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "projects": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesEntry"
-                    }
-                },
-                "range": {
-                    "$ref": "#/definitions/v1.SummariesRange"
-                }
-            }
-        },
-        "v1.SummariesEntry": {
-            "type": "object",
-            "properties": {
-                "digital": {
-                    "type": "string"
-                },
-                "hours": {
-                    "type": "integer"
-                },
-                "minutes": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "percent": {
-                    "type": "number"
-                },
-                "seconds": {
-                    "type": "integer"
-                },
-                "text": {
-                    "type": "string"
-                },
-                "total_seconds": {
-                    "type": "number"
-                }
-            }
-        },
-        "v1.SummariesGrandTotal": {
-            "type": "object",
-            "properties": {
-                "digital": {
-                    "type": "string"
-                },
-                "hours": {
-                    "type": "integer"
-                },
-                "minutes": {
-                    "type": "integer"
-                },
-                "text": {
-                    "type": "string"
-                },
-                "total_seconds": {
-                    "type": "number"
-                }
-            }
-        },
-        "v1.SummariesRange": {
-            "type": "object",
-            "properties": {
-                "date": {
-                    "type": "string"
-                },
-                "end": {
-                    "type": "string"
-                },
-                "start": {
-                    "type": "string"
-                },
-                "text": {
-                    "type": "string"
-                },
-                "timezone": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.SummariesViewModel": {
-            "type": "object",
-            "properties": {
-                "cumulative_total": {
-                    "$ref": "#/definitions/v1.SummariesCumulativeTotal"
-                },
-                "daily_average": {
-                    "$ref": "#/definitions/v1.SummariesDailyAverage"
-                },
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.SummariesData"
-                    }
-                },
-                "end": {
-                    "type": "string"
-                },
-                "start": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.User": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "display_name": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "full_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_email_confirmed": {
-                    "type": "boolean"
-                },
-                "is_email_public": {
-                    "type": "boolean"
-                },
-                "last_heartbeat_at": {
-                    "type": "string"
-                },
-                "last_plugin_name": {
-                    "type": "string"
-                },
-                "last_project": {
-                    "type": "string"
-                },
-                "modified_at": {
-                    "type": "string"
-                },
-                "photo": {
-                    "type": "string"
-                },
-                "timezone": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                },
-                "website": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.UserViewModel": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/v1.User"
-                }
-            }
+          }
         }
+      }
     },
-    "securityDefinitions": {
-        "ApiKeyAuth": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
+    "/compat/wakatime/v1/leaders": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Mimics https://wakatime.com/developers#leaders",
+        "produces": ["application/json"],
+        "tags": ["wakatime"],
+        "summary": "List of users ranked by coding activity in descending order.",
+        "operationId": "get-wakatime-leaders",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1.LeadersViewModel"
+            }
+          }
         }
+      }
+    },
+    "/compat/wakatime/v1/users/{user}": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Mimics https://wakatime.com/developers#users",
+        "produces": ["application/json"],
+        "tags": ["wakatime"],
+        "summary": "Retrieve the given user",
+        "operationId": "get-wakatime-user",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID to fetch (or 'current')",
+            "name": "user",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1.UserViewModel"
+            }
+          }
+        }
+      }
+    },
+    "/compat/wakatime/v1/users/{user}/all_time_since_today": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Mimics https://wakatime.com/developers#all_time_since_today",
+        "produces": ["application/json"],
+        "tags": ["wakatime"],
+        "summary": "Retrieve summary for all time",
+        "operationId": "get-all-time",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID to fetch data for (or 'current')",
+            "name": "user",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1.AllTimeViewModel"
+            }
+          }
+        }
+      }
+    },
+    "/compat/wakatime/v1/users/{user}/heartbeats": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "tags": ["heartbeat"],
+        "summary": "Get heartbeats of user for specified date",
+        "operationId": "get-heartbeats",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Date",
+            "name": "date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Username (or current)",
+            "name": "user",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1.HeartbeatsResult"
+            }
+          },
+          "400": {
+            "description": "bad date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "tags": ["heartbeat"],
+        "summary": "Push a new heartbeat",
+        "operationId": "post-heartbeat-3",
+        "parameters": [
+          {
+            "description": "A single heartbeat",
+            "name": "heartbeat",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.Heartbeat"
+            }
+          },
+          {
+            "type": "string",
+            "description": "Username (or current)",
+            "name": "user",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/compat/wakatime/v1/users/{user}/heartbeats.bulk": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "tags": ["heartbeat"],
+        "summary": "Push new heartbeats",
+        "operationId": "post-heartbeat-7",
+        "parameters": [
+          {
+            "description": "Multiple heartbeats",
+            "name": "heartbeat",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.Heartbeat"
+              }
+            }
+          },
+          {
+            "type": "string",
+            "description": "Username (or current)",
+            "name": "user",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/compat/wakatime/v1/users/{user}/projects": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Mimics https://wakatime.com/developers#projects",
+        "produces": ["application/json"],
+        "tags": ["wakatime"],
+        "summary": "Retrieve and filter the user's projects",
+        "operationId": "get-wakatime-projects",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID to fetch data for (or 'current')",
+            "name": "user",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Query to filter projects by",
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1.ProjectsViewModel"
+            }
+          }
+        }
+      }
+    },
+    "/compat/wakatime/v1/users/{user}/projects/{id}": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Mimics undocumented endpoint related to https://wakatime.com/developers#projects",
+        "produces": ["application/json"],
+        "tags": ["wakatime"],
+        "summary": "Retrieve a single project",
+        "operationId": "get-wakatime-project",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID to fetch data for (or 'current')",
+            "name": "user",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Project ID to fetch",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1.ProjectViewModel"
+            }
+          }
+        }
+      }
+    },
+    "/compat/wakatime/v1/users/{user}/stats/{range}": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Mimics https://wakatime.com/developers#stats",
+        "produces": ["application/json"],
+        "tags": ["wakatime"],
+        "summary": "Retrieve statistics for a given user",
+        "operationId": "get-wakatimes-tats",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID to fetch data for (or 'current')",
+            "name": "user",
+            "in": "path",
+            "required": true
+          },
+          {
+            "enum": [
+              "today",
+              "yesterday",
+              "week",
+              "month",
+              "year",
+              "7_days",
+              "last_7_days",
+              "30_days",
+              "last_30_days",
+              "6_months",
+              "last_6_months",
+              "12_months",
+              "last_12_months",
+              "last_year",
+              "any",
+              "all_time"
+            ],
+            "type": "string",
+            "description": "Range interval identifier",
+            "name": "range",
+            "in": "path"
+          },
+          {
+            "type": "string",
+            "description": "Project to filter by",
+            "name": "project",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Language to filter by",
+            "name": "language",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Editor to filter by",
+            "name": "editor",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "OS to filter by",
+            "name": "operating_system",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Machine to filter by",
+            "name": "machine",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Project label to filter by",
+            "name": "label",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1.StatsViewModel"
+            }
+          }
+        }
+      }
+    },
+    "/compat/wakatime/v1/users/{user}/summaries": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Mimics https://wakatime.com/developers#summaries.",
+        "produces": ["application/json"],
+        "tags": ["wakatime"],
+        "summary": "Retrieve WakaTime-compatible summaries",
+        "operationId": "get-wakatime-summaries",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID to fetch data for (or 'current')",
+            "name": "user",
+            "in": "path",
+            "required": true
+          },
+          {
+            "enum": [
+              "today",
+              "yesterday",
+              "week",
+              "month",
+              "year",
+              "7_days",
+              "last_7_days",
+              "30_days",
+              "last_30_days",
+              "6_months",
+              "last_6_months",
+              "12_months",
+              "last_12_months",
+              "last_year",
+              "any",
+              "all_time"
+            ],
+            "type": "string",
+            "description": "Range interval identifier",
+            "name": "range",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Start date (e.g. '2021-02-07')",
+            "name": "start",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "End date (e.g. '2021-02-08')",
+            "name": "end",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Project to filter by",
+            "name": "project",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Language to filter by",
+            "name": "language",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Editor to filter by",
+            "name": "editor",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "OS to filter by",
+            "name": "operating_system",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Machine to filter by",
+            "name": "machine",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Project label to filter by",
+            "name": "label",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1.SummariesViewModel"
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "produces": ["text/plain"],
+        "tags": ["misc"],
+        "summary": "Check the application's health status",
+        "operationId": "get-health",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/heartbeat": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "tags": ["heartbeat"],
+        "summary": "Push a new heartbeat",
+        "operationId": "post-heartbeat",
+        "parameters": [
+          {
+            "description": "A single heartbeat",
+            "name": "heartbeat",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.Heartbeat"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/heartbeats": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "tags": ["heartbeat"],
+        "summary": "Push new heartbeats",
+        "operationId": "post-heartbeat-5",
+        "parameters": [
+          {
+            "description": "Multiple heartbeats",
+            "name": "heartbeat",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.Heartbeat"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/plugins/errors": {
+      "post": {
+        "consumes": ["application/json"],
+        "tags": ["diagnostics"],
+        "summary": "Push a new diagnostics object",
+        "operationId": "post-diagnostics",
+        "parameters": [
+          {
+            "description": "A single diagnostics object sent by WakaTime CLI",
+            "name": "diagnostics",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.Diagnostics"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/relay": {
+      "get": {
+        "tags": ["relay"],
+        "summary": "Proxy an GET API request to another Wakapi instance",
+        "operationId": "relay-get",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Original URL to perform the request to",
+            "name": "X-Target-URL",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Returned if request path is not whitelisted",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "502": {
+            "description": "Returned if upstream host is down",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["relay"],
+        "summary": "Proxy an PUT API request to another Wakapi instance",
+        "operationId": "relay-put",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Original URL to perform the request to",
+            "name": "X-Target-URL",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Returned if request path is not whitelisted",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "502": {
+            "description": "Returned if upstream host is down",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["relay"],
+        "summary": "Proxy an POST API request to another Wakapi instance",
+        "operationId": "relay-post",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Original URL to perform the request to",
+            "name": "X-Target-URL",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Returned if request path is not whitelisted",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "502": {
+            "description": "Returned if upstream host is down",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["relay"],
+        "summary": "Proxy an DELETE API request to another Wakapi instance",
+        "operationId": "relay-delete",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Original URL to perform the request to",
+            "name": "X-Target-URL",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Returned if request path is not whitelisted",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "502": {
+            "description": "Returned if upstream host is down",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["relay"],
+        "summary": "Proxy an PATCH API request to another Wakapi instance",
+        "operationId": "relay-patch",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Original URL to perform the request to",
+            "name": "X-Target-URL",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Returned if request path is not whitelisted",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "502": {
+            "description": "Returned if upstream host is down",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/summary": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "produces": ["application/json"],
+        "tags": ["summary"],
+        "summary": "Retrieve a summary",
+        "operationId": "get-summary",
+        "parameters": [
+          {
+            "enum": [
+              "today",
+              "yesterday",
+              "week",
+              "month",
+              "year",
+              "7_days",
+              "last_7_days",
+              "30_days",
+              "last_30_days",
+              "6_months",
+              "last_6_months",
+              "12_months",
+              "last_12_months",
+              "last_year",
+              "any",
+              "all_time"
+            ],
+            "type": "string",
+            "description": "Interval identifier",
+            "name": "interval",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Start date (e.g. '2021-02-07')",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "End date (e.g. '2021-02-08')",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "Whether to recompute the summary from raw heartbeat or use cache",
+            "name": "recompute",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Project to filter by",
+            "name": "project",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Language to filter by",
+            "name": "language",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Editor to filter by",
+            "name": "editor",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "OS to filter by",
+            "name": "operating_system",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Machine to filter by",
+            "name": "machine",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Project label to filter by",
+            "name": "label",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.Summary"
+            }
+          }
+        }
+      }
+    },
+    "/users/{user}/heartbeats": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "tags": ["heartbeat"],
+        "summary": "Push a new heartbeat",
+        "operationId": "post-heartbeat-4",
+        "parameters": [
+          {
+            "description": "A single heartbeat",
+            "name": "heartbeat",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.Heartbeat"
+            }
+          },
+          {
+            "type": "string",
+            "description": "Username (or current)",
+            "name": "user",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/users/{user}/heartbeats.bulk": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "tags": ["heartbeat"],
+        "summary": "Push new heartbeats",
+        "operationId": "post-heartbeat-8",
+        "parameters": [
+          {
+            "description": "Multiple heartbeats",
+            "name": "heartbeat",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.Heartbeat"
+              }
+            }
+          },
+          {
+            "type": "string",
+            "description": "Username (or current)",
+            "name": "user",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/users/{user}/statusbar/today": {
+      "get": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Mimics https://wakatime.com/api/v1/users/current/statusbar/today. Have no official documentation",
+        "produces": ["application/json"],
+        "tags": ["wakatime"],
+        "summary": "Retrieve summary for statusbar",
+        "operationId": "statusbar",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID to fetch data for (or 'current')",
+            "name": "user",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1.StatusBarViewModel"
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/{user}/heartbeats": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "tags": ["heartbeat"],
+        "summary": "Push a new heartbeat",
+        "operationId": "post-heartbeat-2",
+        "parameters": [
+          {
+            "description": "A single heartbeat",
+            "name": "heartbeat",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.Heartbeat"
+            }
+          },
+          {
+            "type": "string",
+            "description": "Username (or current)",
+            "name": "user",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/v1/users/{user}/heartbeats.bulk": {
+      "post": {
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "tags": ["heartbeat"],
+        "summary": "Push new heartbeats",
+        "operationId": "post-heartbeat-6",
+        "parameters": [
+          {
+            "description": "Multiple heartbeats",
+            "name": "heartbeat",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.Heartbeat"
+              }
+            }
+          },
+          {
+            "type": "string",
+            "description": "Username (or current)",
+            "name": "user",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
     }
+  },
+  "definitions": {
+    "models.Diagnostics": {
+      "type": "object",
+      "properties": {
+        "architecture": {
+          "type": "string"
+        },
+        "cli_version": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "logs": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "plugin": {
+          "type": "string"
+        },
+        "stacktrace": {
+          "type": "string"
+        }
+      }
+    },
+    "models.Heartbeat": {
+      "type": "object",
+      "properties": {
+        "Entity": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "created_at": {
+          "description": "https://gorm.io/docs/conventions.html#CreatedAt",
+          "type": "number"
+        },
+        "editor": {
+          "description": "ignored because editor might be parsed differently by wakatime",
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "is_write": {
+          "type": "boolean"
+        },
+        "language": {
+          "type": "string"
+        },
+        "machine": {
+          "description": "ignored because wakatime api doesn't return machines currently",
+          "type": "string"
+        },
+        "operating_system": {
+          "description": "ignored because os might be parsed differently by wakatime",
+          "type": "string"
+        },
+        "project": {
+          "type": "string"
+        },
+        "time": {
+          "type": "number"
+        },
+        "type": {
+          "type": "string"
+        },
+        "user_agent": {
+          "type": "string"
+        }
+      }
+    },
+    "models.Summary": {
+      "type": "object",
+      "properties": {
+        "branches": {
+          "description": "branches are not persisted, but calculated at runtime in case a project Filter is applied",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.SummaryItem"
+          }
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.SummaryItem"
+          }
+        },
+        "editors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.SummaryItem"
+          }
+        },
+        "entities": {
+          "description": "entities are not persisted, but calculated at runtime in case a project Filter is applied",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.SummaryItem"
+          }
+        },
+        "from": {
+          "type": "string",
+          "format": "date",
+          "example": "2006-01-02 15:04:05.000"
+        },
+        "labels": {
+          "description": "labels are not persisted, but calculated at runtime, i.e. when summary is retrieved",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.SummaryItem"
+          }
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.SummaryItem"
+          }
+        },
+        "machines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.SummaryItem"
+          }
+        },
+        "operating_systems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.SummaryItem"
+          }
+        },
+        "projects": {
+          "description": "Previously, all the following properties created a cascade foreign key constraint on the summary_items table\nback to this summary table resulting in 5 identical foreign key constraints on the summary_items table.\nThis is not a problem for PostgreSQL, MySQL and SQLite, but for MSSQL, which complains about circular cascades on\nupdate/delete between these two tables. All of these created foreign key constraints are identical, so only one constraint is enough.\nMySQL will create a foreign key constraint for every property referencing other structs, even no constraint is specified in tags.\nSo explicitly set gorm:\"-\" in all other properties to avoid creating duplicate foreign key constraints",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.SummaryItem"
+          }
+        },
+        "to": {
+          "type": "string",
+          "format": "date",
+          "example": "2006-01-02 15:04:05.000"
+        },
+        "user_id": {
+          "type": "string"
+        }
+      }
+    },
+    "models.SummaryItem": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "total": {
+          "type": "integer"
+        }
+      }
+    },
+    "v1.AllTimeData": {
+      "type": "object",
+      "properties": {
+        "is_up_to_date": {
+          "description": "true if the stats are up to date; when false, a 202 response code is returned and stats will be refreshed soon\u003e",
+          "type": "boolean"
+        },
+        "range": {
+          "$ref": "#/definitions/v1.AllTimeRange"
+        },
+        "text": {
+          "description": "total time logged since account created as human readable string\u003e",
+          "type": "string"
+        },
+        "total_seconds": {
+          "description": "total number of seconds logged since account created",
+          "type": "number"
+        }
+      }
+    },
+    "v1.AllTimeRange": {
+      "type": "object",
+      "properties": {
+        "end": {
+          "type": "string"
+        },
+        "end_date": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        },
+        "start_date": {
+          "type": "string"
+        },
+        "timezone": {
+          "type": "string"
+        }
+      }
+    },
+    "v1.AllTimeViewModel": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/v1.AllTimeData"
+        }
+      }
+    },
+    "v1.BadgeData": {
+      "type": "object",
+      "properties": {
+        "color": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "schemaVersion": {
+          "type": "integer"
+        }
+      }
+    },
+    "v1.HeartbeatEntry": {
+      "type": "object",
+      "properties": {
+        "branch": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "entity": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "is_write": {
+          "type": "boolean"
+        },
+        "language": {
+          "type": "string"
+        },
+        "machine_name_id": {
+          "type": "string"
+        },
+        "project": {
+          "type": "string"
+        },
+        "time": {
+          "type": "number"
+        },
+        "type": {
+          "type": "string"
+        },
+        "user_agent_id": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v1.HeartbeatsResult": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.HeartbeatEntry"
+          }
+        },
+        "end": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        },
+        "timezone": {
+          "type": "string"
+        }
+      }
+    },
+    "v1.LeadersCurrentUser": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer"
+        },
+        "rank": {
+          "type": "integer"
+        },
+        "user": {
+          "$ref": "#/definitions/v1.User"
+        }
+      }
+    },
+    "v1.LeadersEntry": {
+      "type": "object",
+      "properties": {
+        "rank": {
+          "type": "integer"
+        },
+        "running_total": {
+          "$ref": "#/definitions/v1.LeadersRunningTotal"
+        },
+        "user": {
+          "$ref": "#/definitions/v1.User"
+        }
+      }
+    },
+    "v1.LeadersLanguage": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "total_seconds": {
+          "type": "number"
+        }
+      }
+    },
+    "v1.LeadersRange": {
+      "type": "object",
+      "properties": {
+        "end_date": {
+          "type": "string"
+        },
+        "end_text": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "start_date": {
+          "type": "string"
+        },
+        "start_text": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "v1.LeadersRunningTotal": {
+      "type": "object",
+      "properties": {
+        "daily_average": {
+          "type": "number"
+        },
+        "human_readable_daily_average": {
+          "type": "string"
+        },
+        "human_readable_total": {
+          "type": "string"
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.LeadersLanguage"
+          }
+        },
+        "total_seconds": {
+          "type": "number"
+        }
+      }
+    },
+    "v1.LeadersViewModel": {
+      "type": "object",
+      "properties": {
+        "current_user": {
+          "$ref": "#/definitions/v1.LeadersCurrentUser"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.LeadersEntry"
+          }
+        },
+        "language": {
+          "type": "string"
+        },
+        "page": {
+          "type": "integer"
+        },
+        "range": {
+          "$ref": "#/definitions/v1.LeadersRange"
+        },
+        "total_pages": {
+          "type": "integer"
+        }
+      }
+    },
+    "v1.Project": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "human_readable_last_heartbeat_at": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "last_heartbeat_at": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "urlencoded_name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1.ProjectViewModel": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/v1.Project"
+        }
+      }
+    },
+    "v1.ProjectsViewModel": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.Project"
+          }
+        }
+      }
+    },
+    "v1.StatsData": {
+      "type": "object",
+      "properties": {
+        "branches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "daily_average": {
+          "type": "number"
+        },
+        "days_including_holidays": {
+          "type": "integer"
+        },
+        "editors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "end": {
+          "type": "string"
+        },
+        "human_readable_daily_average": {
+          "type": "string"
+        },
+        "human_readable_range": {
+          "type": "string"
+        },
+        "human_readable_total": {
+          "type": "string"
+        },
+        "is_coding_activity_visible": {
+          "type": "boolean"
+        },
+        "is_other_usage_visible": {
+          "type": "boolean"
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "machines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "operating_systems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "range": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "total_seconds": {
+          "type": "number"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      }
+    },
+    "v1.StatsViewModel": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/v1.StatsData"
+        }
+      }
+    },
+    "v1.StatusBarViewModel": {
+      "type": "object",
+      "properties": {
+        "cached_at": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v1.SummariesData"
+        }
+      }
+    },
+    "v1.SummariesCumulativeTotal": {
+      "type": "object",
+      "properties": {
+        "decimal": {
+          "type": "string"
+        },
+        "digital": {
+          "type": "string"
+        },
+        "seconds": {
+          "type": "number"
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "v1.SummariesDailyAverage": {
+      "type": "object",
+      "properties": {
+        "days_including_holidays": {
+          "type": "integer"
+        },
+        "days_minus_holidays": {
+          "type": "integer"
+        },
+        "holidays": {
+          "type": "integer"
+        },
+        "seconds": {
+          "type": "integer"
+        },
+        "seconds_including_other_language": {
+          "type": "integer"
+        },
+        "text": {
+          "type": "string"
+        },
+        "text_including_other_language": {
+          "type": "string"
+        }
+      }
+    },
+    "v1.SummariesData": {
+      "type": "object",
+      "properties": {
+        "branches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "editors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "entities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "grand_total": {
+          "$ref": "#/definitions/v1.SummariesGrandTotal"
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "machines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "operating_systems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesEntry"
+          }
+        },
+        "range": {
+          "$ref": "#/definitions/v1.SummariesRange"
+        }
+      }
+    },
+    "v1.SummariesEntry": {
+      "type": "object",
+      "properties": {
+        "digital": {
+          "type": "string"
+        },
+        "hours": {
+          "type": "integer"
+        },
+        "minutes": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "percent": {
+          "type": "number"
+        },
+        "seconds": {
+          "type": "integer"
+        },
+        "text": {
+          "type": "string"
+        },
+        "total_seconds": {
+          "type": "number"
+        }
+      }
+    },
+    "v1.SummariesGrandTotal": {
+      "type": "object",
+      "properties": {
+        "digital": {
+          "type": "string"
+        },
+        "hours": {
+          "type": "integer"
+        },
+        "minutes": {
+          "type": "integer"
+        },
+        "text": {
+          "type": "string"
+        },
+        "total_seconds": {
+          "type": "number"
+        }
+      }
+    },
+    "v1.SummariesRange": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "timezone": {
+          "type": "string"
+        }
+      }
+    },
+    "v1.SummariesViewModel": {
+      "type": "object",
+      "properties": {
+        "cumulative_total": {
+          "$ref": "#/definitions/v1.SummariesCumulativeTotal"
+        },
+        "daily_average": {
+          "$ref": "#/definitions/v1.SummariesDailyAverage"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.SummariesData"
+          }
+        },
+        "end": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        }
+      }
+    },
+    "v1.User": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "full_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "is_email_confirmed": {
+          "type": "boolean"
+        },
+        "is_email_public": {
+          "type": "boolean"
+        },
+        "last_heartbeat_at": {
+          "type": "string"
+        },
+        "last_plugin_name": {
+          "type": "string"
+        },
+        "last_project": {
+          "type": "string"
+        },
+        "modified_at": {
+          "type": "string"
+        },
+        "photo": {
+          "type": "string"
+        },
+        "timezone": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "website": {
+          "type": "string"
+        }
+      }
+    },
+    "v1.UserViewModel": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/v1.User"
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "ApiKeyAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  }
 }

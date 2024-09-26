@@ -1,112 +1,510 @@
 <!doctype html>
 <html lang="en">
+  {{ template "head.tpl.html" . }}
 
-{{ template "head.tpl.html" . }}
-
-<body class="" style="background-color: #f6f6f6; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
-<table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background-color: #f6f6f6;">
-    <tr>
-        <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;">&nbsp;</td>
-        <td class="container" style="font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; Margin: 0 auto; max-width: 580px; padding: 10px; width: 580px;">
-            {{ template "theader.tpl.html" . }}
-
-            <div class="content" style="box-sizing: border-box; display: block; Margin: 0 auto; max-width: 580px; padding: 10px;">
-                <table class="main" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #ffffff; border-radius: 3px;">
-                    <tr>
-                        <td class="wrapper" style="font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;">
-                            <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
-                                <tr>
-                                    <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;">
-                                        <p style="font-family: sans-serif; font-size: 18px; font-weight: 500; margin: 0; Margin-bottom: 15px;">Your Stats from {{ .Report.From | date }} to {{ .Report.To | date }}</p>
-                                        <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">You have coded a total of <strong>{{ .Report.Summary.TotalTime | duration }}</strong> between {{ .Report.From | date }} and {{ .Report.To | date }}.</p>
-
-                                        <p style="font-family: sans-serif; font-size: 16px; font-weight: 500; margin: 0; Margin-bottom: 15px; Margin-top: 30px;">Projects</p>
-                                        <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;">
-                                            <tbody>
-                                            {{ range $i, $item := .Report.Summary.Projects }}
-                                            <tr>
-                                                <td align="left" style="width: 300px; font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px; font-weight: 800;">{{ $item.Key }}:</td>
-                                                <td align="left" style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;">{{ $item.TotalFixed | duration }}</td>
-                                            </tr>
-                                            {{ end }}
-                                            </tbody>
-                                        </table>
-
-                                        {{ if len .Report.DailySummaries }}
-                                        <p style="font-family: sans-serif; font-size: 16px; font-weight: 500; margin: 0; Margin-bottom: 15px; Margin-top: 30px;">Weekdays</p>
-                                        <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;">
-                                            <tbody>
-                                            {{ range $i, $summary := .Report.DailySummaries }}
-                                            <tr>
-                                                <td align="left" style="width: 300px; font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px; font-weight: 800;">{{ $summary.FromTime.T | date }}:</td>
-                                                <td align="left" style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;">{{ $summary.TotalTime | duration }}</td>
-                                            </tr>
-                                            {{ end }}
-                                            </tbody>
-                                        </table>
-                                        {{ end }}
-
-                                        <p style="font-family: sans-serif; font-size: 16px; font-weight: 500; margin: 0; Margin-bottom: 15px; Margin-top: 30px;">Languages</p>
-                                        <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;">
-                                            <tbody>
-                                            {{ range $i, $item := .Report.Summary.Languages }}
-                                            <tr>
-                                                <td align="left" style="width: 300px; font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px; font-weight: 800;">{{ $item.Key }}:</td>
-                                                <td align="left" style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;">{{ $item.TotalFixed | duration }}</td>
-                                            </tr>
-                                            {{ end }}
-                                            </tbody>
-                                        </table>
-
-                                        <p style="font-family: sans-serif; font-size: 16px; font-weight: 500; margin: 0; Margin-bottom: 15px; Margin-top: 30px;">Editors</p>
-                                        <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;">
-                                            <tbody>
-                                            {{ range $i, $item := .Report.Summary.Editors }}
-                                            <tr>
-                                                <td align="left" style="width: 300px; font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px; font-weight: 800;">{{ $item.Key }}:</td>
-                                                <td align="left" style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;">{{ $item.TotalFixed | duration }}</td>
-                                            </tr>
-                                            {{ end }}
-                                            </tbody>
-                                        </table>
-
-                                        <p style="font-family: sans-serif; font-size: 16px; font-weight: 500; margin: 0; Margin-bottom: 15px; Margin-top: 30px;">Operating Systems</p>
-                                        <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;">
-                                            <tbody>
-                                            {{ range $i, $item := .Report.Summary.OperatingSystems }}
-                                            <tr>
-                                                <td align="left" style="width: 300px; font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px; font-weight: 800;">{{ $item.Key }}:</td>
-                                                <td align="left" style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;">{{ $item.TotalFixed | duration }}</td>
-                                            </tr>
-                                            {{ end }}
-                                            </tbody>
-                                        </table>
-
-                                        <p style="font-family: sans-serif; font-size: 16px; font-weight: 500; margin: 0; Margin-bottom: 15px; Margin-top: 30px;">Machines</p>
-                                        <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;">
-                                            <tbody>
-                                            {{ range $i, $item := .Report.Summary.Machines }}
-                                            <tr>
-                                                <td align="left" style="width: 300px; font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px; font-weight: 800;">{{ $item.Key }}:</td>
-                                                <td align="left" style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;">{{ $item.TotalFixed | duration }}</td>
-                                            </tr>
-                                            {{ end }}
-                                            </tbody>
-                                        </table>
-
-                                        <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px; Margin-top: 30px;">If you do not want to receive e-mail reports anymore, please log in to Wakapi.dev and go to <i>Settings</i> to disable them.</p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-
-                {{ template "tfooter.tpl.html" . }}
-            </div>
+  <body
+    class=""
+    style="
+      background-color: #f6f6f6;
+      font-family: sans-serif;
+      -webkit-font-smoothing: antialiased;
+      font-size: 14px;
+      line-height: 1.4;
+      margin: 0;
+      padding: 0;
+      -ms-text-size-adjust: 100%;
+      -webkit-text-size-adjust: 100%;
+    "
+  >
+    <table
+      border="0"
+      cellpadding="0"
+      cellspacing="0"
+      class="body"
+      style="
+        border-collapse: separate;
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+        width: 100%;
+        background-color: #f6f6f6;
+      "
+    >
+      <tr>
+        <td
+          style="font-family: sans-serif; font-size: 14px; vertical-align: top"
+        >
+          &nbsp;
         </td>
-        <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;">&nbsp;</td>
-    </tr>
-</table>
-</body>
+        <td
+          class="container"
+          style="
+            font-family: sans-serif;
+            font-size: 14px;
+            vertical-align: top;
+            display: block;
+            margin: 0 auto;
+            max-width: 580px;
+            padding: 10px;
+            width: 580px;
+          "
+        >
+          {{ template "theader.tpl.html" . }}
+
+          <div
+            class="content"
+            style="
+              box-sizing: border-box;
+              display: block;
+              margin: 0 auto;
+              max-width: 580px;
+              padding: 10px;
+            "
+          >
+            <table
+              class="main"
+              style="
+                border-collapse: separate;
+                mso-table-lspace: 0pt;
+                mso-table-rspace: 0pt;
+                width: 100%;
+                background: #ffffff;
+                border-radius: 3px;
+              "
+            >
+              <tr>
+                <td
+                  class="wrapper"
+                  style="
+                    font-family: sans-serif;
+                    font-size: 14px;
+                    vertical-align: top;
+                    box-sizing: border-box;
+                    padding: 20px;
+                  "
+                >
+                  <table
+                    border="0"
+                    cellpadding="0"
+                    cellspacing="0"
+                    style="
+                      border-collapse: separate;
+                      mso-table-lspace: 0pt;
+                      mso-table-rspace: 0pt;
+                      width: 100%;
+                    "
+                  >
+                    <tr>
+                      <td
+                        style="
+                          font-family: sans-serif;
+                          font-size: 14px;
+                          vertical-align: top;
+                        "
+                      >
+                        <p
+                          style="
+                            font-family: sans-serif;
+                            font-size: 18px;
+                            font-weight: 500;
+                            margin: 0;
+                            margin-bottom: 15px;
+                          "
+                        >
+                          Your Stats from {{ .Report.From | date }} to {{
+                          .Report.To | date }}
+                        </p>
+                        <p
+                          style="
+                            font-family: sans-serif;
+                            font-size: 14px;
+                            font-weight: normal;
+                            margin: 0;
+                            margin-bottom: 15px;
+                          "
+                        >
+                          You have coded a total of
+                          <strong
+                            >{{ .Report.Summary.TotalTime | duration }}</strong
+                          >
+                          between {{ .Report.From | date }} and {{ .Report.To |
+                          date }}.
+                        </p>
+
+                        <p
+                          style="
+                            font-family: sans-serif;
+                            font-size: 16px;
+                            font-weight: 500;
+                            margin: 0;
+                            margin-bottom: 15px;
+                            margin-top: 30px;
+                          "
+                        >
+                          Projects
+                        </p>
+                        <table
+                          border="0"
+                          cellpadding="0"
+                          cellspacing="0"
+                          class="btn btn-primary"
+                          style="
+                            border-collapse: separate;
+                            mso-table-lspace: 0pt;
+                            mso-table-rspace: 0pt;
+                            width: 100%;
+                            box-sizing: border-box;
+                          "
+                        >
+                          <tbody>
+                            {{ range $i, $item := .Report.Summary.Projects }}
+                            <tr>
+                              <td
+                                align="left"
+                                style="
+                                  width: 300px;
+                                  font-family: sans-serif;
+                                  font-size: 14px;
+                                  vertical-align: top;
+                                  padding-bottom: 15px;
+                                  font-weight: 800;
+                                "
+                              >
+                                {{ $item.Key }}:
+                              </td>
+                              <td
+                                align="left"
+                                style="
+                                  font-family: sans-serif;
+                                  font-size: 14px;
+                                  vertical-align: top;
+                                  padding-bottom: 15px;
+                                "
+                              >
+                                {{ $item.TotalFixed | duration }}
+                              </td>
+                            </tr>
+                            {{ end }}
+                          </tbody>
+                        </table>
+
+                        {{ if len .Report.DailySummaries }}
+                        <p
+                          style="
+                            font-family: sans-serif;
+                            font-size: 16px;
+                            font-weight: 500;
+                            margin: 0;
+                            margin-bottom: 15px;
+                            margin-top: 30px;
+                          "
+                        >
+                          Weekdays
+                        </p>
+                        <table
+                          border="0"
+                          cellpadding="0"
+                          cellspacing="0"
+                          class="btn btn-primary"
+                          style="
+                            border-collapse: separate;
+                            mso-table-lspace: 0pt;
+                            mso-table-rspace: 0pt;
+                            width: 100%;
+                            box-sizing: border-box;
+                          "
+                        >
+                          <tbody>
+                            {{ range $i, $summary := .Report.DailySummaries }}
+                            <tr>
+                              <td
+                                align="left"
+                                style="
+                                  width: 300px;
+                                  font-family: sans-serif;
+                                  font-size: 14px;
+                                  vertical-align: top;
+                                  padding-bottom: 15px;
+                                  font-weight: 800;
+                                "
+                              >
+                                {{ $summary.FromTime.T | date }}:
+                              </td>
+                              <td
+                                align="left"
+                                style="
+                                  font-family: sans-serif;
+                                  font-size: 14px;
+                                  vertical-align: top;
+                                  padding-bottom: 15px;
+                                "
+                              >
+                                {{ $summary.TotalTime | duration }}
+                              </td>
+                            </tr>
+                            {{ end }}
+                          </tbody>
+                        </table>
+                        {{ end }}
+
+                        <p
+                          style="
+                            font-family: sans-serif;
+                            font-size: 16px;
+                            font-weight: 500;
+                            margin: 0;
+                            margin-bottom: 15px;
+                            margin-top: 30px;
+                          "
+                        >
+                          Languages
+                        </p>
+                        <table
+                          border="0"
+                          cellpadding="0"
+                          cellspacing="0"
+                          class="btn btn-primary"
+                          style="
+                            border-collapse: separate;
+                            mso-table-lspace: 0pt;
+                            mso-table-rspace: 0pt;
+                            width: 100%;
+                            box-sizing: border-box;
+                          "
+                        >
+                          <tbody>
+                            {{ range $i, $item := .Report.Summary.Languages }}
+                            <tr>
+                              <td
+                                align="left"
+                                style="
+                                  width: 300px;
+                                  font-family: sans-serif;
+                                  font-size: 14px;
+                                  vertical-align: top;
+                                  padding-bottom: 15px;
+                                  font-weight: 800;
+                                "
+                              >
+                                {{ $item.Key }}:
+                              </td>
+                              <td
+                                align="left"
+                                style="
+                                  font-family: sans-serif;
+                                  font-size: 14px;
+                                  vertical-align: top;
+                                  padding-bottom: 15px;
+                                "
+                              >
+                                {{ $item.TotalFixed | duration }}
+                              </td>
+                            </tr>
+                            {{ end }}
+                          </tbody>
+                        </table>
+
+                        <p
+                          style="
+                            font-family: sans-serif;
+                            font-size: 16px;
+                            font-weight: 500;
+                            margin: 0;
+                            margin-bottom: 15px;
+                            margin-top: 30px;
+                          "
+                        >
+                          Editors
+                        </p>
+                        <table
+                          border="0"
+                          cellpadding="0"
+                          cellspacing="0"
+                          class="btn btn-primary"
+                          style="
+                            border-collapse: separate;
+                            mso-table-lspace: 0pt;
+                            mso-table-rspace: 0pt;
+                            width: 100%;
+                            box-sizing: border-box;
+                          "
+                        >
+                          <tbody>
+                            {{ range $i, $item := .Report.Summary.Editors }}
+                            <tr>
+                              <td
+                                align="left"
+                                style="
+                                  width: 300px;
+                                  font-family: sans-serif;
+                                  font-size: 14px;
+                                  vertical-align: top;
+                                  padding-bottom: 15px;
+                                  font-weight: 800;
+                                "
+                              >
+                                {{ $item.Key }}:
+                              </td>
+                              <td
+                                align="left"
+                                style="
+                                  font-family: sans-serif;
+                                  font-size: 14px;
+                                  vertical-align: top;
+                                  padding-bottom: 15px;
+                                "
+                              >
+                                {{ $item.TotalFixed | duration }}
+                              </td>
+                            </tr>
+                            {{ end }}
+                          </tbody>
+                        </table>
+
+                        <p
+                          style="
+                            font-family: sans-serif;
+                            font-size: 16px;
+                            font-weight: 500;
+                            margin: 0;
+                            margin-bottom: 15px;
+                            margin-top: 30px;
+                          "
+                        >
+                          Operating Systems
+                        </p>
+                        <table
+                          border="0"
+                          cellpadding="0"
+                          cellspacing="0"
+                          class="btn btn-primary"
+                          style="
+                            border-collapse: separate;
+                            mso-table-lspace: 0pt;
+                            mso-table-rspace: 0pt;
+                            width: 100%;
+                            box-sizing: border-box;
+                          "
+                        >
+                          <tbody>
+                            {{ range $i, $item :=
+                            .Report.Summary.OperatingSystems }}
+                            <tr>
+                              <td
+                                align="left"
+                                style="
+                                  width: 300px;
+                                  font-family: sans-serif;
+                                  font-size: 14px;
+                                  vertical-align: top;
+                                  padding-bottom: 15px;
+                                  font-weight: 800;
+                                "
+                              >
+                                {{ $item.Key }}:
+                              </td>
+                              <td
+                                align="left"
+                                style="
+                                  font-family: sans-serif;
+                                  font-size: 14px;
+                                  vertical-align: top;
+                                  padding-bottom: 15px;
+                                "
+                              >
+                                {{ $item.TotalFixed | duration }}
+                              </td>
+                            </tr>
+                            {{ end }}
+                          </tbody>
+                        </table>
+
+                        <p
+                          style="
+                            font-family: sans-serif;
+                            font-size: 16px;
+                            font-weight: 500;
+                            margin: 0;
+                            margin-bottom: 15px;
+                            margin-top: 30px;
+                          "
+                        >
+                          Machines
+                        </p>
+                        <table
+                          border="0"
+                          cellpadding="0"
+                          cellspacing="0"
+                          class="btn btn-primary"
+                          style="
+                            border-collapse: separate;
+                            mso-table-lspace: 0pt;
+                            mso-table-rspace: 0pt;
+                            width: 100%;
+                            box-sizing: border-box;
+                          "
+                        >
+                          <tbody>
+                            {{ range $i, $item := .Report.Summary.Machines }}
+                            <tr>
+                              <td
+                                align="left"
+                                style="
+                                  width: 300px;
+                                  font-family: sans-serif;
+                                  font-size: 14px;
+                                  vertical-align: top;
+                                  padding-bottom: 15px;
+                                  font-weight: 800;
+                                "
+                              >
+                                {{ $item.Key }}:
+                              </td>
+                              <td
+                                align="left"
+                                style="
+                                  font-family: sans-serif;
+                                  font-size: 14px;
+                                  vertical-align: top;
+                                  padding-bottom: 15px;
+                                "
+                              >
+                                {{ $item.TotalFixed | duration }}
+                              </td>
+                            </tr>
+                            {{ end }}
+                          </tbody>
+                        </table>
+
+                        <p
+                          style="
+                            font-family: sans-serif;
+                            font-size: 14px;
+                            font-weight: normal;
+                            margin: 0;
+                            margin-bottom: 15px;
+                            margin-top: 30px;
+                          "
+                        >
+                          If you do not want to receive e-mail reports anymore,
+                          please log in to Wakapi.dev and go to
+                          <i>Settings</i> to disable them.
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            {{ template "tfooter.tpl.html" . }}
+          </div>
+        </td>
+        <td
+          style="font-family: sans-serif; font-size: 14px; vertical-align: top"
+        >
+          &nbsp;
+        </td>
+      </tr>
+    </table>
+  </body>
 </html>

@@ -5,33 +5,33 @@ on:
 
 jobs:
   test:
-    name: 'Unit- & API tests'
+    name: "Unit- & API tests"
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v4
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v4
 
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v5
-      with:
-        go-version: ^1.23
-      id: go
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v5
+        with:
+          go-version: ^1.23
+        id: go
 
-    - name: Get dependencies
-      run: go get
+      - name: Get dependencies
+        run: go get
 
-    - name: Unit Tests
-      run: CGO_ENABLED=0 go test `go list ./... | grep -v 'github.com/muety/wakapi/scripts'` -run ./...  # skip scripts package, because not actually a package
+      - name: Unit Tests
+        run: CGO_ENABLED=0 go test `go list ./... | grep -v 'github.com/muety/wakapi/scripts'` -run ./... # skip scripts package, because not actually a package
 
-    - name: API Tests
-      run: |
-        npm -g install newman
-        ./testing/run_api_tests.sh
+      - name: API Tests
+        run: |
+          npm -g install newman
+          ./testing/run_api_tests.sh
 
-    - name: Mail Tests
-      run: ./testing/run_mail_tests.sh
+      - name: Mail Tests
+        run: ./testing/run_mail_tests.sh
 
   migration:
     name: Migration tests
@@ -45,13 +45,13 @@ jobs:
         db: [sqlite, postgres, mysql, mariadb, mssql]
 
     steps:
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v4
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v4
 
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v5
-      with:
-        go-version: ^1.23
-      id: go
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v5
+        with:
+          go-version: ^1.23
+        id: go
 
-    - run: ./testing/run_api_tests.sh ${{ matrix.db }} --migration
+      - run: ./testing/run_api_tests.sh ${{ matrix.db }} --migration

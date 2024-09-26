@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    name: 'Build, package and release to GitHub'
+    name: "Build, package and release to GitHub"
     strategy:
       fail-fast: false
       matrix:
@@ -30,56 +30,55 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v5
+        with:
+          go-version: ^1.23
+          cache: false
+        id: go
 
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v5
-      with:
-        go-version: ^1.23
-        cache: false
-      id: go
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v4
 
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v4
+      - name: Set version
+        shell: bash
+        run: |
+          (git describe --tags --exact-match \
+            || git symbolic-ref -q --short HEAD \
+            || git rev-parse --short HEAD) > version.txt 2> /dev/null
 
-    - name: Set version
-      shell: bash
-      run: |
-        (git describe --tags --exact-match \
-          || git symbolic-ref -q --short HEAD \
-          || git rev-parse --short HEAD) > version.txt 2> /dev/null
+      - name: Prepare
+        run: |
+          mkdir -p dist/ && cd dist/
+          cp ../config.default.yml config.yml
 
-    - name: Prepare
-      run: |
-        mkdir -p dist/ && cd dist/
-        cp ../config.default.yml config.yml
+      - name: Build
+        working-directory: ./dist
+        shell: bash
+        run: |
+          GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} CGO_ENABLED=0 \
+              go build -v -ldflags '-w -s' ../
 
-    - name: Build
-      working-directory: ./dist
-      shell: bash
-      run: |
-        GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} CGO_ENABLED=0 \
-            go build -v -ldflags '-w -s' ../
+      - name: Compress working folder (Windows PowerShell)
+        working-directory: ./dist
+        if: "${{ matrix.GOOS == 'windows' }}"
+        run: |
+          Compress-Archive -Path .\wakapi.exe, .\config.yml -DestinationPath wakapi_${{ matrix.GOOS }}_${{ matrix.GOARCH }}.zip
 
-    - name: Compress working folder (Windows PowerShell)
-      working-directory: ./dist
-      if: "${{ matrix.GOOS == 'windows' }}"
-      run: |
-        Compress-Archive -Path .\wakapi.exe, .\config.yml -DestinationPath wakapi_${{ matrix.GOOS }}_${{ matrix.GOARCH }}.zip
+      - name: Compress working folder
+        working-directory: ./dist
+        if: "${{ matrix.GOOS != 'windows' }}"
+        run: |
+          zip -9 wakapi_${{ matrix.GOOS }}_${{ matrix.GOARCH }}.zip *
 
-    - name: Compress working folder
-      working-directory: ./dist
-      if: "${{ matrix.GOOS != 'windows' }}"
-      run: |
-        zip -9 wakapi_${{ matrix.GOOS }}_${{ matrix.GOARCH }}.zip *
+      - name: Upload built executable to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./dist/*.zip
 
-    - name: Upload built executable to Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: ./dist/*.zip
-
-    - name: Delete old releases
-      uses: dev-drprasad/delete-older-releases@v0.3.2
-      with:
-        keep_latest: 10
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete old releases
+        uses: dev-drprasad/delete-older-releases@v0.3.2
+        with:
+          keep_latest: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

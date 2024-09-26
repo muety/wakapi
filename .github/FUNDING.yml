@@ -1,3 +1,4 @@
 github: muety
 liberapay: muety
-custom: ['https://paypal.me/ferdinandmuetsch', 'https://www.buymeacoffee.com/n1try']
+custom:
+  ["https://paypal.me/ferdinandmuetsch", "https://www.buymeacoffee.com/n1try"]
