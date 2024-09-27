@@ -91,13 +91,13 @@ $ docker run -d \
 If you want to run Wakapi on **Kubernetes**, there is [wakapi-helm-chart](https://github.com/andreymaznyak/wakapi-helm-chart) for quick and easy deployment.
 
 #### Docker Compose
-Alternatively, you can use Docker Compose (`docker compose up -d`) for an even more straightforward deployment. See [compose.yml](https://github.com/muety/wakapi/blob/master/compose.yml) for configuration details.
+Alternatively, you can use Docker Compose for an even more straightforward deployment. See [compose.yml](https://github.com/muety/wakapi/blob/master/compose.yml) for configuration details.
 
 Wakapi supports [Docker Secrets](https://docs.docker.com/compose/how-tos/use-secrets/) for the following variables: `WAKAPI_PASSWORD_SALT`, `WAKAPI_DB_PASSWORD`, `WAKAPI_MAIL_SMTP_PASS`. You can set these either by having them mounted as a secret file, or directly pass them as environment variables.
 
 ##### Example
 ```bash
-export 
+export WAKAPI_PASSWORD_SALT=changeme
 export WAKAPI_DB_PASSWORD=changeme
 export WAKAPI_MAIL_SMTP_PASS=changeme
 
