@@ -22,8 +22,8 @@ file_env() {
 	unset "$fileVar"
 }
 
-file_env "WAKAPI_PASSWORD_SALT" ""
-file_env "WAKAPI_DB_PASSWORD" ""
+file_env "WAKAPI_PASSWORD_SALT"
+file_env "WAKAPI_DB_PASSWORD"
 file_env "WAKAPI_MAIL_SMTP_PASS"
 file_env "WAKAPI_SUBSCRIPTIONS_STRIPE_SECRET_KEY"
 file_env "WAKAPI_SUBSCRIPTIONS_STRIPE_ENDPOINT_SECRET"
@@ -32,5 +32,5 @@ if [ "$WAKAPI_DB_TYPE" == "sqlite3" ] || [ "$WAKAPI_DB_TYPE" == "" ]; then
   exec ./wakapi
 else
   echo "Waiting for database to come up"
-  exec ./wait-for-it.sh   "$WAKAPI_DB_HOST:$WAKAPI_DB_PORT" -s -t 60 -- ./wakapi
+  exec ./wait-for-it.sh "$WAKAPI_DB_HOST:$WAKAPI_DB_PORT" -s -t 60 -- ./wakapi
 fi
