@@ -15,6 +15,7 @@ import (
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/integrations/github"
+	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
@@ -40,6 +41,12 @@ func (h *AuthApiHandler) RegisterRoutes(router chi.Router) {
 	router.Post("/auth/oauth/github", h.GithubOauth)
 	router.Post("/auth/login", h.Signin)
 	router.Get("/auth/validate", h.ValidateAuthToken)
+
+	router.Group(func(r chi.Router) {
+		r.Use(middlewares.NewAuthenticateMiddleware(h.userService).Handler)
+		r.Get("/auth/api-key", h.GetApiKey)
+		r.Post("/auth/api-key/refresh", h.RefreshApiKey)
+	})
 }
 
 type SignUpParams struct {
@@ -430,7 +437,6 @@ func makeAuthSuccessResponse(payload *MakeAuthSuccessResponse) map[string]interf
 		"data": map[string]interface{}{
 			"token": payload.token,
 			"user": map[string]interface{}{
-				"api_key":                  user.ApiKey,
 				"id":                       user.ID,
 				"email":                    user.Email,
 				"has_wakatime_integration": user.WakatimeApiKey != "",
@@ -477,5 +483,52 @@ func (h *AuthApiHandler) ValidateAuthToken(w http.ResponseWriter, r *http.Reques
 	helpers.RespondJSON(w, r, http.StatusAccepted, map[string]interface{}{
 		"message": "Token is valid",
 		"status":  http.StatusAccepted,
+	})
+}
+
+func (h *AuthApiHandler) GetApiKey(w http.ResponseWriter, r *http.Request) {
+	user := helpers.ExtractUser(r)
+
+	if user == nil {
+		helpers.RespondJSON(w, r, http.StatusUnauthorized, map[string]interface{}{
+			"message": "Unauthorized",
+			"status":  http.StatusUnauthorized,
+		})
+		return
+	}
+
+	helpers.RespondJSON(w, r, http.StatusAccepted, map[string]interface{}{
+		"status": http.StatusAccepted,
+		"apiKey": user.ApiKey,
+	})
+}
+
+func (h *AuthApiHandler) RefreshApiKey(w http.ResponseWriter, r *http.Request) {
+	user := helpers.ExtractUser(r)
+
+	newApiKey := uuid.NewV4().String()
+
+	if user == nil {
+		helpers.RespondJSON(w, r, http.StatusUnauthorized, map[string]interface{}{
+			"message": "Unauthorized",
+			"status":  http.StatusUnauthorized,
+		})
+		return
+	}
+
+	user.ApiKey = newApiKey
+	user, err := h.userService.Update(user)
+
+	if err != nil {
+		helpers.RespondJSON(w, r, http.StatusUnauthorized, map[string]interface{}{
+			"message": "Error generating new API key. Try again",
+			"status":  http.StatusInternalServerError,
+		})
+		return
+	}
+
+	helpers.RespondJSON(w, r, http.StatusAccepted, map[string]interface{}{
+		"status": http.StatusAccepted,
+		"apiKey": user.ApiKey,
 	})
 }
