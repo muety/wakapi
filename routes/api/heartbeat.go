@@ -5,6 +5,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"net/http"
+	"strconv"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -30,6 +31,17 @@ func NewHeartbeatApiHandler(userService services.IUserService, heartbeatService 
 		heartbeatSrvc:       heartbeatService,
 		languageMappingSrvc: languageMappingService,
 	}
+}
+
+type heartbeatResponseData struct {
+	ID     string            `json:"id"`
+	Entity string            `json:"entity"`
+	Type   string            `json:"type"`
+	Time   models.CustomTime `json:"time"`
+}
+
+type heartbeatResponseDataWrapper struct {
+	Data *heartbeatResponseData `json:"data"`
 }
 
 type heartbeatResponseVm struct {
@@ -142,21 +154,24 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {}()
 
-	helpers.RespondJSON(w, r, http.StatusCreated, constructSuccessResponse(len(heartbeats)))
+	helpers.RespondJSON(w, r, http.StatusCreated, constructSuccessResponse(&heartbeats))
 }
 
-// construct weird response format (see https://github.com/wakatime/wakatime/blob/2e636d389bf5da4e998e05d5285a96ce2c181e3d/wakatime/api.py#L288)
-// to make the cli consider all heartbeats to having been successfully saved
-// response looks like: { "responses": [ [ null, 201 ], ... ] }
-// this was probably a temporary bug at wakatime, responses actually looks like so: https://pastr.de/p/nyf6kj2e6843fbw4xkj4h4pj
-// TODO: adapt response format some time
-// however, wakatime-cli is still able to parse the response (see https://github.com/wakatime/wakatime-cli/blob/c2076c0e1abc1449baf5b7ac7db391b06041c719/pkg/api/heartbeat.go#L127), so no urgent need for action
-func constructSuccessResponse(n int) *heartbeatResponseVm {
-	responses := make([][]interface{}, n)
+// construct wakatime response format https://wakatime.com/developers#heartbeats
+func constructSuccessResponse(heartbeats *[]*models.Heartbeat) *heartbeatResponseVm {
+	responses := make([][]interface{}, len(*heartbeats))
 
-	for i := 0; i < n; i++ {
+	for i, heartbeat := range *heartbeats {
 		r := make([]interface{}, 2)
-		r[0] = nil
+		r[0] = &heartbeatResponseDataWrapper{
+			Data: &heartbeatResponseData{
+				// TODO: must be UUID, but we don't use UUID
+				ID:     strconv.FormatUint(heartbeat.ID, 10),
+				Entity: heartbeat.Entity,
+				Type:   heartbeat.Type,
+				Time:   heartbeat.Time,
+			},
+		}
 		r[1] = http.StatusCreated
 		responses[i] = r
 	}

@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql/driver"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -56,8 +55,11 @@ func (j CustomTime) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 	return t
 }
 
-func (j *CustomTime) MarshalJSON() ([]byte, error) {
-	return json.Marshal(j.T())
+func (j CustomTime) MarshalJSON() ([]byte, error) {
+	t := time.Time(j)
+	ts := float64(t.UnixNano()) / 1e9
+	formatted := strconv.FormatFloat(ts, 'f', 6, 64) // 6 знаков после запятой
+	return []byte(fmt.Sprintf("\"%s\"", formatted)), nil
 }
 
 func (j *CustomTime) UnmarshalJSON(b []byte) error {
