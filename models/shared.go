@@ -58,7 +58,7 @@ func (j CustomTime) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 func (j CustomTime) MarshalJSON() ([]byte, error) {
 	t := time.Time(j)
 	ts := float64(t.UnixNano()) / 1e9
-	formatted := strconv.FormatFloat(ts, 'f', 6, 64) // 6 знаков после запятой
+	formatted := strconv.FormatFloat(ts, 'f', 6, 64)
 	return []byte(fmt.Sprintf("\"%s\"", formatted)), nil
 }
 
