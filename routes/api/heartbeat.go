@@ -96,13 +96,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 			machineName = hb.Machine
 		}
 
-		if hb.Branch == "<<LAST_BRANCH>>" {
-			if latest, err := h.heartbeatSrvc.GetLatestByFilters(user, models.NewFiltersWith(models.SummaryProject, hb.Project)); latest != nil && err == nil {
-				hb.Branch = latest.Branch
-			} else {
-				hb.Branch = ""
-			}
-		}
+		hb = fillPlaceholders(hb, user, h.heartbeatSrvc)
 
 		hb.User = user
 		hb.UserID = user.ID
@@ -159,6 +153,42 @@ func constructSuccessResponse(heartbeats *[]*models.Heartbeat) *v1.HeartbeatResp
 	}
 
 	return vm
+}
+
+// inplace!
+func fillPlaceholders(hb *models.Heartbeat, user *models.User, srv services.IHeartbeatService) *models.Heartbeat {
+	// wakatime has a special keyword that indicates to use the most recent project for a given heartbeat
+	// in chrome, the browser extension sends this keyword for (most?) heartbeats
+	// presumably the idea behind this is that if you're coding, your browsing activity will likely also relate to that coding project
+	// but i don't really like this, i'd rather have all browsing activity under the "unknown" project (as the case with firefox, for whatever reason)
+	// see https://github.com/wakatime/browser-wakatime/pull/206
+	if hb.Type == "url" || hb.Type == "domain" {
+		hb.ClearPlaceholders() // ignore placeholders for data sent by browser plugin
+	}
+
+	if hb.IsPlaceholderProject() {
+		// get project of latest heartbeat by user
+		if latest, err := srv.GetLatestByUser(user); latest != nil && err == nil {
+			hb.Project = latest.Project
+		}
+	}
+
+	if hb.IsPlaceholderLanguage() {
+		// get language of latest heartbeat by user and project
+		if latest, err := srv.GetLatestByFilters(user, models.NewFiltersWith(models.SummaryProject, hb.Project)); latest != nil && err == nil {
+			hb.Language = latest.Language
+		}
+	}
+
+	if hb.IsPlaceholderBranch() {
+		// get branch of latest heartbeat by user and project
+		if latest, err := srv.GetLatestByFilters(user, models.NewFiltersWith(models.SummaryProject, hb.Project)); latest != nil && err == nil {
+			hb.Branch = latest.Branch
+		}
+	}
+
+	hb.ClearPlaceholders()
+	return hb
 }
 
 // Only for Swagger
