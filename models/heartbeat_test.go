@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -103,4 +104,27 @@ func TestHeartbeat_Hashed_NoCollision(t *testing.T) {
 		assert.NotContains(t, hashes, sut.Hashed().Hash)
 		hashes[sut.Hash] = true
 	}
+}
+
+func TestHeartbeat_Unmarshal_IgnoreID(t *testing.T) {
+	raw1 := "{\n    \"branch\":\"<<LAST_BRANCH>>\",\n    \"entity\":\"https://wakapi.dev\",\n    \"id\":\"f3647f89-e255-4dd1-8fcd-e20ba8f1709b\",\n    \"project\":\"<<LAST_PROJECT>>\",\n    \"time\":\"1728422364.044\",\n    \"type\":\"domain\",\n    \"userAgent\":\"Chrome/129.0.0.0 mac_x86-64 chrome-wakatime/4.0.6\"\n  }"
+	raw2 := "{\n    \"branch\":\"<<LAST_BRANCH>>\",\n    \"entity\":\"https://wakapi.dev\",\n    \"id\":14,\n    \"project\":\"<<LAST_PROJECT>>\",\n    \"time\":\"1728422364.044\",\n    \"type\":\"domain\",\n    \"userAgent\":\"Chrome/129.0.0.0 mac_x86-64 chrome-wakatime/4.0.6\"\n  }"
+
+	var parsed Heartbeat
+	var err error
+
+	// parse with string id
+	err = json.Unmarshal([]byte(raw1), &parsed)
+	assert.Nil(t, err)
+	assert.Equal(t, uint64(0), parsed.ID)
+
+	// parse with int id
+	err = json.Unmarshal([]byte(raw2), &parsed)
+	assert.Nil(t, err)
+	assert.Equal(t, uint64(0), parsed.ID)
+
+	parsed.ID = 14
+	raw3, err := json.Marshal(parsed)
+	assert.Nil(t, err)
+	assert.NotContains(t, raw3, "\"id\":")
 }
