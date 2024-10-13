@@ -73,6 +73,7 @@ var (
 	oauthUserRepository       repositories.IOauthUserRepository
 	userAgentPluginRepository repositories.PluginUserAgentRepository
 	clientRepository          repositories.IClientRepository
+	invoiceRepository         *repositories.InvoiceRepository
 )
 
 var (
@@ -96,6 +97,7 @@ var (
 	oauthUserService       services.IUserOauthService
 	userAgentPluginService services.IPluginUserAgentService
 	clientService          services.IClientService
+	invoiceService         services.InvoiceService
 )
 
 // TODO: Refactor entire project to be structured after business domains
@@ -184,6 +186,7 @@ func main() {
 	diagnosticsRepository = repositories.NewDiagnosticsRepository(db)
 	metricsRepository = repositories.NewMetricsRepository(db)
 	clientRepository = repositories.NewClientRepository(db)
+	invoiceRepository = repositories.NewInvoiceRepository(db)
 
 	// Services
 	mailService = mail.NewMailService()
@@ -205,6 +208,7 @@ func main() {
 	housekeepingService = services.NewHousekeepingService(userService, heartbeatService, summaryService)
 	miscService = services.NewMiscService(userService, heartbeatService, summaryService, keyValueService, mailService)
 	clientService = services.NewClientService(clientRepository)
+	invoiceService = *services.NewInvoiceService(invoiceRepository)
 
 	if config.App.LeaderboardEnabled {
 		leaderboardService = services.NewLeaderboardService(leaderboardRepository, summaryService, userService)
@@ -249,6 +253,7 @@ func main() {
 	wakatimeV1LeadersHandler := wtV1Routes.NewLeadersHandler(userService, leaderboardService)
 	shieldV1BadgeHandler := shieldsV1Routes.NewBadgeHandler(summaryService, userService)
 	wakatimeV1ClientsHandler := wtV1Routes.NewClientsApiHandler(db, clientService, userService, summaryService)
+	wakatimeV1InvoiceHandler := wtV1Routes.NewInvoicesApiHandler(db, invoiceService, userService, summaryService, clientService)
 
 	// MVC Handlers
 	summaryHandler := routes.NewSummaryHandler(summaryService, userService, keyValueService)
@@ -335,6 +340,7 @@ func main() {
 	wakatimeV1StatsHandler.RegisterRoutes(apiRouter)
 	wakatimeV1GoalsHandler.RegisterRoutes(apiRouter)
 	wakatimeV1ClientsHandler.RegisterRoutes(apiRouter)
+	wakatimeV1InvoiceHandler.RegisterRoutes(apiRouter)
 	wakatimeV1UserAgentsHandler.RegisterRoutes(apiRouter)
 	wakatimeV1UsersHandler.RegisterRoutes(apiRouter)
 	wakatimeV1ProjectsHandler.RegisterRoutes(apiRouter)
