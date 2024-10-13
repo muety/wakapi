@@ -3,15 +3,16 @@ package api
 import (
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/go-chi/chi/v5"
-	"github.com/muety/wakapi/helpers"
-	"net/http"
 
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
 	customMiddleware "github.com/muety/wakapi/middlewares/custom"
+	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
+	"net/http"
 
 	"github.com/muety/wakapi/models"
 )
@@ -30,10 +31,6 @@ func NewHeartbeatApiHandler(userService services.IUserService, heartbeatService 
 		heartbeatSrvc:       heartbeatService,
 		languageMappingSrvc: languageMappingService,
 	}
-}
-
-type heartbeatResponseVm struct {
-	Responses [][]interface{} `json:"responses"`
 }
 
 func (h *HeartbeatApiHandler) RegisterRoutes(router chi.Router) {
@@ -142,28 +139,26 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {}()
 
-	helpers.RespondJSON(w, r, http.StatusCreated, constructSuccessResponse(len(heartbeats)))
+	helpers.RespondJSON(w, r, http.StatusCreated, constructSuccessResponse(&heartbeats))
 }
 
-// construct weird response format (see https://github.com/wakatime/wakatime/blob/2e636d389bf5da4e998e05d5285a96ce2c181e3d/wakatime/api.py#L288)
-// to make the cli consider all heartbeats to having been successfully saved
-// response looks like: { "responses": [ [ null, 201 ], ... ] }
-// this was probably a temporary bug at wakatime, responses actually looks like so: https://pastr.de/p/nyf6kj2e6843fbw4xkj4h4pj
-// TODO: adapt response format some time
-// however, wakatime-cli is still able to parse the response (see https://github.com/wakatime/wakatime-cli/blob/c2076c0e1abc1449baf5b7ac7db391b06041c719/pkg/api/heartbeat.go#L127), so no urgent need for action
-func constructSuccessResponse(n int) *heartbeatResponseVm {
-	responses := make([][]interface{}, n)
+// construct wakatime response format https://wakatime.com/developers#heartbeats (well, not quite...)
+func constructSuccessResponse(heartbeats *[]*models.Heartbeat) *v1.HeartbeatResponseViewModel {
+	vm := &v1.HeartbeatResponseViewModel{
+		Responses: make([][]interface{}, len(*heartbeats)),
+	}
 
-	for i := 0; i < n; i++ {
+	for i := range *heartbeats {
 		r := make([]interface{}, 2)
-		r[0] = nil
+		r[0] = &v1.HeartbeatResponseData{
+			Data:  nil, // see comment in struct declaration for details
+			Error: nil,
+		}
 		r[1] = http.StatusCreated
-		responses[i] = r
+		vm.Responses[i] = r
 	}
 
-	return &heartbeatResponseVm{
-		Responses: responses,
-	}
+	return vm
 }
 
 // Only for Swagger
