@@ -91,6 +91,18 @@ func TestCommon_ParseUserAgent(t *testing.T) {
 			"neovim",
 			nil,
 		},
+		{
+			"wakatime/v1.102.1 (windows-10.0.27723.1000-x86_64) go1.22.5 Skype/unknown windows-wakatime/0.5.0", // desktop-wakatime
+			"Windows",
+			"Skype",
+			nil,
+		},
+		{
+			"wakatime/v1.102.1 (windows-10.0.27718.1000-x86_64) go1.22.5 Notepad++/unknown windows-wakatime/0.5.0", // desktop-wakatime
+			"Windows",
+			"Notepad++",
+			nil,
+		},
 	}
 
 	for _, test := range tests {

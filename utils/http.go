@@ -85,16 +85,34 @@ func ParsePageParamsWithDefault(r *http.Request, page, size int) *PageParams {
 
 func ParseUserAgent(ua string) (string, string, error) { // os, editor, err
 	// try parse wakatime client user agents
-	re := regexp.MustCompile(`(?iU)^(?:(?:wakatime|chrome|firefox|edge)\/(?:v?[\d+.]+|unset)?\s)?(?:\(?(\w+)[-_].*\)?.+\s)?([^\/\s]+)-wakatime\/.+$`)
-	if groups := re.FindAllStringSubmatch(ua, -1); len(groups) > 0 && len(groups[0]) == 3 {
-		if groups[0][1] == "win" {
-			groups[0][1] = "windows"
+	re := regexp.MustCompile(`(?iU)^(?:(?:wakatime|chrome|firefox|edge)\/(?:v?[\d+.]+|unset)?\s)?(?:\(?(\w+)[-_].*\)?.+\s)?(?:([^\/\s]+)\/\w+\s)?([^\/\s]+)-wakatime\/.+$`)
+
+	var (
+		os, editor string
+	)
+
+	if groups := re.FindAllStringSubmatch(ua, -1); len(groups) > 0 && len(groups[0]) == 4 {
+		// extract os
+		os = groups[0][1]
+		if os == "win" {
+			os = "windows"
+		}
+		if os == "darwin" {
+			os = "macos"
+		}
+
+		// parse editor
+		if groups[0][2] == "" {
+			editor = groups[0][3] // for most user agents
+		} else {
+			editor = groups[0][2] // for user agents sent by desktop-wakatime plugin, see https://github.com/muety/wakapi/issues/686
 		}
 		// special treatment for neovim
 		if groups[0][2] == "vim" && strings.Contains(ua, "neovim/") {
 			groups[0][2] = "neovim"
 		}
-		return strutil.Capitalize(groups[0][1]), groups[0][2], nil
+
+		return strutil.Capitalize(os), editor, nil
 	}
 	// try parse browser user agent as a fallback
 	if parsed := useragent.Parse(ua); len(parsed.Name) > 0 && len(parsed.OS) > 0 {
