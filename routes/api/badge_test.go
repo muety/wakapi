@@ -74,7 +74,7 @@ func TestBadgeHandler_Get(t *testing.T) {
 				t.Errorf("unextected error. Error: %s", err)
 			}
 
-			assert.True(t, strings.HasPrefix(string(data), "<svg"))
+			assert.True(t, strings.HasPrefix(string(data), "<svg")) // alternatively, use assert.HTTPBodyContains() ?
 			assert.Contains(t, string(data), "0 hrs 12 mins")
 		})
 

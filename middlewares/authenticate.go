@@ -28,20 +28,27 @@ type AuthenticateMiddleware struct {
 	config               *conf.Config
 	userSrvc             services.IUserService
 	optionalForPaths     []string
+	optionalForMethods   []string
 	redirectTarget       string // optional
 	redirectErrorMessage string // optional
 }
 
 func NewAuthenticateMiddleware(userService services.IUserService) *AuthenticateMiddleware {
 	return &AuthenticateMiddleware{
-		config:           conf.Get(),
-		userSrvc:         userService,
-		optionalForPaths: []string{},
+		config:             conf.Get(),
+		userSrvc:           userService,
+		optionalForPaths:   []string{},
+		optionalForMethods: []string{},
 	}
 }
 
 func (m *AuthenticateMiddleware) WithOptionalFor(paths ...string) *AuthenticateMiddleware {
 	m.optionalForPaths = paths
+	return m
+}
+
+func (m *AuthenticateMiddleware) WithOptionalForMethods(methods ...string) *AuthenticateMiddleware {
+	m.optionalForMethods = methods
 	return m
 }
 
@@ -76,7 +83,7 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	}
 
 	if err != nil || user == nil {
-		if m.isOptional(r.URL.Path) {
+		if m.isOptional(r) {
 			next(w, r)
 			return
 		}
@@ -100,9 +107,14 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	next(w, r)
 }
 
-func (m *AuthenticateMiddleware) isOptional(requestPath string) bool {
+func (m *AuthenticateMiddleware) isOptional(r *http.Request) bool {
 	for _, p := range m.optionalForPaths {
-		if strings.HasPrefix(requestPath, p) || requestPath == p {
+		if strings.HasPrefix(r.URL.Path, p) || r.URL.Path == p {
+			return true
+		}
+	}
+	for _, m := range m.optionalForMethods {
+		if r.Method == strings.ToUpper(m) {
 			return true
 		}
 	}

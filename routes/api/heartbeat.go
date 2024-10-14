@@ -4,6 +4,7 @@ import (
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
+	"github.com/rs/cors"
 	"net/http"
 
 	conf "github.com/muety/wakapi/config"
@@ -39,7 +40,7 @@ type heartbeatResponseVm struct {
 func (h *HeartbeatApiHandler) RegisterRoutes(router chi.Router) {
 	router.Group(func(r chi.Router) {
 		r.Use(
-			middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
+			middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalForMethods(http.MethodOptions).Handler,
 			customMiddleware.NewWakatimeRelayMiddleware().Handler,
 		)
 		// see https://github.com/muety/wakapi/issues/203
@@ -51,6 +52,11 @@ func (h *HeartbeatApiHandler) RegisterRoutes(router chi.Router) {
 		r.Post("/v1/users/{user}/heartbeats.bulk", h.Post)
 		r.Post("/compat/wakatime/v1/users/{user}/heartbeats", h.Post)
 		r.Post("/compat/wakatime/v1/users/{user}/heartbeats.bulk", h.Post)
+
+		// https://github.com/muety/wakapi/issues/690
+		for _, route := range r.Routes() {
+			r.Options(route.Pattern, cors.AllowAll().HandlerFunc)
+		}
 	})
 }
 
