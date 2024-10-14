@@ -3,11 +3,8 @@ package api
 import (
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/go-chi/chi/v5"
-
-	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/rs/cors"
-	"net/http"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
