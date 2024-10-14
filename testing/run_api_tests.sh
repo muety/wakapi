@@ -65,7 +65,7 @@ case $DB_TYPE in
     elif [ "$DB_TYPE" == "mssql" ]; then
         db_port=1433
     else
-        db_port=26257
+        db_port=53306
     fi
 
     for _ in $(seq 0 30); do

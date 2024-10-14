@@ -11,10 +11,10 @@ import (
 )
 
 type Heartbeat struct {
-	ID              uint64     `gorm:"primary_key" hash:"ignore"`
+	ID              uint64     `json:"-" gorm:"primary_key" hash:"ignore"`
 	User            *User      `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" hash:"ignore"`
 	UserID          string     `json:"-" gorm:"not null; index:idx_time_user; index:idx_user_project"` // idx_user_project is for quickly fetching a user's project list (settings page)
-	Entity          string     `json:"Entity" gorm:"not null"`
+	Entity          string     `json:"entity" gorm:"not null"`
 	Type            string     `json:"type" gorm:"size:255"`
 	Category        string     `json:"category" gorm:"size:255"`
 	Project         string     `json:"project" gorm:"index:idx_project; index:idx_user_project"`
@@ -42,18 +42,8 @@ func (h *Heartbeat) Timely(maxAge time.Duration) bool {
 }
 
 func (h *Heartbeat) Sanitize() *Heartbeat {
-	// wakatime has a special keyword that indicates to use the most recent project for a given heartbeat
-	// in chrome, the browser extension sends this keyword for (most?) heartbeats
-	// presumably the idea behind this is that if you're coding, your browsing activity will likely also relate to that coding project
-	// but i don't really like this, i'd rather have all browsing activity under the "unknown" project (as the case with firefox, for whatever reason)
-	// see https://github.com/wakatime/browser-wakatime/pull/206
-	if (h.Type == "url" || h.Type == "domain") && h.Project == "<<LAST_PROJECT>>" {
-		h.Project = ""
-	}
-
 	h.OperatingSystem = strutil.Capitalize(h.OperatingSystem)
 	h.Editor = strutil.Capitalize(h.Editor)
-
 	return h
 }
 
@@ -92,6 +82,34 @@ func (h *Heartbeat) GetKey(t uint8) (key string) {
 	}
 
 	return key
+}
+
+func (h *Heartbeat) IsPlaceholderBranch() bool {
+	return h.Branch == "<<LAST_BRANCH>>"
+}
+
+func (h *Heartbeat) IsPlaceholderProject() bool {
+	return h.Project == "<<LAST_PROJECT>>"
+}
+
+func (h *Heartbeat) IsPlaceholderLanguage() bool {
+	return h.Language == "<<LAST_LANGUAGE>>"
+}
+
+func (h *Heartbeat) HasPlaceholder() bool {
+	return h.IsPlaceholderBranch() || h.IsPlaceholderProject() || h.IsPlaceholderLanguage()
+}
+
+func (h *Heartbeat) ClearPlaceholders() {
+	if h.IsPlaceholderBranch() {
+		h.Branch = ""
+	}
+	if h.IsPlaceholderProject() {
+		h.Project = ""
+	}
+	if h.IsPlaceholderLanguage() {
+		h.Language = ""
+	}
 }
 
 func (h *Heartbeat) String() string {

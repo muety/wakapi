@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:15
+    image: postgres:17
     environment:
       POSTGRES_USER: "wakapi"
       POSTGRES_PASSWORD: "wakapi"
@@ -19,7 +19,7 @@ services:
     network_mode: host
 
   mariadb:
-    image: mariadb:10
+    image: mariadb:11
     environment:
       MYSQL_TCP_PORT: 53306
       MARIADB_USER: "wakapi"

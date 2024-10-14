@@ -86,17 +86,25 @@ $ docker run -d \
   ghcr.io/muety/wakapi:latest
 ```
 
-Alternatively, you can use Docker Compose (`docker compose up -d`) for a more straightforward deployment.
-See [compose.yml](https://github.com/muety/wakapi/blob/master/compose.yml) for configuration details. If you prefer to
-persist data in a local directory while using SQLite as the database, make sure to set the correct `user` option in the
-Docker Compose configuration to avoid permission issues.
+**Note:** By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres, see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile) and [config.default.yml](https://github.com/muety/wakapi/blob/master/config.default.yml) for further options.
 
-**Note:** By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres,
-see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile)
-and [config.default.yml](https://github.com/muety/wakapi/blob/master/config.default.yml) for further options.
+If you want to run Wakapi on **Kubernetes**, there is [wakapi-helm-chart](https://github.com/andreymaznyak/wakapi-helm-chart) for quick and easy deployment.
 
-If you want to run Wakapi on **Kubernetes**, there
-is [wakapi-helm-chart](https://github.com/andreymaznyak/wakapi-helm-chart) for quick and easy deployment.
+#### Docker Compose
+Alternatively, you can use Docker Compose for an even more straightforward deployment. See [compose.yml](https://github.com/muety/wakapi/blob/master/compose.yml) for configuration details.
+
+Wakapi supports [Docker Secrets](https://docs.docker.com/compose/how-tos/use-secrets/) for the following variables: `WAKAPI_PASSWORD_SALT`, `WAKAPI_DB_PASSWORD`, `WAKAPI_MAIL_SMTP_PASS`. You can set these either by having them mounted as a secret file, or directly pass them as environment variables.
+
+##### Example
+```bash
+export WAKAPI_PASSWORD_SALT=changeme
+export WAKAPI_DB_PASSWORD=changeme
+export WAKAPI_MAIL_SMTP_PASS=changeme
+
+docker compose up -d
+```
+
+If you prefer to persist data in a local directory while using SQLite as the database, make sure to set the correct `user` option in the Docker Compose configuration to avoid permission issues.
 
 ### 🧑‍💻 Option 4: Compile and run from source
 
