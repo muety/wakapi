@@ -15,7 +15,7 @@ func NewInvoiceRepository(db *gorm.DB) *InvoiceRepository {
 
 func (r *InvoiceRepository) FindOne(attributes models.Invoice) (*models.Invoice, error) {
 	u := &models.Invoice{}
-	result := r.db.Where(&attributes).First(u)
+	result := r.db.Where(&attributes).Preload("Client").First(u)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return nil, nil // No record found
@@ -33,14 +33,13 @@ func (r *InvoiceRepository) Create(client *models.Invoice) (*models.Invoice, err
 	return client, nil
 }
 
-func (r *InvoiceRepository) Update(client *models.Invoice, update *models.InvoiceUpdate) (*models.Invoice, error) {
-
-	result := r.db.Model(client).Updates(update)
+func (r *InvoiceRepository) Update(invoice *models.Invoice, update *models.InvoiceUpdate) (*models.Invoice, error) {
+	result := r.db.Model(invoice).Updates(update)
 	if err := result.Error; err != nil {
 		return nil, err
 	}
 
-	return client, nil
+	return invoice, nil
 }
 
 func (r *InvoiceRepository) FetchUserInvoices(userID, query string) ([]*models.Invoice, error) {
@@ -68,15 +67,14 @@ func (r *InvoiceRepository) DeleteByIdAndUser(invoiceID, userID string) error {
 }
 
 func (r *InvoiceRepository) GetByIdForUser(invoiceID, userID string) (*models.Invoice, error) {
-	g := &models.Invoice{}
+	invoice := &models.Invoice{}
 
-	err := r.db.Where(models.Invoice{ID: invoiceID, UserID: userID}).First(g).Error
-	if err != nil {
-		return g, err
+	result := r.db.Where(models.Invoice{ID: invoiceID, UserID: userID}).Preload("Client").First(invoice)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, nil // No record found
+		}
+		return nil, result.Error
 	}
-
-	if g.ID != "" {
-		return g, nil
-	}
-	return nil, err
+	return invoice, nil
 }
