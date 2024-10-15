@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -471,7 +472,7 @@ func Get() *Config {
 func Load(configFlag string, version string) *Config {
 	config := &Config{}
 	if err := configor.New(&configor.Config{}).Load(config, configFlag); err != nil {
-		Log().Fatal("failed to read config", "error", err)
+		log.Fatal("failed to read config", err)
 	}
 
 	env = config.Env
