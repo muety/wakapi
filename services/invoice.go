@@ -27,8 +27,8 @@ func (srv *InvoiceService) Create(newInvoice *models.Invoice) (*models.Invoice, 
 	return srv.repository.Create(newInvoice)
 }
 
-func (srv *InvoiceService) Update(client *models.Invoice, update *models.InvoiceUpdate) (*models.Invoice, error) {
-	return srv.repository.Update(client, update)
+func (srv *InvoiceService) Update(invoice *models.Invoice, update *models.InvoiceUpdate) (*models.Invoice, error) {
+	return srv.repository.Update(invoice, update)
 }
 
 func (srv *InvoiceService) GetInvoiceForUser(id, userID string) (*models.Invoice, error) {

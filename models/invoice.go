@@ -40,9 +40,22 @@ type InvoiceLineItem struct {
 
 type InvoiceUpdate struct {
 	Origin         string            `json:"origin"`
+	Tax            float64           `json:"tax"`
 	Destination    string            `json:"destination"`
 	InvoiceSummary *string           `json:"invoice_summary"`
 	Heading        *string           `json:"heading"`
 	FinalMessage   *string           `json:"final_message"`
 	LineItems      []InvoiceLineItem `json:"line_items" gorm:"serializer:json"`
+}
+
+type NewInvoiceData struct {
+	ClientID  string `json:"client_id"`
+	StartDate string `json:"start_date"`
+	EndDate   string `json:"end_date"`
+}
+
+type NewlyGeneratedInvoiceData struct {
+	StartDate time.Time         `json:"start_date"`
+	EndDate   time.Time         `json:"end_date"`
+	LineItems []InvoiceLineItem `json:"line_items"`
 }
