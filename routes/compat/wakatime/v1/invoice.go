@@ -190,7 +190,7 @@ func (h *InvoicesApiHandler) Create(w http.ResponseWriter, r *http.Request) {
 		LineItems:      generatedData.LineItems,
 		InvoiceSummary: fmt.Sprintf("Invoice for work done from %s to %s", helpers.FormatDate(generatedData.StartDate), helpers.FormatDate(generatedData.EndDate)),
 		Destination:    client.Name,
-		Origin:         fmt.Sprintf("%s \n Freelancer", user.Email),
+		Origin:         fmt.Sprintf("%s \nFreelancer", user.Email),
 		Tax:            0,
 	}
 
