@@ -28,7 +28,7 @@ func Log() *SentryLogger {
 	}
 
 	level := slog.LevelInfo
-	if Get().IsDev() {
+	if IsDev(env) {
 		level = slog.LevelDebug
 	}
 
