@@ -36,7 +36,6 @@ type Heartbeat struct {
 	CursorPos        *int       `json:"cursorpos,omitempty" hash:"ignore"`
 	LineDeletions    *int       `json:"line_deletions,omitempty" hash:"ignore"`
 	LineAdditions    *int       `json:"line_additions,omitempty" hash:"ignore"`
-	Dependencies     []string   `json:"dependencies,omitempty" gorm:"serializer:json;size:255" hash:"ignore"`
 	ProjectRootCount *int       `json:"project_root_count,omitempty"`
 }
 
