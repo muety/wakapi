@@ -17,8 +17,8 @@ type StatsViewModel struct {
 type StatsData struct {
 	Username                  string            `json:"username"`
 	UserId                    string            `json:"user_id"`
-	Start                     time.Time         `json:"start"`
-	End                       time.Time         `json:"end"`
+	Start                     string            `json:"start"`
+	End                       string            `json:"end"`
 	Status                    string            `json:"status"`
 	TotalSeconds              float64           `json:"total_seconds"`
 	DailyAverage              float64           `json:"daily_average"`
@@ -45,8 +45,8 @@ func NewStatsFrom(summary *models.Summary, filters *models.Filters) *StatsViewMo
 	data := &StatsData{
 		Username:              summary.UserID,
 		UserId:                summary.UserID,
-		Start:                 summary.FromTime.T(),
-		End:                   summary.ToTime.T(),
+		Start:                 summary.FromTime.T().Format(time.RFC3339),
+		End:                   summary.ToTime.T().Format(time.RFC3339),
 		Status:                "ok",
 		TotalSeconds:          totalTime.Seconds(),
 		DaysIncludingHolidays: numDays,
