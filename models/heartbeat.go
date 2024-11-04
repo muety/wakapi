@@ -31,12 +31,12 @@ type Heartbeat struct {
 	Origin           string     `json:"-" hash:"ignore" gorm:"type:varchar(255)"`
 	OriginId         string     `json:"-" hash:"ignore" gorm:"type:varchar(255)"`
 	CreatedAt        CustomTime `json:"created_at" gorm:"timeScale:3" swaggertype:"primitive,number" hash:"ignore"` // https://gorm.io/docs/conventions.html#CreatedAt
-	Lines            *int       `json:"lines,omitempty" hash:"ignore"`
-	LineNo           *int       `json:"lineno,omitempty" hash:"ignore"`
-	CursorPos        *int       `json:"cursorpos,omitempty" hash:"ignore"`
-	LineDeletions    *int       `json:"line_deletions,omitempty" hash:"ignore"`
-	LineAdditions    *int       `json:"line_additions,omitempty" hash:"ignore"`
-	ProjectRootCount *int       `json:"project_root_count,omitempty"`
+	Lines            int        `json:"lines,omitempty" hash:"ignore"`
+	LineNo           int        `json:"lineno,omitempty" hash:"ignore"`
+	CursorPos        int        `json:"cursorpos,omitempty" hash:"ignore"`
+	LineDeletions    int        `json:"line_deletions,omitempty" hash:"ignore"`
+	LineAdditions    int        `json:"line_additions,omitempty" hash:"ignore"`
+	ProjectRootCount int        `json:"project_root_count,omitempty" hash:"ignore"`
 }
 
 func (h *Heartbeat) Valid() bool {
