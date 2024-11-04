@@ -1,13 +1,13 @@
 package migrations
 
 import (
+<<<<<<< HEAD
 	"sort"
 	"strings"
 
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
-	"log/slog"
 )
 
 type gormMigrationFunc func(db *gorm.DB) error

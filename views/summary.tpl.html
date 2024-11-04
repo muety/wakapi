@@ -63,6 +63,7 @@
         </div>
 
         <div class="flex-shrink-1 sm:flex-shrink-0" v-scope="TimePicker({
+        <div class="flex-shrink-1 sm:flex-shrink-0" v-scope="TimePicker({
             fromDate: '{{ .From | simpledate }}',
             toDate: '{{ .To | ceildate | simpledate }}',
             timeSelection: '{{ .From | datetime }} - {{ .To | ceildate | datetime }}'
@@ -72,38 +73,46 @@
     {{ end }}
 
     <main class="flex flex-col items-center mt-4 md:mt-16 grow">
+    <main class="flex flex-col items-center mt-4 md:mt-16 grow">
 
         {{ if .SharedLoggedInViewModel.User.HasData }}
 
         {{ if not .IsProjectDetails }}
         <!-- KPIs -->
-        <div class="w-full mb-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 no-break">
+        <div class="w-full mb-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
             <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
                 <span class="text-xs text-gray-500 font-semibold">Total Time</span>
                 <span class="font-semibold text-xl truncate" title="{{ .TotalTime | duration }}">{{ .TotalTime | duration }}</span>
                 <span class="text-xs text-gray-500" title="(your oldest heartbeat in selected range)" style="margin-bottom: -8px">after {{ .FromTime.T | datetime }}</span>
+                <span class="text-xs text-gray-500" title="(your oldest heartbeat in selected range)" style="margin-bottom: -8px">after {{ .FromTime.T | datetime }}</span>
             </div>
+            <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
             <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
                 <span class="text-xs text-gray-500 font-semibold">Total Heartbeats</span>
                 <span class="font-semibold text-xl truncate" title="{{ .NumHeartbeats }}">{{ .NumHeartbeats }}</span>
             </div>
             <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+            <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
                 <span class="text-xs text-gray-500 font-semibold">Top Project</span>
                 <span class="font-semibold text-xl truncate" title="{{ .MaxByToString 0 }}">{{ .MaxByToString 0 }}</span>
             </div>
+            <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
             <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
                 <span class="text-xs text-gray-500 font-semibold">Top Language</span>
                 <span class="font-semibold text-xl truncate" title="{{ .MaxByToString 1 }}">{{ .MaxByToString 1 }}</span>
             </div>
             <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+            <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
                 <span class="text-xs text-gray-500 font-semibold">Top OS</span>
                 <span class="font-semibold text-xl truncate" title="{{ .MaxByToString 3 }}">{{ .MaxByToString 3 }}</span>
             </div>
+            <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
             <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
                 <span class="text-xs text-gray-500 font-semibold">Top Editor</span>
                 <span class="font-semibold text-xl truncate" title="{{ .MaxByToString 2 }}">{{ .MaxByToString 2 }}</span>
             </div>
         </div>
+
 
         {{ else }}
         <div class="mb-8 w-full">
@@ -124,11 +133,11 @@
         {{ end }}
 
         <div class="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 w-full mt-4">
-            <div class="row-span-1 col-span-1 sm:row-span-2 sm:col-span-2 md:row-span-2 md:col-span-2 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if .IsProjectDetails }} hidden {{ end }}"
-                id="project-container" style="max-height: 608px;">
+            <div class="row-span-1 col-span-1 sm:row-span-2 sm:col-span-2 md:row-span-2 md:col-span-2 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if .IsProjectDetails }} hidden {{ end }}" id="project-container" style="max-height: 608px;">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Projects</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
+                        <span class="mr-1">Top </span>
                         <span class="mr-1">Top </span>
                         <input type="number" min="1" id="project-top-picker" data-entity="0" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
                         <span class="ml-1">of&nbsp;&nbsp;<span class="num-total-items" data-entity="0"></span></span>
@@ -140,11 +149,11 @@
                 </div>
             </div>
         
-            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if not .IsProjectDetails }} hidden {{ end }}"
-                id="branch-container" style="max-height: 608px;">
+            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if not .IsProjectDetails }} hidden {{ end }}" id="branch-container" style="max-height: 608px;">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Branches</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
+                        <span class="mr-1">Top </span>
                         <span class="mr-1">Top </span>
                         <input type="number" min="1" id="branch-top-picker" data-entity="6" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
                         <span class="ml-1">of&nbsp;&nbsp;<span class="num-total-items" data-entity="6"></span></span>
@@ -156,8 +165,7 @@
                 </div>
             </div>
         
-            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break"
-                id="language-container" style="max-height: 300px">
+            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="language-container" style="max-height: 300px">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Languages</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
@@ -172,11 +180,11 @@
                 </div>
             </div>
         
-            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break"
-                id="editor-container" style="max-height: 300px">
+            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="editor-container" style="max-height: 300px">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Editors</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
+                        <span class="mr-1">Top </span>
                         <span class="mr-1">Top </span>
                         <input type="number" min="1" id="editor-top-picker" data-entity="2" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
                         <span class="ml-1">of&nbsp;&nbsp;<span class="num-total-items" data-entity="2"></span></span>
@@ -188,10 +196,8 @@
                 </div>
             </div>
         
-            <div
-                class="{{ if .IsProjectDetails }} hidden {{ end }} row-span-1 col-span-1 sm:row-span-1 sm:col-span-2 md:row-span-1 md:col-span-2 w-full no-break">
-                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="os-container"
-                    style="max-height: 300px">
+            <div class="{{ if .IsProjectDetails }} hidden {{ end }} row-span-1 col-span-1 sm:row-span-1 sm:col-span-2 md:row-span-1 md:col-span-2 w-full">
+                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="os-container" style="max-height: 300px">
                     <div class="flex justify-between">
                         <div>
                             <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap mr-1 cursor-pointer">Operating Systems</span>
@@ -210,9 +216,8 @@
                 </div>
             </div>
         
-            <div class="hidden row-span-1 col-span-1 md:row-span-1 md:col-span-1 w-full no-break">
-                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="machine-container"
-                    style="max-height: 300px">
+            <div class="hidden row-span-1 col-span-1 md:row-span-1 md:col-span-1 w-full">
+                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="machine-container" style="max-height: 300px">
                     <div class="flex justify-between">
                         <div>
                             <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap mr-1 cursor-pointer text-gray-600" onclick="swapCharts('os', 'machine')">Operating Systems</span>
@@ -231,10 +236,8 @@
                 </div>
             </div>
         
-            <div
-                class="{{ if .IsProjectDetails }} hidden {{ end }} row-span-1 col-span-1 md:row-span-1 md:col-span-1 w-full no-break">
-                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if .IsProjectDetails }} hidden {{ end }}"
-                    id="label-container" style="max-height: 300px">
+            <div class="{{ if .IsProjectDetails }} hidden {{ end }} row-span-1 col-span-1 md:row-span-1 md:col-span-1 w-full">
+                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if .IsProjectDetails }} hidden {{ end }}" id="label-container" style="max-height: 300px">
                     <div class="flex justify-between text-lg" style="margin-bottom: -10px">
                         <span class="font-semibold whitespace-nowrap">Labels</span>
                         <a href="settings#data" class="ml-4 inline p-2 hover:bg-gray-800 rounded" style="margin-top: -5px">
@@ -253,11 +256,11 @@
                 </div>
             </div>
         
-            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if not .IsProjectDetails }} hidden {{ end }}"
-                id="entity-container" style="max-height: 500px">
+            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if not .IsProjectDetails }} hidden {{ end }}" id="entity-container" style="max-height: 500px">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Files</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
+                        <span class="mr-1">Top </span>
                         <span class="mr-1">Top </span>
                         <input type="number" min="1" id="entity-top-picker" data-entity="7" class="top-picker bg-gray-800 rounded-md text-center w-12" value="10">
                         <span class="ml-1">of&nbsp;&nbsp;<span class="num-total-items" data-entity="7"></span></span>
@@ -269,12 +272,13 @@
                 </div>
             </div>
         
-            <div class="row-span-1 col-span-1 sm:row-span-3 sm:col-span-3 md:row-span-3 md:col-span-3 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if .IsProjectDetails }} hidden {{ end }}"
-                id="category-container" style="max-height: 224px;">
+            <div class="row-span-1 col-span-1 sm:row-span-3 sm:col-span-3 md:row-span-3 md:col-span-3 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if .IsProjectDetails }} hidden {{ end }}" id="category-container" style="max-height: 224px;">
                 <div class="flex justify-between">
                     <div class="flex items-center gap-x-2">
                         <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Categories</span>
                         <span
+                            class="iconify inline text-2xl text-gray-400 p-1 cursor-help" data-icon="octicon:info-16"
+                            title="After the category chart was introduced as a new feature in March '24, you will have to run &quot;Settings → Danger Zone → Regenerate Summaries&quot; once to have your categories reflected properly. This may take a few minutes."
                             class="iconify inline text-2xl text-gray-400 p-1 cursor-help" data-icon="octicon:info-16"
                             title="After the category chart was introduced as a new feature in March '24, you will have to run &quot;Settings → Danger Zone → Regenerate Summaries&quot; once to have your categories reflected properly. This may take a few minutes."
                         ></span>
