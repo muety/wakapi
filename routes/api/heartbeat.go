@@ -29,10 +29,11 @@ type HeartbeatApiHandler struct {
 
 func NewHeartbeatApiHandler(userService services.IUserService, heartbeatService services.IHeartbeatService, languageMappingService services.ILanguageMappingService, userAgentPluginService services.IPluginUserAgentService) *HeartbeatApiHandler {
 	return &HeartbeatApiHandler{
-		config:              conf.Get(),
-		userSrvc:            userService,
-		heartbeatSrvc:       heartbeatService,
-		languageMappingSrvc: languageMappingService,
+		config:                 conf.Get(),
+		userSrvc:               userService,
+		heartbeatSrvc:          heartbeatService,
+		languageMappingSrvc:    languageMappingService,
+		userAgentPluginService: userAgentPluginService,
 	}
 }
 

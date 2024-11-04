@@ -1,6 +1,10 @@
 package api
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -8,9 +12,6 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestHeartbeatHandler_Options(t *testing.T) {
@@ -24,7 +25,7 @@ func TestHeartbeatHandler_Options(t *testing.T) {
 	userServiceMock := new(mocks.UserServiceMock)
 	heartbeatServiceMock := new(mocks.HeartbeatServiceMock)
 
-	heartbeatHandler := NewHeartbeatApiHandler(userServiceMock, heartbeatServiceMock, nil)
+	heartbeatHandler := NewHeartbeatApiHandler(userServiceMock, heartbeatServiceMock, nil, nil)
 	heartbeatHandler.RegisterRoutes(apiRouter)
 
 	t.Run("when receiving cors preflight request", func(t *testing.T) {
