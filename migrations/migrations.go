@@ -1,9 +1,10 @@
 package migrations
 
 import (
-<<<<<<< HEAD
 	"sort"
 	"strings"
+
+	"log/slog"
 
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"

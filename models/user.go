@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	DefaultHeartbeatsTimeout = 2 * time.Minute
+	DefaultHeartbeatsTimeout = 15 * time.Minute
 	MinHeartbeatsTimeout     = 30 * time.Second
-	MaxHeartbeatsTimeout     = 5 * time.Minute
+	MaxHeartbeatsTimeout     = 15 * time.Minute
 )
 
 func init() {
