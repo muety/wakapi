@@ -77,32 +77,34 @@
 
         {{ if not .IsProjectDetails }}
         <!-- KPIs -->
-        <div class="w-full mb-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2">
-            <div class="flex flex-col w-full p-4 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+        <div class="w-full mb-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+            <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
                 <span class="text-xs text-gray-500 font-semibold">Total Time</span>
                 <span class="font-semibold text-xl truncate" title="{{ .TotalTime | duration }}">{{ .TotalTime | duration }}</span>
+                <span class="text-xs text-gray-500" title="(your oldest heartbeat in selected range)" style="margin-bottom: -8px">after {{ .FromTime.T | datetime }}</span>
             </div>
-            <div class="flex flex-col w-full p-4 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+            <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
                 <span class="text-xs text-gray-500 font-semibold">Total Heartbeats</span>
                 <span class="font-semibold text-xl truncate" title="{{ .NumHeartbeats }}">{{ .NumHeartbeats }}</span>
             </div>
-            <div class="flex flex-col w-full p-4 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+            <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
                 <span class="text-xs text-gray-500 font-semibold">Top Project</span>
                 <span class="font-semibold text-xl truncate" title="{{ .MaxByToString 0 }}">{{ .MaxByToString 0 }}</span>
             </div>
-            <div class="flex flex-col w-full p-4 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+            <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
                 <span class="text-xs text-gray-500 font-semibold">Top Language</span>
                 <span class="font-semibold text-xl truncate" title="{{ .MaxByToString 1 }}">{{ .MaxByToString 1 }}</span>
             </div>
-            <div class="flex flex-col w-full p-4 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+            <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
                 <span class="text-xs text-gray-500 font-semibold">Top OS</span>
                 <span class="font-semibold text-xl truncate" title="{{ .MaxByToString 3 }}">{{ .MaxByToString 3 }}</span>
             </div>
-            <div class="flex flex-col w-full p-4 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
+            <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
                 <span class="text-xs text-gray-500 font-semibold">Top Editor</span>
                 <span class="font-semibold text-xl truncate" title="{{ .MaxByToString 2 }}">{{ .MaxByToString 2 }}</span>
             </div>
         </div>
+
         {{ else }}
         <div class="mb-8 w-full">
         <h1 class="font-semibold text-3xl text-white">

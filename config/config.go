@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -73,6 +72,7 @@ var emailProviders = []string{
 // first wakatime commit was on this day ;-) so no real heartbeats should exist before
 // https://github.com/wakatime/legacy-python-cli/commit/3da94756aa1903c1cca5035803e3f704e818c086
 const heartbeatsMinDate = "2013-07-06"
+const colorsFile = "data/colors.json"
 
 var leaderboardScopes = []string{"24_hours", "week", "month", "year", "7_days", "14_days", "30_days", "6_months", "12_months", "all_time"}
 
@@ -437,7 +437,11 @@ func readColors() map[string]map[string]string {
 
 	raw := data.ColorsFile
 	if IsDev(env) {
-		raw, _ = os.ReadFile("data/colors.json")
+		if _, err := os.Stat(colorsFile); err == nil {
+			raw, _ = os.ReadFile(colorsFile)
+		} else {
+			Log().Warn("attempted to read colors from local fs in dev mode, but failed", "file", colorsFile)
+		}
 	}
 
 	var colors = make(map[string]map[string]string)
@@ -472,7 +476,7 @@ func Get() *Config {
 func Load(configFlag string, version string) *Config {
 	config := &Config{}
 	if err := configor.New(&configor.Config{}).Load(config, configFlag); err != nil {
-		log.Fatal("failed to read config", err)
+		Log().Fatal("failed to read config", err)
 	}
 
 	env = config.Env
