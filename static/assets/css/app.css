@@ -194,3 +194,21 @@ body {
 .wi-min {
     width: min-content !important;
 }
+@media print {
+
+    /* Avoid the element from being breaked */
+    .no-break {
+        page-break-inside: avoid;
+    }
+
+    /* Don't print the element (as they are designed to interact with the user) */
+    .no-print {
+        display: none;
+    }
+
+    /* Ensure the background */
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}

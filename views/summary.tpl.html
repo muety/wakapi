@@ -20,7 +20,7 @@
 {{ if .SharedLoggedInViewModel.User.HasData }}
 
 <div id="summary-page" class="grow" v-scope @vue:mounted="mounted({ userId: '{{ .SharedLoggedInViewModel.User.ID }}'})">
-    <div class="flex justify-end md:space-x-8 mt-12 flex-wrap md:flex-nowrap relative items-center">
+    <div class="flex justify-end md:space-x-8 mt-12 flex-wrap md:flex-nowrap relative items-center no-print">
         {{ if $.UserDataExpiring }}
         <div class="flex-grow justify-start">
             <div class="flex-grow p-4 text-sm border-2 border-orange-500 rounded shadow text-gray-300 align-middle mb-4 md:mb-0">
@@ -77,7 +77,7 @@
 
         {{ if not .IsProjectDetails }}
         <!-- KPIs -->
-        <div class="w-full mb-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+        <div class="w-full mb-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 no-break">
             <div class="flex flex-col w-full p-4 pt-2 rounded-md text-gray-300 bg-gray-850 leading-none border-2 border-green-700">
                 <span class="text-xs text-gray-500 font-semibold">Total Time</span>
                 <span class="font-semibold text-xl truncate" title="{{ .TotalTime | duration }}">{{ .TotalTime | duration }}</span>
@@ -124,7 +124,8 @@
         {{ end }}
 
         <div class="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 w-full mt-4">
-            <div class="row-span-1 col-span-1 sm:row-span-2 sm:col-span-2 md:row-span-2 md:col-span-2 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if .IsProjectDetails }} hidden {{ end }}" id="project-container" style="max-height: 608px;">
+            <div class="row-span-1 col-span-1 sm:row-span-2 sm:col-span-2 md:row-span-2 md:col-span-2 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if .IsProjectDetails }} hidden {{ end }}"
+                id="project-container" style="max-height: 608px;">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Projects</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
@@ -139,7 +140,8 @@
                 </div>
             </div>
         
-            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if not .IsProjectDetails }} hidden {{ end }}" id="branch-container" style="max-height: 608px;">
+            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if not .IsProjectDetails }} hidden {{ end }}"
+                id="branch-container" style="max-height: 608px;">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Branches</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
@@ -154,7 +156,8 @@
                 </div>
             </div>
         
-            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="language-container" style="max-height: 300px">
+            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break"
+                id="language-container" style="max-height: 300px">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Languages</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
@@ -169,7 +172,8 @@
                 </div>
             </div>
         
-            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="editor-container" style="max-height: 300px">
+            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break"
+                id="editor-container" style="max-height: 300px">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Editors</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
@@ -184,8 +188,10 @@
                 </div>
             </div>
         
-            <div class="{{ if .IsProjectDetails }} hidden {{ end }} row-span-1 col-span-1 sm:row-span-1 sm:col-span-2 md:row-span-1 md:col-span-2 w-full">
-                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="os-container" style="max-height: 300px">
+            <div
+                class="{{ if .IsProjectDetails }} hidden {{ end }} row-span-1 col-span-1 sm:row-span-1 sm:col-span-2 md:row-span-1 md:col-span-2 w-full no-break">
+                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="os-container"
+                    style="max-height: 300px">
                     <div class="flex justify-between">
                         <div>
                             <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap mr-1 cursor-pointer">Operating Systems</span>
@@ -204,8 +210,9 @@
                 </div>
             </div>
         
-            <div class="hidden row-span-1 col-span-1 md:row-span-1 md:col-span-1 w-full">
-                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="machine-container" style="max-height: 300px">
+            <div class="hidden row-span-1 col-span-1 md:row-span-1 md:col-span-1 w-full no-break">
+                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="machine-container"
+                    style="max-height: 300px">
                     <div class="flex justify-between">
                         <div>
                             <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap mr-1 cursor-pointer text-gray-600" onclick="swapCharts('os', 'machine')">Operating Systems</span>
@@ -224,8 +231,10 @@
                 </div>
             </div>
         
-            <div class="{{ if .IsProjectDetails }} hidden {{ end }} row-span-1 col-span-1 md:row-span-1 md:col-span-1 w-full">
-                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if .IsProjectDetails }} hidden {{ end }}" id="label-container" style="max-height: 300px">
+            <div
+                class="{{ if .IsProjectDetails }} hidden {{ end }} row-span-1 col-span-1 md:row-span-1 md:col-span-1 w-full no-break">
+                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if .IsProjectDetails }} hidden {{ end }}"
+                    id="label-container" style="max-height: 300px">
                     <div class="flex justify-between text-lg" style="margin-bottom: -10px">
                         <span class="font-semibold whitespace-nowrap">Labels</span>
                         <a href="settings#data" class="ml-4 inline p-2 hover:bg-gray-800 rounded" style="margin-top: -5px">
@@ -244,7 +253,8 @@
                 </div>
             </div>
         
-            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if not .IsProjectDetails }} hidden {{ end }}" id="entity-container" style="max-height: 500px">
+            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if not .IsProjectDetails }} hidden {{ end }}"
+                id="entity-container" style="max-height: 500px">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Files</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
@@ -259,7 +269,8 @@
                 </div>
             </div>
         
-            <div class="row-span-1 col-span-1 sm:row-span-3 sm:col-span-3 md:row-span-3 md:col-span-3 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if .IsProjectDetails }} hidden {{ end }}" id="category-container" style="max-height: 224px;">
+            <div class="row-span-1 col-span-1 sm:row-span-3 sm:col-span-3 md:row-span-3 md:col-span-3 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if .IsProjectDetails }} hidden {{ end }}"
+                id="category-container" style="max-height: 224px;">
                 <div class="flex justify-between">
                     <div class="flex items-center gap-x-2">
                         <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Categories</span>
@@ -281,7 +292,7 @@
             </div>
         </div>
 
-        <div class="mt-12 flex flex-col space-y-2 text-gray-300 w-full">
+        <div class="mt-12 flex flex-col space-y-2 text-gray-300 w-full no-break">
             <div class="flex justify-start space-x-2 items-center">
                 <h2 class="text-lg font-semibold">Activity</h2>
                 <a v-cloak v-show="activityChartSvg" href="/api/activity/chart/{{ .SharedLoggedInViewModel.User.ID }}.svg" target="_blank" rel="noreferrer noopener" class="p-1 rounded hover:bg-gray-850" title="Share...">
