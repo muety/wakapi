@@ -335,6 +335,11 @@ func (c *securityConfig) ParseTrustReverseProxyIPs() {
 	c.trustReverseProxyIpsParsed = make([]net.IPNet, 0)
 
 	for _, ip := range strings.Split(c.TrustReverseProxyIps, ",") {
+		// the config value is empty by default
+		if ip == "" {
+			continue
+		}
+
 		// try parse as address range
 		_, parsedIpNet, err := net.ParseCIDR(ip)
 		if err == nil {
