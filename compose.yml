@@ -37,7 +37,7 @@ secrets:
   password_salt:
     environment: WAKAPI_PASSWORD_SALT
   smtp_pass:
-    environment: WAKAPI_SMTP_PASS
+    environment: WAKAPI_MAIL_SMTP_PASS
   db_password:
     environment: WAKAPI_DB_PASSWORD
 
