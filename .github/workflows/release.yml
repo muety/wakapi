@@ -73,7 +73,7 @@ jobs:
         zip -9 wakapi_${{ matrix.GOOS }}_${{ matrix.GOARCH }}.zip *
 
     - name: Upload built executable to Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: ./dist/*.zip
 
