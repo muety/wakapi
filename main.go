@@ -209,10 +209,7 @@ func main() {
 	miscService = services.NewMiscService(userService, heartbeatService, summaryService, keyValueService, mailService)
 	clientService = services.NewClientService(clientRepository)
 	invoiceService = *services.NewInvoiceService(invoiceRepository)
-
-	if config.App.LeaderboardEnabled {
-		leaderboardService = services.NewLeaderboardService(leaderboardRepository, summaryService, userService)
-	}
+	leaderboardService = services.NewLeaderboardService(leaderboardRepository, summaryService, userService)
 
 	// Schedule background tasks
 	go conf.StartJobs()

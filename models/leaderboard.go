@@ -1,10 +1,11 @@
 package models
 
 import (
-	"github.com/duke-git/lancet/v2/maputil"
-	"github.com/duke-git/lancet/v2/slice"
 	"strings"
 	"time"
+
+	"github.com/duke-git/lancet/v2/maputil"
+	"github.com/duke-git/lancet/v2/slice"
 )
 
 type LeaderboardItem struct {
@@ -21,8 +22,8 @@ type LeaderboardItem struct {
 // https://github.com/go-gorm/gorm/issues/5789
 // https://github.com/go-gorm/gorm/issues/5284#issuecomment-1107775806
 type LeaderboardItemRanked struct {
-	LeaderboardItem
-	Rank uint
+	LeaderboardItem `json:"leaderboard_item"`
+	Rank            uint `json:"rank"`
 }
 
 func (l1 *LeaderboardItemRanked) Equals(l2 *LeaderboardItemRanked) bool {
