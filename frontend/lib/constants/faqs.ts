@@ -10,7 +10,7 @@ export const TOP_FAQS: Faq[] = [
       "This is a self-hosted version of wakatime.com that is open source and free to use. We rely on the same open source plugins and collect the same data that is available from wakatime's open source plugins.",
   },
   {
-    question: "What is this isn't?",
+    question: "What this isn't?",
     answer:
       "It is not a way to measure the productivity of developers. Don't be a jerk.",
   },
