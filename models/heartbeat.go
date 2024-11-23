@@ -9,7 +9,6 @@ import (
 
 	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/mitchellh/hashstructure/v2"
-	"log/slog"
 )
 
 type Heartbeat struct {
@@ -84,34 +83,6 @@ func (h *Heartbeat) GetKey(t uint8) (key string) {
 	}
 
 	return key
-}
-
-func (h *Heartbeat) IsPlaceholderBranch() bool {
-	return h.Branch == "<<LAST_BRANCH>>"
-}
-
-func (h *Heartbeat) IsPlaceholderProject() bool {
-	return h.Project == "<<LAST_PROJECT>>"
-}
-
-func (h *Heartbeat) IsPlaceholderLanguage() bool {
-	return h.Language == "<<LAST_LANGUAGE>>"
-}
-
-func (h *Heartbeat) HasPlaceholder() bool {
-	return h.IsPlaceholderBranch() || h.IsPlaceholderProject() || h.IsPlaceholderLanguage()
-}
-
-func (h *Heartbeat) ClearPlaceholders() {
-	if h.IsPlaceholderBranch() {
-		h.Branch = ""
-	}
-	if h.IsPlaceholderProject() {
-		h.Project = ""
-	}
-	if h.IsPlaceholderLanguage() {
-		h.Language = ""
-	}
 }
 
 func (h *Heartbeat) IsPlaceholderBranch() bool {
