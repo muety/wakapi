@@ -3,4 +3,4 @@ cmd = "go build -o ./wakapi ."
 bin = "./wakapi"
 full_bin = "./wakapi -config config-wakapi.yml"
 include_ext = ["go", "tpl", "tmpl", "html"]
-exclude_dir = [".github", "frontend"]
+exclude_dir = [".github", "frontend", "notes", "static"]

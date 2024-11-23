@@ -1,0 +1,16 @@
+.heroContainer {
+    width: 100%;
+    height: 100%;
+    background-image: url('/stars.svg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    max-height: 549px;
+}
+
+.heroContainer2 {
+    background-image: url('/bg1.svg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}

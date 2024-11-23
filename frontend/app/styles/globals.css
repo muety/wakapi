@@ -1,0 +1,814 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 240 10% 3.9%;
+
+        --card: 0 0% 100%;
+        --card-foreground: 240 10% 3.9%;
+
+        --popover: 0 0% 100%;
+        --popover-foreground: 240 10% 3.9%;
+
+        --primary: 227.23 34.81% 26.47%;
+        --primary-foreground: 0 0% 98%;
+
+        --secondary: 240 4.8% 95.9%;
+        --secondary-foreground: 227.23 34.81% 26.47%;
+
+        --muted: 240 4.8% 95.9%;
+        --muted-foreground: 240 3.8% 46.1%;
+
+        --accent: 240 4.8% 95.9%;
+        --accent-foreground: 227.23 34.81% 26.47%;
+
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 98%;
+
+        --border: 240 5.9% 90%;
+        --input: 240 5.9% 90%;
+        --ring: 240 10% 3.9%;
+
+        --radius: 0.5rem;
+
+        /* CHART */
+        --chart-1: 12 76% 61%;
+        --chart-2: 173 58% 39%;
+        --chart-3: 197 37% 24%;
+        --chart-4: 43 74% 66%;
+        --chart-5: 27 87% 67%;
+        --side-nag-bg: #f8f9fa;
+        --side-nav-active: #e1e2e8;
+
+        --tw-bg-opacity: 1;
+
+        --sidebar-background: 0 0% 98%;
+
+        --sidebar-foreground: 240 5.3% 26.1%;
+
+        --sidebar-primary: 240 5.9% 10%;
+
+        --sidebar-primary-foreground: 0 0% 98%;
+
+        --sidebar-accent: 240 4.8% 95.9%;
+
+        --sidebar-accent-foreground: 240 5.9% 10%;
+
+        --sidebar-border: 220 13% 91%;
+
+        --sidebar-ring: 217.2 91.2% 59.8%;
+    }
+
+    .dark {
+        --background: 240 10% 3.9%;
+        --foreground: 0 0% 98%;
+
+        --card: 240 10% 3.9%;
+        --card-foreground: 0 0% 98%;
+
+        --popover: 240 10% 3.9%;
+        --popover-foreground: 0 0% 98%;
+
+        --primary: 0 0% 98%;
+        --primary-foreground: 227.23 34.81% 26.47%;
+
+        --secondary: 240 3.7% 15.9%;
+        --secondary-foreground: 0 0% 98%;
+
+        --muted: 240 3.7% 15.9%;
+        --muted-foreground: 240 5% 64.9%;
+
+        --accent: 240 3.7% 15.9%;
+        --accent-foreground: 0 0% 98%;
+
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 0 0% 98%;
+
+        --border: 240 3.7% 15.9%;
+        --input: 240 3.7% 15.9%;
+        --ring: 240 4.9% 83.9%;
+
+        /* CHART */
+        --chart-1: 220 70% 50%;
+        --chart-2: 160 60% 45%;
+        --chart-3: 30 80% 55%;
+        --chart-4: 280 65% 60%;
+        --chart-5: 340 75% 55%;
+        --sidebar-background: 240 5.9% 10%;
+        --sidebar-foreground: 240 4.8% 95.9%;
+        --sidebar-primary: 224.3 76.3% 48%;
+        --sidebar-primary-foreground: 0 0% 100%;
+        --sidebar-accent: 240 3.7% 15.9%;
+        --sidebar-accent-foreground: 240 4.8% 95.9%;
+        --sidebar-border: 240 3.7% 15.9%;
+        --sidebar-ring: 217.2 91.2% 59.8%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
+}
+
+.hero-link:hover {
+    opacity: 0.5;
+    /* color: #23527c; */
+}
+
+.hero-link {
+    color: #ffffff;
+}
+
+.hover-view {
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.entities-table tr:hover .hover-view {
+    opacity: 1;
+}
+
+.entities-table:hover .hover-view {
+    display: inline-block;
+}
+
+.cool-bar-chart-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.settings {
+    /* font-weight: 400; */
+    padding: 10px;
+}
+
+.settings.active,
+.settings:hover {
+    background-color: #f6f7f8;
+    font-weight: bold;
+    /* color: white; */
+}
+
+.dark .settings.active,
+.dark .settings:hover {
+    /* background-color: #4f5b69; */
+    font-weight: bold;
+    /* background-color: unset; */
+    border-color: rgb((79, 91, 105) / 0.15);
+    background-color: rgb(255 255 255 / 4%);
+}
+
+.outer {
+    display: grid;
+    grid-template: 1fr / 1fr;
+    place-items: center;
+    max-height: 549px;
+}
+
+.outer>* {
+    grid-column: 1 / 1;
+    grid-row: 1 / 1;
+}
+
+.outer .below {
+    z-index: 1;
+    /* background-color: aqua; */
+    background-color: inherit;
+}
+
+.outer .top {
+    z-index: 2;
+    /* background-color: brown; */
+}
+
+.hero-bg {
+    background-color: #537da4;
+}
+
+.hero-cta {
+    font-weight: 600;
+    color: black;
+    background-color: white;
+    font-size: 18px;
+    padding: 17px 35px;
+    border: 1px solid white;
+}
+
+.hero-cta:hover {
+    border: 1px solid whitesmoke;
+    opacity: 0.76;
+}
+
+.side-menu-item {
+    font-size: 0.85rem;
+    line-height: 27px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    color: #000;
+
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+
+    cursor: pointer;
+    box-sizing: border-box;
+    border-left-width: 3px;
+    border-left-color: transparent;
+}
+
+.dark .side-menu-item {
+    color: #fff;
+}
+
+.side-menu-item.active {
+    background-color: var(--side-nav-active);
+    /* border-left: 3px solid #00acac; */
+}
+
+.side-menu-item:hover {
+    background-color: hsl(0, 0%, 17%);
+    /* border-left: 3px solid #00acac; */
+}
+
+.dark .side-menu-item.active {
+    background-color: hsl(0, 0%, 17%);
+    border-left: 3px solid hsl(0, 0%, 25%);
+}
+
+.dark .side-menu-item:hover {
+    background-color: hsl(0, 0%, 17%);
+    border-left: 3px solid hsl(0, 0%, 25%);
+}
+
+.dark li span .side-menu-item {
+    color: black !important;
+}
+
+.side-nav-inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    margin-bottom: 15px;
+}
+
+/* .dashboard-content {} */
+
+@media (min-width: 576px) {
+    /* .dashboard-content {
+    margin-left: 190px;
+  } */
+}
+
+
+@media (max-width: 1366px) {
+    .main-dashboard-content {
+        margin-left: 0;
+        padding: 20px;
+    }
+}
+
+#projects {
+    flex-wrap: wrap !important;
+    display: flex !important;
+    margin-left: -48px;
+}
+
+.project-wrapper .project-card {
+    border-radius: 4px;
+}
+
+#projects .project-wrapper a.project-card .project-content {
+    margin-left: 36px;
+    position: relative;
+}
+
+#projects .project-wrapper {
+    margin-bottom: 48px !important;
+    display: flex !important;
+    width: 33%;
+}
+
+@media (max-width: 650px) {
+    .main-dashboard-content {
+        margin-left: 0;
+        padding: 20px;
+    }
+
+    #projects .project-wrapper {
+        width: 100%;
+        margin: 0;
+    }
+
+    #projects .project-wrapper a.project-card .project-content {
+        /* margin-left: 0px; */
+    }
+}
+
+@media (max-width: 1010px) {
+    .chart-box {
+        margin-bottom: 20px;
+    }
+}
+
+#projects .project-wrapper a.project-card {
+    display: block;
+    position: relative;
+    height: 100%;
+    padding: 30px 20px;
+    margin-left: 48px;
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.05),
+        0 7px 25px 0 rgba(0, 0, 0, 0.03),
+        0 4px 12px 0 rgba(0, 0, 0, 0.03);
+    transition-property: box-shadow, transform;
+    transition-duration: 0.4s;
+    transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+    /* color: rgba(0, 0, 0, 0.85); */
+    overflow: hidden;
+    width: 100%;
+    text-decoration: none;
+}
+
+#projects .project-wrapper a.project-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.05),
+        0 7px 25px 0 rgba(0, 0, 0, 0.03),
+        0 4px 30px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+}
+
+.dark #projects .project-wrapper a.project-card {
+    border: 1px solid #4f5b69;
+}
+
+.charts-wrapper {
+    /* margin-bottom: 20px;
+  margin-top: 20px; */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.container {
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+
+    z-index: 40;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    /* Adjust the gap between columns as needed */
+}
+
+@media (max-width: 768px) {
+
+    /* Adjust the breakpoint as needed */
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 992px) {
+    .container {
+        width: 970px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        width: 1170px;
+    }
+}
+
+@media (min-width: 768px) {
+    .container {
+        /* width: 750px; */
+    }
+}
+
+.dark .dashboard-header {
+    border-bottom: 1px solid #373737;
+}
+
+.hero-subtitle {
+    color: #cff0ff;
+    font-weight: normal;
+    font-size: 1.8rem;
+    margin-top: 1.1rem;
+    margin-bottom: 4rem;
+}
+
+.chart-box {
+    color: #8a8e91;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 10px;
+    min-height: 13rem;
+    border: 240 5.9% 90%;
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.05),
+        0 7px 25px 0 rgba(0, 0, 0, 0.03),
+        0 4px 30px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+    background-color: #E8F4F8;
+}
+
+.chart-box:hover {
+    text-decoration: none;
+    box-shadow:
+        0 0 0 2px rgba(0, 0, 0, 0.1),
+        0 12px 35px 0 rgba(0, 0, 0, 0.05),
+        0 6px 40px rgba(0, 0, 0, 0.15);
+}
+
+.dark .chart-box {
+    background-color: unset;
+    border: 1px solid #4f5b69;
+
+    border-color: hsl(0, 0%, 17%);
+    background-color: hsl(0, 0%, 7%);
+}
+
+.dark .chart-box:hover {
+    border-color: rgb((79, 91, 105) / 0.15);
+    background-color: rgb(255 255 255 / 4%);
+}
+
+.chart-box-title {
+    text-align: left;
+    font-weight: 500;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.main-dashboard .chart-box-title {
+    color: #fff;
+}
+
+.custom-tooltip {
+    background-color: hsl(0, 0%, 7%);
+    border-color: hsl(0, 0%, 17%);
+    color: #fff;
+    z-index: 5000000;
+    border-radius: 7px;
+}
+
+.custom-tooltip-header {
+    font-weight: 500;
+    font-size: 13px;
+    padding: 5px;
+}
+
+.chart-box-sub-title {
+    color: #8a8e91;
+    padding-left: 3px;
+}
+
+.chart-x-axis {
+    color: #8a8e91 !important;
+    font-size: 10px;
+    font-family: sans-serif;
+}
+
+.main-bg {
+    background-color: #ffffff;
+}
+
+.dark .main-bg {
+    background-color: hsl(0, 0%, 7%);
+}
+
+
+.dark .bw-text {
+    color: black;
+}
+
+.code-more-anchor {
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    text-align: center;
+    text-align: center;
+    cursor: pointer;
+    display: inline-block;
+
+    /* webkit BS*/
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.panel {
+    margin-bottom: 20px;
+    /* background-color: #ffffff; */
+    border: 1px solid transparent;
+    border-radius: 4px;
+    -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.panel-default {
+    border-color: #dddddd;
+}
+
+.panel-default>.panel-heading {
+    color: #333333;
+    /* background-color: #f5f5f5; */
+    border-color: #dddddd;
+}
+
+.white-well {
+    /* background-color: #fff; */
+    min-height: 20px;
+    padding: 30px 40px;
+    border-radius: 6px;
+    border: 2px solid #d1d9e1;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.dark .white-well {
+    border: 2px solid #4f5b69;
+}
+
+/* Unvisited link */
+.link {
+    color: #0000ee;
+    padding: 5px;
+    /* Blue */
+    text-decoration: none;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+.dark .link {
+    color: white;
+    text-decoration: underline;
+}
+
+.goal-container {
+    height: 300px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid hsl(0, 0%, 17%);
+    border-radius: 4px;
+}
+
+.goal-container:hover {
+    background-color: rgb(255 255 255 / 4%);
+}
+
+.surface {
+    height: 100%;
+    padding: 30px 20px;
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.05),
+        0 7px 25px 0 rgba(0, 0, 0, 0.03),
+        0 4px 12px 0 rgba(0, 0, 0, 0.03);
+    transition-property: box-shadow, transform;
+    transition-duration: 0.4s;
+    transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+    overflow: hidden;
+    width: 100%;
+    text-decoration: none;
+}
+
+.surface:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.05),
+        0 7px 25px 0 rgba(0, 0, 0, 0.03),
+        0 4px 30px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+}
+
+.dark .surface {
+    border: 1px solid #4f5b69;
+}
+
+.dark .surface:hover {
+    border-color: rgb((79, 91, 105) / 0.15);
+    background-color: rgb(255 255 255 / 4%);
+}
+
+.plugin-status {
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    /* padding: 30px 20px; */
+    /* margin-left: 48px; */
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.05),
+        0 7px 25px 0 rgba(0, 0, 0, 0.03),
+        0 4px 12px 0 rgba(0, 0, 0, 0.03);
+    transition-property: box-shadow, transform;
+    transition-duration: 0.4s;
+    transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+    overflow: hidden;
+    width: 100%;
+    text-decoration: none;
+}
+
+.plugin-status:hover {
+    background-color: rgb(255 255 255 / 4%);
+}
+
+.goal-container h1 {
+    font-size: 40px;
+    font-weight: bold;
+    color: black;
+    display: inline-block;
+}
+
+.goal-item-icon {
+    border-radius: 4px;
+}
+
+.goal-title-viewer {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
+    border-radius: 4px;
+}
+
+.goal-title-viewer:hover {
+    outline-width: 1px;
+    outline-color: rgba(0, 120, 212, 1);
+    outline-style: ridge;
+}
+
+.goal-title-viewer input {
+    height: 100%;
+    font-size: 30px;
+    font-weight: 400;
+    width: 100%;
+}
+
+.goal-container-viewer:focus {
+    border: 2px solid black;
+}
+
+/* slide animation */
+/* styles.css */
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.slide-in {
+    animation: slideIn 0.5s forwards;
+}
+
+.slide-out {
+    animation: slideOut 0.5s forwards;
+}
+
+.side-nav {
+    background-color: hsl(0, 0%, 7%);
+    color: black;
+    border-right: 1px solid #e3e4e8;
+}
+
+.dark .side-nav {
+    background-color: hsl(0, 0%, 7%);
+    border-color: rgb((79, 91, 105) / 0.15);
+    border-right-width: 1px;
+    border-right: 1px solid hsl(0, 0%, 17%);
+    margin-right: 5px;
+}
+
+.dashboard-header {
+    border-bottom: 1px solid hsl(0, 0%, 7%);
+}
+
+.logo-icon-white {
+    display: none;
+}
+
+.logo-icon-black {
+    display: block;
+}
+
+.dark .logo-icon-black {
+    display: none;
+}
+
+.dark .logo-icon-white {
+    display: block;
+}
+
+.text {
+    color: black;
+}
+
+.dark .text {
+    color: white;
+}
+
+.border-border {
+    border-color: hsl(0, 0%, 17%);
+}
+
+.bg-background {
+    background-color: hsl(0, 0%, 7%);
+}
+
+.pulse {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.dialog-label {
+    color: #05cfc8;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+@layer base {
+    :root {
+        --sidebar-background: 0 0% 98%;
+        --sidebar-foreground: 240 5.3% 26.1%;
+        --sidebar-primary: 240 5.9% 10%;
+        --sidebar-primary-foreground: 0 0% 98%;
+        --sidebar-accent: 240 4.8% 95.9%;
+        --sidebar-accent-foreground: 240 5.9% 10%;
+        --sidebar-border: 220 13% 91%;
+        --sidebar-ring: 217.2 91.2% 59.8%;
+    }
+
+    .dark {
+        --sidebar-background: hsl(0, 0%, 7%);
+        --sidebar-foreground: 240 4.8% 95.9%;
+        --sidebar-primary: 224.3 76.3% 48%;
+        --sidebar-primary-foreground: 0 0% 100%;
+        --sidebar-accent: 240 3.7% 15.9%;
+        --sidebar-accent-foreground: 240 4.8% 95.9%;
+        --sidebar-border: 240 3.7% 15.9%;
+        --sidebar-ring: 217.2 91.2% 59.8%;
+    }
+}

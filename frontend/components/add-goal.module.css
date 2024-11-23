@@ -1,0 +1,16 @@
+.root {
+    /* background-color: #0c162d; */
+    /* font-family: ui-sans-serif, system-ui; */
+    min-height: 300px;
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+}
+
+.title {
+    color: #8193b3;
+}
+
+.label {
+    color: #05cfc8;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}

@@ -1,0 +1,22 @@
+# fly.toml app configuration file generated for wakatimer-proof-of-concept on 2024-05-26T00:43:11Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "wakatimer-proof-of-concept"
+primary_region = "lhr"
+
+[build]
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
