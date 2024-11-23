@@ -47,12 +47,16 @@ export default async function Dashboard({
             <DashboardPeriodSelector searchParams={searchParams} />
           </div>
 
-          <section className="charts-grid">
+          <section className="charts-grid-top">
             <div className="min-h-52 chart-box">
               <DailyCodingSummaryOverTime data={durationData.data} />
             </div>
             <div className="min-h-52 chart-box">
-              <ActivityCategoriesChart data={durationData.data} />
+              <WGaugeChart
+                data={durationData.data}
+                dailyAverage={durationData.daily_average}
+              />
+              {/* <ActivityCategoriesChart data={durationData.data} /> */}
             </div>
           </section>
 
@@ -110,10 +114,7 @@ export default async function Dashboard({
             </div>
             <div className="charts-grid">
               <div className="chart-box">
-                <WGaugeChart
-                  data={durationData.data}
-                  dailyAverage={durationData.daily_average}
-                />
+              <ActivityCategoriesChart data={durationData.data} />
               </div>
               <div className="chart-box">
                 <WeekdaysBarChart

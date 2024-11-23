@@ -28,7 +28,7 @@
 </div>
 
 <p align="center">
-  <img src="static/assets/images/screenshot.webp" width="500px">
+  <img src="/frontend/docs/screenshots/dashboard.png" width="500px">
 </p>
 
 Installation instructions can be found below and in the [Wiki](https://github.com/muety/wakapi/wiki).

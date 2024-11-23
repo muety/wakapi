@@ -377,11 +377,21 @@
     z-index: 40;
 }
 
+.charts-grid-top {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columns */
+    gap: 16px;
+}
+
+.charts-grid-top > :first-child {
+    grid-column: span 2; /* Make the first item span 2 columns */
+}
+
+
 .charts-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
-    /* Adjust the gap between columns as needed */
 }
 
 @media (max-width: 768px) {
@@ -389,6 +399,15 @@
     /* Adjust the breakpoint as needed */
     .charts-grid {
         grid-template-columns: 1fr;
+    }
+
+    .charts-grid-top {
+        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .charts-grid-top > :first-child {
+        grid-column: span 1; /* Make the first item span 2 columns */
     }
 }
 
