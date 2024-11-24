@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"database/sql"
 	"strings"
 	"time"
 
@@ -254,34 +255,61 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 	// multi-line string with backticks yields an error with the github.com/glebarez/sqlite driver
 
 	args := []interface{}{
-		user.ID, from.Format(time.RFC3339), to.Format(time.RFC3339),
+		sql.Named("userid", user.ID),
+		sql.Named("from", from.Format(time.RFC3339)),
+		sql.Named("to", to.Format(time.RFC3339)),
+		sql.Named("limit", limit),
+		sql.Named("offset", offset),
 	}
 
-	limitOffsetClause := "limit ? offset ?"
-
+	limitOffsetClause := "limit @limit offset @offset"
 	if r.config.Db.IsMssql() {
-		limitOffsetClause = "offset ? ROWS fetch next ? rows only"
-		args = append(args, offset, limit)
-	} else {
-		args = append(args, limit, offset)
+		limitOffsetClause = "offset @offset ROWS fetch next @limit rows only"
 	}
+
+	query := `
+			with project_stats as (
+				select
+					project,
+					user_id,
+					min(time) as first,
+					max(time) as last,
+					count(*) as cnt
+				from heartbeats
+				where user_id = @userid
+				  and project != ''
+				  and time between @from and @to
+				  and language is not null and language != ''
+				group by project, user_id
+			),
+				 language_stats as (
+					 select
+						 project,
+						 language,
+						 count(*) as language_count,
+						 row_number() over (partition by project order by count(*) desc) as rn
+					 from heartbeats
+					 where user_id = @userid
+					   and project != ''
+					   and time between @from and @to
+					   and language is not null and language != ''
+					 group by project, language
+				 )
+			select
+				ps.project,
+				ps.first,
+				ps.last,
+				ps.cnt as count,
+				ls.language as top_language
+			from project_stats ps
+					 left join language_stats ls on ps.project = ls.project and ls.rn = 1
+			order by ps.last desc
+	`
+
+	query += limitOffsetClause
 
 	if err := r.db.
-		Raw("with projects as ( "+
-			"select project as p, user_id, min(time) as first, max(time) as last, count(*) as cnt "+
-			"from heartbeats "+
-			"where user_id = ? and project != '' "+
-			"and time between ? and ? "+
-			"and language is not null and language != '' and project != '' "+
-			"group by project, user_id "+
-			"order by last desc "+
-			limitOffsetClause+
-			") "+
-			"select distinct project, min(first) as first, min(last) as last, min(cnt) as count, first_value(language) over (partition by project order by count(*) desc) as top_language "+
-			"from heartbeats "+
-			"inner join projects on heartbeats.project = projects.p and heartbeats.user_id = projects.user_id "+
-			"group by project, language "+
-			"order by last desc", args...).
+		Raw(query, args...).
 		Scan(&projectStats).Error; err != nil {
 		return nil, err
 	}
