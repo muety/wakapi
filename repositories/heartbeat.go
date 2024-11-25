@@ -66,7 +66,8 @@ func (r *HeartbeatRepository) GetLatestByUser(user *models.User) (*models.Heartb
 		Model(&models.Heartbeat{}).
 		Where(&models.Heartbeat{UserID: user.ID}).
 		Order("time desc").
-		First(&heartbeat).Error; err != nil {
+		Limit(1).
+		Scan(&heartbeat).Error; err != nil {
 		return nil, err
 	}
 	return &heartbeat, nil
@@ -81,7 +82,8 @@ func (r *HeartbeatRepository) GetLatestByOriginAndUser(origin string, user *mode
 			Origin: origin,
 		}).
 		Order("time desc").
-		First(&heartbeat).Error; err != nil {
+		Limit(1).
+		Scan(&heartbeat).Error; err != nil {
 		return nil, err
 	}
 	return &heartbeat, nil
@@ -126,7 +128,7 @@ func (r *HeartbeatRepository) GetLatestByFilters(user *models.User, filterMap ma
 		Order("time desc")
 	q = r.filteredQuery(q, filterMap)
 
-	if err := q.First(&heartbeat).Error; err != nil {
+	if err := q.Limit(1).Scan(&heartbeat).Error; err != nil {
 		return nil, err
 	}
 	return heartbeat, nil
