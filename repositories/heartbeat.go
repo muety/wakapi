@@ -134,20 +134,22 @@ func (r *HeartbeatRepository) GetLatestByFilters(user *models.User, filterMap ma
 
 func (r *HeartbeatRepository) GetFirstByUsers() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
-	r.db.Model(&models.User{}).
-		Select(utils.QuoteSql(r.db, "users.id as %s, min(time) as %s", "user", "time")).
-		Joins("left join heartbeats on users.id = heartbeats.user_id").
-		Group("users.id").
+	r.db.Raw("with agg as (select " + utils.QuoteSql(r.db, "user_id, min(time) as %s", "time") + " from heartbeats group by user_id) " +
+		"select " + utils.QuoteSql(r.db, "id as %s, time ", "user") +
+		"from users " +
+		"left join agg on agg.user_id = id " +
+		"order by users.id").
 		Scan(&result)
 	return result, nil
 }
 
 func (r *HeartbeatRepository) GetLastByUsers() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
-	r.db.Model(&models.User{}).
-		Select(utils.QuoteSql(r.db, "users.id as %s, max(time) as %s", "user", "time")).
-		Joins("left join heartbeats on users.id = heartbeats.user_id").
-		Group("user").
+	r.db.Raw("with agg as (select " + utils.QuoteSql(r.db, "user_id, max(time) as %s", "time") + " from heartbeats group by user_id) " +
+		"select " + utils.QuoteSql(r.db, "id as %s, time ", "user") +
+		"from users " +
+		"left join agg on agg.user_id = id " +
+		"order by users.id").
 		Scan(&result)
 	return result, nil
 }

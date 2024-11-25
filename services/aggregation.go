@@ -68,14 +68,14 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 	slog.Info("generating summaries")
 
 	// Get a map from user ids to the time of their latest summary or nil if none exists yet
-	lastUserSummaryTimes, err := srv.summaryService.GetLatestByUser()
+	lastUserSummaryTimes, err := srv.summaryService.GetLatestByUser() // TODO: build user-specific variant of this query for efficiency
 	if err != nil {
 		config.Log().Error("error occurred", "error", err)
 		return err
 	}
 
 	// Get a map from user ids to the time of their earliest heartbeats or nil if none exists yet
-	firstUserHeartbeatTimes, err := srv.heartbeatService.GetFirstByUsers()
+	firstUserHeartbeatTimes, err := srv.heartbeatService.GetFirstByUsers() // TODO: build user-specific variant of this query for efficiency
 	if err != nil {
 		config.Log().Error("error occurred", "error", err)
 		return err
