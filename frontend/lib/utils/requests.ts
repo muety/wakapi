@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 export async function fetchJson<JSON = unknown>(
   input: RequestInfo,
   init?: RequestInit

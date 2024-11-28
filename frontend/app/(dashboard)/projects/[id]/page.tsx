@@ -1,8 +1,11 @@
-import { ProjectFiles } from "@/components/ProjectFiles";
-import { WPieChart } from "@/components/charts/WPieChart";
-import { DashboardPeriodSelector } from "@/components/dashboard-period-selector";
+import { format, subDays } from "date-fns";
+
+import { fetchData, getSession } from "@/actions";
 import { ActivityCategoriesChart } from "@/components/charts/ActivityCategoriesChart";
 import { DailyCodingSummaryLineChart } from "@/components/charts/DailyCodingSummaryLineChart";
+import { WPieChart } from "@/components/charts/WPieChart";
+import { DashboardPeriodSelector } from "@/components/dashboard-period-selector";
+import { ProjectFiles } from "@/components/ProjectFiles";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,8 +13,6 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { format, subDays } from "date-fns";
-import { fetchData, getSession } from "@/actions";
 import { SummariesApiResponse } from "@/lib/types";
 import { makePieChartDataFromRawApiResponse } from "@/lib/utils";
 
@@ -19,11 +20,11 @@ const { API_URL } = process.env;
 
 export function ProjectBreadCrumb({ projectId }: { projectId: string }) {
   return (
-    <Breadcrumb className="text-2xl mb-4 ml-0 pl-0 m-0">
+    <Breadcrumb className="m-0 mb-4 pl-0 text-2xl">
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink
-            className="link text-xl hover:text-purple underline"
+            className="link hover:text-purple text-xl underline"
             href="/projects"
           >
             Projects
@@ -32,7 +33,7 @@ export function ProjectBreadCrumb({ projectId }: { projectId: string }) {
         <BreadcrumbSeparator />
         <BreadcrumbItem>
           <BreadcrumbLink
-            className="link text-xl hover:text-purple"
+            className="link hover:text-purple text-xl"
             href={`/projects/${projectId}`}
           >
             {projectId}
@@ -67,10 +68,10 @@ export default async function ProjectDetailPage({
   )}`;
   const durationData = await fetchData<SummariesApiResponse>(url);
   return (
-    <div className="p-4 white-well px-6 my-6 mx-2">
+    <div className="white-well mx-2 my-6 p-4 px-6">
       {durationData && !(durationData instanceof Error) && (
         <main>
-          <div className="flex justify-between align-middle items-center">
+          <div className="flex items-center justify-between align-middle">
             <ProjectBreadCrumb projectId={params.id} />
             <div>
               <img
@@ -80,7 +81,7 @@ export default async function ProjectDetailPage({
               />
             </div>
           </div>
-          <div className="m-0 text-lg mb-5 mt-2">
+          <div className="m-0 mb-5 mt-2 text-lg">
             <b>{durationData.cumulative_total.text}</b>{" "}
             <span>over the last</span>{" "}
             <DashboardPeriodSelector
@@ -121,7 +122,7 @@ export default async function ProjectDetailPage({
               />
             </div>
           </section>
-          <div className="flex justify-center gap-5 mt-12">
+          <div className="mt-12 flex justify-center gap-5">
             <div className="flex justify-between gap-40">
               <ProjectFiles
                 data={durationData.data}

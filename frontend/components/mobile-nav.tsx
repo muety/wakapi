@@ -1,19 +1,87 @@
 "use client";
-import Link from "next/link";
-import { Goal, Receipt, Trophy, FolderGit2, Gauge } from "lucide-react";
-import { HeroBrand } from "./hero-brand";
-import { cn } from "@/lib/utils";
-import { usePathname } from "next/navigation";
+
 import {
-  MAIN_MENU_ITEMS,
-  SideNavMenuItem,
-  SideNavSimpleMenuItem,
-} from "./side-nav";
+  FolderGit2,
+  Goal,
+  LayoutDashboardIcon,
+  Receipt,
+  Trophy,
+  UsersIcon,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+import { cn } from "@/lib/utils";
+
+export const MAIN_MENU_ITEMS = [
+  {
+    title: "Dashboard",
+    href: "/dashboard",
+    icon: <LayoutDashboardIcon size={16} />,
+  },
+  {
+    title: "Projects",
+    href: "/projects",
+    icon: <FolderGit2 size={16} />,
+  },
+  {
+    title: "Goals",
+    href: "/goals",
+    icon: <Goal size={16} />,
+  },
+  {
+    title: "Clients",
+    href: "/clients",
+    icon: <UsersIcon size={16} />,
+  },
+  {
+    title: "Invoices",
+    href: "/invoices",
+    icon: <Receipt size={16} />,
+  },
+  {
+    title: "Leaderboards",
+    href: "/leaderboards",
+    icon: <Trophy size={16} />,
+  },
+];
+
+export function SideNavMenuItem({ title, icon, href }: any) {
+  const pathname = usePathname();
+  const isActive = pathname.includes(href);
+
+  return (
+    <li>
+      <Link
+        href={href}
+        className={cn("side-menu-item", isActive ? "active" : "")}
+      >
+        {icon}
+        <span className="ml-2">{title}</span>
+      </Link>
+    </li>
+  );
+}
+
+export function SideNavSimpleMenuItem({ title, href }: any) {
+  const pathname = usePathname();
+  const isActive = pathname.includes(href);
+  return (
+    <li>
+      <Link
+        href={href}
+        className={cn("side-menu-item", isActive ? "active" : "")}
+      >
+        <span className="ml-2">{title}</span>
+      </Link>
+    </li>
+  );
+}
 
 export function MobileNav() {
   return (
     <>
-      <ul className="sticky w-full flex flex-col align-middle">
+      <ul className="sticky flex w-full flex-col align-middle">
         {MAIN_MENU_ITEMS.map((menu, index) => (
           <SideNavMenuItem
             title={menu.title}

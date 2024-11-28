@@ -1,6 +1,14 @@
 "use client";
 
+import { LucidePlus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import React from "react";
+
+import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
+
+import { Client } from "./clients-table";
+import { NewInvoiceForm } from "./forms/new-invoice-form";
+import { Button } from "./ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,13 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { Button } from "./ui/button";
 import { toast } from "./ui/use-toast";
-import { Client } from "./clients-table";
-import { LucidePlus } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { NewInvoiceForm } from "./forms/new-invoice-form";
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 
 export interface iProps {
   clients: Client[];
@@ -74,7 +76,7 @@ export function AddInvoice({ clients, token, onChange, open }: iProps) {
         <Button
           onClick={() => onChange(true)}
           variant="outline"
-          className="bg-black text-white w-48"
+          className="w-48 bg-black text-white"
         >
           <LucidePlus className="size-4" />
           Create Invoice

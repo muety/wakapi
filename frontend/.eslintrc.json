@@ -1,0 +1,55 @@
+{
+  "extends": [
+    "plugin:react/recommended",
+    "next",
+    "next/typescript",
+    "next/core-web-vitals",
+    "eslint:recommended",
+    "plugin:@next/next/recommended",
+    "plugin:prettier/recommended",
+    "plugin:react/jsx-runtime",
+    "plugin:tailwindcss/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
+  ],
+  "plugins": [
+    "simple-import-sort",
+    "unused-imports",
+    "react",
+    "prettier",
+    "react-hooks",
+    "tailwindcss",
+    "@typescript-eslint"
+  ],
+  "parser": "@typescript-eslint/parser", // Specify the TypeScript parser
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "rules": {
+    "prettier/prettier": [
+      "error",
+      { "endOfLine": "auto", "trailingComma": "es5" }
+    ],
+    "react/react-in-jsx-scope": "off", // Disable react import check (React 17+ automatic JSX transform)
+    "simple-import-sort/imports": "error",
+    "simple-import-sort/exports": "error",
+    "unused-imports/no-unused-imports": "error",
+    "react/no-unescaped-entities": "off",
+    "react/jsx-uses-react": "off", // Disable React import check
+    "@typescript-eslint/no-explicit-any": "warn", // Warn about explicit 'any' type in TypeScript
+    "react/prop-types": "off" // Disable prop-types rule (if using TypeScript, you may not need this)
+  },
+  "settings": {
+    "react": {
+      "version": "detect" // Automatically detect the React version
+    },
+    "tailwindcss": {
+      "config": "./tailwind.config.js" // Optional: specify your custom Tailwind config path
+    }
+  }
+}

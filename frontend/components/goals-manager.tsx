@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Goal } from "./goal";
+import { useEffect, useState } from "react";
+
 import { GoalData, Project } from "@/lib/types";
+
 import { AddGoalDialogV2 } from "./add-goal-v2";
+import { Goal } from "./goal";
 
 interface IProps {
   token: string;
@@ -42,7 +44,7 @@ export default function GoalsManager({
 
   return (
     <div className="mx-2 my-6">
-      <div className="flex justify-between items-center mb-5">
+      <div className="mb-5 flex items-center justify-between">
         <h1 className="text-4xl">Work Goals</h1>
         <AddGoalDialogV2
           onAddGoal={onAddGoal}

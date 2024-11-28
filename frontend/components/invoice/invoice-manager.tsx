@@ -1,19 +1,20 @@
 "use client";
 
-import React from "react";
-import styles from "./invoice-manager.module.css";
-
 import { format } from "date-fns";
-import { Button } from "../ui/button";
-import { InvoicePreview } from "./invoice-preview";
+import { LucidePlusCircle, LucideTrash2 } from "lucide-react";
+import React from "react";
+
+import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
+import { getCurrencySymbol } from "@/lib/constants/currencies";
+import { useClientSession } from "@/lib/session";
 import { Invoice, InvoiceLineItem } from "@/lib/types";
 import { cn, formatNumber, getHours } from "@/lib/utils";
-import { LucidePlusCircle, LucideTrash2 } from "lucide-react";
-import { getCurrencySymbol } from "@/lib/constants/currencies";
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
-import { toast } from "../ui/use-toast";
+
 import { Icons } from "../icons";
-import { useClientSession } from "@/lib/session";
+import { Button } from "../ui/button";
+import { toast } from "../ui/use-toast";
+import styles from "./invoice-manager.module.css";
+import { InvoicePreview } from "./invoice-preview";
 
 interface iProps {
   data: Invoice;
@@ -55,7 +56,7 @@ export function InvoiceManager({ data }: iProps) {
     return lineItems.reduce((acc, item) => {
       return acc + getHours(+item.total_seconds) * client.hourly_rate;
     }, 0);
-  }, [lineItems]);
+  }, [lineItems, client.hourly_rate]);
 
   const taxTotal = React.useMemo(() => {
     const parsedTax = parseInt(tax.toString());
@@ -90,7 +91,7 @@ export function InvoiceManager({ data }: iProps) {
 
   const saveInvoice = async () => {
     try {
-      const payload: Record<string, any> = {
+      const payload: Record<string, string | number | InvoiceLineItem[]> = {
         origin,
         destination,
         heading,
@@ -148,12 +149,12 @@ export function InvoiceManager({ data }: iProps) {
 
   return (
     <div className={cn(styles.root, "px-6 my-6 mx-2 min-h-screen")}>
-      <h1 className="my-5 text-xl text">
+      <h1 className="text my-5 text-xl">
         Invoice for <b>{client.name}</b>
       </h1>
       <main className={styles.main}>
         <div className="flex justify-between">
-          <div className="max-w-lg w-100 w-full">
+          <div className="w-100 w-full max-w-lg">
             <div>
               <h1 className="text-3xl">INVOICE</h1>
               <textarea
@@ -189,7 +190,7 @@ export function InvoiceManager({ data }: iProps) {
             </div>
           </div>
           <div className="flex">
-            <div className="flex flex-col justify-items-end items-end mr-1">
+            <div className="mr-1 flex flex-col items-end justify-items-end">
               <h1 className="font-bold">Invoice #: </h1>
               <h1 className="font-bold">Date: </h1>
             </div>
@@ -233,7 +234,7 @@ export function InvoiceManager({ data }: iProps) {
                   </td>
                   <td>{client.hourly_rate.toFixed(2)}</td>
                   <td>
-                    {!(item as any).auto_generated ? (
+                    {!(item as InvoiceLineItem).auto_generated ? (
                       <input
                         className={cn(styles.invoiceInput, "text-center")}
                         placeholder="Invoice Item"
@@ -260,12 +261,12 @@ export function InvoiceManager({ data }: iProps) {
                   <td className={cn(styles.invoiceAction, "text-right")}>
                     <div className="flex justify-end">
                       <div
-                        className="flex hover:border-red-700 hover:text-red-700 text-red-400 justify-center border-red-400 border rounded-sm p-0 m-0"
+                        className="m-0 flex justify-center rounded-sm border border-red-400 p-0 text-red-400 hover:border-red-700 hover:text-red-700"
                         style={{ width: "25px", padding: "2px" }}
                       >
                         <LucideTrash2
                           onClick={deleteInvoiceItem(index)}
-                          className="size-4 text-center m-0 p-0 "
+                          className="m-0 size-4 p-0 text-center "
                         />
                       </div>
                     </div>
@@ -289,9 +290,9 @@ export function InvoiceManager({ data }: iProps) {
           </table>
         </div>
 
-        <div className="flex justify-end my-3">
+        <div className="my-3 flex justify-end">
           <div className="flex gap-3">
-            <div className="flex flex-col justify-center items-end mr-1 gap-1">
+            <div className="mr-1 flex flex-col items-end justify-center gap-1">
               <h1 className="font-bold">Total </h1>
               <h1 className="font-bold">
                 Tax{" "}
@@ -304,7 +305,7 @@ export function InvoiceManager({ data }: iProps) {
               </h1>
               <h1 className="font-bold">Total After Tax </h1>
             </div>
-            <div className="flex flex-col justify-end items-end gap-1">
+            <div className="flex flex-col items-end justify-end gap-1">
               <p>{formatNumber(totalInvoice, { currency: client.currency })}</p>
               <p>{formatNumber(taxTotal, { currency: client.currency })}</p>
               <p>{formatNumber(netTotal, { currency: client.currency })}</p>

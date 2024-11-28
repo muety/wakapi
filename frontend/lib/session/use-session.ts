@@ -2,7 +2,7 @@ import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 
 import { fetchJson } from "../utils";
-import { SessionData, SessionUser, defaultSession } from "./options";
+import { defaultSession, SessionData, SessionUser } from "./options";
 
 const sessionApiRoute = "/api/session";
 const signUpRoute = "/api/session/signup";

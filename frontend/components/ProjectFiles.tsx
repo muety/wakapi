@@ -2,8 +2,9 @@
 
 import { truncate } from "lodash";
 import { LucideCopy } from "lucide-react";
-import { SummariesResponse } from "@/lib/types";
+
 import { toast } from "@/components/ui/use-toast";
+import { SummariesResponse } from "@/lib/types";
 
 export interface iProps {
   data: SummariesResponse[];
@@ -38,6 +39,7 @@ function TableRow({
       toast({
         title: "Copy to clipboard failed",
         description:
+          (error as Error).message ||
           "You're likely using an old browser that doesn't support this feature.",
         variant: "destructive",
       });
@@ -49,7 +51,7 @@ function TableRow({
       <td className="text-right text-xs">{formatFileName(name)}</td>
       {showCopy && (
         <td
-          className="text-right text-xs w-1"
+          className="w-1 text-right text-xs"
           onClick={() => copyApiKeyToClickBoard(name)}
         >
           <LucideCopy className="hover-view cursor-pointer" size={10} />

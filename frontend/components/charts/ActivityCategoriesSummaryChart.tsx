@@ -1,7 +1,7 @@
 "use client";
 import { ResponsiveContainer } from "recharts";
+import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 
-import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 import { StackedTooltipContentForCategories } from "./StackedTooltipContent";
 
 export const getPercent = (value: number, total: number) => {

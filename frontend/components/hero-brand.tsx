@@ -1,10 +1,10 @@
 "use client";
 
+import { Rubik } from "next/font/google";
 import Image from "next/image";
+
 import { cn } from "@/lib/utils";
 
-import React from "react";
-import { Rubik } from "next/font/google";
 import CustomLink from "./custom-link";
 import { useSidebar } from "./ui/sidebar";
 const rubik = Rubik({ subsets: ["latin"] });
@@ -26,9 +26,10 @@ export function HeroBrand({
   logoType = "none",
   inDashboard = false,
 }: HeroBrandProps) {
-  const sidebar = inDashboard ? useSidebar() : { open: true };
+  const sidebarContext = useSidebar();
+  const sidebar = inDashboard ? sidebarContext : { open: true };
   return (
-    <div className="flex gap-4 items-center justify-center md:justify-start">
+    <div className="flex items-center justify-center gap-4 md:justify-start">
       <CustomLink
         href="/"
         className={cn("flex --font-heading items-center", rubik.className)}
@@ -36,7 +37,7 @@ export function HeroBrand({
         {logoType === "none" && (
           <>
             <Image
-              src={"/white-logo.svg"}
+              src={"/white-logo.png"}
               alt="Logo"
               width={imgWidth}
               height={imgHeight}
@@ -54,7 +55,7 @@ export function HeroBrand({
 
         {logoType === "white" && (
           <Image
-            src={"/white-logo.svg"}
+            src={"/white-logo.png"}
             alt="Logo"
             width={imgWidth}
             height={imgHeight}

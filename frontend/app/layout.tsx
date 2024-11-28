@@ -1,13 +1,15 @@
+import "@/app/styles/globals.css";
+
+import type { Viewport } from "next";
+import { Metadata } from "next";
 import { Inter as FontSans, Rubik } from "next/font/google";
 import localFont from "next/font/local";
-import { Metadata } from "next";
-import "@/app/styles/globals.css";
-import { siteConfig } from "@/config/site";
-import { cn } from "@/lib/utils";
-import { Toaster } from "@/components/ui/toaster";
+
 import { TailwindIndicator } from "@/components/tailwind-indicator";
 import { ThemeProvider } from "@/components/theme-provider";
-import type { Viewport } from "next";
+import { Toaster } from "@/components/ui/toaster";
+import { siteConfig } from "@/config/site";
+import { cn } from "@/lib/utils";
 
 const fontSans = FontSans({
   subsets: ["latin"],

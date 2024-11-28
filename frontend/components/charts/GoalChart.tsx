@@ -1,7 +1,5 @@
 "use client";
 
-import { GoalChartData } from "@/lib/types";
-import { convertSecondsToHours } from "@/lib/utils";
 import {
   Bar,
   Cell,
@@ -13,6 +11,10 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+
+import { GoalChartData } from "@/lib/types";
+import { convertSecondsToHours } from "@/lib/utils";
+
 import { StackedTooltipContent } from "./StackedTooltipContent";
 
 interface iProps {

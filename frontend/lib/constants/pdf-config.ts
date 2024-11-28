@@ -1,6 +1,6 @@
-import generatePDF, { Resolution, Margin } from "react-to-pdf";
+import { Margin, Resolution } from "react-to-pdf";
 
-const options = {
+export const options = {
   // default is `save`
   method: "open",
   // default is Resolution.MEDIUM = 3, which should be enough, higher values

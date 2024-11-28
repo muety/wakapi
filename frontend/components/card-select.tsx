@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
+
 import { Card, CardContent } from "@/components/ui/card";
 
 interface Option {
@@ -77,7 +78,7 @@ export default function CardSelect({ options, onChange }: CardSelectProps) {
           tabIndex={0}
           onClick={() => handleSelect(option)}
         >
-          <CardContent className="p-4 relative overflow-hidden">
+          <CardContent className="relative overflow-hidden p-4">
             <span className="text-sm font-medium">{option.label}</span>
             <Ripple />
           </CardContent>
@@ -115,7 +116,7 @@ function Ripple() {
 
   return (
     <div
-      className="absolute inset-0 pointer-events-none"
+      className="pointer-events-none absolute inset-0"
       onMouseDown={addRipple}
     >
       {ripples.map((ripple, index) => (
@@ -127,7 +128,7 @@ function Ripple() {
             width: ripple.size,
             height: ripple.size,
           }}
-          className="absolute bg-white opacity-30 rounded-full transform scale-0 animate-ripple"
+          className="animate-ripple absolute scale-0 rounded-full bg-white opacity-30"
         />
       ))}
     </div>

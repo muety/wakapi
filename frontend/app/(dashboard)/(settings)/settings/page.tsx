@@ -1,13 +1,13 @@
+import { getSession } from "@/actions";
 import { ApiKeyCopier } from "@/components/copy-api-key";
 import {
   Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
 } from "@/components/ui/card";
-import { getSession } from "@/actions";
 import { WakatimeIntegration } from "@/components/wakatime-integration";
 
 export default async function Page() {
@@ -45,7 +45,7 @@ export default async function Page() {
         <p></p>
         {session.user.has_wakatime_integration && (
           <CardFooter className="border-t px-6 py-4">
-            <p className="text-green-500 text-sm">
+            <p className="text-sm text-green-500">
               You have integrated wakatime. Our server will relay all heartbeats
               to your wakatime account
             </p>

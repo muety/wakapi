@@ -1,7 +1,6 @@
-import GoalsManager from "@/components/goals-manager";
-
-import { GoalData, Project } from "@/lib/types";
 import { fetchData, getSession } from "@/actions";
+import GoalsManager from "@/components/goals-manager";
+import { GoalData, Project } from "@/lib/types";
 
 export default async function Goals() {
   const session = await getSession();
@@ -20,7 +19,7 @@ export default async function Goals() {
   const goals = goalData.data;
 
   return (
-    <div className="panel panel-default p-2 px-6 my-6 mx-2 min-h-screen min-w-full">
+    <div className="panel panel-default mx-2 my-6 min-h-screen min-w-full p-2 px-6">
       <GoalsManager
         goals={goals}
         token={session.token}

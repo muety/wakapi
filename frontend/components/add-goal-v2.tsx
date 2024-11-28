@@ -1,6 +1,10 @@
 "use client";
 
-import { Icons } from "./icons";
+import { LucidePlus } from "lucide-react";
+import { useReducer } from "react";
+import React from "react";
+import useSWRMutation from "swr/mutation";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,25 +14,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { LucidePlus } from "lucide-react";
-import { useReducer } from "react";
-import WMultiSelect from "./w-multi-select";
 import { toast } from "@/components/ui/use-toast";
-import { cn } from "@/lib/utils";
+import { mutateData } from "@/hooks/api-utils";
 import {
   CATEGORY_OPTIONS,
   EDITOR_OPTIONS,
   LANGUAGE_OPTIONS,
 } from "@/lib/constants";
-import { Project } from "@/lib/types";
-import { ClickToSelect } from "./click-to-select";
-import { Input } from "./ui/input";
-import React from "react";
 import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
+import { Project } from "@/lib/types";
+import { cn } from "@/lib/utils";
+
 import styles from "./add-goal.module.css";
+import { ClickToSelect } from "./click-to-select";
+import { Icons } from "./icons";
 import { SimpleSelect } from "./simple-select";
-import useSWRMutation from "swr/mutation";
-import { mutateData } from "@/hooks/api-utils";
+import { Input } from "./ui/input";
+import WMultiSelect from "./w-multi-select";
 
 // Define the GoalActionType enum
 enum GoalActionType {
@@ -78,6 +80,7 @@ const initialState: GoalState = {
   hasCompletedSecondStep: false,
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 enum GoalOption {
   overall = "overall",
   language = "language",
@@ -403,7 +406,7 @@ export function AddGoalDialogV2({
             <div>
               <div className={styles.label}>For...</div>
             </div>
-            <div className="flex gap-2 items-middle">
+            <div className="items-middle flex gap-2">
               <Input
                 pattern="^[^eE]+$"
                 onChange={(event) =>
@@ -413,7 +416,7 @@ export function AddGoalDialogV2({
                   })
                 }
                 type="number"
-                className="w-16 inline-block mr-1"
+                className="mr-1 inline-block w-16"
               />
               <ClickToSelect
                 options={["hrs", "mins", "secs"]}
@@ -429,7 +432,7 @@ export function AddGoalDialogV2({
           </div>
         )}
         <Button
-          className="block w-full mt-5"
+          className="mt-5 block w-full"
           size={"lg"}
           style={{
             borderRadius: "6px",
@@ -585,7 +588,7 @@ export function AddGoalDialogV3({
         {/* <hr /> */}
         <div>
           {!selectedGoalOption && (
-            <div className="flex py-4 items-baseline mb-8">
+            <div className="mb-8 flex items-baseline py-4">
               <h1
                 className="text-black"
                 style={{ fontSize: "30px", fontWeight: 400 }}
@@ -690,7 +693,7 @@ export function AddGoalDialogV3({
           />
         )}
         {hasCompletedSecondStep && (
-          <div className="flex py-4 items-baseline mb-8">
+          <div className="mb-8 flex items-baseline py-4">
             <h1
               className="text-black"
               style={{ fontSize: "24px", fontWeight: 400 }}
@@ -705,7 +708,7 @@ export function AddGoalDialogV3({
                   })
                 }
                 type="number"
-                className="w-16 inline-block mr-1"
+                className="mr-1 inline-block w-16"
               />
               <ClickToSelect
                 options={["hrs", "mins", "secs"]}

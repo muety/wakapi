@@ -9,10 +9,10 @@ import { TOP_FAQS } from "@/lib/constants/faqs";
 export function FAQ() {
   return (
     <div
-      className="flex flex-col justify-center align-middle m-auto px-14 mx-14 text-md"
+      className="text-md m-auto mx-14 flex flex-col justify-center px-14 align-middle"
       style={{ minHeight: "70vh" }}
     >
-      <h1 className="text-6xl mb-8 text-center">FAQs</h1>
+      <h1 className="mb-8 text-center text-6xl">FAQs</h1>
       <Accordion type="single" collapsible>
         {TOP_FAQS.map((faq) => (
           <AccordionItem value={faq.question} key={faq.question}>

@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
 import dayjs from "dayjs";
-import Chart from "./StackedBarChart";
+import React from "react";
+
 import { DEFAULT_STACK_COLORS, genStackColorScales } from "./Charts.constants";
+import Chart from "./StackedBarChart";
 
 const DATA = [290, 430, 649, 422, 321].flatMap((value, index) => [
   {

@@ -1,7 +1,7 @@
-import { Invoice } from "@/lib/types";
 import { fetchData, getSession } from "@/actions";
-import { InvoicesTable } from "@/components/invoice-table";
 import { ClientsApiResponse } from "@/components/clients-table";
+import { InvoicesTable } from "@/components/invoice-table";
+import { Invoice } from "@/lib/types";
 
 export default async function Invoices() {
   const session = await getSession();
@@ -14,7 +14,7 @@ export default async function Invoices() {
   );
 
   return (
-    <div className="panel panel-default p-2 px-6 my-6 mx-2 min-h-screen">
+    <div className="panel panel-default mx-2 my-6 min-h-screen p-2 px-6">
       <InvoicesTable
         clients={clients?.data || []}
         invoices={invoices?.data || []}

@@ -1,23 +1,19 @@
 "use client";
 
+import Image from "next/image";
+
+import { useSessionUser } from "@/lib/session/use-session";
+
+import { Button } from "./ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import Image from "next/image";
-import React from "react";
-import { Button } from "./ui/button";
-import { SessionUser } from "@/lib/session/options";
-import { useSessionUser } from "@/lib/session/use-session";
-
-// interface UserAccountNavProps extends React.HTMLAttributes<HTMLDivElement> {
-//   user: Pick<SessionUser, "id" | "avatar" | "email">;
-// }
 
 export function UserDropdownMenu() {
-  const { data: user, isLoading } = useSessionUser();
+  const { data: user } = useSessionUser();
   return (
     <>
       <DropdownMenu>

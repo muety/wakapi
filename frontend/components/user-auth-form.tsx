@@ -1,22 +1,23 @@
 "use client";
 
-import * as z from "zod";
-import * as React from "react";
-
-import { cn } from "@/lib/utils";
-import { Form } from "./ui/form";
-import { useForm } from "react-hook-form";
-import { Icons } from "@/components/icons";
-import { useRouter } from "next/navigation";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/use-toast";
-import { loginAction } from "@/actions/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { userNameSchema } from "@/lib/validations/user";
-import { buttonVariants } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import * as React from "react";
 import { useFormState, useFormStatus } from "react-dom";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+
+import { loginAction } from "@/actions/auth";
+import { Icons } from "@/components/icons";
+import { buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/use-toast";
 import { startGithubLoginFlow } from "@/lib/oauth/github";
+import { cn } from "@/lib/utils";
+import { userNameSchema } from "@/lib/validations/user";
+
+import { Form } from "./ui/form";
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
   loading?: boolean;
@@ -56,13 +57,13 @@ export function UserAuthForm({
         onClick={onClick}
         disabled={pending}
       >
-        {pending && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
+        {pending && <Icons.spinner className="mr-2 size-4 animate-spin" />}
         Sign In
       </button>
     );
   };
 
-  const loginHandler = async (event: React.FormEvent<HTMLFormElement>) => {
+  const loginHandler = async () => {
     if (!(await form.trigger())) {
       return toast({
         title: "Invalid form",
@@ -93,8 +94,8 @@ export function UserAuthForm({
         <form action={formAction} ref={formRef}>
           <div className="grid gap-2">
             <div className="grid gap-1">
-              <div className="grid my-2">
-                <Label className="text-left sr-only my-1" htmlFor="email">
+              <div className="my-2 grid">
+                <Label className="sr-only my-1 text-left" htmlFor="email">
                   Email
                 </Label>
                 <Input
@@ -113,8 +114,8 @@ export function UserAuthForm({
                 )}
               </div>
 
-              <div className="grid my-2">
-                <Label className="text-left sr-only my-1" htmlFor="password">
+              <div className="my-2 grid">
+                <Label className="sr-only my-1 text-left" htmlFor="password">
                   Password
                 </Label>
                 <Input
@@ -158,9 +159,9 @@ export function UserAuthForm({
           disabled={isGitHubLoading}
         >
           {isGitHubLoading ? (
-            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            <Icons.spinner className="mr-2 size-4 animate-spin" />
           ) : (
-            <Icons.gitHub className="mr-2 h-4 w-4" />
+            <Icons.gitHub className="mr-2 size-4" />
           )}{" "}
           Github
         </button>

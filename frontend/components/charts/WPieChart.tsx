@@ -1,22 +1,24 @@
 "use client";
 
+import React, { useCallback, useState } from "react";
 import {
   Cell,
   Legend,
   Pie,
   PieChart,
   ResponsiveContainer,
-  Tooltip as RechartsTooltip,
   Sector,
+  Tooltip as RechartsTooltip,
 } from "recharts";
+
+import { useMediaQuery } from "@/hooks/use-media-query";
 import {
   convertSecondsToHoursAndMinutes,
   getEntityColor,
   getMachineColor,
 } from "@/lib/utils";
-import React, { useCallback, useState } from "react";
+
 import { DurationTooltip } from "./DurationTooltip";
-import { useMediaQuery } from "@/hooks/use-media-query";
 
 export interface WPieChartDataItem {
   key: string;
@@ -64,27 +66,18 @@ export function WPieChart({
 }: WPieChartProps) {
   const hideLegend = useMediaQuery("only screen and (max-width : 576px)");
 
-  const [activeIndex, setActiveIndex] = useState(null);
+  const [, setActiveIndex] = useState(null);
   const onMouseOver = useCallback(
     (_data: any, index: React.SetStateAction<null>) => {
       setActiveIndex(index);
     },
     []
   );
-  const onMouseLeave = useCallback((_data: any, _index: any) => {
+  const onMouseLeave = useCallback(() => {
     setActiveIndex(null);
   }, []);
 
-  const renderActiveShape = (props: {
-    cx: any;
-    cy: any;
-    innerRadius: any;
-    outerRadius: any;
-    startAngle: any;
-    endAngle: any;
-    midAngle: any;
-    fill: any;
-  }) => {
+  const renderActiveShape = (props: any) => {
     const RADIAN = Math.PI / 180;
     const {
       cx,
@@ -137,7 +130,7 @@ export function WPieChart({
     );
   }
 
-  const CustomizedTooltip = React.memo((props: any) => {
+  const CustomizedTooltip = (props: any) => {
     if (props.payload.length > 0) {
       const payload: any = props.payload[0];
       const percent =
@@ -159,7 +152,7 @@ export function WPieChart({
       );
     }
     return null;
-  });
+  };
 
   return (
     <>

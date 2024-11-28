@@ -1,3 +1,5 @@
+import { truncate } from "lodash";
+
 import {
   Table,
   TableBody,
@@ -8,14 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { TooltipWithProvider } from "./tooltip-with-provider";
-import { truncate } from "lodash";
 import { DataItem, LeaderboardApiResponse } from "@/lib/types";
+
+import { TooltipWithProvider } from "./tooltip-with-provider";
 
 function Hireable() {
   return (
     <div
-      className="border border-border rounded-md"
+      className="rounded-md border border-border"
       style={{ color: "#afc9f2", fontSize: "0.65rem", maxWidth: "50px" }}
     >
       hireable
@@ -36,7 +38,7 @@ function RenderLanguages({ languages }: { languages: string[] }) {
     <a
       key={index}
       href={`/leaderboards?languages=${item}`}
-      className="text-white hover:underline gap-2"
+      className="gap-2 text-white hover:underline"
     >
       {item},
     </a>
@@ -81,7 +83,7 @@ export function LeaderBoardTable({ title, data: leaderboardData }: iProps) {
       <div className="mb-2">
         <h1 className="text-4xl">{title}</h1>
       </div>
-      <Table className="w-full w-100">
+      <Table className="w-100 w-full">
         <TableCaption>
           <p>
             Leaderboard for the {range.text}. {range.start_text} -{" "}
@@ -91,22 +93,22 @@ export function LeaderBoardTable({ title, data: leaderboardData }: iProps) {
         <TableHeader>
           <TableRow>
             <TableHead className="w-[70px]">Rank</TableHead>
-            <TableHead className="text-left w-[300px]">Programmer</TableHead>
-            <TableHead className="text-left w-[300px]">
+            <TableHead className="w-[300px] text-left">Programmer</TableHead>
+            <TableHead className="w-[300px] text-left">
               <div className="flex items-center gap-2">
                 Hours Coded
                 <TooltipWithProvider description="Total hours coded over the last 7 days from Yesterday, using default 15 minute timeout, only showing coding activity from known languages." />
               </div>
             </TableHead>
-            <TableHead className="text-left w-[150px] flex items-center gap-2">
+            <TableHead className="flex w-[150px] items-center gap-2 text-left">
               Daily Average
               <TooltipWithProvider description="Average hours coded per day, excluding days with zero coding activity." />
             </TableHead>
             <TableHead className="text-left" style={{ maxWidth: "500px" }}>
               Languages Used
             </TableHead>
-            <TableHead className="text-right w-40"></TableHead>
-            <TableHead className="text-right w-24"></TableHead>
+            <TableHead className="w-40 text-right"></TableHead>
+            <TableHead className="w-24 text-right"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -117,15 +119,15 @@ export function LeaderBoardTable({ title, data: leaderboardData }: iProps) {
               <TableCell>{leader.hours_coded}</TableCell>
               <TableCell>{leader.daily_average}</TableCell>
               <TableCell
-                className="text-right truncate"
+                className="truncate text-right"
                 style={{ maxWidth: "550px" }}
               >
                 <RenderLanguages languages={leader.languages} />
               </TableCell>
-              <TableCell className="text-center font-semibold w-32">
+              <TableCell className="w-32 text-center font-semibold">
                 {leader.hireable && <Hireable />}
               </TableCell>
-              <TableCell className="text-right font-semibold w-24"></TableCell>
+              <TableCell className="w-24 text-right font-semibold"></TableCell>
             </TableRow>
           ))}
         </TableBody>

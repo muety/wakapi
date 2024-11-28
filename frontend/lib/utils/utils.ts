@@ -1,11 +1,12 @@
+import colorLib, { Color, RGBA } from "@kurkle/color";
+import { type ClassValue, clsx } from "clsx";
+import { format } from "date-fns";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import colorLib, { Color, RGBA } from "@kurkle/color";
+
 import { COLORS, SAMPLE_COLORS } from "../constants";
-import { format } from "date-fns";
 import { Category, SummariesResponse } from "../types";
 
 dayjs.extend(duration);
@@ -27,7 +28,7 @@ export function transparentize(
   value: string | number[] | Color | RGBA,
   opacity?: number | undefined
 ) {
-  var alpha = opacity === undefined ? 0.5 : 1 - opacity;
+  const alpha = opacity === undefined ? 0.5 : 1 - opacity;
   return colorLib(value).alpha(alpha).rgbString();
 }
 
@@ -41,7 +42,7 @@ export function makePieChartDataFromRawApiResponse(
     | "machines"
     | "projects"
 ) {
-  const pieData: Record<string, any> = {};
+  const pieData: Record<string, number> = {};
   for (const response of responses) {
     for (const keyData of response[key]) {
       if (pieData[keyData.name]) {
@@ -92,7 +93,7 @@ export function brightenHexColor(hex: string, percent: number) {
   let b = parseInt(hex.slice(5, 7), 16);
 
   // Calculate brightness adjustment
-  let amount = Math.round(255 * (percent / 100));
+  const amount = Math.round(255 * (percent / 100));
 
   // Brighten the color by increasing RGB values
   r = Math.min(255, r + amount);
@@ -142,7 +143,7 @@ export function getRandomBrightColor(format = "hex") {
 }
 
 const selected = new Set();
-const machineColors: Record<string, any> = {};
+const machineColors: Record<string, string> = {};
 
 export function getRandomColor() {
   const color_group = SAMPLE_COLORS;
@@ -227,7 +228,7 @@ export function getMachineColor(machineId: string) {
   return color;
 }
 
-export const convertSecondsToHours = (seconds: any) => {
+export const convertSecondsToHours = (seconds: number) => {
   if (seconds === 0) return seconds;
   return (seconds / 60 / 60).toFixed(2) + "hrs";
 };
@@ -254,13 +255,13 @@ export function prepareDailyCodingData(arg: SummariesResponse) {
 }
 
 export function normalizeChartData(
-  rawChartData: Record<string, any>[]
+  rawChartData: Record<string, number>[]
 ): [any, string[]] {
   const projects = new Set<string>();
   rawChartData.forEach((d) =>
-    Object.keys(d).forEach((key) => {
-      !["name", "total"].includes(key) && projects.add(key);
-    })
+    Object.keys(d).forEach(
+      (key) => !["name", "total"].includes(key) && projects.add(key)
+    )
   );
   for (const data of rawChartData) {
     for (const projectKey of Array.from(projects)) {
@@ -290,7 +291,7 @@ export function makeCategorySummaryData(
     const daySummary: Record<string, any> = getDaySummary(summary.categories);
     Object.keys(daySummary).forEach((key) => {
       if (groupedTotals[key]) {
-        groupedTotals[key] + daySummary[key];
+        groupedTotals[key] += daySummary[key];
       } else {
         groupedTotals[key] = daySummary[key];
       }
@@ -324,6 +325,7 @@ export function makeCategorySummaryDataForWeekdays(
     const daySummary: Record<string, any> = getDaySummary(summary.categories);
     Object.keys(daySummary).forEach((key) => {
       if (groupedTotals[key]) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         groupedTotals[key] + daySummary[key];
       } else {
         groupedTotals[key] = daySummary[key];

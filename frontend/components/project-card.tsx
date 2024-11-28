@@ -10,7 +10,7 @@ export function ProjectCard({
       <a className="project-card" href={"/projects/" + title}>
         <div className="project-content">
           <h3 className="text-2xl font-normal">{title}</h3>
-          <h4 className="text-gray-500 text-lg" style={{ color: "#777777" }}>
+          <h4 className="text-lg text-gray-500" style={{ color: "#777777" }}>
             {duration}
           </h4>
         </div>

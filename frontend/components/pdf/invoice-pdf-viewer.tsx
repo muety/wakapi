@@ -1,8 +1,9 @@
-import React from "react";
+import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { format } from "date-fns";
+import React from "react";
+
 import { Invoice } from "@/lib/types";
 import { formatCurrency, formatNumber, getHours } from "@/lib/utils";
-import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 
 interface iProps {
   invoiceData: Invoice;
@@ -24,7 +25,7 @@ export const InvoicePDFViewer = ({ invoiceData }: iProps) => {
     return line_items.reduce((acc, item) => {
       return acc + getHours(item.total_seconds) * client.hourly_rate;
     }, 0);
-  }, [line_items]);
+  }, [line_items, client.hourly_rate]);
 
   const taxTotal = React.useMemo(() => {
     if (isNaN(tax)) {

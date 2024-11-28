@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import { useState } from "react";
 import {
   Bar,
@@ -9,17 +10,16 @@ import {
   Tooltip,
   XAxis,
 } from "recharts";
+
+import { SAMPLE_COLORS } from "@/lib/constants";
+import { SummariesResponse } from "@/lib/types";
 import {
-  brightenHexColor,
-  getMachineColor,
   normalizeChartData,
   prepareDailyCodingData,
   transparentize,
 } from "@/lib/utils";
+
 import { StackedTooltipContent } from "./StackedTooltipContent";
-import { SummariesResponse } from "@/lib/types";
-import { SAMPLE_COLORS } from "@/lib/constants";
-import { useTheme } from "next-themes";
 
 export interface iProps {
   data: SummariesResponse[];
@@ -32,7 +32,7 @@ export function DailyCodingSummaryOverTime({ data }: iProps) {
   // Normalizing seems to bring us closer to an optimum solution but has its own
   // pitfals? It just looks nicer but the labels are fucked
   const chartData = data.map(prepareDailyCodingData);
-  const [_, uniqueProjects] = normalizeChartData(
+  const [, uniqueProjects] = normalizeChartData(
     data.map(prepareDailyCodingData)
   );
 

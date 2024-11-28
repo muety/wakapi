@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface Option {
   id: string;
@@ -56,7 +56,7 @@ export default function TypeformSelect({
 
   return (
     <div
-      className=" items-center space-y-4 gap-2"
+      className=" items-center gap-2 space-y-4"
       role="radiogroup"
       aria-label="Select an option"
       onKeyDown={handleKeyDown}
@@ -66,12 +66,12 @@ export default function TypeformSelect({
           key={option.id}
           ref={(el) => (buttonRefs.current[index] = el)}
           className={`
-            relative w-full py-1 px-1 text-left text-lg h-10 font-medium rounded-lg transition-all duration-200 ease-in-out
-            focus:outline-none focus:ring-1 focus:ring-primary focus:ring-offset-2
+            relative h-10 w-full rounded-lg p-1 text-left text-lg font-medium transition-all duration-200 ease-in-out focus:outline-none
+            focus:ring-1 focus:ring-primary focus:ring-offset-2
             ${
               selectedOption?.id === option.id
                 ? "bg-primary text-primary-foreground"
-                : "bg-background hover:bg-secondary/50 text-foreground"
+                : "bg-background text-foreground hover:bg-secondary/50"
             }
           `}
           role="radio"
@@ -114,7 +114,7 @@ function Ripple() {
 
   return (
     <div
-      className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg"
+      className="pointer-events-none absolute inset-0 overflow-hidden rounded-lg"
       onMouseDown={addRipple}
     >
       {ripples.map((ripple, index) => (
@@ -126,7 +126,7 @@ function Ripple() {
             width: ripple.size,
             height: ripple.size,
           }}
-          className="absolute bg-white opacity-30 rounded-full transform scale-0 animate-ripple"
+          className="animate-ripple absolute scale-0 rounded-full bg-white opacity-30"
         />
       ))}
     </div>

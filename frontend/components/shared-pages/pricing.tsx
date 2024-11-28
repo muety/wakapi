@@ -34,14 +34,15 @@ export const Prices = [
 export function Pricing() {
   return (
     <div
-      className="flex flex-col justify-center align-middle m-auto px-14 mx-14 text-md"
+      className="text-md m-auto mx-14 flex flex-col justify-center px-14 align-middle"
       style={{ minHeight: "70vh" }}
     >
-      <h1 className="text-6xl mb-8 text-center">Pricing</h1>
+      <h1 className="mb-8 text-center text-6xl">Pricing</h1>
       <p>
-        Wakana is free to use forever. You'll have 1 month dashboard history in
-        addition to all features like goals, invoices and per project views as
-        well as shareables for websites like github - all without paying a cent.
+        Wakana is free to use forever. You&apos;ll have 1 month dashboard
+        history in addition to all features like goals, invoices and per project
+        views as well as shareables for websites like github - all without
+        paying a cent.
       </p>
       <br />
       <p>
@@ -51,8 +52,8 @@ export function Pricing() {
       </p>
 
       <div className="mt-12">
-        <h1 className="text-center text-4xl my-5 mt-12">For Individuals</h1>
-        <div className="flex flex-wrap justify-center gap-8 mt-12">
+        <h1 className="my-5 mt-12 text-center text-4xl">For Individuals</h1>
+        <div className="mt-12 flex flex-wrap justify-center gap-8">
           {Prices.map((price) => (
             <PricingCard key={price.title} {...price} />
           ))}

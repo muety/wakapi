@@ -41,9 +41,10 @@
 // 	});
 // }, 2000);
 
-import React, { useEffect, useRef } from "react";
 import "billboard.js/dist/billboard.css";
+
 import bb, { ChartOptions } from "billboard.js";
+import { useEffect, useRef } from "react";
 
 const CustomBillboardChart = ({ options }: { options: ChartOptions }) => {
   console.log("options", options);

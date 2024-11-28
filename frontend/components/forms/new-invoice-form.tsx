@@ -1,12 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import React from "react";
-import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
@@ -16,13 +18,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Combobox } from "../combo-box";
+import { cn } from "@/lib/utils";
+
 import { Client } from "../clients-table";
+import { Combobox } from "../combo-box";
 import { Icons } from "../icons";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
 
 const formSchema = z.object({
   client: z.string(),
@@ -99,7 +100,7 @@ export function NewInvoiceForm({ onSubmit, clients, loading = false }: iProps) {
                       ) : (
                         <span>Pick a date</span>
                       )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      <CalendarIcon className="ml-auto size-4 opacity-50" />
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
@@ -141,7 +142,7 @@ export function NewInvoiceForm({ onSubmit, clients, loading = false }: iProps) {
                       ) : (
                         <span>Pick a date</span>
                       )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      <CalendarIcon className="ml-auto size-4 opacity-50" />
                     </Button>
                   </FormControl>
                 </PopoverTrigger>

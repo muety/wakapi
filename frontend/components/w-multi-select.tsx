@@ -1,13 +1,12 @@
-// src/app/page.tsx
+"use client";
 
-"use client"; // mandatory
+import { useState } from "react";
 
-import React, { useState } from "react";
 import { MultiSelect, MultiSelectOption } from "@/components/multi-select";
 
 interface iProps {
   options: MultiSelectOption[];
-  onSelectedOptionsChanged: Function;
+  onSelectedOptionsChanged: (value: string[]) => any;
   title?: string;
   placeholder: string;
   defaultValue?: string[];

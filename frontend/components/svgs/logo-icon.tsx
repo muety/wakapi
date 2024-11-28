@@ -15,7 +15,7 @@ export function LogoIcon() {
           r="150"
           fill="none"
           stroke="black"
-          stroke-width="40"
+          strokeWidth="40"
         />
         <line
           x1="0"
@@ -23,8 +23,8 @@ export function LogoIcon() {
           x2="0"
           y2="-100"
           className="text"
-          stroke-width="40"
-          stroke-linecap="round"
+          strokeWidth="40"
+          strokeLinecap="round"
         />
         <line
           x1="0"
@@ -32,8 +32,8 @@ export function LogoIcon() {
           x2="80"
           y2="0"
           stroke="black"
-          stroke-width="20"
-          stroke-linecap="round"
+          strokeWidth="20"
+          strokeLinecap="round"
         />
         <line
           x1="0"
@@ -41,8 +41,8 @@ export function LogoIcon() {
           x2="0"
           y2="-135"
           stroke="black"
-          stroke-width="10"
-          stroke-linecap="round"
+          strokeWidth="10"
+          strokeLinecap="round"
         />
         <line
           x1="165"
@@ -50,8 +50,8 @@ export function LogoIcon() {
           x2="135"
           y2="0"
           stroke="black"
-          stroke-width="10"
-          stroke-linecap="round"
+          strokeWidth="10"
+          strokeLinecap="round"
         />
         <line
           x1="0"
@@ -59,8 +59,8 @@ export function LogoIcon() {
           x2="0"
           y2="135"
           stroke="black"
-          stroke-width="10"
-          stroke-linecap="round"
+          strokeWidth="10"
+          strokeLinecap="round"
         />
         <line
           x1="-165"
@@ -68,8 +68,8 @@ export function LogoIcon() {
           x2="-135"
           y2="0"
           stroke="black"
-          stroke-width="10"
-          stroke-linecap="round"
+          strokeWidth="10"
+          strokeLinecap="round"
         />
       </g>
     </svg>

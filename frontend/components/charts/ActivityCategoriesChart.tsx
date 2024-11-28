@@ -4,14 +4,16 @@ import {
   Bar,
   BarChart,
   ResponsiveContainer,
-  XAxis,
   Tooltip as RechartsTooltip,
+  XAxis,
 } from "recharts";
+
 import { COLORS } from "@/lib/constants";
 import { SummariesResponse } from "@/lib/types";
-import { StackedTooltipContentForCategories } from "./StackedTooltipContent";
-import { ActivityCategoriesSummaryChart } from "./ActivityCategoriesSummaryChart";
 import { makeCategorySummaryData } from "@/lib/utils";
+
+import { ActivityCategoriesSummaryChart } from "./ActivityCategoriesSummaryChart";
+import { StackedTooltipContentForCategories } from "./StackedTooltipContent";
 
 export interface iProps {
   data: SummariesResponse[];
@@ -36,7 +38,7 @@ export function ActivityCategoriesChart({ data: rawSummaries }: iProps) {
             className="chart-x-axis"
           />
           <RechartsTooltip
-            content={StackedTooltipContentForCategories as any}
+            content={StackedTooltipContentForCategories}
             isAnimationActive={false}
             wrapperStyle={{ zIndex: 300 }}
           />

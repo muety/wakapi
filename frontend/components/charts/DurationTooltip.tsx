@@ -1,11 +1,12 @@
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
+import { useSearchParams } from "next/navigation";
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useSearchParams } from "next/navigation";
 import { getSelectedPeriodLabel } from "@/lib/utils";
 
 interface iProps {
@@ -26,7 +27,7 @@ export function DurationTooltip({ title, subtitle }: iProps) {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <QuestionMarkCircledIcon className="hover:opacity-70 cursor-pointer" />
+            <QuestionMarkCircledIcon className="cursor-pointer hover:opacity-70" />
           </TooltipTrigger>
           <TooltipContent>
             <p>

@@ -1,19 +1,19 @@
 "use client";
 
-import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
-import { cn } from "@/lib/utils";
-import { userSignupSchema } from "@/lib/validations/user";
+import { Icons } from "@/components/icons";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
-import { Icons } from "@/components/icons";
 import useSession from "@/lib/session/use-session";
-import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { userSignupSchema } from "@/lib/validations/user";
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
   loading?: boolean;
@@ -55,6 +55,8 @@ export function UserSignUpAuthForm({ className, ...props }: UserAuthFormProps) {
       password_repeat,
     })) as any;
 
+    console.log("create account response", res);
+
     if (res.status > 202) {
       setIsLoading(false);
       return toast({
@@ -79,8 +81,8 @@ export function UserSignUpAuthForm({ className, ...props }: UserAuthFormProps) {
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="grid gap-2">
           <div className="grid gap-1">
-            <div className="grid my-2">
-              <Label className="text-left sr-only my-1" htmlFor="email">
+            <div className="my-2 grid">
+              <Label className="sr-only my-1 text-left" htmlFor="email">
                 Email
               </Label>
               <Input
@@ -100,8 +102,8 @@ export function UserSignUpAuthForm({ className, ...props }: UserAuthFormProps) {
               )}
             </div>
 
-            <div className="grid my-2">
-              <Label className="text-left sr-only my-1" htmlFor="password">
+            <div className="my-2 grid">
+              <Label className="sr-only my-1 text-left" htmlFor="password">
                 Password
               </Label>
               <Input
@@ -121,9 +123,9 @@ export function UserSignUpAuthForm({ className, ...props }: UserAuthFormProps) {
               )}
             </div>
 
-            <div className="grid my-1">
+            <div className="my-1 grid">
               <Label
-                className="text-left sr-only my-2"
+                className="sr-only my-2 text-left"
                 htmlFor="password_repeat"
               >
                 Repeat Password
@@ -147,7 +149,7 @@ export function UserSignUpAuthForm({ className, ...props }: UserAuthFormProps) {
           </div>
           <button className={cn(buttonVariants())} disabled={isLoading}>
             {isLoading && (
-              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              <Icons.spinner className="mr-2 size-4 animate-spin" />
             )}
             Sign Up
           </button>
@@ -173,9 +175,9 @@ export function UserSignUpAuthForm({ className, ...props }: UserAuthFormProps) {
         disabled={isLoading || isGitHubLoading}
       >
         {isGitHubLoading ? (
-          <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+          <Icons.spinner className="mr-2 size-4 animate-spin" />
         ) : (
-          <Icons.gitHub className="mr-2 h-4 w-4" />
+          <Icons.gitHub className="mr-2 size-4" />
         )}{" "}
         Github
       </button>

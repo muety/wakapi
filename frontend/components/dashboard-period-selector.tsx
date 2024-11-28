@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
 import { format, subDays } from "date-fns";
+import { startCase } from "lodash";
 
 import {
   DropdownMenu,
@@ -9,11 +9,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-import { startCase } from "lodash";
 import {
-  DashboardRangeQuery,
   buildQueryForRangeQuery,
+  DashboardRangeQuery,
   getSelectedPeriodLabel,
 } from "@/lib/utils";
 
@@ -34,7 +32,7 @@ export function DashboardPeriodSelector({
           {getSelectedPeriodLabel(searchParams || {})}
         </span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 period-date-picker">
+      <DropdownMenuContent className="period-date-picker w-56">
         <DropdownMenuItem
           className="cursor-pointer hover:bg-primary hover:text-white"
           asChild

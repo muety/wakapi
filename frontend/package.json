@@ -9,7 +9,10 @@
   "scripts": {
     "dev": "next --experimental-https",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "next lint --fix",
+    "lintf": "eslint . --fix",
+    "prettify": "prettier --write ."
   },
   "author": "Jemilu Mohammed <jemiluv8@gmail.com>",
   "contributors": [
@@ -80,10 +83,48 @@
     "@types/node": "^18",
     "@types/react": "^18.2.23",
     "@types/react-dom": "^18.2.8",
+    "@typescript-eslint/eslint-plugin": "^8.16.0",
     "autoprefixer": "^10.4.15",
+    "eslint": "^8",
+    "eslint-config-next": "^15.0.3",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-next": "^0.0.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-tailwindcss": "^3.17.5",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
     "postcss": "^8.4.29",
+    "prettier": "^3.4.1",
+    "prettier-plugin-tailwindcss": "^0.6.9",
     "tailwindcss": "^3.3.3",
     "tsx": "^4.10.2",
     "typescript": "^5.2.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.jsx": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.tsx": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   }
 }

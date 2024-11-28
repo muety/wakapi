@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { Bar, BarChart, Cell, Legend, Tooltip, XAxis } from "recharts";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import React from "react";
+import { useState } from "react";
+import { Bar, BarChart, Cell, Legend, Tooltip, XAxis } from "recharts";
+
 import ChartHeader from "./ChartHeader";
 import {
   CHART_COLORS,
@@ -21,7 +23,7 @@ import {
 import NoDataPlaceholder from "./NoDataPlaceholder";
 dayjs.extend(utc);
 
-interface Props extends CommonChartProps<any> {
+interface Props extends CommonChartProps<unknown> {
   xAxisKey: string;
   yAxisKey: string;
   stackKey: string;
@@ -160,7 +162,7 @@ const StackedBarChart: React.FC<Props> = ({
                     timestampFormatter(
                       label,
                       customDateFormat,
-                      displayDateInUtc
+                      displayDateInUtc,
                     )
                 : undefined
             }
@@ -168,7 +170,7 @@ const StackedBarChart: React.FC<Props> = ({
               const suffix = format || "";
               if (variant === "percentages" && percentagesStackedData) {
                 const index = percentagesStackedData.findIndex(
-                  (pStack) => pStack === props.payload!
+                  (pStack) => pStack === props.payload!,
                 );
                 const val = stackedData[index][name];
                 const percentage =
@@ -194,14 +196,14 @@ const StackedBarChart: React.FC<Props> = ({
             {timestampFormatter(
               stackedData[0][xAxisKey] as string,
               customDateFormat,
-              displayDateInUtc
+              displayDateInUtc,
             )}
           </span>
           <span>
             {timestampFormatter(
               stackedData[stackedData?.length - 1][xAxisKey] as string,
               customDateFormat,
-              displayDateInUtc
+              displayDateInUtc,
             )}
           </span>
         </div>

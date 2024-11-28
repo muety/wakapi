@@ -1,13 +1,14 @@
-import { NextRequest } from "next/server";
-import { cookies } from "next/headers";
 import { getIronSession } from "iron-session";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { NextRequest } from "next/server";
+
+import { createIronSession } from "@/lib/server/auth";
 import {
-  SessionData,
   defaultSession,
+  SessionData,
   sessionOptions,
 } from "@/lib/session/options";
-import { redirect } from "next/navigation";
-import { createIronSession } from "@/lib/server/auth";
 
 const { API_URL } = process.env;
 
@@ -20,6 +21,7 @@ export async function POST(request: NextRequest) {
     return Response.json(
       {
         message: "Error parsing json request",
+        error,
       },
       { status: 400 }
     );

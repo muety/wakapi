@@ -1,9 +1,8 @@
 "use client";
 
-import * as React from "react";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
+import * as React from "react";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -18,6 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 export interface ComboboxOption {
   value: any;
@@ -44,7 +44,7 @@ export function Combobox({
   const [value, setValue] = React.useState(defaultValue || "");
 
   return (
-    <div className="w-100 w-full">
+    <div className="w-full">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -56,7 +56,7 @@ export function Combobox({
             {value
               ? options.find((option) => option.value === value)?.label
               : placeholder}
-            <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            <CaretSortIcon className="ml-2 size-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0">
@@ -76,7 +76,7 @@ export function Combobox({
                         currentValue === value ? "" : currentValue;
                       setValue(newValue);
                       setOpen(false);
-                      onChange && onChange(newValue);
+                      if (onChange) onChange(newValue);
                     }}
                   >
                     {option.label}

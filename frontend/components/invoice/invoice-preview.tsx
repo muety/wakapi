@@ -1,16 +1,17 @@
 "use client";
 
-import React from "react";
-import styles from "./invoice-manager.module.css";
-
-import { cn, formatCurrency, formatNumber, getHours } from "@/lib/utils";
 import { format } from "date-fns";
-import { Button } from "../ui/button";
+import { LucideEdit } from "lucide-react";
+import React from "react";
+
 import { getCurrencySymbol } from "@/lib/constants/currencies";
 import { Invoice } from "@/lib/types";
+import { cn, formatCurrency, formatNumber, getHours } from "@/lib/utils";
+
 import { InvoicePDF } from "../pdf/pdf-export";
 import { RawHTML } from "../raw-html";
-import { LucideEdit } from "lucide-react";
+import { Button } from "../ui/button";
+import styles from "./invoice-manager.module.css";
 
 interface iProps {
   data: Invoice;
@@ -42,10 +43,10 @@ export function InvoicePreview({ data, onTogglePreview }: iProps) {
   return (
     <div className={cn(styles.root, "px-6 my-6 mx-2 min-h-screen")}>
       <main id="target-invoice" className={cn(styles.mainPreview, "")}>
-        <div className="flex justify-end gap-1 mb-3">
+        <div className="mb-3 flex justify-end gap-1">
           <Button
             size={"sm"}
-            className="bg-white hover:bg-white hover:opacity-70 p-1 h-7 w-7"
+            className="size-7 bg-white p-1 hover:bg-white hover:opacity-70"
             variant="outline"
             onClick={onTogglePreview}
           >
@@ -54,7 +55,7 @@ export function InvoicePreview({ data, onTogglePreview }: iProps) {
           <InvoicePDF invoiceData={data} />
         </div>
         <div className="flex justify-between">
-          <div className="max-w-lg w-100">
+          <div className="w-100 max-w-lg">
             <div>
               <h1 className="text-3xl">INVOICE</h1>
               <RawHTML source={data.invoice_summary} fallback="" />
@@ -71,7 +72,7 @@ export function InvoicePreview({ data, onTogglePreview }: iProps) {
           </div>
           <div>
             <div className="flex">
-              <div className="flex flex-col justify-items-end items-end mr-1">
+              <div className="mr-1 flex flex-col items-end justify-items-end">
                 <h1 className="font-bold">Invoice #: </h1>
                 <h1 className="font-bold">Date: </h1>
               </div>
@@ -118,14 +119,14 @@ export function InvoicePreview({ data, onTogglePreview }: iProps) {
             </tbody>
           </table>
         </div>
-        <div className="flex justify-end mt-12">
+        <div className="mt-12 flex justify-end">
           <div className="flex gap-4">
-            <div className="flex flex-col justify-center items-end mr-1 gap-1 text-lg">
+            <div className="mr-1 flex flex-col items-end justify-center gap-1 text-lg">
               <h1 className="font-semibold">Total </h1>
               <h1 className="font-semibold">Tax ({tax || ""}%) </h1>
               <h1 className="font-semibold">Net Total </h1>
             </div>
-            <div className="flex flex-col justify-end items-end gap-1 text-lg">
+            <div className="flex flex-col items-end justify-end gap-1 text-lg">
               <p>{formatCurrency(totalInvoice, currencySymbol)}</p>
               <p>{formatCurrency(taxTotal, currencySymbol)}</p>
               <p>{formatCurrency(netTotal, currencySymbol)}</p>

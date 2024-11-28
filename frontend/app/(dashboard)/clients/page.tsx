@@ -1,6 +1,6 @@
-import { Project } from "@/components/projects-table";
 import { fetchData, getSession } from "@/actions";
 import { ClientsApiResponse, ClientsTable } from "@/components/clients-table";
+import { Project } from "@/components/projects-table";
 
 export default async function Clients() {
   const session = await getSession();
@@ -13,7 +13,7 @@ export default async function Clients() {
   );
 
   return (
-    <div className="panel panel-default p-2 px-6 my-6 mx-2 min-h-screen">
+    <div className="panel panel-default mx-2 my-6 min-h-screen p-2 px-6">
       <ClientsTable
         clients={clients?.data || []}
         projects={projects?.data || []}

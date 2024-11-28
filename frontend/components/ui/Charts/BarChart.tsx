@@ -1,4 +1,3 @@
-import { CHART_COLORS, DateTimeFormats } from "./Charts.constants";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useState } from "react";
@@ -6,12 +5,14 @@ import {
   Bar,
   BarChart as RechartBarChart,
   Cell,
+  Legend,
   Tooltip,
   XAxis,
-  Legend,
 } from "recharts";
+
 // import type { CategoricalChartState } from "recharts/types/chart/generateCategoricalChart";
 import ChartHeader from "./ChartHeader";
+import { CHART_COLORS, DateTimeFormats } from "./Charts.constants";
 import type { CommonChartProps, Datum } from "./Charts.types";
 import { numberFormatter, useChartSize } from "./Charts.utils";
 import ChartNoData from "./NoDataPlaceholder";

@@ -1,4 +1,6 @@
 import { BarChart2 } from "lucide-react";
+import React from "react";
+
 import { useChartSize } from "./Charts.utils";
 
 interface Props {

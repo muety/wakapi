@@ -1,205 +1,206 @@
 .newTable {
-    margin-top: 32px;
-    border: 1px solid rgb(217, 217, 217);
-    border-radius: 8px;
-    overflow: hidden;
-    min-height: 200px;
+  margin-top: 32px;
+  border: 1px solid rgb(217, 217, 217);
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 200px;
 }
 
 .newTableHeader {
-    margin-left: -8px;
-    margin-right: -8px;
-    row-gap: 16px;
-    padding: 13px 16px;
-    background-color: rgb(250, 250, 250);
-    border-bottom: 1px solid rgb(240, 240, 240);
+  margin-left: -8px;
+  margin-right: -8px;
+  row-gap: 16px;
+  padding: 13px 16px;
+  background-color: rgb(250, 250, 250);
+  border-bottom: 1px solid rgb(240, 240, 240);
 
-    display: flex;
-    flex-flow: row wrap;
-    min-width: 0;
+  display: flex;
+  flex-flow: row wrap;
+  min-width: 0;
 }
 
 .invoiceTable {
-    width: 100%;
+  width: 100%;
 }
 
 .invoiceTableWrapper {
-    width: 100%;
-    margin-top: 20px;
-    border: 1px solid rgb(217, 217, 217);
-    border-radius: 8px;
+  width: 100%;
+  margin-top: 20px;
+  border: 1px solid rgb(217, 217, 217);
+  border-radius: 8px;
 }
 
 .invoiceTable thead {
-    padding: 5px;
-    text-align: left;
-    border-radius: 8px;
+  padding: 5px;
+  text-align: left;
+  border-radius: 8px;
 }
 
 .invoiceTable thead th {
-    padding: 10px;
-    text-align: center;
-    background-color: rgb(250, 250, 250);
-    border-bottom: 1px solid rgb(240, 240, 240);
-    border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  background-color: rgb(250, 250, 250);
+  border-bottom: 1px solid rgb(240, 240, 240);
+  border-radius: 8px;
 }
 
 .invoiceTable tbody tr {
-    padding: 20px;
-    text-align: center;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
 }
 
 input.taxInput {
-    background-color: hsl(0deg 0% 97.25%);
-    max-width: 50px;
-    margin-left: 1px;
-    margin-right: 2px;
-    padding: 1px 2px;
+  background-color: hsl(0deg 0% 97.25%);
+  max-width: 50px;
+  margin-left: 1px;
+  margin-right: 2px;
+  padding: 1px 2px;
 }
 
 .taxInput:focus {
-    outline: 1px solid #d1d5db;
+  outline: 1px solid #d1d5db;
 }
 
 .invoiceInput:focus {
-    outline: 1px solid #d1d5db;
+  outline: 1px solid #d1d5db;
 }
 
 .root {
-    color: #000;
+  color: #000;
 }
 
 .main {
-    height: 100%;
-    padding: 60px 40px;
-    background-color: hsl(0deg 0% 100%);
-    box-shadow:
-        0 0 0 1px rgba(0, 0, 0, 0.05),
-        0 7px 25px 0 rgba(0, 0, 0, 0.03),
-        0 4px 12px 0 rgba(0, 0, 0, 0.03);
-    transition-property: box-shadow, transform;
-    transition-duration: 0.4s;
-    transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
-    overflow: hidden;
-    width: 100%;
-    text-decoration: none;
+  height: 100%;
+  padding: 60px 40px;
+  background-color: hsl(0deg 0% 100%);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 7px 25px 0 rgba(0, 0, 0, 0.03),
+    0 4px 12px 0 rgba(0, 0, 0, 0.03);
+  transition-property: box-shadow, transform;
+  transition-duration: 0.4s;
+  transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+  overflow: hidden;
+  width: 100%;
+  text-decoration: none;
 }
 
 .mainPreview {
-    height: 100%;
-    padding: 20px 40px;
-    background-color: hsl(0deg 0% 100%);
-    box-shadow:
-        0 0 0 1px rgba(0, 0, 0, 0.05),
-        0 7px 25px 0 rgba(0, 0, 0, 0.03),
-        0 4px 12px 0 rgba(0, 0, 0, 0.03);
-    transition-property: box-shadow, transform;
-    transition-duration: 0.4s;
-    transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
-    overflow: hidden;
-    width: 100%;
-    text-decoration: none;
+  height: 100%;
+  padding: 20px 40px;
+  background-color: hsl(0deg 0% 100%);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 7px 25px 0 rgba(0, 0, 0, 0.03),
+    0 4px 12px 0 rgba(0, 0, 0, 0.03);
+  transition-property: box-shadow, transform;
+  transition-duration: 0.4s;
+  transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+  overflow: hidden;
+  width: 100%;
+  text-decoration: none;
 }
 
 .main label {
-    color: black;
+  color: black;
 }
 
 .main:hover {
-    box-shadow:
-        0 0 0 1px rgba(0, 0, 0, 0.05),
-        0 7px 25px 0 rgba(0, 0, 0, 0.03),
-        0 4px 30px rgba(0, 0, 0, 0.1);
-    text-decoration: none;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 7px 25px 0 rgba(0, 0, 0, 0.03),
+    0 4px 30px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
 }
 
 .invoiceFooter {
-    margin-top: 10px;
-    /* padding: 10px; */
-    display: flex;
-    justify-content: flex-end;
+  margin-top: 10px;
+  /* padding: 10px; */
+  display: flex;
+  justify-content: flex-end;
 }
 
 .invoiceAction {
-    cursor: pointer;
-    vertical-align: middle;
-    text-align: center;
+  cursor: pointer;
+  vertical-align: middle;
+  text-align: center;
 }
 
 tr.invoiceRow .invoiceAction:hover {
-    background-color: none;
+  background-color: none;
 }
 
 tr.invoiceRow:first-child:hover {
-    background-color: none;
+  background-color: none;
 }
 
 .invoiceHeader th,
 .invoiceRow td {
-    border-bottom: 1px rgb(240, 240, 240) solid;
-    padding: 8px 16px;
-    border-radius: 8px;
+  border-bottom: 1px rgb(240, 240, 240) solid;
+  padding: 8px 16px;
+  border-radius: 8px;
 }
 
 .invoiceRow:hover {
-    background-color: #f8f8f8;
+  background-color: #f8f8f8;
 }
 
 .invoiceRow tr td:first-child:hover {
-    background-color: none;
+  background-color: none;
 }
 
 .addItem {
-    display: flex;
-    align-items: center;
-    margin-top: 0.25rem;
-    width: fit-content;
-    padding: 2px 6px;
-    border-radius: 8px;
-    /* background-color: #e5e7eb; */
+  display: flex;
+  align-items: center;
+  margin-top: 0.25rem;
+  width: fit-content;
+  padding: 2px 6px;
+  border-radius: 8px;
+  /* background-color: #e5e7eb; */
 }
 
 .addItem:hover {
-    background-color: rgb(250, 250, 250);
-    cursor: pointer;
+  background-color: rgb(250, 250, 250);
+  cursor: pointer;
 }
 
-
 .inputOutlined {
-    background: #fff;
-    border-width: 1px;
-    border-style: solid;
-    border-color: #d9d9d9;
+  background: #fff;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #d9d9d9;
 }
 
 .invoiceInput {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 4px 11px;
-    color: rgba(0, 0, 0, 0.88);
-    font-size: 15px;
-    line-height: 1.5714285714285714;
-    list-style: none;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Arial', 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-    position: relative;
-    display: inline-block;
-    width: 100%;
-    min-width: 0;
-    border-radius: 6px;
-    transition: all 0.2s;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 4px 11px;
+  color: rgba(0, 0, 0, 0.88);
+  font-size: 15px;
+  line-height: 1.5714285714285714;
+  list-style: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", "Arial", "Noto Sans", "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  min-width: 0;
+  border-radius: 6px;
+  transition: all 0.2s;
 
-    background-color: white;
+  background-color: white;
 
-    /* ## outline */
-    background: #fff;
-    border-width: 1px;
-    border-style: solid;
-    border-color: #d9d9d9;
+  /* ## outline */
+  background: #fff;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #d9d9d9;
 }
 
 textarea.invoiceInput {
-    background-color: hsl(0deg 0% 97.25%);
+  background-color: hsl(0deg 0% 97.25%);
 }

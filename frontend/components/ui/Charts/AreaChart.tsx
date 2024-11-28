@@ -1,9 +1,10 @@
-import { CHART_COLORS, DateTimeFormats } from "./Charts.constants";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useState } from "react";
 import { Area, AreaChart as RechartAreaChart, Tooltip, XAxis } from "recharts";
+
 import ChartHeader from "./ChartHeader";
+import { CHART_COLORS, DateTimeFormats } from "./Charts.constants";
 import type { CommonChartProps, Datum } from "./Charts.types";
 import { numberFormatter, useChartSize } from "./Charts.utils";
 import ChartNoData from "./NoDataPlaceholder";

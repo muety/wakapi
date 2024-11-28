@@ -1,24 +1,25 @@
-import { DashboardPeriodSelector } from "@/components/dashboard-period-selector";
+import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
+import { format, subDays } from "date-fns";
+
+import { fetchData } from "@/actions";
+import { ActivityCategoriesChart } from "@/components/charts/ActivityCategoriesChart";
 import { DailyCodingSummaryOverTime } from "@/components/charts/DailyCodingSummaryOverTime";
 import { WeekdaysBarChart } from "@/components/charts/WeekdaysBarChart";
-import { WPieChart } from "@/components/charts/WPieChart";
-import { ActivityCategoriesChart } from "@/components/charts/ActivityCategoriesChart";
 import { WGaugeChart } from "@/components/charts/WGaugeChart";
+import { WPieChart } from "@/components/charts/WPieChart";
+import { DashboardPeriodSelector } from "@/components/dashboard-period-selector";
+import { ProjectCard } from "@/components/project-card";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
+import { SummariesApiResponse } from "@/lib/types";
 import {
   convertSecondsToHoursAndMinutes,
   makePieChartDataFromRawApiResponse,
 } from "@/lib/utils";
-import { subDays, format } from "date-fns";
-import { SummariesApiResponse } from "@/lib/types";
-import { ProjectCard } from "@/components/project-card";
-import { fetchData } from "@/actions";
 
 export default async function Dashboard({
   searchParams,
@@ -42,16 +43,16 @@ export default async function Dashboard({
     <>
       {durationData && (
         <main className="main-dashboard">
-          <div className="m-0 text-2xl my-5">
+          <div className="m-0 my-5 text-2xl">
             <b>{durationData.cumulative_total.text}</b> <span>over the</span>{" "}
             <DashboardPeriodSelector searchParams={searchParams} />
           </div>
 
           <section className="charts-grid-top">
-            <div className="min-h-52 chart-box">
+            <div className="chart-box min-h-52">
               <DailyCodingSummaryOverTime data={durationData.data} />
             </div>
-            <div className="min-h-52 chart-box">
+            <div className="chart-box min-h-52">
               <WGaugeChart
                 data={durationData.data}
                 dailyAverage={durationData.daily_average}
@@ -60,7 +61,7 @@ export default async function Dashboard({
             </div>
           </section>
 
-          <div className="my-5 charts-wrapper">
+          <div className="charts-wrapper my-5">
             <div className="charts-grid">
               <div className="chart-box">
                 <WPieChart
@@ -114,7 +115,7 @@ export default async function Dashboard({
             </div>
             <div className="charts-grid">
               <div className="chart-box">
-              <ActivityCategoriesChart data={durationData.data} />
+                <ActivityCategoriesChart data={durationData.data} />
               </div>
               <div className="chart-box">
                 <WeekdaysBarChart
@@ -126,7 +127,7 @@ export default async function Dashboard({
           </div>
 
           <div className="my-5">
-            <div className="flex gap-1 align-middle items-baseline">
+            <div className="flex items-baseline gap-1 align-middle">
               <h1 className="text-2xl">Projects</h1>
               <TooltipProvider>
                 <Tooltip>

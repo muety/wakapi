@@ -1,4 +1,5 @@
 import { startCase } from "lodash";
+
 import { convertSecondsToHoursAndMinutes, deTransparentize } from "@/lib/utils";
 
 export interface TooltipPayload {
@@ -80,7 +81,7 @@ export function StackedTooltipContent(props: any) {
     return (
       <div className="custom-tooltip">
         <div
-          className="shadow custom-tooltip-header text-center"
+          className="custom-tooltip-header text-center shadow"
           style={{ color: "white" }}
         >
           {props.label}
@@ -117,7 +118,7 @@ export function StackedTooltipContentForCategories(props: any) {
       typeof props.label === "string" ? props.label : getTitleFromPayload();
     return (
       <div className="custom-tooltip">
-        <div className="shadow custom-tooltip-header">{labelTitle}</div>
+        <div className="custom-tooltip-header shadow">{labelTitle}</div>
         {props.payload
           .filter((p: any) => p.name !== "key")
           .map((payload: any, index: number) => (

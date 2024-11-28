@@ -1,11 +1,13 @@
 "use client";
 
-import React from "react";
 import { startOfDay } from "date-fns";
+import React from "react";
+
 import { fetchData } from "@/actions";
 import { useClientSession } from "@/lib/session";
-import { PulseIndicator } from "./pulse-indicator";
 import { SummariesApiResponse } from "@/lib/types";
+
+import { PulseIndicator } from "./pulse-indicator";
 
 export function CurrentWorkTime() {
   const { data: session, isLoading } = useClientSession();
@@ -22,12 +24,12 @@ export function CurrentWorkTime() {
       { start, end }
     )}`;
     const durationData = await fetchData<SummariesApiResponse>(url);
-    durationData &&
+    if (durationData)
       setTodaysCodingTime(durationData.cumulative_total.text || "");
   };
 
   React.useEffect(() => {
-    token && fetchSummary();
+    if (token) fetchSummary();
   }, [session, isLoading]);
 
   React.useEffect(() => {
@@ -40,7 +42,7 @@ export function CurrentWorkTime() {
 
   return (
     <div
-      className="flex items-center align-middle justify-center border px-3 border-border rounded-lg shadow text-slate-100"
+      className="flex items-center justify-center rounded-lg border border-border px-3 align-middle text-slate-100 shadow"
       style={{
         paddingLeft: "10px",
         paddingRight: "10px",

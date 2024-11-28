@@ -1,10 +1,10 @@
-import React from "react";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { LucidePrinter } from "lucide-react";
+
+import { Invoice } from "@/lib/types";
 
 import { Button } from "../ui/button";
-import { LucidePrinter } from "lucide-react";
-import { PDFDownloadLink } from "@react-pdf/renderer";
 import { InvoicePDFViewer } from "./invoice-pdf-viewer";
-import { Invoice } from "@/lib/types";
 
 interface iProps {
   invoiceData: Invoice;
@@ -15,7 +15,7 @@ export const InvoicePDF = (props: iProps) => {
     <Button
       size={"sm"}
       variant="outline"
-      className="bg-white hover:bg-white hover:opacity-70 p-1 h-7 w-7"
+      className="size-7 bg-white p-1 hover:bg-white hover:opacity-70"
     >
       <PDFDownloadLink
         fileName="invoice.pdf"

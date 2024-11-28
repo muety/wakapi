@@ -1,10 +1,10 @@
 export default function Page() {
   return (
     <div
-      className="flex flex-col justify-center align-middle m-auto px-14 mx-14 text-md"
+      className="text-md m-auto mx-14 flex flex-col justify-center px-14 align-middle"
       style={{ minHeight: "70vh" }}
     >
-      <h1 className="text-6xl mb-8 text-center">About</h1>
+      <h1 className="mb-8 text-center text-6xl">About</h1>
       <p className="mb-5">
         The goal of this project is to provide a self-hosted version of
         wakatime.com that is open source and free to use. We rely on the same
@@ -25,7 +25,7 @@ export default function Page() {
         <a href="https://github.com/muety/wakapi" className="underline">
           Wakapi
         </a>
-        . We are grateful for their work. We won't have built this quickly
+        . We are grateful for their work. We won&apos;t have built this quickly
         without starting off of that base source code. It was minimal but
         thoughtful and was still packed with a ton of features.
       </p>

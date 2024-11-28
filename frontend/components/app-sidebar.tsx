@@ -1,15 +1,10 @@
 import {
-  Calendar,
   FolderGit2,
   Goal,
-  Home,
-  Inbox,
   Info,
   LayoutDashboardIcon,
   Quote,
   Receipt,
-  Search,
-  Settings,
   SquareActivity,
   Trophy,
   UsersIcon,
@@ -23,39 +18,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
-import { HeroBrand } from "./hero-brand";
-import { ReactNode } from "react";
 
-// Menu items.
-const items = [
-  {
-    title: "Home",
-    url: "#",
-    icon: Home,
-  },
-  {
-    title: "Inbox",
-    url: "#",
-    icon: Inbox,
-  },
-  {
-    title: "Calendar",
-    url: "#",
-    icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-  },
-];
+import { HeroBrand } from "./hero-brand";
 
 export const MAIN_MENU_ITEMS = [
   {
@@ -112,7 +77,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
-        <div className="brand-logo pl-2 py-6">
+        <div className="brand-logo py-6 pl-2">
           <HeroBrand
             imgHeight={25}
             imgWidth={25}
@@ -121,7 +86,7 @@ export function AppSidebar() {
             inDashboard={true}
           />
         </div>
-        <div className="flex flex-col justify-between h-screen">
+        <div className="flex h-screen flex-col justify-between">
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>

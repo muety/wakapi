@@ -1,5 +1,5 @@
-import { ViewWithChildren } from "@/lib/types/views";
 import { SettingsNavigation } from "@/components/settings-navigation";
+import { ViewWithChildren } from "@/lib/types/views";
 
 export default async function Layout({ children }: ViewWithChildren) {
   return (

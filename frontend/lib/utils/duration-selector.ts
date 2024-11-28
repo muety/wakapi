@@ -3,12 +3,12 @@ import {
   endOfMonth,
   endOfWeek,
   format,
+  parse,
   startOfMonth,
   startOfWeek,
   subDays,
   subMonths,
   subWeeks,
-  parse,
 } from "date-fns";
 
 export enum DashboardRangeQuery {
@@ -30,24 +30,28 @@ function formatDashboardDuration(start: Date, end: Date) {
 }
 
 export function buildQueryForRangeQuery(query: DashboardRangeQuery): string {
+  let yesterday: Date;
+  let lastMonth: Date;
+  let lastWeek: Date;
+
   switch (query) {
     case DashboardRangeQuery.Last7Days:
       return formatDashboardDuration(subDays(new Date(), 7), new Date());
     case DashboardRangeQuery.Last7DaysFromYesterday:
-      const yesterday = subDays(new Date(), 1);
+      yesterday = subDays(new Date(), 1);
       return formatDashboardDuration(subDays(yesterday, 7), yesterday);
     case DashboardRangeQuery.Last14Days:
       return formatDashboardDuration(subDays(new Date(), 14), new Date());
     case DashboardRangeQuery.Last30Days:
       return formatDashboardDuration(subDays(new Date(), 30), new Date());
     case DashboardRangeQuery.LastMonth:
-      const lastMonth = subMonths(new Date(), 1);
+      lastMonth = subMonths(new Date(), 1);
       return formatDashboardDuration(
         startOfMonth(lastMonth),
         endOfMonth(lastMonth)
       );
     case DashboardRangeQuery.LastWeek:
-      const lastWeek = subWeeks(startOfWeek(new Date()), 1);
+      lastWeek = subWeeks(startOfWeek(new Date()), 1);
       return formatDashboardDuration(
         startOfWeek(lastWeek),
         endOfWeek(lastWeek)
@@ -56,7 +60,6 @@ export function buildQueryForRangeQuery(query: DashboardRangeQuery): string {
       return formatDashboardDuration(startOfWeek(new Date()), new Date());
   }
 }
-
 export function parseDate(dateString: string): Date {
   const formatString = "yyyy-MM-dd";
   const parsedDate = parse(dateString, formatString, new Date());

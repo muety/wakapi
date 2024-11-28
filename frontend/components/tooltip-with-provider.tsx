@@ -1,9 +1,10 @@
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
+
 import {
   Tooltip,
+  TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-  TooltipContent,
 } from "./ui/tooltip";
 
 export function TooltipWithProvider({ description }: { description: string }) {

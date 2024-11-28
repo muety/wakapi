@@ -1,25 +1,22 @@
+/* eslint-disable react/prop-types */
 "use client";
 
-import Image from "next/image";
+import React from "react";
 
 import { cn } from "@/lib/utils";
-import CustomLink from "./custom-link";
+
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "./ui/navigation-menu";
-import React from "react";
-import { Button } from "./ui/button";
 
 export function MainNav() {
   return (
     <div
-      className="flex gap-4 items-center"
+      className="flex items-center gap-4"
       style={{ backgroundColor: "inherit" }}
     >
       <NavigationMenu>
@@ -54,7 +51,7 @@ const ListItem = React.forwardRef<
           {...props}
         >
           <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="text-sm leading-snug line-clamp-2 text-muted-foreground">
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
             {children}
           </p>
         </a>

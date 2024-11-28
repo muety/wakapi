@@ -7,7 +7,7 @@ const { API_URL } = process.env;
 // doesn't throw. returns null when not found
 export async function fetchData<T>(
   url: string,
-  auth: boolean = true
+  auth: boolean = true,
 ): Promise<T | null> {
   try {
     let session = null;

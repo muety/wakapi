@@ -1,6 +1,9 @@
 "use client";
 
-import { Icons } from "./icons";
+import { LucidePlus } from "lucide-react";
+import { useReducer } from "react";
+import React from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,20 +13,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { LucidePlus } from "lucide-react";
-import { useReducer } from "react";
-import WMultiSelect from "./w-multi-select";
 import { toast } from "@/components/ui/use-toast";
 import {
   CATEGORY_OPTIONS,
   EDITOR_OPTIONS,
   LANGUAGE_OPTIONS,
 } from "@/lib/constants";
-import { Project } from "@/lib/types";
-import { ClickToSelect } from "./click-to-select";
-import { Input } from "./ui/input";
-import React from "react";
 import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
+import { Project } from "@/lib/types";
+
+import { ClickToSelect } from "./click-to-select";
+import { Icons } from "./icons";
+import { Input } from "./ui/input";
+import WMultiSelect from "./w-multi-select";
 
 // Define the GoalActionType enum
 enum GoalActionType {
@@ -73,6 +75,7 @@ const initialState: GoalState = {
   hasCompletedSecondStep: false,
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 enum GoalOption {
   overall = "overall",
   language = "language",
@@ -249,7 +252,7 @@ export function AddGoalDialog({
           New Goal
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[625px] bg-white">
+      <DialogContent className="bg-white sm:max-w-[625px]">
         <DialogHeader className="text-black">
           <DialogTitle className="text-black">New Goal</DialogTitle>
           <DialogDescription className="sr-only">
@@ -259,7 +262,7 @@ export function AddGoalDialog({
         <hr />
         <div>
           {!selectedGoalOption && (
-            <div className="flex py-4 items-baseline mb-8">
+            <div className="mb-8 flex items-baseline py-4">
               <h1
                 className="text-black"
                 style={{ fontSize: "30px", fontWeight: 400 }}
@@ -365,7 +368,7 @@ export function AddGoalDialog({
           />
         )}
         {hasCompletedSecondStep && (
-          <div className="flex py-4 items-baseline mb-8">
+          <div className="mb-8 flex items-baseline py-4">
             <h1
               className="text-black"
               style={{ fontSize: "24px", fontWeight: 400 }}
@@ -380,7 +383,7 @@ export function AddGoalDialog({
                   })
                 }
                 type="number"
-                className="w-16 inline-block mr-1"
+                className="mr-1 inline-block w-16"
               />
               <ClickToSelect
                 options={["hrs", "mins", "secs"]}

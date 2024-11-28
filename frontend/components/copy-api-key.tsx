@@ -1,7 +1,5 @@
 "use client";
 
-import React from "react";
-
 import {
   LucideCopy,
   LucideCopyCheck,
@@ -9,13 +7,16 @@ import {
   LucideEyeOff,
   LucideRefreshCcw,
 } from "lucide-react";
-import { Icons } from "./icons";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { toast } from "./ui/use-toast";
-import { Confirm } from "./ui/confirm";
-import { copyApiKeyToClickBoard } from "@/lib/utils/ui";
+import React from "react";
+
 import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
+import { copyApiKeyToClickBoard } from "@/lib/utils/ui";
+
+import { Icons } from "./icons";
+import { Button } from "./ui/button";
+import { Confirm } from "./ui/confirm";
+import { Input } from "./ui/input";
+import { toast } from "./ui/use-toast";
 
 export function ApiKeyCopier({ token }: { token: string }) {
   const [copied, setCopied] = React.useState(false);
@@ -108,7 +109,7 @@ export function ApiKeyCopier({ token }: { token: string }) {
   return (
     <div className="flex gap-2">
       <Input
-        className="py-0 h-9"
+        className="h-9 py-0"
         placeholder="Api Key"
         disabled
         defaultValue={maskedKey}

@@ -1,19 +1,19 @@
 "use client";
 
-import * as React from "react";
-
+import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import {
   ColumnDef,
   ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  SortingState,
   useReactTable,
+  VisibilityState,
 } from "@tanstack/react-table";
+import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,10 +25,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 import { humanizeDate } from "@/lib/utils";
+
 import { AddClient } from "./add-client";
 import { Project } from "./projects-table";
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
+import { Confirm } from "./ui/confirm";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,9 +39,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { toast } from "./ui/use-toast";
-import { Confirm } from "./ui/confirm";
 
 export type Client = {
   id: string;
@@ -148,14 +148,12 @@ export function ClientsTable({
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
-        const payment = row.original;
-
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="size-8 p-0">
                 <span className="sr-only">Open menu</span>
-                <DotsHorizontalIcon className="h-4 w-4" />
+                <DotsHorizontalIcon className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -202,7 +200,7 @@ export function ClientsTable({
 
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center py-4 gap-5">
+      <div className="flex items-center justify-between gap-5 py-4">
         <Input
           placeholder="Filter clients"
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -211,7 +209,7 @@ export function ClientsTable({
           }
           // className="bg-white text-black"
         />
-        <div className="flex-grow">
+        <div className="grow">
           <AddClient
             onAdd={(newClient: Client) => {
               setClients([...clients, newClient]);

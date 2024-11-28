@@ -1,7 +1,8 @@
-import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface PricingCardProps {
   title: string;
@@ -21,17 +22,17 @@ export default function PricingCard({
   ctaClassName = "",
 }: PricingCardProps) {
   return (
-    <Card className="w-full sm:w-[300px] flex flex-col overflow-hidden">
-      <CardHeader className="border-b border-gray-200 dark:border-gray-700 space-y-4 sm:space-y-6 pb-6">
-        <CardTitle className="text-xl sm:text-2xl font-bold text-center text-gray-900 dark:text-white">
+    <Card className="flex w-full flex-col overflow-hidden sm:w-[300px]">
+      <CardHeader className="space-y-4 border-b border-gray-200 pb-6 dark:border-gray-700 sm:space-y-6">
+        <CardTitle className="text-center text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">
           {title}
         </CardTitle>
         <div className="flex flex-col items-center space-y-4">
           <div className="flex items-baseline">
-            <span className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white">
+            <span className="text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl">
               ${price}
             </span>
-            <span className="text-lg sm:text-xl ml-1 text-gray-600 dark:text-gray-400">
+            <span className="ml-1 text-lg text-gray-600 dark:text-gray-400 sm:text-xl">
               /{period}
             </span>
           </div>
@@ -45,17 +46,17 @@ export default function PricingCard({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="flex-grow pt-4 sm:pt-6">
-        <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-gray-900 dark:text-white">
-          What's included:
+      <CardContent className="grow pt-4 sm:pt-6">
+        <h3 className="mb-2 text-base font-semibold text-gray-900 dark:text-white sm:mb-4 sm:text-lg">
+          What&apos;s included:
         </h3>
         <ul className="space-y-2 sm:space-y-4">
           {features.map((feature, index) => (
             <li
               key={index}
-              className="flex items-center text-sm sm:text-base text-gray-700 dark:text-gray-300"
+              className="flex items-center text-sm text-gray-700 dark:text-gray-300 sm:text-base"
             >
-              <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mr-2 sm:mr-3 flex-shrink-0" />
+              <Check className="mr-2 size-4 shrink-0 text-green-500 sm:mr-3 sm:size-5" />
               <span>{feature}</span>
             </li>
           ))}

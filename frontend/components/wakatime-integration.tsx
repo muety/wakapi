@@ -1,18 +1,15 @@
 "use client";
 
+import { LucidePen, LucidePenOff, LucideSave } from "lucide-react";
 import React from "react";
+
+import { toast } from "@/components/ui/use-toast";
+import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
+import useSession from "@/lib/session/use-session";
+
+import { Icons } from "./icons";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { toast } from "@/components/ui/use-toast";
-import {
-  LucideLoader,
-  LucidePen,
-  LucidePenOff,
-  LucideSave,
-} from "lucide-react";
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
-import { Icons } from "./icons";
-import useSession from "@/lib/session/use-session";
 
 /**
  * Wakatime Api key integration is one-way.
@@ -22,18 +19,9 @@ import useSession from "@/lib/session/use-session";
 
 const RESOURCE_URL = `${NEXT_PUBLIC_API_URL}/api/settings`;
 
-export function WakatimeIntegration({
-  hasWakatimeIntegration = false,
-  token,
-}: {
-  hasWakatimeIntegration?: boolean;
-  token: string;
-}) {
+export function WakatimeIntegration({ token }: { token: string }) {
   const [copied, setCopied] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
-  const [hasIntegration, setHasIntegration] = React.useState(
-    hasWakatimeIntegration
-  );
   const [showEditable, setShowEditable] = React.useState(false);
   const [apiKey, setApiKey] = React.useState("");
 
@@ -97,7 +85,7 @@ export function WakatimeIntegration({
     <div className="flex gap-2">
       {showEditable ? (
         <Input
-          className="py-0 h-9"
+          className="h-9 py-0"
           placeholder="Wakatime api key"
           defaultValue={apiKey}
           value={apiKey}
@@ -105,7 +93,7 @@ export function WakatimeIntegration({
         />
       ) : (
         <Input
-          className="py-0 h-9"
+          className="h-9 py-0"
           placeholder={dummyApiKey}
           disabled
           defaultValue={dummyApiKey}
@@ -131,7 +119,7 @@ export function WakatimeIntegration({
           onClick={saveApiKey}
         >
           {saving ? (
-            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            <Icons.spinner className="mr-2 size-4 animate-spin" />
           ) : (
             <LucideSave size="15" />
           )}

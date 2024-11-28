@@ -2,7 +2,7 @@ import React from "react";
 
 interface iProps {
   options: string[];
-  onChange?: Function;
+  onChange?: (value: string) => void;
   value?: string;
 }
 
@@ -19,7 +19,7 @@ export function ClickToSelect({ options, onChange, value }: iProps) {
     setIndex(newIndex);
   };
   return (
-    <div className="code-more-anchor text-sm px-3 py-2" onClick={clickHandler}>
+    <div className="code-more-anchor px-3 py-2 text-sm" onClick={clickHandler}>
       <span>{value || options[index]}</span>
     </div>
   );

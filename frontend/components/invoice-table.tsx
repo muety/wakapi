@@ -1,19 +1,22 @@
 "use client";
 
-import * as React from "react";
-
+import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import {
   ColumnDef,
   ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  SortingState,
   useReactTable,
+  VisibilityState,
 } from "@tanstack/react-table";
+import { format } from "date-fns";
+import { LucidePlus } from "lucide-react";
+import Link from "next/link";
+import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,8 +28,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { convertSecondsToHours, formatNumber, humanizeDate } from "@/lib/utils";
 import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
+import { Invoice, InvoiceLineItem } from "@/lib/types";
+import { convertSecondsToHours, formatNumber, humanizeDate } from "@/lib/utils";
+
+import { AddInvoice } from "./add-invoice";
+import { Client } from "./clients-table";
+import { Confirm } from "./ui/confirm";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,14 +42,6 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { toast } from "./ui/use-toast";
-import { Confirm } from "./ui/confirm";
-import { Invoice, InvoiceLineItem } from "@/lib/types";
-import { Client } from "./clients-table";
-import { LucidePlus } from "lucide-react";
-import { AddInvoice } from "./add-invoice";
-import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { format } from "date-fns";
-import Link from "next/link";
 
 export function InvoicesTable({
   clients,
@@ -177,9 +177,9 @@ export function InvoicesTable({
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="size-8 p-0">
                 <span className="sr-only">Open menu</span>
-                <DotsHorizontalIcon className="h-4 w-4" />
+                <DotsHorizontalIcon className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -224,7 +224,7 @@ export function InvoicesTable({
 
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center py-4 gap-5">
+      <div className="flex items-center justify-between gap-5 py-4">
         <Input
           placeholder="Filter clients"
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -233,7 +233,7 @@ export function InvoicesTable({
           }
           // className="bg-white text-black"
         />
-        <div className="flex-grow">
+        <div className="grow">
           <AddInvoice
             token={token}
             clients={clients}
@@ -283,13 +283,13 @@ export function InvoicesTable({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center pt-4"
+                  className="h-24 pt-4 text-center"
                 >
                   {/* No invoices. <br /> */}
                   <Button
                     onClick={() => setShowInvoiceModal(true)}
                     variant="outline"
-                    className="bg-black text-white w-48 my-3"
+                    className="my-3 w-48 bg-black text-white"
                   >
                     <LucidePlus className="size-4" />
                     Create Invoice

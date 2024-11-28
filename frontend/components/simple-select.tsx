@@ -1,5 +1,3 @@
-import * as React from "react";
-
 import {
   Select,
   SelectContent,
@@ -12,6 +10,7 @@ interface Props {
   placeholder?: string;
   options: { label: string; value: string; id?: string }[];
   onChange: (value: string) => void;
+  key: any;
 }
 
 export function SimpleSelect({
@@ -26,7 +25,9 @@ export function SimpleSelect({
       </SelectTrigger>
       <SelectContent>
         {options.map((option) => (
-          <SelectItem value={option.value}>{option.label}</SelectItem>
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
         ))}
       </SelectContent>
     </Select>

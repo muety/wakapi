@@ -19,7 +19,7 @@ function PluginStatusCard({ agent }: { agent: iPluginUserAgent }) {
   const status = "OK";
 
   return (
-    <div className="plugin-status flex-col justify-center md:flex-row surface gap-5">
+    <div className="plugin-status surface flex-col justify-center gap-5 md:flex-row">
       <div className="flex flex-col justify-center">
         <h1 className="text-2xl">{agent.editor}</h1>
         <p className="text-sm">
@@ -49,7 +49,7 @@ export default async function Page() {
 
   return (
     <div
-      className="flex flex-col justify-center items-center md:px-32 m-14"
+      className="m-14 flex flex-col items-center justify-center md:px-32"
       style={{ minHeight: "60vh" }}
     >
       <h1 className="text-6xl">Plugin Status</h1>
@@ -57,13 +57,13 @@ export default async function Page() {
         Your plugins and their health status.
       </p>
 
-      <div className="w-full flex flex-col justify-center mx-auto mr-12 gap-5">
+      <div className="mx-auto mr-12 flex w-full flex-col justify-center gap-5">
         {userAgents.data.map((agent) => (
           <PluginStatusCard agent={agent} key={agent.id} />
         ))}
 
         {userAgents.data.length === 0 && (
-          <p className="text-lg text-center">
+          <p className="text-center text-lg">
             We have not received any plugin activity for your account. <br />{" "}
             Check your plugin setup to ensure it is working correctly, code a
             bit and come back to check again.

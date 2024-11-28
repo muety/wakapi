@@ -1,8 +1,9 @@
-import { NextRequest } from "next/server";
 import { redirect } from "next/navigation";
-import { SessionData } from "@/lib/session/options";
+import { NextRequest } from "next/server";
+
 import { getGithubConfig } from "@/lib/oauth/github";
 import { createIronSession } from "@/lib/server/auth";
+import { SessionData } from "@/lib/session/options";
 
 const { API_URL } = process.env;
 

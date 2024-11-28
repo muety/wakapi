@@ -3,19 +3,21 @@
 import {
   Area,
   AreaChart,
+  Label,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
-  Label,
 } from "recharts";
+
+import { SummariesResponse } from "@/lib/types";
 import {
+  convertSecondsToHours,
   prepareDailyCodingData,
   transparentize,
-  convertSecondsToHours,
 } from "@/lib/utils";
+
 import { StackedTooltipContent } from "./StackedTooltipContent";
-import { SummariesResponse } from "@/lib/types";
 
 export interface iProps {
   data: SummariesResponse[];

@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import React from "react";
+
 import Chart, { BarChartProps } from "./BarChart";
 
 const DATA = [290, 430, 649, 422, 321, 893, 111].map((value, index) => ({

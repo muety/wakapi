@@ -1,6 +1,6 @@
-import { Invoice } from "@/lib/types";
 import { fetchData } from "@/actions";
 import { InvoiceManager } from "@/components/invoice/invoice-manager";
+import { Invoice } from "@/lib/types";
 
 interface iProps {
   searchParams: Record<string, any>;

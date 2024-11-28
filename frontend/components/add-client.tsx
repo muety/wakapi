@@ -1,7 +1,14 @@
 "use client";
 
+import { LucidePlus } from "lucide-react";
 import React from "react";
+
+import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 import { Project } from "@/lib/types";
+
+import { Client } from "./clients-table";
+import { ClientForm } from "./forms/client-form";
+import { Button } from "./ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,11 +17,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { Button } from "./ui/button";
-import { LucidePlus } from "lucide-react";
-import { ClientForm } from "./forms/client-form";
-import { Client } from "./clients-table";
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 import { toast } from "./ui/use-toast";
 
 export interface iProps {
@@ -123,7 +125,7 @@ export function AddClient({
         <Button
           onClick={() => onChange(true)}
           variant="outline"
-          className="bg-black text-white w-36"
+          className="w-36 bg-black text-white"
         >
           <LucidePlus className="size-4" />
           New Client

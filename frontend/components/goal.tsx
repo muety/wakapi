@@ -1,17 +1,18 @@
 "use client";
 
+import { LucideSave, LucideTrash2, LucideUndo } from "lucide-react";
 import React from "react";
 import useSWRMutation from "swr/mutation";
 
+import { toast } from "@/components/ui/use-toast";
+import { mutateData } from "@/hooks/api-utils";
+import { GoalData } from "@/lib/types";
+
+import { GoalChart } from "./charts/GoalChart";
 import { Icons } from "./icons";
 import { Button } from "./ui/button";
-import { GoalData } from "@/lib/types";
-import { Confirm } from "./ui/confirm";
 import { Card, CardTitle } from "./ui/card";
-import { mutateData } from "@/hooks/api-utils";
-import { GoalChart } from "./charts/GoalChart";
-import { toast } from "@/components/ui/use-toast";
-import { LucideSave, LucideTrash2, LucideUndo } from "lucide-react";
+import { Confirm } from "./ui/confirm";
 
 interface iProps {
   data: GoalData;
@@ -30,7 +31,7 @@ export function Goal({ data, token, onDeleteGoal }: iProps) {
     mutateData
   );
 
-  const { trigger: updateTrigger, isMutating: isUpdating } = useSWRMutation(
+  const { trigger: updateTrigger, isMutating } = useSWRMutation(
     resourceUrl,
     mutateData
   );
@@ -53,6 +54,7 @@ export function Goal({ data, token, onDeleteGoal }: iProps) {
         toast({
           title: "Failed to update goal",
           variant: "destructive",
+          description: (error as Error).message,
         });
       }
     }
@@ -74,6 +76,7 @@ export function Goal({ data, token, onDeleteGoal }: iProps) {
       toast({
         title: "Failed to delete goal",
         variant: "destructive",
+        description: (error as Error).message,
       });
     }
   };
@@ -83,7 +86,7 @@ export function Goal({ data, token, onDeleteGoal }: iProps) {
       <div className="goal-container">
         <CardTitle className="ml-5">
           <div
-            className="flex justify-end h-12 items-center"
+            className="flex h-12 items-center justify-end"
             style={{ justifyItems: "stretch" }}
           >
             <div className="goal-title-viewer">
@@ -92,7 +95,7 @@ export function Goal({ data, token, onDeleteGoal }: iProps) {
                 onChange={(event) => setTitle(event.target.value)}
               ></input>
             </div>
-            <div className="flex items-center bg-muted ml-2 gap-1">
+            <div className="ml-2 flex items-center gap-1 bg-muted">
               {title !== originalText && (
                 <div className="flex">
                   <Button
@@ -103,8 +106,8 @@ export function Goal({ data, token, onDeleteGoal }: iProps) {
                       updateGoal();
                     }}
                   >
-                    {!loading ? (
-                      <LucideSave className="size-4 text-gray-400 cursor-pointer" />
+                    {!(loading || isMutating) ? (
+                      <LucideSave className="size-4 cursor-pointer text-gray-400" />
                     ) : (
                       <Icons.spinner className="mr-2 size-4 animate-spin" />
                     )}
@@ -114,7 +117,7 @@ export function Goal({ data, token, onDeleteGoal }: iProps) {
                     variant="ghost"
                     size="icon"
                   >
-                    <LucideUndo className="size-4 text-gray-400 cursor-pointer" />
+                    <LucideUndo className="size-4 cursor-pointer text-gray-400" />
                   </Button>
                 </div>
               )}
@@ -130,7 +133,7 @@ export function Goal({ data, token, onDeleteGoal }: iProps) {
                     size="icon"
                     className="goal-item-icon"
                   >
-                    <LucideTrash2 className="size-4 text-red-400 cursor-pointer" />
+                    <LucideTrash2 className="size-4 cursor-pointer text-red-400" />
                   </Button>
                 </Confirm>
               )}

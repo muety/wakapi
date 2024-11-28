@@ -14,5 +14,5 @@ export function BrandLogo({
   white?: boolean;
 }) {
   const src = white ? "/white-logo.svg" : "/logo.svg";
-  return <Image src={src} height={height} width={width} alt="logo" />;
+  return <Image src={src} height={height} width={width} alt={alt} />;
 }

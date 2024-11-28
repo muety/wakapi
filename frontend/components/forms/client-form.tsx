@@ -1,9 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,22 +15,26 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { CURRENCY_OPTIONS } from "@/lib/constants/currencies";
+
+import { Client } from "../clients-table";
+import { Combobox } from "../combo-box";
+import { Icons } from "../icons";
 import { Project } from "../projects-table";
 import WMultiSelect from "../w-multi-select";
-import { CURRENCY_OPTIONS } from "@/lib/constants/currencies";
-import { Combobox } from "../combo-box";
-import { Client } from "../clients-table";
-import { Icons } from "../icons";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters long"),
   currency: z.string().min(2, "Currency must be at least 2 characters long"),
   projects: z.array(z.string()).nonempty("Projects array must not be empty"),
-  hourly_rate: z.preprocess((value) => {
-    // Convert the value to a number if it is not already a number
-    const numberValue = Number(value);
-    return isNaN(numberValue) ? undefined : numberValue;
-  }, z.number().min(0, "Hourly rate must be a positive number")),
+  hourly_rate: z.preprocess(
+    (value) => {
+      // Convert the value to a number if it is not already a number
+      const numberValue = Number(value);
+      return isNaN(numberValue) ? undefined : numberValue;
+    },
+    z.number().min(0, "Hourly rate must be a positive number")
+  ),
 });
 
 const defaultValues = {

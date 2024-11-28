@@ -1,10 +1,9 @@
 "use client";
 
-import { z } from "zod";
-import { UseFormReturn } from "react-hook-form";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
+import { UseFormReturn } from "react-hook-form";
 
-import { cn } from "@/lib/utils";
+import { ComboboxOption } from "@/components/combo-box";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -15,7 +14,6 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
-  Form,
   FormControl,
   FormDescription,
   FormField,
@@ -28,7 +26,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ComboboxOption } from "@/components/combo-box";
+import { cn } from "@/lib/utils";
 
 interface iProps {
   form: UseFormReturn<any, any, any>;
@@ -71,7 +69,7 @@ export function ComboboxFormField({
                         (select_option) => select_option.value === field.value
                       )?.label
                     : placeholder || "Select Option"}
-                  <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  <CaretSortIcon className="ml-2 size-4 shrink-0 opacity-50" />
                 </Button>
               </FormControl>
             </PopoverTrigger>

@@ -4,14 +4,16 @@ import {
   Bar,
   BarChart,
   ResponsiveContainer,
-  XAxis,
   Tooltip as RechartsTooltip,
+  XAxis,
 } from "recharts";
-import { makeCategorySummaryDataForWeekdays } from "@/lib/utils";
-import { StackedTooltipContent } from "./StackedTooltipContent";
-import { SummariesResponse } from "@/lib/types";
+
 import { COLORS } from "@/lib/constants";
+import { SummariesResponse } from "@/lib/types";
+import { makeCategorySummaryDataForWeekdays } from "@/lib/utils";
+
 import { DurationTooltip } from "./DurationTooltip";
+import { StackedTooltipContent } from "./StackedTooltipContent";
 
 export interface iProps {
   data: SummariesResponse[];

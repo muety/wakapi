@@ -9,7 +9,7 @@ export const copyApiKeyToClickBoard = async (apiKey: string) => {
     });
   } catch (error) {
     toast({
-      title: "Api key failed",
+      title: (error as Error).message || "Api key failed",
       description:
         "You're likely using an old browser that doesn't support this feature.",
       variant: "destructive",

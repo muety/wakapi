@@ -16,7 +16,7 @@ export default async function Leaderboards({
   }
 
   return (
-    <div className="min-h-screen mt-5">
+    <div className="mt-5 min-h-screen">
       <LeaderBoardTable data={durationData} title="Public" />
     </div>
   );

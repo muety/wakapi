@@ -1,8 +1,10 @@
 import { cookies } from "next/headers";
+import React from "react";
+
 import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { MobileHeader } from "@/components/mobile-header";
 import { DashboardHeader } from "@/components/dashboard-header";
+import { MobileHeader } from "@/components/mobile-header";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function Layout({
   children,
@@ -19,7 +21,7 @@ export default async function Layout({
         <DashboardHeader />
         <MobileHeader />
         <main
-          className="min-h-full min-h-100 px-5"
+          className="min-h-100 min-h-full px-5"
           style={{ minHeight: "50vh" }}
         >
           {children}

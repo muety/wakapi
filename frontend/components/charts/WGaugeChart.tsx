@@ -2,16 +2,16 @@
 
 import {
   Cell,
+  Label,
   Pie,
   PieChart,
   ResponsiveContainer,
-  Tooltip as RechartsTooltip,
   Sector,
-  Label,
+  Tooltip as RechartsTooltip,
 } from "recharts";
-import React from "react";
-import { convertSecondsToHoursAndMinutes } from "@/lib/utils";
+
 import { DailyAverage, SummariesResponse } from "@/lib/types";
+import { convertSecondsToHoursAndMinutes } from "@/lib/utils";
 
 export interface WPieChartDataItem {
   name: string;
@@ -43,16 +43,7 @@ export function WGaugeChart({ data, dailyAverage }: WGaugeChartProps) {
     { value: dailyAverage.seconds, color: "#e0e0e0" },
   ];
 
-  const renderActiveShape = (props: {
-    cx: any;
-    cy: any;
-    innerRadius: any;
-    outerRadius: any;
-    startAngle: any;
-    endAngle: any;
-    midAngle: any;
-    fill: any;
-  }) => {
+  const renderActiveShape = (props: any) => {
     const RADIAN = Math.PI / 180;
     const {
       cx,
@@ -83,8 +74,7 @@ export function WGaugeChart({ data, dailyAverage }: WGaugeChartProps) {
 
   function renderCustomizedLabel(rawData: any) {
     const RADIAN = Math.PI / 180;
-    const { cx, cy, midAngle, innerRadius, outerRadius, index, percent } =
-      rawData;
+    const { cx, cy, midAngle, innerRadius, outerRadius, index } = rawData;
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
@@ -105,7 +95,7 @@ export function WGaugeChart({ data, dailyAverage }: WGaugeChartProps) {
     );
   }
 
-  const CustomizedTooltip = React.memo((props: any) => {
+  const CustomizedTooltip = (props: any) => {
     if (props.payload.length > 0) {
       const payload: any = props.payload[0];
       const percent =
@@ -126,7 +116,7 @@ export function WGaugeChart({ data, dailyAverage }: WGaugeChartProps) {
       );
     }
     return null;
-  });
+  };
 
   function getFillColor(change: number) {
     if (change > 0) {
@@ -166,7 +156,7 @@ export function WGaugeChart({ data, dailyAverage }: WGaugeChartProps) {
             fill="#8884d8"
             label={renderCustomizedLabel}
             labelLine={false}
-            activeShape={renderActiveShape as any}
+            activeShape={renderActiveShape}
             startAngle={180}
             endAngle={0}
           >

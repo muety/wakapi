@@ -1,20 +1,21 @@
 "use client";
 
+import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
-import { CalendarIcon, ChevronDownIcon } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type DurationOption = {
   label: string;
@@ -51,7 +52,7 @@ export function DurationToggle({
 
   return (
     <TooltipProvider>
-      <div className="flex items-center space-x-2 bg-muted p-1 rounded-lg">
+      <div className="flex items-center space-x-2 rounded-lg bg-muted p-1">
         {mainOptions.map((option) => (
           <Tooltip key={option.value}>
             <TooltipTrigger asChild>
@@ -86,7 +87,7 @@ export function DurationToggle({
                       : ""
                   } transition-all duration-200 ease-in-out`}
                 >
-                  More <ChevronDownIcon className="ml-1 h-4 w-4" />
+                  More <ChevronDownIcon className="ml-1 size-4" />
                 </Button>
               </DropdownMenuTrigger>
             </TooltipTrigger>
@@ -101,7 +102,7 @@ export function DurationToggle({
                 onClick={() => handleDurationChange(option.value)}
               >
                 <span>{option.label}</span>
-                <span className="ml-auto text-muted-foreground text-xs">
+                <span className="ml-auto text-xs text-muted-foreground">
                   {option.tooltip}
                 </span>
               </DropdownMenuItem>
