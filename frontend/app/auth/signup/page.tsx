@@ -16,7 +16,7 @@ export default async function LoginPage() {
           Create a New Account
         </h1>
         <p className="text-sm text-muted-foreground">
-          Enter your email and password to get started
+          Enter your email and password to register your account
         </p>
       </div>
       <UserSignUpAuthForm />
