@@ -19,8 +19,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-
-import { HeroBrand } from "./hero-brand";
+import Image from "next/image";
 
 export const MAIN_MENU_ITEMS = [
   {
@@ -74,16 +73,17 @@ const SIMPLE_MENU_ITEMS = [
 ];
 
 export function AppSidebar() {
+  // const sidebarContext = useSidebar();
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
-        <div className="brand-logo py-6 pl-2">
-          <HeroBrand
-            imgHeight={25}
-            imgWidth={25}
-            fontSize="32px"
-            lineHeight="25px"
-            inDashboard={true}
+        <div className="brand-logo pl-2">
+          <Image
+            src={"/white-logo.png"}
+            alt="Logo"
+            width={128}
+            height={35}
+            className="logo-icon-white"
           />
         </div>
         <div className="flex h-screen flex-col justify-between">

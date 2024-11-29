@@ -24,10 +24,8 @@ export function HeroBrand({
   fontSize = "50px",
   lineHeight = "20px",
   logoType = "none",
-  inDashboard = false,
 }: HeroBrandProps) {
-  const sidebarContext = useSidebar();
-  const sidebar = inDashboard ? sidebarContext : { open: true };
+  const sidebar = { open: true };
   return (
     <div className="flex items-center justify-center gap-4 md:justify-start">
       <CustomLink

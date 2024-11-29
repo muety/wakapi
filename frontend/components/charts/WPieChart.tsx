@@ -153,7 +153,6 @@ export function WPieChart({
     }
     return null;
   };
-
   return (
     <>
       <DurationTooltip title={title} subtitle={durationSubtitle} />
