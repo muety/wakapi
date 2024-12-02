@@ -19,7 +19,7 @@ export default async function Goals() {
   const goals = goalData.data;
 
   return (
-    <div className="panel panel-default mx-2 my-6 min-h-screen min-w-full p-2 px-6">
+    <div className="my-6 min-h-screen min-w-full">
       <GoalsManager
         goals={goals}
         token={session.token}

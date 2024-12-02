@@ -13,7 +13,10 @@ export default async function Clients() {
   );
 
   return (
-    <div className="panel panel-default mx-2 my-6 min-h-screen p-2 px-6">
+    <div className="my-6">
+      <div className="mb-5 flex items-center justify-start">
+        <h1 className="text-4xl">Clients</h1>
+      </div>
       <ClientsTable
         clients={clients?.data || []}
         projects={projects?.data || []}

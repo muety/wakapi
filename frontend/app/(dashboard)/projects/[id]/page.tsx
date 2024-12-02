@@ -68,7 +68,7 @@ export default async function ProjectDetailPage({
   )}`;
   const durationData = await fetchData<SummariesApiResponse>(url);
   return (
-    <div className="white-well mx-2 my-6 p-4 px-6">
+    <div className="my-6">
       {durationData && !(durationData instanceof Error) && (
         <main>
           <div className="flex items-center justify-between align-middle">

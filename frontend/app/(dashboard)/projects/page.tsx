@@ -14,7 +14,10 @@ export default async function Projects({
   );
 
   return (
-    <div className="panel panel-default mx-2 my-6 p-2 px-6">
+    <div className="my-6">
+      <div className="mb-5 flex items-center justify-start">
+        <h1 className="text-4xl">Projects</h1>
+      </div>
       <ProjectsTable projects={projects?.data || []} />
     </div>
   );
