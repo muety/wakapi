@@ -6,6 +6,7 @@ import {
   Quote,
   Receipt,
   SquareActivity,
+  TrendingUpIcon,
   Trophy,
   UsersIcon,
 } from "lucide-react";
@@ -15,46 +16,19 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { AppSidebarLogo } from "./app-sidebar-logo";
 
-export const MAIN_MENU_ITEMS = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: LayoutDashboardIcon,
-  },
-  {
-    title: "Projects",
-    url: "/projects",
-    icon: FolderGit2,
-  },
-  {
-    title: "Goals",
-    url: "/goals",
-    icon: Goal,
-  },
-  {
-    title: "Clients",
-    url: "/clients",
-    icon: UsersIcon,
-  },
-  {
-    title: "Invoices",
-    url: "/invoices",
-    icon: Receipt,
-  },
+const SIMPLE_MENU_ITEMS = [
   {
     title: "Leaderboards",
     url: "/dashboard/leaderboards",
     icon: Trophy,
   },
-];
-
-const SIMPLE_MENU_ITEMS = [
   {
     title: "FAQ",
     url: "/faq",
@@ -72,45 +46,86 @@ const SIMPLE_MENU_ITEMS = [
   },
 ];
 
+export const MAIN_MENU_ITEMS = [
+  {
+    group: "Dashboard",
+    children: [
+      {
+        title: "Dashboard",
+        url: "/dashboard",
+        icon: LayoutDashboardIcon,
+      },
+      {
+        title: "Analytics",
+        url: "/analytics",
+        icon: TrendingUpIcon,
+      },
+    ],
+  },
+  {
+    group: "Projects",
+    children: [
+      {
+        title: "Projects",
+        url: "/projects",
+        icon: FolderGit2,
+      },
+      {
+        title: "Goals",
+        url: "/goals",
+        icon: Goal,
+      },
+    ],
+  },
+  {
+    group: "Freelance",
+    children: [
+      {
+        title: "Clients",
+        url: "/clients",
+        icon: UsersIcon,
+      },
+      {
+        title: "Invoices",
+        url: "/invoices",
+        icon: Receipt,
+      },
+    ],
+  },
+  {
+    group: "Miscellaneous",
+    children: SIMPLE_MENU_ITEMS,
+  },
+];
+
 export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
         <AppSidebarLogo />
-        <div className="flex h-screen flex-col justify-between">
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {MAIN_MENU_ITEMS.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <a href={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {SIMPLE_MENU_ITEMS.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <a href={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+        <div className="flex h-screen flex-col">
+          {MAIN_MENU_ITEMS.map((item) => (
+            <SidebarGroup key={item.group}>
+              <SidebarGroupLabel>{item.group}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {item.children.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        // isActive={sidebarActive(item)}
+                      >
+                        <a href={item.url}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
         </div>
       </SidebarContent>
     </Sidebar>
