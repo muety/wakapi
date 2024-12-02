@@ -19,7 +19,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import Image from "next/image";
+import { AppSidebarLogo } from "./app-sidebar-logo";
 
 export const MAIN_MENU_ITEMS = [
   {
@@ -73,19 +73,10 @@ const SIMPLE_MENU_ITEMS = [
 ];
 
 export function AppSidebar() {
-  // const sidebarContext = useSidebar();
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
-        <div className="brand-logo pl-2">
-          <Image
-            src={"/white-logo.png"}
-            alt="Logo"
-            width={128}
-            height={35}
-            className="logo-icon-white"
-          />
-        </div>
+        <AppSidebarLogo />
         <div className="flex h-screen flex-col justify-between">
           <SidebarGroup>
             <SidebarGroupContent>

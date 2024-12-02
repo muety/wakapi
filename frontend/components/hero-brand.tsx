@@ -6,7 +6,6 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 import CustomLink from "./custom-link";
-import { useSidebar } from "./ui/sidebar";
 const rubik = Rubik({ subsets: ["latin"] });
 
 export interface HeroBrandProps {
@@ -35,7 +34,7 @@ export function HeroBrand({
         {logoType === "none" && (
           <>
             <Image
-              src={"/white-logo.png"}
+              src={"/logo/white-logo.png"}
               alt="Logo"
               width={imgWidth}
               height={imgHeight}

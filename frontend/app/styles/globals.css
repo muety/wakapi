@@ -827,3 +827,13 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
+
+[data-state="collapsed"] .sidebar-logo img.expanded {
+  display: none;
+  transition: all 0.3s ease;
+}
+
+[data-state="expanded"] .sidebar-logo img.collapsed {
+  display: none;
+  transition: all 0.3s ease;
+}

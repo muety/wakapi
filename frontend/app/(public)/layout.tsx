@@ -45,10 +45,10 @@ function Header() {
       <nav className="z-20 flex h-[50px] items-center rounded-full border border-border bg-[#FFFFFF] bg-opacity-70 px-4 backdrop-blur-xl dark:bg-[#121212]">
         <a href="/">
           <Image
-            src={"/white-logo.png"}
+            src={"/logo/white-icon.png"}
             alt="Logo"
-            width={128}
-            height={30}
+            width={80}
+            height={56}
             className="logo-icon-white"
           />
         </a>
