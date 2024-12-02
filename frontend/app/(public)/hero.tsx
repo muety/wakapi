@@ -14,7 +14,7 @@ export function Hero() {
             styles.heroContainer
           )}
         >
-          <h1 className="font-heading hero-title mb-4 text-3xl font-medium text-white sm:text-4xl md:text-4xl lg:text-5xl">
+          <h1 className="font-heading heading hero-title vertical-gradient mb-4 text-3xl font-medium text-white sm:text-4xl md:text-4xl lg:text-7xl">
             Observe your work in real time
             <span className="sr-only">one heartbeat at a time!</span>
           </h1>
