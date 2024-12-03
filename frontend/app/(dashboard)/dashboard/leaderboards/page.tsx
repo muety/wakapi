@@ -9,7 +9,6 @@ export default async function Leaderboards({
 }) {
   const queryParams = new URLSearchParams(searchParams);
   const url = `compat/wakatime/v1/leaders?${queryParams.toString()}`;
-  console.log("url", url);
   const durationData = await fetchData<LeaderboardApiResponse>(url, false);
 
   if (!durationData) {

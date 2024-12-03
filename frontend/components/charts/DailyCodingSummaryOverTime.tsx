@@ -57,7 +57,7 @@ export function DailyCodingSummaryOverTime({ data }: iProps) {
         height={220}
         data={chartData}
         barGap={"100%"}
-        barCategoryGap={0}
+        barCategoryGap={5}
         margin={{
           top: 20,
           right: 0,
