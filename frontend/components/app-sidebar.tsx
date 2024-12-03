@@ -114,6 +114,7 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         asChild
                         // isActive={sidebarActive(item)}
+                        // @todo: move this to client component and implement isActive
                       >
                         <a href={item.url}>
                           <item.icon />

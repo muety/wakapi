@@ -91,7 +91,7 @@ function Header() {
 
 export default async function Page({ children }: MarketingLayoutProps) {
   return (
-    <div className="container flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">{children}</main>
       <footer>

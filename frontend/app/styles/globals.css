@@ -63,6 +63,7 @@
   }
 
   .dark {
+    --hero: 238 50% 60%;
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
 
@@ -868,4 +869,60 @@
   font-weight: 600;
   line-height: 1.25;
   letter-spacing: -0.05em;
+}
+
+.hero-border-animation {
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-border-animation::before {
+  content: "";
+  background-image: conic-gradient(transparent 340deg, hsl(var(--hero)) 360deg);
+  width: 250%;
+  height: 250%;
+  position: absolute;
+  animation: rotate 4.5s linear infinite;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.glowing-marble {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 50px #fff,
+    inset 20px 0 80px #f0f,
+    inset -20px 0 80px #0ff,
+    inset 20px 0 300px #f0f,
+    inset -20px 0 300px #0ff,
+    0 0 50px #fff,
+    -10px 0 80px #f0f,
+    10px 0 80px #0ff;
+  animation: load 6s infinite ease-in-out;
+}
+
+@keyframes load {
+  0% {
+    transform: rotate(0);
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    filter: rotate(180deg);
+    filter: hue-rotate(120deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
