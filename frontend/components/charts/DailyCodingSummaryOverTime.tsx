@@ -57,7 +57,7 @@ export function DailyCodingSummaryOverTime({ data }: iProps) {
         height={220}
         data={chartData}
         barGap={"100%"}
-        barCategoryGap={5}
+        barCategoryGap={3}
         margin={{
           top: 20,
           right: 0,
@@ -81,10 +81,10 @@ export function DailyCodingSummaryOverTime({ data }: iProps) {
           <Bar
             key={dataKey}
             dataKey={dataKey}
-            fill={transparentize(color, 0.7)}
+            fill={transparentize(color, 0.83)}
             stroke={color}
             stackId={"groot"}
-            strokeWidth={1.9}
+            strokeWidth={1.3}
             onMouseMove={(e: any) => {
               if (e.activeTooltipIndex !== focusDataIndex) {
                 setFocusDataIndex(e.activeTooltipIndex);
