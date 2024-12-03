@@ -42,6 +42,7 @@ export function Hero() {
         className="hero-border-animation max-w-screen-xl mx-auto mt-16 p-[1px] rounded-[1rem] bg-ring"
         style={{
           maskImage: "linear-gradient(to bottom, black 30%, transparent 90%)",
+          borderWidth: 0,
         }}
       >
         <div
