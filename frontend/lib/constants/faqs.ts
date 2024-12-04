@@ -30,11 +30,6 @@ export const TOP_FAQS: Faq[] = [
       "This is a work in progress. We are not yet ready for production use. We are still working on the UI and adding features. We are also working on a managed version of this website that will be available to paying customers to help fund the continued work on this project.",
   },
   {
-    question: "Would I like to work at wakatime?",
-    answer:
-      "I won't mind working for wakatime if this doesn't work out. I just don't want to write a single line of python with server rendered templates. That thing is shit and I hated it at my first job and I'm not going to do it again. Perhaps, for a couple bucks but not for all the team in china",
-  },
-  {
     question: "My state of mind",
     answer:
       "It is 29th October, 2024, 00:40 GMT. I work two jobs that pay me a total of under ${430} based on my exchange rate. I'm just ranting and hope you excuse some of the language. I hope this turns out well though. And of course, one of you cool guys will clean this up eventually.",

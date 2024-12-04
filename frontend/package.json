@@ -69,6 +69,7 @@
     "react-day-picker": "8.10.1",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.53.0",
+    "react-intersection-observer": "^9.13.1",
     "react-to-pdf": "^1.0.1",
     "recharts": "^2.13.2",
     "swr": "^2.2.5",
