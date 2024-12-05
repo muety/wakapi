@@ -32,6 +32,6 @@ export const TOP_FAQS: Faq[] = [
   {
     question: "My state of mind",
     answer:
-      "It is 29th October, 2024, 00:40 GMT. I work two jobs that pay me a total of under ${430} based on my exchange rate. I'm just ranting and hope you excuse some of the language. I hope this turns out well though. And of course, one of you cool guys will clean this up eventually.",
+      "It is 29th October, 2024, 00:40 GMT. I work two jobs that pay me a total of under ${430}. I'm just ranting and hope you excuse some of the language. I hope this turns out well though. And of course, one of you cool guys will clean this up eventually.",
   },
 ];
