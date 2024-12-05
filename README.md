@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend/public/logo/black-logo.png" width="350">
+  <img src="frontend/public/logo/black-logo.png" width="400">
 </p>
 
 <!-- <p align="center">
@@ -13,7 +13,7 @@
 
 <h3 align="center">A Self-hosted WakaTime alternative.</h3>
 
-<div align="center">
+<!-- <div align="center">
   <h3>
     <a href="https://wakana.io">Website</a>
     <span> | </span>
@@ -25,10 +25,10 @@
     <span> | </span>
     <a href="https://github.com/jemiluv8">Contact</a>
   </h3>
-</div>
+</div> -->
 
 <p align="center">
-  <img src="/frontend/docs/screenshots/dashboard.png" width="500px">
+  <img src="frontend/docs/screenshots/home.png">
 </p>
 
 Installation instructions can be found below and in the [Wiki](https://github.com/muety/wakapi/wiki).
