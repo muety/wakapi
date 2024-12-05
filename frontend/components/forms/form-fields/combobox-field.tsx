@@ -53,7 +53,7 @@ export function ComboboxFormField({
       render={({ field }) => (
         <FormItem className="flex flex-col">
           <FormLabel>{label}</FormLabel>
-          <Popover>
+          <Popover modal={true}>
             <PopoverTrigger asChild>
               <FormControl>
                 <Button

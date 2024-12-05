@@ -53,6 +53,7 @@ export function AddInvoice({ clients, token, onChange, open }: iProps) {
       });
 
       if (!response.ok) {
+        console.log("[response]", response);
         toast({
           title: "Failed to create client",
           variant: "destructive",

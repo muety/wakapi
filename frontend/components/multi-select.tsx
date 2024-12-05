@@ -119,7 +119,11 @@ export const MultiSelect = React.forwardRef<
     };
 
     return (
-      <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+      <Popover
+        open={isPopoverOpen}
+        onOpenChange={setIsPopoverOpen}
+        modal={true}
+      >
         <PopoverTrigger asChild>
           <Button
             ref={ref}
@@ -196,6 +200,7 @@ export const MultiSelect = React.forwardRef<
             <CommandInput
               placeholder="Search..."
               onKeyDown={handleInputKeyDown}
+              aria-modal={true}
             />
             <CommandList>
               <CommandEmpty>No results found.</CommandEmpty>
