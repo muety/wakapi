@@ -22,12 +22,21 @@ interface AlertDialogDemoProps {
   onConfirm: () => void;
   open?: boolean;
   loading?: boolean;
+  cancelText?: string;
+  continueText?: string;
+  continueClassName?: string;
+  titleClassName?: string;
 }
 
 export function Confirm(props: AlertDialogDemoProps) {
   const topProps: { open?: boolean } = {};
+  const {
+    cancelText = "Cancel",
+    continueText = "Continue",
+    continueClassName = "",
+    titleClassName = "",
+  } = props;
   if (props.open) {
-    // hack alert
     topProps.open = props.open;
   }
   return (
@@ -35,16 +44,23 @@ export function Confirm(props: AlertDialogDemoProps) {
       <AlertDialogTrigger asChild>{props.children}</AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{props.title}</AlertDialogTitle>
+          <AlertDialogTitle className={titleClassName}>
+            {props.title}
+          </AlertDialogTitle>
           <AlertDialogDescription>{props.description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={props.onCancel}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={props.onConfirm}>
+          <AlertDialogCancel onClick={props.onCancel}>
+            {cancelText}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            className={continueClassName}
+            onClick={props.onConfirm}
+          >
             {props.loading && (
               <Icons.spinner className="mr-2 size-4 animate-spin" />
             )}
-            Continue
+            {continueText}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

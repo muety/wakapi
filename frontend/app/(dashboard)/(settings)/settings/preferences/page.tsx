@@ -1,21 +1,22 @@
 import {
   Card,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardContent,
+  CardDescription,
 } from "@/components/ui/card";
+import { UserPreferences } from "@/components/user-preferences";
 
 export default async function Page() {
   return (
     <div className="grid gap-6">
       <Card x-chunk="dashboard-04-chunk-1">
         <CardHeader>
-          <CardTitle>Preferences</CardTitle>
+          <CardTitle className="text-2xl">Preferences</CardTitle>
           <CardDescription>Edit your account preferences.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p>Missing content</p>
+          <UserPreferences />
         </CardContent>
       </Card>
     </div>
