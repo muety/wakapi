@@ -839,6 +839,11 @@
   transition: all 0.3s ease;
 }
 
+[data-state="collapsed"] .icon {
+  font-size: 3rem;
+  /* transition: all 0.3s ease; */
+}
+
 .vertical-gradient {
   background-image: linear-gradient(to top, var(--tw-gradient-stops));
   --tw-gradient-from: #111827 var(--tw-gradient-from-position);

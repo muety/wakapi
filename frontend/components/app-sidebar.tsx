@@ -112,6 +112,7 @@ export function AppSidebar() {
                   {item.children.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
+                        size="lg"
                         asChild
                         // isActive={sidebarActive(item)}
                         // @todo: move this to client component and implement isActive
