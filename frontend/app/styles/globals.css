@@ -841,7 +841,7 @@
 
 [data-state="collapsed"] .icon {
   font-size: 3rem;
-  /* transition: all 0.3s ease; */
+  transition: all 0.3s ease;
 }
 
 .vertical-gradient {
