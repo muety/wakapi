@@ -1,9 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { LucideUnplug } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { Confirm } from "@/components/ui/confirm";
+import { cn } from "@/lib/utils";
 
 export function DisconnectWakatime() {
   const disconnectWakatimeIntegration = () => {

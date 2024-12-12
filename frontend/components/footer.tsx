@@ -13,13 +13,7 @@ export default function Footer() {
         </CustomLink>
         <CustomLink href="/policy">Policy</CustomLink>
       </div>
-      <div className="flex items-center justify-start gap-2">
-        <img
-          className="size-5"
-          src="https://authjs.dev/img/logo/logo-sm.webp"
-          alt="Auth.js Logo"
-        />
-      </div>
+      <div className="flex items-center justify-start gap-2"></div>
     </footer>
   );
 }

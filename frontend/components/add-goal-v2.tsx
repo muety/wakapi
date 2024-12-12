@@ -283,6 +283,7 @@ export function AddGoalDialogV2({
           <div className="flex gap-2">
             <div>
               <SimpleSelect
+                key={selectedGoalOption}
                 options={[
                   { label: "More", id: "more", value: "more" },
                   { label: "Less", id: "less", value: "less" },
@@ -306,6 +307,7 @@ export function AddGoalDialogV2({
               <div>
                 {/* <LucideArrowRight className="size-4" color="#db2777" /> */}
                 <SimpleSelect
+                  key={selectedGoalOption}
                   options={goalOptions}
                   onChange={(val) => {
                     dispatch({

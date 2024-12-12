@@ -63,7 +63,7 @@ export default function CardSelect({ options, onChange }: CardSelectProps) {
       {options.map((option, index) => (
         <Card
           key={option.id}
-          ref={(el) => (cardRefs.current[index] = el)}
+          ref={(el) => (cardRefs.current[index] = el) as any}
           className={`
             cursor-pointer transition-all duration-300 ease-in-out
             ${

@@ -288,7 +288,7 @@ export function AddGoalDialog({
                 <Button
                   key={index}
                   className="block w-full text-white"
-                  variant={"info"}
+                  variant={"outline"}
                   size={"lg"}
                   style={{
                     borderRadius: "6px",
@@ -415,7 +415,7 @@ export function AddGoalDialog({
         {!hasCompletedSecondStep && selectedGoalOption && (
           <Button
             className="block w-full"
-            variant={"info"}
+            variant={"outline"}
             size={"lg"}
             style={{
               borderRadius: "6px",
@@ -445,7 +445,7 @@ export function AddGoalDialog({
         {hasCompletedSecondStep && (
           <Button
             className="block w-full"
-            variant={"info"}
+            variant={"outline"}
             size={"lg"}
             style={{
               borderRadius: "6px",

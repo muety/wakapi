@@ -14,7 +14,7 @@ import {
 import { SAMPLE_COLORS } from "@/lib/constants";
 import { SummariesResponse } from "@/lib/types";
 import {
-  normalizeChartData,
+  getUniqueProjects,
   prepareDailyCodingData,
   transparentize,
 } from "@/lib/utils";
@@ -32,9 +32,7 @@ export function DailyCodingSummaryOverTime({ data }: iProps) {
   // Normalizing seems to bring us closer to an optimum solution but has its own
   // pitfals? It just looks nicer but the labels are fucked
   const chartData = data.map(prepareDailyCodingData);
-  const [, uniqueProjects] = normalizeChartData(
-    data.map(prepareDailyCodingData)
-  );
+  const uniqueProjects = getUniqueProjects(chartData);
 
   const customUniqueProjects: Record<string, string> = uniqueProjects.reduce(
     (prev, cur, index) => ({

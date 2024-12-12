@@ -86,7 +86,10 @@ export function StackedTooltipContent(props: any) {
         >
           {props.label}
         </div>
-        <TooltipRow payload={{ name: "Total", value: total }} total={total} />
+        <TooltipRow
+          payload={{ name: "Total", value: total, color: "#fff" }}
+          total={total}
+        />
         {selectedPayload
           .filter((p: any) => p.name !== "key") //  && p.value >= 60
           .filter((p: any) => p?.value > 0) // TODO: update?

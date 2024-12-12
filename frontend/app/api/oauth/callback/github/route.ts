@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 }
 
 // throws
-export async function handleGithubOauth(code: string) {
+async function handleGithubOauth(code: string) {
   console.log("Handing github oauth", new Date());
   const apiResponse = await fetch(`${API_URL}/api/auth/oauth/github`, {
     method: "POST",

@@ -21,6 +21,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+
 import { AppSidebarLogo } from "./app-sidebar-logo";
 
 const SIMPLE_MENU_ITEMS = [

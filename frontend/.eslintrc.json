@@ -8,7 +8,6 @@
     "plugin:@next/next/recommended",
     "plugin:prettier/recommended",
     "plugin:react/jsx-runtime",
-    "plugin:tailwindcss/recommended",
     "plugin:react-hooks/recommended",
     "plugin:@typescript-eslint/recommended",
     "prettier"
@@ -41,7 +40,7 @@
     "unused-imports/no-unused-imports": "error",
     "react/no-unescaped-entities": "off",
     "react/jsx-uses-react": "off", // Disable React import check
-    "@typescript-eslint/no-explicit-any": "warn", // Warn about explicit 'any' type in TypeScript
+    "@typescript-eslint/no-explicit-any": "off", // Warn about explicit 'any' type in TypeScript
     "react/prop-types": "off" // Disable prop-types rule (if using TypeScript, you may not need this)
   },
   "settings": {

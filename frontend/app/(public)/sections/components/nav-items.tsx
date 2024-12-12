@@ -7,13 +7,7 @@ const items = [
   { name: "Sign in", href: "/auth/signin" },
 ];
 
-export function NavItems({
-  className,
-  onItemClick,
-}: {
-  className?: string;
-  onItemClick?: () => void;
-}) {
+export function NavItems({ className }: { className?: string }) {
   return (
     <ul className={cn("space-y-2", className)}>
       {items.map((item) => (

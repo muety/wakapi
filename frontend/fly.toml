@@ -8,6 +8,9 @@ primary_region = 'lhr'
 
 [build]
 
+[env]
+swap_size_mb = 512  # Example: 512 MB swap space
+
 [http_service]
   internal_port = 3000
   force_https = true

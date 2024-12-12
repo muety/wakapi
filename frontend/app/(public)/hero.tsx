@@ -1,25 +1,24 @@
 import { SparklesIcon } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { FadeOnView } from "@/components/fade-on-view";
 import { Badge } from "@/components/ui/badge";
 // import Blur1 from "@/public//dashboard.webp";
 import { cn } from "@/lib/utils";
-import { FadeOnView } from "@/components/fade-on-view";
-import Link from "next/link";
 
 export function Hero() {
   return (
-    <section className="px-6 flex flex-col justify-center text-center relative">
+    <section className="relative flex flex-col justify-center px-6 text-center">
       <div className="min-h-[30vh] py-8">
         <FadeOnView>
-          <Badge variant="secondary" className="w-fit mx-auto">
-            <SparklesIcon className="w-4 h-4 mr-2" />
+          <Badge variant="secondary" className="mx-auto w-fit">
+            <SparklesIcon className="mr-2 size-4" />
             Beta Testing
           </Badge>
         </FadeOnView>
         <FadeOnView delay={0.2}>
-          <h1 className="heading vertical-gradient lg:text-7xl sm:flex-center gap-2 sm:gap-4 py-4 md:py-6">
+          <h1 className="heading vertical-gradient sm:flex-center gap-2 py-4 sm:gap-4 md:py-6 lg:text-7xl">
             Observe your work in real time
           </h1>
         </FadeOnView>
@@ -29,7 +28,7 @@ export function Hero() {
           </p>
         </FadeOnView>
         <div className="flex-gap justify-center">
-          <FadeOnView delay={0.6} className="space-x-2 mt-12">
+          <FadeOnView delay={0.6} className="mt-12 space-x-2">
             {/* <Button className="rounded-full shadow-lg">Get Started</Button> */}
             <Link href="/auth/signin" className={cn("font-heading hero-cta")}>
               Try it for free
@@ -39,7 +38,7 @@ export function Hero() {
       </div>
       <FadeOnView
         delay={1}
-        className="hero-border-animation max-w-screen-xl mx-auto mt-16 p-[1px] rounded-[1rem] bg-ring"
+        className="hero-border-animation mx-auto mt-16 max-w-screen-xl rounded-2xl bg-ring p-px"
         style={{
           maskImage: "linear-gradient(to bottom, black 30%, transparent 90%)",
           borderWidth: 0,
@@ -57,14 +56,14 @@ export function Hero() {
               alt="App image"
               width={1920}
               height={1080}
-              className="rounded-[12px] overflow-hidden z-10 border relative"
+              className="relative z-10 overflow-hidden rounded-[12px] border"
             />
             <Image
               src="/bg-blur-1.webp"
               alt="background blur"
               width={1920}
               height={1080}
-              className="opacity-30 absolute"
+              className="absolute opacity-30"
             />
           </div>
         </div>

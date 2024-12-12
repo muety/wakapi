@@ -1,48 +1,17 @@
 import { format, subDays } from "date-fns";
+import Image from "next/image";
 
 import { fetchData, getSession } from "@/actions";
+import { ProjectBreadCrumb } from "@/components/bread-crumbs";
 import { ActivityCategoriesChart } from "@/components/charts/ActivityCategoriesChart";
 import { DailyCodingSummaryLineChart } from "@/components/charts/DailyCodingSummaryLineChart";
 import { WPieChart } from "@/components/charts/WPieChart";
 import { DashboardPeriodSelector } from "@/components/dashboard-period-selector";
 import { ProjectFiles } from "@/components/ProjectFiles";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { SummariesApiResponse } from "@/lib/types";
 import { makePieChartDataFromRawApiResponse } from "@/lib/utils";
 
 const { API_URL } = process.env;
-
-export function ProjectBreadCrumb({ projectId }: { projectId: string }) {
-  return (
-    <Breadcrumb className="m-0 mb-4 pl-0 text-2xl">
-      <BreadcrumbList>
-        <BreadcrumbItem>
-          <BreadcrumbLink
-            className="link hover:text-purple text-xl underline"
-            href="/projects"
-          >
-            Projects
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink
-            className="link hover:text-purple text-xl"
-            href={`/projects/${projectId}`}
-          >
-            {projectId}
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-      </BreadcrumbList>
-    </Breadcrumb>
-  );
-}
 
 interface iProps {
   searchParams: Record<string, any>;
@@ -74,10 +43,12 @@ export default async function ProjectDetailPage({
           <div className="flex items-center justify-between align-middle">
             <ProjectBreadCrumb projectId={params.id} />
             <div>
-              <img
+              <Image
                 className="with-url-src"
                 src={`${API_URL}/api/badge/${session.user.id}/project:${params.id}/interval:all_time?label=total&token=${session.token}`}
                 alt="Badge"
+                height={20}
+                width={200}
               />
             </div>
           </div>

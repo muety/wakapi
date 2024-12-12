@@ -45,7 +45,7 @@ export function GoalChart({ data, direction }: iProps) {
           axisLine={true}
         />
         <YAxis
-          tickFormatter={convertSecondsToHours}
+          tickFormatter={convertSecondsToHours as any}
           className="chart-x-axis"
           tickLine={true}
           axisLine={true}

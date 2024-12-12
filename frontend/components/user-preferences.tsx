@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+
+import { updatePreference } from "@/actions/update-preferences";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { updatePreference } from "@/actions/update-preferences";
 
 export function UserPreferences() {
   const [hireableBadge, setHireableBadge] = useState(false);
@@ -44,7 +45,7 @@ export function UserPreferences() {
           </div>
           <div className="flex items-center space-x-2">
             {loading === "hireableBadge" && (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
             )}
             <Switch
               id="hireable-badge"
@@ -63,7 +64,7 @@ export function UserPreferences() {
           </div>
           <div className="flex items-center space-x-2">
             {loading === "displayEmail" && (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
             )}
             <Switch
               id="display-email"
@@ -82,7 +83,7 @@ export function UserPreferences() {
           </div>
           <div className="flex items-center space-x-2">
             {loading === "displayCodeTime" && (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
             )}
             <Switch
               id="display-code-time"

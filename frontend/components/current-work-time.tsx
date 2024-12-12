@@ -30,7 +30,7 @@ export function CurrentWorkTime() {
 
   React.useEffect(() => {
     if (token) fetchSummary();
-  }, [session, isLoading]);
+  }, [session, isLoading, token]);
 
   React.useEffect(() => {
     const pulseInterval = setInterval(() => {

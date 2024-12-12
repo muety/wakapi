@@ -64,7 +64,7 @@ export default function TypeformSelect({
       {options.map((option, index) => (
         <button
           key={option.id}
-          ref={(el) => (buttonRefs.current[index] = el)}
+          ref={(el) => (buttonRefs.current[index] = el) as any}
           className={`
             relative h-10 w-full rounded-lg p-1 text-left text-lg font-medium transition-all duration-200 ease-in-out focus:outline-none
             focus:ring-1 focus:ring-primary focus:ring-offset-2

@@ -103,7 +103,7 @@ export function ProfileForm() {
               <FormLabel>GitHub</FormLabel>
               <FormControl>
                 <div className="flex">
-                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 text-gray-500 text-sm">
+                  <span className="inline-flex items-center rounded-l-md border border-r-0 px-3 text-sm text-gray-500">
                     hhtps://github.com/
                   </span>
                   <Input className="rounded-l-none" {...field} />
@@ -122,7 +122,7 @@ export function ProfileForm() {
               <FormLabel>X (Twitter)</FormLabel>
               <FormControl>
                 <div className="flex">
-                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 text-gray-500 text-sm">
+                  <span className="inline-flex items-center rounded-l-md border border-r-0 px-3 text-sm text-gray-500">
                     https://x.com/@
                   </span>
                   <Input className="rounded-l-none" {...field} />
@@ -143,7 +143,7 @@ export function ProfileForm() {
               <FormLabel>LinkedIn</FormLabel>
               <FormControl>
                 <div className="flex">
-                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 text-gray-500 text-sm">
+                  <span className="inline-flex items-center rounded-l-md border border-r-0 px-3 text-sm text-gray-500">
                     https://linkedin.com/in/
                   </span>
                   <Input className="rounded-l-none" {...field} />

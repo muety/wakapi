@@ -1,9 +1,10 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
+
+import { cn } from "@/lib/utils";
 
 interface FadeOnViewProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;

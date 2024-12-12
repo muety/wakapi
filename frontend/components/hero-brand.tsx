@@ -34,7 +34,7 @@ export function HeroBrand({
         {logoType === "none" && (
           <>
             <Image
-              src={"/logo/white-logo.png"}
+              src={"/white-logo.png"}
               alt="Logo"
               width={imgWidth}
               height={imgHeight}

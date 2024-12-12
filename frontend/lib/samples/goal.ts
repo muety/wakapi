@@ -6,6 +6,7 @@ export const GOAL_SAMPLE: GoalData = {
   created_at: "2024-06-08T18:56:08.515Z",
   updated_at: "2024-06-08T18:56:08.515Z",
   snooze_until: 0,
+  target_direction: "more",
   seconds: 3600,
   improve_by_percent: 0,
   delta: "day",

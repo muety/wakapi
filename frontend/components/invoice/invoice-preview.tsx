@@ -25,7 +25,7 @@ export function InvoicePreview({ data, onTogglePreview }: iProps) {
     return line_items.reduce((acc, item) => {
       return acc + getHours(item.total_seconds) * client.hourly_rate;
     }, 0);
-  }, [line_items]);
+  }, [line_items, client.hourly_rate]);
 
   const taxTotal = React.useMemo(() => {
     if (isNaN(tax)) {

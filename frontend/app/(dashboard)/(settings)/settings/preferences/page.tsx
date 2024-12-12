@@ -1,9 +1,9 @@
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardContent,
   CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { UserPreferences } from "@/components/user-preferences";
 

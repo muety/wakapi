@@ -10,8 +10,14 @@ module.exports = {
       },
       {
         protocol: "http",
-        hostname: "http://localhost:5509",
+        hostname: "localhost:5509",
         port: "5509",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "frontend-twilight-surf-2167.fly.dev",
+        port: "",
         pathname: "/**",
       },
     ],

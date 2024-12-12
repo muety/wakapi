@@ -41,7 +41,7 @@ export function DailyCodingSummaryLineChart({ data }: iProps) {
           className="chart-x-axis"
         />
         <YAxis
-          tickFormatter={convertSecondsToHours}
+          tickFormatter={convertSecondsToHours as any}
           className="chart-x-axis"
           tickLine={true}
           axisLine={true}

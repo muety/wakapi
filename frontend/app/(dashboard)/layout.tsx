@@ -20,10 +20,7 @@ export default async function Layout({
       <main className="w-full">
         <DashboardHeader />
         <MobileHeader />
-        <main
-          className="min-h-100 min-h-full px-5"
-          style={{ minHeight: "50vh" }}
-        >
+        <main className="min-h-full px-5" style={{ minHeight: "50vh" }}>
           {children}
         </main>
       </main>

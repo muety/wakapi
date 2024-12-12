@@ -273,6 +273,21 @@ export function normalizeChartData(
   return [rawChartData, Array.from(projects)];
 }
 
+export function getUniqueProjects(
+  rawChartData: {
+    name: string;
+    total: number;
+  }[]
+): string[] {
+  const projects = new Set<string>();
+  rawChartData.forEach((d) =>
+    Object.keys(d).forEach(
+      (key) => !["name", "total"].includes(key) && projects.add(key)
+    )
+  );
+  return Array.from(projects);
+}
+
 function getDaySummary(categories: Category[]) {
   return categories.reduce(
     (prev: Record<string, any>, cur: { name: any; total_seconds: any }) => ({

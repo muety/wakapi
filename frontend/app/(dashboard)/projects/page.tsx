@@ -4,9 +4,11 @@ import {
   ProjectsTable,
 } from "@/components/projects-table";
 
-export default async function Projects({
-  searchParams,
-}: Record<string, string>) {
+interface PageProps {
+  searchParams: Record<string, any>;
+}
+
+export default async function Projects({ searchParams }: PageProps) {
   const projects = await fetchData<ProjectsApiResponse | null>(
     `compat/wakatime/v1/users/current/projects${new URLSearchParams(
       searchParams

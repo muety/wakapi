@@ -1,11 +1,10 @@
-import { ApiKeyCopier } from "@/components/copy-api-key";
 import { ProfileForm } from "@/components/profile-form";
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
 } from "@/components/ui/card";
 
 export default function ProfilePage() {
