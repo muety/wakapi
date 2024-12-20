@@ -108,6 +108,12 @@ var userAgents = []struct {
 		"cursor",
 		nil,
 	},
+	{
+		"wakatime/v1.106.1 (linux-5.15.167.4-microsoft-standard-WSL2-unknown) go1.23.3 cursor/1.93.1 vscode-wakatime/24.9.2", // https://github.com/muety/wakapi/issues/718
+		"Linux",
+		"cursor",
+		nil,
+	},
 }
 
 func BenchmarkCommon_ParseUserAgent(b *testing.B) {

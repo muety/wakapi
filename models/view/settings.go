@@ -7,15 +7,16 @@ import (
 
 type SettingsViewModel struct {
 	SharedLoggedInViewModel
-	LanguageMappings    []*models.LanguageMapping
-	Aliases             []*SettingsVMCombinedAlias
-	Labels              []*SettingsVMCombinedLabel
-	Projects            []string
-	SubscriptionPrice   string
-	DataRetentionMonths int
-	UserFirstData       time.Time
-	SupportContact      string
-	InviteLink          string
+	LanguageMappings      []*models.LanguageMapping
+	Aliases               []*SettingsVMCombinedAlias
+	Labels                []*SettingsVMCombinedLabel
+	Projects              []string
+	SubscriptionPrice     string
+	DataRetentionMonths   int
+	UserFirstData         time.Time
+	SupportContact        string
+	InviteLink            string
+	ReadmeCardCustomTitle string
 }
 
 type SettingsVMCombinedAlias struct {

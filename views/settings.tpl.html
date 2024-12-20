@@ -649,6 +649,20 @@
                                 </select>
                             </div>
                         </div>
+
+                        <div class="flex gap-x-8">
+                            <div class="grow">
+                                <label class="font-semibold text-gray-300" for="share_labels">Share Activity Chart</label>
+                            </div>
+                            <div>
+                                <select autocomplete="off" id="share_activity_chart" name="share_activity_chart" class="select-default grow">
+                                    <option value="false" class="cursor-pointer" {{ if not .User.ShareActivityChart }} selected {{ end }}>No
+                                    </option>
+                                    <option value="true" class="cursor-pointer" {{ if .User.ShareActivityChart }} selected {{ end }}>Yes
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -776,6 +790,9 @@
                         <label class="font-semibold text-gray-300 text-lg" for="select-timezone">GitHub Readme Stats</label>
                         <span class="block text-sm text-gray-600">
                             Wakapi intregrates with <a class="link" href="https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats" target="_blank" rel="noreferrer noopener">GitHub Readme Stats</a> to generate fancy cards for you. To enable this feature, you need to grant public, unauthorized access to the respective endpoints. See <a class="link" href="settings#permissions">Permissions</a>.<br><br>
+                            Share data for >= 7 days → weekly summary card<br>
+                            Share data for >= 366 days → yearly summary card<br>
+                            Share all data (-1) → all-time summary card<br><br>
                             Only available on public instances, not on localhost.
                         </span>
                     </div>
@@ -783,13 +800,13 @@
                     <div class="w-full md:w-1/2">
                         {{ if ne .User.ShareDataMaxDays 0 }}
                         <div class="flex items-center mb-2">
-                            <img src="https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=1A202C&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact"
+                            <img src="https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=1A202C&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title={{ .ReadmeCardCustomTitle }}&layout=compact"
                                  class="with-url-src-no-scheme" alt="Readme Stats Card">
                         </div>
                         <textarea
                                 class="with-url-inner-no-scheme shrink w-full font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed mt-2"
                                 rows="5" style="resize: none"
-                                readonly>https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=1A202C&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact</textarea>
+                                readonly>https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=1A202C&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title={{ .ReadmeCardCustomTitle }}&layout=compact</textarea>
                         {{ end }}
                     </div>
                 </div>
