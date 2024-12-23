@@ -1,8 +1,8 @@
 launch.json
-.vscode
 wakapi
-.idea
 build
+/dist
+/tmp
 *.exe
 *.db
 *.zip
@@ -10,6 +10,24 @@ config*.yml
 !config.default.yml
 !testing/config.*.yml
 pkged.go
+
+# node
+.DS_Store
 package-lock.json
 node_modules
-.DS_Store
+.npmrc
+.cache
+.eslintcache
+
+# Editor directories and files
+.idea
+.vscode
+
+# yarn2
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

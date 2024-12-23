@@ -4,6 +4,7 @@
     "build:tailwind": "tailwindcss build -i static/assets/css/app.css -o static/assets/css/app.dist.css --minify",
     "build:icons": "node scripts/bundle_icons.js",
     "build:all:compress": "npm run build && npm run compress",
+    "lint:prettier": "prettier --write  \"views/**/*.{js,json,tsx,css,less,scss,vue,html,md}\"",
     "watch": "chokidar \"./views/**/*.html\" \"./static/assets/js/**/*.js\" \"./static/assets/css/**/*.css\" -i \"**/vendor/*\" -i \"**/*.dist.*\" -c \"npm run build\"",
     "watch:compress": "chokidar \"./views/**/*.html\" \"./static/assets/js/**/*.js\" \"./static/assets/css/**/*.css\" -i \"**/vendor/*\" -i \"**/*.dist.*\" -c \"npm run build:all:compress\"",
     "compress": "brotli -f static/assets/css/*.dist.css && brotli -f static/assets/js/*.dist.js"
@@ -12,7 +13,7 @@
     "@iconify/json": "^2.2.120",
     "@iconify/json-tools": "^1.0.10",
     "chokidar-cli": "^3.0.0",
+    "prettier": "^3.4.2",
     "tailwindcss": "^3.1.8"
-  },
-  "dependencies": {}
+  }
 }

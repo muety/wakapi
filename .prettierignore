@@ -1,0 +1,6 @@
+.local
+.output.js
+/node_modules/**
+pnpm-lock.yaml
+**/*.svg
+**/*.sh
