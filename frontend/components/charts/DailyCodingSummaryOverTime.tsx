@@ -21,6 +21,52 @@ import {
 
 import { StackedTooltipContent } from "./StackedTooltipContent";
 
+const CustomBarShape = (props: any) => {
+  const { x, y, width, height, fill, stroke, strokeWidth } = props;
+
+  return (
+    <>
+      {/* Main fill rectangle */}
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        fill={fill}
+        stroke="none"
+        strokeWidth={0}
+      />
+      {/* Top stroke */}
+      <line
+        x1={x}
+        y1={y}
+        x2={x + width}
+        y2={y}
+        stroke={stroke}
+        strokeWidth={strokeWidth || 1}
+      />
+      {/* Left stroke */}
+      <line
+        x1={x}
+        y1={y}
+        x2={x}
+        y2={y + height}
+        stroke={stroke}
+        strokeWidth={strokeWidth || 1}
+      />
+      {/* Right stroke */}
+      <line
+        x1={x + width}
+        y1={y}
+        x2={x + width}
+        y2={y + height}
+        stroke={stroke}
+        strokeWidth={strokeWidth || 1}
+      />
+    </>
+  );
+};
+
 export interface iProps {
   data: SummariesResponse[];
 }
@@ -83,6 +129,7 @@ export function DailyCodingSummaryOverTime({ data }: iProps) {
             stroke={color}
             stackId={"groot"}
             strokeWidth={1.3}
+            shape={CustomBarShape}
             onMouseMove={(e: any) => {
               if (e.activeTooltipIndex !== focusDataIndex) {
                 setFocusDataIndex(e.activeTooltipIndex);

@@ -132,8 +132,8 @@ export function AddClient({
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[625px]">
-        <DialogHeader className="text-black">
-          <DialogTitle className="text-black">Client</DialogTitle>
+        <DialogHeader className="">
+          <DialogTitle className="text-2xl">Client</DialogTitle>
           <DialogDescription className="sr-only">
             Create Client
           </DialogDescription>

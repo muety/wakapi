@@ -20,6 +20,12 @@ module.exports = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "http",
+        hostname: "*",
+        port: "5509",
+        pathname: "/**",
+      },
     ],
   },
 };
