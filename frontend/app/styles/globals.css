@@ -360,14 +360,6 @@
   border: 1px solid #4f5b69;
 }
 
-.charts-wrapper {
-  /* margin-bottom: 20px;
-  margin-top: 20px; */
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
 .container {
   padding-right: 15px;
   padding-left: 15px;
@@ -401,7 +393,6 @@
 
   .charts-grid-top {
     grid-template-columns: 1fr;
-    grid-template-columns: repeat(2, 1fr);
   }
 
   .charts-grid-top > :first-child {

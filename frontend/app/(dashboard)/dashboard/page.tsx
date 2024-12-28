@@ -57,11 +57,10 @@ export default async function Dashboard({
                 data={durationData.data}
                 dailyAverage={durationData.daily_average}
               />
-              {/* <ActivityCategoriesChart data={durationData.data} /> */}
             </div>
           </section>
 
-          <div className="charts-wrapper my-5">
+          <div className="my-5">
             <div className="charts-grid">
               <div className="chart-box">
                 <WPieChart
