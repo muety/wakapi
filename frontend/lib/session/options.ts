@@ -30,7 +30,7 @@ export const defaultSession: SessionData = {
 
 export const sessionOptions: SessionOptions = {
   password: AUTH_SECRET!,
-  cookieName: SESSION_COOKIE_NAME!,
+  cookieName: SESSION_COOKIE_NAME || "wakana-auth",
   cookieOptions: {
     secure: true,
     // domain: "/",
