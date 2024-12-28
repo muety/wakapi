@@ -10,7 +10,7 @@ import {
   sessionOptions,
 } from "@/lib/session/options";
 
-const { API_URL } = process.env;
+const { NEXT_PUBLIC_API_URL } = process.env;
 
 export async function POST(request: NextRequest) {
   let requestData;
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   };
 
   try {
-    const apiResponse = await fetch(`${API_URL}/api/auth/login`, {
+    const apiResponse = await fetch(`${NEXT_PUBLIC_API_URL}/api/auth/login`, {
       method: "POST",
       headers: {
         accept: "application/json",

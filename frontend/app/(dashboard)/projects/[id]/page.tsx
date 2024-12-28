@@ -10,7 +10,7 @@ import { ProjectFiles } from "@/components/ProjectFiles";
 import { SummariesApiResponse } from "@/lib/types";
 import { makePieChartDataFromRawApiResponse } from "@/lib/utils";
 
-const { API_URL } = process.env;
+const { NEXT_PUBLIC_API_URL } = process.env;
 
 interface iProps {
   searchParams: Record<string, any>;
@@ -44,7 +44,7 @@ export default async function ProjectDetailPage({
             <div>
               <img
                 className="with-url-src"
-                src={`${API_URL}/api/badge/${session.user.id}/project:${params.id}/interval:all_time?label=total&token=${session.token}`}
+                src={`${NEXT_PUBLIC_API_URL}/api/badge/${session.user.id}/project:${params.id}/interval:all_time?label=total&token=${session.token}`}
                 alt="Badge"
               />
             </div>

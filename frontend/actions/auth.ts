@@ -5,7 +5,7 @@ import { SessionData } from "@/lib/session/options";
 import { createIronSession } from "@/lib/server/auth";
 import { userNameSchema } from "@/lib/validations/user";
 
-const { API_URL } = process.env;
+const { NEXT_PUBLIC_API_URL } = process.env;
 
 export async function loginAction(_: any, formData: FormData): Promise<any> {
   const validatedFields = userNameSchema.safeParse({
@@ -32,7 +32,7 @@ export async function processLogin(credentials: {
 }) {
   let redirectPath = null;
   try {
-    const apiResponse = await fetch(`${API_URL}/api/auth/login`, {
+    const apiResponse = await fetch(`${NEXT_PUBLIC_API_URL}/api/auth/login`, {
       method: "POST",
       headers: {
         accept: "application/json",

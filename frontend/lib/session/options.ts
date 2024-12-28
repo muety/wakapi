@@ -1,6 +1,6 @@
 import { SessionOptions } from "iron-session";
 
-const { AUTH_SECRET } = process.env;
+const { AUTH_SECRET, SESSION_COOKIE_NAME } = process.env;
 
 export interface SessionData {
   user: SessionUser;
@@ -30,10 +30,8 @@ export const defaultSession: SessionData = {
 
 export const sessionOptions: SessionOptions = {
   password: AUTH_SECRET!,
-  cookieName: "wakatimer-auth-session",
+  cookieName: SESSION_COOKIE_NAME!,
   cookieOptions: {
-    // secure only works in `https` environments
-    // if your localhost is not on `https`, then use: `secure: process.env.NODE_ENV === "production"`
     secure: true,
     // domain: "/",
   },

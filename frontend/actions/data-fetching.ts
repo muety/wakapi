@@ -2,12 +2,12 @@
 
 import { getSession } from "./session";
 
-const { API_URL } = process.env;
+const { NEXT_PUBLIC_API_URL } = process.env;
 
 // doesn't throw. returns null when not found
 export async function fetchData<T>(
   url: string,
-  auth: boolean = true,
+  auth: boolean = true
 ): Promise<T | null> {
   try {
     let session = null;
@@ -24,7 +24,7 @@ export async function fetchData<T>(
       }
     }
 
-    const apiResponse = await fetch(`${API_URL}/api/${url}`, {
+    const apiResponse = await fetch(`${NEXT_PUBLIC_API_URL}/api/${url}`, {
       method: "GET",
       headers: {
         accept: "application/json",
