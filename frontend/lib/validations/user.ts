@@ -5,6 +5,15 @@ export const userNameSchema = z.object({
   password: z.string().min(3).max(32),
 });
 
+export const resetPasswordSchema = z.object({
+  password: z.string().min(3).max(32),
+  confirm_password: z.string().min(3).max(32),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().min(3).max(32),
+});
+
 export const userSignupSchema = z
   .object({
     email: z.string().min(3).max(32),

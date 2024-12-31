@@ -13,13 +13,14 @@ import (
 
 	"github.com/duke-git/lancet/v2/slice"
 
+	"log/slog"
+
 	"github.com/gofrs/uuid/v5"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
 	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/utils"
 	"github.com/robfig/cron/v3"
-	"log/slog"
 )
 
 const (
@@ -116,7 +117,7 @@ type securityConfig struct {
 	DisableFrontpage   bool   `yaml:"disable_frontpage" default:"false" env:"WAKAPI_DISABLE_FRONTPAGE"`
 	// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
 	PasswordSalt               string                     `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
-	JWT_SECRET                string                     `yaml:"jwt_secret" default:"" env:"JWT_SECRET"`
+	JWT_SECRET                 string                     `yaml:"jwt_secret" default:"" env:"JWT_SECRET"`
 	InsecureCookies            bool                       `yaml:"insecure_cookies" default:"false" env:"WAKAPI_INSECURE_COOKIES"`
 	CookieMaxAgeSec            int                        `yaml:"cookie_max_age" default:"172800" env:"WAKAPI_COOKIE_MAX_AGE"`
 	TrustedHeaderAuth          bool                       `yaml:"trusted_header_auth" default:"false" env:"WAKAPI_TRUSTED_HEADER_AUTH"`
@@ -155,6 +156,7 @@ type serverConfig struct {
 	TimeoutSec       int    `yaml:"timeout_sec" default:"30" env:"WAKAPI_TIMEOUT_SEC"`
 	BasePath         string `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
 	PublicUrl        string `yaml:"public_url" default:"http://localhost:3000" env:"WAKAPI_PUBLIC_URL"`
+	FrontendUri      string `yaml:"frontend_uri" default:"https://localhost:3000" env:"WAKAPI_FRONTEND_URI"`
 	TlsCertPath      string `yaml:"tls_cert_path" default:"" env:"WAKAPI_TLS_CERT_PATH"`
 	TlsKeyPath       string `yaml:"tls_key_path" default:"" env:"WAKAPI_TLS_KEY_PATH"`
 }
@@ -419,6 +421,10 @@ func (c *dbConfig) IsMssql() bool {
 
 func (c *serverConfig) GetPublicUrl() string {
 	return strings.TrimSuffix(c.PublicUrl, "/")
+}
+
+func (c *serverConfig) GetFrontendUri() string {
+	return strings.TrimSuffix(c.FrontendUri, "/")
 }
 
 func (c *SMTPMailConfig) ConnStr() string {

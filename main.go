@@ -225,7 +225,7 @@ func main() {
 	routes.Init()
 
 	// API Handlers
-	authApiHandler := api.NewAuthApiHandler(db, userService, oauthUserService)
+	authApiHandler := api.NewAuthApiHandler(db, userService, oauthUserService, mailService)
 	settingsApiHandler := api.NewSettingsHandler(userService)
 	healthApiHandler := api.NewHealthApiHandler(db)
 	heartbeatApiHandler := api.NewHeartbeatApiHandler(userService, heartbeatService, languageMappingService, userAgentPluginService)

@@ -89,7 +89,7 @@ type SetPasswordRequest struct {
 }
 
 type ResetPasswordRequest struct {
-	Email string `schema:"email"`
+	Email string `schema:"email" json:"email"`
 }
 
 type CredentialsReset struct {

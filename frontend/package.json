@@ -1,11 +1,11 @@
 {
   "private": true,
   "description": "Wakatime Reimagined as a Next.js app",
-  "repository": "https://github.com/jemiluv8/wakatimer.git",
+  "repository": "https://github.com/jemiluv8/wakana.git",
   "bugs": {
-    "url": "https://github.com/jemiluv8/wakatimer/issues"
+    "url": "https://github.com/jemiluv8/wakana/issues"
   },
-  "homepage": "https://wakatimer.com",
+  "homepage": "https://wakana.io",
   "scripts": {
     "dev": "next --experimental-https",
     "build": "next build",

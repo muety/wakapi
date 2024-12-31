@@ -1,44 +1,42 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import * as React from "react";
-import { useFormState, useFormStatus } from "react-dom";
-import { useForm } from "react-hook-form";
 import * as z from "zod";
+import * as React from "react";
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormState, useFormStatus } from "react-dom";
 
-import { loginAction } from "@/actions/auth";
+import { cn } from "@/lib/utils";
 import { Icons } from "@/components/icons";
-import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
+import { forgotPasswordAction } from "@/actions/auth";
+import { buttonVariants } from "@/components/ui/button";
 import { startGithubLoginFlow } from "@/lib/oauth/github";
-import { cn } from "@/lib/utils";
-import { userNameSchema } from "@/lib/validations/user";
+import { forgotPasswordSchema } from "@/lib/validations/user";
 
 import { Form } from "./ui/form";
 
-interface UserLoginFormProps extends React.HTMLAttributes<HTMLDivElement> {
+interface ForgotPasswordFormProps extends React.HTMLAttributes<HTMLDivElement> {
   loading?: boolean;
   error?: string;
-  message?: string;
 }
 
-type FormData = z.infer<typeof userNameSchema>;
+type FormData = z.infer<typeof forgotPasswordSchema>;
 
-export function UserLoginForm({
+export function ForgotPasswordForm({
   className,
   error,
-  message = "",
   ...props
-}: UserLoginFormProps) {
+}: ForgotPasswordFormProps) {
   const form = useForm<FormData>({
-    resolver: zodResolver(userNameSchema),
+    resolver: zodResolver(forgotPasswordSchema),
   });
   const [isGitHubLoading, setIsGitHubLoading] = React.useState<boolean>(false);
   const router = useRouter();
-  const [state, formAction] = useFormState(loginAction, {});
+  const [state, formAction] = useFormState(forgotPasswordAction, {});
   const errors = form.formState.errors;
   const formRef = React.useRef<HTMLFormElement | null>(null);
 
@@ -47,14 +45,6 @@ export function UserLoginForm({
       title: "Error",
       description: error,
       variant: "destructive",
-    });
-  }
-
-  if (message) {
-    toast({
-      title: "Message",
-      description: message,
-      variant: "success",
     });
   }
 
@@ -73,7 +63,7 @@ export function UserLoginForm({
     );
   };
 
-  const loginHandler = async () => {
+  const formHandler = async () => {
     if (!(await form.trigger())) {
       return toast({
         title: "Invalid form",
@@ -123,29 +113,8 @@ export function UserLoginForm({
                   </p>
                 )}
               </div>
-
-              <div className="my-2 grid">
-                <Label className="sr-only my-1 text-left" htmlFor="password">
-                  Password
-                </Label>
-                <Input
-                  id="password"
-                  placeholder="Password"
-                  type="password"
-                  autoCapitalize="none"
-                  autoComplete="off"
-                  autoCorrect="off"
-                  {...form.register("password")}
-                />
-
-                {errors?.password && (
-                  <p className="px-1 text-xs text-red-600">
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
             </div>
-            <SubmitButton onClick={loginHandler} />
+            <SubmitButton onClick={formHandler} />
           </div>
         </form>
         <div className="relative">

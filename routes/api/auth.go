@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -29,11 +30,12 @@ type AuthApiHandler struct {
 	db               *gorm.DB
 	config           *conf.Config
 	userService      services.IUserService
+	mailService      services.IMailService
 	oauthUserService services.IUserOauthService
 }
 
-func NewAuthApiHandler(db *gorm.DB, userService services.IUserService, oauthUserService services.IUserOauthService) *AuthApiHandler {
-	return &AuthApiHandler{db: db, userService: userService, oauthUserService: oauthUserService, config: conf.Get()}
+func NewAuthApiHandler(db *gorm.DB, userService services.IUserService, oauthUserService services.IUserOauthService, mailService services.IMailService) *AuthApiHandler {
+	return &AuthApiHandler{db: db, userService: userService, oauthUserService: oauthUserService, config: conf.Get(), mailService: mailService}
 }
 
 func (h *AuthApiHandler) RegisterRoutes(router chi.Router) {
@@ -41,6 +43,7 @@ func (h *AuthApiHandler) RegisterRoutes(router chi.Router) {
 	router.Post("/auth/oauth/github", h.GithubOauth)
 	router.Post("/auth/login", h.Signin)
 	router.Get("/auth/validate", h.ValidateAuthToken)
+	router.Post("/auth/forgot-password", h.ForgotPassword)
 
 	router.Group(func(r chi.Router) {
 		r.Use(middlewares.NewAuthenticateMiddleware(h.userService).Handler)
@@ -503,6 +506,7 @@ func (h *AuthApiHandler) GetApiKey(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// this was a bad idea - careful not to use it
 func (h *AuthApiHandler) RefreshApiKey(w http.ResponseWriter, r *http.Request) {
 	user := helpers.ExtractUser(r)
 
@@ -530,5 +534,69 @@ func (h *AuthApiHandler) RefreshApiKey(w http.ResponseWriter, r *http.Request) {
 	helpers.RespondJSON(w, r, http.StatusAccepted, map[string]interface{}{
 		"status": http.StatusAccepted,
 		"apiKey": user.ApiKey,
+	})
+}
+
+func (h *AuthApiHandler) handlePasswordReset(user *models.User) error {
+	updatedUser, err := h.userService.GenerateResetToken(user)
+	if err != nil {
+		return err
+	}
+
+	go h.sendPasswordResetEmail(updatedUser)
+	return nil
+}
+
+func (h *AuthApiHandler) sendPasswordResetEmail(user *models.User) {
+	resetLink := fmt.Sprintf("%s/reset-password?token=%s", h.config.Server.GetFrontendUri(), user.ResetToken)
+
+	if err := h.mailService.SendPasswordReset(user, resetLink); err != nil {
+		conf.Log().Error("failed to send password reset mail",
+			"userID", user.ID,
+			"error", err,
+		)
+		conf.Log().Info("Password reset link", resetLink, "userID")
+		return
+	}
+
+	slog.Info("sent password reset mail", "userID", user.ID)
+}
+
+func (h *AuthApiHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	var resetRequest = &models.ResetPasswordRequest{}
+	if err := json.NewDecoder(r.Body).Decode(resetRequest); err != nil {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message": "Bad Request",
+			"status":  http.StatusBadRequest,
+		})
+		return
+	}
+
+	if resetRequest.Email == "" || !models.ValidateEmail(resetRequest.Email) {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message": "Email is invalid",
+			"status":  http.StatusBadRequest,
+		})
+		return
+	}
+
+	user, err := h.userService.GetUserByEmail(resetRequest.Email)
+	if err != nil || user == nil {
+		conf.Log().Request(r).Warn("password reset requested for unregistered address",
+			"email", resetRequest.Email,
+		)
+	} else {
+		if err := h.handlePasswordReset(user); err != nil {
+			helpers.RespondJSON(w, r, http.StatusInternalServerError, map[string]interface{}{
+				"message": "Failed to generate password reset token",
+				"status":  http.StatusInternalServerError,
+			})
+			return
+		}
+	}
+
+	helpers.RespondJSON(w, r, http.StatusAccepted, map[string]interface{}{
+		"message": "An e-mail was sent to you. Follow the instructions to reset your password",
+		"status":  http.StatusAccepted,
 	})
 }

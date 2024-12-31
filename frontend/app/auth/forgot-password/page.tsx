@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 
-import { UserLoginForm } from "@/components/user-auth-form";
+import { ForgotPasswordForm } from "@/components/forgot-password";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -13,30 +13,22 @@ export default async function LoginPage({
 }: {
   searchParams: Record<string, any>;
 }) {
-  const { error, message } = searchParams;
+  const error = searchParams.error;
 
   return (
     <div>
       <div className="flex flex-col justify-center justify-items-center space-y-2 text-center align-middle">
         <p className="text-sm text-muted-foreground">
-          Enter your email to sign in to your account
+          Enter your email to receive a password reset link
         </p>
       </div>
-      <UserLoginForm error={error} message={message} />
+      <ForgotPasswordForm error={error} />
       <p className="px-8 my-2 text-center text-sm text-muted-foreground">
         <Link
-          href="/auth/signup"
+          href="/auth/signin"
           className="hover:text-brand underline underline-offset-4"
         >
-          Don&apos;t have an account? Sign Up
-        </Link>
-      </p>
-      <p className="px-8 my-2 text-center text-sm text-muted-foreground">
-        <Link
-          href="/auth/forgot-password"
-          className="hover:text-brand underline underline-offset-4"
-        >
-          Forgot your password?
+          Remembered your password? Sign In
         </Link>
       </p>
     </div>
