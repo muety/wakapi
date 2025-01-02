@@ -74,23 +74,6 @@ type ISummaryRepository interface {
 	DeleteByUserBefore(string, time.Time) error
 }
 
-type IUserRepository interface {
-	FindOne(user models.User) (*models.User, error)
-	GetByIds([]string) ([]*models.User, error)
-	GetAll() ([]*models.User, error)
-	GetMany([]string) ([]*models.User, error)
-	GetAllByReports(bool) ([]*models.User, error)
-	GetAllByLeaderboard(bool) ([]*models.User, error)
-	GetByLoggedInBefore(time.Time) ([]*models.User, error)
-	GetByLoggedInAfter(time.Time) ([]*models.User, error)
-	GetByLastActiveAfter(time.Time) ([]*models.User, error)
-	Count() (int64, error)
-	InsertOrGet(*models.User) (*models.User, bool, error)
-	Update(*models.User) (*models.User, error)
-	UpdateField(*models.User, string, interface{}) (*models.User, error)
-	Delete(*models.User) error
-}
-
 type IOauthUserRepository interface {
 	Create(userOauth *models.UserOauth) (*models.UserOauth, error)
 	GetById(userOauthID string) (*models.UserOauth, error)

@@ -22,14 +22,20 @@ export function ProfileForm() {
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      name: "",
-      username: "",
-      bio: "",
-      github: "",
-      twitter: "",
-      linkedin: "",
+      // name: undefined,
+      // username: undefined,
+      // bio: undefined,
+      // github: undefined,
+      // twitter: undefined,
+      // linkedin: undefined,
+      key_stroke_timeout: 120,
     },
   });
+
+  // const form = useForm<ProfileFormValues>({
+  //   resolver: zodResolver(profileFormSchema),
+  //   mode: "onSubmit", // Ensures validation occurs on submit
+  // });
 
   function onSubmit(data: ProfileFormValues) {
     toast({
@@ -91,6 +97,22 @@ export function ProfileForm() {
               {/* <FormDescription>
                 You can <span>@mention</span> other users and organizations.
               </FormDescription> */}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="key_stroke_timeout"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Keystroke Timeout (ms)</FormLabel>
+              <FormControl>
+                <Input placeholder="Keystroke timeout" {...field} />
+              </FormControl>
+              <FormDescription>
+                Minutes between keystrokes before timeout is stopped.{" "}
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

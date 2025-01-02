@@ -128,27 +128,3 @@ type ILeaderboardService interface {
 	GenerateByUser(*models.User, *models.IntervalKey) (*models.LeaderboardItem, error)
 	GenerateAggregatedByUser(*models.User, *models.IntervalKey, uint8) ([]*models.LeaderboardItem, error)
 }
-
-type IUserService interface {
-	GetUserById(string) (*models.User, error)
-	GetUserByKey(string) (*models.User, error)
-	GetUserByEmail(string) (*models.User, error)
-	GetUserByResetToken(string) (*models.User, error)
-	GetUserByStripeCustomerId(string) (*models.User, error)
-	GetAll() ([]*models.User, error)
-	GetAllMapped() (map[string]*models.User, error)
-	GetMany([]string) ([]*models.User, error)
-	GetManyMapped([]string) (map[string]*models.User, error)
-	GetAllByReports(bool) ([]*models.User, error)
-	GetAllByLeaderboard(bool) ([]*models.User, error)
-	GetActive(bool) ([]*models.User, error)
-	Count() (int64, error)
-	CreateOrGet(*models.Signup, bool) (*models.User, bool, error)
-	Update(*models.User) (*models.User, error)
-	Delete(*models.User) error
-	ResetApiKey(*models.User) (*models.User, error)
-	SetWakatimeApiCredentials(*models.User, string, string) (*models.User, error)
-	GenerateResetToken(*models.User) (*models.User, error)
-	FlushCache()
-	FlushUserCache(string)
-}

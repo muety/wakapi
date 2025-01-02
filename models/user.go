@@ -50,7 +50,7 @@ type User struct {
 	StripeCustomerId       string      `json:"-"`
 	InvitedBy              string      `json:"-"`
 	ExcludeUnknownProjects bool        `json:"-"`
-	HeartbeatsTimeoutSec   int         `json:"-" gorm:"default:120"` // https://github.com/muety/wakapi/issues/156
+	HeartbeatsTimeoutSec   int         `json:"-" gorm:"default:231"` // https://github.com/muety/wakapi/issues/156
 }
 
 type Login struct {

@@ -37,6 +37,9 @@ export const profileFormSchema = z.object({
       message: "Please enter a valid LinkedIn username.",
     })
     .optional(),
+  key_stroke_timeout: z.number().min(120, {
+    message: "Keystroke timeout cannot be less than 2 mins. That's absurd.",
+  }),
 });
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>;

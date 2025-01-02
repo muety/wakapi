@@ -173,10 +173,29 @@ func (srv *UserService) Count() (int64, error) {
 	return srv.repository.Count()
 }
 
+func (srv *UserService) Create(signup *models.Signup) (*models.User, error) {
+	u := &models.User{
+		ID:        uuid.Must(uuid.NewV4()).String(),
+		ApiKey:    fmt.Sprintf("wakana_%s", uuid.Must(uuid.NewV4()).String()),
+		Email:     signup.Email,
+		Location:  signup.Location,
+		Password:  signup.Password,
+		InvitedBy: signup.InvitedBy,
+	}
+
+	if hash, err := utils.HashPassword(u.Password, srv.config.Security.PasswordSalt); err != nil {
+		return nil, err
+	} else {
+		u.Password = hash
+	}
+
+	return srv.repository.Create(u)
+}
+
 func (srv *UserService) CreateOrGet(signup *models.Signup, isAdmin bool) (*models.User, bool, error) {
 	u := &models.User{
 		ID:        uuid.Must(uuid.NewV4()).String(),
-		ApiKey:    uuid.Must(uuid.NewV4()).String(),
+		ApiKey:    fmt.Sprintf("wakana_%s", uuid.Must(uuid.NewV4()).String()),
 		Email:     signup.Email,
 		Location:  signup.Location,
 		Password:  signup.Password,
@@ -261,4 +280,29 @@ func (srv *UserService) notifyDelete(user *models.User) {
 		Name:   config.EventUserDelete,
 		Fields: map[string]interface{}{config.FieldPayload: user},
 	})
+}
+
+type IUserService interface {
+	GetUserById(string) (*models.User, error)
+	GetUserByKey(string) (*models.User, error)
+	GetUserByEmail(string) (*models.User, error)
+	GetUserByResetToken(string) (*models.User, error)
+	GetUserByStripeCustomerId(string) (*models.User, error)
+	GetAll() ([]*models.User, error)
+	GetAllMapped() (map[string]*models.User, error)
+	GetMany([]string) ([]*models.User, error)
+	GetManyMapped([]string) (map[string]*models.User, error)
+	GetAllByReports(bool) ([]*models.User, error)
+	GetAllByLeaderboard(bool) ([]*models.User, error)
+	GetActive(bool) ([]*models.User, error)
+	Count() (int64, error)
+	CreateOrGet(*models.Signup, bool) (*models.User, bool, error)
+	Update(*models.User) (*models.User, error)
+	Delete(*models.User) error
+	ResetApiKey(*models.User) (*models.User, error)
+	SetWakatimeApiCredentials(*models.User, string, string) (*models.User, error)
+	GenerateResetToken(*models.User) (*models.User, error)
+	FlushCache()
+	FlushUserCache(string)
+	Create(signup *models.Signup) (*models.User, error)
 }

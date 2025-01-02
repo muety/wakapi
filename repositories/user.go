@@ -3,8 +3,9 @@ package repositories
 import (
 	"errors"
 	"fmt"
-	"github.com/duke-git/lancet/v2/condition"
 	"time"
+
+	"github.com/duke-git/lancet/v2/condition"
 
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
@@ -21,8 +22,12 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 
 func (r *UserRepository) FindOne(attributes models.User) (*models.User, error) {
 	u := &models.User{}
-	if err := r.db.Where(&attributes).First(u).Error; err != nil {
-		return u, err
+	result := r.db.Where(&attributes).First(u)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, nil // No record found
+		}
+		return nil, result.Error
 	}
 	return u, nil
 }
@@ -125,6 +130,15 @@ func (r *UserRepository) InsertOrGet(user *models.User) (*models.User, bool, err
 	return user, true, nil
 }
 
+func (r *UserRepository) Create(user *models.User) (*models.User, error) {
+	result := r.db.Create(user)
+	if err := result.Error; err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 	updateMap := map[string]interface{}{
 		"api_key":                  user.ApiKey,
@@ -187,4 +201,22 @@ func (r *UserRepository) getByLoggedIn(t time.Time, after bool) ([]*models.User,
 		return nil, err
 	}
 	return users, nil
+}
+
+type IUserRepository interface {
+	FindOne(user models.User) (*models.User, error)
+	GetByIds([]string) ([]*models.User, error)
+	GetAll() ([]*models.User, error)
+	GetMany([]string) ([]*models.User, error)
+	GetAllByReports(bool) ([]*models.User, error)
+	GetAllByLeaderboard(bool) ([]*models.User, error)
+	GetByLoggedInBefore(time.Time) ([]*models.User, error)
+	GetByLoggedInAfter(time.Time) ([]*models.User, error)
+	GetByLastActiveAfter(time.Time) ([]*models.User, error)
+	Count() (int64, error)
+	InsertOrGet(*models.User) (*models.User, bool, error)
+	Update(*models.User) (*models.User, error)
+	UpdateField(*models.User, string, interface{}) (*models.User, error)
+	Delete(*models.User) error
+	Create(user *models.User) (*models.User, error)
 }

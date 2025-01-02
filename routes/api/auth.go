@@ -7,8 +7,10 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
+	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt"
 	"github.com/pkg/errors"
@@ -27,19 +29,21 @@ import (
 var JWT_TOKEN_DURATION = time.Hour * 24
 
 type AuthApiHandler struct {
-	db               *gorm.DB
-	config           *conf.Config
-	userService      services.IUserService
-	mailService      services.IMailService
-	oauthUserService services.IUserOauthService
+	db                 *gorm.DB
+	config             *conf.Config
+	userService        services.IUserService
+	mailService        services.IMailService
+	oauthUserService   services.IUserOauthService
+	aggregationService services.IAggregationService
+	summaryService     services.ISummaryService
 }
 
-func NewAuthApiHandler(db *gorm.DB, userService services.IUserService, oauthUserService services.IUserOauthService, mailService services.IMailService) *AuthApiHandler {
-	return &AuthApiHandler{db: db, userService: userService, oauthUserService: oauthUserService, config: conf.Get(), mailService: mailService}
+func NewAuthApiHandler(db *gorm.DB, userService services.IUserService, oauthUserService services.IUserOauthService, mailService services.IMailService, aggregationService services.IAggregationService, summaryService services.ISummaryService) *AuthApiHandler {
+	return &AuthApiHandler{db: db, userService: userService, oauthUserService: oauthUserService, config: conf.Get(), mailService: mailService, aggregationService: aggregationService, summaryService: summaryService}
 }
 
 func (h *AuthApiHandler) RegisterRoutes(router chi.Router) {
-	router.Post("/auth/signup", h.PostSignup)
+	router.Post("/auth/signup", h.Signup)
 	router.Post("/auth/oauth/github", h.GithubOauth)
 	router.Post("/auth/login", h.Signin)
 	router.Get("/auth/validate", h.ValidateAuthToken)
@@ -67,53 +71,19 @@ type OauthCode struct {
 	Code string `json:"code"`
 }
 
-// @Summary register a new user
-// @ID post-auth-signup
-// @Tags misc
-// @Produce plain
-// @Success 200 {string} string
-// @Router /auth [post]
-func (h *AuthApiHandler) SignUp(w http.ResponseWriter, r *http.Request) {
-	var params = &SignUpParams{}
-
-	jsonDecoder := json.NewDecoder(r.Body)
-	err := jsonDecoder.Decode(params)
-	if err != nil || params.Email == "" || params.Password == "" || params.PasswordRepeat == "" {
-		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
-			"message": "Bad Request",
-			"status":  http.StatusBadRequest,
-		})
-		return
+func (h *AuthApiHandler) regenerateSummaries(user *models.User) error {
+	slog.Info("clearing summaries for user", "userID", user.ID)
+	if err := h.summaryService.DeleteByUser(user.ID); err != nil {
+		conf.Log().Error("failed to clear summaries", "error", err)
+		return err
 	}
 
-	if !models.ValidateIsValidEmail(params.Email) {
-		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
-			"message": "Bad Request. Invalid email",
-			"status":  http.StatusBadRequest,
-		})
-		return
+	if err := h.aggregationService.AggregateSummaries(datastructure.New(user.ID)); err != nil {
+		conf.Log().Error("failed to regenerate summaries", "error", err)
+		return err
 	}
 
-	if params.Password != params.PasswordRepeat {
-		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
-			"message": "Passwords do not match",
-			"status":  http.StatusBadRequest,
-		})
-		return
-	}
-
-	signup := &models.Signup{
-		Email:          params.Email,
-		Password:       params.Password,
-		PasswordRepeat: params.PasswordRepeat,
-	}
-
-	h.userService.CreateOrGet(signup, false)
-	response := map[string]interface{}{
-		"message": "Signup successful",
-		"status":  http.StatusCreated,
-	}
-	helpers.RespondJSON(w, r, http.StatusCreated, response)
+	return nil
 }
 
 func (h *AuthApiHandler) Signin(w http.ResponseWriter, r *http.Request) {
@@ -130,6 +100,7 @@ func (h *AuthApiHandler) Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	params.Email = strings.ToLower(params.Email)
 	user, err := h.userService.GetUserByEmail(params.Email)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -139,6 +110,8 @@ func (h *AuthApiHandler) Signin(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+
+	// go h.regenerateSummaries(user)
 
 	if !utils.ComparePassword(user.Password, params.Password, h.config.Security.PasswordSalt) {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -349,7 +322,7 @@ func (h *AuthApiHandler) GithubOauth(w http.ResponseWriter, r *http.Request) {
 	))
 }
 
-func (h *AuthApiHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
+func (h *AuthApiHandler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	var signup = &models.SignupJson{}
 	jsonDecoder := json.NewDecoder(r.Body)
@@ -362,9 +335,17 @@ func (h *AuthApiHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	if signup.Email == "" || signup.Password == "" {
+	if signup.Email == "" || signup.Password == "" || signup.PasswordRepeat == "" {
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
 			"message": "Missing Parameters",
+			"status":  http.StatusBadRequest,
+		})
+		return
+	}
+
+	if signup.Password != signup.PasswordRepeat {
+		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+			"message": "Passwords do not match",
 			"status":  http.StatusBadRequest,
 		})
 		return
@@ -378,18 +359,20 @@ func (h *AuthApiHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, created, err := h.userService.CreateOrGet(&models.Signup{Email: signup.Email, Password: signup.Password}, false)
-	if err != nil {
+	signup.Email = strings.ToLower(signup.Email)
+	existing_user, err := h.userService.GetUserByEmail(signup.Email)
+	if existing_user != nil {
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
-			"message": "Internal Server Error. Failed to create new user",
-			"status":  http.StatusInternalServerError,
+			"message": "An account already exists with this email.",
+			"status":  http.StatusBadRequest,
 		})
 		return
 	}
 
-	if !created {
+	user, err := h.userService.Create(&models.Signup{Email: signup.Email, Password: signup.Password})
+	if err != nil {
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
-			"message": fmt.Sprintf("Account with email %s already exists", signup.Email),
+			"message": "Internal Server Error. Failed to create new user",
 			"status":  http.StatusInternalServerError,
 		})
 		return
