@@ -12,7 +12,7 @@ export default async function Page({
         <Image
           src={"/white-logo.png"}
           alt="Logo"
-          width={128}
+          width={178}
           height={70}
           className="logo-icon-white"
         />
