@@ -342,7 +342,6 @@ func (h *AuthApiHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-
 	if signup.Password != signup.PasswordRepeat {
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
 			"message": "Passwords do not match",
@@ -492,9 +491,6 @@ func (h *AuthApiHandler) GetApiKey(w http.ResponseWriter, r *http.Request) {
 // this was a bad idea - careful not to use it
 func (h *AuthApiHandler) RefreshApiKey(w http.ResponseWriter, r *http.Request) {
 	user := helpers.ExtractUser(r)
-
-	newApiKey := uuid.NewV4().String()
-
 	if user == nil {
 		helpers.RespondJSON(w, r, http.StatusUnauthorized, map[string]interface{}{
 			"message": "Unauthorized",
@@ -503,7 +499,7 @@ func (h *AuthApiHandler) RefreshApiKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.ApiKey = newApiKey
+	user.ApiKey = h.userService.MakeApiKey()
 	user, err := h.userService.Update(user)
 
 	if err != nil {

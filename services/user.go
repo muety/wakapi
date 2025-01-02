@@ -173,10 +173,14 @@ func (srv *UserService) Count() (int64, error) {
 	return srv.repository.Count()
 }
 
+func (srv *UserService) MakeApiKey() string {
+	return fmt.Sprintf("wakana_%s", uuid.Must(uuid.NewV4()).String())
+}
+
 func (srv *UserService) Create(signup *models.Signup) (*models.User, error) {
 	u := &models.User{
 		ID:        uuid.Must(uuid.NewV4()).String(),
-		ApiKey:    fmt.Sprintf("wakana_%s", uuid.Must(uuid.NewV4()).String()),
+		ApiKey:    srv.MakeApiKey(),
 		Email:     signup.Email,
 		Location:  signup.Location,
 		Password:  signup.Password,
@@ -305,4 +309,5 @@ type IUserService interface {
 	FlushCache()
 	FlushUserCache(string)
 	Create(signup *models.Signup) (*models.User, error)
+	MakeApiKey() string
 }
