@@ -756,6 +756,12 @@ export const SAMPLE_COLORS_OLD = [
 ];
 
 export const SAMPLE_COLORS = [
+  "#95ADF0",
+  "#A4EBA2",
+  "#FFEA80",
+  "#F0B362",
+  "#EB6584",
+  // end of catpuccin
   "#16cf41",
   "#209af0",
   "#FEFEFA",

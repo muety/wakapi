@@ -128,7 +128,7 @@ export function DailyCodingSummaryOverTime({ data }: iProps) {
             fill={transparentize(color, 0.83)}
             stroke={color}
             stackId={"groot"}
-            strokeWidth={1.3}
+            strokeWidth={1.8}
             shape={CustomBarShape}
             onMouseMove={(e: any) => {
               if (e.activeTooltipIndex !== focusDataIndex) {

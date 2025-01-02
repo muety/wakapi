@@ -1,11 +1,11 @@
-interface AuthLayoutProps {
-  children: React.ReactNode;
-}
-
 import Image from "next/image";
 import Link from "next/link";
 
-export default async function Page({ children }: AuthLayoutProps) {
+export default async function Page({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="container flex h-screen min-h-screen w-screen flex-col items-center justify-center gap-4">
       <Link href="/">

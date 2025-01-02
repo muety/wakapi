@@ -1,0 +1,67 @@
+/* FallbackSpinner.module.css */
+
+.fallbackSpinner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fallbackSpinner.appLoader {
+  height: 100vh;
+  flex-direction: column;
+}
+
+.loading {
+  margin-top: 1rem;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.effect1,
+.effect2,
+.effect3 {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-left: 3px solid rgba(121, 97, 249, 1);
+  box-sizing: border-box;
+  position: absolute;
+}
+
+.effect1 {
+  animation: rotate 1s ease infinite;
+}
+
+.effect2 {
+  animation: rotateOpacity 1s ease infinite 0.1s;
+}
+
+.effect3 {
+  animation: rotateOpacity 1s ease infinite 0.2s;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes rotateOpacity {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0.1;
+  }
+  100% {
+    transform: rotate(1turn);
+    opacity: 1;
+  }
+}
