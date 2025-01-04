@@ -8,6 +8,13 @@ interface PageProps {
   searchParams: Record<string, any>;
 }
 
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Projects",
+  description: "Wakana projects, view all projects tracked by wakana.",
+};
+
 export default async function Projects({ searchParams }: PageProps) {
   const projects = await fetchData<ProjectsApiResponse | null>(
     `compat/wakatime/v1/users/current/projects${new URLSearchParams(

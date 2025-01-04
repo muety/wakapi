@@ -3,6 +3,13 @@ import { ClientsApiResponse } from "@/components/clients-table";
 import { InvoicesTable } from "@/components/invoice-table";
 import { Invoice } from "@/lib/types";
 
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Invoices",
+  description: "Wakana invoices, create and track invoices for billable hours.",
+};
+
 export default async function Invoices() {
   const session = await getSession();
 

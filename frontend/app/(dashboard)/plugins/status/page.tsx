@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { fetchData } from "@/actions";
 import { humanizeDate } from "@/lib/utils";
 
@@ -14,6 +15,11 @@ export interface iPluginUserAgent {
   cli_version: string;
   go_version: string;
 }
+
+export const metadata: Metadata = {
+  title: "Active Plugins",
+  description: "Wakana plugins, check plugins and their health.",
+};
 
 function PluginStatusCard({ agent }: { agent: iPluginUserAgent }) {
   const status = "OK";

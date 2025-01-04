@@ -20,6 +20,12 @@ import {
   convertSecondsToHoursAndMinutes,
   makePieChartDataFromRawApiResponse,
 } from "@/lib/utils";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Wakana main dashboard for analytics.",
+};
 
 export default async function Dashboard({
   searchParams,
@@ -40,7 +46,10 @@ export default async function Dashboard({
     ? makePieChartDataFromRawApiResponse(durationData.data, "projects")
     : [];
   return (
-    <>
+    <div className="">
+      <div className="mb-5 flex items-center justify-start">
+        <h1 className="text-4xl">Dashboard</h1>
+      </div>
       {durationData && (
         <main className="main-dashboard">
           <div className="m-0 my-5 text-2xl">
@@ -169,6 +178,6 @@ export default async function Dashboard({
         </main>
       )}
       {!durationData && <h3>Error fetching dashboard stats</h3>}
-    </>
+    </div>
   );
 }

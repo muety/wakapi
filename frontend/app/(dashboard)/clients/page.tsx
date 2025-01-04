@@ -2,6 +2,13 @@ import { fetchData, getSession } from "@/actions";
 import { ClientsApiResponse, ClientsTable } from "@/components/clients-table";
 import { Project } from "@/components/projects-table";
 
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Clients",
+  description: "Wakana clients, manage your freelance clients.",
+};
+
 export default async function Clients() {
   const session = await getSession();
 

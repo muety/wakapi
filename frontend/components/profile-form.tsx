@@ -19,6 +19,7 @@ import { toast } from "@/components/ui/use-toast";
 import { profileFormSchema, type ProfileFormValues } from "@/lib/schema";
 
 export function ProfileForm() {
+  // on;y set value for fields if the exist. Otherwise react0hoo-forms behaves weirdly
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -32,12 +33,16 @@ export function ProfileForm() {
     },
   });
 
+  // we need to fetch the users profile information
+  // and use it to set default values
+
   // const form = useForm<ProfileFormValues>({
   //   resolver: zodResolver(profileFormSchema),
   //   mode: "onSubmit", // Ensures validation occurs on submit
   // });
 
   function onSubmit(data: ProfileFormValues) {
+    // make the call to save these sorry ...
     toast({
       title: "You submitted the following values:",
       description: (

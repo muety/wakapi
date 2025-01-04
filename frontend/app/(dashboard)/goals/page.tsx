@@ -1,6 +1,12 @@
 import { fetchData, getSession } from "@/actions";
 import GoalsManager from "@/components/goals-manager";
 import { GoalData, Project } from "@/lib/types";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Goals",
+  description: "Wakana goals, set and track development goals.",
+};
 
 export default async function Goals() {
   const session = await getSession();
