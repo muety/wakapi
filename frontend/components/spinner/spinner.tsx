@@ -6,7 +6,7 @@ export const Spinner = () => {
     <div className={`${styles.fallbackSpinner} ${styles.appLoader}`}>
       <Image
         className={styles.fallbackLogo}
-        src="/white-icon.png"
+        src="/white-icon.svg"
         width={120}
         height={65}
         alt="logo"

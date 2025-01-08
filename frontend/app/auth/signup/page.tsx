@@ -12,12 +12,9 @@ export default async function LoginPage() {
   return (
     <div>
       <div className="flex flex-col justify-center justify-items-center space-y-2 text-center align-middle">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Create a New Account
+        <h1 className="text-2xl font-semibold tracking-tight mb-3">
+          Create your account
         </h1>
-        <p className="text-sm text-muted-foreground">
-          Enter your email and password to register your account
-        </p>
       </div>
       <UserSignUpAuthForm />
       <p className="px-8 text-center text-sm text-muted-foreground">

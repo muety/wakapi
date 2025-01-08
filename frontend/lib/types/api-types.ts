@@ -1,5 +1,12 @@
 import { Client } from "@/components/clients-table";
 
+export interface Duration {
+  time: number;
+  project: string;
+  duration: number;
+  color: string | null;
+}
+
 export interface Time {
   digital: string;
   hours: number;

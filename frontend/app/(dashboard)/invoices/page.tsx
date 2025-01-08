@@ -1,7 +1,7 @@
-import { fetchData, getSession } from "@/actions";
-import { ClientsApiResponse } from "@/components/clients-table";
-import { InvoicesTable } from "@/components/invoice-table";
 import { Invoice } from "@/lib/types";
+import { fetchData, getSession } from "@/actions";
+import { InvoicesTable } from "@/components/invoice-table";
+import { ClientsApiResponse } from "@/components/clients-table";
 
 import { Metadata } from "next";
 

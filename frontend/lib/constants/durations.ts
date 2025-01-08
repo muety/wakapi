@@ -1,0 +1,103 @@
+export const SAMPLE_DURATIONS = {
+  data: [
+    {
+      time: 1736271206.279399,
+      project: "Desktop",
+      duration: 3772.775363,
+      color: null,
+    },
+    {
+      time: 1736275925.096457,
+      project: "Desktop",
+      duration: 2525.527277,
+      color: null,
+    },
+    {
+      time: 1736281930.516597,
+      project: "Desktop",
+      duration: 0.0,
+      color: null,
+    },
+    {
+      time: 1736287314.923792,
+      project: "Desktop",
+      duration: 1030.894552,
+      color: null,
+    },
+    {
+      time: 1736288345.818344,
+      project: "academylens",
+      duration: 124.766036,
+      color: null,
+    },
+    {
+      time: 1736288470.58438,
+      project: "wakapi",
+      duration: 268.386488,
+      color: null,
+    },
+    {
+      time: 1736288738.970868,
+      project: "skeletons.tsx",
+      duration: 76.541113,
+      color: null,
+    },
+    {
+      time: 1736288815.511981,
+      project: "wakapi",
+      duration: 801.153476,
+      color: null,
+    },
+    {
+      time: 1736289616.665457,
+      project: "Desktop",
+      duration: 23.436166,
+      color: null,
+    },
+    {
+      time: 1736289640.101623,
+      project: "wakapi",
+      duration: 4.014163,
+      color: null,
+    },
+    {
+      time: 1736289644.115786,
+      project: "Desktop",
+      duration: 15.166152,
+      color: null,
+    },
+    {
+      time: 1736289659.281938,
+      project: "wakapi",
+      duration: 214.578026,
+      color: null,
+    },
+    {
+      time: 1736289873.859964,
+      project: "Desktop",
+      duration: 11.671568,
+      color: null,
+    },
+    {
+      time: 1736289885.531532,
+      project: "wakapi",
+      duration: 41.122595,
+      color: null,
+    },
+    {
+      time: 1736289926.654127,
+      project: "Desktop",
+      duration: 3.101493,
+      color: null,
+    },
+    {
+      time: 1736289929.75562,
+      project: "wakapi",
+      duration: 3348.597751,
+      color: null,
+    },
+  ],
+  start: "2025-01-07T00:00:00Z",
+  end: "2025-01-07T23:59:59Z",
+  timezone: "Africa/Accra",
+};

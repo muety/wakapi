@@ -33,7 +33,6 @@ export async function GET(request: NextRequest) {
     }
     await handleGithubOauth(code);
     console.log("GITHUB OAUTH HANDLED");
-    return redirect(`/dashboard`);
   } catch (error) {
     console.log("error", error);
     const error_payload = {
@@ -43,6 +42,8 @@ export async function GET(request: NextRequest) {
     return redirect(
       `/auth/signin?${new URLSearchParams(error_payload).toString()}`
     );
+  } finally {
+    return redirect(`/dashboard`);
   }
 }
 
@@ -65,8 +66,6 @@ async function handleGithubOauth(code: string) {
     data: SessionData;
     status?: number;
   };
-
-  console.log("json", json);
 
   if (apiResponse.status > 202) {
     throw new Error("Error logging in");

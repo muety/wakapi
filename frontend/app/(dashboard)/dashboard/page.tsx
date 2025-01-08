@@ -42,12 +42,15 @@ export default async function Dashboard({
   )}`;
 
   const durationData = await fetchData<SummariesApiResponse>(url);
+  if (!durationData) {
+    throw Error("Internal Server error");
+  }
   const projects = durationData
     ? makePieChartDataFromRawApiResponse(durationData.data, "projects")
     : [];
   return (
-    <div className="">
-      <div className="mb-5 flex items-center justify-start">
+    <div className="my-6">
+      <div className="mb-5 flex items-center justify-start align-middle">
         <h1 className="text-4xl">Dashboard</h1>
       </div>
       {durationData && (
@@ -177,7 +180,7 @@ export default async function Dashboard({
           </div>
         </main>
       )}
-      {!durationData && <h3>Error fetching dashboard stats</h3>}
+      {/* {!durationData && <h3>Error fetching dashboard stats</h3>} */}
     </div>
   );
 }

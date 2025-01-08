@@ -10,10 +10,10 @@ export default async function Page({
     <div className="container flex h-screen min-h-screen w-screen flex-col items-center justify-center gap-4">
       <Link href="/">
         <Image
-          src={"/white-logo.png"}
+          src={"/white-logo.svg"}
           alt="Logo"
           width={178}
-          height={70}
+          height={40.84}
           className="logo-icon-white"
         />
       </Link>

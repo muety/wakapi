@@ -11,7 +11,7 @@ export function AppSidebarLogo() {
         className="expanded"
       />
       <Image
-        src={"/white-icon.png"}
+        src={"/white-icon.svg"}
         alt="Logo"
         width={43}
         height={31}

@@ -50,7 +50,7 @@ export function PublicMobileHeader() {
       <header className="flex w-full items-center justify-between p-4 align-middle">
         <Link href="/">
           <Image
-            src={"/white-icon.png"}
+            src={"/white-icon.svg"}
             alt="Logo"
             width={80}
             height={56}

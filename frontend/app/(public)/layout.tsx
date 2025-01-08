@@ -14,7 +14,7 @@ function Header() {
       <nav className="z-20 flex h-[50px] items-center rounded-full border border-border bg-[#FFFFFF] bg-opacity-70 px-4 backdrop-blur-xl dark:bg-[#121212]">
         <Link href="/">
           <Image
-            src={"/white-icon.png"}
+            src={"/white-icon.svg"}
             alt="Logo"
             width={80}
             height={56}

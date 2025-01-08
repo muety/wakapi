@@ -58,7 +58,7 @@ export function ForgotPasswordForm({
         disabled={pending}
       >
         {pending && <Icons.spinner className="mr-2 size-4 animate-spin" />}
-        Sign In
+        Send Reset Link
       </button>
     );
   };

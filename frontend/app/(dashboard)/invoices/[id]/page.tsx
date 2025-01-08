@@ -1,6 +1,7 @@
 import { fetchData } from "@/actions";
 import { InvoiceManager } from "@/components/invoice/invoice-manager";
 import { Invoice } from "@/lib/types";
+import { notFound } from "next/navigation";
 
 interface iProps {
   searchParams: Record<string, any>;
@@ -12,12 +13,8 @@ export default async function InvoiceDetail({ params }: iProps) {
     `compat/wakatime/v1/users/current/invoices/${params.id}`
   );
 
-  if (!invoiceData) {
-    return (
-      <div>
-        Unexpected error fetching invoice data. Api server might be down.
-      </div>
-    );
+  if (!invoiceData || !invoiceData.data) {
+    notFound();
   }
 
   return <InvoiceManager data={invoiceData?.data} />;

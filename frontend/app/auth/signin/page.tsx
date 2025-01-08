@@ -17,11 +17,9 @@ export default async function LoginPage({
 
   return (
     <div>
-      <div className="flex flex-col justify-center justify-items-center space-y-2 text-center align-middle">
-        <p className="text-sm text-muted-foreground">
-          Enter your email to sign in to your account
-        </p>
-      </div>
+      <h1 className="text-2xl font-semibold tracking-tight mb-2">
+        Login to your account
+      </h1>
       <UserLoginForm error={error} message={message} />
       <p className="px-8 my-2 text-center text-sm text-muted-foreground">
         <Link

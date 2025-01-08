@@ -17,6 +17,9 @@ export default async function LoginPage({
 
   return (
     <div>
+      <h1 className="text-2xl font-semibold tracking-tight">
+        Reset Your Password
+      </h1>
       <div className="flex flex-col justify-center justify-items-center space-y-2 text-center align-middle">
         <p className="text-sm text-muted-foreground">
           Enter your email to receive a password reset link

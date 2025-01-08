@@ -53,14 +53,10 @@ export function InvoicesTable({
   token: string;
 }) {
   const [deleting, setDeleting] = React.useState<Invoice | null>(null);
-  const [invoices, setInvoices] = React.useState<Invoice[]>([]);
+  const [invoices, setInvoices] = React.useState<Invoice[]>(currentInvoices);
   const [showInvoiceModal, setShowInvoiceModal] =
     React.useState<boolean>(false);
   const [loading, setLoading] = React.useState<boolean>(false);
-
-  React.useEffect(() => {
-    setInvoices(currentInvoices);
-  }, [currentInvoices]);
 
   const deleteClient = async () => {
     try {
@@ -231,7 +227,6 @@ export function InvoicesTable({
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)
           }
-          // className="bg-white text-black"
         />
         <div className="grow">
           <AddInvoice
@@ -263,23 +258,20 @@ export function InvoicesTable({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
+            {table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+
+            {table.getRowModel().rows.length === 0 && (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
