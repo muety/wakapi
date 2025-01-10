@@ -98,6 +98,7 @@ type ISummaryService interface {
 	DeleteByUser(string) error
 	DeleteByUserBefore(string, time.Time) error
 	Insert(*models.Summary) error
+	GetDailyProjectStats(time.Time, time.Time, *models.User) ([]models.DailyProjectStat, error)
 }
 
 type IActivityService interface {

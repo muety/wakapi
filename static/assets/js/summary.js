@@ -63,6 +63,13 @@ String.prototype.toHHMMSS = function () {
     return `${hours}:${minutes}:${seconds}`
 }
 
+function filterLegendItem(item) {
+    if (!item || !item.text) return false;
+    item.text = item.text.length > LEGEND_CHARACTERS ? item.text.slice(0, LEGEND_CHARACTERS - 3).padEnd(LEGEND_CHARACTERS, '.') : item.text
+    item.text = item.text.padEnd(LEGEND_CHARACTERS + 3)
+    return true
+}
+
 function draw(subselection) {
     function getTooltipOptions(key, stacked) {
         return {
@@ -77,12 +84,6 @@ function draw(subselection) {
                 footer: () => key === 'projects' ? 'Click for details' : null
             }
         }
-    }
-
-    function filterLegendItem(item) {
-        item.text = item.text.length > LEGEND_CHARACTERS ? item.text.slice(0, LEGEND_CHARACTERS - 3).padEnd(LEGEND_CHARACTERS, '.') : item.text
-        item.text = item.text.padEnd(LEGEND_CHARACTERS + 3)
-        return true
     }
 
     function shouldUpdate(index) {
@@ -102,7 +103,7 @@ function draw(subselection) {
             data: {
                 datasets: [{
                     data: wakapiData.projects
-                    .slice(0, Math.min(showTopN[0], wakapiData.projects.length))
+                        .slice(0, Math.min(showTopN[0], wakapiData.projects.length))
                         .map(p => parseInt(p.total)),
                     backgroundColor: wakapiData.projects.map((p, i) => {
                         const c = hexToRgb(vibrantColors ? getRandomColor(p.key) : getColor(p.key, i % baseColors.length))
@@ -455,7 +456,7 @@ function draw(subselection) {
                             callback: (label) => label.toString().toHHMMSS(),
                         },
                         stacked: true,
-                        max: wakapiData.categories.map(c => c.total).reduce((a, b) => a+b, 0)
+                        max: wakapiData.categories.map(c => c.total).reduce((a, b) => a + b, 0)
                     },
                     y: {
                         stacked: true,
@@ -552,6 +553,77 @@ function updateNumTotal() {
     }
 }
 
+function drawDailyProjectChart(dailyStats) {
+    const formattedStats = dailyStats.map(stat => ({
+        ...stat,
+        date: new Date(stat.date).toISOString().split('T')[0] // convert to YYYY-MM-DD format
+
+    }));
+
+    const days = [...new Set(formattedStats.map(stat => stat.date))].sort()
+    const projects = [...new Set(formattedStats.map(stat => stat.project))]
+
+    // prepare for each project
+    const datasets = projects.map(project => {
+        const color = getRandomColor(project)
+        return {
+            label: project,
+            data: days.map(day => {
+                const stat = formattedStats.find(s => s.date === day && s.project === project)
+                return stat ? parseInt(stat.duration) / 1e9 : 0
+            }),
+            backgroundColor: color,
+            barPercentage: 0.95,
+        }
+    })
+
+    new Chart(document.getElementById('chart-daily-projects').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: days.map(d => new Date(d).toLocaleDateString()),
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Duration (hh:mm:ss)'
+                    },
+                    ticks: {
+                        callback: value => value.toString().toHHMMSS()
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: (context) => {
+                            return `${context.dataset.label}: ${context.raw.toString().toHHMMSS()}`
+                        }
+                    }
+                },
+                legend: {
+                    position: 'right',
+                    labels: {
+                        filter: filterLegendItem
+                    }
+                }
+            }
+        }
+    })
+}
+
 window.addEventListener('load', function () {
     topNPickers.forEach(e => e.addEventListener('change', () => {
         parseTopN()
@@ -562,4 +634,7 @@ window.addEventListener('load', function () {
     togglePlaceholders(getPresentDataMask())
     draw()
     updateNumTotal()
+    if (wakapiData.dailyStats && wakapiData.dailyStats.length > 0) {
+        drawDailyProjectChart(wakapiData.dailyStats)
+    }
 })

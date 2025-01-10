@@ -2,6 +2,11 @@ package services
 
 import (
 	"errors"
+	"log/slog"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/becheran/wildmatch-go"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/slice"
@@ -11,10 +16,6 @@ import (
 	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/repositories"
 	"github.com/patrickmn/go-cache"
-	"log/slog"
-	"sort"
-	"strings"
-	"time"
 )
 
 type SummaryService struct {
@@ -535,4 +536,41 @@ func (srv *SummaryService) getProjectLabelsReverseResolver(user *models.User) mo
 		}
 		return projectStrings
 	}
+}
+
+func (srv *SummaryService) GetDailyProjectStats(from, to time.Time, user *models.User) ([]models.DailyProjectStat, error) {
+	durations, err := srv.durationService.Get(from, to, user, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	dailyStats := make(map[string]map[string]time.Duration)
+	for _, d := range durations {
+		date := time.Time(d.Time).Format("2006-01-02")
+		if _, ok := dailyStats[date]; !ok {
+			dailyStats[date] = make(map[string]time.Duration)
+		}
+		dailyStats[date][d.Project] += d.Duration
+	}
+
+	result := make([]models.DailyProjectStat, 0)
+	for dateStr, projects := range dailyStats {
+		date, _ := time.Parse("2006-01-02", dateStr)
+		for project, duration := range projects {
+			result = append(result, models.DailyProjectStat{
+				Date:     date.UTC(),
+				Project:  project,
+				Duration: duration,
+			})
+		}
+	}
+
+	sort.Slice(result, func(i, j int) bool {
+		if result[i].Date.Equal(result[j].Date) {
+			return result[i].Project < result[j].Project
+		}
+		return result[i].Date.After(result[j].Date)
+	})
+
+	return result, nil
 }

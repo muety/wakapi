@@ -86,6 +86,12 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		firstData, _ = time.Parse(time.RFC822Z, firstDataKv.Value)
 	}
 
+	dailyStats, err := h.summarySrvc.GetDailyProjectStats(summaryParams.From, summaryParams.To, user)
+	if err != nil {
+		conf.Log().Request(r).Error("failed to load daily stats", "error", err)
+		dailyStats = []models.DailyProjectStat{}
+	}
+
 	vm := view.SummaryViewModel{
 		SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 			SharedViewModel: view.NewSharedViewModel(h.config, nil),
@@ -100,6 +106,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		RawQuery:            rawQuery,
 		UserFirstData:       firstData,
 		DataRetentionMonths: h.config.App.DataRetentionMonths,
+		DailyStats:          dailyStats,
 	}
 
 	templates[conf.SummaryTemplate].Execute(w, vm)
