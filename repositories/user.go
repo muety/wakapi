@@ -138,6 +138,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"share_projects":           user.ShareProjects,
 		"share_machines":           user.ShareMachines,
 		"share_labels":             user.ShareLabels,
+		"share_activity_chart":     user.ShareActivityChart,
 		"wakatime_api_key":         user.WakatimeApiKey,
 		"wakatime_api_url":         user.WakatimeApiUrl,
 		"has_data":                 user.HasData,

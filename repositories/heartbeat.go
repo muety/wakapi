@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"database/sql"
 	"strings"
 	"time"
 
@@ -65,7 +66,8 @@ func (r *HeartbeatRepository) GetLatestByUser(user *models.User) (*models.Heartb
 		Model(&models.Heartbeat{}).
 		Where(&models.Heartbeat{UserID: user.ID}).
 		Order("time desc").
-		First(&heartbeat).Error; err != nil {
+		Limit(1).
+		Scan(&heartbeat).Error; err != nil {
 		return nil, err
 	}
 	return &heartbeat, nil
@@ -80,7 +82,8 @@ func (r *HeartbeatRepository) GetLatestByOriginAndUser(origin string, user *mode
 			Origin: origin,
 		}).
 		Order("time desc").
-		First(&heartbeat).Error; err != nil {
+		Limit(1).
+		Scan(&heartbeat).Error; err != nil {
 		return nil, err
 	}
 	return &heartbeat, nil
@@ -125,7 +128,7 @@ func (r *HeartbeatRepository) GetLatestByFilters(user *models.User, filterMap ma
 		Order("time desc")
 	q = r.filteredQuery(q, filterMap)
 
-	if err := q.First(&heartbeat).Error; err != nil {
+	if err := q.Limit(1).Scan(&heartbeat).Error; err != nil {
 		return nil, err
 	}
 	return heartbeat, nil
@@ -133,20 +136,22 @@ func (r *HeartbeatRepository) GetLatestByFilters(user *models.User, filterMap ma
 
 func (r *HeartbeatRepository) GetFirstByUsers() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
-	r.db.Model(&models.User{}).
-		Select(utils.QuoteSql(r.db, "users.id as %s, min(time) as %s", "user", "time")).
-		Joins("left join heartbeats on users.id = heartbeats.user_id").
-		Group("users.id").
+	r.db.Raw("with agg as (select " + utils.QuoteSql(r.db, "user_id, min(time) as %s", "time") + " from heartbeats group by user_id) " +
+		"select " + utils.QuoteSql(r.db, "id as %s, time ", "user") +
+		"from users " +
+		"left join agg on agg.user_id = id " +
+		"order by users.id").
 		Scan(&result)
 	return result, nil
 }
 
 func (r *HeartbeatRepository) GetLastByUsers() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
-	r.db.Model(&models.User{}).
-		Select(utils.QuoteSql(r.db, "users.id as %s, max(time) as %s", "user", "time")).
-		Joins("left join heartbeats on users.id = heartbeats.user_id").
-		Group("user").
+	r.db.Raw("with agg as (select " + utils.QuoteSql(r.db, "user_id, max(time) as %s", "time") + " from heartbeats group by user_id) " +
+		"select " + utils.QuoteSql(r.db, "id as %s, time ", "user") +
+		"from users " +
+		"left join agg on agg.user_id = id " +
+		"order by users.id").
 		Scan(&result)
 	return result, nil
 }
@@ -254,34 +259,61 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 	// multi-line string with backticks yields an error with the github.com/glebarez/sqlite driver
 
 	args := []interface{}{
-		user.ID, from.Format(time.RFC3339), to.Format(time.RFC3339),
+		sql.Named("userid", user.ID),
+		sql.Named("from", from.Format(time.RFC3339)),
+		sql.Named("to", to.Format(time.RFC3339)),
+		sql.Named("limit", limit),
+		sql.Named("offset", offset),
 	}
 
-	limitOffsetClause := "limit ? offset ?"
-
+	limitOffsetClause := "limit @limit offset @offset"
 	if r.config.Db.IsMssql() {
-		limitOffsetClause = "offset ? ROWS fetch next ? rows only"
-		args = append(args, offset, limit)
-	} else {
-		args = append(args, limit, offset)
+		limitOffsetClause = "offset @offset ROWS fetch next @limit rows only"
 	}
+
+	query := `
+			with project_stats as (
+				select
+					project,
+					user_id,
+					min(time) as first,
+					max(time) as last,
+					count(*) as cnt
+				from heartbeats
+				where user_id = @userid
+				  and project != ''
+				  and time between @from and @to
+				  and language is not null and language != ''
+				group by project, user_id
+			),
+				 language_stats as (
+					 select
+						 project,
+						 language,
+						 count(*) as language_count,
+						 row_number() over (partition by project order by count(*) desc) as rn
+					 from heartbeats
+					 where user_id = @userid
+					   and project != ''
+					   and time between @from and @to
+					   and language is not null and language != ''
+					 group by project, language
+				 )
+			select
+				ps.project,
+				ps.first,
+				ps.last,
+				ps.cnt as count,
+				ls.language as top_language
+			from project_stats ps
+					 left join language_stats ls on ps.project = ls.project and ls.rn = 1
+			order by ps.last desc
+	`
+
+	query += limitOffsetClause
 
 	if err := r.db.
-		Raw("with projects as ( "+
-			"select project as p, user_id, min(time) as first, max(time) as last, count(*) as cnt "+
-			"from heartbeats "+
-			"where user_id = ? and project != '' "+
-			"and time between ? and ? "+
-			"and language is not null and language != '' and project != '' "+
-			"group by project, user_id "+
-			"order by last desc "+
-			limitOffsetClause+
-			") "+
-			"select distinct project, min(first) as first, min(last) as last, min(cnt) as count, first_value(language) over (partition by project order by count(*) desc) as top_language "+
-			"from heartbeats "+
-			"inner join projects on heartbeats.project = projects.p and heartbeats.user_id = projects.user_id "+
-			"group by project, language "+
-			"order by last desc", args...).
+		Raw(query, args...).
 		Scan(&projectStats).Error; err != nil {
 		return nil, err
 	}

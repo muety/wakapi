@@ -340,13 +340,13 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 	for i, s := range summaries {
 		hash := s.FromTime.T()
 		if _, found := processed[hash]; found {
-			slog.Warn("summary was attempted to be processed more often than once", "fromTime", s.FromTime, "toTime", s.ToTime, "userID", s.UserID)
+			slog.Warn("summary was attempted to be processed more often than once", "fromTime", s.FromTime.T(), "toTime", s.ToTime.T(), "userID", s.UserID)
 			continue
 		}
 
 		if i > 0 {
 			if prev := summaries[i-1]; s.FromTime.T().Before(prev.ToTime.T()) {
-				slog.Warn("got overlapping summaries for user", "prevID", prev.ID, "currentID", s.ID, "userID", s.UserID, "fromTime", s.FromTime, "prevToTime", prev.ToTime)
+				slog.Warn("got overlapping summaries for user", "prevID", prev.ID, "currentID", s.ID, "userID", s.UserID, "fromTime", s.FromTime.T(), "prevToTime", prev.ToTime.T())
 			}
 		}
 

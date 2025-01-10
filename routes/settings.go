@@ -6,7 +6,9 @@ import (
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/go-chi/chi/v5"
 	"github.com/gofrs/uuid/v5"
+	"github.com/muety/wakapi/helpers"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -375,6 +377,7 @@ func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Req
 	user.ShareOSs, err = strconv.ParseBool(r.PostFormValue("share_oss"))
 	user.ShareMachines, err = strconv.ParseBool(r.PostFormValue("share_machines"))
 	user.ShareLabels, err = strconv.ParseBool(r.PostFormValue("share_labels"))
+	user.ShareActivityChart, err = strconv.ParseBool(r.PostFormValue("share_activity_chart"))
 	user.ShareDataMaxDays, err = strconv.Atoi(r.PostFormValue("max_days"))
 
 	if err != nil {
@@ -935,6 +938,14 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 		DataRetentionMonths: h.config.App.DataRetentionMonths,
 		InviteLink:          inviteLink,
 	}
+
+	// readme card params
+	readmeCardTitle := "Wakapi.dev Stats"
+	if err, maxRange := helpers.ResolveMaximumRange(user.ShareDataMaxDays); err == nil {
+		readmeCardTitle += fmt.Sprintf(" (%v)", maxRange.GetHumanReadable())
+	}
+	vm.ReadmeCardCustomTitle = url.QueryEscape(readmeCardTitle)
+
 	return routeutils.WithSessionMessages(vm, r, w)
 }
 

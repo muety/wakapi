@@ -4,7 +4,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
@@ -65,7 +64,7 @@ func (h *ActivityApiHandler) GetActivityChart(w http.ResponseWriter, r *http.Req
 	}
 
 	if authorizedUser == nil || authorizedUser.ID != requestedUser.ID {
-		if _, userRange := helpers.ResolveMaximumRange(requestedUser.ShareDataMaxDays); userRange != models.IntervalPast12Months && userRange != models.IntervalAny { // TODO: build "hierarchy" of intervals to easily check if one is contained in another
+		if !requestedUser.ShareActivityChart {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}

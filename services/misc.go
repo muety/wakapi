@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	countUsersEvery                  = 1 * time.Hour
+	countUsersEvery                  = 3 * time.Hour
 	computeOldestDataEvery           = 6 * time.Hour
 	notifyExpiringSubscriptionsEvery = 12 * time.Hour
 )

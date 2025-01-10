@@ -68,14 +68,14 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 	slog.Info("generating summaries")
 
 	// Get a map from user ids to the time of their latest summary or nil if none exists yet
-	lastUserSummaryTimes, err := srv.summaryService.GetLatestByUser()
+	lastUserSummaryTimes, err := srv.summaryService.GetLatestByUser() // TODO: build user-specific variant of this query for efficiency
 	if err != nil {
 		config.Log().Error("error occurred", "error", err)
 		return err
 	}
 
 	// Get a map from user ids to the time of their earliest heartbeats or nil if none exists yet
-	firstUserHeartbeatTimes, err := srv.heartbeatService.GetFirstByUsers()
+	firstUserHeartbeatTimes, err := srv.heartbeatService.GetFirstByUsers() // TODO: build user-specific variant of this query for efficiency
 	if err != nil {
 		config.Log().Error("error occurred", "error", err)
 		return err
@@ -123,14 +123,18 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 		if e.Time.Valid() {
 			// Case 1: User has aggregated summaries already
 			// -> Spawn jobs to create summaries from their latest aggregation to now
+			slog.Info("generating summary aggregation jobs for user", "user", u.ID, "from", e.Time.T())
 			generateUserJobs(u, e.Time.T(), jobs)
 		} else if t := firstUserHeartbeatLookup[e.User]; t.Valid() {
 			// Case 2: User has no aggregated summaries, yet, but has heartbeats
 			// -> Spawn jobs to create summaries from their first heartbeat to now
+			slog.Info("generating summary aggregation jobs for user", "user", u.ID, "from", t.T())
 			generateUserJobs(u, t.T(), jobs)
+		} else {
+			// Case 3: User doesn't have heartbeats at all
+			// -> Nothing to do
+			slog.Info("skipping summary aggregation because user has no heartbeats", "user", u.ID)
 		}
-		// Case 3: User doesn't have heartbeats at all
-		// -> Nothing to do
 	}
 
 	return nil

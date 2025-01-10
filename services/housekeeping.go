@@ -33,7 +33,9 @@ func NewHousekeepingService(userService IUserService, heartbeatService IHeartbea
 func (s *HousekeepingService) Schedule() {
 	s.scheduleDataCleanups()
 	s.scheduleInactiveUsersCleanup()
-	s.scheduleProjectStatsCacheWarming()
+	if s.config.App.WarmCaches {
+		s.scheduleProjectStatsCacheWarming()
+	}
 }
 
 func (s *HousekeepingService) CleanUserDataBefore(user *models.User, before time.Time) error {

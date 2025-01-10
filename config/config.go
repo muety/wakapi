@@ -96,6 +96,7 @@ type appConfig struct {
 	DataRetentionMonths       int                          `yaml:"data_retention_months" default:"-1" env:"WAKAPI_DATA_RETENTION_MONTHS"`
 	DataCleanupDryRun         bool                         `yaml:"data_cleanup_dry_run" default:"false" env:"WAKAPI_DATA_CLEANUP_DRY_RUN"` // for debugging only
 	MaxInactiveMonths         int                          `yaml:"max_inactive_months" default:"-1" env:"WAKAPI_MAX_INACTIVE_MONTHS"`
+	WarmCaches                bool                         `yaml:"warm_caches" default:"true" env:"WAKAPI_WARM_CACHES"`
 	AvatarURLTemplate         string                       `yaml:"avatar_url_template" default:"api/avatar/{username_hash}.svg" env:"WAKAPI_AVATAR_URL_TEMPLATE"`
 	SupportContact            string                       `yaml:"support_contact" default:"hostmaster@wakapi.dev" env:"WAKAPI_SUPPORT_CONTACT"`
 	DateFormat                string                       `yaml:"date_format" default:"Mon, 02 Jan 2006" env:"WAKAPI_DATE_FORMAT"`
@@ -335,6 +336,11 @@ func (c *securityConfig) ParseTrustReverseProxyIPs() {
 	c.trustReverseProxyIpsParsed = make([]net.IPNet, 0)
 
 	for _, ip := range strings.Split(c.TrustReverseProxyIps, ",") {
+		// the config value is empty by default
+		if ip == "" {
+			continue
+		}
+
 		// try parse as address range
 		_, parsedIpNet, err := net.ParseCIDR(ip)
 		if err == nil {

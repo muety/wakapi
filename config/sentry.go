@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -66,6 +67,7 @@ func (l *SentryLogger) Request(r *http.Request) *slog.Logger {
 	return l.Logger
 }
 
+var heartbeatsRouteRegex = regexp.MustCompile(`^POST /api/(?:compat/wakatime/)?(?:v1/)?(?:users/[\w\d-_]+/)?heartbeats?(?:\.bulk)?$`)
 var excludedRoutes = []string{
 	"GET /assets",
 	"GET /api/health",
@@ -88,7 +90,7 @@ func initSentry(config sentryConfig, debug bool, releaseVersion string) {
 					return 0.0
 				}
 			}
-			if txName == "POST /api/heartbeat" {
+			if heartbeatsRouteRegex.Match([]byte(txName)) {
 				return float64(config.SampleRateHeartbeats)
 			}
 			return float64(config.SampleRate)

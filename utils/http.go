@@ -15,14 +15,17 @@ import (
 )
 
 const (
+	userAgentPattern   = `(?iU)^(?:(?:wakatime|chrome|firefox|edge)\/(?:v?[\d+.]+|unset)?\s)(?:\(?(\w+)[-_].*\)?.+\s)?(?:([^\/\s]+)\/[\w\d\.]+\s)?([^\/\s]+)-wakatime\/.+$`
 	cacheMaxAgePattern = `max-age=(\d+)`
 )
 
 var (
+	userAgent     *regexp.Regexp
 	cacheMaxAgeRe *regexp.Regexp
 )
 
 func init() {
+	userAgent = regexp.MustCompile(userAgentPattern)
 	cacheMaxAgeRe = regexp.MustCompile(cacheMaxAgePattern)
 }
 
@@ -85,13 +88,11 @@ func ParsePageParamsWithDefault(r *http.Request, page, size int) *PageParams {
 
 func ParseUserAgent(ua string) (string, string, error) { // os, editor, err
 	// try parse wakatime client user agents
-	re := regexp.MustCompile(`(?iU)^(?:(?:wakatime|chrome|firefox|edge)\/(?:v?[\d+.]+|unset)?\s)?(?:\(?(\w+)[-_].*\)?.+\s)?(?:([^\/\s]+)\/\w+\s)?([^\/\s]+)-wakatime\/.+$`)
-
 	var (
 		os, editor string
 	)
 
-	if groups := re.FindAllStringSubmatch(ua, -1); len(groups) > 0 && len(groups[0]) == 4 {
+	if groups := userAgent.FindAllStringSubmatch(ua, -1); len(groups) > 0 && len(groups[0]) == 4 {
 		// extract os
 		os = groups[0][1]
 		if os == "win" {
@@ -102,14 +103,13 @@ func ParseUserAgent(ua string) (string, string, error) { // os, editor, err
 		}
 
 		// parse editor
-		if groups[0][2] == "" {
+		editor = groups[0][2] // for user agents sent by desktop-wakatime plugin and some others, see https://github.com/muety/wakapi/issues/686, https://github.com/muety/wakapi/issues/712
+		if editor == "" {
 			editor = groups[0][3] // for most user agents
-		} else {
-			editor = groups[0][2] // for user agents sent by desktop-wakatime plugin, see https://github.com/muety/wakapi/issues/686
 		}
 		// special treatment for neovim
-		if groups[0][2] == "vim" && strings.Contains(ua, "neovim/") {
-			groups[0][2] = "neovim"
+		if editor == "KTextEditor" {
+			editor = "kate"
 		}
 
 		return strutil.Capitalize(os), editor, nil
