@@ -1,9 +1,10 @@
 package view
 
 import (
+	"time"
+
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
-	"time"
 )
 
 type SummaryViewModel struct {
@@ -14,6 +15,7 @@ type SummaryViewModel struct {
 	EditorColors        map[string]string
 	LanguageColors      map[string]string
 	OSColors            map[string]string
+	DailyStats         []models.DailyProjectStat
 	RawQuery            string
 	UserFirstData       time.Time
 	DataRetentionMonths int
