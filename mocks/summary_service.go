@@ -46,8 +46,3 @@ func (m *SummaryServiceMock) Insert(s *models.Summary) error {
 	args := m.Called(s)
 	return args.Error(0)
 }
-
-func (m *SummaryServiceMock) GetDailyProjectStats(from, to time.Time, user *models.User) ([]models.DailyProjectStat, error) {
-	args := m.Called(from, to, user)
-	return args.Get(0).([]models.DailyProjectStat), args.Error(1)
-}
