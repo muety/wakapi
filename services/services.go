@@ -1,11 +1,12 @@
 package services
 
 import (
+	"time"
+
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/utils"
-	"time"
 )
 
 type IAggregationService interface {
@@ -98,7 +99,7 @@ type ISummaryService interface {
 	DeleteByUser(string) error
 	DeleteByUserBefore(string, time.Time) error
 	Insert(*models.Summary) error
-	GetDailyProjectStats(time.Time, time.Time, *models.User) ([]models.DailyProjectStat, error)
+	NewDailyProjectStats(*models.Summary, *models.Filters) ([]*DailyProjectViewModel, error)
 }
 
 type IActivityService interface {

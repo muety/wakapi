@@ -35,6 +35,7 @@ func LoadUserSummaryByParams(ss services.ISummaryService, params *models.Summary
 		return nil, err, http.StatusInternalServerError
 	}
 
+	summary.User = params.User
 	summary.FromTime = models.CustomTime(summary.FromTime.T().In(params.User.TZ()))
 	summary.ToTime = models.CustomTime(summary.ToTime.T().In(params.User.TZ()))
 

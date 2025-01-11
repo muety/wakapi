@@ -2,6 +2,9 @@ package routes
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
@@ -10,8 +13,6 @@ import (
 	"github.com/muety/wakapi/models/view"
 	su "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
-	"net/http"
-	"time"
 )
 
 type SummaryHandler struct {
@@ -86,10 +87,10 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		firstData, _ = time.Parse(time.RFC822Z, firstDataKv.Value)
 	}
 
-	dailyStats, err := h.summarySrvc.GetDailyProjectStats(summaryParams.From, summaryParams.To, user)
+	dailyStats, err := h.summarySrvc.NewDailyProjectStats(summary, summaryParams.Filters)
 	if err != nil {
 		conf.Log().Request(r).Error("failed to load daily stats", "error", err)
-		dailyStats = []models.DailyProjectStat{}
+		dailyStats = []*services.DailyProjectViewModel{}
 	}
 
 	vm := view.SummaryViewModel{

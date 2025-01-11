@@ -5,6 +5,7 @@ import (
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/services"
 )
 
 type SummaryViewModel struct {
@@ -15,7 +16,7 @@ type SummaryViewModel struct {
 	EditorColors        map[string]string
 	LanguageColors      map[string]string
 	OSColors            map[string]string
-	DailyStats         []models.DailyProjectStat
+	DailyStats          []*services.DailyProjectViewModel
 	RawQuery            string
 	UserFirstData       time.Time
 	DataRetentionMonths int
