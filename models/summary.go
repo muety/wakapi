@@ -77,12 +77,6 @@ type SummaryParams struct {
 	Recompute bool
 }
 
-type DailyProjectStat struct {
-	Date     time.Time     `json:"date"`
-	Project  string        `json:"project"`
-	Duration time.Duration `json:"duration"`
-}
-
 func SummaryTypes() []uint8 {
 	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryLabel, SummaryBranch, SummaryEntity, SummaryCategory}
 }

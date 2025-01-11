@@ -15,6 +15,7 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/repositories"
+	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
 )
 
@@ -219,6 +220,32 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filt
 	}
 
 	return summary.Sorted(), nil
+}
+
+type DailyProjectViewModel struct {
+	Date     time.Time     `json:"date"`
+	Project  string        `json:"project"`
+	Duration time.Duration `json:"duration"`
+}
+
+// get a day-by-day summary of **each** project
+func (srv *SummaryService) NewDailyProjectStats(s *models.Summary, filters *models.Filters) ([]*DailyProjectViewModel, error) {
+	dailyProjects := make([]*DailyProjectViewModel, 0)
+	intervals := utils.SplitRangeByDays(s.FromTime.T(), s.ToTime.T())
+	for _, cur := range intervals {
+		cur_summary, err := srv.Aliased(cur[0], cur[1].Add(-1*time.Second), s.User, srv.Retrieve, filters, false)
+		if err != nil {
+			return nil, err
+		}
+		for _, cur_project := range cur_summary.Projects {
+			dailyProjects = append(dailyProjects, &DailyProjectViewModel{
+				Date:     cur[0],
+				Project:  cur_project.Key,
+				Duration: cur_project.Total,
+			})
+		}
+	}
+	return dailyProjects, nil
 }
 
 // CRUD methods
@@ -536,41 +563,4 @@ func (srv *SummaryService) getProjectLabelsReverseResolver(user *models.User) mo
 		}
 		return projectStrings
 	}
-}
-
-func (srv *SummaryService) GetDailyProjectStats(from, to time.Time, user *models.User) ([]models.DailyProjectStat, error) {
-	durations, err := srv.durationService.Get(from, to, user, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	dailyStats := make(map[string]map[string]time.Duration)
-	for _, d := range durations {
-		date := time.Time(d.Time).Format("2006-01-02")
-		if _, ok := dailyStats[date]; !ok {
-			dailyStats[date] = make(map[string]time.Duration)
-		}
-		dailyStats[date][d.Project] += d.Duration
-	}
-
-	result := make([]models.DailyProjectStat, 0)
-	for dateStr, projects := range dailyStats {
-		date, _ := time.Parse("2006-01-02", dateStr)
-		for project, duration := range projects {
-			result = append(result, models.DailyProjectStat{
-				Date:     date.UTC(),
-				Project:  project,
-				Duration: duration,
-			})
-		}
-	}
-
-	sort.Slice(result, func(i, j int) bool {
-		if result[i].Date.Equal(result[j].Date) {
-			return result[i].Project < result[j].Project
-		}
-		return result[i].Date.After(result[j].Date)
-	})
-
-	return result, nil
 }

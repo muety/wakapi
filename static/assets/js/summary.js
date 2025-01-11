@@ -570,7 +570,7 @@ function drawDailyProjectChart(dailyStats) {
             label: project,
             data: days.map(day => {
                 const stat = formattedStats.find(s => s.date === day && s.project === project)
-                return stat ? parseInt(stat.duration) / 1e9 : 0
+                return stat ? parseInt(stat.duration) : 0
             }),
             backgroundColor: color,
             barPercentage: 0.95,
