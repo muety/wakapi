@@ -88,7 +88,7 @@ $ docker run -d \
 
 **Note:** By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres, see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile) and [config.default.yml](https://github.com/muety/wakapi/blob/master/config.default.yml) for further options.
 
-If you want to run Wakapi on **Kubernetes**, there is [wakapi-helm-chart](https://github.com/andreymaznyak/wakapi-helm-chart) for quick and easy deployment.
+If you want to run Wakapi on **Kubernetes**, there is [wakapi-helm-chart](https://github.com/ricristian/wakapi-helm-chart) for quick and easy deployment.
 
 #### Docker Compose
 Alternatively, you can use Docker Compose for an even more straightforward deployment. See [compose.yml](https://github.com/muety/wakapi/blob/master/compose.yml) for configuration details.
