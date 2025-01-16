@@ -5,7 +5,6 @@ import (
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
-	"github.com/muety/wakapi/services"
 )
 
 type SummaryViewModel struct {
@@ -16,10 +15,30 @@ type SummaryViewModel struct {
 	EditorColors        map[string]string
 	LanguageColors      map[string]string
 	OSColors            map[string]string
-	DailyStats          []*services.DailyProjectViewModel
+	DailyStats          []*DailyProjectViewModel
 	RawQuery            string
 	UserFirstData       time.Time
 	DataRetentionMonths int
+}
+
+type DailyProjectViewModel struct {
+	Date     time.Time     `json:"date"`
+	Project  string        `json:"project"`
+	Duration time.Duration `json:"duration"`
+}
+
+func NewDailyProjectStats(summaries []*models.Summary) []*DailyProjectViewModel {
+	dailyProjects := make([]*DailyProjectViewModel, 0)
+	for _, summary := range summaries {
+		for _, project := range summary.Projects {
+			dailyProjects = append(dailyProjects, &DailyProjectViewModel{
+				Date:     summary.FromTime.T(),
+				Project:  project.Key,
+				Duration: project.Total,
+			})
+		}
+	}
+	return dailyProjects
 }
 
 func (s SummaryViewModel) UserDataExpiring() bool {

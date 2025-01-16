@@ -2,11 +2,6 @@ package services
 
 import (
 	"errors"
-	"log/slog"
-	"sort"
-	"strings"
-	"time"
-
 	"github.com/becheran/wildmatch-go"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/slice"
@@ -15,8 +10,11 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/repositories"
-	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
+	"log/slog"
+	"sort"
+	"strings"
+	"time"
 )
 
 type SummaryService struct {
@@ -220,32 +218,6 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filt
 	}
 
 	return summary.Sorted().InTZ(user.TZ()), nil
-}
-
-type DailyProjectViewModel struct {
-	Date     time.Time     `json:"date"`
-	Project  string        `json:"project"`
-	Duration time.Duration `json:"duration"`
-}
-
-// get a day-by-day summary of **each** project
-func (srv *SummaryService) NewDailyProjectStats(s *models.Summary, filters *models.Filters) ([]*DailyProjectViewModel, error) {
-	dailyProjects := make([]*DailyProjectViewModel, 0)
-	intervals := utils.SplitRangeByDays(s.FromTime.T(), s.ToTime.T())
-	for _, cur := range intervals {
-		cur_summary, err := srv.Aliased(cur[0], cur[1].Add(-1*time.Second), s.User, srv.Retrieve, filters, false)
-		if err != nil {
-			return nil, err
-		}
-		for _, cur_project := range cur_summary.Projects {
-			dailyProjects = append(dailyProjects, &DailyProjectViewModel{
-				Date:     cur[0],
-				Project:  cur_project.Key,
-				Duration: cur_project.Total,
-			})
-		}
-	}
-	return dailyProjects, nil
 }
 
 // CRUD methods
