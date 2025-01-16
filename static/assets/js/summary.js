@@ -15,6 +15,7 @@ const labelsCanvas = document.getElementById('chart-label')
 const branchesCanvas = document.getElementById('chart-branches')
 const entitiesCanvas = document.getElementById('chart-entities')
 const categoriesCanvas = document.getElementById('chart-categories')
+const dailyCanvas = document.getElementById('chart-daily-projects')
 
 const projectContainer = document.getElementById('project-container')
 const osContainer = document.getElementById('os-container')
@@ -25,10 +26,11 @@ const labelContainer = document.getElementById('label-container')
 const branchContainer = document.getElementById('branch-container')
 const entityContainer = document.getElementById('entity-container')
 const categoryContainer = document.getElementById('category-container')
+const daliyContainer = document.getElementById('daily-container')
 
-const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer, categoryContainer]
-const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas, categoriesCanvas]
-const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches, wakapiData.entities, wakapiData.categories]
+const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer, categoryContainer, daliyContainer]
+const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas, categoriesCanvas, dailyCanvas]
+const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches, wakapiData.entities, wakapiData.categories, wakapiData.dailyStats]
 
 let topNPickers = [...document.getElementsByClassName('top-picker')]
 topNPickers.sort(((a, b) => parseInt(a.attributes['data-entity'].value) - parseInt(b.attributes['data-entity'].value)))
@@ -504,7 +506,7 @@ function togglePlaceholders(mask) {
 }
 
 function getPresentDataMask() {
-    return data.map(list => (list ? list.reduce((acc, e) => acc + e.total, 0) : 0) > 0)
+    return data.map(list => (list ? list.reduce((acc, e) => acc + (e.total ? e.total : e.duration), 0) : 0) > 0)
 }
 
 function getColor(seed, index) {
@@ -548,7 +550,10 @@ function extractFile(filePath) {
 }
 
 function updateNumTotal() {
-    for (let i = 0; i < data.length; i++) {
+    // Why length - 1:
+    //  We don't have a 'topN' for the DailyProjectStats
+    //  So there isn't a input for it.
+    for (let i = 0; i < data.length - 1; i++) {
         document.querySelector(`span[data-entity='${i}']`).innerText = data[i].length.toString()
     }
 }
@@ -577,7 +582,7 @@ function drawDailyProjectChart(dailyStats) {
         }
     })
 
-    new Chart(document.getElementById('chart-daily-projects').getContext('2d'), {
+    new Chart(dailyCanvas.getContext('2d'), {
         type: 'bar',
         data: {
             labels: days.map(d => new Date(d).toLocaleDateString()),

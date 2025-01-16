@@ -13,6 +13,7 @@ import (
 	"github.com/muety/wakapi/models/view"
 	su "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
+	"github.com/muety/wakapi/utils"
 )
 
 type SummaryHandler struct {
@@ -40,6 +41,19 @@ func (h *SummaryHandler) RegisterRoutes(router chi.Router) {
 	r.Get("/", h.GetIndex)
 
 	router.Mount("/summary", r)
+}
+
+func (h *SummaryHandler) FetchSummaryForDailyProjectStats(params *models.SummaryParams) ([]*models.Summary, error) {
+	summaries := make([]*models.Summary, 0)
+	intervals := utils.SplitRangeByDays(params.From, params.To)
+	for _, interval := range intervals {
+		cur_summary, err := h.summarySrvc.Aliased(interval[0], interval[1], params.User, h.summarySrvc.Retrieve, params.Filters, false)
+		if err != nil {
+			return nil, err
+		}
+		summaries = append(summaries, cur_summary)
+	}
+	return summaries, nil
 }
 
 func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
@@ -87,10 +101,12 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		firstData, _ = time.Parse(time.RFC822Z, firstDataKv.Value)
 	}
 
-	dailyStats, err := h.summarySrvc.NewDailyProjectStats(summary, summaryParams.Filters)
+	dailyStats := []*view.DailyProjectViewModel{}
+	dailyStatsSummaries, err := h.FetchSummaryForDailyProjectStats(summaryParams)
 	if err != nil {
 		conf.Log().Request(r).Error("failed to load daily stats", "error", err)
-		dailyStats = []*services.DailyProjectViewModel{}
+	} else {
+		dailyStats = view.NewDailyProjectStats(dailyStatsSummaries)
 	}
 
 	vm := view.SummaryViewModel{
