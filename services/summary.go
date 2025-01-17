@@ -96,7 +96,7 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f type
 	}
 
 	srv.cache.SetDefault(cacheKey, summary)
-	return summary.Sorted(), nil
+	return summary.Sorted().InTZ(user.TZ()), nil
 }
 
 func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filters *models.Filters) (*models.Summary, error) {
@@ -143,7 +143,7 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 		summary.KeepOnly(map[uint8]bool{filter.Entity: true}).ApplyFilter(filter)
 	}
 
-	return summary.Sorted(), nil
+	return summary.Sorted().InTZ(user.TZ()), nil
 }
 
 func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filters *models.Filters) (*models.Summary, error) {
@@ -217,7 +217,7 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filt
 		NumHeartbeats:    durations.TotalNumHeartbeats(),
 	}
 
-	return summary.Sorted(), nil
+	return summary.Sorted().InTZ(user.TZ()), nil
 }
 
 // CRUD methods
