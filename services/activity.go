@@ -93,7 +93,13 @@ func (s *ActivityService) getChartPastYear(user *models.User, darkTheme, hideAtt
 				summary.ToTime = models.CustomTime(to)
 				summary.UserID = user.ID
 				summary.User = user
+			} else {
+				// time zone madness, see https://github.com/muety/wakapi/issues/719#issuecomment-2599365514
+				// alternatively, we could also just use interval[0] and interval[1] instead
+				summary.FromTime = models.CustomTime(summary.FromTime.T().In(user.TZ()))
+				summary.ToTime = models.CustomTime(summary.ToTime.T().In(user.TZ()))
 			}
+
 			mut.Lock()
 			summaries[i] = summary
 			mut.Unlock()
