@@ -6,7 +6,7 @@ require (
 	codeberg.org/Codeberg/avatars v1.0.0
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
 	github.com/alexedwards/argon2id v1.0.0
-	github.com/alitto/pond v1.9.2
+	github.com/alitto/pond/v2 v2.1.6
 	github.com/dchest/captcha v1.1.0
 	github.com/duke-git/lancet/v2 v2.3.4
 	github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6

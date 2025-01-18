@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/alitto/pond"
+	"github.com/alitto/pond/v2"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/utils"
@@ -85,7 +85,7 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 		days := generateDays(startDate, endDate)
 
 		c := atomic.NewUint32(uint32(len(days)))
-		wp := pond.New(maxWorkers, 0)
+		wp := pond.NewPool(maxWorkers)
 
 		for _, d := range days {
 			d := d // https://github.com/golang/go/wiki/CommonMistakes#using-reference-to-loop-iterator-variable

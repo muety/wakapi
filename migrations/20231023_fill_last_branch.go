@@ -1,7 +1,7 @@
 package migrations
 
 import (
-	"github.com/alitto/pond"
+	"github.com/alitto/pond/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
@@ -22,7 +22,7 @@ func init() {
 				return err
 			}
 
-			wp := pond.New(utils.AllCPUs(), 0)
+			wp := pond.NewPool(utils.AllCPUs())
 
 			// this is the most inefficient way to perform the update, but i couldn't find a way to do this is a single query
 			for _, h := range heartbeats {

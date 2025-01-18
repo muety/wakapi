@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	svg "github.com/ajstarks/svgo/float"
-	"github.com/alitto/pond"
+	"github.com/alitto/pond/v2"
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/muety/wakapi/config"
@@ -76,7 +76,7 @@ func (s *ActivityService) getChartPastYear(user *models.User, darkTheme, hideAtt
 	intervals := utils.SplitRangeByDays(from, to)
 	summaries := make([]*models.Summary, len(intervals))
 
-	wp := pond.New(utils.HalfCPUs(), 0)
+	wp := pond.NewPool(utils.HalfCPUs())
 	mut := sync.RWMutex{}
 
 	// fetch summaries

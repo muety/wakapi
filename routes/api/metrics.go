@@ -2,7 +2,7 @@ package api
 
 import (
 	"errors"
-	"github.com/alitto/pond"
+	"github.com/alitto/pond/v2"
 	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
@@ -458,7 +458,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 	_, from, to := helpers.ResolveIntervalTZ(models.IntervalAny, time.Local)
 	to = to.Truncate(time.Hour)
 
-	wp := pond.New(utils.HalfCPUs(), 0)
+	wp := pond.NewPool(utils.HalfCPUs())
 	lock := sync.RWMutex{}
 
 	for i := range activeUsers {
