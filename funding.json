@@ -1,0 +1,88 @@
+{
+  "version": "v1.0.0",
+  "entity": {
+    "type": "individual",
+    "role": "owner",
+    "name": "Ferdinand Mütsch",
+    "email": "ferdinand@muetsch.io",
+    "description": "Author and maintainer of Wakapi and many other projects.",
+    "webpageUrl": {
+      "url": "https://muetsch.io",
+      "wellKnown": "https://muetsch.io/.well-known/funding-manifest-urls"
+    }
+  },
+  "projects": [
+    {
+      "guid": "wakapi",
+      "name": "Wakapi",
+      "description": "A minimalist, self-hosted WakaTime-compatible backend for coding statistics.",
+      "webpageUrl": {
+        "url": "https://wakapi.dev",
+        "wellKnown": "https://wakapi.dev/.well-known/funding-manifest-urls"
+      },
+      "repositoryUrl": {
+        "url": "https://wakapi.dev/github",
+        "wellKnown": "https://wakapi.dev/.well-known/funding-manifest-urls"
+      },
+      "licenses": [
+        "spdx:MIT"
+      ],
+      "tags": [
+        "productivity",
+        "self-hosted",
+        "developer-tools",
+        "time-tracker",
+        "wakatime",
+        "coding-stats"
+      ]
+    }
+  ],
+  "funding": {
+    "channels": [
+      {
+        "guid": "github-sponsors",
+        "type": "other",
+        "address": "https://github.com/sponsors/muety",
+        "description": "Use GitHub Sponsors to fund my work. This is most convenient for me, but feel free to reach out for alternatives."
+      }
+    ],
+    "plans": [
+      {
+        "guid": "hosting-wakapi-monthly",
+        "status": "active",
+        "name": "Hosting support for Wakapi",
+        "description": "This will cover the monthly server hosting costs for Wakapi.",
+        "amount": 5,
+        "currency": "EUR",
+        "frequency": "monthly",
+        "channels": [
+          "github-sponsors"
+        ]
+      },
+      {
+        "guid": "devtime-wakapi-monthly",
+        "status": "active",
+        "name": "Developer compensation for Wakapi",
+        "description": "This will cover the cost of one developer (myself) working occasionally on Wakapi.",
+        "amount": 50,
+        "currency": "EUR",
+        "frequency": "monthly",
+        "channels": [
+          "github-sponsors"
+        ]
+      },
+      {
+        "guid": "angel-plan",
+        "status": "active",
+        "name": "Goodwill plan",
+        "description": "Pay anything you wish to show your goodwill for any of my projects.",
+        "amount": 0,
+        "currency": "EUR",
+        "frequency": "one-time",
+        "channels": [
+          "github-sponsors"
+        ]
+      }
+    ]
+  }
+}
