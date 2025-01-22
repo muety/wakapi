@@ -16,8 +16,12 @@ export default async function Leaderboards({
   }
 
   return (
-    <div className="mt-5 min-h-screen">
-      <LeaderBoardTable data={durationData} title="Public" />
+    <div className="m-auto mx-14 flex flex-col justify-center px-14 align-middle">
+      <LeaderBoardTable
+        data={durationData}
+        title="Top Coders"
+        titleClass="text-center mb-8 text-6xl"
+      />
     </div>
   );
 }

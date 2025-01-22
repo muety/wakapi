@@ -14,6 +14,7 @@ export interface SessionUser {
   id: string;
   avatar: string;
   has_wakatime_integration: boolean;
+  name?: string;
 }
 
 export const defaultSession: SessionData = {

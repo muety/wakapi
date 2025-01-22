@@ -13,6 +13,7 @@ import {
 import { DataItem, LeaderboardApiResponse } from "@/lib/types";
 
 import { TooltipWithProvider } from "./tooltip-with-provider";
+import { cn } from "@/lib/utils";
 
 function Hireable() {
   return (
@@ -28,6 +29,7 @@ function Hireable() {
 interface iProps {
   title: string;
   data: LeaderboardApiResponse;
+  titleClass?: string;
 }
 
 function RenderLanguages({ languages }: { languages: string[] }) {
@@ -75,13 +77,17 @@ function rowMapper(dataItem: DataItem) {
   };
 }
 
-export function LeaderBoardTable({ title, data: leaderboardData }: iProps) {
+export function LeaderBoardTable({
+  title,
+  data: leaderboardData,
+  titleClass = "",
+}: iProps) {
   const { data: rawLeaderboard, range } = leaderboardData;
   const leaderboard = rawLeaderboard.map((item) => rowMapper(item));
   return (
     <div>
       <div className="mb-2">
-        <h1 className="text-4xl">{title}</h1>
+        <h1 className={cn("text-4xl", titleClass)}>{title}</h1>
       </div>
       <Table className="w-100 w-full">
         <TableCaption>

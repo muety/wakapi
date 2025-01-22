@@ -33,10 +33,7 @@ export const Prices = [
 
 export function Pricing() {
   return (
-    <div
-      className="m-auto mx-14 flex flex-col justify-center px-14 align-middle"
-      style={{ minHeight: "70vh" }}
-    >
+    <div className="m-auto mx-14 flex flex-col justify-center px-14 align-middle">
       <h1 className="mb-8 text-center text-6xl">Pricing</h1>
       <p>
         Wakana is free to use forever. You&apos;ll have 1 month dashboard

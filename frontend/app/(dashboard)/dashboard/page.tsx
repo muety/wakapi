@@ -50,9 +50,6 @@ export default async function Dashboard({
     : [];
   return (
     <div className="my-6">
-      <div className="mb-5 flex items-center justify-start align-middle">
-        <h1 className="text-4xl">Dashboard</h1>
-      </div>
       {durationData && (
         <main className="main-dashboard">
           <div className="m-0 my-5 text-2xl">

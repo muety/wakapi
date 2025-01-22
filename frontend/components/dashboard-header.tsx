@@ -1,16 +1,51 @@
+"use client";
+
+import { Separator } from "@radix-ui/react-separator";
 import { CurrentWorkTime } from "./current-work-time";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from "./ui/breadcrumb";
+import { capitalize } from "lodash";
 import { SidebarTrigger } from "./ui/sidebar";
-import { UserDropdownMenu } from "./user-dropdown-menu";
+import { usePathname } from "next/navigation";
 
 export function DashboardHeader() {
+  const pathname = usePathname();
+  const pathnameParts = pathname.split("/");
+  const currentPage = pathnameParts[pathnameParts.length - 1];
+  const currentPageTitle = capitalize(currentPage.replace(/-/g, " "));
+
   return (
-    // sticky top-0 sm-static sm:h-auto
-    <header className="dashboard-header md:border-1 h-18 top-0 hidden w-full items-center gap-3 px-2 py-4 pr-5 md:flex md:justify-between">
-      <SidebarTrigger />
-      <div className="flex gap-4 align-middle">
-        <CurrentWorkTime />
-        <UserDropdownMenu />
+    <header className="flex justify-between h-16 shrink-0 items-center gap-2 px-4">
+      <div className="flex items-center gap-2">
+        <SidebarTrigger className="-ml-1" />
+        <Separator orientation="vertical" className="mr-2 h-4" />
+        <Breadcrumb>
+          <BreadcrumbList>
+            {pathnameParts
+              .slice(0, pathnameParts.length - 1)
+              .map((part, index) => (
+                <>
+                  <BreadcrumbItem key={index}>
+                    <BreadcrumbLink href={`/${part}`}>
+                      {capitalize(part.replace(/-/g, " "))}
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator className="hidden md:block" />
+                </>
+              ))}
+            <BreadcrumbItem className="font-extrabold">
+              <BreadcrumbPage>{currentPageTitle}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
       </div>
+      <CurrentWorkTime />
     </header>
   );
 }

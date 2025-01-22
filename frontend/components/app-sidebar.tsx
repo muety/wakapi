@@ -14,6 +14,7 @@ import {
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import { AppSidebarLogo } from "./app-sidebar-logo";
+import { NavUser } from "./nav-user";
 
 const SIMPLE_MENU_ITEMS = [
   {
@@ -101,7 +103,7 @@ export const MAIN_MENU_ITEMS = [
 
 export function AppSidebar() {
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" variant="inset">
       <SidebarContent>
         <AppSidebarLogo />
         <div className="flex h-screen flex-col">
@@ -130,6 +132,9 @@ export function AppSidebar() {
           ))}
         </div>
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser />
+      </SidebarFooter>
     </Sidebar>
   );
 }

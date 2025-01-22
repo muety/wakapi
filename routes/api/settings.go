@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -89,6 +90,24 @@ func (h *SettingsHandler) actionSetWakatimeApiKey(wakatimeSettings *SettingsPayl
 	}
 
 	return actionResult{http.StatusOK, "Wakatime API key set", "", nil}
+}
+
+func (h *SettingsHandler) actionUpdateHeartbeatsTimeout(w http.ResponseWriter, r *http.Request) actionResult {
+	var err error
+	user := middlewares.GetPrincipal(r)
+	defer h.userSrvc.FlushCache()
+
+	val, err := strconv.ParseInt(r.PostFormValue("heartbeats_timeout"), 0, 0)
+	if dur := time.Duration(val) * time.Second; err != nil || dur < models.MinHeartbeatsTimeout || dur > models.MaxHeartbeatsTimeout {
+		return actionResult{http.StatusBadRequest, "", "invalid input", nil}
+	}
+	user.HeartbeatsTimeoutSec = int(val)
+
+	if _, err := h.userSrvc.Update(user); err != nil {
+		return actionResult{http.StatusInternalServerError, "", "internal sever error", nil}
+	}
+
+	return actionResult{http.StatusOK, "Done. To apply this change to already existing data, please regenerate your summaries.", "", nil}
 }
 
 func (h *SettingsHandler) respondWithJSON(w http.ResponseWriter, status int, payload interface{}) {

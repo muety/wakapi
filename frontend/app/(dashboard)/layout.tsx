@@ -4,7 +4,7 @@ import React from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { MobileHeader } from "@/components/mobile-header";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function Layout({
   children,
@@ -17,13 +17,13 @@ export default async function Layout({
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       <AppSidebar />
-      <main className="w-full">
+      <SidebarInset className="shadow-lg border border-[##dddddd]">
         <DashboardHeader />
         <MobileHeader />
         <main className="min-h-full px-5" style={{ minHeight: "50vh" }}>
           {children}
         </main>
-      </main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }

@@ -174,7 +174,8 @@ func (srv *UserService) Count() (int64, error) {
 }
 
 func (srv *UserService) MakeApiKey() string {
-	return fmt.Sprintf("wakana_%s", uuid.Must(uuid.NewV4()).String())
+	// fmt.Sprintf("wakana_%s", uuid.Must(uuid.NewV4()).String())
+	return fmt.Sprintf("%s", uuid.Must(uuid.NewV4()).String())
 }
 
 func (srv *UserService) Create(signup *models.Signup) (*models.User, error) {

@@ -1,6 +1,7 @@
 import { getSession } from "@/actions";
 import { ApiKeyCopier } from "@/components/copy-api-key";
 import { DisconnectWakatime } from "@/components/disconnect-wakatime";
+import { KeystrokeTimeout } from "@/components/keystroke-timeout";
 import {
   Card,
   CardContent,
@@ -10,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { WakatimeIntegration } from "@/components/wakatime-integration";
+import Link from "next/link";
 
 export default async function Page() {
   const session = await getSession();
@@ -50,6 +52,20 @@ export default async function Page() {
             <DisconnectWakatime />
           </CardFooter>
         )}
+      </Card>
+      <Card x-chunk="dashboard-04-chunk-1">
+        <CardHeader>
+          <CardTitle>Keystroke Timeout</CardTitle>
+          <CardDescription>
+            This setting affects how a series of consecutive heartbeats sent by
+            your IDE are aggregated to compute your total coding time. Please
+            see the "How are durations calculated?" section in our{" "}
+            <Link href="/faqs"></Link> to learn more.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <KeystrokeTimeout token={session.token} />
+        </CardContent>
       </Card>
     </div>
   );

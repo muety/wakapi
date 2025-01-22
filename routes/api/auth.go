@@ -102,7 +102,7 @@ func (h *AuthApiHandler) Signin(w http.ResponseWriter, r *http.Request) {
 
 	params.Email = strings.ToLower(params.Email)
 	user, err := h.userService.GetUserByEmail(params.Email)
-	if err != nil {
+	if err != nil || user == nil {
 		w.WriteHeader(http.StatusNotFound)
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
 			"message": "Invalid credentials",

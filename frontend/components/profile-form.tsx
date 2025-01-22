@@ -29,7 +29,6 @@ export function ProfileForm() {
       // github: undefined,
       // twitter: undefined,
       // linkedin: undefined,
-      key_stroke_timeout: 120,
     },
   });
 
@@ -106,7 +105,7 @@ export function ProfileForm() {
             </FormItem>
           )}
         />
-        <FormField
+        {/* <FormField
           control={form.control}
           name="key_stroke_timeout"
           render={({ field }) => (
@@ -121,7 +120,7 @@ export function ProfileForm() {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
         <FormField
           control={form.control}
           name="github"
