@@ -43,19 +43,6 @@ func (h *SummaryHandler) RegisterRoutes(router chi.Router) {
 	router.Mount("/summary", r)
 }
 
-func (h *SummaryHandler) FetchSummaryForDailyProjectStats(params *models.SummaryParams) ([]*models.Summary, error) {
-	summaries := make([]*models.Summary, 0)
-	intervals := utils.SplitRangeByDays(params.From, params.To)
-	for _, interval := range intervals {
-		cur_summary, err := h.summarySrvc.Aliased(interval[0], interval[1], params.User, h.summarySrvc.Retrieve, params.Filters, false)
-		if err != nil {
-			return nil, err
-		}
-		summaries = append(summaries, cur_summary)
-	}
-	return summaries, nil
-}
-
 func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
@@ -102,11 +89,13 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dailyStats := []*view.DailyProjectViewModel{}
-	dailyStatsSummaries, err := h.FetchSummaryForDailyProjectStats(summaryParams)
-	if err != nil {
-		conf.Log().Request(r).Error("failed to load daily stats", "error", err)
-	} else {
-		dailyStats = view.NewDailyProjectStats(dailyStatsSummaries)
+	if summaryParams.From.Add(time.Hour*24*31).After(summaryParams.To) && summaryParams.From.Add(time.Hour*24*3).Before(summaryParams.To) {
+		dailyStatsSummaries, err := h.fetchSummaryForDailyProjectStats(summaryParams)
+		if err != nil {
+			conf.Log().Request(r).Error("failed to load daily stats", "error", err)
+		} else {
+			dailyStats = view.NewDailyProjectStats(dailyStatsSummaries)
+		}
 	}
 
 	vm := view.SummaryViewModel{
@@ -135,4 +124,17 @@ func (h *SummaryHandler) buildViewModel(r *http.Request, w http.ResponseWriter) 
 			SharedViewModel: view.NewSharedViewModel(h.config, nil),
 		},
 	}, r, w)
+}
+
+func (h *SummaryHandler) fetchSummaryForDailyProjectStats(params *models.SummaryParams) ([]*models.Summary, error) {
+	summaries := make([]*models.Summary, 0)
+	intervals := utils.SplitRangeByDays(params.From, params.To)
+	for _, interval := range intervals {
+		curSummary, err := h.summarySrvc.Aliased(interval[0], interval[1], params.User, h.summarySrvc.Retrieve, params.Filters, false)
+		if err != nil {
+			return nil, err
+		}
+		summaries = append(summaries, curSummary)
+	}
+	return summaries, nil
 }

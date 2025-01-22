@@ -26,9 +26,9 @@ const labelContainer = document.getElementById('label-container')
 const branchContainer = document.getElementById('branch-container')
 const entityContainer = document.getElementById('entity-container')
 const categoryContainer = document.getElementById('category-container')
-const daliyContainer = document.getElementById('daily-container')
+const dailyContainer = document.getElementById('daily-container')
 
-const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer, categoryContainer, daliyContainer]
+const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer, categoryContainer, dailyContainer]
 const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas, categoriesCanvas, dailyCanvas]
 const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches, wakapiData.entities, wakapiData.categories, wakapiData.dailyStats]
 
@@ -561,7 +561,7 @@ function updateNumTotal() {
 function drawDailyProjectChart(dailyStats) {
     const formattedStats = dailyStats.map(stat => ({
         ...stat,
-        date: new Date(stat.date).toISOString().split('T')[0] // convert to YYYY-MM-DD format
+        date: new Date(stat.date).toLocaleDateString() // convert to YYYY-MM-DD format
 
     }));
 
@@ -585,7 +585,7 @@ function drawDailyProjectChart(dailyStats) {
     new Chart(dailyCanvas.getContext('2d'), {
         type: 'bar',
         data: {
-            labels: days.map(d => new Date(d).toLocaleDateString()),
+            labels: days,
             datasets: datasets
         },
         options: {
