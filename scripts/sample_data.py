@@ -3,12 +3,15 @@
 import argparse
 import base64
 import random
+import signal
 import string
 import sys
 from datetime import datetime, timedelta
 from typing import List, Union, Callable
 
 import requests
+
+signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow to be closed with sigint, see https://stackoverflow.com/a/6072360/3112139
 
 MACHINE = "devmachine"
 UA = 'wakatime/13.0.7 (Linux-4.15.0-91-generic-x86_64-with-glibc2.4) Python3.8.0.final.0 generator/1.42.1 generator-wakatime/4.0.0'
@@ -17,9 +20,8 @@ LANGUAGES = {
     'Java': 'java',
     'JavaScript': 'js',
     'Python': 'py',
-    # https://github.com/muety/wakapi/issues/172
     'PHP': 'php',
-    'Blade': 'blade.php',
+    'Blade': 'blade.php',  # https://github.com/muety/wakapi/issues/172
     '?': 'astro',  # simulate language unknown to wakatime-cli
 }
 BRANCHES = ['master', 'feature-1', 'feature-2']
@@ -95,16 +97,14 @@ def post_data_sync(data: List[Heartbeat], url: str, api_key: str):
         'Authorization': f'Basic {encoded_key}',
         'X-Machine-Name': MACHINE,
     })
-    if r.status_code != 201:
-        print(r.text)
-        sys.exit(1)
+    r.raise_for_status()
 
 
 def make_gui(callback: Callable[[ConfigParams, Callable[[int], None]], None]) -> ('QApplication', 'QWidget'):
     # https://doc.qt.io/qt-5/qtwidgets-module.html
     from PyQt5.QtCore import Qt
     from PyQt5.QtWidgets import QApplication, QWidget, QFormLayout, QHBoxLayout, QVBoxLayout, QGroupBox, QLabel, \
-        QLineEdit, QSpinBox, QProgressBar, QPushButton, QCheckBox
+        QLineEdit, QSpinBox, QProgressBar, QPushButton, QCheckBox, QMessageBox
 
     # Main app
     app = QApplication([])
@@ -126,7 +126,7 @@ def make_gui(callback: Callable[[ConfigParams, Callable[[int], None]], None]) ->
 
     api_key_input_label = QLabel('API Key:')
     api_key_input = QLineEdit()
-    api_key_input.setPlaceholderText(f'{"x"*8}-{"x"*4}-{"x"*4}-{"x"*4}-{"x"*12}')
+    api_key_input.setPlaceholderText(f'{"x" * 8}-{"x" * 4}-{"x" * 4}-{"x" * 4}-{"x" * 12}')
 
     form_layout_1.addRow(url_input_label, url_input)
     form_layout_1.addRow(api_key_input_label, api_key_input)
@@ -171,6 +171,7 @@ def make_gui(callback: Callable[[ConfigParams, Callable[[int], None]], None]) ->
 
     start_button = QPushButton('Generate')
     progress_bar = QProgressBar()
+    progress_bar.setValue(0)
 
     bottom_layout.addWidget(progress_bar)
     bottom_layout.addWidget(start_button)
@@ -182,17 +183,6 @@ def make_gui(callback: Callable[[ConfigParams, Callable[[int], None]], None]) ->
     container_layout.setStretch(1, 1)
 
     window.setLayout(container_layout)
-
-    # Done dialog
-    done_dialog = QWidget()
-    done_dialog.setWindowTitle('Done')
-    done_ok_button = QPushButton('Ok')
-    done_layout = QVBoxLayout()
-    done_layout.addWidget(QLabel('Done!'), alignment=Qt.AlignCenter)
-    done_layout.addWidget(done_ok_button, alignment=Qt.AlignCenter)
-    done_dialog.setFixedSize(done_dialog.sizeHint())
-    done_ok_button.clicked.connect(done_dialog.close)
-    done_dialog.setLayout(done_layout)
 
     # Logic
     def parse_params() -> ConfigParams:
@@ -209,18 +199,30 @@ def make_gui(callback: Callable[[ConfigParams, Callable[[int], None]], None]) ->
     def update_progress(inc=1):
         current = progress_bar.value()
         updated = current + inc
-        if updated == progress_bar.maximum() - 1:
+        progress_bar.setValue(updated)
+        if updated == progress_bar.maximum():
             progress_bar.setValue(0)
             start_button.setEnabled(True)
-            done_dialog.show()
+
+            dlg = QMessageBox()
+            dlg.setWindowTitle('Success')
+            dlg.setText('Done')
+            dlg.exec()
+
             return
-        progress_bar.setValue(updated)
+
+    def on_error(e):
+        dlg = QMessageBox()
+        dlg.setWindowTitle('Error')
+        dlg.setText(e)
+        btn = dlg.exec()
 
     def call_back():
         params = parse_params()
         progress_bar.setMaximum(params.n)
+        progress_bar.setValue(0)
         start_button.setEnabled(False)
-        callback(params, update_progress)
+        callback(params, update_progress, on_error)
 
     start_button.clicked.connect(call_back)
 
@@ -261,7 +263,7 @@ def randomword(length: int) -> str:
     return ''.join(random.choice(letters) for _ in range(length))
 
 
-def run(params: ConfigParams, update_progress: Callable[[int], None]):
+def run(params: ConfigParams, update_progress: Callable[[int], None], on_error: Callable[[str], None]):
     random.seed(params.seed)
     data: List[Heartbeat] = generate_data(
         params.n,
@@ -270,13 +272,16 @@ def run(params: ConfigParams, update_progress: Callable[[int], None]):
     )
 
     # batch-mode won't work when using sqlite backend
-    if params.batch:
-        post_data_sync(data, f'{params.api_url}/heartbeats', params.api_key)
-        update_progress(len(data))
-    else:
-        for d in data:
-            post_data_sync([d], f'{params.api_url}/heartbeats', params.api_key)
-            update_progress(1)
+    try:
+        if params.batch:
+            post_data_sync(data, f'{params.api_url}/heartbeats', params.api_key)
+            update_progress(len(data))
+        else:
+            for d in data:
+                post_data_sync([d], f'{params.api_url}/heartbeats', params.api_key)
+                update_progress(1)
+    except requests.exceptions.HTTPError as e:
+        on_error(str(e))
 
 
 if __name__ == '__main__':
