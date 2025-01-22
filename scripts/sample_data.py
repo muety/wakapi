@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from typing import List, Union, Callable
 
 import requests
+from requests.exceptions import RequestException
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow to be closed with sigint, see https://stackoverflow.com/a/6072360/3112139
 
@@ -233,15 +234,11 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='Wakapi test data insertion script.')
     parser.add_argument('--headless', default=False, help='do not show a gui', action='store_true')
     parser.add_argument('-n', type=int, default=20, help='total number of random heartbeats to generate and insert')
-    parser.add_argument('-u', '--url', type=str, default='http://localhost:3000/api',
-                        help='url of your api\'s heartbeats endpoint')
-    parser.add_argument('-k', '--apikey', type=str,
-                        help='your api key (to get one, go to the web interface, create a new user, log in and copy the key)')
+    parser.add_argument('-u', '--url', type=str, default='http://localhost:3000/api', help='url of your api\'s heartbeats endpoint')
+    parser.add_argument('-k', '--apikey', type=str, required=True, help='your api key (to get one, go to the web interface, create a new user, log in and copy the key)')
     parser.add_argument('-p', '--projects', type=int, default=5, help='number of different fake projects to generate')
-    parser.add_argument('-o', '--offset', type=int, default=24,
-                        help='negative time offset in hours from now for to be used as an interval within which to generate heartbeats for')
-    parser.add_argument('-s', '--seed', type=int, default=2020,
-                        help='a seed for initializing the pseudo-random number generator')
+    parser.add_argument('-o', '--offset', type=int, default=24, help='negative time offset in hours from now for to be used as an interval within which to generate heartbeats for')
+    parser.add_argument('-s', '--seed', type=int, default=2020, help='a seed for initializing the pseudo-random number generator')
     parser.add_argument('-b', '--batch', default=False, help='batch mode (push all heartbeats at once)', action='store_true')
     return parser.parse_args()
 
@@ -280,7 +277,7 @@ def run(params: ConfigParams, update_progress: Callable[[int], None], on_error: 
             for d in data:
                 post_data_sync([d], f'{params.api_url}/heartbeats', params.api_key)
                 update_progress(1)
-    except requests.exceptions.HTTPError as e:
+    except RequestException as e:
         on_error(str(e))
 
 
@@ -294,4 +291,4 @@ if __name__ == '__main__':
         from tqdm import tqdm
 
         pbar = tqdm(total=params.n)
-        run(params, pbar.update)
+        run(params, pbar.update, print)
