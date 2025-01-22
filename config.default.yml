@@ -19,6 +19,7 @@ app:
   leaderboard_enabled: true                                 # whether to enable public leaderboards
   leaderboard_scope: 7_days                                 # leaderboard time interval (e.g. 14_days, 6_months, ...)
   leaderboard_generation_time: '0 0 6 * * *,0 0 18 * * *'   # times at which to re-calculate the leaderboard
+  leaderboard_require_auth: false                           # restrict leaderboard access only to logged in user
   aggregation_time: '0 15 2 * * *'                          # time at which to run daily aggregation batch jobs
   report_time_weekly: '0 0 18 * * 5'                        # time at which to fan out weekly reports (extended cron)
   data_cleanup_time: '0 0 6 * * 0'                          # time at which to run old data cleanup (if enabled through data_retention_months)

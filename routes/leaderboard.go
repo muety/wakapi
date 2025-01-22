@@ -35,12 +35,15 @@ func NewLeaderboardHandler(userService services.IUserService, leaderboardService
 
 func (h *LeaderboardHandler) RegisterRoutes(router chi.Router) {
 	r := chi.NewRouter()
-	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userService).
-			WithRedirectTarget(defaultErrorRedirectTarget()).
-			WithRedirectErrorMessage("unauthorized").
-			WithOptionalFor("/").Handler,
-	)
+
+	authMiddleware := middlewares.NewAuthenticateMiddleware(h.userService)
+	authMiddleware = authMiddleware.WithRedirectTarget(defaultErrorRedirectTarget())
+	authMiddleware = authMiddleware.WithRedirectErrorMessage("unauthorized")
+	if !h.config.App.LeaderboardRequireAuth {
+		authMiddleware = authMiddleware.WithOptionalFor("/")
+	}
+
+	r.Use(authMiddleware.Handler)
 	r.Get("/", h.GetIndex)
 
 	router.Mount("/leaderboard", r)

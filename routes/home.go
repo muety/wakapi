@@ -81,8 +81,10 @@ func (h *HomeHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *vi
 		}
 	}
 
+	sharedVm := view.NewSharedViewModel(h.config, nil)
+	sharedVm.LeaderboardEnabled = sharedVm.LeaderboardEnabled && !h.config.App.LeaderboardRequireAuth // logged in users will never actually see the home route's view
 	vm := &view.HomeViewModel{
-		SharedViewModel: view.NewSharedViewModel(h.config, nil),
+		SharedViewModel: sharedVm,
 		TotalHours:      totalHours,
 		TotalUsers:      totalUsers,
 		Newsbox:         &newsbox,
