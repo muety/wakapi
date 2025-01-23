@@ -562,31 +562,29 @@ function drawDailyProjectChart(dailyStats) {
     const formattedStats = dailyStats.map(stat => ({
         ...stat,
         date: new Date(stat.date).toLocaleDateString() // convert to YYYY-MM-DD format
-
     }));
 
-    const days = [...new Set(formattedStats.map(stat => stat.date))].sort()
-    const projects = [...new Set(formattedStats.map(stat => stat.project))]
+    const days = formattedStats.map(day => day.date)
+    const projects = formattedStats.flatMap(day => day.projects.map(project => project.name)).sort().filter((value, index, self) => self.indexOf(value) === index)
 
-    // prepare for each project
-    const datasets = projects.map(project => {
-        const color = getRandomColor(project)
-        return {
-            label: project,
-            data: days.map(day => {
-                const stat = formattedStats.find(s => s.date === day && s.project === project)
-                return stat ? parseInt(stat.duration) : 0
-            }),
-            backgroundColor: color,
-            barPercentage: 0.95,
+    const data = formattedStats.map(day => {
+        var curdata = {}
+        for (const key in day.projects) {
+            curdata[day.projects[key].name] = day.projects[key].duration
         }
+        return curdata
     })
 
     new Chart(dailyCanvas.getContext('2d'), {
         type: 'bar',
         data: {
             labels: days,
-            datasets: datasets
+            datasets: projects.map(project => ({
+                label: project,
+                data: data.map(day => day[project] || 0),
+                backgroundColor: getRandomColor(project),
+                barPercentage: 0.95,
+            }))
         },
         options: {
             responsive: true,
