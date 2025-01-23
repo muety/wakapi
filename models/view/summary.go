@@ -3,6 +3,7 @@ package view
 import (
 	"time"
 
+	"github.com/duke-git/lancet/v2/slice"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 )
@@ -22,21 +23,27 @@ type SummaryViewModel struct {
 }
 
 type DailyProjectViewModel struct {
-	Date     time.Time     `json:"date"`
-	Project  string        `json:"project"`
+	Date     time.Time                      `json:"date"`
+	Projects []*DailySingleProjectViewModel `json:"projects"`
+}
+
+type DailySingleProjectViewModel struct {
+	Name     string        `json:"name"`
 	Duration time.Duration `json:"duration"`
 }
 
 func NewDailyProjectStats(summaries []*models.Summary) []*DailyProjectViewModel {
 	dailyProjects := make([]*DailyProjectViewModel, 0)
 	for _, summary := range summaries {
-		for _, project := range summary.Projects {
-			dailyProjects = append(dailyProjects, &DailyProjectViewModel{
-				Date:     summary.FromTime.T(),
-				Project:  project.Key,
-				Duration: project.Total,
-			})
-		}
+		dailyProjects = append(dailyProjects, &DailyProjectViewModel{
+			Date: summary.FromTime.T(),
+			Projects: slice.Map(summary.Projects, func(_ int, curProject *models.SummaryItem) *DailySingleProjectViewModel {
+				return &DailySingleProjectViewModel{
+					Name:     curProject.Key,
+					Duration: curProject.Total,
+				}
+			}),
+		})
 	}
 	return dailyProjects
 }
