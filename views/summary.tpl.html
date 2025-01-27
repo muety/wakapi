@@ -306,7 +306,7 @@
             </div>
         </div>
 
-        <div class="mt-12 flex flex-col space-y-2 text-gray-300 w-full no-break">
+        <div class="mt-12 flex flex-col space-y-2 text-gray-300 w-full no-break" v-scope>
             <div class="flex justify-start space-x-2 items-center">
                 <h2 class="text-lg font-semibold">Activity</h2>
                 <a v-cloak v-show="activityChartSvg" href="/api/activity/chart/{{ .SharedLoggedInViewModel.User.ID }}.svg" target="_blank" rel="noreferrer noopener" class="p-1 rounded hover:bg-gray-850" title="Share...">
