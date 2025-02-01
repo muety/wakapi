@@ -7,9 +7,9 @@ PetiteVue.createApp({
         if (!urlParams.has('from') && !urlParams.has('to')) return 'today'
         return null
     },
-    mounted({ userId }) {
+    mounted({userId}) {
         fetch(`api/activity/chart/${userId}.svg?dark&noattr`)
             .then(res => res.text())
             .then(data => this.activityChartSvg = data)
     }
-}).mount()
+}).mount('#summary-page')
