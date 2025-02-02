@@ -11,11 +11,11 @@ import (
 )
 
 type KeyValueRepository struct {
-	db *gorm.DB
+	BaseRepository
 }
 
 func NewKeyValueRepository(db *gorm.DB) *KeyValueRepository {
-	return &KeyValueRepository{db: db}
+	return &KeyValueRepository{BaseRepository: NewBaseRepository(db)}
 }
 
 func (r *KeyValueRepository) GetAll() ([]*models.KeyStringValue, error) {

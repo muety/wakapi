@@ -7,6 +7,7 @@ import (
 )
 
 type SummaryRepositoryMock struct {
+	BaseRepositoryMock
 	mock.Mock
 }
 

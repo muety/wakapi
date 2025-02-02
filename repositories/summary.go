@@ -11,11 +11,11 @@ import (
 )
 
 type SummaryRepository struct {
-	db *gorm.DB
+	BaseRepository
 }
 
 func NewSummaryRepository(db *gorm.DB) *SummaryRepository {
-	return &SummaryRepository{db: db}
+	return &SummaryRepository{BaseRepository: NewBaseRepository(db)}
 }
 
 func (r *SummaryRepository) GetAll() ([]*models.Summary, error) {

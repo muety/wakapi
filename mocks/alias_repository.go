@@ -6,6 +6,7 @@ import (
 )
 
 type AliasRepositoryMock struct {
+	BaseRepositoryMock
 	mock.Mock
 }
 

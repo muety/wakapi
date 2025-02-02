@@ -7,11 +7,11 @@ import (
 )
 
 type AliasRepository struct {
-	db *gorm.DB
+	BaseRepository
 }
 
 func NewAliasRepository(db *gorm.DB) *AliasRepository {
-	return &AliasRepository{db: db}
+	return &AliasRepository{BaseRepository: NewBaseRepository(db)}
 }
 
 func (r *AliasRepository) GetAll() ([]*models.Alias, error) {

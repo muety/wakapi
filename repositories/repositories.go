@@ -5,7 +5,14 @@ import (
 	"time"
 )
 
+type IBaseRepository interface {
+	GetDialector() string
+	GetTableDDLMysql(string) (string, error)
+	GetTableDDLSqlite(string) (string, error)
+}
+
 type IAliasRepository interface {
+	IBaseRepository
 	Insert(*models.Alias) (*models.Alias, error)
 	Delete(uint) error
 	DeleteBatch([]uint) error
@@ -17,6 +24,7 @@ type IAliasRepository interface {
 }
 
 type IHeartbeatRepository interface {
+	IBaseRepository
 	InsertBatch([]*models.Heartbeat) error
 	GetAll() ([]*models.Heartbeat, error)
 	GetAllWithin(time.Time, time.Time, *models.User) ([]*models.Heartbeat, error)
@@ -37,10 +45,12 @@ type IHeartbeatRepository interface {
 }
 
 type IDiagnosticsRepository interface {
+	IBaseRepository
 	Insert(diagnostics *models.Diagnostics) (*models.Diagnostics, error)
 }
 
 type IKeyValueRepository interface {
+	IBaseRepository
 	GetAll() ([]*models.KeyStringValue, error)
 	GetString(string) (*models.KeyStringValue, error)
 	PutString(*models.KeyStringValue) error
@@ -50,6 +60,7 @@ type IKeyValueRepository interface {
 }
 
 type ILanguageMappingRepository interface {
+	IBaseRepository
 	GetAll() ([]*models.LanguageMapping, error)
 	GetById(uint) (*models.LanguageMapping, error)
 	GetByUser(string) ([]*models.LanguageMapping, error)
@@ -58,6 +69,7 @@ type ILanguageMappingRepository interface {
 }
 
 type IProjectLabelRepository interface {
+	IBaseRepository
 	GetAll() ([]*models.ProjectLabel, error)
 	GetById(uint) (*models.ProjectLabel, error)
 	GetByUser(string) ([]*models.ProjectLabel, error)
@@ -66,6 +78,7 @@ type IProjectLabelRepository interface {
 }
 
 type ISummaryRepository interface {
+	IBaseRepository
 	Insert(*models.Summary) error
 	GetAll() ([]*models.Summary, error)
 	GetByUserWithin(*models.User, time.Time, time.Time) ([]*models.Summary, error)
@@ -75,6 +88,7 @@ type ISummaryRepository interface {
 }
 
 type IUserRepository interface {
+	IBaseRepository
 	FindOne(user models.User) (*models.User, error)
 	GetByIds([]string) ([]*models.User, error)
 	GetAll() ([]*models.User, error)
@@ -92,6 +106,7 @@ type IUserRepository interface {
 }
 
 type ILeaderboardRepository interface {
+	IBaseRepository
 	InsertBatch([]*models.LeaderboardItem) error
 	CountAllByUser(string) (int64, error)
 	CountUsers(bool) (int64, error)

@@ -3,7 +3,6 @@ package main
 import (
 	"embed"
 	"flag"
-	"github.com/muety/wakapi/models"
 	"io/fs"
 	"log"
 	"log/slog"

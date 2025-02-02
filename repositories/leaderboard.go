@@ -8,11 +8,11 @@ import (
 )
 
 type LeaderboardRepository struct {
-	db *gorm.DB
+	BaseRepository
 }
 
 func NewLeaderboardRepository(db *gorm.DB) *LeaderboardRepository {
-	return &LeaderboardRepository{db: db}
+	return &LeaderboardRepository{BaseRepository: NewBaseRepository(db)}
 }
 
 func (r *LeaderboardRepository) InsertBatch(items []*models.LeaderboardItem) error {

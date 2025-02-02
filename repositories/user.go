@@ -12,11 +12,11 @@ import (
 )
 
 type UserRepository struct {
-	db *gorm.DB
+	BaseRepository
 }
 
 func NewUserRepository(db *gorm.DB) *UserRepository {
-	return &UserRepository{db: db}
+	return &UserRepository{BaseRepository: NewBaseRepository(db)}
 }
 
 func (r *UserRepository) FindOne(attributes models.User) (*models.User, error) {

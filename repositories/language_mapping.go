@@ -8,12 +8,12 @@ import (
 )
 
 type LanguageMappingRepository struct {
+	BaseRepository
 	config *config.Config
-	db     *gorm.DB
 }
 
 func NewLanguageMappingRepository(db *gorm.DB) *LanguageMappingRepository {
-	return &LanguageMappingRepository{config: config.Get(), db: db}
+	return &LanguageMappingRepository{BaseRepository: NewBaseRepository(db), config: config.Get()}
 }
 
 func (r *LanguageMappingRepository) GetAll() ([]*models.LanguageMapping, error) {

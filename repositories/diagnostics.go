@@ -6,11 +6,11 @@ import (
 )
 
 type DiagnosticsRepository struct {
-	db *gorm.DB
+	BaseRepository
 }
 
 func NewDiagnosticsRepository(db *gorm.DB) *DiagnosticsRepository {
-	return &DiagnosticsRepository{db: db}
+	return &DiagnosticsRepository{BaseRepository: NewBaseRepository(db)}
 }
 
 func (r *DiagnosticsRepository) Insert(diagnostics *models.Diagnostics) (*models.Diagnostics, error) {
