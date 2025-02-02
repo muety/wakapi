@@ -33,3 +33,8 @@ func (m *KeyValueServiceMock) DeleteString(s string) error {
 	args := m.Called(s)
 	return args.Error(0)
 }
+
+func (m *KeyValueServiceMock) ReplaceKeySuffix(s1, s2 string) error {
+	args := m.Called(s1, s2)
+	return args.Error(0)
+}

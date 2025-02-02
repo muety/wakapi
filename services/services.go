@@ -59,6 +59,7 @@ type IKeyValueService interface {
 	GetByPrefix(string) ([]*models.KeyStringValue, error)
 	PutString(*models.KeyStringValue) error
 	DeleteString(string) error
+	ReplaceKeySuffix(string, string) error
 }
 
 type ILanguageMappingService interface {
@@ -145,6 +146,7 @@ type IUserService interface {
 	CreateOrGet(*models.Signup, bool) (*models.User, bool, error)
 	Update(*models.User) (*models.User, error)
 	Delete(*models.User) error
+	ChangeUserId(*models.User, string) (*models.User, error)
 	ResetApiKey(*models.User) (*models.User, error)
 	SetWakatimeApiCredentials(*models.User, string, string) (*models.User, error)
 	GenerateResetToken(*models.User) (*models.User, error)

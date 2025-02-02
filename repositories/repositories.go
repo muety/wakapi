@@ -46,6 +46,7 @@ type IKeyValueRepository interface {
 	PutString(*models.KeyStringValue) error
 	DeleteString(string) error
 	Search(string) ([]*models.KeyStringValue, error)
+	ReplaceKeySuffix(string, string) error
 }
 
 type ILanguageMappingRepository interface {

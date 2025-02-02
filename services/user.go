@@ -17,20 +17,22 @@ import (
 )
 
 type UserService struct {
-	config      *config.Config
-	cache       *cache.Cache
-	eventBus    *hub.Hub
-	mailService IMailService
-	repository  repositories.IUserRepository
+	config          *config.Config
+	cache           *cache.Cache
+	eventBus        *hub.Hub
+	keyValueService IKeyValueService
+	mailService     IMailService
+	repository      repositories.IUserRepository
 }
 
-func NewUserService(mailService IMailService, userRepo repositories.IUserRepository) *UserService {
+func NewUserService(keyValueService IKeyValueService, mailService IMailService, userRepo repositories.IUserRepository) *UserService {
 	srv := &UserService{
-		config:      config.Get(),
-		eventBus:    config.EventBus(),
-		cache:       cache.New(1*time.Hour, 2*time.Hour),
-		mailService: mailService,
-		repository:  userRepo,
+		config:          config.Get(),
+		eventBus:        config.EventBus(),
+		cache:           cache.New(1*time.Hour, 2*time.Hour),
+		keyValueService: keyValueService,
+		mailService:     mailService,
+		repository:      userRepo,
 	}
 
 	sub1 := srv.eventBus.Subscribe(0, config.EventWakatimeFailure)
@@ -195,6 +197,32 @@ func (srv *UserService) Update(user *models.User) (*models.User, error) {
 	srv.FlushUserCache(user.ID)
 	srv.notifyUpdate(user)
 	return srv.repository.Update(user)
+}
+
+func (srv *UserService) ChangeUserId(user *models.User, newUserId string) (*models.User, error) {
+	// https://github.com/muety/wakapi/issues/739
+	oldUserId := user.ID
+	defer srv.FlushUserCache(oldUserId)
+
+	// TODO: make this transactional somehow
+	userNew, err := srv.repository.UpdateField(user, "id", newUserId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = srv.keyValueService.ReplaceKeySuffix(fmt.Sprintf("_%s", oldUserId), fmt.Sprintf("_%s", newUserId))
+	if err != nil {
+		// try roll back "manually"
+		config.Log().Error("failed to update key string values during user id change, trying to roll back manually", "userID", oldUserId, "newUserID", newUserId)
+		if _, err := srv.repository.UpdateField(userNew, "id", oldUserId); err != nil {
+			config.Log().Error("manual user id rollback failed", "userID", oldUserId, "newUserID", newUserId)
+		}
+		return nil, err
+	}
+
+	config.Log().Info("user changed their user id", "userID", oldUserId, "newUserID", newUserId)
+
+	return userNew, err
 }
 
 func (srv *UserService) ResetApiKey(user *models.User) (*models.User, error) {

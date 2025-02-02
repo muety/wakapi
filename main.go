@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"flag"
+	"github.com/muety/wakapi/models"
 	"io/fs"
 	"log"
 	"log/slog"
@@ -175,14 +176,14 @@ func main() {
 	// Services
 	mailService = mail.NewMailService()
 	aliasService = services.NewAliasService(aliasRepository)
-	userService = services.NewUserService(mailService, userRepository)
+	keyValueService = services.NewKeyValueService(keyValueRepository)
+	userService = services.NewUserService(keyValueService, mailService, userRepository)
 	languageMappingService = services.NewLanguageMappingService(languageMappingRepository)
 	projectLabelService = services.NewProjectLabelService(projectLabelRepository)
 	heartbeatService = services.NewHeartbeatService(heartbeatRepository, languageMappingService)
 	durationService = services.NewDurationService(heartbeatService)
 	summaryService = services.NewSummaryService(summaryRepository, heartbeatService, durationService, aliasService, projectLabelService)
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
-	keyValueService = services.NewKeyValueService(keyValueRepository)
 	reportService = services.NewReportService(summaryService, userService, mailService)
 	activityService = services.NewActivityService(summaryService)
 	diagnosticsService = services.NewDiagnosticsService(diagnosticsRepository)

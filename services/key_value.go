@@ -44,3 +44,7 @@ func (srv *KeyValueService) PutString(kv *models.KeyStringValue) error {
 func (srv *KeyValueService) DeleteString(key string) error {
 	return srv.repository.DeleteString(key)
 }
+
+func (srv *KeyValueService) ReplaceKeySuffix(suffixOld, suffixNew string) error {
+	return srv.repository.ReplaceKeySuffix(suffixOld, suffixNew)
+}
