@@ -559,12 +559,12 @@ function updateNumTotal() {
 }
 
 function drawDailyProjectChart(dailyStats) {
+    if (!dailyCanvas || dailyCanvas.classList.contains('hidden')) return
     const formattedStats = dailyStats.map(stat => ({
         ...stat,
         date: new Date(stat.date).toLocaleDateString() // convert to YYYY-MM-DD format
     }));
 
-    const days = formattedStats.map(day => day.date)
     const projects = formattedStats.flatMap(day => day.projects.map(project => project.name)).sort().filter((value, index, self) => self.indexOf(value) === index)
 
     const data = formattedStats.map(day => {
@@ -578,7 +578,7 @@ function drawDailyProjectChart(dailyStats) {
     new Chart(dailyCanvas.getContext('2d'), {
         type: 'bar',
         data: {
-            labels: days,
+            labels: formattedStats.map(day => day.date),
             datasets: projects.map(project => ({
                 label: project,
                 data: data.map(day => day[project] || 0),
