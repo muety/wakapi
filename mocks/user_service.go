@@ -3,6 +3,7 @@ package mocks
 import (
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/mock"
+	"github.com/gofrs/uuid/v5"
 )
 
 type UserServiceMock struct {
@@ -97,6 +98,11 @@ func (m *UserServiceMock) Delete(user *models.User) error {
 func (m *UserServiceMock) ResetApiKey(user *models.User) (*models.User, error) {
 	args := m.Called(user)
 	return args.Get(0).(*models.User), args.Error(1)
+}
+
+func (srv *UserServiceMock) MakeApiKey() string {
+	// fmt.Sprintf("wakana_%s", uuid.Must(uuid.NewV4()).String())
+	return fmt.Sprintf("%s", uuid.Must(uuid.NewV4()).String())
 }
 
 func (m *UserServiceMock) ToggleBadges(user *models.User) (*models.User, error) {
