@@ -2,8 +2,8 @@ import { cookies } from "next/headers";
 import React from "react";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import { DashboardHeader } from "@/components/dashboard-header";
 import { MobileHeader } from "@/components/mobile-header";
+import { DashboardHeader } from "@/components/dashboard-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function Layout({
