@@ -102,7 +102,7 @@ func (m *UserServiceMock) ResetApiKey(user *models.User) (*models.User, error) {
 
 func (srv *UserServiceMock) MakeApiKey() string {
 	// fmt.Sprintf("wakana_%s", uuid.Must(uuid.NewV4()).String())
-	return fmt.Sprintf("%s", uuid.Must(uuid.NewV4()).String())
+	return uuid.Must(uuid.NewV4()).String()
 }
 
 func (m *UserServiceMock) ToggleBadges(user *models.User) (*models.User, error) {
