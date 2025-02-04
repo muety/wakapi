@@ -2,6 +2,12 @@ name: ci
 on:
   push:
   pull_request:
+    workflow_dispatch:
+    inputs:
+      skip_unit_tests:
+        description: "Skip unit tests"
+        required: false
+        default: "false"
 
 jobs:
   test:
