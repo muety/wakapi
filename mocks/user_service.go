@@ -79,8 +79,8 @@ func (m *UserServiceMock) CreateOrGet(signup *models.Signup, isAdmin bool) (*mod
 	return args.Get(0).(*models.User), args.Bool(1), args.Error(2)
 }
 
-func (m *UserServiceMock) Create(signup *models.Signup, isAdmin bool) (*models.User, bool, error) {
-	args := m.Called(signup, isAdmin)
+func (m *UserServiceMock) Create(signup *models.Signup) (*models.User, bool, error) {
+	args := m.Called(signup)
 	return args.Get(0).(*models.User), args.Error(2)
 }
 
