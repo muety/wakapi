@@ -1,7 +1,8 @@
+import { notFound } from "next/navigation";
+
 import { fetchData } from "@/actions";
 import { InvoiceManager } from "@/components/invoice/invoice-manager";
 import { Invoice } from "@/lib/types";
-import { notFound } from "next/navigation";
 
 interface iProps {
   searchParams: Record<string, any>;

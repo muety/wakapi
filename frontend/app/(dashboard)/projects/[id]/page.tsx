@@ -1,4 +1,5 @@
 import { format, subDays } from "date-fns";
+import Image from "next/image";
 
 import { fetchData, getSession } from "@/actions";
 import { ProjectBreadCrumb } from "@/components/bread-crumbs";
@@ -42,10 +43,18 @@ export default async function ProjectDetailPage({
           <div className="flex items-center justify-between align-middle">
             <ProjectBreadCrumb projectId={params.id} />
             <div>
-              <img
+              {/* <img
                 className="with-url-src"
                 src={`${NEXT_PUBLIC_API_URL}/api/badge/${session.user.id}/project:${params.id}/interval:all_time?label=total&token=${session.token}`}
                 alt="Badge"
+              /> */}
+              <Image
+                className="with-url-src"
+                src={`${NEXT_PUBLIC_API_URL}/api/badge/${session.user.id}/project:${params.id}/interval:all_time?label=total&token=${session.token}`}
+                alt="Badge"
+                width={150}
+                height={20}
+                unoptimized
               />
             </div>
           </div>

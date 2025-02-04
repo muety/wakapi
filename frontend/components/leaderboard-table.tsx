@@ -11,9 +11,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DataItem, LeaderboardApiResponse } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 import { TooltipWithProvider } from "./tooltip-with-provider";
-import { cn } from "@/lib/utils";
 
 function Hireable() {
   return (

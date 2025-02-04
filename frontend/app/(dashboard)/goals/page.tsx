@@ -1,7 +1,8 @@
+import { Metadata } from "next";
+
 import { fetchData, getSession } from "@/actions";
 import GoalsManager from "@/components/goals-manager";
 import { GoalData, Project } from "@/lib/types";
-import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Goals",

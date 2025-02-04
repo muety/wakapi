@@ -1,18 +1,19 @@
 "use client";
 
 import { Separator } from "@radix-ui/react-separator";
+import { capitalize } from "lodash";
+import { usePathname } from "next/navigation";
+
 import { CurrentWorkTime } from "./current-work-time";
 import {
   Breadcrumb,
-  BreadcrumbList,
   BreadcrumbItem,
   BreadcrumbLink,
-  BreadcrumbSeparator,
+  BreadcrumbList,
   BreadcrumbPage,
+  BreadcrumbSeparator,
 } from "./ui/breadcrumb";
-import { capitalize } from "lodash";
 import { SidebarTrigger } from "./ui/sidebar";
-import { usePathname } from "next/navigation";
 
 export function DashboardHeader() {
   const pathname = usePathname();

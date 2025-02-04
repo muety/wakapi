@@ -9,6 +9,7 @@ const { NEXT_PUBLIC_API_URL } = process.env;
 
 // validates state and code from github oauth
 export async function GET(request: NextRequest) {
+  let redirectPath = "";
   try {
     const searchParams = new URL(request.url).searchParams;
     const state = searchParams.get("state");
@@ -28,13 +29,12 @@ export async function GET(request: NextRequest) {
       config.clientId !== clientId ||
       config.scope !== scope
     ) {
-      console.log("INVALID STATE");
       throw new Error("state is invalid");
     }
     await handleGithubOauth(code);
-    console.log("GITHUB OAUTH HANDLED");
+    redirectPath = "/dashboard";
   } catch (error) {
-    console.log("error", error);
+    console.log("error logging in with github", error);
     const error_payload = {
       error:
         "An unexpected error occurred while logging in using github. Try again later. If this persists, contact support",
@@ -43,7 +43,9 @@ export async function GET(request: NextRequest) {
       `/auth/signin?${new URLSearchParams(error_payload).toString()}`
     );
   } finally {
-    return redirect(`/dashboard`);
+    if (redirectPath) {
+      redirect(redirectPath);
+    }
   }
 }
 
@@ -71,7 +73,5 @@ async function handleGithubOauth(code: string) {
     throw new Error("Error logging in");
   }
 
-  const session = await createIronSession(json.data);
-
-  return Response.json(session);
+  await createIronSession(json.data);
 }

@@ -1,20 +1,20 @@
 "use client";
 
-import * as z from "zod";
-import * as React from "react";
-import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import * as React from "react";
 import { useFormState, useFormStatus } from "react-dom";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
-import { cn } from "@/lib/utils";
+import { forgotPasswordAction } from "@/actions/auth";
 import { Icons } from "@/components/icons";
+import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
-import { forgotPasswordAction } from "@/actions/auth";
-import { buttonVariants } from "@/components/ui/button";
 import { startGithubLoginFlow } from "@/lib/oauth/github";
+import { cn } from "@/lib/utils";
 import { forgotPasswordSchema } from "@/lib/validations/user";
 
 import { Form } from "./ui/form";

@@ -1,5 +1,6 @@
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { format, subDays } from "date-fns";
+import { Metadata } from "next";
 
 import { fetchData } from "@/actions";
 import { ActivityCategoriesChart } from "@/components/charts/ActivityCategoriesChart";
@@ -20,7 +21,6 @@ import {
   convertSecondsToHoursAndMinutes,
   makePieChartDataFromRawApiResponse,
 } from "@/lib/utils";
-import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Dashboard",

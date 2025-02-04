@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { getSession } from "@/actions";
 import { ApiKeyCopier } from "@/components/copy-api-key";
 import { DisconnectWakatime } from "@/components/disconnect-wakatime";
@@ -11,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { WakatimeIntegration } from "@/components/wakatime-integration";
-import Link from "next/link";
 
 export default async function Page() {
   const session = await getSession();

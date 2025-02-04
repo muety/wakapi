@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+
 import { fetchData } from "@/actions";
 import { humanizeDate } from "@/lib/utils";
 

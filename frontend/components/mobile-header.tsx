@@ -2,10 +2,10 @@ import { HamburgerMenuIcon } from "@radix-ui/react-icons";
 import Image from "next/image";
 import Link from "next/link";
 
+import { CurrentWorkTime } from "./current-work-time";
 import { MobileNav } from "./mobile-nav";
 import { Button } from "./ui/button";
 import { Drawer, DrawerContent, DrawerTrigger } from "./ui/drawer";
-import { CurrentWorkTime } from "./current-work-time";
 
 export function MobileHeader() {
   return (
