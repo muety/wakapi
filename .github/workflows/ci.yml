@@ -10,6 +10,28 @@ on:
         default: "false"
 
 jobs:
+  lint:
+    name: Lint Frontend
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.11.0 # Replace with your desired Node.js version
+
+      - name: Install dependencies
+        run: yarn install
+        working-directory: ./frontend
+
+      - name: Run lint
+        run: yarn lint
+        working-directory: ./frontend
+
   test:
     name: "Unit- & API tests"
     runs-on: ubuntu-latest

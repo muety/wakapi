@@ -10,7 +10,7 @@
     "dev": "next --experimental-https",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint --fix",
+    "lint": "next lint",
     "lintf": "eslint . --fix",
     "prettify": "prettier --write .",
     "type-check": "tsc --noEmit"
