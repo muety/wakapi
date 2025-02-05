@@ -6,8 +6,8 @@ import (
 )
 
 type MetricsRepository struct {
+	BaseRepository
 	config *config.Config
-	db     *gorm.DB
 }
 
 const sizeTplMysql = `
@@ -23,7 +23,7 @@ SELECT page_count * page_size as size
 FROM pragma_page_count(), pragma_page_size();`
 
 func NewMetricsRepository(db *gorm.DB) *MetricsRepository {
-	return &MetricsRepository{config: config.Get(), db: db}
+	return &MetricsRepository{BaseRepository: NewBaseRepository(db), config: config.Get()}
 }
 
 func (srv *MetricsRepository) GetDatabaseSize() (size int64, err error) {

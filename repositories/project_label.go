@@ -8,12 +8,12 @@ import (
 )
 
 type ProjectLabelRepository struct {
+	BaseRepository
 	config *config.Config
-	db     *gorm.DB
 }
 
 func NewProjectLabelRepository(db *gorm.DB) *ProjectLabelRepository {
-	return &ProjectLabelRepository{config: config.Get(), db: db}
+	return &ProjectLabelRepository{BaseRepository: NewBaseRepository(db), config: config.Get()}
 }
 
 func (r *ProjectLabelRepository) GetAll() ([]*models.ProjectLabel, error) {

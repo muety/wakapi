@@ -15,12 +15,12 @@ import (
 )
 
 type HeartbeatRepository struct {
-	db     *gorm.DB
+	BaseRepository
 	config *conf.Config
 }
 
 func NewHeartbeatRepository(db *gorm.DB) *HeartbeatRepository {
-	return &HeartbeatRepository{config: conf.Get(), db: db}
+	return &HeartbeatRepository{BaseRepository: NewBaseRepository(db), config: conf.Get()}
 }
 
 // Use with caution!!

@@ -18,6 +18,11 @@ PetiteVue.createApp({
     isActive(tab) {
         return this.activeTab === tab;
     },
+    confirmChangeUsername() {
+        if (confirm("Are you sure? This cannot be undone.")) {
+            document.querySelector("#form-change-username").submit();
+        }
+    },
     confirmRegenerate() {
         if (confirm("Are you sure?")) {
             document.querySelector("#form-regenerate-summaries").submit();

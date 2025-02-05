@@ -150,6 +150,8 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 	switch action {
 	case "change_password":
 		return h.actionChangePassword
+	case "change_userid":
+		return h.actionChangeUserId
 	case "update_user":
 		return h.actionUpdateUser
 	case "reset_apikey":
@@ -270,6 +272,31 @@ func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Re
 
 	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded))
 	return actionResult{http.StatusOK, "password was updated successfully", "", nil}
+}
+
+func (h *SettingsHandler) actionChangeUserId(w http.ResponseWriter, r *http.Request) actionResult {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	user := middlewares.GetPrincipal(r)
+
+	newUserId := strings.TrimSpace(r.PostFormValue("new_userid"))
+	if !models.ValidateUsername(newUserId) || newUserId == user.ID {
+		return actionResult{http.StatusBadRequest, "", "invalid username", nil}
+	}
+	if existing, _ := h.userSrvc.GetUserById(newUserId); existing != nil {
+		return actionResult{http.StatusConflict, "", "already taken", nil}
+	}
+
+	if _, err := h.userSrvc.ChangeUserId(user, newUserId); err != nil {
+		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
+	}
+
+	routeutils.SetSuccess(r, w, fmt.Sprintf("Successfully changed your username to %s, please log back in.", newUserId))
+	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey))
+	http.Redirect(w, r, h.config.Server.BasePath, http.StatusFound)
+	return actionResult{-1, "", "", nil}
 }
 
 func (h *SettingsHandler) actionResetApiKey(w http.ResponseWriter, r *http.Request) actionResult {

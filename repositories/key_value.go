@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
@@ -10,11 +11,11 @@ import (
 )
 
 type KeyValueRepository struct {
-	db *gorm.DB
+	BaseRepository
 }
 
 func NewKeyValueRepository(db *gorm.DB) *KeyValueRepository {
-	return &KeyValueRepository{db: db}
+	return &KeyValueRepository{BaseRepository: NewBaseRepository(db)}
 }
 
 func (r *KeyValueRepository) GetAll() ([]*models.KeyStringValue, error) {
@@ -76,4 +77,28 @@ func (r *KeyValueRepository) DeleteString(key string) error {
 	}
 
 	return nil
+}
+
+// ReplaceKeySuffix will search for key-value pairs whose key ends with suffixOld and replace it with suffixNew instead.
+func (r *KeyValueRepository) ReplaceKeySuffix(suffixOld, suffixNew string) error {
+	if dialector := r.db.Dialector.Name(); dialector == "mysql" || dialector == "postgres" {
+		patternOld := fmt.Sprintf("(.+)%s$", suffixOld)
+		patternNew := fmt.Sprintf("$1%s", suffixNew) // mysql group replace style
+		if dialector == "postgres" {
+			patternNew = fmt.Sprintf("\\1%s", suffixNew) // postgres group replace style
+		}
+
+		return r.db.Model(&models.KeyStringValue{}).
+			Where(utils.QuoteSql(r.db, "%s like ?", "key"), "%"+suffixOld).
+			Update("key", gorm.Expr(
+				utils.QuoteSql(r.db, "regexp_replace(%s, ?, ?)", "key"),
+				patternOld,
+				patternNew,
+			)).Error
+	} else {
+		// a bit less safe, because not only replacing suffixes
+		return r.db.Model(&models.KeyStringValue{}).
+			Where("key like ?", "%"+suffixOld).
+			Update("key", gorm.Expr("replace(key, ?, ?)", suffixOld, suffixNew)).Error
+	}
 }

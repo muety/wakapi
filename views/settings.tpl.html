@@ -924,6 +924,23 @@
                     </div>
                 </form>
 
+                <form action="" method="post" class="flex mb-8" id="form-change-username">
+                    <input type="hidden" name="action" value="change_userid">
+
+                    <div class="w-1/2 mr-4 inline-block">
+                        <span class="font-semibold text-gray-300">Change Username</span>
+                        <span class="block text-sm text-gray-600">
+                            You can change your username, even though it is not recommended. Afterwards, you will only be able to log in via the new user name. Also, all externally referenced URLs etc. must be updated. This may take up to a few minutes.
+                        </span>
+                    </div>
+                    <div class="w-1/2 ml-4 gap-x-2 flex items-center">
+                        <input class="input-default {{ if .User.HasActiveSubscription }}cursor-not-allowed{{ end }}"
+                               type="text" id="new_userid"
+                               name="new_userid" placeholder="Choose new username ..." style="width: auto;">
+                        <button type="button" class="btn-danger ml-1" @click.stop="confirmChangeUsername">Apply</button>
+                    </div>
+                </form>
+
                 <form action="" method="post" class="flex mb-8" id="form-delete-user">
                     <input type="hidden" name="action" value="delete_account">
 

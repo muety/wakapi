@@ -109,6 +109,11 @@ func (m *UserServiceMock) GenerateResetToken(user *models.User) (*models.User, e
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
+func (m *UserServiceMock) ChangeUserId(user *models.User, s1 string) (*models.User, error) {
+	args := m.Called(user, s1)
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
 func (m *UserServiceMock) FlushCache() {
 	m.Called()
 }
