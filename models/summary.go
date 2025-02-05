@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"math"
 	"sort"
 	"time"
 
@@ -447,6 +448,10 @@ func (s *SummaryParams) GetProjectFilter() string {
 	}
 	_, _, filters := s.Filters.One()
 	return filters[0]
+}
+
+func (s *SummaryParams) RangeDays() int {
+	return int(math.Floor(s.To.Sub(s.From).Hours() / 24))
 }
 
 func (s *SummaryItem) TotalFixed() time.Duration {

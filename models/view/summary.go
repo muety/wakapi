@@ -16,29 +16,29 @@ type SummaryViewModel struct {
 	EditorColors        map[string]string
 	LanguageColors      map[string]string
 	OSColors            map[string]string
-	DailyStats          []*DailyProjectViewModel
+	DailyStats          []*DailyProjectsViewModel
 	RawQuery            string
 	UserFirstData       time.Time
 	DataRetentionMonths int
 }
 
-type DailyProjectViewModel struct {
-	Date     time.Time                      `json:"date"`
-	Projects []*DailySingleProjectViewModel `json:"projects"`
+type DailyProjectsViewModel struct {
+	Date     time.Time                `json:"date"`
+	Projects []*DailyProjectViewModel `json:"projects"`
 }
 
-type DailySingleProjectViewModel struct {
+type DailyProjectViewModel struct {
 	Name     string        `json:"name"`
 	Duration time.Duration `json:"duration"`
 }
 
-func NewDailyProjectStats(summaries []*models.Summary) []*DailyProjectViewModel {
-	dailyProjects := make([]*DailyProjectViewModel, 0)
+func NewDailyProjectStats(summaries []*models.Summary) []*DailyProjectsViewModel {
+	dailyProjects := make([]*DailyProjectsViewModel, 0)
 	for _, summary := range summaries {
-		dailyProjects = append(dailyProjects, &DailyProjectViewModel{
+		dailyProjects = append(dailyProjects, &DailyProjectsViewModel{
 			Date: summary.FromTime.T(),
-			Projects: slice.Map(summary.Projects, func(_ int, curProject *models.SummaryItem) *DailySingleProjectViewModel {
-				return &DailySingleProjectViewModel{
+			Projects: slice.Map(summary.Projects, func(_ int, curProject *models.SummaryItem) *DailyProjectViewModel {
+				return &DailyProjectViewModel{
 					Name:     curProject.Key,
 					Duration: curProject.Total,
 				}

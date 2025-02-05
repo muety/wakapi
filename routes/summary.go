@@ -16,6 +16,11 @@ import (
 	"github.com/muety/wakapi/utils"
 )
 
+const (
+	dailyStatsMinRangeDays = 3
+	dailyStatsMaxRangeDays = 31
+)
+
 type SummaryHandler struct {
 	config       *conf.Config
 	userSrvc     services.IUserService
@@ -88,9 +93,9 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		firstData, _ = time.Parse(time.RFC822Z, firstDataKv.Value)
 	}
 
-	dailyStats := []*view.DailyProjectViewModel{}
-	if summaryParams.From.Add(time.Hour*24*31).After(summaryParams.To) && summaryParams.From.Add(time.Hour*24*3).Before(summaryParams.To) {
-		dailyStatsSummaries, err := h.fetchSummaryForDailyProjectStats(summaryParams)
+	var dailyStats []*view.DailyProjectsViewModel
+	if rangeDays := summaryParams.RangeDays(); rangeDays >= dailyStatsMinRangeDays && rangeDays <= dailyStatsMaxRangeDays {
+		dailyStatsSummaries, err := h.fetchSplitSummaries(summaryParams)
 		if err != nil {
 			conf.Log().Request(r).Error("failed to load daily stats", "error", err)
 		} else {
@@ -126,7 +131,7 @@ func (h *SummaryHandler) buildViewModel(r *http.Request, w http.ResponseWriter) 
 	}, r, w)
 }
 
-func (h *SummaryHandler) fetchSummaryForDailyProjectStats(params *models.SummaryParams) ([]*models.Summary, error) {
+func (h *SummaryHandler) fetchSplitSummaries(params *models.SummaryParams) ([]*models.Summary, error) {
 	summaries := make([]*models.Summary, 0)
 	intervals := utils.SplitRangeByDays(params.From, params.To)
 	for _, interval := range intervals {
