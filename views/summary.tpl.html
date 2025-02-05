@@ -123,9 +123,9 @@
         </div>
         {{ end }}
 
-        <div class="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 w-full mt-4">
-            <div class="row-span-1 col-span-1 sm:row-span-2 sm:col-span-2 md:row-span-2 md:col-span-2 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if .IsProjectDetails }} hidden {{ end }}"
-                id="project-container" style="max-height: 608px;">
+        <div class="grid gap-2 grid-cols-1 md:grid-cols-3 w-full mt-4">
+            <!-- Projects -->
+            <div class="row-span-1 col-span-1 md:col-span-2 md:row-span-2 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if .IsProjectDetails }} hidden {{ end }}" id="project-container" style="max-height: 608px;">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Projects</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
@@ -139,9 +139,9 @@
                     <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                 </div>
             </div>
-        
-            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if not .IsProjectDetails }} hidden {{ end }}"
-                id="branch-container" style="max-height: 608px;">
+
+            <!-- Branches -->
+            <div class="row-span-1 col-span-1 md:col-span-2 md:row-span-2 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if not .IsProjectDetails }} hidden {{ end }}" id="branch-container" style="max-height: 608px;">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Branches</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
@@ -155,9 +155,9 @@
                     <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                 </div>
             </div>
-        
-            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break"
-                id="language-container" style="max-height: 300px">
+
+            <!-- Languages -->
+            <div class="row-span-1 col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break" id="language-container" style="max-height: 300px">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Languages</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
@@ -171,9 +171,9 @@
                     <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                 </div>
             </div>
-        
-            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break"
-                id="editor-container" style="max-height: 300px">
+
+            <!-- Editors -->
+            <div class="row-span-1 col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break" id="editor-container" style="max-height: 300px">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Editors</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
@@ -187,11 +187,10 @@
                     <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                 </div>
             </div>
-        
-            <div
-                class="{{ if .IsProjectDetails }} hidden {{ end }} row-span-1 col-span-1 sm:row-span-1 sm:col-span-2 md:row-span-1 md:col-span-2 w-full no-break">
-                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="os-container"
-                    style="max-height: 300px">
+
+            <!-- OS -->
+            <div class="{{ if .IsProjectDetails }} hidden {{ end }} md:col-span-2 md:row-span-2 w-full no-break">
+                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="os-container" style="max-height: 300px">
                     <div class="flex justify-between">
                         <div>
                             <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap mr-1 cursor-pointer">Operating Systems</span>
@@ -209,10 +208,10 @@
                     </div>
                 </div>
             </div>
-        
-            <div class="hidden row-span-1 col-span-1 md:row-span-1 md:col-span-1 w-full no-break">
-                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="machine-container"
-                    style="max-height: 300px">
+
+            <!-- Machines -->
+            <div class="hidden md:col-span-2 md:row-span-2 w-full no-break">
+                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full" id="machine-container" style="max-height: 300px">
                     <div class="flex justify-between">
                         <div>
                             <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap mr-1 cursor-pointer text-gray-600" onclick="swapCharts('os', 'machine')">Operating Systems</span>
@@ -230,11 +229,10 @@
                     </div>
                 </div>
             </div>
-        
-            <div
-                class="{{ if .IsProjectDetails }} hidden {{ end }} row-span-1 col-span-1 md:row-span-1 md:col-span-1 w-full no-break">
-                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if .IsProjectDetails }} hidden {{ end }}"
-                    id="label-container" style="max-height: 300px">
+
+            <!-- Labels -->
+            <div class="{{ if .IsProjectDetails }} hidden {{ end }} row-span-1 col-span-1 w-full no-break">
+                <div class="p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full {{ if .IsProjectDetails }} hidden {{ end }}" id="label-container" style="max-height: 300px">
                     <div class="flex justify-between text-lg" style="margin-bottom: -10px">
                         <span class="font-semibold whitespace-nowrap">Labels</span>
                         <a href="settings#data" class="ml-4 inline p-2 hover:bg-gray-800 rounded" style="margin-top: -5px">
@@ -252,9 +250,9 @@
                     </div>
                 </div>
             </div>
-        
-            <div class="row-span-1 col-span-1 md:row-span-1 md:col-span-1 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if not .IsProjectDetails }} hidden {{ end }}"
-                id="entity-container" style="max-height: 500px">
+
+            <!-- Files -->
+            <div class="row-span-1 col-span-1 md:col-span-3 md:row-span-3 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if not .IsProjectDetails }} hidden {{ end }}" id="entity-container" style="max-height: 500px">
                 <div class="flex justify-between">
                     <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Files</span>
                     <div class="flex justify-end flex-1 text-xs items-center">
@@ -268,9 +266,9 @@
                     <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                 </div>
             </div>
-        
-            <div class="row-span-1 col-span-1 sm:row-span-3 sm:col-span-3 md:row-span-3 md:col-span-3 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if .IsProjectDetails }} hidden {{ end }}"
-                id="category-container" style="max-height: 224px;">
+
+            <!-- Categories -->
+            <div class="row-span-1 col-span-1 md:col-span-3 md:row-span-3 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break {{ if .IsProjectDetails }} hidden {{ end }}" id="category-container" style="max-height: 224px; margin-top: -8px;">
                 <div class="flex justify-between">
                     <div class="flex items-center gap-x-2">
                         <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Categories</span>
@@ -290,8 +288,9 @@
                     <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
                 </div>
             </div>
-        
-            <div class="row-span-1 col-span-1 sm:row-span-3 sm:col-span-3 md:row-span-3 md:col-span-3 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break" id="daily-container" style="max-height: 224px;">
+
+            <!-- Timeline -->
+            <div class="row-span-1 col-span-1 md:col-span-3 md:row-span-3 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break" id="daily-container" style="max-height: 224px;">
                 <div class="flex justify-between">
                     <div class="flex items-center gap-x-2">
                         <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Timeline</span>
