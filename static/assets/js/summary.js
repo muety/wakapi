@@ -473,6 +473,63 @@ function draw(subselection) {
         })
         : null
 
+    let dailyChart = dailyCanvas && !dailyCanvas.classList.contains('hidden') && shouldUpdate(9)
+        ? new Chart(dailyCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: wakapiData.dailyStats.map(day => new Date(day.date).toLocaleDateString()),
+                datasets: wakapiData.dailyStats
+                    .flatMap(day => day.projects.map(project => project.name))
+                    .sort()
+                    .filter((value, index, self) => self.indexOf(value) === index)
+                    .map((project, i) => ({
+                        label: project,
+                        data: wakapiData.dailyStats.map(day => day.projects.reduce((acc, p) => p.name === project ? acc + p.duration : acc, 0)),
+                        backgroundColor: vibrantColors ? getRandomColor(project) : getColor(project, i % baseColors.length),
+                        barPercentage: 1.0
+                    }))
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Duration (hh:mm:ss)'
+                        },
+                        ticks: {
+                            callback: value => value.toString().toHHMMSS()
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                return `${context.dataset.label}: ${context.raw.toString().toHHMMSS()}`
+                            }
+                        }
+                    },
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            filter: filterLegendItem
+                        }
+                    }
+                }
+            }
+        })
+        : null
+
     charts[0] = projectChart ? projectChart : charts[0]
     charts[1] = osChart ? osChart : charts[1]
     charts[2] = editorChart ? editorChart : charts[2]
@@ -482,6 +539,7 @@ function draw(subselection) {
     charts[6] = branchChart ? branchChart : charts[6]
     charts[7] = entityChart ? entityChart : charts[7]
     charts[8] = categoryChart ? categoryChart : charts[8]
+    charts[9] = dailyChart ? dailyChart : charts[9]
 }
 
 function parseTopN() {
@@ -558,75 +616,6 @@ function updateNumTotal() {
     }
 }
 
-function drawDailyProjectChart(dailyStats) {
-    if (!dailyCanvas || dailyCanvas.classList.contains('hidden')) return
-    const formattedStats = dailyStats.map(stat => ({
-        ...stat,
-        date: new Date(stat.date).toLocaleDateString() // convert to YYYY-MM-DD format
-    }));
-
-    const projects = formattedStats.flatMap(day => day.projects.map(project => project.name)).sort().filter((value, index, self) => self.indexOf(value) === index)
-
-    const data = formattedStats.map(day => {
-        var curdata = {}
-        for (const key in day.projects) {
-            curdata[day.projects[key].name] = day.projects[key].duration
-        }
-        return curdata
-    })
-
-    new Chart(dailyCanvas.getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: formattedStats.map(day => day.date),
-            datasets: projects.map(project => ({
-                label: project,
-                data: data.map(day => day[project] || 0),
-                backgroundColor: getRandomColor(project),
-                barPercentage: 0.95,
-            }))
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    stacked: true,
-                    title: {
-                        display: true,
-                        text: 'Date'
-                    }
-                },
-                y: {
-                    stacked: true,
-                    title: {
-                        display: true,
-                        text: 'Duration (hh:mm:ss)'
-                    },
-                    ticks: {
-                        callback: value => value.toString().toHHMMSS()
-                    }
-                }
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: (context) => {
-                            return `${context.dataset.label}: ${context.raw.toString().toHHMMSS()}`
-                        }
-                    }
-                },
-                legend: {
-                    position: 'right',
-                    labels: {
-                        filter: filterLegendItem
-                    }
-                }
-            }
-        }
-    })
-}
-
 window.addEventListener('load', function () {
     topNPickers.forEach(e => e.addEventListener('change', () => {
         parseTopN()
@@ -637,7 +626,4 @@ window.addEventListener('load', function () {
     togglePlaceholders(getPresentDataMask())
     draw()
     updateNumTotal()
-    if (wakapiData.dailyStats && wakapiData.dailyStats.length > 0) {
-        drawDailyProjectChart(wakapiData.dailyStats)
-    }
 })
