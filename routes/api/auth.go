@@ -36,20 +36,33 @@ type AuthApiHandler struct {
 	oauthUserService   services.IUserOauthService
 	aggregationService services.IAggregationService
 	summaryService     services.ISummaryService
+	otpService         *services.OTPService
 }
 
 func NewAuthApiHandler(db *gorm.DB, userService services.IUserService, oauthUserService services.IUserOauthService, mailService services.IMailService, aggregationService services.IAggregationService, summaryService services.ISummaryService) *AuthApiHandler {
-	return &AuthApiHandler{db: db, userService: userService, oauthUserService: oauthUserService, config: conf.Get(), mailService: mailService, aggregationService: aggregationService, summaryService: summaryService}
+	otpService := services.NewOTPService(db)
+	return &AuthApiHandler{
+		db:                 db,
+		userService:        userService,
+		oauthUserService:   oauthUserService,
+		config:             conf.Get(),
+		mailService:        mailService,
+		aggregationService: aggregationService,
+		summaryService:     summaryService,
+		otpService:         otpService,
+	}
 }
 
-func (h *AuthApiHandler) RegisterRoutes(router chi.Router) {
-	router.Post("/auth/signup", h.Signup)
-	router.Post("/auth/oauth/github", h.GithubOauth)
-	router.Post("/auth/login", h.Signin)
-	router.Get("/auth/validate", h.ValidateAuthToken)
-	router.Post("/auth/forgot-password", h.ForgotPassword)
+func (h *AuthApiHandler) RegisterRoutes(r chi.Router) {
+	r.Post("/auth/signup", h.Signup)
+	r.Post("/auth/oauth/github", h.GithubOauth)
+	r.Post("/auth/login", h.Signin)
+	r.Get("/auth/validate", h.ValidateAuthToken)
+	r.Post("/auth/forgot-password", h.ForgotPassword)
+	r.Post("/auth/otp/create", services.CreateOTPHandler(h.otpService))
+	r.Post("/auth/otp/verify", services.VerifyOTPHandler(h.otpService))
 
-	router.Group(func(r chi.Router) {
+	r.Group(func(r chi.Router) {
 		r.Use(middlewares.NewAuthenticateMiddleware(h.userService).Handler)
 		r.Get("/auth/api-key", h.GetApiKey)
 		r.Post("/auth/api-key/refresh", h.RefreshApiKey)

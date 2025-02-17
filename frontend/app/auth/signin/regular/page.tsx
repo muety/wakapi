@@ -2,7 +2,6 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 import { UserLoginForm } from "@/components/user-auth-form";
-import { EmailLoginForm } from "@/components/email-login-form";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -19,9 +18,9 @@ export default async function LoginPage({
   return (
     <div>
       <h1 className="text-2xl font-semibold tracking-tight mb-2">
-        Login with Email
+        Login to your account
       </h1>
-      <EmailLoginForm error={error} message={message} />
+      <UserLoginForm error={error} message={message} />
       <p className="px-8 my-2 text-center text-sm text-muted-foreground">
         <Link
           href="/auth/signup"

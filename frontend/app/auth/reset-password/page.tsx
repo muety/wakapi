@@ -5,7 +5,7 @@ import { UserLoginForm } from "@/components/user-auth-form";
 
 export const metadata: Metadata = {
   title: "Login",
-  description: "Login to your account",
+  description: "Reset Password",
 };
 
 export default async function LoginPage({
