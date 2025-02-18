@@ -113,7 +113,7 @@ func (s *OTPService) CreateOTP(otpRequest models.InitiateOTPRequest) (*models.Cr
 		Email:           otpRequest.Email,
 		CodeChallenge:   otpRequest.CodeChallenge,
 		ChallengeMethod: otpRequest.ChallengeMethod,
-		ExpiresIn:       time.Now().Add(3 * time.Minute).Unix(),
+		ExpiresIn:       time.Now().Add(1 * time.Minute).Unix(),
 		Used:            false,
 		OTPHash:         otpHash,
 	}
@@ -129,6 +129,7 @@ func (s *OTPService) CreateOTP(otpRequest models.InitiateOTPRequest) (*models.Cr
 
 	return &models.CreateOTPResponse{
 		Message: "OTP created successfully",
+		Success: true,
 	}, nil
 }
 
@@ -250,8 +251,9 @@ func CreateOTPHandler(service *OTPService) http.HandlerFunc {
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		// w.Header().Set("Content-Type", "application/json")
+		// json.NewEncoder(w).Encode(resp)
+		helpers.RespondJSON(w, r, http.StatusAccepted, resp)
 	}
 }
 

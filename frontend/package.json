@@ -72,6 +72,7 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.454.0",
     "next": "latest",
+    "next-safe-action": "^7.10.4",
     "next-themes": "^0.3.0",
     "npx": "^10.2.2",
     "react": "^18.2.0",

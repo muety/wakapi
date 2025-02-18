@@ -71,6 +71,7 @@ type OTPResponse struct {
 
 type CreateOTPResponse struct {
 	Message string `json:"message"`
+	Success bool   `json:"success"`
 }
 
 type VerifyOTPResponse struct {

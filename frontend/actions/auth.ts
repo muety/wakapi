@@ -1,9 +1,17 @@
 "use server";
 
+// import { createSafeAction } from "next-safe-action";
+import { actionClient } from "next-safe-action";
 import { redirect } from "next/navigation";
 import { SessionData } from "@/lib/session/options";
 import { createIronSession } from "@/lib/server/auth";
-import { forgotPasswordSchema, userNameSchema } from "@/lib/validations/user";
+import {
+  forgotPasswordSchema,
+  otpLoginSchema,
+  userNameSchema,
+} from "@/lib/validations/user";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const { NEXT_PUBLIC_API_URL } = process.env;
 
@@ -26,18 +34,36 @@ export async function loginAction(_: any, formData: FormData): Promise<any> {
   return processLogin(validatedFields.data);
 }
 
-export async function loginEmailAction(
+// export const initiateOTPLoginAction = actionClient(
+//   z.object({
+//     email: z.string().email(),
+//   }),
+//   async (data: { email: string }) => {
+//     // Generate a secure challenge (e.g., a random string or hash)
+//     // const challenge = Buffer.from(email).toString("base64url"); // Simple encoding for demo
+
+//     // Instead of storing in sessionStorage (which is client-side),
+//     // return the challenge to the client
+//     return processEmailLogin(data);
+//   }
+// );
+
+export async function initiateOTPLoginAction(
   _: any,
   formData: FormData
 ): Promise<any> {
-  const validatedFields = userNameSchema.safeParse({
+  const payload = {
     email: formData.get("email"),
-  });
+    code_challenge: formData.get("code_challenge"),
+    challenge_method: formData.get("challenge_method"),
+  };
+  console.log("[payload]", payload);
+  const validatedFields = otpLoginSchema.safeParse(payload);
 
   if (!validatedFields.success) {
     return {
       message: {
-        description: "Email and password are required",
+        description: "Invalid credentials", // intentionally vague
         title: "Error",
         variant: "destructive",
       },
@@ -144,7 +170,8 @@ export async function processForgotPassword({ email }: { email: string }) {
 
 export async function processEmailLogin(credentials: {
   email: string;
-  password: string;
+  code_challenge: string;
+  challenge_method: string;
 }) {
   let redirectPath = null;
   try {
@@ -166,17 +193,20 @@ export async function processEmailLogin(credentials: {
       message?: string;
     };
 
+    console.log("apiResponse", json, json.data);
+    console.log("[apiResponse.status]", apiResponse.status);
+
     if (apiResponse.status > 202) {
       return {
         message: {
           description: json.message || "Unexpected error logging in",
           title: "Login Error!",
-          variant: "default",
+          variant: "destructive",
         },
       };
     }
 
-    redirectPath = "/sigin/otp?email=" + credentials.email;
+    return json;
   } catch (error) {
     console.log("Error logging in", error);
     return {

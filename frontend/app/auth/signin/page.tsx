@@ -1,8 +1,9 @@
 import { Metadata } from "next";
 import Link from "next/link";
 
-import { UserLoginForm } from "@/components/user-auth-form";
 import { EmailLoginForm } from "@/components/email-login-form";
+import { OTPSignIn } from "@/components/otp-sign-in";
+import { SocialLogin } from "@/components/social-login";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -18,10 +19,9 @@ export default async function LoginPage({
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold tracking-tight mb-2">
-        Login with Email
-      </h1>
-      <EmailLoginForm error={error} message={message} />
+      <h4 className="font-medium pb-1 text-3xl mb-5">Login to wakana.</h4>
+      <OTPSignIn />
+      <SocialLogin />
       <p className="px-8 my-2 text-center text-sm text-muted-foreground">
         <Link
           href="/auth/signup"
