@@ -1,6 +1,6 @@
 module github.com/muety/wakapi
 
-go 1.23
+go 1.24
 
 require (
 	codeberg.org/Codeberg/avatars v1.0.0
