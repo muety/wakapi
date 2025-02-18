@@ -30,7 +30,7 @@ export function Hero() {
         <div className="flex-gap justify-center">
           <FadeOnView delay={0.6} className="mt-12 space-x-2">
             {/* <Button className="rounded-full shadow-lg">Get Started</Button> */}
-            <Link href="/auth/signin" className={cn("font-heading hero-cta")}>
+            <Link href="/login" className={cn("font-heading hero-cta")}>
               Try it for free
             </Link>
           </FadeOnView>

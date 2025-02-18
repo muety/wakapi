@@ -43,6 +43,7 @@
     "@typescript-eslint/no-explicit-any": "off", // Warn about explicit 'any' type in TypeScript
     "react/prop-types": "off" // Disable prop-types rule (if using TypeScript, you may not need this)
   },
+  "ignorePatterns": ["**/*.js"],
   "settings": {
     "react": {
       "version": "detect" // Automatically detect the React version

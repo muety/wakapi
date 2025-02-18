@@ -11,7 +11,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "lintf": "eslint . --fix",
+    "lint:fix": "eslint . --fix",
     "prettify": "prettier --write .",
     "type-check": "tsc --noEmit"
   },

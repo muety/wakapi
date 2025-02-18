@@ -1,16 +1,17 @@
 "use client";
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
+import * as React from "react";
 
-import { cn } from "@/lib/utils";
 import { Icons } from "@/components/icons";
 import { buttonVariants } from "@/components/ui/button";
 import { startGithubLoginFlow } from "@/lib/oauth/github";
+import { cn } from "@/lib/utils";
 
-interface UserLoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export function SocialLogin({ className, ...props }: UserLoginFormProps) {
+export function SocialLogin({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   const [isGitHubLoading, setIsGitHubLoading] = React.useState<boolean>(false);
   const router = useRouter();
 

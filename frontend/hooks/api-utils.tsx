@@ -10,7 +10,7 @@ export async function mutateData(
       body?: Record<string, any>;
       token: string; // Accept token as a parameter
     };
-  },
+  }
 ) {
   const bodyPayload: any =
     body && Object.keys(body).length > 0 ? { body: JSON.stringify(body) } : {};

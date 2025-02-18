@@ -1,24 +1,26 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
+import React from "react";
+import { useFormState, useFormStatus } from "react-dom";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { initiateOTPLoginAction, processLoginWithOTP } from "@/actions/auth";
 import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/use-toast";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { initiateOTPLoginAction, processLoginWithOTP } from "@/actions/auth";
-import { useFormState, useFormStatus } from "react-dom";
-import { Icons } from "./icons";
-import React from "react";
+import { toast } from "@/components/ui/use-toast";
 import { PKCEGenerator, PKCEResult } from "@/lib/oauth/pkce";
+import { cn } from "@/lib/utils";
+
+import { Icons } from "./icons";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -57,7 +59,6 @@ export function OTPSignIn({ className }: Props) {
     const pkceFactory = new PKCEGenerator();
     pkceFactory.generatePKCE().then((result) => {
       setPKCE(result);
-      console.log("[result]", result);
     });
   }, []);
 
@@ -83,7 +84,7 @@ export function OTPSignIn({ className }: Props) {
       setEmail(form.getValues("email"));
     }
     console.log("state", state);
-  }, [state]);
+  }, [state, form]);
 
   const loginHandler = async () => {
     if (!(await form.trigger())) {
@@ -100,6 +101,13 @@ export function OTPSignIn({ className }: Props) {
   };
 
   async function onComplete(otp: string) {
+    try {
+      setIsLoading(true);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
     if (!email || !pkce?.code_verifier) {
       return toast({
         title: "Invalid OTP",
@@ -113,8 +121,6 @@ export function OTPSignIn({ className }: Props) {
       otp,
       code_verifier: pkce?.code_verifier || "",
     });
-
-    console.log("response", response);
 
     if (response && response.message) {
       const { message } = response;

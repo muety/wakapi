@@ -1,7 +1,8 @@
 import { Metadata } from "next";
 import Link from "next/link";
 
-import { UserSignUpAuthForm } from "@/components/user-signup-form";
+import { OTPSignIn } from "@/components/otp-sign-in";
+import { SocialLogin } from "@/components/social-login";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -16,7 +17,8 @@ export default async function LoginPage() {
           Create your account
         </h1>
       </div>
-      <UserSignUpAuthForm />
+      <OTPSignIn />
+      <SocialLogin />
       <p className="px-8 text-center text-sm text-muted-foreground">
         <Link href="/auth/signin" className="underline underline-offset-4">
           Already have an account? Sign In

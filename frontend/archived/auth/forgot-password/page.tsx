@@ -28,7 +28,7 @@ export default async function LoginPage({
       <ForgotPasswordForm error={error} />
       <p className="px-8 my-2 text-center text-sm text-muted-foreground">
         <Link
-          href="/auth/signin"
+          href="/login"
           className="hover:text-brand underline underline-offset-4"
         >
           Remembered your password? Sign In

@@ -1,18 +1,16 @@
 "use server";
 
 // import { createSafeAction } from "next-safe-action";
-import { actionClient } from "next-safe-action";
 import { redirect } from "next/navigation";
-import { SessionData } from "@/lib/session/options";
+
 import { createIronSession } from "@/lib/server/auth";
+import { SessionData } from "@/lib/session/options";
 import {
   forgotPasswordSchema,
   otpLoginSchema,
   otpLoginValidateSchema,
   userNameSchema,
 } from "@/lib/validations/user";
-import { NextResponse } from "next/server";
-import { z } from "zod";
 
 const { NEXT_PUBLIC_API_URL } = process.env;
 
@@ -154,7 +152,7 @@ export async function processForgotPassword({ email }: { email: string }) {
     }
 
     // we really probably need a way to toast from here - like dump something that is used by UI to display some message
-    redirectPath = `/auth/signin?message=${json.message}`;
+    redirectPath = `/login?message=${json.message}`;
   } catch (error) {
     console.log("Error sending forgot password request", error);
     return {
@@ -165,7 +163,9 @@ export async function processForgotPassword({ email }: { email: string }) {
       },
     };
   } finally {
-    redirectPath && redirect(redirectPath);
+    if (redirectPath) {
+      redirect(redirectPath);
+    }
     // redirect apparently throws an error so shouldn't be called inside a try catch
     // https://nextjs.org/docs/app/building-your-application/routing/redirecting#redirect-function
   }
@@ -176,7 +176,7 @@ export async function processEmailLogin(credentials: {
   code_challenge: string;
   challenge_method: string;
 }) {
-  let redirectPath = null;
+  const redirectPath = null;
   try {
     const apiResponse = await fetch(
       `${NEXT_PUBLIC_API_URL}/api/auth/otp/create`,
@@ -220,7 +220,7 @@ export async function processEmailLogin(credentials: {
       },
     };
   } finally {
-    redirectPath && redirect(redirectPath);
+    if (redirectPath) redirect(redirectPath);
     // redirect apparently throws an error so shouldn't be called inside a try catch
     // https://nextjs.org/docs/app/building-your-application/routing/redirecting#redirect-function
   }
@@ -269,7 +269,7 @@ export async function processLogin(credentials: {
       },
     };
   } finally {
-    redirectPath && redirect(redirectPath);
+    if (redirectPath) redirect(redirectPath);
     // redirect apparently throws an error so shouldn't be called inside a try catch
     // https://nextjs.org/docs/app/building-your-application/routing/redirecting#redirect-function
   }
@@ -323,7 +323,7 @@ export async function processLoginWithOTP(credentials: {
       },
     };
   } finally {
-    redirectPath && redirect(redirectPath);
+    if (redirectPath) redirect(redirectPath);
     // redirect apparently throws an error so shouldn't be called inside a try catch
     // https://nextjs.org/docs/app/building-your-application/routing/redirecting#redirect-function
   }

@@ -49,7 +49,7 @@ function Header() {
         </ul>
         <a
           className="hidden border-l border-border pl-4 pr-2 text-sm font-medium md:block"
-          href="/auth/signin"
+          href="/login"
         >
           Sign in
         </a>

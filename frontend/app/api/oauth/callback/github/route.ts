@@ -39,9 +39,7 @@ export async function GET(request: NextRequest) {
       error:
         "An unexpected error occurred while logging in using github. Try again later. If this persists, contact support",
     };
-    return redirect(
-      `/auth/signin?${new URLSearchParams(error_payload).toString()}`
-    );
+    return redirect(`/login?${new URLSearchParams(error_payload).toString()}`);
   } finally {
     if (redirectPath) {
       redirect(redirectPath);
