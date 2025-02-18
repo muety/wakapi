@@ -23,7 +23,9 @@ api_url: str = 'https://wakapi.dev/api'
 
 Heartbeats = List[Dict[str, Any]]
 
-model_keys: List[str] = ['branch', 'category', 'entity', 'is_write', 'language', 'project', 'time', 'type', 'user_id', 'machine_name_id', 'user_agent_id', 'created_at']
+model_keys: List[str] = [
+    'branch', 'category', 'entity', 'is_write', 'language', 'project', 'time', 'type', 'user_id', 'machine_name_id', 'user_agent_id', 'created_at', 'lines', 'lineno', 'cursorpos', 'line_deletions', 'line_additions'
+]
 
 
 def fetch_total_range(min_date: datetime.date, max_date: datetime.date) -> Tuple[datetime.date, datetime.date]:

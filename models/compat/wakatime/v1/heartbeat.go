@@ -42,6 +42,11 @@ type HeartbeatEntry struct {
 	UserId        string    `json:"user_id"`
 	MachineNameId string    `json:"machine_name_id"`
 	UserAgentId   string    `json:"user_agent_id"`
+	Lines         int       `json:"lines"`
+	LineNo        int       `json:"lineno"`
+	CursorPos     int       `json:"cursorpos"`
+	LineDeletions int       `json:"line_deletions"`
+	LineAdditions int       `json:"line_additions"`
 	CreatedAt     time.Time `json:"created_at"`
 }
 
@@ -62,6 +67,11 @@ func HeartbeatsToCompat(entries []*models.Heartbeat) []*HeartbeatEntry {
 			UserId:        entry.UserID,
 			MachineNameId: entry.Machine,
 			UserAgentId:   entry.UserAgent,
+			Lines:         entry.Lines,
+			LineNo:        entry.LineNo,
+			LineAdditions: entry.LineAdditions,
+			LineDeletions: entry.LineDeletions,
+			CursorPos:     entry.CursorPos,
 			CreatedAt:     entry.CreatedAt.T(),
 		}
 	}
