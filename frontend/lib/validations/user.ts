@@ -11,6 +11,12 @@ export const otpLoginSchema = z.object({
   challenge_method: z.string().min(3),
 });
 
+export const otpLoginValidateSchema = z.object({
+  email: z.string().min(3).max(32),
+  code_verifier: z.string().min(3),
+  otp: z.string().min(3),
+});
+
 export const resetPasswordSchema = z.object({
   password: z.string().min(3).max(32),
   confirm_password: z.string().min(3).max(32),

@@ -15,11 +15,12 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { initiateOTPLoginAction } from "@/actions/auth";
+import { initiateOTPLoginAction, processLoginWithOTP } from "@/actions/auth";
 import { useFormState, useFormStatus } from "react-dom";
 import { Icons } from "./icons";
 import React from "react";
 import { PKCEGenerator, PKCEResult } from "@/lib/oauth/pkce";
+import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -32,16 +33,6 @@ type Props = {
 const SubmitButton = ({ onClick }: { onClick: any }) => {
   const { pending } = useFormStatus();
   return (
-    //     <Button
-    //     type="submit"
-    //     className="active:scale-[0.98] bg-primary px-6 py-4 text-secondary font-medium flex space-x-2 h-[40px] w-full"
-    //   >
-    //     {isLoading ? (
-    //       <Loader2 className="h-4 w-4 animate-spin" />
-    //     ) : (
-    //       <span>Continue</span>
-    //     )}
-    //   </Button>
     <button
       type="submit"
       className={cn(buttonVariants())}
@@ -65,6 +56,7 @@ export function OTPSignIn({ className }: Props) {
   const formRef = React.useRef<HTMLFormElement | null>(null);
   const [challengeVerifier, setChallengeVerifier] = useState<string>();
   const [pkce, setPKCE] = useState<PKCEResult>();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const pkceFactory = new PKCEGenerator();
@@ -114,13 +106,32 @@ export function OTPSignIn({ className }: Props) {
     }
   };
 
-  async function onComplete(token: string) {
-    if (!email) return;
-    console.log("token", { token, email, challengeVerifier });
-    // verifyOtp.execute({
-    //   token,
-    //   email,
-    // });
+  async function onComplete(otp: string) {
+    console.log({ email, challengeVerifier: pkce?.codeVerifier, otp });
+    if (!email || !pkce?.codeVerifier) {
+      return toast({
+        title: "Invalid OTP",
+        description: "Please check your OTP and try again.",
+        variant: "destructive",
+      });
+    }
+
+    const response = await processLoginWithOTP({
+      email,
+      otp,
+      code_verifier: pkce?.codeVerifier || "",
+    });
+
+    console.log("response", response);
+
+    if (response && response.message) {
+      const { message } = response;
+      toast({
+        title: message.title,
+        description: message.description,
+        variant: "destructive",
+      });
+    }
   }
 
   if (isSent) {
@@ -130,7 +141,7 @@ export function OTPSignIn({ className }: Props) {
           maxLength={6}
           autoFocus
           onComplete={onComplete}
-          disabled={verifyOtp.status === "executing"}
+          disabled={isLoading}
           render={({ slots }) => (
             <InputOTPGroup>
               {slots.map((slot, index) => (

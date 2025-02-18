@@ -8,6 +8,7 @@ import { createIronSession } from "@/lib/server/auth";
 import {
   forgotPasswordSchema,
   otpLoginSchema,
+  otpLoginValidateSchema,
   userNameSchema,
 } from "@/lib/validations/user";
 import { NextResponse } from "next/server";
@@ -77,8 +78,10 @@ export async function validateOTPEmailAction(
   _: any,
   formData: FormData
 ): Promise<any> {
-  const validatedFields = userNameSchema.safeParse({
+  const validatedFields = otpLoginValidateSchema.safeParse({
     otp: formData.get("otp"),
+    email: formData.get("email"),
+    code_verifier: formData.get("code_verifier"),
   });
 
   if (!validatedFields.success) {
@@ -272,7 +275,12 @@ export async function processLogin(credentials: {
   }
 }
 
-export async function processLoginWithOTP(credentials: { otp: string }) {
+export async function processLoginWithOTP(credentials: {
+  otp: string;
+  code_verifier: string;
+  email: string;
+}) {
+  console.log("credentials", credentials);
   let redirectPath = null;
   try {
     const apiResponse = await fetch(
