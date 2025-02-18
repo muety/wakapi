@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,6 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -20,7 +19,6 @@ import { useFormState, useFormStatus } from "react-dom";
 import { Icons } from "./icons";
 import React from "react";
 import { PKCEGenerator, PKCEResult } from "@/lib/oauth/pkce";
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -45,8 +43,6 @@ const SubmitButton = ({ onClick }: { onClick: any }) => {
   );
 };
 
-// initiateOTPLoginAction
-
 export function OTPSignIn({ className }: Props) {
   const [state, formAction] = useFormState(initiateOTPLoginAction, {
     message: null,
@@ -54,13 +50,15 @@ export function OTPSignIn({ className }: Props) {
   const [isSent, setSent] = useState(false);
   const [email, setEmail] = useState<string>();
   const formRef = React.useRef<HTMLFormElement | null>(null);
-  const [challengeVerifier, setChallengeVerifier] = useState<string>();
   const [pkce, setPKCE] = useState<PKCEResult>();
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const pkceFactory = new PKCEGenerator();
-    pkceFactory.generatePKCE().then((result) => setPKCE(result));
+    pkceFactory.generatePKCE().then((result) => {
+      setPKCE(result);
+      console.log("[result]", result);
+    });
   }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -83,14 +81,9 @@ export function OTPSignIn({ className }: Props) {
     if (state.success) {
       setSent(true);
       setEmail(form.getValues("email"));
-      setChallengeVerifier(state.challengeVerifier);
     }
     console.log("state", state);
   }, [state]);
-
-  const verifyOtp = {
-    status: "idle",
-  };
 
   const loginHandler = async () => {
     if (!(await form.trigger())) {
@@ -107,8 +100,7 @@ export function OTPSignIn({ className }: Props) {
   };
 
   async function onComplete(otp: string) {
-    console.log({ email, challengeVerifier: pkce?.codeVerifier, otp });
-    if (!email || !pkce?.codeVerifier) {
+    if (!email || !pkce?.code_verifier) {
       return toast({
         title: "Invalid OTP",
         description: "Please check your OTP and try again.",
@@ -119,7 +111,7 @@ export function OTPSignIn({ className }: Props) {
     const response = await processLoginWithOTP({
       email,
       otp,
-      code_verifier: pkce?.codeVerifier || "",
+      code_verifier: pkce?.code_verifier || "",
     });
 
     console.log("response", response);
@@ -195,12 +187,12 @@ export function OTPSignIn({ className }: Props) {
           <input
             type="hidden"
             name="code_challenge"
-            value={pkce?.codeChallenge}
+            value={pkce?.code_challenge}
           />
           <input
             type="hidden"
             name="challenge_method"
-            value={pkce?.codeChallengeMethod}
+            value={pkce?.challenge_method}
           />
           <SubmitButton onClick={loginHandler} />
         </div>

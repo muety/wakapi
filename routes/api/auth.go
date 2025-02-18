@@ -12,7 +12,6 @@ import (
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/go-chi/chi/v5"
-	"github.com/golang-jwt/jwt"
 	"github.com/pkg/errors"
 
 	conf "github.com/muety/wakapi/config"
@@ -25,8 +24,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"gorm.io/gorm"
 )
-
-var JWT_TOKEN_DURATION = time.Hour * 24
 
 type AuthApiHandler struct {
 	db                 *gorm.DB
@@ -138,7 +135,13 @@ func (h *AuthApiHandler) Signin(w http.ResponseWriter, r *http.Request) {
 	user.LastLoggedInAt = models.CustomTime(time.Now())
 	h.userService.Update(user)
 
-	token, _, err := MakeLoginJWT(user.ID, h.config)
+	response, err := helpers.MakeAuthSuccessResponse(
+		&helpers.AuthSuccessResponse{
+			Message:   "Login Successful",
+			User:      user,
+			OauthUser: nil,
+		},
+	)
 	if err != nil {
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
 			"message": "Internal Server Error. Try again",
@@ -147,13 +150,7 @@ func (h *AuthApiHandler) Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helpers.RespondJSON(w, r, http.StatusCreated, makeAuthSuccessResponse(
-		&MakeAuthSuccessResponse{
-			token:   token,
-			message: "Login Successful",
-			user:    user,
-		},
-	))
+	helpers.RespondJSON(w, r, http.StatusCreated, response)
 }
 
 func (h *AuthApiHandler) GithubOauth(w http.ResponseWriter, r *http.Request) {
@@ -316,23 +313,25 @@ func (h *AuthApiHandler) GithubOauth(w http.ResponseWriter, r *http.Request) {
 	oauthUser.LastLoggedInAt = models.CustomTime(time.Now())
 	h.userService.Update(oauthUser)
 
-	accessToken, _, err := MakeLoginJWT(oauthUser.ID, h.config)
+	response, err := helpers.MakeAuthSuccessResponse(
+		&helpers.AuthSuccessResponse{
+			Message:   "Signup Successful",
+			User:      oauthUser,
+			OauthUser: &userOauthDetails,
+		},
+	)
+
 	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
-			"message": "Internal Server Error. Try again",
-			"status":  http.StatusInternalServerError,
+			"message": "Internal server error.",
+			"status":  http.StatusBadRequest,
+			"error":   err.Error(),
 		})
 		return
 	}
 
-	helpers.RespondJSON(w, r, http.StatusCreated, makeAuthSuccessResponse(
-		&MakeAuthSuccessResponse{
-			token:     accessToken,
-			message:   "Signup Successful",
-			user:      oauthUser,
-			oauthUser: &userOauthDetails,
-		},
-	))
+	helpers.RespondJSON(w, r, http.StatusCreated, response)
 }
 
 func (h *AuthApiHandler) Signup(w http.ResponseWriter, r *http.Request) {
@@ -372,7 +371,7 @@ func (h *AuthApiHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	signup.Email = strings.ToLower(signup.Email)
-	existing_user, err := h.userService.GetUserByEmail(signup.Email)
+	existing_user, _ := h.userService.GetUserByEmail(signup.Email)
 	if existing_user != nil {
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
 			"message": "An account already exists with this email.",
@@ -393,7 +392,13 @@ func (h *AuthApiHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	user.LastLoggedInAt = models.CustomTime(time.Now())
 	h.userService.Update(user)
 
-	token, _, err := MakeLoginJWT(user.ID, h.config)
+	response, err := helpers.MakeAuthSuccessResponse(
+		&helpers.AuthSuccessResponse{
+			Message:   "Signup Successful",
+			User:      user,
+			OauthUser: nil,
+		},
+	)
 	if err != nil {
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
 			"message": "Internal Server Error. Try again",
@@ -402,61 +407,7 @@ func (h *AuthApiHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helpers.RespondJSON(w, r, http.StatusCreated, makeAuthSuccessResponse(
-		&MakeAuthSuccessResponse{
-			token:     token,
-			message:   "Signup Successful",
-			user:      user,
-			config:    h.config,
-			oauthUser: nil,
-		},
-	))
-}
-
-type MakeAuthSuccessResponse struct {
-	token     string
-	message   string
-	user      *models.User
-	config    *conf.Config
-	oauthUser *models.UserOauth
-}
-
-func makeAuthSuccessResponse(payload *MakeAuthSuccessResponse) map[string]interface{} {
-	conf := conf.Get()
-	user := payload.user
-	avatar := conf.Server.PublicUrl + "/" + user.AvatarURL(conf.App.AvatarURLTemplate)
-
-	if payload.oauthUser != nil {
-		avatar = *payload.oauthUser.AvatarUrl
-	}
-	return map[string]interface{}{
-		"message": payload.message,
-		"status":  http.StatusCreated,
-		"data": map[string]interface{}{
-			"token": payload.token,
-			"user": map[string]interface{}{
-				"id":                       user.ID,
-				"email":                    user.Email,
-				"has_wakatime_integration": user.WakatimeApiKey != "",
-				"avatar":                   avatar,
-			},
-		},
-	}
-}
-
-func MakeLoginJWT(userId string, conf *conf.Config) (string, int64, error) {
-	ttl := time.Now().Add(JWT_TOKEN_DURATION).Unix()
-	atClaims := jwt.MapClaims{}
-	atClaims["exp"] = ttl
-	atClaims["uid"] = userId
-	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
-
-	token, err := at.SignedString([]byte(conf.Security.JWT_SECRET))
-	if err != nil {
-		return "", 0, err
-	}
-
-	return token, ttl / 1000000, nil // kinda wonder if its bad ide to return ttl in seconds
+	helpers.RespondJSON(w, r, http.StatusCreated, response)
 }
 
 func (h *AuthApiHandler) ValidateAuthToken(w http.ResponseWriter, r *http.Request) {

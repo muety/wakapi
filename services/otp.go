@@ -49,8 +49,7 @@ func GenerateOTPHash() (string, string, error) {
 	return pin, OTPHash, nil
 }
 
-// getOrCreateUser retrieves existing user or creates new one
-func (s *OTPService) getOrCreateUser(email string) (*models.User, error) {
+func (s *OTPService) getUser(email string) (*models.User, error) {
 	var user models.User
 
 	err := s.db.Where("email = ?", email).First(&user).Error
@@ -61,7 +60,19 @@ func (s *OTPService) getOrCreateUser(email string) (*models.User, error) {
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
+	return nil, nil
+}
 
+// getOrCreateUser retrieves existing user or creates new one
+func (s *OTPService) getOrCreateUser(email string) (*models.User, error) {
+
+	existingUser, err := s.getUser(email)
+
+	if err == nil {
+		return existingUser, nil
+	}
+
+	var user models.User
 	// Create new user with UUID
 	user = models.User{
 		ID:    uuid.New().String(), // Ensure you import "github.com/google/uuid"
@@ -113,7 +124,7 @@ func (s *OTPService) CreateOTP(otpRequest models.InitiateOTPRequest) (*models.Cr
 		Email:           otpRequest.Email,
 		CodeChallenge:   otpRequest.CodeChallenge,
 		ChallengeMethod: otpRequest.ChallengeMethod,
-		ExpiresIn:       time.Now().Add(1 * time.Minute).Unix(),
+		ExpiresIn:       time.Now().Add(3 * time.Minute).Unix(),
 		Used:            false,
 		OTPHash:         otpHash,
 	}
@@ -152,10 +163,20 @@ func verifyPKCEChallenge(codeVerifier, codeChallenge, method string) bool {
 // VerifyOTP verifies the provided OTP
 func (s *OTPService) VerifyOTP(validateOtpRequest models.ValidateOTPRequest) (*models.VerifyOTPResponse, error) {
 	var otp models.OTP
+	var user = &models.User{}
 	now := time.Now().Unix()
 
+	user, err := s.getUser(validateOtpRequest.Email)
+
+	if err != nil {
+		return &models.VerifyOTPResponse{
+			Message: "Invalid or expired OTP",
+			Valid:   false,
+		}, nil //intentionally vague
+	}
+
 	// Find any pending OTP that matches and hasn't expired
-	err := s.db.Where("expires_in > ? AND used = ? AND email = ?",
+	err = s.db.Where("expires_in > ? AND used = ? AND email = ?",
 		now, false, validateOtpRequest.Email).Order("created_at DESC").First(&otp).Error
 
 	if err != nil {
@@ -194,6 +215,7 @@ func (s *OTPService) VerifyOTP(validateOtpRequest models.ValidateOTPRequest) (*m
 	return &models.VerifyOTPResponse{
 		Message: "OTP verified successfully",
 		Valid:   true,
+		User:    user,
 	}, nil
 }
 
@@ -284,9 +306,24 @@ func VerifyOTPHandler(service *OTPService) http.HandlerFunc {
 			return
 		}
 
-		// generate login token
+		response, err := helpers.MakeAuthSuccessResponse(
+			&helpers.AuthSuccessResponse{
+				Message:   resp.Message,
+				User:      resp.User,
+				OauthUser: nil,
+			},
+		)
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+				"message": "Internal server error.",
+				"status":  http.StatusBadRequest,
+				"error":   err.Error(),
+			})
+			return
+		}
+
+		helpers.RespondJSON(w, r, http.StatusCreated, response)
 	}
 }
