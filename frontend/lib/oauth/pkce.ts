@@ -49,19 +49,3 @@ export class PKCEGenerator {
     return { code_verifier, code_challenge, challenge_method: "S256" };
   }
 }
-
-// Example usage:
-const pkceGen = new PKCEGenerator();
-
-async function demo(): Promise<void> {
-  const pkce = await pkceGen.generatePKCE();
-  console.log("Code Verifier:", pkce.code_verifier);
-  console.log("Code Challenge:", pkce.code_challenge);
-
-  const verifier = pkceGen.generateCodeVerifier();
-  const challenge = await pkceGen.generateCodeChallenge(verifier);
-  console.log("Verifier (individual):", verifier);
-  console.log("Challenge (individual):", challenge);
-}
-
-demo();
