@@ -102,6 +102,37 @@ func (r *HeartbeatRepository) GetAllWithin(from, to time.Time, user *models.User
 	return heartbeats, nil
 }
 
+func (r *HeartbeatRepository) GetAllWithinAsync(from, to time.Time, user *models.User) (chan *models.Heartbeat, error) {
+	out := make(chan *models.Heartbeat)
+
+	rows, err := r.db.
+		Model(&models.Heartbeat{}).
+		Where(&models.Heartbeat{UserID: user.ID}).
+		Where("time >= ?", from.Local()).
+		Where("time < ?", to.Local()).
+		Order("time asc").
+		Rows()
+
+	if err != nil {
+		return nil, err
+	}
+
+	go func(rows *sql.Rows) {
+		defer close(out)
+		defer rows.Close()
+		for rows.Next() {
+			var heartbeat models.Heartbeat
+			if err := r.db.ScanRows(rows, &heartbeat); err != nil {
+				conf.Log().Error("failed to scan heartbeats row", "user", user.ID, "from", from, "to", to, "error", err)
+				continue
+			}
+			out <- &heartbeat
+		}
+	}(rows)
+
+	return out, nil
+}
+
 func (r *HeartbeatRepository) GetAllWithinByFilters(from, to time.Time, user *models.User, filterMap map[string][]string) ([]*models.Heartbeat, error) {
 	// https://stackoverflow.com/a/20765152/3112139
 	var heartbeats []*models.Heartbeat

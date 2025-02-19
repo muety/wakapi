@@ -544,11 +544,11 @@ func Load(configFlag string, version string) *Config {
 	if config.Server.ListenIpV4 == "-" && config.Server.ListenIpV6 == "-" && config.Server.ListenSocket == "" {
 		Log().Fatal("either of listen_ipv4 or listen_ipv6 or listen_socket must be set")
 	}
-	if config.Db.MaxConn <= 0 {
-		Log().Fatal("you must allow at least one database connection")
+	if config.Db.MaxConn < 2 && !config.Db.IsSQLite() {
+		Log().Warn("you should use a pool of at least 2 database connections")
 	}
 	if config.Db.MaxConn > 1 && config.Db.IsSQLite() {
-		slog.Warn("with sqlite, only a single connection is supported") // otherwise 'PRAGMA foreign_keys=ON' would somehow have to be set for every connection in the pool
+		Log().Warn("with sqlite, only a single connection is supported") // otherwise 'PRAGMA foreign_keys=ON' would somehow have to be set for every connection in the pool
 		config.Db.MaxConn = 1
 	}
 	if config.Mail.Provider != "" && utils.FindString(config.Mail.Provider, emailProviders, "") == "" {

@@ -143,6 +143,19 @@ func (srv *HeartbeatService) GetAllWithin(from, to time.Time, user *models.User)
 	return srv.augmented(heartbeats, user.ID)
 }
 
+func (srv *HeartbeatService) GetAllWithinAsync(from, to time.Time, user *models.User) (chan *models.Heartbeat, error) {
+	languageMapping, err := srv.languageMappingSrvc.ResolveByUser(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := srv.repository.GetAllWithinAsync(from, to, user)
+	if err != nil {
+		return nil, err
+	}
+	return srv.augmentedAsync(c, languageMapping)
+}
+
 func (srv *HeartbeatService) GetAllWithinByFilters(from, to time.Time, user *models.User, filters *models.Filters) ([]*models.Heartbeat, error) {
 	heartbeats, err := srv.repository.GetAllWithinByFilters(from, to, user, srv.filtersToColumnMap(filters))
 	if err != nil {
@@ -245,12 +258,23 @@ func (srv *HeartbeatService) augmented(heartbeats []*models.Heartbeat, userId st
 	if err != nil {
 		return nil, err
 	}
-
 	for i := range heartbeats {
 		heartbeats[i].Augment(languageMapping)
 	}
-
 	return heartbeats, nil
+}
+
+func (srv *HeartbeatService) augmentedAsync(in chan *models.Heartbeat, languageMapping map[string]string) (chan *models.Heartbeat, error) {
+	// if this method made the query to fetch langauge mapping itself, it would produce a dead loop in case there are less than 2 database connections
+	out := make(chan *models.Heartbeat)
+	go func(in, out chan *models.Heartbeat) {
+		defer close(out)
+		for hb := range in {
+			hb.Augment(languageMapping)
+			out <- hb
+		}
+	}(in, out)
+	return out, nil
 }
 
 func (srv *HeartbeatService) getEntityUserCacheKey(entityType uint8, userId string) string {

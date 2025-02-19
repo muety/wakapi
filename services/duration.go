@@ -26,7 +26,7 @@ func NewDurationService(heartbeatService IHeartbeatService) *DurationService {
 func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *models.Filters) (models.Durations, error) {
 	heartbeatsTimeout := user.HeartbeatsTimeout()
 
-	heartbeats, err := srv.heartbeatService.GetAllWithin(from, to, user)
+	heartbeats, err := srv.heartbeatService.GetAllWithinAsync(from, to, user)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 
 	mapping := make(map[string][]*models.Duration)
 
-	for _, h := range heartbeats {
+	for h := range heartbeats {
 		d1 := models.NewDurationFromHeartbeat(h).WithEntityIgnored().Hashed()
 
 		// initialize map entry
