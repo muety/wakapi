@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	DefaultHeartbeatsTimeout = 2 * time.Minute
-	MinHeartbeatsTimeout     = 30 * time.Second
-	MaxHeartbeatsTimeout     = 5 * time.Minute
+	DefaultHeartbeatsTimeout       = 10 * time.Minute
+	DefaultHeartbeatsTimeoutLegacy = 2 * time.Minute
+	MinHeartbeatsTimeout           = 1 * time.Minute
+	MaxHeartbeatsTimeout           = 1 * time.Hour
 )
 
 func init() {
@@ -49,7 +50,7 @@ type User struct {
 	StripeCustomerId       string      `json:"-"`
 	InvitedBy              string      `json:"-"`
 	ExcludeUnknownProjects bool        `json:"-"`
-	HeartbeatsTimeoutSec   int         `json:"-" gorm:"default:120"` // https://github.com/muety/wakapi/issues/156
+	HeartbeatsTimeoutSec   int         `json:"-" gorm:"default:600"` // https://github.com/muety/wakapi/issues/156
 }
 
 type Login struct {

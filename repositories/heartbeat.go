@@ -33,7 +33,6 @@ func (r *HeartbeatRepository) GetAll() ([]*models.Heartbeat, error) {
 }
 
 func (r *HeartbeatRepository) InsertBatch(heartbeats []*models.Heartbeat) error {
-
 	// sqlserver on conflict has bug https://github.com/go-gorm/sqlserver/issues/100
 	// As a workaround, insert one by one, and ignore duplicate key error
 	if r.db.Dialector.Name() == (sqlserver.Dialector{}).Name() {

@@ -376,10 +376,11 @@ func (h *SettingsHandler) actionUpdateHeartbeatsTimeout(w http.ResponseWriter, r
 	defer h.userSrvc.FlushCache()
 
 	val, err := strconv.ParseInt(r.PostFormValue("heartbeats_timeout"), 0, 0)
-	if dur := time.Duration(val) * time.Second; err != nil || dur < models.MinHeartbeatsTimeout || dur > models.MaxHeartbeatsTimeout {
+	dur := time.Duration(val) * time.Minute
+	if err != nil || dur < models.MinHeartbeatsTimeout || dur > models.MaxHeartbeatsTimeout {
 		return actionResult{http.StatusBadRequest, "", "invalid input", nil}
 	}
-	user.HeartbeatsTimeoutSec = int(val)
+	user.HeartbeatsTimeoutSec = int(dur.Seconds())
 
 	if _, err := h.userSrvc.Update(user); err != nil {
 		return actionResult{http.StatusInternalServerError, "", "internal sever error", nil}

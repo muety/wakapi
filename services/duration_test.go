@@ -45,7 +45,7 @@ type DurationServiceTestSuite struct {
 }
 
 func (suite *DurationServiceTestSuite) SetupSuite() {
-	suite.TestUser = &models.User{ID: TestUserId}
+	suite.TestUser = &models.User{ID: TestUserId, HeartbeatsTimeoutSec: int(models.DefaultHeartbeatsTimeoutLegacy / time.Second)}
 
 	// https://anchr.io/i/F0HEK.jpg
 	suite.TestStartTime = time.Unix(0, MinUnixTime1)
@@ -160,7 +160,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 
 	assert.Nil(suite.T(), err)
 	assert.Len(suite.T(), durations, 1)
-	assert.Equal(suite.T(), models.DefaultHeartbeatsTimeout, durations.First().Duration)
+	assert.Equal(suite.T(), time.Duration(0), durations.First().Duration)
 	assert.Equal(suite.T(), 1, durations.First().NumHeartbeats)
 
 	/* TEST 3 */
@@ -171,7 +171,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 
 	assert.Nil(suite.T(), err)
 	assert.Len(suite.T(), durations, 3)
-	assert.Equal(suite.T(), 150*time.Second, durations[0].Duration)
+	assert.Equal(suite.T(), 30*time.Second, durations[0].Duration)
 	assert.Equal(suite.T(), 20*time.Second, durations[1].Duration)
 	assert.Equal(suite.T(), 15*time.Second, durations[2].Duration)
 	assert.Equal(suite.T(), TestEditorGoland, durations[0].Editor)
@@ -198,6 +198,8 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered() {
 	durations, err = sut.Get(from, to, suite.TestUser, models.NewFiltersWith(models.SummaryEditor, TestEditorGoland))
 	assert.Nil(suite.T(), err)
 	assert.Len(suite.T(), durations, 2)
+	assert.Equal(suite.T(), 30*time.Second, durations[0].Duration)
+	assert.Equal(suite.T(), 20*time.Second, durations[1].Duration)
 	for _, d := range durations {
 		assert.Equal(suite.T(), TestEditorGoland, d.Editor)
 	}
@@ -213,7 +215,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 	)
 
 	defer func() {
-		suite.TestUser.HeartbeatsTimeoutSec = int(models.DefaultHeartbeatsTimeout / time.Second) // revert to defaults
+		suite.TestUser.HeartbeatsTimeoutSec = int(models.DefaultHeartbeatsTimeoutLegacy / time.Second) // revert to defaults
 	}()
 
 	from, to = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
@@ -224,7 +226,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 	durations, _ = sut.Get(from, to, suite.TestUser, nil)
 
 	assert.Len(suite.T(), durations, 3)
-	assert.Equal(suite.T(), 90*time.Second, durations[0].Duration)
+	assert.Equal(suite.T(), 30*time.Second, durations[0].Duration)
 	assert.Equal(suite.T(), 20*time.Second, durations[1].Duration)
 	assert.Equal(suite.T(), 15*time.Second, durations[2].Duration)
 	assert.Equal(suite.T(), 3, durations[0].NumHeartbeats)
@@ -236,7 +238,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 	durations, _ = sut.Get(from, to, suite.TestUser, nil)
 
 	assert.Len(suite.T(), durations, 3)
-	assert.Equal(suite.T(), 160*time.Second, durations[0].Duration)
+	assert.Equal(suite.T(), 30*time.Second, durations[0].Duration)
 	assert.Equal(suite.T(), 20*time.Second, durations[1].Duration)
 	assert.Equal(suite.T(), 15*time.Second, durations[2].Duration)
 	assert.Equal(suite.T(), 3, durations[0].NumHeartbeats)
@@ -244,7 +246,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 	assert.Equal(suite.T(), 3, durations[2].NumHeartbeats)
 
 	/* Test 3 */
-	suite.TestUser.HeartbeatsTimeoutSec = 300
+	suite.TestUser.HeartbeatsTimeoutSec = 140
 	durations, _ = sut.Get(from, to, suite.TestUser, nil)
 
 	assert.Len(suite.T(), durations, 2)
