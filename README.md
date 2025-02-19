@@ -86,16 +86,24 @@ $ docker run -d \
   ghcr.io/muety/wakapi:latest
 ```
 
-**Note:** By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres, see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile) and [config.default.yml](https://github.com/muety/wakapi/blob/master/config.default.yml) for further options.
+**Note:** By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres,
+see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile)
+and [config.default.yml](https://github.com/muety/wakapi/blob/master/config.default.yml) for further options.
 
-If you want to run Wakapi on **Kubernetes**, there is [wakapi-helm-chart](https://github.com/ricristian/wakapi-helm-chart) for quick and easy deployment.
+If you want to run Wakapi on **Kubernetes**, there
+is [wakapi-helm-chart](https://github.com/ricristian/wakapi-helm-chart) for quick and easy deployment.
 
 #### Docker Compose
-Alternatively, you can use Docker Compose for an even more straightforward deployment. See [compose.yml](https://github.com/muety/wakapi/blob/master/compose.yml) for configuration details.
 
-Wakapi supports [Docker Secrets](https://docs.docker.com/compose/how-tos/use-secrets/) for the following variables: `WAKAPI_PASSWORD_SALT`, `WAKAPI_DB_PASSWORD`, `WAKAPI_MAIL_SMTP_PASS`. You can set these either by having them mounted as a secret file, or directly pass them as environment variables.
+Alternatively, you can use Docker Compose for an even more straightforward deployment.
+See [compose.yml](https://github.com/muety/wakapi/blob/master/compose.yml) for configuration details.
+
+Wakapi supports [Docker Secrets](https://docs.docker.com/compose/how-tos/use-secrets/) for the following variables:
+`WAKAPI_PASSWORD_SALT`, `WAKAPI_DB_PASSWORD`, `WAKAPI_MAIL_SMTP_PASS`. You can set these either by having them mounted
+as a secret file, or directly pass them as environment variables.
 
 ##### Example
+
 ```bash
 export WAKAPI_PASSWORD_SALT=changeme
 export WAKAPI_DB_PASSWORD=changeme
@@ -104,7 +112,8 @@ export WAKAPI_MAIL_SMTP_PASS=changeme
 docker compose up -d
 ```
 
-If you prefer to persist data in a local directory while using SQLite as the database, make sure to set the correct `user` option in the Docker Compose configuration to avoid permission issues.
+If you prefer to persist data in a local directory while using SQLite as the database, make sure to set the correct
+`user` option in the Docker Compose configuration to avoid permission issues.
 
 ### 🧑‍💻 Option 4: Compile and run from source
 
@@ -580,9 +589,7 @@ might want to go with Wakapi.
 <details>
 <summary><b>How are durations calculated?</b></summary>
 
-Inferring a measure for your coding time from heartbeats works a bit differently than in WakaTime. While WakaTime
-has <a href="https://wakatime.com/faq#timeout">timeout intervals</a>, Wakapi essentially just pads every heartbeat that
-occurs after a longer pause with 2 extra minutes.
+Inferring a measure for your coding time from heartbeats works similar to WakaTime, see their [docs](https://wakatime.com/faq#timeout). Traditionally, Wakapi used to _pad_ every heartbeat before a `<timeout>`-long break with a padding of 2 minutes by default. Now, after the refactoring addressed in [#675](https://github.com/muety/wakapi/issues/675), Wakapi's logic is prtty much the same as WakaTime's, including a manually configurable timeout (default is 10 minutes). 
 
 Here is an example (circles are heartbeats):
 
@@ -597,14 +604,13 @@ heartbeats being sent, e.g. because the developer was staring at the screen tryi
 typing code?
 
 <ul>
-  <li><b>WakaTime</b> (with 5 min timeout): 3 min 20 sec
-  <li><b>WakaTime</b> (with 2 min timeout): 20 sec
-  <li><b>Wakapi:</b> 10 sec + 2 min + 10 sec = 2 min 20 sec</li>
+  <li><b>With 10 min timeout:</b>: 3 min 20 sec
+  <li><b>With 2 min timeout:</b> 20 sec
+  <li><b>Previously (with 2 min timeout + padding):</b> 10 sec + 2 min + 10 sec = 2 min 20 sec</li>
 </ul>
-
-Wakapi adds a "padding" of two minutes before the third heartbeat. This is why total times will slightly vary between
-Wakapi and WakaTime.
 </details>
+
+See [this comment](https://github.com/muety/wakapi/issues/716#issuecomment-2668887035) for another example.
 
 ## 👥 Community contributions
 
