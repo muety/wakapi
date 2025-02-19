@@ -145,7 +145,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 
 	/* TEST 1 */
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(-1*time.Minute)
-	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(filterHeartbeats(from, to, suite.TestHeartbeats), nil)
+	suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 
 	durations, err = sut.Get(from, to, suite.TestUser, nil)
 
@@ -154,7 +154,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 
 	/* TEST 2 */
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Second)
-	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(filterHeartbeats(from, to, suite.TestHeartbeats), nil)
+	suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 
 	durations, err = sut.Get(from, to, suite.TestUser, nil)
 
@@ -165,7 +165,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 
 	/* TEST 3 */
 	from, to = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
-	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(filterHeartbeats(from, to, suite.TestHeartbeats), nil)
+	suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 
 	durations, err = sut.Get(from, to, suite.TestUser, nil)
 
@@ -193,7 +193,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered() {
 	)
 
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Hour)
-	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(filterHeartbeats(from, to, suite.TestHeartbeats), nil)
+	suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 
 	durations, err = sut.Get(from, to, suite.TestUser, models.NewFiltersWith(models.SummaryEditor, TestEditorGoland))
 	assert.Nil(suite.T(), err)
@@ -219,9 +219,9 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 	}()
 
 	from, to = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
-	suite.HeartbeatService.On("GetAllWithin", from, to, suite.TestUser).Return(filterHeartbeats(from, to, suite.TestHeartbeats), nil)
 
 	/* Test 1 */
+	call1 := suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 	suite.TestUser.HeartbeatsTimeoutSec = 60
 	durations, _ = sut.Get(from, to, suite.TestUser, nil)
 
@@ -232,8 +232,10 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 	assert.Equal(suite.T(), 3, durations[0].NumHeartbeats)
 	assert.Equal(suite.T(), 1, durations[1].NumHeartbeats)
 	assert.Equal(suite.T(), 3, durations[2].NumHeartbeats)
+	call1.Unset()
 
 	/* Test 2 */
+	call2 := suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 	suite.TestUser.HeartbeatsTimeoutSec = 130
 	durations, _ = sut.Get(from, to, suite.TestUser, nil)
 
@@ -244,8 +246,10 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 	assert.Equal(suite.T(), 3, durations[0].NumHeartbeats)
 	assert.Equal(suite.T(), 1, durations[1].NumHeartbeats)
 	assert.Equal(suite.T(), 3, durations[2].NumHeartbeats)
+	call2.Unset()
 
 	/* Test 3 */
+	call3 := suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 	suite.TestUser.HeartbeatsTimeoutSec = 140
 	durations, _ = sut.Get(from, to, suite.TestUser, nil)
 
@@ -254,6 +258,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 	assert.Equal(suite.T(), 15*time.Second, durations[1].Duration)
 	assert.Equal(suite.T(), 4, durations[0].NumHeartbeats)
 	assert.Equal(suite.T(), 3, durations[1].NumHeartbeats)
+	call3.Unset()
 }
 
 func filterHeartbeats(from, to time.Time, heartbeats []*models.Heartbeat) []*models.Heartbeat {
@@ -264,4 +269,15 @@ func filterHeartbeats(from, to time.Time, heartbeats []*models.Heartbeat) []*mod
 		}
 	}
 	return filtered
+}
+
+func streamSlice[T any](data []T) chan T {
+	c := make(chan T)
+	go func() {
+		defer close(c)
+		for _, h := range data {
+			c <- h
+		}
+	}()
+	return c
 }
