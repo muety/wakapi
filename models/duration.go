@@ -2,7 +2,8 @@ package models
 
 import (
 	"fmt"
-	"github.com/mitchellh/hashstructure/v2"
+	"github.com/cespare/xxhash/v2"
+	"github.com/gohugoio/hashstructure"
 	"log/slog"
 	"time"
 	"unicode"
@@ -54,7 +55,7 @@ func NewDurationFromHeartbeat(h *Heartbeat) *Duration {
 		Entity:          h.Entity,
 		NumHeartbeats:   1,
 	}
-	return d.Hashed()
+	return d
 }
 
 func (d *Duration) WithEntityIgnored() *Duration {
@@ -63,7 +64,7 @@ func (d *Duration) WithEntityIgnored() *Duration {
 }
 
 func (d *Duration) Hashed() *Duration {
-	hash, err := hashstructure.Hash(d, hashstructure.FormatV2, nil)
+	hash, err := hashstructure.Hash(d, &hashstructure.HashOptions{Hasher: xxhash.New()})
 	if err != nil {
 		slog.Error("CRITICAL ERROR: failed to hash struct", "error", err)
 	}

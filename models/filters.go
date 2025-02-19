@@ -2,7 +2,8 @@ package models
 
 import (
 	"fmt"
-	"github.com/mitchellh/hashstructure/v2"
+	"github.com/cespare/xxhash/v2"
+	"github.com/gohugoio/hashstructure"
 	"log/slog"
 )
 
@@ -178,7 +179,7 @@ func (f *Filters) ResolveType(entityId uint8) *OrFilter {
 }
 
 func (f *Filters) Hash() string {
-	hash, err := hashstructure.Hash(f, hashstructure.FormatV2, nil)
+	hash, err := hashstructure.Hash(f, &hashstructure.HashOptions{Hasher: xxhash.New()})
 	if err != nil {
 		slog.Error("CRITICAL ERROR: failed to hash struct", "error", err)
 	}

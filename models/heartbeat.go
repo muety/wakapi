@@ -2,13 +2,14 @@ package models
 
 import (
 	"fmt"
+	"github.com/cespare/xxhash/v2"
 	"strings"
 	"time"
 
 	"log/slog"
 
 	"github.com/duke-git/lancet/v2/strutil"
-	"github.com/mitchellh/hashstructure/v2"
+	"github.com/gohugoio/hashstructure"
 )
 
 type Heartbeat struct {
@@ -144,7 +145,7 @@ func (h *Heartbeat) String() string {
 // essentially double the space required for heartbeats, so we decided to go this way.
 
 func (h *Heartbeat) Hashed() *Heartbeat {
-	hash, err := hashstructure.Hash(h, hashstructure.FormatV2, nil)
+	hash, err := hashstructure.Hash(h, &hashstructure.HashOptions{Hasher: xxhash.New()})
 	if err != nil {
 		slog.Error("CRITICAL ERROR: failed to hash struct", "error", err)
 	}

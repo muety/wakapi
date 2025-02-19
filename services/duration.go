@@ -26,7 +26,7 @@ func NewDurationService(heartbeatService IHeartbeatService) *DurationService {
 func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *models.Filters) (models.Durations, error) {
 	heartbeatsTimeout := user.HeartbeatsTimeout()
 
-	heartbeats, err := srv.heartbeatService.GetAllWithinAsync(from, to, user)
+	heartbeats, err := srv.heartbeatService.StreamAllWithin(from, to, user)
 	if err != nil {
 		return nil, err
 	}

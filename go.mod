@@ -7,6 +7,7 @@ require (
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
 	github.com/alexedwards/argon2id v1.0.0
 	github.com/alitto/pond/v2 v2.1.6
+	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/dchest/captcha v1.1.0
 	github.com/duke-git/lancet/v2 v2.3.4
 	github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6
@@ -16,6 +17,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.0
 	github.com/go-chi/httprate v0.14.1
 	github.com/gofrs/uuid/v5 v5.3.0
+	github.com/gohugoio/hashstructure v0.5.0
 	github.com/gorilla/schema v1.4.1
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.4.0
@@ -24,7 +26,6 @@ require (
 	github.com/leandro-lugaresi/hub v1.1.1
 	github.com/lpar/gzipped/v2 v2.1.0
 	github.com/mileusna/useragent v1.3.5
-	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/muety/artifex/v2 v2.0.1-0.20221201142708-74e7d3f6feaf
 	github.com/narqo/go-badge v0.0.0-20230821190521-c9a75c019a59
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -47,7 +48,6 @@ require (
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/becheran/wildmatch-go v1.0.0
-	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/glebarez/go-sqlite v1.22.0 // indirect

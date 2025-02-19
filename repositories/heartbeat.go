@@ -102,7 +102,7 @@ func (r *HeartbeatRepository) GetAllWithin(from, to time.Time, user *models.User
 	return heartbeats, nil
 }
 
-func (r *HeartbeatRepository) GetAllWithinAsync(from, to time.Time, user *models.User) (chan *models.Heartbeat, error) {
+func (r *HeartbeatRepository) StreamAllWithin(from, to time.Time, user *models.User) (chan *models.Heartbeat, error) {
 	out := make(chan *models.Heartbeat)
 
 	rows, err := r.db.

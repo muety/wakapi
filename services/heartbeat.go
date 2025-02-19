@@ -143,13 +143,13 @@ func (srv *HeartbeatService) GetAllWithin(from, to time.Time, user *models.User)
 	return srv.augmented(heartbeats, user.ID)
 }
 
-func (srv *HeartbeatService) GetAllWithinAsync(from, to time.Time, user *models.User) (chan *models.Heartbeat, error) {
+func (srv *HeartbeatService) StreamAllWithin(from, to time.Time, user *models.User) (chan *models.Heartbeat, error) {
 	languageMapping, err := srv.languageMappingSrvc.ResolveByUser(user.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	c, err := srv.repository.GetAllWithinAsync(from, to, user)
+	c, err := srv.repository.StreamAllWithin(from, to, user)
 	if err != nil {
 		return nil, err
 	}
