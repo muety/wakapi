@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"database/sql"
 	"errors"
 	"gorm.io/gorm"
 )
@@ -37,4 +38,17 @@ func (r *BaseRepository) GetTableDDLSqlite(tableName string) (result string, err
 		err = errors.New("not an sqlite database")
 	}
 	return result, err
+}
+
+func streamRows[T any](rows *sql.Rows, channel chan *T, db *gorm.DB, onErr func(error)) {
+	defer close(channel)
+	defer rows.Close()
+	for rows.Next() {
+		var item T
+		if err := db.ScanRows(rows, &item); err != nil {
+			onErr(err)
+			continue
+		}
+		channel <- &item
+	}
 }

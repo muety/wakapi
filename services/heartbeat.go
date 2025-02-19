@@ -164,6 +164,19 @@ func (srv *HeartbeatService) GetAllWithinByFilters(from, to time.Time, user *mod
 	return srv.augmented(heartbeats, user.ID)
 }
 
+func (srv *HeartbeatService) StreamAllWithinByFilters(from, to time.Time, user *models.User, filters *models.Filters) (chan *models.Heartbeat, error) {
+	languageMapping, err := srv.languageMappingSrvc.ResolveByUser(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := srv.repository.StreamAllWithinByFilters(from, to, user, srv.filtersToColumnMap(filters))
+	if err != nil {
+		return nil, err
+	}
+	return srv.augmentedAsync(c, languageMapping)
+}
+
 func (srv *HeartbeatService) GetLatestByUser(user *models.User) (*models.Heartbeat, error) {
 	return srv.repository.GetLatestByUser(user)
 }

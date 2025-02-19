@@ -35,6 +35,7 @@ type IHeartbeatRepository interface {
 	GetLatestByUser(*models.User) (*models.Heartbeat, error)
 	GetLatestByOriginAndUser(string, *models.User) (*models.Heartbeat, error)
 	StreamAllWithin(time.Time, time.Time, *models.User) (chan *models.Heartbeat, error)
+	StreamAllWithinByFilters(time.Time, time.Time, *models.User, map[string][]string) (chan *models.Heartbeat, error)
 	Count(bool) (int64, error)
 	CountByUser(*models.User) (int64, error)
 	CountByUsers([]*models.User) ([]*models.CountByUser, error)

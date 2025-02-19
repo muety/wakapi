@@ -117,18 +117,9 @@ func (r *HeartbeatRepository) StreamAllWithin(from, to time.Time, user *models.U
 		return nil, err
 	}
 
-	go func(rows *sql.Rows) {
-		defer close(out)
-		defer rows.Close()
-		for rows.Next() {
-			var heartbeat models.Heartbeat
-			if err := r.db.ScanRows(rows, &heartbeat); err != nil {
-				conf.Log().Error("failed to scan heartbeats row", "user", user.ID, "from", from, "to", to, "error", err)
-				continue
-			}
-			out <- &heartbeat
-		}
-	}(rows)
+	go streamRows[models.Heartbeat](rows, out, r.db, func(err error) {
+		conf.Log().Error("failed to scan heartbeats row", "user", user.ID, "from", from, "to", to, "error", err)
+	})
 
 	return out, nil
 }
@@ -148,6 +139,28 @@ func (r *HeartbeatRepository) GetAllWithinByFilters(from, to time.Time, user *mo
 		return nil, err
 	}
 	return heartbeats, nil
+}
+
+func (r *HeartbeatRepository) StreamAllWithinByFilters(from, to time.Time, user *models.User, filterMap map[string][]string) (chan *models.Heartbeat, error) {
+	out := make(chan *models.Heartbeat)
+
+	q := r.db.
+		Where(&models.Heartbeat{UserID: user.ID}).
+		Where("time >= ?", from.Local()).
+		Where("time < ?", to.Local()).
+		Order("time asc")
+	q = r.filteredQuery(q, filterMap)
+
+	rows, err := q.Rows()
+	if err != nil {
+		return nil, err
+	}
+
+	go streamRows[models.Heartbeat](rows, out, r.db, func(err error) {
+		conf.Log().Error("failed to scan filtered heartbeats row", "user", user.ID, "from", from, "to", to, "error", err)
+	})
+
+	return out, nil
 }
 
 func (r *HeartbeatRepository) GetLatestByFilters(user *models.User, filterMap map[string][]string) (*models.Heartbeat, error) {
