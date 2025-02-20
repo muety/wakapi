@@ -23,17 +23,19 @@ type AggregationService struct {
 	userService      IUserService
 	summaryService   ISummaryService
 	heartbeatService IHeartbeatService
+	durationService  IDurationService
 	inProgress       datastructure.Set[string]
 	queueDefault     *artifex.Dispatcher
 	queueWorkers     *artifex.Dispatcher
 }
 
-func NewAggregationService(userService IUserService, summaryService ISummaryService, heartbeatService IHeartbeatService) *AggregationService {
+func NewAggregationService(userService IUserService, summaryService ISummaryService, heartbeatService IHeartbeatService, durationService IDurationService) *AggregationService {
 	return &AggregationService{
 		config:           config.Get(),
 		userService:      userService,
 		summaryService:   summaryService,
 		heartbeatService: heartbeatService,
+		durationService:  durationService,
 		inProgress:       datastructure.New[string](),
 		queueDefault:     config.GetDefaultQueue(),
 		queueWorkers:     config.GetQueue(config.QueueProcessing),
@@ -63,9 +65,9 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 	if err := srv.lockUsers(userIds); err != nil {
 		return err
 	}
-	defer srv.unlockUsers(userIds)
+	defer srv.unlockUsers(userIds) // TODO: does this make sense, since aggregation works in the background anyway?
 
-	slog.Info("generating summaries")
+	slog.Info("generating summaries", "num_users", len(userIds))
 
 	// Get a map from user ids to the time of their latest summary or nil if none exists yet
 	lastUserSummaryTimes, err := srv.summaryService.GetLatestByUser() // TODO: build user-specific variant of this query for efficiency
@@ -135,6 +137,35 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 			// -> Nothing to do
 			slog.Info("skipping summary aggregation because user has no heartbeats", "user", u.ID)
 		}
+	}
+
+	return nil
+}
+
+func (srv *AggregationService) AggregateDurations(userIds datastructure.Set[string]) (err error) {
+	if err := srv.lockUsers(userIds); err != nil {
+		return err
+	}
+	defer srv.unlockUsers(userIds) // TODO: does this make sense, since aggregation works in the background anyway?
+
+	slog.Info("generating durations", "num_users", len(userIds))
+
+	// Fetch complete user objects
+	var users map[string]*models.User
+	if userIds != nil && !userIds.IsEmpty() {
+		users, err = srv.userService.GetManyMapped(userIds.Values())
+	} else {
+		users, err = srv.userService.GetAllMapped()
+	}
+	if err != nil {
+		return err
+	}
+
+	for _, u := range users {
+		user := &(*u)
+		srv.queueWorkers.Dispatch(func() {
+			srv.durationService.Regenerate(user, true)
+		})
 	}
 
 	return nil

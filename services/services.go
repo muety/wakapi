@@ -11,6 +11,7 @@ import (
 type IAggregationService interface {
 	Schedule()
 	AggregateSummaries(set datastructure.Set[string]) error
+	AggregateDurations(set datastructure.Set[string]) error
 }
 
 type IMiscService interface {
