@@ -74,10 +74,10 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 
 	// fill missing
 	// for simplicity, we assume no missing durations before 'from' or between 'from' and 'to'
-	if len(cached) == 0 || cached.Last().Time.T().Before(to) {
+	if len(cached) == 0 || cached.Last().TimeEnd().Before(to) {
 		from := from
 		if len(cached) > 0 {
-			from = cached.Last().Time.T()
+			from = cached.Last().TimeEnd().Add(time.Second)
 		}
 
 		missing, err := srv.getLive(from, to, user)
@@ -203,7 +203,7 @@ func (srv *DurationService) merge(d1, d2 models.Durations, user *models.User) (m
 	merged := make(models.Durations, 0, len(d1)+len(d2))
 	merged = append(merged, d1[0:len(d1)-1]...)
 
-	if diff := middleRight.Time.T().Sub(middleLeft.Time.T()); diff < user.HeartbeatsTimeout() {
+	if diff := middleRight.Time.T().Sub(middleLeft.TimeEnd()); diff < user.HeartbeatsTimeout() {
 		if middleLeft.GroupHash == middleRight.GroupHash {
 			middleMerged := &(*middleLeft)
 			middleMerged.Duration += diff + middleRight.Duration

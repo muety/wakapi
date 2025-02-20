@@ -4,6 +4,7 @@ import (
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"math/rand"
 	"testing"
@@ -264,7 +265,45 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_Cached() {
-	// TODO: implement!
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService)
+
+	var (
+		from      time.Time
+		to        time.Time
+		toCached  time.Time
+		durations models.Durations
+		err       error
+	)
+
+	testDurations := []*models.Duration{
+		models.NewDurationFromHeartbeat(suite.TestHeartbeats[0]),
+		models.NewDurationFromHeartbeat(suite.TestHeartbeats[3]),
+		models.NewDurationFromHeartbeat(suite.TestHeartbeats[4]),
+	}
+	testDurations[0].Duration = 30 * time.Second
+	testDurations[0].NumHeartbeats = 3
+	testDurations[0].WithEntityIgnored().Hashed()
+	testDurations[1].Duration = 20 * time.Second
+	testDurations[1].NumHeartbeats = 1
+	testDurations[1].WithEntityIgnored().Hashed()
+	testDurations[2].Duration = 10 * time.Second
+	testDurations[2].NumHeartbeats = 2
+	testDurations[2].WithEntityIgnored().Hashed()
+
+	from, to, toCached = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour), testDurations[2].TimeEnd().Add(time.Second)
+	suite.DurationRepository.On("GetAllWithinByFilters", from, to, suite.TestUser, mock.Anything).Return(testDurations, nil)
+	suite.HeartbeatService.On("StreamAllWithin", toCached, to, suite.TestUser).Return(streamSlice(filterHeartbeats(toCached, to, suite.TestHeartbeats)), nil)
+
+	durations, err = sut.Get(from, to, suite.TestUser, nil, false)
+
+	assert.Nil(suite.T(), err)
+	assert.Len(suite.T(), durations, 3)
+	assert.Equal(suite.T(), 30*time.Second, durations[0].Duration)
+	assert.Equal(suite.T(), 20*time.Second, durations[1].Duration)
+	assert.Equal(suite.T(), 15*time.Second, durations[2].Duration)
+	assert.Equal(suite.T(), 3, durations[0].NumHeartbeats)
+	assert.Equal(suite.T(), 1, durations[1].NumHeartbeats)
+	assert.Equal(suite.T(), 3, durations[2].NumHeartbeats)
 }
 
 func filterHeartbeats(from, to time.Time, heartbeats []*models.Heartbeat) []*models.Heartbeat {

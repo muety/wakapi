@@ -13,7 +13,7 @@ import (
 // see discussion at https://github.com/muety/wakapi/issues/675
 type Duration struct {
 	UserID          string        `json:"user_id" gorm:"not null; index:idx_time_duration_user"`
-	Time            CustomTime    `json:"time" hash:"ignore" gorm:"not null; index:idx_time_duration_user"`
+	Time            CustomTime    `json:"time" hash:"ignore" gorm:"not null; index:idx_time_duration_user"` // time of first heartbeat of this duration
 	Duration        time.Duration `json:"duration" hash:"ignore" gorm:"not null"`
 	Project         string        `json:"project"`
 	Language        string        `json:"language"`
@@ -26,6 +26,10 @@ type Duration struct {
 	NumHeartbeats   int           `json:"-" hash:"ignore"`
 	GroupHash       string        `json:"-" hash:"ignore" gorm:"type:varchar(17)"`
 	excludeEntity   bool          `json:"-" hash:"ignore"`
+}
+
+func (d *Duration) TimeEnd() time.Time {
+	return d.Time.T().Add(d.Duration)
 }
 
 func (d *Duration) HashInclude(field string, v interface{}) (bool, error) {
