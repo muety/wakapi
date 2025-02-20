@@ -68,6 +68,7 @@ var (
 	keyValueRepository        repositories.IKeyValueRepository
 	diagnosticsRepository     repositories.IDiagnosticsRepository
 	metricsRepository         *repositories.MetricsRepository
+	durationRepository        *repositories.DurationRepository
 )
 
 var (
@@ -171,6 +172,7 @@ func main() {
 	keyValueRepository = repositories.NewKeyValueRepository(db)
 	diagnosticsRepository = repositories.NewDiagnosticsRepository(db)
 	metricsRepository = repositories.NewMetricsRepository(db)
+	durationRepository = repositories.NewDurationRepository(db)
 
 	// Services
 	mailService = mail.NewMailService()
@@ -180,7 +182,7 @@ func main() {
 	languageMappingService = services.NewLanguageMappingService(languageMappingRepository)
 	projectLabelService = services.NewProjectLabelService(projectLabelRepository)
 	heartbeatService = services.NewHeartbeatService(heartbeatRepository, languageMappingService)
-	durationService = services.NewDurationService(heartbeatService)
+	durationService = services.NewDurationService(durationRepository, heartbeatService)
 	summaryService = services.NewSummaryService(summaryRepository, heartbeatService, durationService, aliasService, projectLabelService)
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
 	reportService = services.NewReportService(summaryService, userService, mailService)

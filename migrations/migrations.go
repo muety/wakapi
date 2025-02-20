@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-type gormMigrationFunc func(db *gorm.DB) error
+type GormMigrationFunc func(db *gorm.DB) error
 
 type migrationFunc struct {
 	f    func(db *gorm.DB, cfg *config.Config) error
@@ -23,7 +23,7 @@ var (
 	postMigrations migrationFuncs
 )
 
-func GetMigrationFunc(cfg *config.Config) gormMigrationFunc {
+func GetMigrationFunc(cfg *config.Config) GormMigrationFunc {
 	switch cfg.Db.Dialect {
 	default:
 		return func(db *gorm.DB) error {
@@ -55,6 +55,9 @@ func GetMigrationFunc(cfg *config.Config) gormMigrationFunc {
 				return err
 			}
 			if err := db.AutoMigrate(&models.LeaderboardItem{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
+				return err
+			}
+			if err := db.AutoMigrate(&models.Duration{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
 				return err
 			}
 			return nil

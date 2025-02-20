@@ -46,6 +46,14 @@ type IHeartbeatRepository interface {
 	GetUserProjectStats(*models.User, time.Time, time.Time, int, int) ([]*models.ProjectStats, error)
 }
 
+type IDurationRepository interface {
+	IBaseRepository
+	InsertBatch([]*models.Duration) error
+	GetAllWithin(time.Time, time.Time, *models.User) ([]*models.Duration, error)
+	DeleteByUser(*models.User) error
+	DeleteByUserBefore(*models.User, time.Time) error
+}
+
 type IDiagnosticsRepository interface {
 	IBaseRepository
 	Insert(diagnostics *models.Diagnostics) (*models.Diagnostics, error)

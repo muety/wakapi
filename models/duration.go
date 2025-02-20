@@ -9,10 +9,12 @@ import (
 	"unicode"
 )
 
+// TODO: support multiple durations per time per user for different heartbeat timeouts
+// see discussion at https://github.com/muety/wakapi/issues/675
 type Duration struct {
-	UserID          string        `json:"user_id"`
-	Time            CustomTime    `json:"time" hash:"ignore"`
-	Duration        time.Duration `json:"duration" hash:"ignore"`
+	UserID          string        `json:"user_id" gorm:"not null; index:idx_time_duration_user"`
+	Time            CustomTime    `json:"time" hash:"ignore" gorm:"not null; index:idx_time_duration_user"`
+	Duration        time.Duration `json:"duration" hash:"ignore" gorm:"not null"`
 	Project         string        `json:"project"`
 	Language        string        `json:"language"`
 	Editor          string        `json:"editor"`
@@ -22,7 +24,7 @@ type Duration struct {
 	Branch          string        `json:"branch"`
 	Entity          string        `json:"Entity"`
 	NumHeartbeats   int           `json:"-" hash:"ignore"`
-	GroupHash       string        `json:"-" hash:"ignore"`
+	GroupHash       string        `json:"-" hash:"ignore" gorm:"type:varchar(17)"`
 	excludeEntity   bool          `json:"-" hash:"ignore"`
 }
 
@@ -34,6 +36,7 @@ func (d *Duration) HashInclude(field string, v interface{}) (bool, error) {
 		field == "Duration" ||
 		field == "NumHeartbeats" ||
 		field == "GroupHash" ||
+		field == "ID" ||
 		unicode.IsLower(rune(field[0])) {
 		return false, nil
 	}

@@ -3,8 +3,14 @@ package repositories
 import (
 	"database/sql"
 	"errors"
+	"github.com/duke-git/lancet/v2/slice"
+	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"strings"
 )
+
+const chunkSize = 4096
 
 type BaseRepository struct {
 	db *gorm.DB
@@ -38,6 +44,47 @@ func (r *BaseRepository) GetTableDDLSqlite(tableName string) (result string, err
 		err = errors.New("not an sqlite database")
 	}
 	return result, err
+}
+
+func InsertBatchChunked[T any](data []T, model T, db *gorm.DB) error {
+	// insert in chunks, because otherwise mysql will complain about too many placeholders in prepared query
+	return db.Transaction(func(tx *gorm.DB) error {
+		chunks := slice.Chunk[T](data, chunkSize)
+		for _, chunk := range chunks {
+			if err := insertBatch[T](chunk, model, db); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+func insertBatch[T any](data []T, model T, db *gorm.DB) error {
+	// sqlserver on conflict has bug https://github.com/go-gorm/sqlserver/issues/100
+	// As a workaround, insert one by one, and ignore duplicate key error
+	if db.Dialector.Name() == (sqlserver.Dialector{}).Name() {
+		for _, h := range data {
+			err := db.Create(h).Error
+			if err != nil {
+				if strings.Contains(err.Error(), "Cannot insert duplicate key row in object") {
+					// ignored
+				} else {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+
+	if err := db.
+		Clauses(clause.OnConflict{
+			DoNothing: true,
+		}).
+		Model(model).
+		Create(&data).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func streamRows[T any](rows *sql.Rows, channel chan *T, db *gorm.DB, onErr func(error)) {

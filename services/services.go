@@ -90,7 +90,7 @@ type IMailService interface {
 }
 
 type IDurationService interface {
-	Get(time.Time, time.Time, *models.User, *models.Filters) (models.Durations, error)
+	Get(time.Time, time.Time, *models.User, *models.Filters, bool) (models.Durations, error)
 }
 
 type ISummaryService interface {

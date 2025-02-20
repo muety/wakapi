@@ -2,16 +2,13 @@ package repositories
 
 import (
 	"database/sql"
-	"strings"
 	"time"
 
 	"github.com/duke-git/lancet/v2/slice"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
-	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type HeartbeatRepository struct {
@@ -33,30 +30,7 @@ func (r *HeartbeatRepository) GetAll() ([]*models.Heartbeat, error) {
 }
 
 func (r *HeartbeatRepository) InsertBatch(heartbeats []*models.Heartbeat) error {
-	// sqlserver on conflict has bug https://github.com/go-gorm/sqlserver/issues/100
-	// As a workaround, insert one by one, and ignore duplicate key error
-	if r.db.Dialector.Name() == (sqlserver.Dialector{}).Name() {
-		for _, h := range heartbeats {
-			err := r.db.Create(h).Error
-			if err != nil {
-				if strings.Contains(err.Error(), "Cannot insert duplicate key row in object 'dbo.heartbeats' with unique index 'idx_heartbeats_hash'") {
-					// ignored
-				} else {
-					return err
-				}
-			}
-		}
-		return nil
-	}
-
-	if err := r.db.
-		Clauses(clause.OnConflict{
-			DoNothing: true,
-		}).
-		Create(&heartbeats).Error; err != nil {
-		return err
-	}
-	return nil
+	return InsertBatchChunked[*models.Heartbeat](heartbeats, &models.Heartbeat{}, r.db)
 }
 
 func (r *HeartbeatRepository) GetLatestByUser(user *models.User) (*models.Heartbeat, error) {
