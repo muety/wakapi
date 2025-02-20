@@ -44,6 +44,7 @@ type DurationServiceTestSuite struct {
 	TestLabels         []*models.ProjectLabel
 	DurationRepository *mocks.DurationRepositoryMock
 	HeartbeatService   *mocks.HeartbeatServiceMock
+	UserService        *mocks.UserServiceMock
 }
 
 func (suite *DurationServiceTestSuite) SetupSuite() {
@@ -129,6 +130,7 @@ func (suite *DurationServiceTestSuite) SetupSuite() {
 func (suite *DurationServiceTestSuite) BeforeTest(suiteName, testName string) {
 	suite.DurationRepository = new(mocks.DurationRepositoryMock)
 	suite.HeartbeatService = new(mocks.HeartbeatServiceMock)
+	suite.UserService = new(mocks.UserServiceMock)
 }
 
 func TestDurationServiceTestSuite(t *testing.T) {
@@ -137,7 +139,7 @@ func TestDurationServiceTestSuite(t *testing.T) {
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 	// https://anchr.io/i/F0HEK.jpg
-	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService)
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService)
 
 	var (
 		from      time.Time
@@ -186,7 +188,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered() {
-	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService)
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService)
 
 	var (
 		from      time.Time
@@ -209,7 +211,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered() {
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
-	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService)
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService)
 
 	var (
 		from      time.Time
@@ -265,7 +267,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_Cached() {
-	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService)
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService)
 
 	var (
 		from      time.Time

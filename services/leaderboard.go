@@ -51,7 +51,7 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 	go func(sub *hub.Subscription) {
 		for m := range sub.Receiver {
 
-			// generate leaderboard for updated user, if leaderboard enabled and none present, yet
+			// Regenerate leaderboard for updated user, if leaderboard enabled and none present, yet
 			user := m.Fields[config.FieldPayload].(*models.User)
 
 			exists, err := srv.ExistsAnyByUser(user.ID)
@@ -109,7 +109,7 @@ func (srv *LeaderboardService) ComputeLeaderboard(users []*models.User, interval
 
 		item, err := srv.GenerateByUser(user, interval)
 		if err != nil {
-			config.Log().Error("failed to generate general leaderboard for user", "userID", user.ID, "error", err)
+			config.Log().Error("failed to Regenerate general leaderboard for user", "userID", user.ID, "error", err)
 			continue
 		}
 
@@ -121,7 +121,7 @@ func (srv *LeaderboardService) ComputeLeaderboard(users []*models.User, interval
 		for _, by := range by {
 			items, err := srv.GenerateAggregatedByUser(user, interval, by)
 			if err != nil {
-				config.Log().Error("failed to generate aggregated leaderboard for user", "aggregatedBy", models.GetEntityColumn(by), "userID", user.ID, "error", err)
+				config.Log().Error("failed to Regenerate aggregated leaderboard for user", "aggregatedBy", models.GetEntityColumn(by), "userID", user.ID, "error", err)
 				continue
 			}
 

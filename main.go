@@ -182,7 +182,7 @@ func main() {
 	languageMappingService = services.NewLanguageMappingService(languageMappingRepository)
 	projectLabelService = services.NewProjectLabelService(projectLabelRepository)
 	heartbeatService = services.NewHeartbeatService(heartbeatRepository, languageMappingService)
-	durationService = services.NewDurationService(durationRepository, heartbeatService)
+	durationService = services.NewDurationService(durationRepository, heartbeatService, userService)
 	summaryService = services.NewSummaryService(summaryRepository, heartbeatService, durationService, aliasService, projectLabelService)
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService)
 	reportService = services.NewReportService(summaryService, userService, mailService)

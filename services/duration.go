@@ -23,15 +23,17 @@ type DurationService struct {
 	eventBus           *hub.Hub
 	durationRepository repositories.IDurationRepository
 	heartbeatService   IHeartbeatService
+	userService        IUserService
 	lastUserJob        map[string]time.Time
 	queue              *artifex.Dispatcher
 }
 
-func NewDurationService(durationRepository repositories.IDurationRepository, heartbeatService IHeartbeatService) *DurationService {
+func NewDurationService(durationRepository repositories.IDurationRepository, heartbeatService IHeartbeatService, userService IUserService) *DurationService {
 	srv := &DurationService{
 		config:             config.Get(),
 		eventBus:           config.EventBus(),
 		heartbeatService:   heartbeatService,
+		userService:        userService,
 		durationRepository: durationRepository,
 		lastUserJob:        make(map[string]time.Time),
 		queue:              config.GetQueue(config.QueueProcessing),
@@ -46,7 +48,7 @@ func NewDurationService(durationRepository repositories.IDurationRepository, hea
 
 			if t, ok := srv.lastUserJob[user.ID]; !ok || time.Now().Sub(t) > generateDurationsInterval {
 				srv.queue.Dispatch(func() {
-					srv.generate(user, false)
+					srv.Regenerate(user, false)
 				})
 				srv.lastUserJob[user.ID] = time.Now()
 			}
@@ -91,6 +93,42 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 	}
 
 	return srv.filter(durations, user, filters), nil
+}
+
+func (srv *DurationService) Regenerate(user *models.User, forceAll bool) {
+	slog.Info("generating ephemeral durations for user up until now", "user", user.ID)
+
+	durations, err := srv.Get(time.Time{}, time.Now(), user, nil, forceAll)
+	if err != nil {
+		config.Log().Error("failed to Regenerate ephemeral durations for user up until now", "user", user.ID, "error", err)
+		return
+	}
+
+	if err := srv.durationRepository.DeleteByUser(user); err != nil {
+		config.Log().Error("failed to delete old durations while generating ephemeral new ones", "user", user.ID, "error", err)
+		return
+	}
+
+	if err := srv.durationRepository.InsertBatch(durations); err != nil {
+		config.Log().Error("failed to persist new ephemeral durations for user", "user", user.ID, "error", err)
+		return
+	}
+}
+
+func (srv *DurationService) RegenerateAll() {
+	slog.Info("regenerating all durations for all users, this may take a long while")
+
+	users, err := srv.userService.GetAll()
+	if err != nil {
+		config.Log().Error("failed to fetch users for durations regeneration", "error", err)
+		return
+	}
+
+	for _, u := range users {
+		srv.queue.Dispatch(func() {
+			srv.Regenerate(u, true)
+		})
+	}
 }
 
 func (srv *DurationService) getCached(from, to time.Time, user *models.User, filters *models.Filters) (models.Durations, error) {
@@ -223,26 +261,6 @@ func (srv *DurationService) merge(d1, d2 models.Durations, user *models.User) (m
 		merged = append(merged, d2[1:len(d2)-1]...)
 	}
 	return merged, nil
-}
-
-func (srv *DurationService) generate(user *models.User, forceAll bool) {
-	slog.Info("generating ephemeral durations for user up until now", "user", user.ID)
-
-	durations, err := srv.Get(time.Time{}, time.Now(), user, nil, forceAll)
-	if err != nil {
-		config.Log().Error("failed to generate ephemeral durations for user up until now", "user", user.ID, "error", err)
-		return
-	}
-
-	if err := srv.durationRepository.DeleteByUser(user); err != nil {
-		config.Log().Error("failed to delete old durations while generating ephemeral new ones", "user", user.ID, "error", err)
-		return
-	}
-
-	if err := srv.durationRepository.InsertBatch(durations); err != nil {
-		config.Log().Error("failed to persist new ephemeral durations for user", "user", user.ID, "error", err)
-		return
-	}
 }
 
 func (srv *DurationService) filtersToColumnMap(filters *models.Filters) map[string][]string {

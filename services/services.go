@@ -91,6 +91,8 @@ type IMailService interface {
 
 type IDurationService interface {
 	Get(time.Time, time.Time, *models.User, *models.Filters, bool) (models.Durations, error)
+	Regenerate(*models.User, bool)
+	RegenerateAll()
 }
 
 type ISummaryService interface {
