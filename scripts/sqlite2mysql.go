@@ -153,6 +153,9 @@ func main() {
 	heartbeatSource := repositories.NewHeartbeatRepository(dbSource)
 	heartbeatTarget := repositories.NewHeartbeatRepository(dbTarget)
 
+	projectLabelsSource := repositories.NewProjectLabelRepository(dbSource)
+	projectLabelsTarget := repositories.NewProjectLabelRepository(dbTarget)
+
 	// TODO: things could be optimized through batch-inserts / inserts within a single transaction
 
 	log.Println("Migrating key-value pairs ...")
@@ -189,6 +192,18 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	log.Println("Migrating project labels ...")
+	if data, err := projectLabelsSource.GetAll(); err == nil {
+		for _, e := range data {
+			e.ID = 0
+			if _, err := projectLabelsTarget.Insert(e); err != nil {
+				log.Fatalln(err)
+			}
+		}
+	} else {
+		log.Fatalln(err)
+	}
+
 	log.Println("Migrating aliases ...")
 	if data, err := aliasSource.GetAll(); err == nil {
 		for _, e := range data {
@@ -216,7 +231,6 @@ func main() {
 	// TODO: copy in mini-batches instead of loading all heartbeats into memory (potentially millions)
 
 	log.Println("Migrating heartbeats ...")
-
 	if data, err := heartbeatSource.GetAll(); err == nil {
 		log.Printf("Got %d heartbeats loaded into memory. Batch-inserting them now ...\n", len(data))
 
@@ -241,6 +255,9 @@ func main() {
 	} else {
 		log.Fatalln(err)
 	}
+
+	// not migrating metadata as well as "ephemeral" data that can just be recomputed, including:
+	// leaderboard, durations, diagnostics, (summaries could be actually be skipped as well)
 }
 
 func createSchema() error {
@@ -263,6 +280,15 @@ func createSchema() error {
 		return err
 	}
 	if err := dbTarget.AutoMigrate(&models.LanguageMapping{}); err != nil {
+		return err
+	}
+	if err := dbTarget.AutoMigrate(&models.Diagnostics{}); err != nil {
+		return err
+	}
+	if err := dbTarget.AutoMigrate(&models.LeaderboardItem{}); err != nil {
+		return err
+	}
+	if err := dbTarget.AutoMigrate(&models.ProjectLabel{}); err != nil {
 		return err
 	}
 	return nil
