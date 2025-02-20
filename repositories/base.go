@@ -99,3 +99,16 @@ func streamRows[T any](rows *sql.Rows, channel chan *T, db *gorm.DB, onErr func(
 		channel <- &item
 	}
 }
+
+func filteredQuery(q *gorm.DB, filterMap map[string][]string) *gorm.DB {
+	for col, vals := range filterMap {
+		q = q.Where(col+" in ?", slice.Map[string, string](vals, func(i int, val string) string {
+			// query for "unknown" projects, languages, etc.
+			if val == "-" {
+				return ""
+			}
+			return val
+		}))
+	}
+	return q
+}

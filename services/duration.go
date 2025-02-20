@@ -67,7 +67,7 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 	}
 
 	// get cached
-	cached, err := srv.getCached(from, to, user)
+	cached, err := srv.getCached(from, to, user, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -93,8 +93,8 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 	return srv.filter(durations, user, filters), nil
 }
 
-func (srv *DurationService) getCached(from, to time.Time, user *models.User) (models.Durations, error) {
-	durations, err := srv.durationRepository.GetAllWithin(from, to, user)
+func (srv *DurationService) getCached(from, to time.Time, user *models.User, filters *models.Filters) (models.Durations, error) {
+	durations, err := srv.durationRepository.GetAllWithinByFilters(from, to, user, srv.filtersToColumnMap(filters))
 	if err != nil {
 		return nil, err
 	}
@@ -243,4 +243,21 @@ func (srv *DurationService) generate(user *models.User, forceAll bool) {
 		config.Log().Error("failed to persist new ephemeral durations for user", "user", user.ID, "error", err)
 		return
 	}
+}
+
+func (srv *DurationService) filtersToColumnMap(filters *models.Filters) map[string][]string {
+	columnMap := map[string][]string{}
+
+	if filters == nil {
+		return columnMap
+	}
+
+	for _, t := range models.NativeSummaryTypes() {
+		f := filters.ResolveType(t)
+		if len(*f) > 0 {
+			columnMap[models.GetEntityColumn(t)] = *f
+		}
+	}
+
+	return columnMap
 }

@@ -17,7 +17,12 @@ func (m *DurationRepositoryMock) InsertBatch(d []*models.Duration) error {
 }
 
 func (m *DurationRepositoryMock) GetAllWithin(t time.Time, t2 time.Time, u *models.User) ([]*models.Duration, error) {
-	args := m.Called(u, t, t2)
+	args := m.Called(t, t2, u)
+	return args.Get(0).([]*models.Duration), args.Error(1)
+}
+
+func (m *DurationRepositoryMock) GetAllWithinByFilters(t time.Time, t2 time.Time, u *models.User, m2 map[string][]string) ([]*models.Duration, error) {
+	args := m.Called(t, t2, u, m2)
 	return args.Get(0).([]*models.Duration), args.Error(1)
 }
 

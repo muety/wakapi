@@ -50,6 +50,7 @@ type IDurationRepository interface {
 	IBaseRepository
 	InsertBatch([]*models.Duration) error
 	GetAllWithin(time.Time, time.Time, *models.User) ([]*models.Duration, error)
+	GetAllWithinByFilters(time.Time, time.Time, *models.User, map[string][]string) ([]*models.Duration, error)
 	DeleteByUser(*models.User) error
 	DeleteByUserBefore(*models.User, time.Time) error
 }

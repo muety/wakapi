@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/duke-git/lancet/v2/slice"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
@@ -107,7 +106,7 @@ func (r *HeartbeatRepository) GetAllWithinByFilters(from, to time.Time, user *mo
 		Where("time >= ?", from.Local()).
 		Where("time < ?", to.Local()).
 		Order("time asc")
-	q = r.filteredQuery(q, filterMap)
+	q = filteredQuery(q, filterMap)
 
 	if err := q.Find(&heartbeats).Error; err != nil {
 		return nil, err
@@ -123,7 +122,7 @@ func (r *HeartbeatRepository) StreamAllWithinByFilters(from, to time.Time, user 
 		Where("time >= ?", from.Local()).
 		Where("time < ?", to.Local()).
 		Order("time asc")
-	q = r.filteredQuery(q, filterMap)
+	q = filteredQuery(q, filterMap)
 
 	rows, err := q.Rows()
 	if err != nil {
@@ -143,7 +142,7 @@ func (r *HeartbeatRepository) GetLatestByFilters(user *models.User, filterMap ma
 	q := r.db.
 		Where(&models.Heartbeat{UserID: user.ID}).
 		Order("time desc")
-	q = r.filteredQuery(q, filterMap)
+	q = filteredQuery(q, filterMap)
 
 	if err := q.Limit(1).Scan(&heartbeat).Error; err != nil {
 		return nil, err
@@ -336,17 +335,4 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 	}
 
 	return projectStats, nil
-}
-
-func (r *HeartbeatRepository) filteredQuery(q *gorm.DB, filterMap map[string][]string) *gorm.DB {
-	for col, vals := range filterMap {
-		q = q.Where(col+" in ?", slice.Map[string, string](vals, func(i int, val string) string {
-			// query for "unknown" projects, languages, etc.
-			if val == "-" {
-				return ""
-			}
-			return val
-		}))
-	}
-	return q
 }

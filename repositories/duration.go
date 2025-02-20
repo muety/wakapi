@@ -19,14 +19,23 @@ func NewDurationRepository(db *gorm.DB) *DurationRepository {
 
 // TODO: refactor to streaming these instead of fetching as a big batch
 func (r *DurationRepository) GetAllWithin(from, to time.Time, user *models.User) ([]*models.Duration, error) {
-	// https://stackoverflow.com/a/20765152/3112139
+	return r.GetAllWithinByFilters(from, to, user, map[string][]string{})
+}
+
+func (r *DurationRepository) GetAllWithinByFilters(from, to time.Time, user *models.User, filterMap map[string][]string) ([]*models.Duration, error) {
 	var durations []*models.Duration
-	if err := r.db.
+
+	q := r.db.
 		Where(&models.Duration{UserID: user.ID}).
 		Where("time >= ?", from.Local()).
 		Where("time < ?", to.Local()).
-		Order("time asc").
-		Find(&durations).Error; err != nil {
+		Order("time asc")
+
+	if len(filterMap) > 0 {
+		q = filteredQuery(q, filterMap)
+	}
+
+	if err := q.Find(&durations).Error; err != nil {
 		return nil, err
 	}
 	return durations, nil
