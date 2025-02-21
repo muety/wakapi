@@ -20,24 +20,26 @@ const heartbeatPadding = 0 * time.Second
 const generateDurationsInterval = 12 * time.Hour
 
 type DurationService struct {
-	config             *config.Config
-	eventBus           *hub.Hub
-	durationRepository repositories.IDurationRepository
-	heartbeatService   IHeartbeatService
-	userService        IUserService
-	lastUserJob        map[string]time.Time
-	queue              *artifex.Dispatcher
+	config                 *config.Config
+	eventBus               *hub.Hub
+	durationRepository     repositories.IDurationRepository
+	heartbeatService       IHeartbeatService
+	userService            IUserService
+	LanguageMappingService ILanguageMappingService
+	lastUserJob            map[string]time.Time
+	queue                  *artifex.Dispatcher
 }
 
-func NewDurationService(durationRepository repositories.IDurationRepository, heartbeatService IHeartbeatService, userService IUserService) *DurationService {
+func NewDurationService(durationRepository repositories.IDurationRepository, heartbeatService IHeartbeatService, userService IUserService, languageMappingService ILanguageMappingService) *DurationService {
 	srv := &DurationService{
-		config:             config.Get(),
-		eventBus:           config.EventBus(),
-		heartbeatService:   heartbeatService,
-		userService:        userService,
-		durationRepository: durationRepository,
-		lastUserJob:        make(map[string]time.Time),
-		queue:              config.GetQueue(config.QueueProcessing),
+		config:                 config.Get(),
+		eventBus:               config.EventBus(),
+		heartbeatService:       heartbeatService,
+		userService:            userService,
+		LanguageMappingService: languageMappingService,
+		durationRepository:     durationRepository,
+		lastUserJob:            make(map[string]time.Time),
+		queue:                  config.GetQueue(config.QueueProcessing),
 	}
 
 	// TODO: refactor to updating durations on-the-fly as heartbeats flow in, instead of batch-wise
@@ -55,23 +57,6 @@ func NewDurationService(durationRepository repositories.IDurationRepository, hea
 			}
 		}
 	}(&sub1)
-
-	sub2 := srv.eventBus.Subscribe(0, config.EventLanguageMappingsChanged)
-	go func(sub *hub.Subscription) {
-		for m := range sub.Receiver {
-			userId := m.Fields[config.FieldUserId].(string)
-			user, err := srv.userService.GetUserById(userId)
-			if err != nil {
-				config.Log().Error("user not found for regenerating durations after language mapping change", "user", userId)
-				continue
-			}
-
-			slog.Info("regenerating durations because language mappings were updated", "user", userId)
-			srv.queue.Dispatch(func() {
-				srv.Regenerate(user, true)
-			})
-		}
-	}(&sub2)
 
 	return srv
 }
@@ -95,7 +80,8 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 	// get cached
 	cached, err := srv.getCached(from, to, user, filters)
 	if err != nil {
-		return nil, err
+		config.Log().Error("failed to get cached durations", "user", user.ID, "from", from, "to", to, "error", err)
+		cached = models.Durations{}
 	}
 
 	// fill missing
@@ -167,11 +153,15 @@ func (srv *DurationService) RegenerateAll() {
 }
 
 func (srv *DurationService) getCached(from, to time.Time, user *models.User, filters *models.Filters) (models.Durations, error) {
+	languageMappings, err := srv.LanguageMappingService.ResolveByUser(user.ID)
+	if err != nil {
+		return nil, err
+	}
 	durations, err := srv.durationRepository.GetAllWithinByFilters(from, to, user, srv.filtersToColumnMap(filters))
 	if err != nil {
 		return nil, err
 	}
-	return models.Durations(durations).Sorted(), nil
+	return models.Durations(durations).Augmented(languageMappings).Sorted(), nil
 }
 
 func (srv *DurationService) getLive(from, to time.Time, user *models.User, interval time.Duration) (models.Durations, error) {

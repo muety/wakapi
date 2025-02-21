@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/cespare/xxhash/v2"
 	"github.com/gohugoio/hashstructure"
+	"github.com/muety/wakapi/models/lib"
 	"log/slog"
+	"strings"
 	"time"
 	"unicode"
 )
@@ -89,6 +91,19 @@ func (d *Duration) Hashed() *Duration {
 		slog.Error("CRITICAL ERROR: failed to hash struct", "error", err)
 	}
 	d.GroupHash = fmt.Sprintf("%x", hash)
+	return d
+}
+
+func (d *Duration) Augmented(languageMappings map[string]string) *Duration {
+	for ext, targetLang := range languageMappings {
+		langs, ok := lib.LanguagesByExtension["."+ext]
+		if !ok {
+			continue
+		}
+		if lang := langs[0]; strings.ToLower(d.Language) == strings.ToLower(lang) {
+			d.Language = targetLang
+		}
+	}
 	return d
 }
 

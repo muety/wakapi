@@ -44,3 +44,10 @@ func (d *Durations) Last() *Duration {
 	}
 	return (*d)[d.Len()-1]
 }
+
+func (d Durations) Augmented(languageMappings map[string]string) Durations {
+	for _, item := range d {
+		item.Augmented(languageMappings)
+	}
+	return d
+}

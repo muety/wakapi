@@ -38,13 +38,14 @@ const (
 
 type DurationServiceTestSuite struct {
 	suite.Suite
-	TestUser           *models.User
-	TestStartTime      time.Time
-	TestHeartbeats     []*models.Heartbeat
-	TestLabels         []*models.ProjectLabel
-	DurationRepository *mocks.DurationRepositoryMock
-	HeartbeatService   *mocks.HeartbeatServiceMock
-	UserService        *mocks.UserServiceMock
+	TestUser               *models.User
+	TestStartTime          time.Time
+	TestHeartbeats         []*models.Heartbeat
+	TestLabels             []*models.ProjectLabel
+	DurationRepository     *mocks.DurationRepositoryMock
+	HeartbeatService       *mocks.HeartbeatServiceMock
+	UserService            *mocks.UserServiceMock
+	LanguageMappingService *mocks.LanguageMappingServiceMock
 }
 
 func (suite *DurationServiceTestSuite) SetupSuite() {
@@ -131,6 +132,9 @@ func (suite *DurationServiceTestSuite) BeforeTest(suiteName, testName string) {
 	suite.DurationRepository = new(mocks.DurationRepositoryMock)
 	suite.HeartbeatService = new(mocks.HeartbeatServiceMock)
 	suite.UserService = new(mocks.UserServiceMock)
+	suite.LanguageMappingService = new(mocks.LanguageMappingServiceMock)
+
+	suite.LanguageMappingService.On("ResolveByUser", suite.TestUser.ID).Return(make(map[string]string), nil)
 }
 
 func TestDurationServiceTestSuite(t *testing.T) {
@@ -139,7 +143,7 @@ func TestDurationServiceTestSuite(t *testing.T) {
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 	// https://anchr.io/i/F0HEK.jpg
-	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService)
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
 
 	var (
 		from      time.Time
@@ -188,7 +192,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered() {
-	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService)
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
 
 	var (
 		from      time.Time
@@ -211,7 +215,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered() {
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
-	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService)
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
 
 	var (
 		from      time.Time
@@ -267,7 +271,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_Cached() {
-	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService)
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
 
 	var (
 		from      time.Time
@@ -309,7 +313,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Cached() {
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomInterval() {
-	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService)
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
 
 	var (
 		from      time.Time
@@ -327,6 +331,34 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomInterval() 
 	assert.Nil(suite.T(), err)
 	assert.Len(suite.T(), durations, 2)
 	assert.Empty(suite.T(), suite.DurationRepository.Calls)
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_Get_WithLanguageMapping() {
+	suite.LanguageMappingService.ExpectedCalls[0].Unset()
+	suite.LanguageMappingService.On("ResolveByUser", suite.TestUser.ID).Return(map[string]string{"go": "Golang"}, nil)
+
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
+
+	var (
+		from      time.Time
+		to        time.Time
+		durations models.Durations
+		err       error
+	)
+
+	testDurations := []*models.Duration{
+		models.NewDurationFromHeartbeat(suite.TestHeartbeats[0]),
+	}
+
+	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Hour)
+	suite.DurationRepository.On("GetAllWithinByFilters", from, to, suite.TestUser, mock.Anything).Return(testDurations, nil)
+	suite.HeartbeatService.On("StreamAllWithin", mock.Anything, mock.Anything, suite.TestUser).Return(streamSlice([]*models.Heartbeat{}), nil)
+
+	durations, err = sut.Get(from, to, suite.TestUser, nil, nil, false)
+
+	assert.Nil(suite.T(), err)
+	assert.Len(suite.T(), durations, 1)
+	assert.Equal(suite.T(), "Golang", durations.First().Language)
 }
 
 func filterHeartbeats(from, to time.Time, heartbeats []*models.Heartbeat) []*models.Heartbeat {
