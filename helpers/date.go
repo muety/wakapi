@@ -3,6 +3,7 @@ package helpers
 import (
 	"fmt"
 	"github.com/muety/wakapi/config"
+	"strings"
 	"time"
 )
 
@@ -34,6 +35,14 @@ func FormatDateTime(date time.Time) string {
 
 func FormatDateTimeHuman(date time.Time) string {
 	return date.Format(config.Get().App.DateTimeFormat)
+}
+
+func FormatDateTimeHumanTZ(date time.Time) string {
+	format := config.Get().App.DateTimeFormat
+	if !strings.HasSuffix(format, "MST") {
+		format += " MST"
+	}
+	return date.Format(format)
 }
 
 func FormatDateHuman(date time.Time) string {

@@ -87,7 +87,7 @@
                 </li>
                 {{ end }}
             </ol>
-            <p class="text-sm pt-8">Last Updated: {{ .LastUpdate | datetime }}</p>
+            <p class="text-sm pt-8">Last Updated: {{ .LastUpdate | datetimetz }}</p>
             {{ else }}
             <p>
                 <span class="iconify inline text-white text-base" data-icon="twemoji:frowning-face"></span>&nbsp;

@@ -24,6 +24,7 @@ func DefaultTemplateFuncs() template.FuncMap {
 		"json":           utils.Json,
 		"date":           helpers.FormatDateHuman,
 		"datetime":       helpers.FormatDateTimeHuman,
+		"datetimetz":     helpers.FormatDateTimeHumanTZ,
 		"simpledate":     helpers.FormatDate,
 		"simpledatetime": helpers.FormatDateTime,
 		"duration":       helpers.FmtWakatimeDuration,

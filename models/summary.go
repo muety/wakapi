@@ -33,8 +33,8 @@ type Summary struct {
 	ID       uint       `json:"-" gorm:"primary_key; size:32"`
 	User     *User      `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	UserID   string     `json:"user_id" gorm:"not null; index:idx_time_summary_user"`
-	FromTime CustomTime `json:"from" gorm:"not null; default:CURRENT_TIMESTAMP; index:idx_time_summary_user" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
-	ToTime   CustomTime `json:"to" gorm:"not null; default:CURRENT_TIMESTAMP; index:idx_time_summary_user" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	FromTime CustomTime `json:"from" gorm:"not null; index:idx_time_summary_user" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"` // filled by gorm if not set, see https://gorm.io/docs/conventions.html#CreatedAt
+	ToTime   CustomTime `json:"to" gorm:"not null; index:idx_time_summary_user" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`   // filled by gorm if not set, see https://gorm.io/docs/conventions.html#CreatedAt
 
 	// Previously, all the following properties created a cascade foreign key constraint on the summary_items table
 	// back to this summary table resulting in 5 identical foreign key constraints on the summary_items table.

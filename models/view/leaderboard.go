@@ -48,5 +48,9 @@ func (s *LeaderboardViewModel) LangIcon(lang string) string {
 }
 
 func (s *LeaderboardViewModel) LastUpdate() time.Time {
-	return models.Leaderboard(s.Items).LastUpdate()
+	tz := time.Local
+	if s.User != nil {
+		tz = s.User.TZ()
+	}
+	return models.Leaderboard(s.Items).LastUpdate().In(tz)
 }
