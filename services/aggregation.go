@@ -48,13 +48,13 @@ type AggregationJob struct {
 	To   time.Time
 }
 
-// Schedule a job to (re-)Regenerate summaries every day shortly after midnight
+// Schedule a job to (re-)generate summaries every day shortly after midnight
 func (srv *AggregationService) Schedule() {
 	slog.Info("scheduling summary aggregation")
 
 	if _, err := srv.queueDefault.DispatchCron(func() {
 		if err := srv.AggregateSummaries(datastructure.New[string]()); err != nil {
-			config.Log().Error("failed to Regenerate summaries", "error", err)
+			config.Log().Error("failed to regenerate summaries", "error", err)
 		}
 	}, srv.config.App.GetAggregationTimeCron()); err != nil {
 		config.Log().Error("failed to schedule summary generation", "error", err)
@@ -65,7 +65,7 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 	if err := srv.lockUsers(userIds); err != nil {
 		return err
 	}
-	defer srv.unlockUsers(userIds) // TODO: does this make sense, since aggregation works in the background anyway?
+	defer srv.unlockUsers(userIds)
 
 	slog.Info("generating summaries", "num_users", len(userIds))
 
@@ -91,7 +91,6 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 
 	// Dispatch summary generation jobs
 	jobs := make(chan *AggregationJob)
-	defer close(jobs)
 	go func() {
 		for jobRef := range jobs {
 			job := *jobRef
@@ -122,21 +121,28 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 
 		u, _ := users[e.User]
 
-		if e.Time.Valid() {
-			// Case 1: User has aggregated summaries already
-			// -> Spawn jobs to create summaries from their latest aggregation to now
-			slog.Info("generating summary aggregation jobs for user", "user", u.ID, "from", e.Time.T())
-			generateUserJobs(u, e.Time.T(), jobs)
-		} else if t := firstUserHeartbeatLookup[e.User]; t.Valid() {
-			// Case 2: User has no aggregated summaries, yet, but has heartbeats
-			// -> Spawn jobs to create summaries from their first heartbeat to now
-			slog.Info("generating summary aggregation jobs for user", "user", u.ID, "from", t.T())
-			generateUserJobs(u, t.T(), jobs)
-		} else {
-			// Case 3: User doesn't have heartbeats at all
-			// -> Nothing to do
-			slog.Info("skipping summary aggregation because user has no heartbeats", "user", u.ID)
-		}
+		srv.queueWorkers.Dispatch(func() {
+			defer close(jobs)
+
+			slog.Info("regenerating user durations as part of summary aggregation", "user", u.ID)
+			srv.durationService.Regenerate(u, true)
+
+			if e.Time.Valid() {
+				// Case 1: User has aggregated summaries already
+				// -> Spawn jobs to create summaries from their latest aggregation to now
+				slog.Info("generating summary aggregation jobs for user", "user", u.ID, "from", e.Time.T())
+				generateUserJobs(u, e.Time.T(), jobs)
+			} else if t := firstUserHeartbeatLookup[e.User]; t.Valid() {
+				// Case 2: User has no aggregated summaries, yet, but has heartbeats
+				// -> Spawn jobs to create summaries from their first heartbeat to now
+				slog.Info("generating summary aggregation jobs for user", "user", u.ID, "from", t.T())
+				generateUserJobs(u, t.T(), jobs)
+			} else {
+				// Case 3: User doesn't have heartbeats at all
+				// -> Nothing to do
+				slog.Info("skipping summary aggregation because user has no heartbeats", "user", u.ID)
+			}
+		})
 	}
 
 	return nil
@@ -146,7 +152,7 @@ func (srv *AggregationService) AggregateDurations(userIds datastructure.Set[stri
 	if err := srv.lockUsers(userIds); err != nil {
 		return err
 	}
-	defer srv.unlockUsers(userIds) // TODO: does this make sense, since aggregation works in the background anyway?
+	defer srv.unlockUsers(userIds)
 
 	slog.Info("generating durations", "num_users", len(userIds))
 
@@ -172,8 +178,10 @@ func (srv *AggregationService) AggregateDurations(userIds datastructure.Set[stri
 }
 
 func (srv *AggregationService) process(job AggregationJob) {
+	// process single summary interval for single user
+	slog.Info("regenerating actual user summaries as part of summary aggregation", "user", job.User.ID, "from", job.From, "to", job.To)
 	if summary, err := srv.summaryService.Summarize(job.From, job.To, job.User, nil); err != nil {
-		config.Log().Error("failed to Regenerate summary", "from", job.From, "to", job.To, "userID", job.User.ID, "error", err)
+		config.Log().Error("failed to regenerate summary", "from", job.From, "to", job.To, "userID", job.User.ID, "error", err)
 	} else {
 		slog.Info("successfully generated summary", "from", job.From, "to", job.To, "userID", job.User.ID)
 		if err := srv.summaryService.Insert(summary); err != nil {

@@ -52,8 +52,6 @@ type IDurationRepository interface {
 	GetAllWithin(time.Time, time.Time, *models.User) ([]*models.Duration, error)
 	GetAllWithinByFilters(time.Time, time.Time, *models.User, map[string][]string) ([]*models.Duration, error)
 	GetLatestByUser(*models.User) (*models.Duration, error)
-	StreamAllWithin(time.Time, time.Time, *models.User) (chan *models.Duration, error)
-	StreamAllWithinByFilters(time.Time, time.Time, *models.User, map[string][]string) (chan *models.Duration, error)
 	DeleteByUser(*models.User) error
 	DeleteByUserBefore(*models.User, time.Time) error
 }

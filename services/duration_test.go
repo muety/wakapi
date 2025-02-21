@@ -152,7 +152,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(-1*time.Minute)
 	suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 
-	durations, err = sut.Get(from, to, suite.TestUser, nil, true)
+	durations, err = sut.Get(from, to, suite.TestUser, nil, nil, true)
 
 	assert.Nil(suite.T(), err)
 	assert.Empty(suite.T(), durations)
@@ -161,7 +161,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Second)
 	suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 
-	durations, err = sut.Get(from, to, suite.TestUser, nil, true)
+	durations, err = sut.Get(from, to, suite.TestUser, nil, nil, true)
 
 	assert.Nil(suite.T(), err)
 	assert.Len(suite.T(), durations, 1)
@@ -172,7 +172,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 	from, to = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
 	suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 
-	durations, err = sut.Get(from, to, suite.TestUser, nil, true)
+	durations, err = sut.Get(from, to, suite.TestUser, nil, nil, true)
 
 	assert.Nil(suite.T(), err)
 	assert.Len(suite.T(), durations, 3)
@@ -200,7 +200,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered() {
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Hour)
 	suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 
-	durations, err = sut.Get(from, to, suite.TestUser, models.NewFiltersWith(models.SummaryEditor, TestEditorGoland), true)
+	durations, err = sut.Get(from, to, suite.TestUser, models.NewFiltersWith(models.SummaryEditor, TestEditorGoland), nil, true)
 	assert.Nil(suite.T(), err)
 	assert.Len(suite.T(), durations, 2)
 	assert.Equal(suite.T(), 30*time.Second, durations[0].Duration)
@@ -228,7 +228,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 	/* Test 1 */
 	call1 := suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 	suite.TestUser.HeartbeatsTimeoutSec = 60
-	durations, _ = sut.Get(from, to, suite.TestUser, nil, true)
+	durations, _ = sut.Get(from, to, suite.TestUser, nil, nil, true)
 
 	assert.Len(suite.T(), durations, 3)
 	assert.Equal(suite.T(), 30*time.Second, durations[0].Duration)
@@ -242,7 +242,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 	/* Test 2 */
 	call2 := suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 	suite.TestUser.HeartbeatsTimeoutSec = 130
-	durations, _ = sut.Get(from, to, suite.TestUser, nil, true)
+	durations, _ = sut.Get(from, to, suite.TestUser, nil, nil, true)
 
 	assert.Len(suite.T(), durations, 3)
 	assert.Equal(suite.T(), 30*time.Second, durations[0].Duration)
@@ -256,7 +256,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 	/* Test 3 */
 	call3 := suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 	suite.TestUser.HeartbeatsTimeoutSec = 140
-	durations, _ = sut.Get(from, to, suite.TestUser, nil, true)
+	durations, _ = sut.Get(from, to, suite.TestUser, nil, nil, true)
 
 	assert.Len(suite.T(), durations, 2)
 	assert.Equal(suite.T(), 180*time.Second, durations[0].Duration)
@@ -296,7 +296,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Cached() {
 	suite.DurationRepository.On("GetAllWithinByFilters", from, to, suite.TestUser, mock.Anything).Return(testDurations, nil)
 	suite.HeartbeatService.On("StreamAllWithin", toCached, to, suite.TestUser).Return(streamSlice(filterHeartbeats(toCached, to, suite.TestHeartbeats)), nil)
 
-	durations, err = sut.Get(from, to, suite.TestUser, nil, false)
+	durations, err = sut.Get(from, to, suite.TestUser, nil, nil, false)
 
 	assert.Nil(suite.T(), err)
 	assert.Len(suite.T(), durations, 3)
@@ -306,6 +306,27 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Cached() {
 	assert.Equal(suite.T(), 3, durations[0].NumHeartbeats)
 	assert.Equal(suite.T(), 1, durations[1].NumHeartbeats)
 	assert.Equal(suite.T(), 3, durations[2].NumHeartbeats)
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomInterval() {
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService)
+
+	var (
+		from      time.Time
+		to        time.Time
+		durations models.Durations
+		err       error
+	)
+
+	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Hour)
+	suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
+
+	customInterval := 15 * time.Minute
+	durations, err = sut.Get(from, to, suite.TestUser, nil, &customInterval, false)
+
+	assert.Nil(suite.T(), err)
+	assert.Len(suite.T(), durations, 2)
+	assert.Empty(suite.T(), suite.DurationRepository.Calls)
 }
 
 func filterHeartbeats(from, to time.Time, heartbeats []*models.Heartbeat) []*models.Heartbeat {

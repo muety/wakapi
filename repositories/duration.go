@@ -50,37 +50,6 @@ func (r *DurationRepository) GetLatestByUser(user *models.User) (*models.Duratio
 	return duration, err
 }
 
-// note: streaming is only sensible if results are aggregated in some way in the calling function, otherwise we'll end up with an entire list anyway
-
-func (r *DurationRepository) StreamAllWithin(from, to time.Time, user *models.User) (chan *models.Duration, error) {
-	return r.StreamAllWithinByFilters(from, to, user, map[string][]string{})
-}
-
-func (r *DurationRepository) StreamAllWithinByFilters(from, to time.Time, user *models.User, filterMap map[string][]string) (chan *models.Duration, error) {
-	out := make(chan *models.Duration)
-
-	q := r.db.
-		Where(&models.Duration{UserID: user.ID}).
-		Where("time >= ?", from.Local()).
-		Where("time < ?", to.Local()).
-		Order("time asc")
-
-	if len(filterMap) > 0 {
-		q = filteredQuery(q, filterMap)
-	}
-
-	rows, err := r.db.Rows()
-	if err != nil {
-		return nil, err
-	}
-
-	go streamRows[models.Duration](rows, out, r.db, func(err error) {
-		conf.Log().Error("failed to scan duration row", "user", user.ID, "from", from, "to", to, "error", err, "filters", filterMap)
-	})
-
-	return out, nil
-}
-
 func (r *DurationRepository) InsertBatch(durations []*models.Duration) error {
 	return InsertBatchChunked[*models.Duration](durations, &models.Duration{}, r.db)
 }

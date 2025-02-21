@@ -114,7 +114,7 @@ func (s *ActivityService) getChartPastYear(user *models.User, darkTheme, hideAtt
 		h            float64 = gridRows*cellHeight + 25 + 24 + 5 + 5 + gridRows*cellSpacing
 	)
 
-	// Regenerate svg
+	// regenerate svg
 	buf := &bytes.Buffer{}
 
 	canvas := svg.New(buf)

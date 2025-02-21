@@ -58,10 +58,16 @@ func NewDurationService(durationRepository repositories.IDurationRepository, hea
 	return srv
 }
 
-func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *models.Filters, skipCache bool) (durations models.Durations, err error) {
+func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *models.Filters, customInterval *time.Duration, skipCache bool) (durations models.Durations, err error) {
+	// note about "multi-level" durations at different intervals:
+	// while durations themselves store the interval (aka. heartbeats timeout) they were computed for, we currently don't support actually storing durations at different intervals
+	// if an interval different from the user's preference is requested, recompute durations live from heartbeats and skip cache
+	effectiveInterval := srv.getEffectiveInterval(user, customInterval)
+	skipCache = skipCache || effectiveInterval != user.HeartbeatsTimeout()
+
 	// recompute live
 	if skipCache {
-		durations, err = srv.getLive(from, to, user)
+		durations, err = srv.getLive(from, to, user, effectiveInterval)
 		if err != nil {
 			return nil, err
 		}
@@ -82,7 +88,7 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 			from = cached.Last().TimeEnd().Add(time.Second)
 		}
 
-		missing, err := srv.getLive(from, to, user)
+		missing, err := srv.getLive(from, to, user, effectiveInterval)
 		if err != nil {
 			return nil, err
 		}
@@ -96,15 +102,15 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 }
 
 func (srv *DurationService) Regenerate(user *models.User, forceAll bool) {
-	slog.Info("generating ephemeral durations for user up until now", "user", user.ID)
-
 	var from time.Time
 	latest, err := srv.durationRepository.GetLatestByUser(user)
-	if err == nil && latest != nil {
+	if err == nil && latest != nil && !forceAll {
 		from = latest.TimeEnd()
 	}
 
-	durations, err := srv.Get(from, time.Now(), user, nil, forceAll)
+	slog.Info("generating ephemeral durations for user up until now", "user", user.ID, "from", from)
+
+	durations, err := srv.Get(from, time.Now(), user, nil, nil, forceAll)
 	if err != nil {
 		config.Log().Error("failed to regenerate ephemeral durations for user up until now", "user", user.ID, "error", err)
 		return
@@ -150,8 +156,8 @@ func (srv *DurationService) getCached(from, to time.Time, user *models.User, fil
 	return models.Durations(durations).Sorted(), nil
 }
 
-func (srv *DurationService) getLive(from, to time.Time, user *models.User) (models.Durations, error) {
-	heartbeatsTimeout := user.HeartbeatsTimeout()
+func (srv *DurationService) getLive(from, to time.Time, user *models.User, interval time.Duration) (models.Durations, error) {
+	heartbeatsTimeout := interval
 
 	heartbeats, err := srv.heartbeatService.StreamAllWithin(from, to, user)
 	if err != nil {
@@ -170,7 +176,11 @@ func (srv *DurationService) getLive(from, to time.Time, user *models.User) (mode
 	mapping := make(map[string][]*models.Duration)
 
 	for h := range heartbeats {
-		d1 := models.NewDurationFromHeartbeat(h).WithEntityIgnored().Hashed()
+		if h.User == nil {
+			h.User = user
+		}
+
+		d1 := models.NewDurationFromHeartbeat(h).WithEntityIgnored().AtInterval(interval).Hashed()
 
 		// initialize map entry
 		if list, ok := mapping[d1.GroupHash]; !ok || len(list) < 1 {
@@ -289,4 +299,11 @@ func (srv *DurationService) filtersToColumnMap(filters *models.Filters) map[stri
 	}
 
 	return columnMap
+}
+
+func (r *DurationService) getEffectiveInterval(user *models.User, overrideInterval *time.Duration) time.Duration {
+	if overrideInterval == nil {
+		return user.HeartbeatsTimeout()
+	}
+	return *overrideInterval
 }

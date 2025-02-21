@@ -25,6 +25,7 @@ type Duration struct {
 	Entity          string        `json:"Entity"`
 	NumHeartbeats   int           `json:"-" hash:"ignore"`
 	GroupHash       string        `json:"-" hash:"ignore" gorm:"type:varchar(17)"`
+	Interval        time.Duration `json:"-" gorm:"not null; default:600000000000"` // heartbeat timeout preference, see DefaultHeartbeatsTimeout
 	excludeEntity   bool          `json:"-" hash:"ignore"`
 }
 
@@ -41,6 +42,7 @@ func (d *Duration) HashInclude(field string, v interface{}) (bool, error) {
 		field == "NumHeartbeats" ||
 		field == "GroupHash" ||
 		field == "ID" ||
+		field == "Interval" ||
 		unicode.IsLower(rune(field[0])) {
 		return false, nil
 	}
@@ -48,6 +50,11 @@ func (d *Duration) HashInclude(field string, v interface{}) (bool, error) {
 }
 
 func NewDurationFromHeartbeat(h *Heartbeat) *Duration {
+	var interval = DefaultHeartbeatsTimeout
+	if h.User != nil && h.User.HeartbeatsTimeout() > 0 {
+		interval = h.User.HeartbeatsTimeout()
+	}
+
 	d := &Duration{
 		UserID:          h.UserID,
 		Time:            h.Time,
@@ -61,12 +68,18 @@ func NewDurationFromHeartbeat(h *Heartbeat) *Duration {
 		Branch:          h.Branch,
 		Entity:          h.Entity,
 		NumHeartbeats:   1,
+		Interval:        interval,
 	}
 	return d
 }
 
 func (d *Duration) WithEntityIgnored() *Duration {
 	d.excludeEntity = true
+	return d
+}
+
+func (d *Duration) AtInterval(interval time.Duration) *Duration {
+	d.Interval = interval
 	return d
 }
 
