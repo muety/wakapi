@@ -98,15 +98,26 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 func (srv *DurationService) Regenerate(user *models.User, forceAll bool) {
 	slog.Info("generating ephemeral durations for user up until now", "user", user.ID)
 
-	durations, err := srv.Get(time.Time{}, time.Now(), user, nil, forceAll)
-	if err != nil {
-		config.Log().Error("failed to Regenerate ephemeral durations for user up until now", "user", user.ID, "error", err)
-		return
+	var from time.Time
+	latest, err := srv.durationRepository.GetLatestByUser(user)
+	if err == nil && latest != nil {
+		from = latest.TimeEnd()
 	}
 
-	if err := srv.durationRepository.DeleteByUser(user); err != nil {
-		config.Log().Error("failed to delete old durations while generating ephemeral new ones", "user", user.ID, "error", err)
+	durations, err := srv.Get(from, time.Now(), user, nil, forceAll)
+	if err != nil {
+		config.Log().Error("failed to regenerate ephemeral durations for user up until now", "user", user.ID, "error", err)
 		return
+	}
+	if len(durations) > 0 && durations[0].Time.T().Before(from) && !forceAll {
+		config.Log().Warn("got generated duration before requested min date", "user", user.ID, "time", durations[0].Time.T(), "group_hash", durations[0].GroupHash, "min_date", from)
+	}
+
+	if forceAll {
+		if err := srv.durationRepository.DeleteByUser(user); err != nil {
+			config.Log().Error("failed to delete old durations while generating ephemeral new ones", "user", user.ID, "error", err)
+			return
+		}
 	}
 
 	if err := srv.durationRepository.InsertBatch(durations); err != nil {

@@ -40,6 +40,16 @@ func (r *DurationRepository) GetAllWithinByFilters(from, to time.Time, user *mod
 	return durations, nil
 }
 
+func (r *DurationRepository) GetLatestByUser(user *models.User) (*models.Duration, error) {
+	var duration *models.Duration
+	err := r.db.
+		Where(&models.Duration{UserID: user.ID}).
+		Order("time desc").
+		First(&duration).
+		Error
+	return duration, err
+}
+
 // note: streaming is only sensible if results are aggregated in some way in the calling function, otherwise we'll end up with an entire list anyway
 
 func (r *DurationRepository) StreamAllWithin(from, to time.Time, user *models.User) (chan *models.Duration, error) {

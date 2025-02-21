@@ -26,6 +26,11 @@ func (m *DurationRepositoryMock) GetAllWithinByFilters(t time.Time, t2 time.Time
 	return args.Get(0).([]*models.Duration), args.Error(1)
 }
 
+func (m *DurationRepositoryMock) GetLatestByUser(u *models.User) (*models.Duration, error) {
+	args := m.Called(u)
+	return args.Get(0).(*models.Duration), args.Error(1)
+}
+
 func (m *DurationRepositoryMock) StreamAllWithin(t time.Time, t2 time.Time, u *models.User) (chan *models.Duration, error) {
 	args := m.Called(t, t2, u)
 	return args.Get(0).(chan *models.Duration), args.Error(1)
