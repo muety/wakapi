@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
@@ -12,12 +13,14 @@ import (
 type LanguageMappingService struct {
 	config     *config.Config
 	cache      *cache.Cache
+	eventBus   *hub.Hub
 	repository repositories.ILanguageMappingRepository
 }
 
 func NewLanguageMappingService(languageMappingsRepo repositories.ILanguageMappingRepository) *LanguageMappingService {
 	return &LanguageMappingService{
 		config:     config.Get(),
+		eventBus:   config.EventBus(),
 		repository: languageMappingsRepo,
 		cache:      cache.New(24*time.Hour, 24*time.Hour),
 	}
@@ -60,6 +63,7 @@ func (srv *LanguageMappingService) Create(mapping *models.LanguageMapping) (*mod
 	}
 
 	srv.cache.Delete(result.UserID)
+	srv.notifyUpdate(mapping)
 	return result, nil
 }
 
@@ -69,10 +73,19 @@ func (srv *LanguageMappingService) Delete(mapping *models.LanguageMapping) error
 	}
 	err := srv.repository.Delete(mapping.ID)
 	srv.cache.Delete(mapping.UserID)
+	srv.notifyUpdate(mapping)
 	return err
 }
 
 func (srv *LanguageMappingService) getServerMappings() map[string]string {
 	// https://dave.cheney.net/2017/04/30/if-a-map-isnt-a-reference-variable-what-is-it
 	return srv.config.App.GetCustomLanguages()
+}
+
+func (srv *LanguageMappingService) notifyUpdate(mapping *models.LanguageMapping) {
+	name := config.EventLanguageMappingsChanged
+	srv.eventBus.Publish(hub.Message{
+		Name:   name,
+		Fields: map[string]interface{}{config.FieldPayload: mapping, config.FieldUserId: mapping.UserID},
+	})
 }

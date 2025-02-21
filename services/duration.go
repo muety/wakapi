@@ -56,6 +56,23 @@ func NewDurationService(durationRepository repositories.IDurationRepository, hea
 		}
 	}(&sub1)
 
+	sub2 := srv.eventBus.Subscribe(0, config.EventLanguageMappingsChanged)
+	go func(sub *hub.Subscription) {
+		for m := range sub.Receiver {
+			userId := m.Fields[config.FieldUserId].(string)
+			user, err := srv.userService.GetUserById(userId)
+			if err != nil {
+				config.Log().Error("user not found for regenerating durations after language mapping change", "user", userId)
+				continue
+			}
+
+			slog.Info("regenerating durations because language mappings were updated", "user", userId)
+			srv.queue.Dispatch(func() {
+				srv.Regenerate(user, true)
+			})
+		}
+	}(&sub2)
+
 	return srv
 }
 

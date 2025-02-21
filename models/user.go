@@ -144,6 +144,10 @@ func (u *User) HeartbeatsTimeout() time.Duration {
 	return DefaultHeartbeatsTimeout
 }
 
+func (u *User) HeartbeatsTimeoutMin() int {
+	return int(u.HeartbeatsTimeout() / time.Minute)
+}
+
 // WakaTimeURL returns the user's effective WakaTime URL, i.e. a custom one (which could also point to another Wakapi instance) or fallback if not specified otherwise.
 func (u *User) WakaTimeURL(fallback string) string {
 	if u.WakatimeApiUrl != "" {

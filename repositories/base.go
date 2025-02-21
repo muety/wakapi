@@ -51,7 +51,7 @@ func InsertBatchChunked[T any](data []T, model T, db *gorm.DB) error {
 	return db.Transaction(func(tx *gorm.DB) error {
 		chunks := slice.Chunk[T](data, chunkSize)
 		for _, chunk := range chunks {
-			if err := insertBatch[T](chunk, model, db); err != nil {
+			if err := insertBatch[T](chunk, model, tx); err != nil {
 				return err
 			}
 		}
