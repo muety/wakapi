@@ -6,6 +6,7 @@ import (
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/maputil"
 	"github.com/duke-git/lancet/v2/slice"
+	"github.com/duke-git/lancet/v2/tuple"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
@@ -62,7 +63,7 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 	// note about "multi-level" durations at different intervals:
 	// while durations themselves store the interval (aka. heartbeats timeout) they were computed for, we currently don't support actually storing durations at different intervals
 	// if an interval different from the user's preference is requested, recompute durations live from heartbeats and skip cache
-	effectiveInterval := srv.getEffectiveInterval(user, customInterval)
+	effectiveInterval := getEffectiveInterval(user, customInterval)
 	skipCache = skipCache || effectiveInterval != user.HeartbeatsTimeout()
 
 	// recompute live
@@ -174,6 +175,7 @@ func (srv *DurationService) getLive(from, to time.Time, user *models.User, inter
 	var latest *models.Duration
 
 	mapping := make(map[string][]*models.Duration)
+	entityDurations := make(map[tuple.Tuple2[string, string]]time.Duration)
 
 	for h := range heartbeats {
 		if h.User == nil {
@@ -210,6 +212,14 @@ func (srv *DurationService) getLive(from, to time.Time, user *models.User, inter
 			latest = d1
 		} else {
 			latest.NumHeartbeats++
+			// TODO: think about how to fix this properly
+			// Problem: we don't consider entities (aka. file names) when distinguishing between durations, that is, in other words,
+			// durations essentially aggregate heartbeats by (a) by time (squash all heartbeats within <heartbeatsTimeout> and (b) by entity.
+			// This conflicts with file-level summaries (as shown on the project details page), because fine-grained file information is lost.
+			// As a heuristic, for each duration we keep the file (entity) that was "most prominent" (i.e. was coded on most) with the duration.
+			// However, when you code for 10 minutes straight, where you work 6 minutes on file A and 4 minutes on file B, the latter still won't show up in the summary at all.
+			// This is a tricky trade-off, because if we changed durations to respect entities as well, we'd end up with much higher cardinality, thus much less "compression" in comparison to raw heartbeats and thus higher compute- and storage load.
+			latest = updateDurationEntity(latest, h, entityDurations) // dirty hack
 		}
 
 		count++
@@ -301,9 +311,26 @@ func (srv *DurationService) filtersToColumnMap(filters *models.Filters) map[stri
 	return columnMap
 }
 
-func (r *DurationService) getEffectiveInterval(user *models.User, overrideInterval *time.Duration) time.Duration {
+func getEffectiveInterval(user *models.User, overrideInterval *time.Duration) time.Duration {
 	if overrideInterval == nil {
 		return user.HeartbeatsTimeout()
 	}
 	return *overrideInterval
+}
+
+func updateDurationEntity(d *models.Duration, h *models.Heartbeat, entityDurations map[tuple.Tuple2[string, string]]time.Duration) *models.Duration {
+	// check if total time for the entity of the given heartbeat exceeds the duration's entity's total time
+	// if yes, update duration entity so that it always reflect the "most prominent" entity of this group
+	key1 := tuple.NewTuple2(d.GroupHash, h.Entity)
+	key2 := tuple.NewTuple2(d.GroupHash, d.Entity)
+	if _, ok := entityDurations[key1]; !ok {
+		entityDurations[key1] = time.Duration(0)
+	}
+	entityDurations[key1] += d.Duration
+	dur1 := entityDurations[key1]
+	dur2 := entityDurations[key2]
+	if dur1 > dur2 {
+		d.Entity = h.Entity
+	}
+	return d
 }
