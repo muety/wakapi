@@ -3036,6 +3036,16 @@
 										],
 										"type": "text/javascript"
 									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"setTimeout(() => {}, 1000)"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
 								}
 							],
 							"protocolProfileBehavior": {

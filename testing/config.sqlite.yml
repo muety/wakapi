@@ -27,7 +27,7 @@ db:
   name: wakapi_testing.db
   dialect: sqlite3
   charset:
-  max_conn: 2
+  max_conn: 1
   ssl: false
   automgirate_fail_silently: false
 
