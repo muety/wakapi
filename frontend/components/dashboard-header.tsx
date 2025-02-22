@@ -31,14 +31,14 @@ export function DashboardHeader() {
             {pathnameParts
               .slice(0, pathnameParts.length - 1)
               .map((part, index) => (
-                <>
-                  <BreadcrumbItem key={index}>
+                <div className="flex items-center align-center" key={index}>
+                  <BreadcrumbItem>
                     <BreadcrumbLink href={`/${part}`}>
                       {capitalize(part.replace(/-/g, " "))}
                     </BreadcrumbLink>
                   </BreadcrumbItem>
                   <BreadcrumbSeparator className="hidden md:block" />
-                </>
+                </div>
               ))}
             <BreadcrumbItem className="font-extrabold">
               <BreadcrumbPage>{currentPageTitle}</BreadcrumbPage>
