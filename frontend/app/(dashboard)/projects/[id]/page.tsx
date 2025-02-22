@@ -1,12 +1,13 @@
 import { format, subDays } from "date-fns";
+import { startCase } from "lodash";
 import Image from "next/image";
 
 import { fetchData, getSession } from "@/actions";
-import { ProjectBreadCrumb } from "@/components/bread-crumbs";
 import { ActivityCategoriesChart } from "@/components/charts/ActivityCategoriesChart";
 import { DailyCodingSummaryLineChart } from "@/components/charts/DailyCodingSummaryLineChart";
 import { WPieChart } from "@/components/charts/WPieChart";
 import { DashboardPeriodSelector } from "@/components/dashboard-period-selector";
+import FileActivityBubble from "@/components/file-activity-bubble-chart";
 import { ProjectFiles } from "@/components/ProjectFiles";
 import { SummariesApiResponse } from "@/lib/types";
 import { makePieChartDataFromRawApiResponse } from "@/lib/utils";
@@ -17,6 +18,10 @@ interface iProps {
   searchParams: Record<string, any>;
   params: { id: string };
 }
+
+const prepareEntitiesData = (data: any[], field: string) => {
+  return data.reduce((prev: any[], curr) => [...prev, ...curr[field]], []);
+};
 
 export default async function ProjectDetailPage({
   params,
@@ -40,14 +45,9 @@ export default async function ProjectDetailPage({
     <div className="my-6">
       {durationData && !(durationData instanceof Error) && (
         <main>
-          <div className="flex items-center justify-between align-middle">
-            <ProjectBreadCrumb projectId={params.id} />
+          <div className="flex items-center justify-between align-middle mb-4">
+            <h1 className="text-3xl font-bold">{startCase(params.id)}</h1>
             <div>
-              {/* <img
-                className="with-url-src"
-                src={`${NEXT_PUBLIC_API_URL}/api/badge/${session.user.id}/project:${params.id}/interval:all_time?label=total&token=${session.token}`}
-                alt="Badge"
-              /> */}
               <Image
                 className="with-url-src"
                 src={`${NEXT_PUBLIC_API_URL}/api/badge/${session.user.id}/project:${params.id}/interval:all_time?label=total&token=${session.token}`}
@@ -99,6 +99,9 @@ export default async function ProjectDetailPage({
               />
             </div>
           </section>
+          <FileActivityBubble
+            rawData={prepareEntitiesData(durationData.data, "entities")}
+          />
           <div className="mt-12 flex justify-center gap-5">
             <div className="flex justify-between gap-40">
               <ProjectFiles
