@@ -189,7 +189,7 @@ func (srv *DurationService) getLive(from, to time.Time, user *models.User, inter
 			h.User = user
 		}
 
-		d1 := models.NewDurationFromHeartbeat(h).WithEntityIgnored().AtInterval(interval).Hashed()
+		d1 := models.NewDurationFromHeartbeat(h).WithEntityIgnored().WithTimeout(interval).Hashed()
 
 		// initialize map entry
 		if list, ok := mapping[d1.GroupHash]; !ok || len(list) < 1 {
