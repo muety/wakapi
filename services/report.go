@@ -102,7 +102,7 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 	end := time.Now().In(user.TZ())
 	start := time.Now().Add(-1 * duration)
 
-	fullSummary, err := srv.summaryService.Aliased(start, end, user, srv.summaryService.Retrieve, nil, false)
+	fullSummary, err := srv.summaryService.Aliased(start, end, user, srv.summaryService.Retrieve, nil, nil, false)
 	if err != nil {
 		config.Log().Error("failed to regenerate report", "userID", user.ID, "error", err)
 		return err
@@ -114,7 +114,7 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 
 	for i, interval := range dayIntervals {
 		from, to := datetime.BeginOfDay(interval[0]), interval[1]
-		summary, err := srv.summaryService.Aliased(from, to, user, srv.summaryService.Retrieve, nil, false)
+		summary, err := srv.summaryService.Aliased(from, to, user, srv.summaryService.Retrieve, nil, nil, false)
 		if err != nil {
 			config.Log().Error("failed to regenerate day summary for report", "from", from, "to", to, "userID", user.ID, "error", err)
 			break

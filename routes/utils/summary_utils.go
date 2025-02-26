@@ -29,6 +29,7 @@ func LoadUserSummaryByParams(ss services.ISummaryService, params *models.Summary
 		params.User,
 		retrieveSummary,
 		params.Filters,
+		nil,
 		params.Recompute,
 	)
 	if err != nil {

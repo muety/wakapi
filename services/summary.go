@@ -13,6 +13,7 @@ import (
 	"github.com/patrickmn/go-cache"
 	"log/slog"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -53,9 +54,11 @@ func NewSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatSer
 // Public summary generation methods
 
 // Aliased retrieves or computes a new summary based on the given SummaryRetriever and augments it with entity aliases and project labels
-func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f types.SummaryRetriever, filters *models.Filters, skipCache bool) (*models.Summary, error) {
+func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f types.SummaryRetriever, filters *models.Filters, customTimeout *time.Duration, skipCache bool) (*models.Summary, error) {
+	requestedTimeout := getEffectiveTimeout(user, customTimeout)
+
 	// Check cache (or skip for sub second-level date precision)
-	cacheKey := srv.getHash(from.String(), to.String(), user.ID, filters.Hash(), "--aliased")
+	cacheKey := srv.getHash(from.String(), to.String(), user.ID, filters.Hash(), strconv.Itoa(int(requestedTimeout)), "--aliased")
 	if to.Truncate(time.Second).Equal(to) && from.Truncate(time.Second).Equal(from) {
 		if cacheResult, ok := srv.cache.Get(cacheKey); ok && !skipCache {
 			return cacheResult.(*models.Summary), nil
@@ -79,7 +82,7 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f type
 	}
 
 	// Get actual summary
-	s, err := f(from, to, user, filters)
+	s, err := f(from, to, user, filters, customTimeout)
 	if err != nil {
 		return nil, err
 	}
@@ -99,13 +102,17 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f type
 	return summary.Sorted().InTZ(user.TZ()), nil
 }
 
-func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filters *models.Filters) (*models.Summary, error) {
+func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filters *models.Filters, customTimeout *time.Duration) (*models.Summary, error) {
 	summaries := make([]*models.Summary, 0)
+	requestedTimeout := getEffectiveTimeout(user, customTimeout)
 
-	// Filtered summaries are not persisted currently
+	// Filtered summaries or summaries at alternative timeouts are not persisted currently
 	// Special case: if (a) filters apply to only one entity type and (b) we're only interested in the summary items of that particular entity type,
 	// we can still fetch the persisted summary and drop all irrelevant parts from it
-	if filters == nil || filters.IsEmpty() || (filters.CountDistinctTypes() == 1 && filters.SelectFilteredOnly) {
+	requiresFiltering := filters != nil && !filters.IsEmpty() && !(filters.CountDistinctTypes() == 1 || filters.SelectFilteredOnly)
+	mustRecompute := requiresFiltering || requestedTimeout != user.HeartbeatsTimeout()
+
+	if !mustRecompute {
 		// Get all already existing, pre-generated summaries that fall into the requested interval
 		result, err := srv.repository.GetByUserWithin(user, from, to)
 		if err == nil {
@@ -118,7 +125,7 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 	// Generate missing slots (especially before and after existing summaries) from durations (formerly raw heartbeats)
 	missingIntervals := srv.getMissingIntervals(from, to, summaries, false)
 	for _, interval := range missingIntervals {
-		if s, err := srv.Summarize(interval.Start, interval.End, user, filters); err == nil {
+		if s, err := srv.Summarize(interval.Start, interval.End, user, filters, customTimeout); err == nil {
 			if len(missingIntervals) > 2 && s.FromTime.T().Equal(s.ToTime.T()) {
 				// little hack here: GetAllWithin will query for >= from_date
 				// however, for "in-between" / intra-day missing intervals, we want strictly > from_date to prevent double-counting
@@ -146,9 +153,9 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 	return summary.Sorted().InTZ(user.TZ()), nil
 }
 
-func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filters *models.Filters) (*models.Summary, error) {
+func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filters *models.Filters, customTimeout *time.Duration) (*models.Summary, error) {
 	// Initialize and fetch data
-	durations, err := srv.durationService.Get(from, to, user, filters, nil, false)
+	durations, err := srv.durationService.Get(from, to, user, filters, customTimeout, false)
 	if err != nil {
 		return nil, err
 	}

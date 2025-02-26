@@ -61,16 +61,16 @@ func NewDurationService(durationRepository repositories.IDurationRepository, hea
 	return srv
 }
 
-func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *models.Filters, customInterval *time.Duration, skipCache bool) (durations models.Durations, err error) {
+func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *models.Filters, customTimeout *time.Duration, skipCache bool) (durations models.Durations, err error) {
 	// note about "multi-level" durations at different intervals:
 	// while durations themselves store the interval (aka. heartbeats timeout) they were computed for, we currently don't support actually storing durations at different intervals
 	// if an interval different from the user's preference is requested, recompute durations live from heartbeats and skip cache
-	effectiveInterval := getEffectiveInterval(user, customInterval)
-	skipCache = skipCache || effectiveInterval != user.HeartbeatsTimeout()
+	effectiveTimeout := getEffectiveTimeout(user, customTimeout)
+	skipCache = skipCache || effectiveTimeout != user.HeartbeatsTimeout()
 
 	// recompute live
 	if skipCache {
-		durations, err = srv.getLive(from, to, user, effectiveInterval)
+		durations, err = srv.getLive(from, to, user, effectiveTimeout)
 		if err != nil {
 			return nil, err
 		}
@@ -92,7 +92,7 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 			from = cached.Last().TimeEnd().Add(time.Second)
 		}
 
-		missing, err := srv.getLive(from, to, user, effectiveInterval)
+		missing, err := srv.getLive(from, to, user, effectiveTimeout)
 		if err != nil {
 			return nil, err
 		}
@@ -318,11 +318,11 @@ func (srv *DurationService) filtersToColumnMap(filters *models.Filters) map[stri
 	return columnMap
 }
 
-func getEffectiveInterval(user *models.User, overrideInterval *time.Duration) time.Duration {
-	if overrideInterval == nil {
+func getEffectiveTimeout(user *models.User, overrideTimeout *time.Duration) time.Duration {
+	if overrideTimeout == nil {
 		return user.HeartbeatsTimeout()
 	}
-	return *overrideInterval
+	return *overrideTimeout
 }
 
 func updateDurationEntity(d *models.Duration, h *models.Heartbeat, entityDurations map[tuple.Tuple2[string, string]]time.Duration) *models.Duration {

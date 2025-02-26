@@ -135,7 +135,7 @@ func (h *SummaryHandler) fetchSplitSummaries(params *models.SummaryParams) ([]*m
 	summaries := make([]*models.Summary, 0)
 	intervals := utils.SplitRangeByDays(params.From, params.To)
 	for _, interval := range intervals {
-		curSummary, err := h.summarySrvc.Aliased(interval[0], interval[1], params.User, h.summarySrvc.Retrieve, params.Filters, false)
+		curSummary, err := h.summarySrvc.Aliased(interval[0], interval[1], params.User, h.summarySrvc.Retrieve, params.Filters, nil, false)
 		if err != nil {
 			return nil, err
 		}

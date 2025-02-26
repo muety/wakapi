@@ -110,6 +110,7 @@ func (h *BadgeHandler) loadUserSummary(user *models.User, interval *models.Inter
 		summaryParams.User,
 		retrieveSummary,
 		filters,
+		nil,
 		summaryParams.Recompute,
 	)
 	if err != nil {

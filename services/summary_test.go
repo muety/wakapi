@@ -121,7 +121,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(-1*time.Minute)
 	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything, mock.Anything, false).Return(filterDurations(from, to, suite.TestDurations), nil)
 
-	result, err = sut.Summarize(from, to, suite.TestUser, nil)
+	result, err = sut.Summarize(from, to, suite.TestUser, nil, nil)
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), result)
@@ -135,7 +135,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Second)
 	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything, mock.Anything, false).Return(filterDurations(from, to, suite.TestDurations), nil)
 
-	result, err = sut.Summarize(from, to, suite.TestUser, nil)
+	result, err = sut.Summarize(from, to, suite.TestUser, nil, nil)
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), result)
@@ -149,7 +149,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
 	from, to = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
 	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything, mock.Anything, false).Return(filterDurations(from, to, suite.TestDurations), nil)
 
-	result, err = sut.Summarize(from, to, suite.TestUser, nil)
+	result, err = sut.Summarize(from, to, suite.TestUser, nil, nil)
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), result)
@@ -211,7 +211,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve() {
 	suite.DurationService.On("Get", from, summaries[0].FromTime.T(), suite.TestUser, mock.Anything, mock.Anything, false).Return(models.Durations{}, nil)
 	suite.DurationService.On("Get", summaries[0].ToTime.T(), to, suite.TestUser, mock.Anything, mock.Anything, false).Return(models.Durations{}, nil)
 
-	result, err = sut.Retrieve(from, to, suite.TestUser, nil)
+	result, err = sut.Retrieve(from, to, suite.TestUser, nil, nil)
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), result)
@@ -264,7 +264,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve() {
 	suite.SummaryRepository.On("GetByUserWithin", suite.TestUser, from, to).Return(summaries, nil)
 	suite.DurationService.On("Get", from, summaries[0].FromTime.T(), suite.TestUser, mock.Anything, mock.Anything, false).Return(filterDurations(from, summaries[0].FromTime.T(), suite.TestDurations), nil)
 
-	result, err = sut.Retrieve(from, to, suite.TestUser, nil)
+	result, err = sut.Retrieve(from, to, suite.TestUser, nil, nil)
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), result)
@@ -320,7 +320,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve() {
 	suite.SummaryRepository.On("GetByUserWithin", suite.TestUser, from, to).Return(summaries, nil)
 	suite.DurationService.On("Get", summaries[0].ToTime.T(), summaries[1].FromTime.T(), suite.TestUser, mock.Anything, mock.Anything, false).Return(filterDurations(summaries[0].ToTime.T(), summaries[1].FromTime.T(), suite.TestDurations), nil)
 
-	result, err = sut.Retrieve(from, to, suite.TestUser, nil)
+	result, err = sut.Retrieve(from, to, suite.TestUser, nil, nil)
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), result)
@@ -371,7 +371,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve_DuplicateSumma
 	suite.DurationService.On("Get", from, summaries[0].FromTime.T(), suite.TestUser, mock.Anything, mock.Anything, false).Return(models.Durations{}, nil)
 	suite.DurationService.On("Get", summaries[0].ToTime.T(), to, suite.TestUser, mock.Anything, mock.Anything, false).Return(models.Durations{}, nil)
 
-	result, err = sut.Retrieve(from, to, suite.TestUser, nil)
+	result, err = sut.Retrieve(from, to, suite.TestUser, nil, nil)
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), result)
@@ -414,7 +414,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
 	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, mock.Anything).Return("", nil)
 	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return(suite.TestLabels, nil).Once()
 
-	result, err = sut.Aliased(from, to, suite.TestUser, sut.Summarize, nil, false)
+	result, err = sut.Aliased(from, to, suite.TestUser, sut.Summarize, nil, nil, false)
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), result)
@@ -455,12 +455,40 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased_ProjectLabels()
 	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, TestProject2).Return(TestProject1, nil)
 	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, mock.Anything).Return("", nil)
 
-	result, err = sut.Aliased(from, to, suite.TestUser, sut.Summarize, nil, false)
+	result, err = sut.Aliased(from, to, suite.TestUser, sut.Summarize, nil, nil, false)
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), result)
 	assert.Equal(suite.T(), 195*time.Second, result.TotalTimeByKey(models.SummaryLabel, TestProjectLabel1))
 	assert.Equal(suite.T(), 6, result.NumHeartbeats)
+}
+
+func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased_CustomTimeout() {
+	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+
+	var (
+		from time.Time
+		to   time.Time
+		err  error
+	)
+
+	from, to = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
+	testSummary := &models.Summary{
+		FromTime: models.CustomTime(from),
+		ToTime:   models.CustomTime(to),
+	}
+
+	suite.SummaryRepository.On("GetByUserWithin", suite.TestUser, from, to).Return([]*models.Summary{testSummary}, nil)
+
+	_, err = sut.Retrieve(from, to, suite.TestUser, nil, nil)
+	assert.Nil(suite.T(), err)
+
+	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything, mock.Anything, false).Return(models.Durations([]*models.Duration{}), nil)
+
+	customTimeout := 1337 * time.Minute
+	_, err = sut.Retrieve(from, to, suite.TestUser, nil, &customTimeout)
+	assert.Nil(suite.T(), err)
+	suite.DurationService.AssertExpectations(suite.T())
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
@@ -492,7 +520,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
 		suite.TestLabels[1].Label: suite.TestLabels[1:2],
 	}, nil).Once()
 
-	result, _ := sut.Aliased(from, to, suite.TestUser, sut.Summarize, filters, false)
+	result, _ := sut.Aliased(from, to, suite.TestUser, sut.Summarize, filters, nil, false)
 	assert.NotNil(suite.T(), result.Branches) // project filters were applied -> include branches
 	assert.NotNil(suite.T(), result.Entities) // project filters were applied -> include entities
 

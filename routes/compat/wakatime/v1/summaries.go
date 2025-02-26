@@ -139,7 +139,7 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request, user *models.User)
 	filters := helpers.ParseSummaryFilters(r)
 
 	for i, interval := range intervals {
-		summary, err := h.summarySrvc.Aliased(interval[0], interval[1], user, h.summarySrvc.Retrieve, filters, end.After(time.Now()))
+		summary, err := h.summarySrvc.Aliased(interval[0], interval[1], user, h.summarySrvc.Retrieve, filters, nil, end.After(time.Now()))
 		if err != nil {
 			return nil, err, http.StatusInternalServerError
 		}

@@ -51,7 +51,7 @@ func TestBadgeHandler_Get(t *testing.T) {
 	userServiceMock.On("GetUserById", "user1").Return(&user1, nil)
 
 	summaryServiceMock := new(mocks.SummaryServiceMock)
-	summaryServiceMock.On("Aliased", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time"), &user1, mock.Anything, mock.Anything).Return(&summary1, nil)
+	summaryServiceMock.On("Aliased", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time"), &user1, mock.AnythingOfType("types.SummaryRetriever"), mock.AnythingOfType("*models.Filters"), mock.AnythingOfType("*time.Duration"), mock.Anything).Return(&summary1, nil)
 
 	badgeHandler := NewBadgeHandler(userServiceMock, summaryServiceMock)
 	badgeHandler.RegisterRoutes(apiRouter)

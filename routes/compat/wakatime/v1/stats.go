@@ -145,7 +145,7 @@ func (h *StatsHandler) loadUserSummary(user *models.User, start, end time.Time, 
 		Recompute: false,
 	}
 
-	summary, err := h.summarySrvc.Aliased(overallParams.From, overallParams.To, user, h.summarySrvc.Retrieve, filters, false)
+	summary, err := h.summarySrvc.Aliased(overallParams.From, overallParams.To, user, h.summarySrvc.Retrieve, filters, nil, false)
 	if err != nil {
 		return nil, err, http.StatusInternalServerError
 	}

@@ -97,9 +97,9 @@ type IDurationService interface {
 }
 
 type ISummaryService interface {
-	Aliased(time.Time, time.Time, *models.User, types.SummaryRetriever, *models.Filters, bool) (*models.Summary, error)
-	Retrieve(time.Time, time.Time, *models.User, *models.Filters) (*models.Summary, error)
-	Summarize(time.Time, time.Time, *models.User, *models.Filters) (*models.Summary, error)
+	Aliased(time.Time, time.Time, *models.User, types.SummaryRetriever, *models.Filters, *time.Duration, bool) (*models.Summary, error)
+	Retrieve(time.Time, time.Time, *models.User, *models.Filters, *time.Duration) (*models.Summary, error)
+	Summarize(time.Time, time.Time, *models.User, *models.Filters, *time.Duration) (*models.Summary, error)
 	GetLatestByUser() ([]*models.TimeByUser, error)
 	DeleteByUser(string) error
 	DeleteByUserBefore(string, time.Time) error

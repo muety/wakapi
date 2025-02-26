@@ -180,7 +180,7 @@ func (srv *AggregationService) AggregateDurations(userIds datastructure.Set[stri
 func (srv *AggregationService) process(job AggregationJob) {
 	// process single summary interval for single user
 	slog.Info("regenerating actual user summaries as part of summary aggregation", "user", job.User.ID, "from", job.From, "to", job.To)
-	if summary, err := srv.summaryService.Summarize(job.From, job.To, job.User, nil); err != nil {
+	if summary, err := srv.summaryService.Summarize(job.From, job.To, job.User, nil, nil); err != nil {
 		config.Log().Error("failed to regenerate summary", "from", job.From, "to", job.To, "userID", job.User.ID, "error", err)
 	} else {
 		slog.Info("successfully generated summary", "from", job.From, "to", job.To, "userID", job.User.ID)

@@ -80,6 +80,7 @@ func (h *AllTimeHandler) loadUserSummary(user *models.User, filters *models.Filt
 		summaryParams.User,
 		retrieveSummary,
 		filters,
+		nil,
 		summaryParams.Recompute,
 	)
 	if err != nil {

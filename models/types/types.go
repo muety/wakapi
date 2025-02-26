@@ -5,4 +5,4 @@ import (
 	"time"
 )
 
-type SummaryRetriever func(f, t time.Time, u *models.User, filters *models.Filters) (*models.Summary, error)
+type SummaryRetriever func(f, t time.Time, u *models.User, filters *models.Filters, duration *time.Duration) (*models.Summary, error)

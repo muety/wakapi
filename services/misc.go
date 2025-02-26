@@ -239,7 +239,7 @@ func (srv *MiscService) NotifyExpiringSubscription() {
 }
 
 func (srv *MiscService) countUserTotalTime(userId string) time.Duration {
-	result, err := srv.summaryService.Aliased(time.Time{}, time.Now(), &models.User{ID: userId}, srv.summaryService.Retrieve, nil, false)
+	result, err := srv.summaryService.Aliased(time.Time{}, time.Now(), &models.User{ID: userId}, srv.summaryService.Retrieve, nil, nil, false)
 	if err != nil {
 		config.Log().Error("failed to count total for user", "userID", userId, "error", err)
 		return 0

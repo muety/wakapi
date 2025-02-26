@@ -11,18 +11,18 @@ type SummaryServiceMock struct {
 	mock.Mock
 }
 
-func (m *SummaryServiceMock) Aliased(t time.Time, t2 time.Time, u *models.User, r types.SummaryRetriever, f *models.Filters, b bool) (*models.Summary, error) {
-	args := m.Called(t, t2, u, r, f)
+func (m *SummaryServiceMock) Aliased(t time.Time, t2 time.Time, u *models.User, r types.SummaryRetriever, f *models.Filters, d *time.Duration, b bool) (*models.Summary, error) {
+	args := m.Called(t, t2, u, r, f, d, b)
 	return args.Get(0).(*models.Summary), args.Error(1)
 }
 
-func (m *SummaryServiceMock) Retrieve(t time.Time, t2 time.Time, u *models.User, f *models.Filters) (*models.Summary, error) {
-	args := m.Called(t, t2, u, f)
+func (m *SummaryServiceMock) Retrieve(t time.Time, t2 time.Time, u *models.User, f *models.Filters, d *time.Duration) (*models.Summary, error) {
+	args := m.Called(t, t2, u, d, f)
 	return args.Get(0).(*models.Summary), args.Error(1)
 }
 
-func (m *SummaryServiceMock) Summarize(t time.Time, t2 time.Time, u *models.User, f *models.Filters) (*models.Summary, error) {
-	args := m.Called(t, t2, u, f)
+func (m *SummaryServiceMock) Summarize(t time.Time, t2 time.Time, u *models.User, f *models.Filters, d *time.Duration) (*models.Summary, error) {
+	args := m.Called(t, t2, u, d, f)
 	return args.Get(0).(*models.Summary), args.Error(1)
 }
 

@@ -96,7 +96,7 @@ func (h *StatusBarHandler) loadUserSummary(user *models.User, start, end time.Ti
 		retrieveSummary = h.summarySrvc.Summarize
 	}
 
-	summary, err := h.summarySrvc.Aliased(summaryParams.From, summaryParams.To, summaryParams.User, retrieveSummary, nil, summaryParams.Recompute)
+	summary, err := h.summarySrvc.Aliased(summaryParams.From, summaryParams.To, summaryParams.User, retrieveSummary, nil, nil, summaryParams.Recompute)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}

@@ -139,7 +139,7 @@ func (h *MetricsHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) {
 	var metrics mm.Metrics
 
-	summaryAllTime, err := h.summarySrvc.Aliased(time.Time{}, time.Now(), user, h.summarySrvc.Retrieve, nil, false)
+	summaryAllTime, err := h.summarySrvc.Aliased(time.Time{}, time.Now(), user, h.summarySrvc.Retrieve, nil, nil, false)
 	if err != nil {
 		conf.Log().Error("failed to retrieve all time summary for metric", "userID", user.ID, "error", err)
 		return nil, err
@@ -147,7 +147,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 
 	from, to := helpers.MustResolveIntervalRawTZ("today", user.TZ())
 
-	summaryToday, err := h.summarySrvc.Aliased(from, to, user, h.summarySrvc.Retrieve, nil, false)
+	summaryToday, err := h.summarySrvc.Aliased(from, to, user, h.summarySrvc.Retrieve, nil, nil, false)
 	if err != nil {
 		conf.Log().Error("failed to retrieve today's summary for metric", "userID", user.ID, "error", err)
 		return nil, err
@@ -463,7 +463,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 
 	for i := range activeUsers {
 		wp.Submit(func() {
-			summary, err := h.summarySrvc.Aliased(from, to, activeUsers[i], h.summarySrvc.Retrieve, nil, false) // only using aliased because aliased has caching
+			summary, err := h.summarySrvc.Aliased(from, to, activeUsers[i], h.summarySrvc.Retrieve, nil, nil, false) // only using aliased because aliased has caching
 			if err != nil {
 				conf.Log().Error("failed to get total time for user as part of metrics", "userID", activeUsers[i].ID, "error", err)
 				return
