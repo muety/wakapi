@@ -43,7 +43,6 @@ interface BubbleChartProps {
 }
 
 const FileActivityBubble: React.FC<BubbleChartProps> = ({ rawData }) => {
-  console.log("rawData:", rawData.slice(0, 5));
   const data = useMemo(() => {
     const topFiles = rawData
       .filter((d): d is FileData => d.total_seconds > 0)
@@ -83,9 +82,8 @@ const FileActivityBubble: React.FC<BubbleChartProps> = ({ rawData }) => {
     return colors[index % colors.length];
   };
 
-  // Make font size relative to the bubble size
   const getFontSize = (radius: number): number => {
-    return Math.max(8, Math.min(14, radius * 0.3)); // Adjust scaling factor as needed
+    return Math.max(10, Math.min(18, radius * 0.35));
   };
 
   const truncateFolderName = (
@@ -133,7 +131,7 @@ const FileActivityBubble: React.FC<BubbleChartProps> = ({ rawData }) => {
                   .sum((d) => (d as unknown as ProcessedFileData)?.size || 0)
                   .sort((a, b) => (b.value || 0) - (a.value || 0))}
                 size={[width - 16, height - 16]}
-                padding={16}
+                padding={7}
               >
                 {(packData) => {
                   const circles = packData.descendants().slice(1);
@@ -182,6 +180,7 @@ const FileActivityBubble: React.FC<BubbleChartProps> = ({ rawData }) => {
                                 fill="#000"
                                 textAnchor="middle"
                                 className="font-medium pointer-events-none"
+                                fontFamily="'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace"
                               >
                                 <tspan x={circle.x} dy="0">
                                   {displayText}
