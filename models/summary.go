@@ -78,6 +78,8 @@ type SummaryParams struct {
 	Recompute bool
 }
 
+// don't forget to adapt models.GetEntityColumn() when changing these
+
 func SummaryTypes() []uint8 {
 	return []uint8{SummaryProject, SummaryLanguage, SummaryEditor, SummaryOS, SummaryMachine, SummaryLabel, SummaryBranch, SummaryEntity, SummaryCategory}
 }

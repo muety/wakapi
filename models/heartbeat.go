@@ -162,5 +162,6 @@ func GetEntityColumn(t uint8) string {
 		"machine",
 		"label",
 		"branch",
+		"category",
 	}[t]
 }
