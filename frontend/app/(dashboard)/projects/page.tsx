@@ -22,8 +22,6 @@ export default async function Projects({ searchParams }: PageProps) {
     )}`
   );
 
-  console.log("projects", projects);
-
   return (
     <div className="my-6">
       <div className="mb-5 flex items-center justify-start">
