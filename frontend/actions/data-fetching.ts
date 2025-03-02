@@ -35,6 +35,7 @@ export async function fetchData<T>(
             }
           : {}),
       },
+      cache: "no-store",
     });
     if (apiResponse.status > 202) {
       throw new Error("Error fetching clients");
