@@ -1,6 +1,6 @@
 "use client";
-import * as React from "react";
 import Fuse from "fuse.js";
+import * as React from "react";
 
 import { Input } from "@/components/ui/input";
 
@@ -21,7 +21,7 @@ export type ProjectsApiResponse = {
 
 export function ProjectsTable({ projects }: { projects: Project[] }) {
   const [searchQuery, setSearchQuery] = React.useState("");
-  
+
   const fuse = React.useMemo(
     () =>
       new Fuse(projects, {
@@ -43,9 +43,7 @@ export function ProjectsTable({ projects }: { projects: Project[] }) {
         <Input
           placeholder="Filter projects"
           value={searchQuery}
-          onChange={(event) =>
-            setSearchQuery(event.target.value)
-          }
+          onChange={(event) => setSearchQuery(event.target.value)}
         />
       </div>
       <div className="rounded-md flex flex-wrap gap-1">

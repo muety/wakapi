@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { Rubik } from "next/font/google";
 
 import { redirectIfLoggedIn } from "@/actions";
+import FeatureSection from "@/components/features-hero";
 
 import { Hero } from "./hero";
 const rubik = Rubik({ subsets: ["latin"] });
@@ -16,6 +17,7 @@ export default async function IndexPage() {
   return (
     <div className={rubik.className}>
       <Hero />
+      <FeatureSection />
     </div>
   );
 }

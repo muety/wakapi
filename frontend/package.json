@@ -69,6 +69,7 @@
     "d3": "^7.9.0",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.10",
+    "framer-motion": "^12.4.7",
     "fuse.js": "^7.1.0",
     "input-otp": "^1.4.2",
     "iron-session": "^8.0.1",

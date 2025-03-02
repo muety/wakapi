@@ -9,10 +9,10 @@ export function ProjectTimeImage({ project }: { project: Project }) {
   const { session } = useSession();
 
   if (!session) {
-    null
+    return null;
   }
 
-  const src = `${NEXT_PUBLIC_API_URL}/api/badge/${session.user.id}/project:${project.id}/interval:all_time?label=total&token=${session.token}`
+  const src = `${NEXT_PUBLIC_API_URL}/api/badge/${session.user.id}/project:${project.id}/interval:all_time?label=total&token=${session.token}`;
   return (
     <Image
       className="with-url-src"
