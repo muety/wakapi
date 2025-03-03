@@ -1,9 +1,0 @@
-<template id="entity-filter-template">
-    <div :id="type + '-filter-form'" class="entity-filter-control">
-        <label :for="'select-' + type + '-filter'"><span class="iconify inline mr-1" data-icon="mdi:filter"></span> ${type}</label>
-        <select name="project" :id="'select-' + type + '-filter'" class="select-default" v-model="selection" @input="onSelectionUpdated">
-            <option :value="null">Filter by ${type} ...</option>
-            <option v-for="o in options" :value="o">{{ "{{" }}o{{ "}}" }}</option>
-        </select>
-    </div>
-</template>

@@ -12,6 +12,7 @@ import {
 import { FadeOnView } from "./fade-on-view";
 import { FeatureCard } from "./feature-card";
 import { StatCard } from "./start-card";
+import Link from "next/link";
 
 const features = [
   {
@@ -125,10 +126,10 @@ export default function FeaturesSection() {
         {/* CTA Section */}
         <FadeOnView>
           <div className="mt-16 text-center">
-            <button className="bg-white hover:text-gray-500 text-black font-medium py-5 px-8 rounded-sm transition-colors">
+            <Link href='/login' className="bg-white hover:text-gray-500 text-black font-medium py-5 px-8 rounded-sm transition-colors">
               Get Started for Free
-            </button>
-            <p className="mt-4 text-gray-400">
+            </Link>
+            <p className="mt-6 text-gray-400">
               No credit card required. Start tracking in minutes.
             </p>
           </div>
