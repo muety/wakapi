@@ -109,7 +109,7 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 	// Filtered summaries or summaries at alternative timeouts are not persisted currently
 	// Special case: if (a) filters apply to only one entity type and (b) we're only interested in the summary items of that particular entity type,
 	// we can still fetch the persisted summary and drop all irrelevant parts from it
-	requiresFiltering := filters != nil && !filters.IsEmpty() && !(filters.CountDistinctTypes() == 1 || filters.SelectFilteredOnly)
+	requiresFiltering := filters != nil && !filters.IsEmpty() && (filters.CountDistinctTypes() > 1 || !filters.SelectFilteredOnly)
 	mustRecompute := requiresFiltering || requestedTimeout != user.HeartbeatsTimeout()
 
 	if !mustRecompute {
