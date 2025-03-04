@@ -8,11 +8,11 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 
 import { FadeOnView } from "./fade-on-view";
 import { FeatureCard } from "./feature-card";
 import { StatCard } from "./start-card";
-import Link from "next/link";
 
 const features = [
   {
@@ -103,7 +103,7 @@ export default function FeaturesSection() {
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
               Track your coding activity, manage clients, create invoice, set
-              productivity goals and observe your productivity with ease.
+              productivity goals and observe your work with ease.
             </p>
           </div>
         </FadeOnView>
@@ -126,7 +126,10 @@ export default function FeaturesSection() {
         {/* CTA Section */}
         <FadeOnView>
           <div className="mt-16 text-center">
-            <Link href='/login' className="bg-white hover:text-gray-500 text-black font-medium py-5 px-8 rounded-sm transition-colors">
+            <Link
+              href="/login"
+              className="bg-white hover:text-gray-500 text-black font-medium py-5 px-8 rounded-sm transition-colors"
+            >
               Get Started for Free
             </Link>
             <p className="mt-6 text-gray-400">
