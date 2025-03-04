@@ -5,6 +5,10 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"math"
+	"sync"
+	"time"
+
 	svg "github.com/ajstarks/svgo/float"
 	"github.com/alitto/pond"
 	"github.com/duke-git/lancet/v2/condition"
@@ -14,9 +18,6 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
-	"math"
-	"sync"
-	"time"
 )
 
 const (
@@ -138,8 +139,8 @@ func (s *ActivityService) getChartPastYear(user *models.User, darkTheme, hideAtt
 
 	if !hideAttribution {
 		canvas.Group()
-		canvas.Title("Wakapi.dev")
-		canvas.Image(w-60, h-24, 60, 24, "https://wakapi.dev/assets/images/logo-gh.svg")
+		canvas.Title("Wakana.io")
+		canvas.Image(w-60, h-24, 60, 24, "https://wakana.io/assets/images/logo-gh.svg")
 		canvas.Gend()
 	}
 

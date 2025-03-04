@@ -34,7 +34,7 @@ func TestHeartbeatHandler_Options(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodOptions, "/api/compat/wakatime/v1/users/current/heartbeats.bulk", nil)
 			req.Header.Add("Access-Control-Request-Method", "POST")
-			req.Header.Add("Origin", "https://wakapi.dev")
+			req.Header.Add("Origin", "https://wakana.io")
 
 			router.ServeHTTP(rec, req)
 			res := rec.Result()

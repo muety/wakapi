@@ -6,7 +6,7 @@ wakapi.yourdomain.tld {
     }
 	
     log {
-        output file /var/log/caddy/wakapi.dev.access.log
+        output file /var/log/caddy/wakana.io.access.log
     }
 
     reverse_proxy http://[::1]:3000

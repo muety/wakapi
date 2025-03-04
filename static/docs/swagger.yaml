@@ -54,46 +54,49 @@ definitions:
   models.Summary:
     properties:
       branches:
-        description: branches are not persisted, but calculated at runtime in case
+        description:
+          branches are not persisted, but calculated at runtime in case
           a project Filter is applied
         items:
-          $ref: '#/definitions/models.SummaryItem'
+          $ref: "#/definitions/models.SummaryItem"
         type: array
       categories:
         items:
-          $ref: '#/definitions/models.SummaryItem'
+          $ref: "#/definitions/models.SummaryItem"
         type: array
       editors:
         items:
-          $ref: '#/definitions/models.SummaryItem'
+          $ref: "#/definitions/models.SummaryItem"
         type: array
       entities:
-        description: entities are not persisted, but calculated at runtime in case
+        description:
+          entities are not persisted, but calculated at runtime in case
           a project Filter is applied
         items:
-          $ref: '#/definitions/models.SummaryItem'
+          $ref: "#/definitions/models.SummaryItem"
         type: array
       from:
         example: "2006-01-02 15:04:05.000"
         format: date
         type: string
       labels:
-        description: labels are not persisted, but calculated at runtime, i.e. when
+        description:
+          labels are not persisted, but calculated at runtime, i.e. when
           summary is retrieved
         items:
-          $ref: '#/definitions/models.SummaryItem'
+          $ref: "#/definitions/models.SummaryItem"
         type: array
       languages:
         items:
-          $ref: '#/definitions/models.SummaryItem'
+          $ref: "#/definitions/models.SummaryItem"
         type: array
       machines:
         items:
-          $ref: '#/definitions/models.SummaryItem'
+          $ref: "#/definitions/models.SummaryItem"
         type: array
       operating_systems:
         items:
-          $ref: '#/definitions/models.SummaryItem'
+          $ref: "#/definitions/models.SummaryItem"
         type: array
       projects:
         description: |-
@@ -104,7 +107,7 @@ definitions:
           MySQL will create a foreign key constraint for every property referencing other structs, even no constraint is specified in tags.
           So explicitly set gorm:"-" in all other properties to avoid creating duplicate foreign key constraints
         items:
-          $ref: '#/definitions/models.SummaryItem'
+          $ref: "#/definitions/models.SummaryItem"
         type: array
       to:
         example: "2006-01-02 15:04:05.000"
@@ -123,11 +126,12 @@ definitions:
   v1.AllTimeData:
     properties:
       is_up_to_date:
-        description: true if the stats are up to date; when false, a 202 response
+        description:
+          true if the stats are up to date; when false, a 202 response
           code is returned and stats will be refreshed soon>
         type: boolean
       range:
-        $ref: '#/definitions/v1.AllTimeRange'
+        $ref: "#/definitions/v1.AllTimeRange"
       text:
         description: total time logged since account created as human readable string>
         type: string
@@ -151,7 +155,7 @@ definitions:
   v1.AllTimeViewModel:
     properties:
       data:
-        $ref: '#/definitions/v1.AllTimeData'
+        $ref: "#/definitions/v1.AllTimeData"
     type: object
   v1.BadgeData:
     properties:
@@ -197,7 +201,7 @@ definitions:
     properties:
       data:
         items:
-          $ref: '#/definitions/v1.HeartbeatEntry'
+          $ref: "#/definitions/v1.HeartbeatEntry"
         type: array
       end:
         type: string
@@ -213,16 +217,16 @@ definitions:
       rank:
         type: integer
       user:
-        $ref: '#/definitions/v1.User'
+        $ref: "#/definitions/v1.User"
     type: object
   v1.LeadersEntry:
     properties:
       rank:
         type: integer
       running_total:
-        $ref: '#/definitions/v1.LeadersRunningTotal'
+        $ref: "#/definitions/v1.LeadersRunningTotal"
       user:
-        $ref: '#/definitions/v1.User'
+        $ref: "#/definitions/v1.User"
     type: object
   v1.LeadersLanguage:
     properties:
@@ -256,7 +260,7 @@ definitions:
         type: string
       languages:
         items:
-          $ref: '#/definitions/v1.LeadersLanguage'
+          $ref: "#/definitions/v1.LeadersLanguage"
         type: array
       total_seconds:
         type: number
@@ -264,17 +268,17 @@ definitions:
   v1.LeadersViewModel:
     properties:
       current_user:
-        $ref: '#/definitions/v1.LeadersCurrentUser'
+        $ref: "#/definitions/v1.LeadersCurrentUser"
       data:
         items:
-          $ref: '#/definitions/v1.LeadersEntry'
+          $ref: "#/definitions/v1.LeadersEntry"
         type: array
       language:
         type: string
       page:
         type: integer
       range:
-        $ref: '#/definitions/v1.LeadersRange'
+        $ref: "#/definitions/v1.LeadersRange"
       total_pages:
         type: integer
     type: object
@@ -296,24 +300,24 @@ definitions:
   v1.ProjectViewModel:
     properties:
       data:
-        $ref: '#/definitions/v1.Project'
+        $ref: "#/definitions/v1.Project"
     type: object
   v1.ProjectsViewModel:
     properties:
       data:
         items:
-          $ref: '#/definitions/v1.Project'
+          $ref: "#/definitions/v1.Project"
         type: array
     type: object
   v1.StatsData:
     properties:
       branches:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       categories:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       daily_average:
         type: number
@@ -321,7 +325,7 @@ definitions:
         type: integer
       editors:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       end:
         type: string
@@ -337,19 +341,19 @@ definitions:
         type: boolean
       languages:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       machines:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       operating_systems:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       projects:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       range:
         type: string
@@ -367,14 +371,14 @@ definitions:
   v1.StatsViewModel:
     properties:
       data:
-        $ref: '#/definitions/v1.StatsData'
+        $ref: "#/definitions/v1.StatsData"
     type: object
   v1.StatusBarViewModel:
     properties:
       cached_at:
         type: string
       data:
-        $ref: '#/definitions/v1.SummariesData'
+        $ref: "#/definitions/v1.SummariesData"
     type: object
   v1.SummariesCumulativeTotal:
     properties:
@@ -408,44 +412,44 @@ definitions:
     properties:
       branches:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       categories:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       dependencies:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       editors:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       entities:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       grand_total:
-        $ref: '#/definitions/v1.SummariesGrandTotal'
+        $ref: "#/definitions/v1.SummariesGrandTotal"
       languages:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       machines:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       operating_systems:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       projects:
         items:
-          $ref: '#/definitions/v1.SummariesEntry'
+          $ref: "#/definitions/v1.SummariesEntry"
         type: array
       range:
-        $ref: '#/definitions/v1.SummariesRange'
+        $ref: "#/definitions/v1.SummariesRange"
     type: object
   v1.SummariesEntry:
     properties:
@@ -495,12 +499,12 @@ definitions:
   v1.SummariesViewModel:
     properties:
       cumulative_total:
-        $ref: '#/definitions/v1.SummariesCumulativeTotal'
+        $ref: "#/definitions/v1.SummariesCumulativeTotal"
       daily_average:
-        $ref: '#/definitions/v1.SummariesDailyAverage'
+        $ref: "#/definitions/v1.SummariesDailyAverage"
       data:
         items:
-          $ref: '#/definitions/v1.SummariesData'
+          $ref: "#/definitions/v1.SummariesData"
         type: array
       end:
         type: string
@@ -543,7 +547,7 @@ definitions:
   v1.UserViewModel:
     properties:
       data:
-        $ref: '#/definitions/v1.User'
+        $ref: "#/definitions/v1.User"
     type: object
 info:
   contact:
@@ -551,7 +555,7 @@ info:
     name: Ferdinand Mütsch
     url: https://github.com/muety
   description: |-
-    REST API to interact with [Wakapi](https://wakapi.dev)
+    REST API to interact with [Wakapi](https://wakana.io)
 
     ## Authentication
     Set header `Authorization` to your API Key encoded as Base64 and prefixed with `Basic`
@@ -564,392 +568,393 @@ info:
 paths:
   /compat/shields/v1/{user}/{interval}/{filter}:
     get:
-      description: Retrieve total time for a given entity (e.g. a project) within
+      description:
+        Retrieve total time for a given entity (e.g. a project) within
         a given range (e.g. one week) in a format compatible with [Shields.io](https://shields.io/endpoint).
         Requires public data access to be allowed.
       operationId: get-badge
       parameters:
-      - description: User ID to fetch data for
-        in: path
-        name: user
-        required: true
-        type: string
-      - description: Interval to aggregate data for
-        enum:
-        - today
-        - yesterday
-        - week
-        - month
-        - year
-        - 7_days
-        - last_7_days
-        - 30_days
-        - last_30_days
-        - 6_months
-        - last_6_months
-        - 12_months
-        - last_12_months
-        - last_year
-        - any
-        - all_time
-        in: path
-        name: interval
-        required: true
-        type: string
-      - description: Filter to apply (e.g. 'project:wakapi' or 'language:Go')
-        in: path
-        name: filter
-        required: true
-        type: string
+        - description: User ID to fetch data for
+          in: path
+          name: user
+          required: true
+          type: string
+        - description: Interval to aggregate data for
+          enum:
+            - today
+            - yesterday
+            - week
+            - month
+            - year
+            - 7_days
+            - last_7_days
+            - 30_days
+            - last_30_days
+            - 6_months
+            - last_6_months
+            - 12_months
+            - last_12_months
+            - last_year
+            - any
+            - all_time
+          in: path
+          name: interval
+          required: true
+          type: string
+        - description: Filter to apply (e.g. 'project:wakapi' or 'language:Go')
+          in: path
+          name: filter
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.BadgeData'
+            $ref: "#/definitions/v1.BadgeData"
       summary: Get badge data
       tags:
-      - badges
+        - badges
   /compat/wakatime/v1/leaders:
     get:
       description: Mimics https://wakatime.com/developers#leaders
       operationId: get-wakatime-leaders
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.LeadersViewModel'
+            $ref: "#/definitions/v1.LeadersViewModel"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: List of users ranked by coding activity in descending order.
       tags:
-      - wakatime
+        - wakatime
   /compat/wakatime/v1/users/{user}:
     get:
       description: Mimics https://wakatime.com/developers#users
       operationId: get-wakatime-user
       parameters:
-      - description: User ID to fetch (or 'current')
-        in: path
-        name: user
-        required: true
-        type: string
+        - description: User ID to fetch (or 'current')
+          in: path
+          name: user
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.UserViewModel'
+            $ref: "#/definitions/v1.UserViewModel"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Retrieve the given user
       tags:
-      - wakatime
+        - wakatime
   /compat/wakatime/v1/users/{user}/all_time_since_today:
     get:
       description: Mimics https://wakatime.com/developers#all_time_since_today
       operationId: get-all-time
       parameters:
-      - description: User ID to fetch data for (or 'current')
-        in: path
-        name: user
-        required: true
-        type: string
+        - description: User ID to fetch data for (or 'current')
+          in: path
+          name: user
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.AllTimeViewModel'
+            $ref: "#/definitions/v1.AllTimeViewModel"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Retrieve summary for all time
       tags:
-      - wakatime
+        - wakatime
   /compat/wakatime/v1/users/{user}/heartbeats:
     get:
       operationId: get-heartbeats
       parameters:
-      - description: Date
-        in: query
-        name: date
-        required: true
-        type: string
-      - description: Username (or current)
-        in: path
-        name: user
-        required: true
-        type: string
+        - description: Date
+          in: query
+          name: date
+          required: true
+          type: string
+        - description: Username (or current)
+          in: path
+          name: user
+          required: true
+          type: string
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.HeartbeatsResult'
+            $ref: "#/definitions/v1.HeartbeatsResult"
         "400":
           description: bad date
           schema:
             type: string
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Get heartbeats of user for specified date
       tags:
-      - heartbeat
+        - heartbeat
     post:
       consumes:
-      - application/json
+        - application/json
       operationId: post-heartbeat-3
       parameters:
-      - description: A single heartbeat
-        in: body
-        name: heartbeat
-        required: true
-        schema:
-          $ref: '#/definitions/models.Heartbeat'
-      - description: Username (or current)
-        in: path
-        name: user
-        required: true
-        type: string
+        - description: A single heartbeat
+          in: body
+          name: heartbeat
+          required: true
+          schema:
+            $ref: "#/definitions/models.Heartbeat"
+        - description: Username (or current)
+          in: path
+          name: user
+          required: true
+          type: string
       responses:
         "201":
           description: Created
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Push a new heartbeat
       tags:
-      - heartbeat
+        - heartbeat
   /compat/wakatime/v1/users/{user}/heartbeats.bulk:
     post:
       consumes:
-      - application/json
+        - application/json
       operationId: post-heartbeat-7
       parameters:
-      - description: Multiple heartbeats
-        in: body
-        name: heartbeat
-        required: true
-        schema:
-          items:
-            $ref: '#/definitions/models.Heartbeat'
-          type: array
-      - description: Username (or current)
-        in: path
-        name: user
-        required: true
-        type: string
+        - description: Multiple heartbeats
+          in: body
+          name: heartbeat
+          required: true
+          schema:
+            items:
+              $ref: "#/definitions/models.Heartbeat"
+            type: array
+        - description: Username (or current)
+          in: path
+          name: user
+          required: true
+          type: string
       responses:
         "201":
           description: Created
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Push new heartbeats
       tags:
-      - heartbeat
+        - heartbeat
   /compat/wakatime/v1/users/{user}/projects:
     get:
       description: Mimics https://wakatime.com/developers#projects
       operationId: get-wakatime-projects
       parameters:
-      - description: User ID to fetch data for (or 'current')
-        in: path
-        name: user
-        required: true
-        type: string
-      - description: Query to filter projects by
-        in: query
-        name: q
-        type: string
+        - description: User ID to fetch data for (or 'current')
+          in: path
+          name: user
+          required: true
+          type: string
+        - description: Query to filter projects by
+          in: query
+          name: q
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.ProjectsViewModel'
+            $ref: "#/definitions/v1.ProjectsViewModel"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Retrieve and filter the user's projects
       tags:
-      - wakatime
+        - wakatime
   /compat/wakatime/v1/users/{user}/projects/{id}:
     get:
       description: Mimics undocumented endpoint related to https://wakatime.com/developers#projects
       operationId: get-wakatime-project
       parameters:
-      - description: User ID to fetch data for (or 'current')
-        in: path
-        name: user
-        required: true
-        type: string
-      - description: Project ID to fetch
-        in: path
-        name: id
-        required: true
-        type: string
+        - description: User ID to fetch data for (or 'current')
+          in: path
+          name: user
+          required: true
+          type: string
+        - description: Project ID to fetch
+          in: path
+          name: id
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.ProjectViewModel'
+            $ref: "#/definitions/v1.ProjectViewModel"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Retrieve a single project
       tags:
-      - wakatime
+        - wakatime
   /compat/wakatime/v1/users/{user}/stats/{range}:
     get:
       description: Mimics https://wakatime.com/developers#stats
       operationId: get-wakatimes-tats
       parameters:
-      - description: User ID to fetch data for (or 'current')
-        in: path
-        name: user
-        required: true
-        type: string
-      - description: Range interval identifier
-        enum:
-        - today
-        - yesterday
-        - week
-        - month
-        - year
-        - 7_days
-        - last_7_days
-        - 30_days
-        - last_30_days
-        - 6_months
-        - last_6_months
-        - 12_months
-        - last_12_months
-        - last_year
-        - any
-        - all_time
-        in: path
-        name: range
-        type: string
-      - description: Project to filter by
-        in: query
-        name: project
-        type: string
-      - description: Language to filter by
-        in: query
-        name: language
-        type: string
-      - description: Editor to filter by
-        in: query
-        name: editor
-        type: string
-      - description: OS to filter by
-        in: query
-        name: operating_system
-        type: string
-      - description: Machine to filter by
-        in: query
-        name: machine
-        type: string
-      - description: Project label to filter by
-        in: query
-        name: label
-        type: string
+        - description: User ID to fetch data for (or 'current')
+          in: path
+          name: user
+          required: true
+          type: string
+        - description: Range interval identifier
+          enum:
+            - today
+            - yesterday
+            - week
+            - month
+            - year
+            - 7_days
+            - last_7_days
+            - 30_days
+            - last_30_days
+            - 6_months
+            - last_6_months
+            - 12_months
+            - last_12_months
+            - last_year
+            - any
+            - all_time
+          in: path
+          name: range
+          type: string
+        - description: Project to filter by
+          in: query
+          name: project
+          type: string
+        - description: Language to filter by
+          in: query
+          name: language
+          type: string
+        - description: Editor to filter by
+          in: query
+          name: editor
+          type: string
+        - description: OS to filter by
+          in: query
+          name: operating_system
+          type: string
+        - description: Machine to filter by
+          in: query
+          name: machine
+          type: string
+        - description: Project label to filter by
+          in: query
+          name: label
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.StatsViewModel'
+            $ref: "#/definitions/v1.StatsViewModel"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Retrieve statistics for a given user
       tags:
-      - wakatime
+        - wakatime
   /compat/wakatime/v1/users/{user}/summaries:
     get:
       description: Mimics https://wakatime.com/developers#summaries.
       operationId: get-wakatime-summaries
       parameters:
-      - description: User ID to fetch data for (or 'current')
-        in: path
-        name: user
-        required: true
-        type: string
-      - description: Range interval identifier
-        enum:
-        - today
-        - yesterday
-        - week
-        - month
-        - year
-        - 7_days
-        - last_7_days
-        - 30_days
-        - last_30_days
-        - 6_months
-        - last_6_months
-        - 12_months
-        - last_12_months
-        - last_year
-        - any
-        - all_time
-        in: query
-        name: range
-        type: string
-      - description: Start date (e.g. '2021-02-07')
-        in: query
-        name: start
-        type: string
-      - description: End date (e.g. '2021-02-08')
-        in: query
-        name: end
-        type: string
-      - description: Project to filter by
-        in: query
-        name: project
-        type: string
-      - description: Language to filter by
-        in: query
-        name: language
-        type: string
-      - description: Editor to filter by
-        in: query
-        name: editor
-        type: string
-      - description: OS to filter by
-        in: query
-        name: operating_system
-        type: string
-      - description: Machine to filter by
-        in: query
-        name: machine
-        type: string
-      - description: Project label to filter by
-        in: query
-        name: label
-        type: string
+        - description: User ID to fetch data for (or 'current')
+          in: path
+          name: user
+          required: true
+          type: string
+        - description: Range interval identifier
+          enum:
+            - today
+            - yesterday
+            - week
+            - month
+            - year
+            - 7_days
+            - last_7_days
+            - 30_days
+            - last_30_days
+            - 6_months
+            - last_6_months
+            - 12_months
+            - last_12_months
+            - last_year
+            - any
+            - all_time
+          in: query
+          name: range
+          type: string
+        - description: Start date (e.g. '2021-02-07')
+          in: query
+          name: start
+          type: string
+        - description: End date (e.g. '2021-02-08')
+          in: query
+          name: end
+          type: string
+        - description: Project to filter by
+          in: query
+          name: project
+          type: string
+        - description: Language to filter by
+          in: query
+          name: language
+          type: string
+        - description: Editor to filter by
+          in: query
+          name: editor
+          type: string
+        - description: OS to filter by
+          in: query
+          name: operating_system
+          type: string
+        - description: Machine to filter by
+          in: query
+          name: machine
+          type: string
+        - description: Project label to filter by
+          in: query
+          name: label
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.SummariesViewModel'
+            $ref: "#/definitions/v1.SummariesViewModel"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Retrieve WakaTime-compatible summaries
       tags:
-      - wakatime
+        - wakatime
   /health:
     get:
       operationId: get-health
       produces:
-      - text/plain
+        - text/plain
       responses:
         "200":
           description: OK
@@ -957,76 +962,76 @@ paths:
             type: string
       summary: Check the application's health status
       tags:
-      - misc
+        - misc
   /heartbeat:
     post:
       consumes:
-      - application/json
+        - application/json
       operationId: post-heartbeat
       parameters:
-      - description: A single heartbeat
-        in: body
-        name: heartbeat
-        required: true
-        schema:
-          $ref: '#/definitions/models.Heartbeat'
+        - description: A single heartbeat
+          in: body
+          name: heartbeat
+          required: true
+          schema:
+            $ref: "#/definitions/models.Heartbeat"
       responses:
         "201":
           description: Created
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Push a new heartbeat
       tags:
-      - heartbeat
+        - heartbeat
   /heartbeats:
     post:
       consumes:
-      - application/json
+        - application/json
       operationId: post-heartbeat-5
       parameters:
-      - description: Multiple heartbeats
-        in: body
-        name: heartbeat
-        required: true
-        schema:
-          items:
-            $ref: '#/definitions/models.Heartbeat'
-          type: array
+        - description: Multiple heartbeats
+          in: body
+          name: heartbeat
+          required: true
+          schema:
+            items:
+              $ref: "#/definitions/models.Heartbeat"
+            type: array
       responses:
         "201":
           description: Created
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Push new heartbeats
       tags:
-      - heartbeat
+        - heartbeat
   /plugins/errors:
     post:
       consumes:
-      - application/json
+        - application/json
       operationId: post-diagnostics
       parameters:
-      - description: A single diagnostics object sent by WakaTime CLI
-        in: body
-        name: diagnostics
-        required: true
-        schema:
-          $ref: '#/definitions/models.Diagnostics'
+        - description: A single diagnostics object sent by WakaTime CLI
+          in: body
+          name: diagnostics
+          required: true
+          schema:
+            $ref: "#/definitions/models.Diagnostics"
       responses:
         "201":
           description: Created
       summary: Push a new diagnostics object
       tags:
-      - diagnostics
+        - diagnostics
   /relay:
     delete:
       operationId: relay-delete
       parameters:
-      - description: Original URL to perform the request to
-        in: header
-        name: X-Target-URL
-        required: true
-        type: string
+        - description: Original URL to perform the request to
+          in: header
+          name: X-Target-URL
+          required: true
+          type: string
       responses:
         "403":
           description: Returned if request path is not whitelisted
@@ -1038,15 +1043,15 @@ paths:
             type: string
       summary: Proxy an DELETE API request to another Wakapi instance
       tags:
-      - relay
+        - relay
     get:
       operationId: relay-get
       parameters:
-      - description: Original URL to perform the request to
-        in: header
-        name: X-Target-URL
-        required: true
-        type: string
+        - description: Original URL to perform the request to
+          in: header
+          name: X-Target-URL
+          required: true
+          type: string
       responses:
         "403":
           description: Returned if request path is not whitelisted
@@ -1058,15 +1063,15 @@ paths:
             type: string
       summary: Proxy an GET API request to another Wakapi instance
       tags:
-      - relay
+        - relay
     patch:
       operationId: relay-patch
       parameters:
-      - description: Original URL to perform the request to
-        in: header
-        name: X-Target-URL
-        required: true
-        type: string
+        - description: Original URL to perform the request to
+          in: header
+          name: X-Target-URL
+          required: true
+          type: string
       responses:
         "403":
           description: Returned if request path is not whitelisted
@@ -1078,15 +1083,15 @@ paths:
             type: string
       summary: Proxy an PATCH API request to another Wakapi instance
       tags:
-      - relay
+        - relay
     post:
       operationId: relay-post
       parameters:
-      - description: Original URL to perform the request to
-        in: header
-        name: X-Target-URL
-        required: true
-        type: string
+        - description: Original URL to perform the request to
+          in: header
+          name: X-Target-URL
+          required: true
+          type: string
       responses:
         "403":
           description: Returned if request path is not whitelisted
@@ -1098,15 +1103,15 @@ paths:
             type: string
       summary: Proxy an POST API request to another Wakapi instance
       tags:
-      - relay
+        - relay
     put:
       operationId: relay-put
       parameters:
-      - description: Original URL to perform the request to
-        in: header
-        name: X-Target-URL
-        required: true
-        type: string
+        - description: Original URL to perform the request to
+          in: header
+          name: X-Target-URL
+          required: true
+          type: string
       responses:
         "403":
           description: Returned if request path is not whitelisted
@@ -1118,207 +1123,208 @@ paths:
             type: string
       summary: Proxy an PUT API request to another Wakapi instance
       tags:
-      - relay
+        - relay
   /summary:
     get:
       operationId: get-summary
       parameters:
-      - description: Interval identifier
-        enum:
-        - today
-        - yesterday
-        - week
-        - month
-        - year
-        - 7_days
-        - last_7_days
-        - 30_days
-        - last_30_days
-        - 6_months
-        - last_6_months
-        - 12_months
-        - last_12_months
-        - last_year
-        - any
-        - all_time
-        in: query
-        name: interval
-        type: string
-      - description: Start date (e.g. '2021-02-07')
-        in: query
-        name: from
-        type: string
-      - description: End date (e.g. '2021-02-08')
-        in: query
-        name: to
-        type: string
-      - description: Whether to recompute the summary from raw heartbeat or use cache
-        in: query
-        name: recompute
-        type: boolean
-      - description: Project to filter by
-        in: query
-        name: project
-        type: string
-      - description: Language to filter by
-        in: query
-        name: language
-        type: string
-      - description: Editor to filter by
-        in: query
-        name: editor
-        type: string
-      - description: OS to filter by
-        in: query
-        name: operating_system
-        type: string
-      - description: Machine to filter by
-        in: query
-        name: machine
-        type: string
-      - description: Project label to filter by
-        in: query
-        name: label
-        type: string
+        - description: Interval identifier
+          enum:
+            - today
+            - yesterday
+            - week
+            - month
+            - year
+            - 7_days
+            - last_7_days
+            - 30_days
+            - last_30_days
+            - 6_months
+            - last_6_months
+            - 12_months
+            - last_12_months
+            - last_year
+            - any
+            - all_time
+          in: query
+          name: interval
+          type: string
+        - description: Start date (e.g. '2021-02-07')
+          in: query
+          name: from
+          type: string
+        - description: End date (e.g. '2021-02-08')
+          in: query
+          name: to
+          type: string
+        - description: Whether to recompute the summary from raw heartbeat or use cache
+          in: query
+          name: recompute
+          type: boolean
+        - description: Project to filter by
+          in: query
+          name: project
+          type: string
+        - description: Language to filter by
+          in: query
+          name: language
+          type: string
+        - description: Editor to filter by
+          in: query
+          name: editor
+          type: string
+        - description: OS to filter by
+          in: query
+          name: operating_system
+          type: string
+        - description: Machine to filter by
+          in: query
+          name: machine
+          type: string
+        - description: Project label to filter by
+          in: query
+          name: label
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Summary'
+            $ref: "#/definitions/models.Summary"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Retrieve a summary
       tags:
-      - summary
+        - summary
   /users/{user}/heartbeats:
     post:
       consumes:
-      - application/json
+        - application/json
       operationId: post-heartbeat-4
       parameters:
-      - description: A single heartbeat
-        in: body
-        name: heartbeat
-        required: true
-        schema:
-          $ref: '#/definitions/models.Heartbeat'
-      - description: Username (or current)
-        in: path
-        name: user
-        required: true
-        type: string
+        - description: A single heartbeat
+          in: body
+          name: heartbeat
+          required: true
+          schema:
+            $ref: "#/definitions/models.Heartbeat"
+        - description: Username (or current)
+          in: path
+          name: user
+          required: true
+          type: string
       responses:
         "201":
           description: Created
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Push a new heartbeat
       tags:
-      - heartbeat
+        - heartbeat
   /users/{user}/heartbeats.bulk:
     post:
       consumes:
-      - application/json
+        - application/json
       operationId: post-heartbeat-8
       parameters:
-      - description: Multiple heartbeats
-        in: body
-        name: heartbeat
-        required: true
-        schema:
-          items:
-            $ref: '#/definitions/models.Heartbeat'
-          type: array
-      - description: Username (or current)
-        in: path
-        name: user
-        required: true
-        type: string
+        - description: Multiple heartbeats
+          in: body
+          name: heartbeat
+          required: true
+          schema:
+            items:
+              $ref: "#/definitions/models.Heartbeat"
+            type: array
+        - description: Username (or current)
+          in: path
+          name: user
+          required: true
+          type: string
       responses:
         "201":
           description: Created
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Push new heartbeats
       tags:
-      - heartbeat
+        - heartbeat
   /users/{user}/statusbar/today:
     get:
-      description: Mimics https://wakatime.com/api/v1/users/current/statusbar/today.
+      description:
+        Mimics https://wakatime.com/api/v1/users/current/statusbar/today.
         Have no official documentation
       operationId: statusbar
       parameters:
-      - description: User ID to fetch data for (or 'current')
-        in: path
-        name: user
-        required: true
-        type: string
+        - description: User ID to fetch data for (or 'current')
+          in: path
+          name: user
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.StatusBarViewModel'
+            $ref: "#/definitions/v1.StatusBarViewModel"
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Retrieve summary for statusbar
       tags:
-      - wakatime
+        - wakatime
   /v1/users/{user}/heartbeats:
     post:
       consumes:
-      - application/json
+        - application/json
       operationId: post-heartbeat-2
       parameters:
-      - description: A single heartbeat
-        in: body
-        name: heartbeat
-        required: true
-        schema:
-          $ref: '#/definitions/models.Heartbeat'
-      - description: Username (or current)
-        in: path
-        name: user
-        required: true
-        type: string
+        - description: A single heartbeat
+          in: body
+          name: heartbeat
+          required: true
+          schema:
+            $ref: "#/definitions/models.Heartbeat"
+        - description: Username (or current)
+          in: path
+          name: user
+          required: true
+          type: string
       responses:
         "201":
           description: Created
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Push a new heartbeat
       tags:
-      - heartbeat
+        - heartbeat
   /v1/users/{user}/heartbeats.bulk:
     post:
       consumes:
-      - application/json
+        - application/json
       operationId: post-heartbeat-6
       parameters:
-      - description: Multiple heartbeats
-        in: body
-        name: heartbeat
-        required: true
-        schema:
-          items:
-            $ref: '#/definitions/models.Heartbeat'
-          type: array
-      - description: Username (or current)
-        in: path
-        name: user
-        required: true
-        type: string
+        - description: Multiple heartbeats
+          in: body
+          name: heartbeat
+          required: true
+          schema:
+            items:
+              $ref: "#/definitions/models.Heartbeat"
+            type: array
+        - description: Username (or current)
+          in: path
+          name: user
+          required: true
+          type: string
       responses:
         "201":
           description: Created
       security:
-      - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: Push new heartbeats
       tags:
-      - heartbeat
+        - heartbeat
 securityDefinitions:
   ApiKeyAuth:
     in: header

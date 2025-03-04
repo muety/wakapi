@@ -12,8 +12,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/duke-git/lancet/v2/condition"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -30,7 +28,6 @@ import (
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/migrations"
 	"github.com/muety/wakapi/repositories"
-	"github.com/muety/wakapi/routes"
 	"github.com/muety/wakapi/routes/api"
 	shieldsV1Routes "github.com/muety/wakapi/routes/compat/shields/v1"
 	wtV1Routes "github.com/muety/wakapi/routes/compat/wakatime/v1"
@@ -104,7 +101,7 @@ var (
 
 // @title Wakapi API
 // @version 1.0
-// @description REST API to interact with [Wakapi](https://wakapi.dev)
+// @description REST API to interact with [Wakapi](https://wakana.io)
 // @description
 // @description ## Authentication
 // @description Set header `Authorization` to your API Key encoded as Base64 and prefixed with `Basic`
@@ -222,8 +219,6 @@ func main() {
 		go leaderboardService.Schedule()
 	}
 
-	routes.Init()
-
 	// API Handlers
 	authApiHandler := api.NewAuthApiHandler(db, userService, oauthUserService, mailService, aggregationService, summaryService)
 	settingsApiHandler := api.NewSettingsHandler(userService)
@@ -251,16 +246,6 @@ func main() {
 	shieldV1BadgeHandler := shieldsV1Routes.NewBadgeHandler(summaryService, userService)
 	wakatimeV1ClientsHandler := wtV1Routes.NewClientsApiHandler(db, clientService, userService, summaryService)
 	wakatimeV1InvoiceHandler := wtV1Routes.NewInvoicesApiHandler(db, invoiceService, userService, summaryService, clientService)
-
-	// MVC Handlers
-	summaryHandler := routes.NewSummaryHandler(summaryService, userService, keyValueService)
-	settingsHandler := routes.NewSettingsHandler(userService, heartbeatService, summaryService, aliasService, aggregationService, languageMappingService, projectLabelService, keyValueService, mailService)
-	subscriptionHandler := routes.NewSubscriptionHandler(userService, mailService, keyValueService)
-	projectsHandler := routes.NewProjectsHandler(userService, heartbeatService)
-	homeHandler := routes.NewHomeHandler(userService, keyValueService)
-	loginHandler := routes.NewLoginHandler(userService, mailService, keyValueService)
-	imprintHandler := routes.NewImprintHandler(keyValueService)
-	leaderboardHandler := condition.TernaryOperator[bool, routes.Handler](config.App.LeaderboardEnabled, routes.NewLeaderboardHandler(userService, leaderboardService), routes.NewNoopHandler())
 
 	// Other Handlers
 	relayHandler := relay.NewRelayHandler()
@@ -310,14 +295,6 @@ func main() {
 	router.Mount("/api", apiRouter)
 
 	// Route registrations
-	homeHandler.RegisterRoutes(rootRouter)
-	loginHandler.RegisterRoutes(rootRouter)
-	imprintHandler.RegisterRoutes(rootRouter)
-	summaryHandler.RegisterRoutes(rootRouter)
-	leaderboardHandler.RegisterRoutes(rootRouter)
-	projectsHandler.RegisterRoutes(rootRouter)
-	settingsHandler.RegisterRoutes(rootRouter)
-	subscriptionHandler.RegisterRoutes(rootRouter)
 	relayHandler.RegisterRoutes(rootRouter)
 
 	// API route registrations

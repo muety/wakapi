@@ -46,7 +46,7 @@
 								},
 								{
 									"key": "email",
-									"value": "testuser@wakapi.dev",
+									"value": "testuser@wakana.io",
 									"type": "text"
 								},
 								{
@@ -113,7 +113,7 @@
 								},
 								{
 									"key": "email",
-									"value": "testuser@wakapi.dev",
+									"value": "testuser@wakana.io",
 									"type": "text"
 								},
 								{

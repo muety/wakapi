@@ -6,7 +6,7 @@
     "license": "GPL-3.0"
   },
   "urls": {
-    "prod": "https://wakapi.dev"
+    "prod": "https://wakana.io"
   },
   "bugs": {
     "list": "https://github.com/muety/wakapi/issues",

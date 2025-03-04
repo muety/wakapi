@@ -18,12 +18,13 @@ import (
 	"testing"
 	"time"
 
+	"log/slog"
+
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"log/slog"
 )
 
 const (
@@ -118,7 +119,7 @@ func (suite *SmtpTestSuite) TestSMTPSendingService_SendStartTLS() {
 
 func createTestMail() *models.Mail {
 	mail := models.Mail{
-		From:    "Wakapi <noreply@wakapi.dev>",
+		From:    "Wakapi <noreply@wakana.io>",
 		To:      []models.MailAddress{"Ferdinand Mütsch <ferdinand@muetsch.io>"},
 		Subject: "Wakapi Test Mail",
 		Body:    "This is just a test",
