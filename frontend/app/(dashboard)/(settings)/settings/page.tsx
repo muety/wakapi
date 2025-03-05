@@ -59,8 +59,7 @@ export default async function Page() {
           <CardTitle>Keystroke Timeout</CardTitle>
           <CardDescription>
             This setting affects how a series of consecutive heartbeats sent by
-            your IDE are aggregated to compute your total coding time. Please
-            see the "How are durations calculated?" section in our{" "}
+            your IDE are aggregated to compute your total coding time.
             <Link href="/faqs"></Link> to learn more.
           </CardDescription>
         </CardHeader>
