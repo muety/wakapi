@@ -221,7 +221,7 @@ func main() {
 
 	// API Handlers
 	authApiHandler := api.NewAuthApiHandler(db, userService, oauthUserService, mailService, aggregationService, summaryService)
-	settingsApiHandler := api.NewSettingsHandler(userService)
+	settingsApiHandler := api.NewSettingsHandler(userService, db)
 	healthApiHandler := api.NewHealthApiHandler(db)
 	heartbeatApiHandler := api.NewHeartbeatApiHandler(userService, heartbeatService, languageMappingService, userAgentPluginService)
 	summaryApiHandler := api.NewSummaryApiHandler(userService, summaryService)

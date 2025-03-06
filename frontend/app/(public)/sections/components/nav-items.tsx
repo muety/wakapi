@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 const items = [
-  { name: "Faq", href: "/faq" },
+  { name: "Faq", href: "/faqs" },
   { name: "Plugins", href: "/plugins" },
   { name: "Leaderboard", href: "/leaderboards" },
   { name: "Sign in", href: "/login" },

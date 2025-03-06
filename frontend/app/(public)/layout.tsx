@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
+import PublicFooter from "./sections/components/public-footer";
 import { PublicMobileHeader } from "./sections/public-mobile-header";
 
 interface MarketingLayoutProps {
@@ -63,12 +64,8 @@ export default async function Page({ children }: MarketingLayoutProps) {
     <div>
       <Header />
       <PublicMobileHeader />
-      <main className="flex-1">{children}</main>
-      <footer>
-        <h5 className="pointer-events-none mx-12 text-center text-[500px] leading-none text-[#161616]">
-          wakana
-        </h5>
-      </footer>
+      <main className="flex-1 min-h-screen min-h-96">{children}</main>
+      <PublicFooter />
     </div>
   );
 }

@@ -102,7 +102,11 @@ export default function FeaturesSection() {
               Features for Developers and Freelancers
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              Track your coding activity, manage clients, create invoice, set
+              Observe your coding activity, set goals, track projects, manage
+              clients and gain insights into your productivity effortlessly.
+            </p>
+            <p className="text-gray-400 max-w-2xl mx-auto sr-only">
+              Observe your coding activity, manage clients, create invoice, set
               productivity goals and observe your work with ease.
             </p>
           </div>

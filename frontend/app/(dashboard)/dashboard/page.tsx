@@ -41,7 +41,7 @@ export default async function Dashboard({
     { start, end }
   )}`;
 
-  const durationData = await fetchData<SummariesApiResponse>(url);
+  const durationData = await fetchData<SummariesApiResponse>(url, true);
   if (!durationData) {
     throw Error("Internal Server error");
   }
@@ -148,8 +148,8 @@ export default async function Dashboard({
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <div className="col-xs-12">
-              <div className="my-4 flex flex-wrap" id="projects">
+            <div className="w-full">
+              <div className="three-grid" id="projects">
                 {projects.map((project: { key: string; total: number }) => (
                   <ProjectCard
                     key={project.key}

@@ -15,7 +15,7 @@ export function AppSidebarLogo() {
         alt="Logo"
         width={43}
         height={31}
-        className="collapsed"
+        className="collapsed hidden sm:block"
       />
     </div>
   );

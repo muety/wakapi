@@ -1,5 +1,7 @@
 "use server";
 
+import { redirect } from "next/navigation";
+
 import { getSession } from "./session";
 
 const { NEXT_PUBLIC_API_URL } = process.env;
@@ -9,6 +11,7 @@ export async function fetchData<T>(
   url: string,
   auth: boolean = true
 ): Promise<T | null> {
+  let redirectToLogin = false;
   try {
     let session = null;
     if (auth) {
@@ -16,12 +19,18 @@ export async function fetchData<T>(
         const response = await getSession(false);
         if (response.isLoggedIn) {
           session = response;
+        } else {
+          redirectToLogin = true;
         }
       } catch (error) {
         if (auth) {
           throw error;
         }
       }
+    }
+
+    if (redirectToLogin) {
+      redirect("/login");
     }
 
     const apiResponse = await fetch(`${NEXT_PUBLIC_API_URL}/api/${url}`, {
@@ -44,6 +53,10 @@ export async function fetchData<T>(
     return json;
   } catch (error) {
     console.log("Error logging in", error);
+  } finally {
+    if (redirectToLogin) {
+      redirect("/login");
+    }
   }
   return null as T;
 }

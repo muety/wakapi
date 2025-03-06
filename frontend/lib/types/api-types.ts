@@ -196,6 +196,25 @@ export interface User {
   photo: string;
 }
 
+export type UserProfile = {
+  id: string;
+  email: string;
+  location: string;
+  created_at: string; // ISO date string
+  last_logged_in_at: string; // ISO date string
+  email_verified: boolean;
+  public_leaderboard: boolean;
+  hireable: boolean;
+  show_email_in_public: boolean;
+  heartbeats_timeout_sec: number;
+  name: string;
+  username: string;
+  bio: string;
+  github_handle: string;
+  twitter_handle: string;
+  linked_in_handle: string;
+};
+
 export interface DataItem {
   rank: number;
   running_total: RunningTotal;

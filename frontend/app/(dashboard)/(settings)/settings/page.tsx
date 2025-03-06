@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { getSession } from "@/actions";
+import { fetchData, getSession } from "@/actions";
 import { ApiKeyCopier } from "@/components/copy-api-key";
 import { DisconnectWakatime } from "@/components/disconnect-wakatime";
 import { KeystrokeTimeout } from "@/components/keystroke-timeout";
@@ -13,10 +13,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { WakatimeIntegration } from "@/components/wakatime-integration";
+import { UserProfile } from "@/lib/types";
 
 export default async function Page() {
   const session = await getSession();
-
+  const user = await fetchData<UserProfile>("/profile", true);
+  // heartbeats_timeout_sec
   return (
     <div className="grid gap-6">
       <Card x-chunk="dashboard-04-chunk-1">
@@ -60,11 +62,14 @@ export default async function Page() {
           <CardDescription>
             This setting affects how a series of consecutive heartbeats sent by
             your IDE are aggregated to compute your total coding time.
-            <Link href="/faqs"></Link> to learn more.
+            <Link href="/faqs">faqs</Link> to learn more.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <KeystrokeTimeout token={session.token} />
+          <KeystrokeTimeout
+            initialValue={user?.heartbeats_timeout_sec}
+            token={session.token}
+          />
         </CardContent>
       </Card>
     </div>

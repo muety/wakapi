@@ -22,14 +22,27 @@ func init() {
 	mailRegex = regexp.MustCompile(MailPattern)
 }
 
+type Profile struct {
+	ShowEmailInPublic    bool   `json:"show_email_in_public" gorm:"default:false; type:bool"`
+	Hireable             bool   `json:"hireable" gorm:"default:false; type:bool"`
+	Name                 string `json:"name" gorm:"default:NULL"`
+	Username             string `json:"username" gorm:"unique; default:NULL"`
+	Bio                  string `json:"bio" gorm:"default:NULL"`
+	GithubHandle         string `json:"github_handle" gorm:"default:NULL"`
+	TwitterHandle        string `json:"twitter_handle" gorm:"default:NULL"`
+	LinkedInHandle       string `json:"linked_in_handle" gorm:"default:NULL"`
+	HeartbeatsTimeoutSec int    `json:"heartbeats_timeout_sec" gorm:"default:231"` // https://github.com/muety/wakapi/issues/156
+	PublicLeaderboard    bool   `json:"public_leaderboard" gorm:"default:false; type:bool"`
+}
+
 type User struct {
 	ID                     string      `json:"id" gorm:"primary_key"`
-	ApiKey                 string      `json:"api_key" gorm:"unique; default:NULL"`
+	ApiKey                 string      `json:"-" gorm:"unique; default:NULL"`
 	Email                  string      `json:"email" gorm:"index:idx_user_email; size:255"`
 	Location               string      `json:"location"`
 	Password               string      `json:"-"`
-	CreatedAt              CustomTime  `gorm:"default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
-	LastLoggedInAt         CustomTime  `gorm:"default:CURRENT_TIMESTAMP" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	CreatedAt              CustomTime  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	LastLoggedInAt         CustomTime  `gorm:"default:CURRENT_TIMESTAMP" json:"last_logged_in_at" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	ShareDataMaxDays       int         `json:"-"`
 	EmailVerified          bool        `json:"email_verified" gorm:"default:false; type:bool"`
 	ShareEditors           bool        `json:"-" gorm:"default:false; type:bool"`
@@ -38,19 +51,29 @@ type User struct {
 	ShareOSs               bool        `json:"-" gorm:"default:false; type:bool; column:share_oss"`
 	ShareMachines          bool        `json:"-" gorm:"default:false; type:bool"`
 	ShareLabels            bool        `json:"-" gorm:"default:false; type:bool"`
-	IsAdmin                bool        `json:"-" gorm:"default:false; type:bool"`
+	IsAdmin                bool        `json:"-" gorm:"default:false; type:bool"` // this is crap. careful with this
 	HasData                bool        `json:"-" gorm:"default:false; type:bool"`
 	WakatimeApiKey         string      `json:"-"` // for relay middleware and imports
 	WakatimeApiUrl         string      `json:"-"` // for relay middleware and imports
 	ResetToken             string      `json:"-"`
 	ReportsWeekly          bool        `json:"-" gorm:"default:false; type:bool"`
-	PublicLeaderboard      bool        `json:"-" gorm:"default:false; type:bool"`
 	SubscribedUntil        *CustomTime `json:"-" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	SubscriptionRenewal    *CustomTime `json:"-" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
 	StripeCustomerId       string      `json:"-"`
 	InvitedBy              string      `json:"-"`
 	ExcludeUnknownProjects bool        `json:"-"`
-	HeartbeatsTimeoutSec   int         `json:"-" gorm:"default:231"` // https://github.com/muety/wakapi/issues/156
+
+	// Public profile. This model is getting out of hand but I can't think of a better way to migrate to a profile model so here goes
+	ShowEmailInPublic    bool   `json:"show_email_in_public" gorm:"default:false; type:bool"`
+	Hireable             bool   `json:"hireable" gorm:"default:false; type:bool"`
+	Name                 string `json:"name" gorm:"default:NULL"`
+	Username             string `json:"username" gorm:"unique; default:NULL"`
+	Bio                  string `json:"bio" gorm:"default:NULL"`
+	GithubHandle         string `json:"github_handle" gorm:"default:NULL"`
+	TwitterHandle        string `json:"twitter_handle" gorm:"default:NULL"`
+	LinkedInHandle       string `json:"linked_in_handle" gorm:"default:NULL"`
+	HeartbeatsTimeoutSec int    `json:"heartbeats_timeout_sec" gorm:"default:231"` // https://github.com/muety/wakapi/issues/156
+	PublicLeaderboard    bool   `json:"public_leaderboard" gorm:"default:false; type:bool"`
 }
 
 type Login struct {

@@ -14,12 +14,14 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
+	"gorm.io/gorm"
 )
 
 type SettingsHandler struct {
 	config     *config.Config
 	userSrvc   services.IUserService
 	httpClient *http.Client
+	db         *gorm.DB
 }
 
 type actionResult struct {
@@ -29,11 +31,12 @@ type actionResult struct {
 	Values  map[string]interface{} `json:"values,omitempty"`
 }
 
-func NewSettingsHandler(userService services.IUserService) *SettingsHandler {
+func NewSettingsHandler(userService services.IUserService, db *gorm.DB) *SettingsHandler {
 	return &SettingsHandler{
 		config:     config.Get(),
 		userSrvc:   userService,
 		httpClient: &http.Client{Timeout: 10 * time.Second},
+		db:         db,
 	}
 }
 
@@ -43,6 +46,8 @@ func (h *SettingsHandler) RegisterRoutes(router chi.Router) {
 			middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
 		)
 		r.Post("/settings", h.PostIndex)
+		r.Get("/profile", h.GetProfile)
+		r.Put("/profile", h.SaveProfile)
 	})
 }
 
@@ -74,6 +79,33 @@ func (h *SettingsHandler) PostIndex(w http.ResponseWriter, r *http.Request) {
 	if result.Code != -1 {
 		h.respondWithJSON(w, result.Code, result)
 	}
+}
+
+func (h *SettingsHandler) SaveProfile(w http.ResponseWriter, r *http.Request) {
+	user := middlewares.GetPrincipal(r)
+
+	var reqBody = &models.Profile{}
+	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+		h.respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	fmt.Println("Saving the fucker")
+
+	result := h.db.Model(user).Updates(reqBody)
+	if err := result.Error; err != nil {
+		h.respondWithJSON(w, 400, map[string]interface{}{
+			"code":  400,
+			"error": err.Error(),
+		})
+	}
+	h.respondWithJSON(w, 200, user)
+}
+
+func (h *SettingsHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
+	user := middlewares.GetPrincipal(r)
+	defer h.userSrvc.FlushCache()
+	h.respondWithJSON(w, 200, user)
 }
 
 func (h *SettingsHandler) actionSetWakatimeApiKey(wakatimeSettings *SettingsPayload, user *models.User) actionResult {
