@@ -24,7 +24,7 @@ export function ApiKeyCopier({ token }: { token: string }) {
   const [loading, setLoading] = React.useState(false);
   const [apiKey, setApiKey] = React.useState("");
 
-  const getApiKey = async () => {
+  const getApiKey = React.useCallback(async () => {
     try {
       setLoading(true);
       const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/auth/api-key`;
@@ -49,7 +49,7 @@ export function ApiKeyCopier({ token }: { token: string }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   const refreshApiKey = async () => {
     try {
@@ -97,7 +97,7 @@ export function ApiKeyCopier({ token }: { token: string }) {
 
   React.useEffect(() => {
     getApiKey();
-  }, []);
+  }, [getApiKey]);
 
   React.useEffect(() => {
     if (copied) {
