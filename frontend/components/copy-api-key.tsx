@@ -45,7 +45,6 @@ export function ApiKeyCopier({ token }: { token: string }) {
       } else {
         const data = await response.json();
         setApiKey(data.apiKey);
-        setMasked(false);
       }
     } finally {
       setLoading(false);
@@ -95,6 +94,10 @@ export function ApiKeyCopier({ token }: { token: string }) {
       getApiKey();
     }
   };
+
+  React.useEffect(() => {
+    getApiKey();
+  }, []);
 
   React.useEffect(() => {
     if (copied) {

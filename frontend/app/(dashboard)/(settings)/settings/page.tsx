@@ -18,7 +18,7 @@ import { UserProfile } from "@/lib/types";
 export default async function Page() {
   const session = await getSession();
   const user = await fetchData<UserProfile>("/profile", true);
-  // heartbeats_timeout_sec
+
   return (
     <div className="grid gap-6">
       <Card x-chunk="dashboard-04-chunk-1">
