@@ -336,14 +336,14 @@ func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request)
 			templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("failed to generate password reset token"))
 			return
 		} else {
-			go func(user *models.User) {
+			go func(user *models.User, r *http.Request) {
 				link := fmt.Sprintf("%s/set-password?token=%s", h.config.Server.GetPublicUrl(), user.ResetToken)
 				if err := h.mailSrvc.SendPasswordReset(user, link); err != nil {
 					conf.Log().Request(r).Error("failed to send password reset mail", "userID", user.ID, "error", err)
 				} else {
 					slog.Info("sent password reset mail", "userID", user.ID)
 				}
-			}(u)
+			}(u, r)
 		}
 	} else {
 		conf.Log().Request(r).Warn("password reset requested for unregistered address", "email", resetRequest.Email)

@@ -355,13 +355,13 @@ func (h *SettingsHandler) actionUpdateExcludeUnknownProjects(w http.ResponseWrit
 		return actionResult{http.StatusInternalServerError, "", "internal sever error", nil}
 	}
 
-	go func(user *models.User) {
+	go func(user *models.User, r *http.Request) {
 		h.toggleAggregationLock(user.ID, true)
 		defer h.toggleAggregationLock(user.ID, false)
 		if err := h.regenerateSummaries(user); err != nil {
 			conf.Log().Request(r).Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
 		}
-	}(user)
+	}(user, r)
 
 	return actionResult{http.StatusOK, "regenerating summaries, this might take a while", "", nil}
 }
@@ -636,7 +636,7 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 		}
 	}
 
-	go func(user *models.User) {
+	go func(user *models.User, r *http.Request) {
 		start := time.Now()
 		importer := imports.NewWakatimeImporter(user.WakatimeApiKey, useLegacyImporter)
 
@@ -704,7 +704,7 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 				slog.Info("sent import notification mail", "userID", user.ID)
 			}
 		}
-	}(user)
+	}(user, r)
 
 	h.keyValueSrvc.PutString(&models.KeyStringValue{
 		Key:   kvKeyLastImport,
@@ -725,13 +725,13 @@ func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *ht
 		return actionResult{http.StatusConflict, "", "summary regeneration already in progress, please wait", nil}
 	}
 
-	go func(user *models.User) {
+	go func(user *models.User, r *http.Request) {
 		h.toggleAggregationLock(user.ID, true)
 		defer h.toggleAggregationLock(user.ID, false)
 		if err := h.regenerateSummaries(user); err != nil {
 			conf.Log().Request(r).Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
 		}
-	}(user)
+	}(user, r)
 
 	return actionResult{http.StatusAccepted, "summaries are being regenerated - this may take a up to a couple of minutes, please come back later", "", nil}
 }
@@ -744,7 +744,7 @@ func (h *SettingsHandler) actionClearData(w http.ResponseWriter, r *http.Request
 	user := middlewares.GetPrincipal(r)
 	slog.Info("user requested to delete all data", "userID", user.ID)
 
-	go func(user *models.User) {
+	go func(user *models.User, r *http.Request) {
 		slog.Info("deleting summaries for user", "userID", user.ID)
 		if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
 			conf.Log().Request(r).Error("failed to clear summaries", "error", err)
@@ -754,7 +754,7 @@ func (h *SettingsHandler) actionClearData(w http.ResponseWriter, r *http.Request
 		if err := h.heartbeatSrvc.DeleteByUser(user); err != nil {
 			conf.Log().Request(r).Error("failed to clear heartbeats", "error", err)
 		}
-	}(user)
+	}(user, r)
 
 	return actionResult{http.StatusAccepted, "deletion in progress, this may take a couple of seconds", "", nil}
 }
@@ -765,7 +765,7 @@ func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Reques
 	}
 
 	user := middlewares.GetPrincipal(r)
-	go func(user *models.User) {
+	go func(user *models.User, r *http.Request) {
 		slog.Info("deleting user shortly", "userID", user.ID)
 		time.Sleep(5 * time.Minute)
 		if err := h.userSrvc.Delete(user); err != nil {
@@ -773,7 +773,7 @@ func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Reques
 		} else {
 			slog.Info("successfully deleted user", "userID", user.ID)
 		}
-	}(user)
+	}(user, r)
 
 	routeutils.SetSuccess(r, w, "Your account will be deleted in a few minutes. Sorry to see you go.")
 	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey))
