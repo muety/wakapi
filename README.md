@@ -452,7 +452,8 @@ alongside [stretchr/testify](https://pkg.go.dev/github.com/stretchr/testify).
 #### How to run
 
 ```bash
-$ CGO_ENABLED=0 go test `go list ./... | grep -v 'github.com/muety/wakapi/scripts'` -json -coverprofile=coverage/coverage.out ./... -run ./...
+$ go install github.com/mfridman/tparse@latest  # optional
+$ CGO_ENABLED=0 go test `go list ./... | grep -v 'github.com/muety/wakapi/scripts'` -json -coverprofile=coverage/coverage.out ./... -run ./... | tparse -all
 ```
 
 ### API tests
