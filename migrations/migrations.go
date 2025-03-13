@@ -14,6 +14,8 @@ type GormMigrationFunc func(db *gorm.DB) error
 type migrationFunc struct {
 	f    func(db *gorm.DB, cfg *config.Config) error
 	name string
+	// be careful with background migrations, because they must not lock or have side effects on each other, and they must be safe to fail silently
+	background bool
 }
 
 type migrationFuncs []migrationFunc
@@ -101,8 +103,17 @@ func RunPostMigrations(db *gorm.DB, cfg *config.Config) {
 
 	for _, m := range postMigrations {
 		slog.Info("potentially running migration", "name", m.name)
-		if err := m.f(db, cfg); err != nil {
-			config.Log().Fatal("migration failed", "name", m.name, "error", err)
+
+		run := func(m migrationFunc) {
+			if err := m.f(db, cfg); err != nil {
+				config.Log().Fatal("migration failed", "name", m.name, "error", err)
+			}
+		}
+
+		if m.background {
+			go run(m)
+		} else {
+			run(m)
 		}
 	}
 }

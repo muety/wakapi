@@ -52,6 +52,9 @@ func (h *Heartbeat) Timely(maxAge time.Duration) bool {
 func (h *Heartbeat) Sanitize() *Heartbeat {
 	h.OperatingSystem = strutil.Capitalize(h.OperatingSystem)
 	h.Editor = strutil.Capitalize(h.Editor)
+	if h.Category == "" && (h.Type == "domain" || h.Type == "url") {
+		h.Category = "browsing"
+	}
 	return h
 }
 
