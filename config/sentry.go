@@ -23,11 +23,7 @@ type SentryLogger struct {
 
 var sentryLogger *SentryLogger
 
-func Log() *SentryLogger {
-	if sentryLogger != nil {
-		return sentryLogger
-	}
-
+func New() *SentryLogger {
 	level := slog.LevelInfo
 	if IsDev(env) {
 		level = slog.LevelDebug
@@ -43,13 +39,20 @@ func Log() *SentryLogger {
 		return next(attrsNew)
 	})
 
-	sentryLogger = &SentryLogger{Logger: slog.New(
+	return &SentryLogger{Logger: slog.New(
 		slogmulti.Fanout(
 			slogmulti.Pipe(filterRequestInfo).Handler(slog.Default().Handler()),
 			slogsentry.Option{Level: level}.NewSentryHandler(),
 		),
 	)}
+}
 
+func Log() *SentryLogger {
+	// note: do not set any state (e.g. request attribute) on this cached logger instance
+	if sentryLogger != nil {
+		return sentryLogger
+	}
+	sentryLogger = New()
 	return sentryLogger
 }
 
@@ -59,12 +62,13 @@ func (l *SentryLogger) Fatal(msg string, args ...any) {
 	os.Exit(1)
 }
 
-func (l *SentryLogger) Request(r *http.Request) *slog.Logger {
-	l.Logger = l.Logger.With("request", r)
+func (l *SentryLogger) Request(r *http.Request) *SentryLogger {
+	ll := New()
+	ll.Logger = ll.Logger.With("request", r)
 	if uid := getPrincipal(r); uid != "" {
-		l.Logger = l.Logger.With(slog.Group("user", slog.String("id", uid)))
+		ll.Logger = ll.Logger.With(slog.Group("user", slog.String("id", uid)))
 	}
-	return l.Logger
+	return ll
 }
 
 var heartbeatsRouteRegex = regexp.MustCompile(`^POST /api/(?:compat/wakatime/)?(?:v1/)?(?:users/[\w\d-_]+/)?heartbeats?(?:\.bulk)?$`)

@@ -74,7 +74,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	var heartbeats []*models.Heartbeat
 	heartbeats, err = routeutils.ParseHeartbeats(r)
 	if err != nil {
-		conf.Log().Request(r).Error("error occurred", "error", err)
+		conf.Log().Request(r).Error("error occurred", "error", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return

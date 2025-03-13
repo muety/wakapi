@@ -107,7 +107,7 @@ func (h *MetricsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	var metrics mm.Metrics
 
 	if userMetrics, err := h.getUserMetrics(reqUser); err != nil {
-		conf.Log().Request(r).Error("error occurred", "error", err)
+		conf.Log().Request(r).Error("error occurred", "error", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(conf.ErrInternalServerError))
 		return
@@ -119,7 +119,7 @@ func (h *MetricsHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	if reqUser.IsAdmin {
 		if adminMetrics, err := h.getAdminMetrics(reqUser); err != nil {
-			conf.Log().Request(r).Error("error occurred", "error", err)
+			conf.Log().Request(r).Error("error occurred", "error", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(conf.ErrInternalServerError))
 			return

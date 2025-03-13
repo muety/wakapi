@@ -53,6 +53,8 @@ func (h *LeaderboardHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
 	}
+
+	conf.Log().Request(r).Warn("some testing 7")
 	if err := templates[conf.LeaderboardTemplate].Execute(w, h.buildViewModel(r, w)); err != nil {
 		conf.Log().Request(r).Error("failed to get leaderboard page", "error", err)
 	}

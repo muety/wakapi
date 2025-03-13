@@ -60,7 +60,7 @@ func (h *ProjectsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("something went wrong"))
-		conf.Log().Request(r).Error("error occurred", "error", err)
+		conf.Log().Request(r).Error("error occurred", "error", err.Error())
 		return
 	}
 
@@ -88,7 +88,7 @@ func (h *ProjectsHandler) GetOne(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(conf.ErrInternalServerError))
-		conf.Log().Request(r).Error("error occurred", "error", err)
+		conf.Log().Request(r).Error("error occurred", "error", err.Error())
 		return
 	}
 
