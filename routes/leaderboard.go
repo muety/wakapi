@@ -143,18 +143,12 @@ func (h *LeaderboardHandler) buildViewModel(r *http.Request, w http.ResponseWrit
 		}
 	}
 
-	var apiKey string
-	if user != nil {
-		apiKey = user.ApiKey
-	}
-
 	leaderboard.FilterEmpty()
 
 	vm := &view.LeaderboardViewModel{
 		SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 			SharedViewModel: view.NewSharedViewModel(h.config, nil),
 			User:            user,
-			ApiKey:          apiKey,
 		},
 		By:            byParam,
 		Key:           keyParam,

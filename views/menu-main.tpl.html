@@ -120,8 +120,7 @@
     <div v-cloak v-show="state.showApiKey" class="flex bg-gray-850 shadow-md z-10 p-2 absolute top-0 right-0 rounded popup" id="api-key-popup">
         <div class="grow flex flex-col px-2">
             <span class="text-xxs text-gray-500 mx-1">API Key</span>
-            <input type="text" class="bg-transparent text-sm text-white mx-1 font-mono" id="api-key-container" readonly
-                   value="{{ .ApiKey }}" style="min-width: 330px">
+            <input type="text" class="bg-transparent text-sm text-white mx-1 font-mono" id="api-key-container" readonly value="{{ .ApiKey }}" style="min-width: 330px">
         </div>
         <div class="flex items-center px-2 border-l border-gray-700">
             <button title="Copy to clipboard" onclick="copyApiKey(event)">

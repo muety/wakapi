@@ -13,11 +13,12 @@
 
 {{ template "alerts.tpl.html" . }}
 
+{{ if and .Summary .SharedLoggedInViewModel.User.HasData }}
 {{ template "time-picker.tpl.html" . }}
-
 {{ template "entity-filter.tpl.html" . }}
+{{ end }}
 
-{{ if .SharedLoggedInViewModel.User.HasData }}
+{{ if .Summary }}
 
 <div id="summary-page" class="grow" v-scope @vue:mounted="mounted({ userId: '{{ .SharedLoggedInViewModel.User.ID }}'})">
     <div class="flex justify-end md:space-x-8 mt-12 flex-wrap md:flex-nowrap relative items-center no-print">
@@ -68,8 +69,6 @@
             timeSelection: '{{ .From | datetime }} - {{ .To | ceildate | datetime }}'
         })" @vue:mounted="mounted"></div>
     </div>
-
-    {{ end }}
 
     <main class="flex flex-col items-center mt-4 md:mt-16 grow">
 
@@ -358,10 +357,13 @@
     </main>
 </div>
 
+{{ end }}
+
 {{ template "footer.tpl.html" . }}
 
 {{ template "foot.tpl.html" . }}
 
+{{ if .Summary }}
 <script>
     const editorColors = {{ .EditorColors | json }}
     const languageColors = {{ .LanguageColors | json }}
@@ -385,6 +387,7 @@
     {{ end }}
 </script>
 <script src="assets/js/summary.js"></script>
+{{ end }}
 
 </body>
 

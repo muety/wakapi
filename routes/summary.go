@@ -107,7 +107,6 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 			SharedViewModel: view.NewSharedViewModel(h.config, nil),
 			User:            user,
-			ApiKey:          user.ApiKey,
 		},
 		Summary:             summary,
 		SummaryParams:       summaryParams,
@@ -124,8 +123,10 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SummaryHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *view.SummaryViewModel {
+	user := middlewares.GetPrincipal(r)
 	return su.WithSessionMessages(&view.SummaryViewModel{
 		SharedLoggedInViewModel: view.SharedLoggedInViewModel{
+			User:            user,
 			SharedViewModel: view.NewSharedViewModel(h.config, nil),
 		},
 	}, r, w)

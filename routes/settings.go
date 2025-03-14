@@ -866,7 +866,6 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
 				User:            user,
-				ApiKey:          user.ApiKey,
 			},
 		}
 	}
@@ -901,7 +900,6 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
 				User:            user,
-				ApiKey:          user.ApiKey,
 			},
 		}
 	}
@@ -929,7 +927,6 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
 				User:            user,
-				ApiKey:          user.ApiKey,
 			},
 		}
 	}
@@ -955,7 +952,6 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 		SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 			SharedViewModel: view.NewSharedViewModel(h.config, nil),
 			User:            user,
-			ApiKey:          user.ApiKey,
 		},
 		LanguageMappings:    mappings,
 		Aliases:             combinedAliases,

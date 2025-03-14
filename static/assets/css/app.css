@@ -5,6 +5,11 @@
 /* Base definition */
 body {
     font-family: 'Source Sans 3', 'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+    position: relative;
+}
+
+main {
+    padding-bottom: 86px;
 }
 
 [v-cloak] {

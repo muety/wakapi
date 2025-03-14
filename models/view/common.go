@@ -23,8 +23,7 @@ type SharedViewModel struct {
 
 type SharedLoggedInViewModel struct {
 	SharedViewModel
-	User   *models.User
-	ApiKey string
+	User *models.User
 }
 
 func NewSharedViewModel(c *conf.Config, messages *Messages) SharedViewModel {
@@ -44,4 +43,11 @@ func (m *Messages) SetError(message string) {
 
 func (m *Messages) SetSuccess(message string) {
 	m.Success = message
+}
+
+func (m SharedLoggedInViewModel) ApiKey() string {
+	if m.User != nil {
+		return m.User.ApiKey
+	}
+	return ""
 }

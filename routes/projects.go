@@ -70,7 +70,6 @@ func (h *ProjectsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
 				User:            user,
-				ApiKey:          user.ApiKey,
 			},
 		}
 	}
@@ -79,7 +78,6 @@ func (h *ProjectsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 		SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 			SharedViewModel: view.NewSharedViewModel(h.config, nil),
 			User:            user,
-			ApiKey:          user.ApiKey,
 		},
 		Projects:   projects,
 		PageParams: pageParams,
