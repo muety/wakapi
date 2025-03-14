@@ -272,7 +272,7 @@ func (srv *DurationService) merge(d1, d2 models.Durations, user *models.User) (m
 
 	// d1 and d2 are assumed to be sorted by time and distinct
 	middleLeft, middleRight := d1.Last(), d2.First()
-	if middleRight.Time.T().Before(middleLeft.Time.T()) {
+	if middleRight.Time.T().Before(middleLeft.TimeEnd()) {
 		return nil, errors.New("failed to merge durations due to overlap")
 	}
 
