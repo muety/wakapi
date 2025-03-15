@@ -4,10 +4,10 @@ import { ExternalLink } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 
 import { ConfigModal } from "./config-modal";
 import { FadeOnView } from "./fade-on-view";
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 
 export default function HowItWorks() {
   const [showModal, setShowModal] = useState(false);

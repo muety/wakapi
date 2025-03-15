@@ -1,7 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { Loader2 } from "lucide-react";
+import type { ReactNode } from "react";
 
 // Using descriptive names for loader types
 type LoaderType = "spinner" | "dots" | "pulse";
