@@ -60,16 +60,13 @@ export default function ProjectListCard({ project }: { project: ProjectData }) {
   const projectId = truncate(project.name, { length: 15 });
 
   return (
-    <Link
-      href={`/projects/${project.id}`}
-      className="md:w-full card-border border-border"
-    >
-      <Card className="p-1 w-full overflow-hidden border border-border/40 shadow-sm duration-300 ease-in-out hover:border-white/15 hover:bg-white/[4%] cursor-pointer">
+    <Link href={`/projects/${project.id}`} className="md:w-full border-border">
+      <Card className="p-1 w-full overflow-hidden shadow-sm duration-300 ease-in-out hover:border-white/15 hover:bg-white/[4%] cursor-pointer">
         <CardHeader className="relative pb-2">
           <div className="flex justify-between items-start">
             <div className="flex items-center space-x-3">
               <div
-                className="h-10 w-10 rounded-sm flex items-center justify-center text-white font-semibold flex-shrink-0"
+                className="h-10 w-10 flex items-center justify-center text-white font-semibold flex-shrink-0"
                 style={{ backgroundColor: getRandomColor(project.name) }}
               >
                 {getProjectInitials(project.name)}

@@ -100,7 +100,7 @@ subscriptions:
 mail:
   enabled: true # whether to enable mails (used for password resets, reports, etc.)
   provider: smtp # method for sending mails, currently one of ['smtp']
-  sender: Wakapi <noreply@wakana.io>
+  sender: Wakana <noreply@wakana.io>
 
   # smtp settings when sending mails via smtp
   smtp:

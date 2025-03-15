@@ -3,13 +3,14 @@ package mail
 import (
 	"bytes"
 	"fmt"
+	"time"
+
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/routes"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"github.com/muety/wakapi/views/mail"
-	"time"
 
 	conf "github.com/muety/wakapi/config"
 )
@@ -19,12 +20,14 @@ const (
 	tplNameImportNotification          = "import_finished"
 	tplNameWakatimeFailureNotification = "wakatime_connection_failure"
 	tplNameReport                      = "report"
+	tplOtp                             = "otp"
 	tplNameSubscriptionNotification    = "subscription_expiring"
-	subjectPasswordReset               = "Wakapi - Password Reset"
-	subjectImportNotification          = "Wakapi - Data Import Finished"
-	subjectWakatimeFailureNotification = "Wakapi - WakaTime Connection Failure"
-	subjectReport                      = "Wakapi - Report from %s"
-	subjectSubscriptionNotification    = "Wakapi - Subscription expiring / expired"
+	subjectPasswordReset               = "Wakana - Password Reset"
+	subjectWakanaOtp                   = "Wakana - OTP"
+	subjectImportNotification          = "Wakana - Data Import Finished"
+	subjectWakatimeFailureNotification = "Wakana - WakaTime Connection Failure"
+	subjectReport                      = "Wakana - Report from %s"
+	subjectSubscriptionNotification    = "Wakana - Subscription expiring / expired"
 )
 
 type SendingService interface {
@@ -57,6 +60,20 @@ func NewMailService() services.IMailService {
 	}
 
 	return &MailService{sendingService: sendingService, config: config, templates: templates}
+}
+
+func (m *MailService) SendLoginOtp(recipient string, otp string) error {
+	tpl, err := m.getOtpTemplate(LoginOtpTplData{Otp: otp})
+	if err != nil {
+		return err
+	}
+	mail := &models.Mail{
+		From:    models.MailAddress(m.config.Mail.Sender),
+		To:      models.MailAddresses([]models.MailAddress{models.MailAddress(recipient)}),
+		Subject: subjectWakanaOtp,
+	}
+	mail.WithHTML(tpl.String())
+	return m.sendingService.Send(mail)
 }
 
 func (m *MailService) SendPasswordReset(recipient *models.User, resetLink string) error {
@@ -143,6 +160,14 @@ func (m *MailService) SendSubscriptionNotification(recipient *models.User, hasEx
 func (m *MailService) getPasswordResetTemplate(data PasswordResetTplData) (*bytes.Buffer, error) {
 	var rendered bytes.Buffer
 	if err := m.templates[m.fmtName(tplNamePasswordReset)].Execute(&rendered, data); err != nil {
+		return nil, err
+	}
+	return &rendered, nil
+}
+
+func (m *MailService) getOtpTemplate(data LoginOtpTplData) (*bytes.Buffer, error) {
+	var rendered bytes.Buffer
+	if err := m.templates[m.fmtName(tplOtp)].Execute(&rendered, data); err != nil {
 		return nil, err
 	}
 	return &rendered, nil

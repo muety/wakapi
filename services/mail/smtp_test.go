@@ -119,9 +119,9 @@ func (suite *SmtpTestSuite) TestSMTPSendingService_SendStartTLS() {
 
 func createTestMail() *models.Mail {
 	mail := models.Mail{
-		From:    "Wakapi <noreply@wakana.io>",
+		From:    "Wakana <noreply@wakana.io>",
 		To:      []models.MailAddress{"Ferdinand Mütsch <ferdinand@muetsch.io>"},
-		Subject: "Wakapi Test Mail",
+		Subject: "Wakana Test Mail",
 		Body:    "This is just a test",
 		Type:    models.PlainType,
 		Date:    time.Now(),

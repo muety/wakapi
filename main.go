@@ -99,9 +99,9 @@ var (
 
 // TODO: Refactor entire project to be structured after business domains
 
-// @title Wakapi API
+// @title Wakana API
 // @version 1.0
-// @description REST API to interact with [Wakapi](https://wakana.io)
+// @description REST API to interact with [Wakana](https://wakana.io)
 // @description
 // @description ## Authentication
 // @description Set header `Authorization` to your API Key encoded as Base64 and prefixed with `Basic`
@@ -132,7 +132,7 @@ func main() {
 	// Configure Swagger docs
 	docs.SwaggerInfo.BasePath = config.Server.BasePath + "/api"
 
-	slog.Info("Wakapi", "version", version)
+	slog.Info("Wakana", "version", version)
 
 	// Set up GORM
 	gormLogger := logger.New(

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 
 import { ConfigModal } from "./config-modal";
 import { FadeOnView } from "./fade-on-view";
+import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 
 export default function HowItWorks() {
   const [showModal, setShowModal] = useState(false);
@@ -36,7 +37,7 @@ export default function HowItWorks() {
                 <li className="text-lg">
                   Locate the{" "}
                   <code className="bg-muted px-1 py-0.5 rounded">
-                    .wakatime.cfg
+                    ~/.wakatime.cfg
                   </code>{" "}
                   file on your computer. This is usually located in your root
                   folder. On windows you might have to show hidden files to see
@@ -100,7 +101,7 @@ export default function HowItWorks() {
           open={showModal}
           onOpenChange={setShowModal}
           apiKey="2df5863c-86ec-590b-a9d3-1755c28c39da"
-          apiUrl="http://localhost:5509/api"
+          apiUrl={`${NEXT_PUBLIC_API_URL}/api`}
         />
       </section>
     </FadeOnView>

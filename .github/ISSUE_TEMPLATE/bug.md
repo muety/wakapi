@@ -1,10 +1,9 @@
 ---
 name: Bug
 about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
-
+title: ""
+labels: ""
+assignees: ""
 ---
 
 **Describe the bug**
@@ -12,8 +11,9 @@ A clear and concise description of what the bug is. Please briefly describe how 
 
 **System information**
 Please provide information on:
-* Wakapi version
-* Operating system
-    * If Linux: which distro?
-    * If Docker: which image and tag?
-* Database (SQLite, MySQL, ... ?)
+
+- Wakana version
+- Operating system
+  - If Linux: which distro?
+  - If Docker: which image and tag?
+- Database (SQLite, MySQL, ... ?)

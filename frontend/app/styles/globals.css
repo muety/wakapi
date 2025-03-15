@@ -435,8 +435,6 @@
 }
 
 .card-border {
-  /* border: 240 5.9% 90%; */
-  border-radius: 5px;
   border: 1px solid #4f5b69;
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.05),

@@ -46,7 +46,7 @@ export function ProjectsTable({ projects }: { projects: Project[] }) {
           onChange={(event) => setSearchQuery(event.target.value)}
         />
       </div>
-      <div className="rounded-md flex flex-wrap gap-1">
+      <div className="flex flex-wrap gap-1 space-y-3">
         {filteredProjects.map((p) => (
           <ProjectListCard key={p.id} project={p} />
         ))}

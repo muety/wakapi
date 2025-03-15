@@ -7,12 +7,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"math/rand"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
 	"golang.org/x/crypto/bcrypt"
@@ -22,11 +24,12 @@ import (
 // OTPService handles OTP-related operations
 
 type OTPService struct {
-	db *gorm.DB
+	db          *gorm.DB
+	mailService IMailService
 }
 
-func NewOTPService(db *gorm.DB) *OTPService {
-	return &OTPService{db: db}
+func NewOTPService(db *gorm.DB, mailService IMailService) *OTPService {
+	return &OTPService{db: db, mailService: mailService}
 }
 
 func GenerateOTPHash() (string, string, error) {
@@ -133,10 +136,21 @@ func (s *OTPService) CreateOTP(otpRequest models.InitiateOTPRequest) (*models.Cr
 		return nil, err
 	}
 
-	// invalidate existing OTPs for the same user
+	if err := s.mailService.SendLoginOtp(otpRequest.Email, otpText); err != nil {
+		slog.Error("failed to send OTP email", "userID", otpRequest.Email)
 
-	// send OTP via email
-	fmt.Println("Sending OTP:", otpText)
+		if !config.Get().IsDev() {
+			fmt.Println("Login OTP: " + otpText)
+			return &models.CreateOTPResponse{
+				Message: "Failed to send otp email",
+				Success: false,
+			}, err
+		}
+	}
+
+	if !config.Get().IsDev() {
+		fmt.Println("Login OTP: " + otpText)
+	}
 
 	return &models.CreateOTPResponse{
 		Message: "OTP created successfully",
@@ -267,7 +281,7 @@ func CreateOTPHandler(service *OTPService) http.HandlerFunc {
 		if err != nil {
 			fmt.Println("Error creating OTP", err)
 			helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
-				"message": err.Error(),
+				"message": resp.Message,
 				"status":  http.StatusBadRequest,
 			})
 			return

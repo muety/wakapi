@@ -65,10 +65,6 @@ type OTPResponse struct {
 	Message string `json:"message"`
 }
 
-// GenerateOTP generates a random 6-digit OTP and sets it on the model
-
-// Request/Response structure
-
 type CreateOTPResponse struct {
 	Message string `json:"message"`
 	Success bool   `json:"success"`

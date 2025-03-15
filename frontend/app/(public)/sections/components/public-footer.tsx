@@ -23,7 +23,7 @@ export default function PublicFooter() {
                   href="/faqs"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  About
+                  FAQS
                 </Link>
               </li>
               <li>
@@ -31,7 +31,7 @@ export default function PublicFooter() {
                   href="/plugins"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  Docs
+                  Plugin
                 </Link>
               </li>
               <li>

@@ -46,10 +46,10 @@ ENV ENVIRONMENT=prod \
 
 COPY --from=build-env /staging /
 
-LABEL org.opencontainers.image.url="https://github.com/muety/wakapi" \
-      org.opencontainers.image.documentation="https://github.com/muety/wakapi" \
-      org.opencontainers.image.source="https://github.com/muety/wakapi" \
-      org.opencontainers.image.title="Wakapi" \
+LABEL org.opencontainers.image.url="https://github.com/jemiluv8/wakana" \
+      org.opencontainers.image.documentation="https://github.com/jemiluv8/wakana" \
+      org.opencontainers.image.source="https://github.com/jemiluv8/wakana" \
+      org.opencontainers.image.title="Wakana" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.description="A minimalist, self-hosted WakaTime-compatible backend for coding statistics"
 

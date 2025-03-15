@@ -85,6 +85,7 @@ type IMailService interface {
 	SendImportNotification(*models.User, time.Duration, int) error
 	SendReport(*models.User, *models.Report) error
 	SendSubscriptionNotification(*models.User, bool) error
+	SendLoginOtp(string, string) error
 }
 
 type IDurationService interface {

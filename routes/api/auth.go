@@ -37,7 +37,7 @@ type AuthApiHandler struct {
 }
 
 func NewAuthApiHandler(db *gorm.DB, userService services.IUserService, oauthUserService services.IUserOauthService, mailService services.IMailService, aggregationService services.IAggregationService, summaryService services.ISummaryService) *AuthApiHandler {
-	otpService := services.NewOTPService(db)
+	otpService := services.NewOTPService(db, mailService)
 	return &AuthApiHandler{
 		db:                 db,
 		userService:        userService,

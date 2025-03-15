@@ -1,6 +1,5 @@
 "use server";
 
-// import { createSafeAction } from "next-safe-action";
 import { redirect } from "next/navigation";
 
 import { createIronSession } from "@/lib/server/auth";
@@ -196,9 +195,6 @@ export async function processEmailLogin(credentials: {
       message?: string;
     };
 
-    console.log("apiResponse", json, json.data);
-    console.log("[apiResponse.status]", apiResponse.status);
-
     if (apiResponse.status > 202) {
       return {
         message: {
@@ -206,10 +202,18 @@ export async function processEmailLogin(credentials: {
           title: "Login Error!",
           variant: "destructive",
         },
+        sucess: false,
       };
     }
 
-    return json;
+    return {
+      message: {
+        description: "Check your email for a login code",
+        title: "Login OTP!",
+        variant: "success",
+      },
+      success: true,
+    };
   } catch (error) {
     console.log("Error logging in", error);
     return {

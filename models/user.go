@@ -73,7 +73,7 @@ type User struct {
 	TwitterHandle        string `json:"twitter_handle" gorm:"default:NULL"`
 	LinkedInHandle       string `json:"linked_in_handle" gorm:"default:NULL"`
 	HeartbeatsTimeoutSec int    `json:"heartbeats_timeout_sec" gorm:"default:231"` // https://github.com/muety/wakapi/issues/156
-	PublicLeaderboard    bool   `json:"public_leaderboard" gorm:"default:false; type:bool"`
+	PublicLeaderboard    bool   `json:"public_leaderboard" gorm:"default:true; type:bool"`
 }
 
 type Login struct {

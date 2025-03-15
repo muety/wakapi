@@ -136,7 +136,7 @@ export default async function Dashboard({
 
           <div className="my-5">
             <div className="flex items-baseline gap-1 align-middle">
-              <h1 className="text-2xl">Projects</h1>
+              <h1 className="text-2xl mb-4">Projects</h1>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>

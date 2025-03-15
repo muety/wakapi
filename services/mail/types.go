@@ -6,6 +6,10 @@ type PasswordResetTplData struct {
 	ResetLink string
 }
 
+type LoginOtpTplData struct {
+	Otp string
+}
+
 type ImportNotificationTplData struct {
 	PublicUrl     string
 	Duration      string
