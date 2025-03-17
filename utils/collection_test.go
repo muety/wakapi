@@ -114,6 +114,12 @@ var userAgents = []struct {
 		"cursor",
 		nil,
 	},
+	{
+		"HBuilder X/4.56 (Windows_NT 10.0.26100)", // https://github.com/muety/wakapi/issues/765
+		"Windows",
+		"HBuilder X",
+		nil,
+	},
 }
 
 func BenchmarkCommon_ParseUserAgent(b *testing.B) {

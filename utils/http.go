@@ -114,9 +114,14 @@ func ParseUserAgent(ua string) (string, string, error) { // os, editor, err
 
 		return strutil.Capitalize(os), editor, nil
 	}
+
 	// try parse browser user agent as a fallback
-	if parsed := useragent.Parse(ua); len(parsed.Name) > 0 && len(parsed.OS) > 0 {
-		return strutil.Capitalize(parsed.OS), parsed.Name, nil
+	if parsedUa := useragent.Parse(ua); len(parsedUa.Name) > 0 {
+		if len(parsedUa.OS) > 0 {
+			return strutil.Capitalize(parsedUa.OS), parsedUa.Name, nil
+		} else if strings.Contains(strings.ToLower(ua), "windows") {
+			return "Windows", parsedUa.Name, nil // special treatment for https://github.com/muety/wakapi/issues/765
+		}
 	}
 	return "", "", errors.New("failed to parse user agent string")
 }
