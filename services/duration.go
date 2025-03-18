@@ -100,6 +100,8 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		durations = append(durations, cached...)
 	}
 
 	return srv.filter(durations, user, filters), nil
