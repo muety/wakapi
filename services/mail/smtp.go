@@ -2,107 +2,102 @@ package mail
 
 import (
 	"crypto/tls"
-	"errors"
-	"github.com/emersion/go-sasl"
-	"github.com/emersion/go-smtp"
+	"fmt"
+	"io"
+	"net/smtp"
+
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
-	"io"
 )
 
 type SMTPSendingService struct {
 	config conf.SMTPMailConfig
-	auth   sasl.Client
 }
 
 func NewSMTPSendingService(config conf.SMTPMailConfig) *SMTPSendingService {
 	return &SMTPSendingService{
 		config: config,
-		auth: sasl.NewPlainClient(
-			"",
-			config.Username,
-			config.Password,
-		),
 	}
 }
 
 func (s *SMTPSendingService) Send(mail *models.Mail) error {
 	mail = mail.Sanitized()
 
-	dial := smtp.Dial
-	if s.config.TLS {
-		dial = func(addr string) (*smtp.Client, error) {
-			return smtp.DialTLS(addr, &tls.Config{InsecureSkipVerify: s.config.SkipVerify})
-		}
+	address := s.config.ConnStr()
+
+	// Configure authentication if credentials are provided
+	var auth smtp.Auth
+	if len(s.config.Username) > 0 && len(s.config.Password) > 0 {
+		auth = smtp.PlainAuth("", s.config.Username, s.config.Password, s.config.Host)
 	}
 
-	c, err := dial(s.config.ConnStr())
+	// Establish a connection with the appropriate TLS settings
+	var client *smtp.Client
+	var err error
+
+	if s.config.TLS {
+		// TLS connection
+		conn, err := tls.Dial("tcp", address, &tls.Config{
+			InsecureSkipVerify: s.config.SkipVerify,
+			ServerName:         s.config.Host,
+		})
+		if err != nil {
+			return err
+		}
+		client, err = smtp.NewClient(conn, s.config.Host)
+		fmt.Println("err", err)
+	} else {
+		// Plain connection with potential STARTTLS
+		client, err = smtp.Dial(address)
+	}
 	if err != nil {
 		return err
 	}
-	defer c.Close()
+	defer client.Close()
 
-	// if server offers starttls, automatically switch to starttls instead
-	// for backwards-compatibility, we switch to starttls even if forced tls was requested
-	// TODO: actually use forced tls if requested
-	if ok, _ := c.Extension("STARTTLS"); ok {
-		cNew, err := smtp.DialStartTLS(s.config.ConnStr(), &tls.Config{InsecureSkipVerify: s.config.SkipVerify})
-
-		if err != nil {
-			if errSmtp, ok := err.(*smtp.SMTPError); ok {
-				if errSmtp.Code == 503 {
-					// TLS already active
-				}
-				return err
-			} else {
+	// StartTLS if needed
+	if !s.config.TLS {
+		if ok, _ := client.Extension("STARTTLS"); ok {
+			if err = client.StartTLS(&tls.Config{
+				InsecureSkipVerify: s.config.SkipVerify,
+				ServerName:         s.config.Host,
+			}); err != nil {
 				return err
 			}
 		}
-
-		// swap old client with new one
-		c.Close()
-		c = cNew
-		defer c.Close()
 	}
 
-	if s.auth != nil {
-		if ok, _ := c.Extension("AUTH"); !ok {
-			return errors.New("smtp: server doesn't support AUTH")
-		}
-
-		if len(s.config.Username) == 0 || len(s.config.Password) == 0 {
-			return errors.New("smtp: server requires authentication, but no authentication is provided")
-		}
-
-		if err = c.Auth(s.auth); err != nil {
+	// Authenticate if applicable
+	if auth != nil {
+		if err = client.Auth(auth); err != nil {
 			return err
 		}
 	}
 
-	if err = c.Mail(mail.From.Raw(), nil); err != nil {
+	// Set sender
+	if err = client.Mail(mail.From.Raw()); err != nil {
 		return err
 	}
 
+	// Set recipients
 	for _, addr := range mail.To.RawStrings() {
-		if err = c.Rcpt(addr, nil); err != nil {
+		if err = client.Rcpt(addr); err != nil {
 			return err
 		}
 	}
 
-	w, err := c.Data()
+	// Send mail content
+	w, err := client.Data()
 	if err != nil {
 		return err
 	}
-
 	_, err = io.Copy(w, mail.Reader())
 	if err != nil {
 		return err
 	}
-
-	err = w.Close()
-	if err != nil {
+	if err = w.Close(); err != nil {
 		return err
 	}
 
-	return c.Quit()
+	return client.Quit()
 }

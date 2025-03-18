@@ -32,7 +32,7 @@ const (
 	TestSmtpPass   = "admin"
 	Smtp4DevApiUrl = "http://localhost:8080/api"
 	Smtp4DevHost   = "localhost"
-	Smtp4DevPort   = 2525
+	Smtp4DevPort   = 1025
 )
 
 type SmtpTestSuite struct {

@@ -137,7 +137,7 @@ func (s *OTPService) CreateOTP(otpRequest models.InitiateOTPRequest) (*models.Cr
 	}
 
 	if err := s.mailService.SendLoginOtp(otpRequest.Email, otpText); err != nil {
-		slog.Error("failed to send OTP email", "userID", otpRequest.Email)
+		slog.Error("failed to send OTP email", "userID", otpRequest.Email, "error", err.Error())
 
 		if !config.Get().IsDev() {
 			fmt.Println("Login OTP: " + otpText)
@@ -281,7 +281,7 @@ func CreateOTPHandler(service *OTPService) http.HandlerFunc {
 		if err != nil {
 			fmt.Println("Error creating OTP", err)
 			helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
-				"message": resp.Message,
+				"message": err.Error(),
 				"status":  http.StatusBadRequest,
 			})
 			return

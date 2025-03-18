@@ -3,8 +3,11 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'wakatimer-postgres'
+app = 'wakana'
 primary_region = 'lhr'
+
+[deploy]
+  strategy = "bluegreen"
 
 [build]
 
