@@ -316,7 +316,8 @@ export async function processLoginWithOTP(credentials: {
     }
 
     await createIronSession(json.data);
-    redirectPath = "/dashboard";
+    const newUser = json.data.user.is_new_user;
+    redirectPath = newUser ? "/dashboard" : "/installation";
   } catch (error) {
     console.log("Error logging in", error);
     return {

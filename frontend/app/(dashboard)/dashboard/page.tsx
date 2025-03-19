@@ -2,6 +2,7 @@ import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { format, subDays } from "date-fns";
 import { Metadata } from "next";
 
+import Link from "next/link";
 import { fetchData } from "@/actions";
 import { ActivityCategoriesChart } from "@/components/charts/ActivityCategoriesChart";
 import { DailyCodingSummaryOverTime } from "@/components/charts/DailyCodingSummaryOverTime";
@@ -51,7 +52,7 @@ export default async function Dashboard({
   return (
     <div className="my-6">
       {durationData && (
-        <main className="main-dashboard">
+        <main className="main-dashboard space-y-3">
           <div className="m-0 my-5 text-2xl">
             <b>{durationData.cumulative_total.text}</b> <span>over the</span>{" "}
             <DashboardPeriodSelector searchParams={searchParams} />
@@ -69,7 +70,7 @@ export default async function Dashboard({
             </div>
           </section>
 
-          <div className="my-5">
+          <div className="my-5 space-y-3">
             <div className="charts-grid">
               <div className="chart-box">
                 <WPieChart
@@ -166,7 +167,14 @@ export default async function Dashboard({
                       <div className="project-content">
                         <h3>No projects available yet</h3>
                         <p>
-                          Check your plugin status if you have doubts about this
+                          Check your plugin status to see if any of your plugins
+                          have been detected.
+                        </p>
+                        <p className="mt-2 cursor-pointer">
+                          You may also checkout{" "}
+                          <Link href="/installation" className="underline">
+                            Installation Guide
+                          </Link>
                         </p>
                       </div>
                     </a>

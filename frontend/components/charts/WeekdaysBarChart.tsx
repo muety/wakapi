@@ -14,13 +14,14 @@ import { makeCategorySummaryDataForWeekdays } from "@/lib/utils";
 
 import { DurationTooltip } from "./DurationTooltip";
 import { StackedTooltipContent } from "./StackedTooltipContent";
+import { EmptyChartWrapper } from "./EmptyChartWrapper";
 
 export interface iProps {
   data: SummariesResponse[];
   durationSubtitle?: string;
 }
 
-export function WeekdaysBarChart({ data, durationSubtitle }: iProps) {
+export function WeekdaysBarChartComponent({ data, durationSubtitle }: iProps) {
   const [groupedSummaryData, categoryData] =
     makeCategorySummaryDataForWeekdays(data);
   return (
@@ -56,5 +57,17 @@ export function WeekdaysBarChart({ data, durationSubtitle }: iProps) {
         </BarChart>
       </ResponsiveContainer>
     </>
+  );
+}
+
+export function WeekdaysBarChart({ data }: iProps) {
+  console.log("data", data);
+  const totalSeconds = data
+    .map((d) => d.grand_total.total_seconds || 0)
+    .reduce((a, b) => a + b, 0);
+  return (
+    <EmptyChartWrapper hasData={totalSeconds > 0}>
+      <WeekdaysBarChartComponent data={data} />
+    </EmptyChartWrapper>
   );
 }

@@ -1,13 +1,10 @@
 "use client";
 
-import { ExternalLink } from "lucide-react";
 import { useState } from "react";
+import { ExternalLink } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
-
-import { ConfigModal } from "./config-modal";
 import { FadeOnView } from "./fade-on-view";
+import { Installation } from "./installation";
 
 export default function HowItWorks() {
   const [showModal, setShowModal] = useState(false);
@@ -15,7 +12,7 @@ export default function HowItWorks() {
   return (
     <FadeOnView>
       <section className="py-12 md:py-16 lg:py-20">
-        <div className="container">
+        <div className="container space-y-5">
           <h2 className="text-3xl font-bold tracking-tight mb-12 text-center">
             How it Works
           </h2>
@@ -64,9 +61,9 @@ export default function HowItWorks() {
                   </code>
                 </li>
               </ol>
-              <Button onClick={() => setShowModal(true)} className="mt-4">
+              {/* <Button onClick={() => setShowModal(true)} className="mt-4">
                 View Sample Configuration
-              </Button>
+              </Button> */}
             </div>
             <div className="bg-muted rounded-lg p-6">
               <h3 className="text-xl font-semibold mb-4">
@@ -95,14 +92,8 @@ export default function HowItWorks() {
               </ol>
             </div>
           </div>
+          <Installation />
         </div>
-
-        <ConfigModal
-          open={showModal}
-          onOpenChange={setShowModal}
-          apiKey="2df5863c-86ec-590b-a9d3-1755c28c39da"
-          apiUrl={`${NEXT_PUBLIC_API_URL}/api`}
-        />
       </section>
     </FadeOnView>
   );

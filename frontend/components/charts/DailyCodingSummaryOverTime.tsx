@@ -20,6 +20,7 @@ import {
 } from "@/lib/utils";
 
 import { StackedTooltipContent } from "./StackedTooltipContent";
+import { EmptyChartWrapper } from "./EmptyChartWrapper";
 
 const CustomBarShape = (props: any) => {
   const { x, y, width, height, fill, stroke, strokeWidth } = props;
@@ -71,7 +72,7 @@ export interface iProps {
   data: SummariesResponse[];
 }
 
-export function DailyCodingSummaryOverTime({ data }: iProps) {
+export function DailyCodingSummaryOverTimeComponent({ data }: iProps) {
   const { theme } = useTheme();
   const lineColor = theme === "dark" ? "#ffffff" : "#000";
   // Resolve whatever fuckery is afoot here.
@@ -148,5 +149,16 @@ export function DailyCodingSummaryOverTime({ data }: iProps) {
         />
       </ComposedChart>
     </ResponsiveContainer>
+  );
+}
+
+export function DailyCodingSummaryOverTime({ data }: iProps) {
+  const totalSeconds = data
+    .map((d) => d.grand_total.total_seconds || 0)
+    .reduce((a, b) => a + b, 0);
+  return (
+    <EmptyChartWrapper hasData={totalSeconds > 0}>
+      <DailyCodingSummaryOverTimeComponent data={data} />
+    </EmptyChartWrapper>
   );
 }

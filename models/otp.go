@@ -71,7 +71,8 @@ type CreateOTPResponse struct {
 }
 
 type VerifyOTPResponse struct {
-	Message string `json:"message"`
-	Valid   bool   `json:"valid"`
-	User    *User  `json:"user"`
+	Message   string `json:"message"`
+	Valid     bool   `json:"valid"`
+	User      *User  `json:"user"`
+	IsNewUser bool   `json:"is_new_user"`
 }

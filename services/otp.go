@@ -67,12 +67,13 @@ func (s *OTPService) getUser(email string) (*models.User, error) {
 }
 
 // getOrCreateUser retrieves existing user or creates new one
-func (s *OTPService) getOrCreateUser(email string) (*models.User, error) {
+func (s *OTPService) getOrCreateUser(email string) (*models.User, error, bool) {
 
 	existingUser, err := s.getUser(email)
+	fmt.Println("existingUser", existingUser)
 
-	if err == nil && existingUser.ID != "" {
-		return existingUser, nil
+	if err == nil && existingUser != nil && existingUser.ID != "" {
+		return existingUser, nil, false
 	}
 
 	user := models.User{
@@ -84,29 +85,23 @@ func (s *OTPService) getOrCreateUser(email string) (*models.User, error) {
 
 	result := s.db.Create(&user)
 	if result.Error != nil {
-		return nil, result.Error
+		return nil, result.Error, false
 	}
 
 	if err := s.db.Create(&user).Error; err != nil {
-		return nil, err
+		return nil, err, true
 	}
 
-	return &user, nil
+	return &user, nil, false
 }
 
 // CreateOTP creates a new OTP for a user
 func (s *OTPService) CreateOTP(otpRequest models.InitiateOTPRequest) (*models.CreateOTPResponse, error) {
-	// Get or create user
-	_, err := s.getOrCreateUser(otpRequest.Email)
-	if err != nil {
-		return nil, fmt.Errorf("failed to process user: %w", err)
-	}
-
 	// Check for existing non-expired OTP
 	var existingOTP models.OTP
 	now := time.Now().Unix()
 
-	err = s.db.Where("email = ? AND expires_in > ? AND used = ?",
+	err := s.db.Where("email = ? AND expires_in > ? AND used = ?",
 		otpRequest.Email, now, false).First(&existingOTP).Error
 
 	if err == nil {
@@ -186,12 +181,13 @@ func (s *OTPService) VerifyOTP(validateOtpRequest models.ValidateOTPRequest) (*m
 	var user = &models.User{}
 	now := time.Now().Unix()
 
-	user, err := s.getOrCreateUser(validateOtpRequest.Email)
+	user, err, new_user := s.getOrCreateUser(validateOtpRequest.Email)
 
 	if err != nil {
 		return &models.VerifyOTPResponse{
-			Message: "Invalid or expired OTP",
-			Valid:   false,
+			Message:   "Invalid or expired OTP",
+			Valid:     false,
+			IsNewUser: new_user,
 		}, nil //intentionally vague
 	}
 
@@ -202,8 +198,9 @@ func (s *OTPService) VerifyOTP(validateOtpRequest models.ValidateOTPRequest) (*m
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &models.VerifyOTPResponse{
-				Message: "Invalid or expired OTP",
-				Valid:   false,
+				Message:   "Invalid or expired OTP",
+				Valid:     false,
+				IsNewUser: new_user,
 			}, nil
 		}
 		return nil, err
@@ -213,16 +210,18 @@ func (s *OTPService) VerifyOTP(validateOtpRequest models.ValidateOTPRequest) (*m
 	err = bcrypt.CompareHashAndPassword([]byte(otp.OTPHash), []byte(validateOtpRequest.OTP))
 	if err != nil {
 		return &models.VerifyOTPResponse{
-			Message: "Invalid OTP",
-			Valid:   false,
+			Message:   "Invalid OTP",
+			Valid:     false,
+			IsNewUser: new_user,
 		}, nil
 	}
 
 	// Verify PKCE challenge
 	if !verifyPKCEChallenge(validateOtpRequest.CodeVerifier, otp.CodeChallenge, otp.ChallengeMethod) {
 		return &models.VerifyOTPResponse{
-			Message: "Invalid PKCE challenge",
-			Valid:   false,
+			Message:   "Invalid PKCE challenge",
+			Valid:     false,
+			IsNewUser: new_user,
 		}, nil
 	}
 
@@ -233,9 +232,10 @@ func (s *OTPService) VerifyOTP(validateOtpRequest models.ValidateOTPRequest) (*m
 	}
 
 	return &models.VerifyOTPResponse{
-		Message: "OTP verified successfully",
-		Valid:   true,
-		User:    user,
+		Message:   "OTP verified successfully",
+		Valid:     true,
+		User:      user,
+		IsNewUser: new_user,
 	}, nil
 }
 
@@ -339,6 +339,7 @@ func VerifyOTPHandler(service *OTPService) http.HandlerFunc {
 				Message:   resp.Message,
 				User:      resp.User,
 				OauthUser: nil,
+				IsNewUser: resp.IsNewUser,
 			},
 		)
 

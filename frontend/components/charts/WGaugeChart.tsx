@@ -12,6 +12,7 @@ import {
 
 import { DailyAverage, SummariesResponse } from "@/lib/types";
 import { convertSecondsToHoursAndMinutes } from "@/lib/utils";
+import { EmptyChartWrapper } from "./EmptyChartWrapper";
 
 export interface WPieChartDataItem {
   name: string;
@@ -42,6 +43,8 @@ export function WGaugeChart({ data, dailyAverage }: WGaugeChartProps) {
     { value: todaysTotal, color: "hsl(53.25deg 84.36% 64.9%)" },
     { value: dailyAverage.seconds, color: "#e0e0e0" },
   ];
+
+  const hasData = todaysTotal > 0;
 
   const renderActiveShape = (props: any) => {
     const RADIAN = Math.PI / 180;
@@ -137,48 +140,50 @@ export function WGaugeChart({ data, dailyAverage }: WGaugeChartProps) {
           <span className="chart-box-sub-title">Today</span>
         </div>
       </div>
-      <ResponsiveContainer
-        width="100%"
-        height={160}
-        className="flex justify-around align-middle"
-      >
-        <PieChart>
-          <Pie
-            dataKey="value"
-            isAnimationActive={true}
-            data={change > 0 ? [gaugeData[0]] : gaugeData}
-            cx="50%"
-            cy="75%"
-            width="100%"
-            alignmentBaseline="hanging"
-            outerRadius={85}
-            innerRadius={innerRadius}
-            fill="#8884d8"
-            label={renderCustomizedLabel}
-            labelLine={false}
-            activeShape={renderActiveShape}
-            startAngle={180}
-            endAngle={0}
-          >
-            {gaugeData.map((row, index) => (
-              <Cell
-                key={index}
-                fill={index === 0 ? getFillColor(change) : row.color}
-                stroke="black"
+      <EmptyChartWrapper hasData={hasData} className="h-[150px]">
+        <ResponsiveContainer
+          width="100%"
+          height={160}
+          className="flex justify-around align-middle"
+        >
+          <PieChart>
+            <Pie
+              dataKey="value"
+              isAnimationActive={true}
+              data={change > 0 ? [gaugeData[0]] : gaugeData}
+              cx="50%"
+              cy="75%"
+              width="100%"
+              alignmentBaseline="hanging"
+              outerRadius={85}
+              innerRadius={innerRadius}
+              fill="#8884d8"
+              label={renderCustomizedLabel}
+              labelLine={false}
+              activeShape={renderActiveShape}
+              startAngle={180}
+              endAngle={0}
+            >
+              {gaugeData.map((row, index) => (
+                <Cell
+                  key={index}
+                  fill={index === 0 ? getFillColor(change) : row.color}
+                  stroke="black"
+                />
+              ))}
+              <Label
+                value={change.toFixed(0) + "%"}
+                position="centerBottom"
+                offset={-20}
+                className="gauge-label"
+                fontSize="15px"
+                fontWeight="bold"
               />
-            ))}
-            <Label
-              value={change.toFixed(0) + "%"}
-              position="centerBottom"
-              offset={-20}
-              className="gauge-label"
-              fontSize="15px"
-              fontWeight="bold"
-            />
-          </Pie>
-          <RechartsTooltip content={<CustomizedTooltip />} />
-        </PieChart>
-      </ResponsiveContainer>
+            </Pie>
+            <RechartsTooltip content={<CustomizedTooltip />} />
+          </PieChart>
+        </ResponsiveContainer>
+      </EmptyChartWrapper>
       <div className="d-flex " style={{ marginTop: "-22px" }}>
         <div className="chart-box-title flex flex-col" style={{ gap: 0 }}>
           <span className="text">

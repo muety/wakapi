@@ -15,6 +15,7 @@ export interface SessionUser {
   avatar: string;
   has_wakatime_integration: boolean;
   name?: string;
+  is_new_user: boolean;
 }
 
 export const defaultSession: SessionData = {
@@ -24,6 +25,7 @@ export const defaultSession: SessionData = {
     id: "",
     avatar: "",
     has_wakatime_integration: false,
+    is_new_user: false,
   },
   isLoggedIn: false,
   token: "",

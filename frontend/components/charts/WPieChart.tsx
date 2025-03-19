@@ -19,6 +19,7 @@ import {
 } from "@/lib/utils";
 
 import { DurationTooltip } from "./DurationTooltip";
+import { EmptyChartWrapper } from "./EmptyChartWrapper";
 
 export interface WPieChartDataItem {
   key: string;
@@ -57,7 +58,7 @@ function legendFormatter(
   );
 }
 
-export function WPieChart({
+function WPieChartComponent({
   data,
   innerRadius = 0,
   title,
@@ -216,5 +217,25 @@ export function WPieChart({
         </PieChart>
       </ResponsiveContainer>
     </>
+  );
+}
+
+export function WPieChart({
+  data,
+  title,
+  innerRadius,
+  colorNamespace,
+  durationSubtitle,
+}: WPieChartProps) {
+  return (
+    <EmptyChartWrapper hasData={Object.keys(data).length > 0}>
+      <WPieChartComponent
+        data={data}
+        title={title}
+        innerRadius={innerRadius}
+        colorNamespace={colorNamespace}
+        durationSubtitle={durationSubtitle}
+      />
+    </EmptyChartWrapper>
   );
 }
