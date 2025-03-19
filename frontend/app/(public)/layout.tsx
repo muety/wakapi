@@ -4,6 +4,7 @@ import React from "react";
 
 import PublicFooter from "./sections/components/public-footer";
 import { PublicMobileHeader } from "./sections/public-mobile-header";
+import { FadeOnView } from "@/components/fade-on-view";
 
 interface MarketingLayoutProps {
   children: React.ReactNode;
@@ -24,10 +25,10 @@ function Header() {
         </Link>
         <ul className="mx-3 space-x-2 text-sm font-medium md:flex">
           <a
-            href="/pricing"
+            href="/setup"
             className="inline-flex h-8 items-center justify-center px-3 py-2 text-sm font-medium text-secondary-foreground transition-opacity duration-200 hover:opacity-70"
           >
-            Pricing
+            Installation
           </a>
           <a
             href="/faqs"
@@ -61,10 +62,12 @@ function Header() {
 
 export default async function Page({ children }: MarketingLayoutProps) {
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <Header />
       <PublicMobileHeader />
-      <main className="flex-1 min-h-screen min-h-96">{children}</main>
+      <main className="m-auto md:mx-14 flex flex-1 flex-col px-12 md:px-14 align-middle">
+        <FadeOnView>{children}</FadeOnView>
+      </main>
       <PublicFooter />
     </div>
   );

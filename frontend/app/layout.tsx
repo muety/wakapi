@@ -2,14 +2,17 @@ import "@/app/styles/globals.css";
 
 import type { Viewport } from "next";
 import { Metadata } from "next";
-import { Inter as FontSans, Rubik } from "next/font/google";
 import localFont from "next/font/local";
+import { Inter as FontSans, Rubik } from "next/font/google";
 
 import { TailwindIndicator } from "@/components/tailwind-indicator";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
+import Script from "next/script";
+
+const { NEXT_AUTH_NODE_ENV } = process.env;
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -94,6 +97,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <TailwindIndicator />
         </ThemeProvider>
       </body>
+      {NEXT_AUTH_NODE_ENV === "production" && (
+        <Script
+          defer
+          async
+          src="https://analytics.umami.is/script.js"
+          data-website-id="56f6cf38-cc98-4b20-bc0e-c8af17a90100"
+        />
+      )}
     </html>
   );
 }

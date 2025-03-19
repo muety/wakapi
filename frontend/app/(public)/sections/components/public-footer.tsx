@@ -36,10 +36,10 @@ export default function PublicFooter() {
               </li>
               <li>
                 <Link
-                  href="/pricing"
+                  href="/setup"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  Pricing
+                  Installation
                 </Link>
               </li>
             </ul>

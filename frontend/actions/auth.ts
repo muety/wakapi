@@ -32,20 +32,6 @@ export async function loginAction(_: any, formData: FormData): Promise<any> {
   return processLogin(validatedFields.data);
 }
 
-// export const initiateOTPLoginAction = actionClient(
-//   z.object({
-//     email: z.string().email(),
-//   }),
-//   async (data: { email: string }) => {
-//     // Generate a secure challenge (e.g., a random string or hash)
-//     // const challenge = Buffer.from(email).toString("base64url"); // Simple encoding for demo
-
-//     // Instead of storing in sessionStorage (which is client-side),
-//     // return the challenge to the client
-//     return processEmailLogin(data);
-//   }
-// );
-
 export async function initiateOTPLoginAction(
   _: any,
   formData: FormData
