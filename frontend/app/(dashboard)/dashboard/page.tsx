@@ -1,8 +1,8 @@
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { format, subDays } from "date-fns";
 import { Metadata } from "next";
-
 import Link from "next/link";
+
 import { fetchData } from "@/actions";
 import { ActivityCategoriesChart } from "@/components/charts/ActivityCategoriesChart";
 import { DailyCodingSummaryOverTime } from "@/components/charts/DailyCodingSummaryOverTime";

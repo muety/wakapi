@@ -12,6 +12,7 @@ import {
 
 import { DailyAverage, SummariesResponse } from "@/lib/types";
 import { convertSecondsToHoursAndMinutes } from "@/lib/utils";
+
 import { EmptyChartWrapper } from "./EmptyChartWrapper";
 
 export interface WPieChartDataItem {

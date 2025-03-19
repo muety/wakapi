@@ -48,9 +48,10 @@
 
 "use client";
 
-import { cn } from "@/lib/utils";
 import { LucideActivitySquare } from "lucide-react";
 import type React from "react";
+
+import { cn } from "@/lib/utils";
 
 interface EmptyChartWrapperProps {
   children: React.ReactNode;

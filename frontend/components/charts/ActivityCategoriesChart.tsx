@@ -13,8 +13,8 @@ import { SummariesResponse } from "@/lib/types";
 import { makeCategorySummaryData } from "@/lib/utils";
 
 import { ActivityCategoriesSummaryChart } from "./ActivityCategoriesSummaryChart";
-import { StackedTooltipContentForCategories } from "./StackedTooltipContent";
 import { EmptyChartWrapper } from "./EmptyChartWrapper";
+import { StackedTooltipContentForCategories } from "./StackedTooltipContent";
 
 export interface iProps {
   data: SummariesResponse[];

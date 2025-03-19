@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Check, Copy } from "lucide-react";
+import { useEffect, useState } from "react";
+import React from "react";
+
 import { Button } from "@/components/ui/button";
 import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
-
 import useSession from "@/lib/session/use-session";
-import React from "react";
+
+import { Spinner } from "./spinner/spinner";
 import { toast } from "./ui/use-toast";
 
 interface ConfigDisplayProps {
@@ -73,7 +75,7 @@ export function Installation({ className = "" }: ConfigDisplayProps) {
   api_url = ${API_URL}
   ${!isLoggedIn ? `\n  ## replace this with your api key when you login` : ""}
   api_key = ${apiKey}`;
-  }, [apiKey]);
+  }, [apiKey, isLoggedIn]);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(configContent);
@@ -95,6 +97,7 @@ export function Installation({ className = "" }: ConfigDisplayProps) {
       </div>
 
       <div className="relative mt-2">
+        {loading && <Spinner />}
         <pre className="bg-muted p-3 sm:p-4 rounded-md overflow-x-auto text-sm whitespace-pre-wrap break-words">
           {configContent}
         </pre>

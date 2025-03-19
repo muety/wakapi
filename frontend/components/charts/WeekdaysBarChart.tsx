@@ -13,8 +13,8 @@ import { SummariesResponse } from "@/lib/types";
 import { makeCategorySummaryDataForWeekdays } from "@/lib/utils";
 
 import { DurationTooltip } from "./DurationTooltip";
-import { StackedTooltipContent } from "./StackedTooltipContent";
 import { EmptyChartWrapper } from "./EmptyChartWrapper";
+import { StackedTooltipContent } from "./StackedTooltipContent";
 
 export interface iProps {
   data: SummariesResponse[];

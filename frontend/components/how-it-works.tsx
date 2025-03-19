@@ -1,14 +1,9 @@
-"use client";
-
-import { useState } from "react";
 import { ExternalLink } from "lucide-react";
 
 import { FadeOnView } from "./fade-on-view";
 import { Installation } from "./installation";
 
 export default function HowItWorks() {
-  const [showModal, setShowModal] = useState(false);
-
   return (
     <FadeOnView>
       <section className="py-12 md:py-16 lg:py-20">

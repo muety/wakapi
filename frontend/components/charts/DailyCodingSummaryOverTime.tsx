@@ -19,8 +19,8 @@ import {
   transparentize,
 } from "@/lib/utils";
 
-import { StackedTooltipContent } from "./StackedTooltipContent";
 import { EmptyChartWrapper } from "./EmptyChartWrapper";
+import { StackedTooltipContent } from "./StackedTooltipContent";
 
 const CustomBarShape = (props: any) => {
   const { x, y, width, height, fill, stroke, strokeWidth } = props;
