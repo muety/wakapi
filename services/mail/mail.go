@@ -62,8 +62,8 @@ func NewMailService() services.IMailService {
 	return &MailService{sendingService: sendingService, config: config, templates: templates}
 }
 
-func (m *MailService) SendLoginOtp(recipient string, otp string) error {
-	tpl, err := m.getOtpTemplate(LoginOtpTplData{Otp: otp})
+func (m *MailService) SendLoginOtp(recipient string, otp string, expiryTime time.Time) error {
+	tpl, err := m.getOtpTemplate(LoginOtpTplData{Otp: otp, ExpiryTime: expiryTime.Format("Jan 2, 2006 15:04 (MST -07:00)")})
 	if err != nil {
 		return err
 	}

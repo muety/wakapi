@@ -71,15 +71,20 @@ func (s *OTPService) getOrCreateUser(email string) (*models.User, error) {
 
 	existingUser, err := s.getUser(email)
 
-	if err == nil {
+	if err == nil && existingUser.ID != "" {
 		return existingUser, nil
 	}
 
-	var user models.User
-	// Create new user with UUID
-	user = models.User{
-		ID:    uuid.New().String(), // Ensure you import "github.com/google/uuid"
-		Email: email,
+	user := models.User{
+		ID:            uuid.New().String(), // Ensure you import "github.com/google/uuid"
+		ApiKey:        uuid.New().String(),
+		Email:         email,
+		EmailVerified: true,
+	}
+
+	result := s.db.Create(&user)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
 	if err := s.db.Create(&user).Error; err != nil {
@@ -123,11 +128,12 @@ func (s *OTPService) CreateOTP(otpRequest models.InitiateOTPRequest) (*models.Cr
 	}
 
 	// Create new OTP instance
+	expiryTime := time.Now().Add(3 * time.Minute)
 	otp := models.OTP{
 		Email:           otpRequest.Email,
 		CodeChallenge:   otpRequest.CodeChallenge,
 		ChallengeMethod: otpRequest.ChallengeMethod,
-		ExpiresIn:       time.Now().Add(3 * time.Minute).Unix(),
+		ExpiresIn:       expiryTime.Unix(),
 		Used:            false,
 		OTPHash:         otpHash,
 	}
@@ -136,7 +142,7 @@ func (s *OTPService) CreateOTP(otpRequest models.InitiateOTPRequest) (*models.Cr
 		return nil, err
 	}
 
-	if err := s.mailService.SendLoginOtp(otpRequest.Email, otpText); err != nil {
+	if err := s.mailService.SendLoginOtp(otpRequest.Email, otpText, expiryTime); err != nil {
 		slog.Error("failed to send OTP email", "userID", otpRequest.Email, "error", err.Error())
 
 		if !config.Get().IsDev() {
@@ -180,7 +186,7 @@ func (s *OTPService) VerifyOTP(validateOtpRequest models.ValidateOTPRequest) (*m
 	var user = &models.User{}
 	now := time.Now().Unix()
 
-	user, err := s.getUser(validateOtpRequest.Email)
+	user, err := s.getOrCreateUser(validateOtpRequest.Email)
 
 	if err != nil {
 		return &models.VerifyOTPResponse{
@@ -315,6 +321,14 @@ func VerifyOTPHandler(service *OTPService) http.HandlerFunc {
 			fmt.Println("Error creating OTP", err)
 			helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
 				"message": err.Error(),
+				"status":  http.StatusBadRequest,
+			})
+			return
+		}
+
+		if resp.User == nil {
+			helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+				"message": "User not found",
 				"status":  http.StatusBadRequest,
 			})
 			return

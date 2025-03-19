@@ -1,13 +1,16 @@
 package mail
 
-import "github.com/muety/wakapi/models"
+import (
+	"github.com/muety/wakapi/models"
+)
 
 type PasswordResetTplData struct {
 	ResetLink string
 }
 
 type LoginOtpTplData struct {
-	Otp string
+	Otp        string
+	ExpiryTime string
 }
 
 type ImportNotificationTplData struct {

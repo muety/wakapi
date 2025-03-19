@@ -11,3 +11,4 @@ compose.yml
 node_modules/
 testing/
 coverage/
+frontend/
