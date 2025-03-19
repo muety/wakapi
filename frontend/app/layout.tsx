@@ -12,7 +12,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 
-const { NEXT_PUBLIC_NODE_ENV } = process.env;
+const isProduction = process.env.NEXT_PUBLIC_NODE_ENV === "production";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -97,7 +97,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <TailwindIndicator />
         </ThemeProvider>
       </body>
-      {NEXT_PUBLIC_NODE_ENV === "production" && (
+      {isProduction && (
         <Script
           defer
           async

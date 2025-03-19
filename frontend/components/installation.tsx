@@ -65,16 +65,10 @@ export function Installation({ className = "" }: ConfigDisplayProps) {
   }, [isLoggedIn, getApiKey]);
 
   const configContent = React.useMemo(() => {
-    if (isLoggedIn) {
-      return `[settings]
-  api_url = ${API_URL}
-  api_key = ${apiKey}`;
-    }
-
     return `[settings]
+  config1 = some value
   api_url = ${API_URL}
-  ${!isLoggedIn ? `\n  ## replace this with your api key when you login` : ""}
-  api_key = ${apiKey}`;
+  api_key = ${isLoggedIn ? apiKey : "## replace this with your api key when you login"}`;
   }, [apiKey, isLoggedIn]);
 
   const copyToClipboard = () => {
