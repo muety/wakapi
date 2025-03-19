@@ -2,9 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
+import { FadeOnView } from "@/components/fade-on-view";
+
 import PublicFooter from "./sections/components/public-footer";
 import { PublicMobileHeader } from "./sections/public-mobile-header";
-import { FadeOnView } from "@/components/fade-on-view";
 
 interface MarketingLayoutProps {
   children: React.ReactNode;

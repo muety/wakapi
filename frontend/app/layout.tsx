@@ -2,17 +2,17 @@ import "@/app/styles/globals.css";
 
 import type { Viewport } from "next";
 import { Metadata } from "next";
-import localFont from "next/font/local";
 import { Inter as FontSans, Rubik } from "next/font/google";
+import localFont from "next/font/local";
+import Script from "next/script";
 
 import { TailwindIndicator } from "@/components/tailwind-indicator";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
-import Script from "next/script";
 
-const { NEXT_AUTH_NODE_ENV } = process.env;
+const { NEXT_PUBLIC_NODE_ENV } = process.env;
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -97,7 +97,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <TailwindIndicator />
         </ThemeProvider>
       </body>
-      {NEXT_AUTH_NODE_ENV === "production" && (
+      {NEXT_PUBLIC_NODE_ENV === "production" && (
         <Script
           defer
           async
