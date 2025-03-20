@@ -88,10 +88,6 @@ func (s *OTPService) getOrCreateUser(email string) (*models.User, error, bool) {
 		return nil, result.Error, false
 	}
 
-	if err := s.db.Create(&user).Error; err != nil {
-		return nil, err, true
-	}
-
 	return &user, nil, false
 }
 
