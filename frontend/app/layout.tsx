@@ -37,11 +37,11 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   keywords: [
-    "Next.js",
-    "React",
-    "Tailwind CSS",
-    "Server Components",
-    "Radix UI",
+    "Wakatime",
+    "Dashboard for developers",
+    "Fitbit for developers",
+    "Observe your work in real time",
+    "View work",
   ],
   authors: [
     {
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     shortcut: "/favicon-16x16.png",
     apple: "/apple-touch-icon.png",
   },
-  manifest: `${siteConfig.url}/site.webmanifest`,
+  // manifest: `${siteConfig.url}/site.webmanifest`,
 };
 
 export const viewport: Viewport = {
