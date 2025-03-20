@@ -7,10 +7,9 @@ import React from "react";
 import { Invoice } from "@/lib/types";
 import { cn, formatCurrency, formatNumber, getHours } from "@/lib/utils";
 
+import { InvoicePDF } from "../pdf/pdf-export";
 import { RawHTML } from "../raw-html";
 import { Button } from "../ui/button";
-import { InvoicePDF } from "../pdf/pdf-export";
-
 import styles from "./invoice-manager.module.css";
 
 interface iProps {
