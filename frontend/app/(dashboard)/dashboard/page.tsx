@@ -10,6 +10,7 @@ import { WeekdaysBarChart } from "@/components/charts/WeekdaysBarChart";
 import { WGaugeChart } from "@/components/charts/WGaugeChart";
 import { WPieChart } from "@/components/charts/WPieChart";
 import DashboardStatsSummary from "@/components/dashboard-stats-summary";
+import DeveloperActivityChart from "@/components/developer-activity-chart-v2";
 import { ProjectCard } from "@/components/project-card";
 import {
   Tooltip,
@@ -61,6 +62,12 @@ export default async function Dashboard({
           <section className="charts-grid-top">
             <div className="chart-box min-h-52">
               <DailyCodingSummaryOverTime data={durationData.data} />
+            </div>
+            <div className="chart-box min-h-52">
+              <DeveloperActivityChart
+                writePercentage={durationData.write_percentage}
+                totalSeconds={+durationData.cumulative_total.seconds}
+              />
             </div>
             <div className="chart-box min-h-52">
               <WGaugeChart

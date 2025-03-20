@@ -28,9 +28,9 @@ export default function DashboardStatsSummary({
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col space-y-6 border">
           {/* Header with time range selector */}
-          <div className="flex items-center justify-between p-4 rounded-sm">
+          <div className="xs:flex-col md:flex items-center space-y-5 justify-between p-4 rounded-sm">
             <div>
-              <div className="flex items-center space-x-4">
+              <div className="xs:flex-col md:flex items-center space-y-5 md:space-x-4">
                 <div>
                   <h2 className="text-gray-400 text-sm font-medium mb-1">
                     Code Time
@@ -45,7 +45,7 @@ export default function DashboardStatsSummary({
                   </div>
                 </div>
 
-                <div className="border-l border-border pl-4">
+                <div className="border-l border-border md:pl-4">
                   <h2 className="text-gray-100 border-1 text-sm font-medium mb-1">
                     Active Code Time
                   </h2>

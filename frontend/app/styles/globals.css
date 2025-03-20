@@ -350,7 +350,7 @@
 
 .charts-grid-top {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 columns */
+  grid-template-columns: repeat(4, 1fr); /* 3 columns */
   gap: 16px;
 }
 
