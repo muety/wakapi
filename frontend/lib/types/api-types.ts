@@ -108,6 +108,7 @@ export interface SummariesApiResponse {
   end: string;
   cumulative_total: CumulativeTotal;
   daily_average: DailyAverage;
+  write_percentage: number;
 }
 
 export interface GoalData {

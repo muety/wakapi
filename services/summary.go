@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"log/slog"
+
 	"github.com/becheran/wildmatch-go"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/slice"
@@ -15,7 +17,6 @@ import (
 	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/repositories"
 	"github.com/patrickmn/go-cache"
-	"log/slog"
 )
 
 type SummaryService struct {
@@ -240,6 +241,10 @@ func (srv *SummaryService) DeleteByUserBefore(userId string, t time.Time) error 
 func (srv *SummaryService) Insert(summary *models.Summary) error {
 	srv.invalidateUserCache(summary.UserID)
 	return srv.repository.Insert(summary)
+}
+
+func (srv *SummaryService) GetHeartbeatsWritePercentage(userID string, start time.Time, end time.Time) (float64, error) {
+	return srv.heartbeatService.GetHeartbeatsWritePercentage(userID, start, end)
 }
 
 // Private summary generation and utility methods

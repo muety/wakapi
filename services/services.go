@@ -48,6 +48,7 @@ type IHeartbeatService interface {
 	DeleteByUser(*models.User) error
 	DeleteByUserBefore(*models.User, time.Time) error
 	GetUserProjectStats(*models.User, time.Time, time.Time, *utils.PageParams, bool) ([]*models.ProjectStats, error)
+	GetHeartbeatsWritePercentage(userID string, start, end time.Time) (float64, error)
 }
 
 type IDiagnosticsService interface {
@@ -100,6 +101,7 @@ type ISummaryService interface {
 	DeleteByUser(string) error
 	DeleteByUserBefore(string, time.Time) error
 	Insert(*models.Summary) error
+	GetHeartbeatsWritePercentage(userID string, start time.Time, end time.Time) (float64, error)
 }
 
 type IActivityService interface {

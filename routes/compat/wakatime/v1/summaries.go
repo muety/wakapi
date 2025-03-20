@@ -69,6 +69,13 @@ func (h *SummariesHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return // response was already sent by util function
 	}
 
+	start, end, err, status := h.ComputeTimeRange(r, user)
+	if err != nil {
+		w.WriteHeader(status)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
 	summaries, err, status := h.loadUserSummaries(r, user)
 	if err != nil {
 		w.WriteHeader(status)
@@ -76,11 +83,22 @@ func (h *SummariesHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	writePercentage, err := h.summarySrvc.GetHeartbeatsWritePercentage(user.ID, start, end)
+	if err != nil {
+		w.WriteHeader(status)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
 	vm := v1.NewSummariesFrom(summaries)
+	vm.WritePercentage = writePercentage
+
 	helpers.RespondJSON(w, r, http.StatusOK, vm)
 }
 
-func (h *SummariesHandler) loadUserSummaries(r *http.Request, user *models.User) ([]*models.Summary, error, int) {
+// ComputeTimeRange extracts and computes the start and end time from request parameters
+// Returns the computed start and end times, along with any error and HTTP status code
+func (h *SummariesHandler) ComputeTimeRange(r *http.Request, user *models.User) (time.Time, time.Time, error, int) {
 	params := r.URL.Query()
 	rangeParam, startParam, endParam, tzParam := params.Get("range"), params.Get("start"), params.Get("end"), params.Get("timezone")
 
@@ -97,7 +115,7 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request, user *models.User)
 		if err, parsedFrom, parsedTo := helpers.ResolveIntervalRawTZ(rangeParam, timezone); err == nil {
 			start, end = parsedFrom, parsedTo
 		} else {
-			return nil, errors.New("invalid 'range' parameter"), http.StatusBadRequest
+			return time.Time{}, time.Time{}, errors.New("invalid 'range' parameter"), http.StatusBadRequest
 		}
 	} else if err, parsedFrom, parsedTo := helpers.ResolveIntervalRawTZ(startParam, timezone); err == nil && startParam == endParam {
 		// also accept start param to be a range param
@@ -108,12 +126,12 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request, user *models.User)
 
 		start, err = helpers.ParseDateTimeTZ(strings.Replace(startParam, " ", "+", 1), timezone)
 		if err != nil {
-			return nil, errors.New("missing required 'start' parameter"), http.StatusBadRequest
+			return time.Time{}, time.Time{}, errors.New("missing required 'start' parameter"), http.StatusBadRequest
 		}
 
 		end, err = helpers.ParseDateTimeTZ(strings.Replace(endParam, " ", "+", 1), timezone)
 		if err != nil {
-			return nil, errors.New("missing required 'end' parameter"), http.StatusBadRequest
+			return time.Time{}, time.Time{}, errors.New("missing required 'end' parameter"), http.StatusBadRequest
 		}
 	}
 
@@ -124,13 +142,21 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request, user *models.User)
 	end = datetime.EndOfDay(end)
 
 	if !end.After(start) {
-		return nil, errors.New("'end' date must be after 'start' date"), http.StatusBadRequest
+		return time.Time{}, time.Time{}, errors.New("'end' date must be after 'start' date"), http.StatusBadRequest
+	}
+
+	return start, end, nil, http.StatusOK
+}
+
+func (h *SummariesHandler) loadUserSummaries(r *http.Request, user *models.User) ([]*models.Summary, error, int) {
+	start, end, err, status := h.ComputeTimeRange(r, user)
+	if err != nil {
+		return nil, err, status
 	}
 
 	overallParams := &models.SummaryParams{
 		From: start,
 		To:   end,
-		User: user,
 	}
 
 	intervals := utils.SplitRangeByDays(overallParams.From, overallParams.To)
@@ -152,3 +178,75 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request, user *models.User)
 
 	return summaries, nil, http.StatusOK
 }
+
+// func (h *SummariesHandler) loadUserSummaries(r *http.Request, user *models.User) ([]*models.Summary, error, int) {
+// 	params := r.URL.Query()
+// 	rangeParam, startParam, endParam, tzParam := params.Get("range"), params.Get("start"), params.Get("end"), params.Get("timezone")
+
+// 	timezone := user.TZ()
+// 	if tzParam != "" {
+// 		if tz, err := time.LoadLocation(tzParam); err == nil {
+// 			timezone = tz
+// 		}
+// 	}
+
+// 	var start, end time.Time
+// 	if rangeParam != "" {
+// 		// range param takes precedence
+// 		if err, parsedFrom, parsedTo := helpers.ResolveIntervalRawTZ(rangeParam, timezone); err == nil {
+// 			start, end = parsedFrom, parsedTo
+// 		} else {
+// 			return nil, errors.New("invalid 'range' parameter"), http.StatusBadRequest
+// 		}
+// 	} else if err, parsedFrom, parsedTo := helpers.ResolveIntervalRawTZ(startParam, timezone); err == nil && startParam == endParam {
+// 		// also accept start param to be a range param
+// 		start, end = parsedFrom, parsedTo
+// 	} else {
+// 		// eventually, consider start and end params a date
+// 		var err error
+
+// 		start, err = helpers.ParseDateTimeTZ(strings.Replace(startParam, " ", "+", 1), timezone)
+// 		if err != nil {
+// 			return nil, errors.New("missing required 'start' parameter"), http.StatusBadRequest
+// 		}
+
+// 		end, err = helpers.ParseDateTimeTZ(strings.Replace(endParam, " ", "+", 1), timezone)
+// 		if err != nil {
+// 			return nil, errors.New("missing required 'end' parameter"), http.StatusBadRequest
+// 		}
+// 	}
+
+// 	// wakatime interprets end date as "inclusive", wakapi usually as "exclusive"
+// 	// i.e. for wakatime, an interval 2021-04-29 - 2021-04-29 is actually 2021-04-29 - 2021-04-30,
+// 	// while for wakapi it would be empty
+// 	// see https://github.com/muety/wakapi/issues/192
+// 	end = datetime.EndOfDay(end)
+
+// 	if !end.After(start) {
+// 		return nil, errors.New("'end' date must be after 'start' date"), http.StatusBadRequest
+// 	}
+
+// 	overallParams := &models.SummaryParams{
+// 		From: start,
+// 		To:   end,
+// 	}
+
+// 	intervals := utils.SplitRangeByDays(overallParams.From, overallParams.To)
+// 	summaries := make([]*models.Summary, len(intervals))
+
+// 	// filtering
+// 	filters := helpers.ParseSummaryFilters(r)
+
+// 	for i, interval := range intervals {
+// 		summary, err := h.summarySrvc.Aliased(interval[0], interval[1], user, h.summarySrvc.Retrieve, filters, end.After(time.Now()))
+// 		if err != nil {
+// 			return nil, err, http.StatusInternalServerError
+// 		}
+// 		// wakatime returns requested instead of actual summary range
+// 		summary.FromTime = models.CustomTime(interval[0])
+// 		summary.ToTime = models.CustomTime(interval[1].Add(-1 * time.Second))
+// 		summaries[i] = summary
+// 	}
+
+// 	return summaries, nil, http.StatusOK
+// }

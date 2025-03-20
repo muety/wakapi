@@ -54,8 +54,8 @@ export default async function Dashboard({
       {durationData && (
         <main className="main-dashboard space-y-3">
           <DashboardStatsSummary
-            codingTime={durationData.cumulative_total.text}
             searchParams={searchParams}
+            data={durationData}
           />
 
           <section className="charts-grid-top">

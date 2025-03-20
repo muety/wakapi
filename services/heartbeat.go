@@ -2,6 +2,11 @@ package services
 
 import (
 	"fmt"
+	"math"
+	"strings"
+	"sync"
+	"time"
+
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/duke-git/lancet/v2/maputil"
 	"github.com/leandro-lugaresi/hub"
@@ -9,10 +14,6 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
-	"math"
-	"strings"
-	"sync"
-	"time"
 
 	"github.com/muety/wakapi/models"
 )
@@ -55,6 +56,10 @@ func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, langua
 func (srv *HeartbeatService) Insert(heartbeat *models.Heartbeat) error {
 	go srv.updateEntityUserCacheByHeartbeat(heartbeat)
 	return srv.repository.InsertBatch([]*models.Heartbeat{heartbeat})
+}
+
+func (srv *HeartbeatService) GetHeartbeatsWritePercentage(userID string, start, end time.Time) (float64, error) {
+	return srv.repository.GetHeartbeatsWritePercentage(userID, start, end)
 }
 
 func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {

@@ -22,6 +22,7 @@ type SummariesViewModel struct {
 	Start           time.Time                 `json:"start"`
 	CumulativeTotal *SummariesCumulativeTotal `json:"cumulative_total"`
 	DailyAverage    *SummariesDailyAverage    `json:"daily_average"`
+	WritePercentage float64                   `json:"write_percentage"`
 }
 
 type SummariesCumulativeTotal struct {

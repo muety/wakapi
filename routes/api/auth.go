@@ -140,6 +140,7 @@ func (h *AuthApiHandler) Signin(w http.ResponseWriter, r *http.Request) {
 			Message:   "Login Successful",
 			User:      user,
 			OauthUser: nil,
+			IsNewUser: false,
 		},
 	)
 	if err != nil {
@@ -318,6 +319,7 @@ func (h *AuthApiHandler) GithubOauth(w http.ResponseWriter, r *http.Request) {
 			Message:   "Signup Successful",
 			User:      oauthUser,
 			OauthUser: &userOauthDetails,
+			IsNewUser: provider == nil,
 		},
 	)
 
@@ -397,6 +399,7 @@ func (h *AuthApiHandler) Signup(w http.ResponseWriter, r *http.Request) {
 			Message:   "Signup Successful",
 			User:      user,
 			OauthUser: nil,
+			IsNewUser: true,
 		},
 	)
 	if err != nil {

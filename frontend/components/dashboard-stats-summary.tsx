@@ -3,36 +3,61 @@
 import { Clock, Code, GitBranch } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { getSelectedPeriodLabel } from "@/lib/utils";
+import { SummariesApiResponse } from "@/lib/types";
+import { convertSecondsToHoursAndMinutes } from "@/lib/utils";
 
 import { DashboardPeriodSelectorV2 } from "./dashboard-period-selector";
 
 export default function DashboardStatsSummary({
-  codingTime,
+  data,
   searchParams,
 }: {
-  codingTime: string;
+  data: SummariesApiResponse;
   searchParams: Record<string, any>;
 }) {
-  const selectedPeriodLabel = getSelectedPeriodLabel(searchParams || {});
+  console.log("[data.write_percentage]", data.write_percentage);
+
+  const activeCodingTime =
+    +data.cumulative_total.seconds * (data.write_percentage / 100);
+
+  const formattedActiveCodingTime =
+    convertSecondsToHoursAndMinutes(activeCodingTime);
 
   return (
     <div className="w-full text-white">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col space-y-6">
+        <div className="flex flex-col space-y-6 border">
           {/* Header with time range selector */}
-          <div className="flex items-center justify-between border p-4 rounded-sm">
+          <div className="flex items-center justify-between p-4 rounded-sm">
             <div>
-              <h2 className="text-gray-400 text-sm font-medium mb-1">
-                Total Coding Time
-              </h2>
-              <div className="flex items-baseline">
-                <span className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-                  {codingTime}
-                </span>
-                <span className="text-gray-400 ml-2 text-sm">
-                  over {selectedPeriodLabel.toLowerCase()}
-                </span>
+              <div className="flex items-center space-x-4">
+                <div>
+                  <h2 className="text-gray-400 text-sm font-medium mb-1">
+                    Code Time
+                  </h2>
+                  <div className="flex items-baseline">
+                    <span className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                      {data.cumulative_total.text}
+                    </span>
+                    <span className="text-gray-400 ml-2 text-sm">
+                      in your editor
+                    </span>
+                  </div>
+                </div>
+
+                <div className="border-l border-border pl-4">
+                  <h2 className="text-gray-100 border-1 text-sm font-medium mb-1">
+                    Active Code Time
+                  </h2>
+                  <div className="flex items-baseline">
+                    <span className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                      {formattedActiveCodingTime}
+                    </span>
+                    <span className="text-gray-400 ml-2 text-sm">
+                      writing code
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 

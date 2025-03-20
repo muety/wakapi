@@ -70,7 +70,6 @@ func (s *OTPService) getUser(email string) (*models.User, error) {
 func (s *OTPService) getOrCreateUser(email string) (*models.User, error, bool) {
 
 	existingUser, err := s.getUser(email)
-	fmt.Println("existingUser", existingUser)
 
 	if err == nil && existingUser != nil && existingUser.ID != "" {
 		return existingUser, nil, false
@@ -88,7 +87,7 @@ func (s *OTPService) getOrCreateUser(email string) (*models.User, error, bool) {
 		return nil, result.Error, false
 	}
 
-	return &user, nil, false
+	return &user, nil, true
 }
 
 // CreateOTP creates a new OTP for a user
