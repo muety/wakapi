@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   Cell,
   Label,
@@ -35,7 +36,9 @@ export interface WGaugeChartProps {
 export function WGaugeChart({ data, dailyAverage }: WGaugeChartProps) {
   const innerRadius = 45;
 
-  const todaysTotal = data[data.length - 1].grand_total.total_seconds;
+  const todaysTotal = data
+    .map((d) => d.grand_total.total_seconds)
+    .reduce((a, b) => a + b, 0);
 
   const percentageOfDailyAverage = (todaysTotal / dailyAverage.seconds) * 100;
   const change = percentageOfDailyAverage - 100;
@@ -45,7 +48,9 @@ export function WGaugeChart({ data, dailyAverage }: WGaugeChartProps) {
     { value: dailyAverage.seconds, color: "#e0e0e0" },
   ];
 
-  const hasData = todaysTotal > 0;
+  const hasData = React.useMemo(() => {
+    return todaysTotal > 0 || dailyAverage.seconds > 0;
+  }, [todaysTotal, dailyAverage]);
 
   const renderActiveShape = (props: any) => {
     const RADIAN = Math.PI / 180;

@@ -14,12 +14,13 @@ export default async function Layout({
 }) {
   await getSession(true);
   const cookieStore = cookies();
-  const defaultOpen = cookieStore.get("sidebar:state")?.value === "true";
+  const currentState = cookieStore.get("sidebar:state")?.value;
+  const defaultOpen = currentState ? currentState === "true" : true;
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       <AppSidebar />
-      <SidebarInset className="shadow-lg border border-[##dddddd]">
+      <SidebarInset className="shadow-lg border border-[##dddddd] m-5">
         <DashboardHeader />
         {/* <MobileHeader /> */}
         <main
