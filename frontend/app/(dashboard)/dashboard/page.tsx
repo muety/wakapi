@@ -22,6 +22,7 @@ import {
   convertSecondsToHoursAndMinutes,
   makePieChartDataFromRawApiResponse,
 } from "@/lib/utils";
+import DashboardStatsSummary from "@/components/dashboard-stats-summary";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -53,10 +54,10 @@ export default async function Dashboard({
     <div className="my-6">
       {durationData && (
         <main className="main-dashboard space-y-3">
-          <div className="m-0 my-5 text-2xl">
-            <b>{durationData.cumulative_total.text}</b> <span>over the</span>{" "}
-            <DashboardPeriodSelector searchParams={searchParams} />
-          </div>
+          <DashboardStatsSummary
+            codingTime={durationData.cumulative_total.text}
+            searchParams={searchParams}
+          />
 
           <section className="charts-grid-top">
             <div className="chart-box min-h-52">

@@ -14,6 +14,13 @@ import {
   DashboardRangeQuery,
   getSelectedPeriodLabel,
 } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function DashboardPeriodSelector({
   searchParams,
@@ -66,5 +73,41 @@ export function DashboardPeriodSelector({
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+export function DashboardPeriodSelectorV2({
+  searchParams,
+  baseUrl = "/dashboard",
+}: {
+  searchParams: Record<string, any>;
+  baseUrl?: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex items-center bg-gray-800 rounded-md border border-gray-700">
+        <Select
+          onValueChange={(value) => {
+            window.location.href = value;
+          }}
+        >
+          <SelectTrigger className="w-[180px] bg-transparent border-0 text-white focus:ring-0 focus:ring-offset-0">
+            <SelectValue
+              placeholder={getSelectedPeriodLabel(searchParams || {})}
+            />
+          </SelectTrigger>
+          <SelectContent className="bg-gray-800 text-white border-gray-700">
+            {Object.values(DashboardRangeQuery).map((query, index) => (
+              <SelectItem
+                key={index}
+                value={baseUrl + buildQueryForRangeQuery(query)}
+              >
+                {startCase(query)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
   );
 }
