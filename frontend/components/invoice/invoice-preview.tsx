@@ -4,13 +4,13 @@ import { format } from "date-fns";
 import { LucideEdit } from "lucide-react";
 import React from "react";
 
-import { getCurrencySymbol } from "@/lib/constants/currencies";
 import { Invoice } from "@/lib/types";
 import { cn, formatCurrency, formatNumber, getHours } from "@/lib/utils";
 
-import { InvoicePDF } from "../pdf/pdf-export";
 import { RawHTML } from "../raw-html";
 import { Button } from "../ui/button";
+import { InvoicePDF } from "../pdf/pdf-export";
+
 import styles from "./invoice-manager.module.css";
 
 interface iProps {
@@ -38,7 +38,7 @@ export function InvoicePreview({ data, onTogglePreview }: iProps) {
     return totalInvoice + taxTotal;
   }, [totalInvoice, taxTotal]);
 
-  const currencySymbol = getCurrencySymbol(client.currency) || client.currency;
+  const currencySymbol = client.currency;
 
   return (
     <div className={cn(styles.root, "px-6 my-6 mx-2 min-h-screen")}>

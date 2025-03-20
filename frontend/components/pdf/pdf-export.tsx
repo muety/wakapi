@@ -1,4 +1,11 @@
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import dynamic from "next/dynamic";
+
+// Dynamically import PDFDownloadLink with SSR disabled
+const PDFDownloadLink = dynamic(
+  () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
+  { ssr: false }
+);
+
 import { LucidePrinter } from "lucide-react";
 
 import { Invoice } from "@/lib/types";
