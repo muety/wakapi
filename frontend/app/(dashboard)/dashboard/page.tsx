@@ -9,7 +9,7 @@ import { DailyCodingSummaryOverTime } from "@/components/charts/DailyCodingSumma
 import { WeekdaysBarChart } from "@/components/charts/WeekdaysBarChart";
 import { WGaugeChart } from "@/components/charts/WGaugeChart";
 import { WPieChart } from "@/components/charts/WPieChart";
-import { DashboardPeriodSelector } from "@/components/dashboard-period-selector";
+import DashboardStatsSummary from "@/components/dashboard-stats-summary";
 import { ProjectCard } from "@/components/project-card";
 import {
   Tooltip,
@@ -22,7 +22,6 @@ import {
   convertSecondsToHoursAndMinutes,
   makePieChartDataFromRawApiResponse,
 } from "@/lib/utils";
-import DashboardStatsSummary from "@/components/dashboard-stats-summary";
 
 export const metadata: Metadata = {
   title: "Dashboard",

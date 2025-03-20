@@ -52,7 +52,7 @@ export function WGaugeChart({ data, dailyAverage }: WGaugeChartProps) {
 
   const hasData = React.useMemo(() => {
     return grandTotal > 0;
-  }, [todaysTotal, dailyAverage]);
+  }, [grandTotal]);
 
   const renderActiveShape = (props: any) => {
     const RADIAN = Math.PI / 180;

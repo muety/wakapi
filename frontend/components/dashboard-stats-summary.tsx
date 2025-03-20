@@ -1,8 +1,10 @@
 "use client";
 
-import { getSelectedPeriodLabel } from "@/lib/utils";
-import { Code, GitBranch, Clock } from "lucide-react";
+import { Clock, Code, GitBranch } from "lucide-react";
+
 import { Card, CardContent } from "@/components/ui/card";
+import { getSelectedPeriodLabel } from "@/lib/utils";
+
 import { DashboardPeriodSelectorV2 } from "./dashboard-period-selector";
 
 export default function DashboardStatsSummary({

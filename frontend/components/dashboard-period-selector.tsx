@@ -10,17 +10,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  buildQueryForRangeQuery,
-  DashboardRangeQuery,
-  getSelectedPeriodLabel,
-} from "@/lib/utils";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  buildQueryForRangeQuery,
+  DashboardRangeQuery,
+  getSelectedPeriodLabel,
+} from "@/lib/utils";
 
 export function DashboardPeriodSelector({
   searchParams,
