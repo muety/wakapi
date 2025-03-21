@@ -23,7 +23,7 @@ export default function DashboardStatsSummary({
 
   return (
     <div className="w-full text-white">
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto">
         <div className="flex flex-col space-y-6">
           {/* Header with time range selector */}
           <div className="xs:flex-col md:flex items-center justify-between py-4 rounded-sm">
