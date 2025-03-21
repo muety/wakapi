@@ -16,7 +16,7 @@ export default function DashboardStatsSummary({
   searchParams: Record<string, any>;
 }) {
   const activeCodingTime =
-    +data.cumulative_total.seconds * (data.write_percentage / 100);
+    data.cumulative_total.seconds * (data.write_percentage / 100);
 
   const formattedActiveCodingTime =
     convertSecondsToHoursAndMinutes(activeCodingTime);
@@ -26,35 +26,35 @@ export default function DashboardStatsSummary({
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col space-y-6">
           {/* Header with time range selector */}
-          <div className="xs:flex-col md:flex items-center space-y-5 justify-between py-4 rounded-sm">
-            <div>
-              <div className="xs:flex-col md:flex items-center space-y-5 md:space-x-4">
-                <div>
-                  <h2 className="text-gray-400 text-sm font-medium mb-1">
-                    Code Time
-                  </h2>
-                  <div className="flex items-baseline">
-                    <span className="text-3xl font-bold bg-gradient-to-r text-white bg-clip-text text-transparent">
-                      {data.cumulative_total.text}
-                    </span>
-                    <span className="text-gray-400 ml-2 text-sm">
-                      in your editor
-                    </span>
-                  </div>
+          <div className="xs:flex-col md:flex items-center justify-between py-4 rounded-sm">
+            <div className="xs:flex-col md:flex align-middle items-center space-y-5 md:space-y-0 md:space-x-4">
+              <div>
+                <h2 className="text-gray-400 text-sm font-medium mb-1">
+                  Code Time
+                </h2>
+                <div className="flex items-baseline">
+                  <span className="text-3xl font-bold bg-gradient-to-r text-white bg-clip-text text-transparent">
+                    {convertSecondsToHoursAndMinutes(
+                      data.cumulative_total.seconds
+                    )}
+                  </span>
+                  <span className="text-gray-400 ml-2 text-sm">
+                    in your editor
+                  </span>
                 </div>
+              </div>
 
-                <div className="border-l border-border md:pl-4">
-                  <h2 className="text-gray-400 border-1 text-sm font-medium mb-1">
-                    Active Code Time
-                  </h2>
-                  <div className="flex items-baseline">
-                    <span className="text-3xl font-bold bg-gradient-to-r text-white bg-clip-text text-transparent">
-                      {formattedActiveCodingTime}
-                    </span>
-                    <span className="text-gray-400 ml-2 text-sm">
-                      writing code
-                    </span>
-                  </div>
+              <div className="border-l border-border md:pl-4">
+                <h2 className="text-gray-400 text-sm font-medium mb-1">
+                  Active Code Time
+                </h2>
+                <div className="flex items-baseline">
+                  <span className="text-3xl font-bold bg-gradient-to-r text-white bg-clip-text text-transparent">
+                    {formattedActiveCodingTime}
+                  </span>
+                  <span className="text-gray-400 ml-2 text-sm">
+                    writing code
+                  </span>
                 </div>
               </div>
             </div>

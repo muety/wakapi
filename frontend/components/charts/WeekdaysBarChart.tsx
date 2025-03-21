@@ -26,7 +26,7 @@ export function WeekdaysBarChartComponent({ data, durationSubtitle }: iProps) {
     makeCategorySummaryDataForWeekdays(data);
   return (
     <>
-      <DurationTooltip title="Weekdays" subtitle={durationSubtitle} />
+      <DurationTooltip title="WEEKDAYS" subtitle={durationSubtitle} />
       <ResponsiveContainer width="100%" height={190}>
         <BarChart data={groupedSummaryData}>
           <XAxis

@@ -34,26 +34,28 @@ export default async function Dashboard({
 }: {
   searchParams: Record<string, any>;
 }) {
-  const {
-    start = format(subDays(new Date(), 6), "yyyy-MM-dd"),
-    end = format(new Date(), "yyyy-MM-dd"),
-  } = searchParams;
-
-  const url = `compat/wakatime/v1/users/current/summaries?${new URLSearchParams(
-    { start, end }
-  )}`;
+  const start =
+    searchParams.start || format(subDays(new Date(), 6), "yyyy-MM-dd");
+  const end = searchParams.end || format(new Date(), "yyyy-MM-dd");
+  const url = `compat/wakatime/v1/users/current/summaries?${new URLSearchParams({ start, end })}`;
 
   const durationData = await fetchData<SummariesApiResponse>(url, true);
   if (!durationData) {
-    throw Error("Internal Server error");
+    return (
+      <h3 className="text-center text-red-500">
+        Error fetching dashboard stats
+      </h3>
+    );
   }
-  const projects = durationData
-    ? makePieChartDataFromRawApiResponse(durationData.data, "projects")
-    : [];
+
+  const projects = makePieChartDataFromRawApiResponse(
+    durationData.data,
+    "projects"
+  );
   return (
     <div className="my-6">
       {durationData && (
-        <main className="main-dashboard space-y-3">
+        <main className="main-dashboard space-y-5">
           <DashboardStatsSummary
             searchParams={searchParams}
             data={durationData}
@@ -77,12 +79,12 @@ export default async function Dashboard({
             </div>
           </section>
 
-          <div className="my-5 space-y-3">
+          <div className="my-5 space-y-5">
             <div className="charts-grid">
               <div className="chart-box">
                 <WPieChart
                   innerRadius={44.45}
-                  title="Editors"
+                  title="EDITORS"
                   colorNamespace="editors"
                   data={makePieChartDataFromRawApiResponse(
                     durationData.data,
@@ -93,7 +95,7 @@ export default async function Dashboard({
               </div>
               <div className="chart-box">
                 <WPieChart
-                  title="Languages"
+                  title="LANGUAGES"
                   data={makePieChartDataFromRawApiResponse(
                     durationData.data,
                     "languages"
@@ -107,7 +109,7 @@ export default async function Dashboard({
               <div className="chart-box">
                 <WPieChart
                   innerRadius={44.45}
-                  title="Operating Systems"
+                  title="OPERATING SYSTEMS"
                   data={makePieChartDataFromRawApiResponse(
                     durationData.data,
                     "operating_systems"
@@ -119,7 +121,7 @@ export default async function Dashboard({
               <div className="chart-box">
                 <WPieChart
                   innerRadius={44.45}
-                  title="Machines"
+                  title="MACHINES"
                   data={makePieChartDataFromRawApiResponse(
                     durationData.data,
                     "machines"

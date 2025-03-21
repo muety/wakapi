@@ -88,7 +88,7 @@ export interface SummariesResponse {
 export interface CumulativeTotal {
   decimal: string;
   digital: string;
-  seconds: string;
+  seconds: number;
   text: string;
 }
 
