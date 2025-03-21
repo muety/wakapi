@@ -354,6 +354,16 @@
   gap: 16px;
 }
 
+@keyframes slow-pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.slow-pulse {
+  animation: slow-pulse 15s infinite;
+}
+
 .three-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr); /* 3 columns */
