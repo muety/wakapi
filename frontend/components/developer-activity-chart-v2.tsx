@@ -22,11 +22,11 @@ interface DeveloperActivityChartProps {
 
 export default function DeveloperActivityChart({
   writePercentage = 64,
-  size = 170,
+  size = 150,
   strokeWidth = 20,
   className = "",
-  writeColor = "#975ef7", // Red color as seen in screenshot
-  readColor = "whitesmoke", // Dark color as seen in screenshot
+  writeColor = "white", // Red color as seen in screenshot
+  readColor = "rgba(255, 255, 255, 0.2)", // Dark color as seen in screenshot
   subText,
   title = "",
   subtitle,
@@ -106,14 +106,6 @@ export default function DeveloperActivityChart({
       className={`flex flex-col items-center justify-center ${className}`}
       style={{ height: "190px", width: "100%" }}
     >
-      {/* Title at the top */}
-      <h4 className="text-xs font-medium mb-0">
-        {title} {""}
-      </h4>
-      {subtitle && (
-        <span className="text-xs text-gray-500 mb-1">{subtitle}</span>
-      )}
-
       <div className="flex flex-col items-center justify-center" ref={chartRef}>
         <div className="relative" style={{ width: size, height: size }}>
           <svg

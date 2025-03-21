@@ -26,7 +26,7 @@ export default function DashboardStatsSummary({
   return (
     <div className="w-full text-white">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col space-y-6 border">
+        <div className="flex flex-col space-y-6">
           {/* Header with time range selector */}
           <div className="xs:flex-col md:flex items-center space-y-5 justify-between p-4 rounded-sm">
             <div>
@@ -36,7 +36,7 @@ export default function DashboardStatsSummary({
                     Code Time
                   </h2>
                   <div className="flex items-baseline">
-                    <span className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                    <span className="text-3xl font-bold bg-gradient-to-r text-white bg-clip-text text-transparent">
                       {data.cumulative_total.text}
                     </span>
                     <span className="text-gray-400 ml-2 text-sm">
@@ -50,7 +50,7 @@ export default function DashboardStatsSummary({
                     Active Code Time
                   </h2>
                   <div className="flex items-baseline">
-                    <span className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                    <span className="text-3xl font-bold bg-gradient-to-r text-white bg-clip-text text-transparent">
                       {formattedActiveCodingTime}
                     </span>
                     <span className="text-gray-400 ml-2 text-sm">
