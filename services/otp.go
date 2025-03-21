@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"math/rand"
 	"net/http"
+	"net/mail"
 	"strings"
 	"time"
 
@@ -234,6 +235,14 @@ func (s *OTPService) VerifyOTP(validateOtpRequest models.ValidateOTPRequest) (*m
 	}, nil
 }
 
+func NormalizeEmail(email string) (string, error) {
+	parsed, err := mail.ParseAddress(strings.TrimSpace(email))
+	if err != nil {
+		return "", err
+	}
+	return strings.ToLower(parsed.Address), nil
+}
+
 // HTTP Handlers
 func CreateOTPHandler(service *OTPService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -253,6 +262,16 @@ func CreateOTPHandler(service *OTPService) http.HandlerFunc {
 			})
 			return
 		}
+
+		normalizedEmail, err := NormalizeEmail(otpRequest.Email)
+		if err != nil {
+			helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+				"message": "Invalid email",
+				"status":  http.StatusBadRequest,
+			})
+			return
+		}
+		otpRequest.Email = normalizedEmail
 
 		if otpRequest.CodeChallenge == "" {
 			helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
@@ -310,6 +329,16 @@ func VerifyOTPHandler(service *OTPService) http.HandlerFunc {
 			})
 			return
 		}
+
+		normalizedEmail, err := NormalizeEmail(validateOtpRequest.Email)
+		if err != nil {
+			helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+				"message": "Invalid email",
+				"status":  http.StatusBadRequest,
+			})
+			return
+		}
+		validateOtpRequest.Email = normalizedEmail
 
 		resp, err := service.VerifyOTP(validateOtpRequest)
 		if err != nil {
