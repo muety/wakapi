@@ -52,6 +52,7 @@ const (
 )
 
 const (
+	InstanceApiUrl               = "https://api.wakana.io/api"
 	WakatimeApiUrl               = "https://api.wakatime.com/api/v1"
 	WakatimeApiUserUrl           = "/users/current"
 	WakatimeApiAllTimeUrl        = "/users/current/all_time_since_today"

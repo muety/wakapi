@@ -6,16 +6,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log/slog"
+	"net/http"
+	"time"
+
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/patrickmn/go-cache"
-	"io"
-	"log/slog"
-	"net/http"
-	"time"
 )
 
 const maxFailuresPerDay = 100
@@ -45,7 +46,15 @@ func (m *WakatimeRelayMiddleware) Handler(h http.Handler) http.Handler {
 	})
 }
 
-func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+// this sends requests against another instance of this server
+func (m *WakatimeRelayMiddleware) OtherInstancesHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		m.ServeHTTPOtherInstance(w, r, h.ServeHTTP)
+	})
+}
+
+func (m *WakatimeRelayMiddleware) serveHTTPCommon(w http.ResponseWriter, r *http.Request, next http.HandlerFunc,
+	authFn func(*models.User) (string, string, error)) {
 	defer next(w, r)
 
 	ownInstanceId := config.Get().InstanceId
@@ -56,11 +65,16 @@ func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	}
 
 	user := middlewares.GetPrincipal(r)
-	if user == nil || user.WakatimeApiKey == "" {
+	if user == nil {
 		return
 	}
 
-	err := m.filterByCache(r)
+	authHeader, targetURL, err := authFn(user)
+	if err != nil {
+		return
+	}
+
+	err = m.filterByCache(r)
 	if err != nil {
 		slog.Warn("filter cache error", "error", err)
 		return
@@ -85,20 +99,51 @@ func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			fmt.Sprintf("wakapi v%s", config.Get().Version),
 		},
 		"X-Origin-Instance": []string{downstreamInstanceId},
-		"Authorization": []string{
-			fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(user.WakatimeApiKey))),
-		},
+		"Authorization":     []string{authHeader},
 	}
-
-	url := user.WakaTimeURL(config.WakatimeApiUrl) + config.WakatimeApiHeartbeatsBulkUrl
 
 	go m.send(
 		http.MethodPost,
-		url,
+		targetURL,
 		bytes.NewReader(body),
 		headers,
 		user,
 	)
+}
+
+func (m *WakatimeRelayMiddleware) ServeHTTPOtherInstance(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	userId := "a904aac0-7924-4d99-b896-ca4a78d25a48" // localhost user id
+	apiKey := "b545546f-69f1-4459-9248-cf3a2fa88cba"
+
+	authFn := func(user *models.User) (string, string, error) {
+		if user.ID != userId {
+			return "", "", fmt.Errorf("unauthorized user")
+		}
+
+		authHeader := fmt.Sprintf("Bearer %s", base64.StdEncoding.EncodeToString([]byte(apiKey)))
+		targetURL := config.InstanceApiUrl + config.WakatimeApiHeartbeatsBulkUrl
+
+		fmt.Println("relaying heartbeat to wakana.io", "url", targetURL, "body", "[redacted]")
+
+		return authHeader, targetURL, nil
+	}
+
+	m.serveHTTPCommon(w, r, next, authFn)
+}
+
+func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	authFn := func(user *models.User) (string, string, error) {
+		if user.WakatimeApiKey == "" {
+			return "", "", fmt.Errorf("no wakatime api key")
+		}
+
+		authHeader := fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(user.WakatimeApiKey)))
+		targetURL := user.WakaTimeURL(config.WakatimeApiUrl) + config.WakatimeApiHeartbeatsBulkUrl
+
+		return authHeader, targetURL, nil
+	}
+
+	m.serveHTTPCommon(w, r, next, authFn)
 }
 
 func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, headers http.Header, forUser *models.User) {

@@ -602,6 +602,10 @@ export const COLORS: Record<string, any> = {
     Zimpl: "#d67711",
   },
   editors: {
+    Beekeeperstudio: "#615f8b",
+    Cursor: "#5a2894",
+    Notes: "#9ecf54",
+    Windsurf: "#58e5bc",
     "Adobe XD": "#fd27bc",
     "Android Studio": "#99cd00",
     AppCode: "#04dbde",

@@ -130,9 +130,6 @@ export function LeaderBoardTable({
               >
                 <RenderLanguages languages={leader.languages} />
               </TableCell>
-              <TableCell className="w-32 text-center font-semibold">
-                {leader.hireable && <Hireable />}
-              </TableCell>
               <TableCell className="w-24 text-right font-semibold"></TableCell>
             </TableRow>
           ))}

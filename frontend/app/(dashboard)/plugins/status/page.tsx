@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 function PluginStatusCard({ agent }: { agent: iPluginUserAgent }) {
-  const status = "OK";
+  const status = "Up";
 
   return (
     <div className="plugin-status surface flex-col justify-center gap-5 md:flex-row">

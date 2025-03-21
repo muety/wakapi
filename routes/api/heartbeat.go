@@ -43,6 +43,11 @@ func (h *HeartbeatApiHandler) RegisterRoutes(router chi.Router) {
 			middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalForMethods(http.MethodOptions).Handler,
 			customMiddleware.NewWakatimeRelayMiddleware().Handler,
 		)
+		if h.config.IsDev() {
+			r.Use(
+				customMiddleware.NewWakatimeRelayMiddleware().OtherInstancesHandler,
+			)
+		}
 		// see https://github.com/muety/wakapi/issues/203
 		r.Post("/heartbeat", h.Post)
 		r.Post("/heartbeats", h.Post)

@@ -65,6 +65,7 @@ function WPieChartComponent({
   durationSubtitle,
   colorNamespace,
 }: WPieChartProps) {
+  console.log("subtitles", durationSubtitle);
   const hideLegend = useMediaQuery("only screen and (max-width : 576px)");
 
   const [, setActiveIndex] = useState(null);
@@ -156,7 +157,7 @@ function WPieChartComponent({
   };
   return (
     <>
-      <DurationTooltip title={title} subtitle={durationSubtitle} />
+      <div className="chart-box-title">{title}</div>
       <ResponsiveContainer
         width="100%"
         height={200}
@@ -201,15 +202,19 @@ function WPieChartComponent({
           >
             {(data || []).map((entry, index) => (
               <Cell
+                className="transition-all duration-300 hover:opacity-90 hover:scale-105 hover:shadow-lg z-10"
                 key={`cell-${index}`}
                 fill={
                   colorNamespace != "machines"
                     ? getEntityColor(colorNamespace, entry.key)
                     : getMachineColor(entry.key)
                 }
-                stroke="black"
+                stroke="gray"
                 height={"100%"}
                 width={"100%"}
+                style={{
+                  transition: "all 0.3s ease",
+                }}
               />
             ))}
           </Pie>

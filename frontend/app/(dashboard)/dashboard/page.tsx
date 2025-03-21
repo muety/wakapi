@@ -1,4 +1,3 @@
-import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { format, subDays } from "date-fns";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -12,12 +11,6 @@ import { WPieChart } from "@/components/charts/WPieChart";
 import DashboardStatsSummary from "@/components/dashboard-stats-summary";
 import DeveloperActivityChart from "@/components/developer-activity-chart-v2";
 import { ProjectCard } from "@/components/project-card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { SummariesApiResponse } from "@/lib/types";
 import {
   convertSecondsToHoursAndMinutes,
@@ -83,7 +76,7 @@ export default async function Dashboard({
             <div className="charts-grid">
               <div className="chart-box">
                 <WPieChart
-                  innerRadius={44.45}
+                  innerRadius={34.45}
                   title="EDITORS"
                   colorNamespace="editors"
                   data={makePieChartDataFromRawApiResponse(
@@ -95,6 +88,7 @@ export default async function Dashboard({
               </div>
               <div className="chart-box">
                 <WPieChart
+                  innerRadius={34.45}
                   title="LANGUAGES"
                   data={makePieChartDataFromRawApiResponse(
                     durationData.data,
@@ -108,7 +102,6 @@ export default async function Dashboard({
             <div className="charts-grid">
               <div className="chart-box">
                 <WPieChart
-                  innerRadius={44.45}
                   title="OPERATING SYSTEMS"
                   data={makePieChartDataFromRawApiResponse(
                     durationData.data,
@@ -120,7 +113,6 @@ export default async function Dashboard({
               </div>
               <div className="chart-box">
                 <WPieChart
-                  innerRadius={44.45}
                   title="MACHINES"
                   data={makePieChartDataFromRawApiResponse(
                     durationData.data,
@@ -147,16 +139,6 @@ export default async function Dashboard({
           <div className="my-5">
             <div className="flex items-baseline gap-1 align-middle">
               <h1 className="text-2xl mb-4">Projects</h1>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <QuestionMarkCircledIcon />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Projects worked on over the last 7 days</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             </div>
             <div className="w-full">
               <div className="three-grid" id="projects">
