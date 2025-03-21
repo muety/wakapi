@@ -15,8 +15,6 @@ export default function DashboardStatsSummary({
   data: SummariesApiResponse;
   searchParams: Record<string, any>;
 }) {
-  console.log("[data.write_percentage]", data.write_percentage);
-
   const activeCodingTime =
     +data.cumulative_total.seconds * (data.write_percentage / 100);
 
@@ -28,7 +26,7 @@ export default function DashboardStatsSummary({
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col space-y-6">
           {/* Header with time range selector */}
-          <div className="xs:flex-col md:flex items-center space-y-5 justify-between p-4 rounded-sm">
+          <div className="xs:flex-col md:flex items-center space-y-5 justify-between py-4 rounded-sm">
             <div>
               <div className="xs:flex-col md:flex items-center space-y-5 md:space-x-4">
                 <div>
@@ -46,7 +44,7 @@ export default function DashboardStatsSummary({
                 </div>
 
                 <div className="border-l border-border md:pl-4">
-                  <h2 className="text-gray-100 border-1 text-sm font-medium mb-1">
+                  <h2 className="text-gray-400 border-1 text-sm font-medium mb-1">
                     Active Code Time
                   </h2>
                   <div className="flex items-baseline">

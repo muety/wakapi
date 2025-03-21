@@ -61,7 +61,6 @@ export function WeekdaysBarChartComponent({ data, durationSubtitle }: iProps) {
 }
 
 export function WeekdaysBarChart({ data }: iProps) {
-  console.log("data", data);
   const totalSeconds = data
     .map((d) => d.grand_total.total_seconds || 0)
     .reduce((a, b) => a + b, 0);

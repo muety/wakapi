@@ -25,11 +25,9 @@ export default function DeveloperActivityChart({
   size = 150,
   strokeWidth = 20,
   className = "",
-  writeColor = "white", // Red color as seen in screenshot
+  writeColor = "whitesmoke", // Red color as seen in screenshot
   readColor = "rgba(255, 255, 255, 0.2)", // Dark color as seen in screenshot
   subText,
-  title = "",
-  subtitle,
   totalSeconds,
 }: DeveloperActivityChartProps) {
   const [tooltipContent, setTooltipContent] = useState<string | null>(null);
