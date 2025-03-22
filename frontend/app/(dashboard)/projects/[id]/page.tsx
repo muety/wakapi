@@ -7,10 +7,10 @@ import { ActivityCategoriesChart } from "@/components/charts/ActivityCategoriesC
 import { DailyCodingSummaryLineChart } from "@/components/charts/DailyCodingSummaryLineChart";
 import { WBarChart } from "@/components/charts/WBarChart";
 import { DashboardPeriodSelector } from "@/components/dashboard-period-selector";
+import FileActivityTreemapVisx from "@/components/file-activity-tree-map";
 import { ProjectFiles } from "@/components/ProjectFiles";
 import { SummariesApiResponse } from "@/lib/types";
 import { makePieChartDataFromRawApiResponse } from "@/lib/utils";
-import FileActivityTreemapVisx from "@/components/file-activity-tree-map";
 
 const { NEXT_PUBLIC_API_URL } = process.env;
 

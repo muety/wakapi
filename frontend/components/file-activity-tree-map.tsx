@@ -1,13 +1,13 @@
 "use client";
 
-import type React from "react";
-import { useMemo, useState } from "react";
 import { Group } from "@visx/group";
 import { Treemap } from "@visx/hierarchy";
 import { ParentSize } from "@visx/responsive";
-import { hierarchy } from "d3-hierarchy";
 import { scaleOrdinal } from "@visx/scale";
+import { hierarchy } from "d3-hierarchy";
 import truncate from "lodash/truncate";
+import type React from "react";
+import { useMemo, useState } from "react";
 
 // Color palette
 const colors = [
@@ -125,8 +125,18 @@ export const FileActivityTreemapVisx: React.FC<TreemapChartProps> = ({
     range: colors,
   });
 
+  const displayData = useMemo(() => {
+    if (!selectedFolder) return data;
+
+    return {
+      name: "root",
+      children:
+        data.children?.filter((folder) => folder.id === selectedFolder) || [],
+    };
+  }, [data, selectedFolder]);
+
   return (
-    <div className="relative">
+    <div className="relative mt-5">
       {/* Custom tooltip that follows mouse */}
       {hoveredNode && (
         <div
@@ -174,17 +184,6 @@ export const FileActivityTreemapVisx: React.FC<TreemapChartProps> = ({
           const height = 600;
 
           // Filter data based on selection
-          const displayData = useMemo(() => {
-            if (!selectedFolder) return data;
-
-            return {
-              name: "root",
-              children:
-                data.children?.filter(
-                  (folder) => folder.id === selectedFolder
-                ) || [],
-            };
-          }, [data, selectedFolder]);
 
           return (
             <svg width={width} height={height}>
