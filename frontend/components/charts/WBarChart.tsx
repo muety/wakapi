@@ -6,7 +6,7 @@ import { LegendOrdinal } from "@visx/legend";
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { scaleOrdinal } from "@visx/scale";
 import { Bar } from "@visx/shape";
-import { useTooltip, useTooltipInPortal, defaultStyles } from "@visx/tooltip";
+import { defaultStyles, useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { ScaleBand, ScaleLinear } from "d3-scale";
 import { BarChart2, BarChartHorizontal } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
