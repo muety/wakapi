@@ -7,10 +7,10 @@ import { ActivityCategoriesChart } from "@/components/charts/ActivityCategoriesC
 import { DailyCodingSummaryLineChart } from "@/components/charts/DailyCodingSummaryLineChart";
 import { WBarChart } from "@/components/charts/WBarChart";
 import { DashboardPeriodSelector } from "@/components/dashboard-period-selector";
-import FileActivityBubble from "@/components/file-activity-bubble-chart";
 import { ProjectFiles } from "@/components/ProjectFiles";
 import { SummariesApiResponse } from "@/lib/types";
 import { makePieChartDataFromRawApiResponse } from "@/lib/utils";
+import FileActivityTreemapVisx from "@/components/file-activity-tree-map";
 
 const { NEXT_PUBLIC_API_URL } = process.env;
 
@@ -99,7 +99,7 @@ export default async function ProjectDetailPage({
               />
             </div>
           </section>
-          <FileActivityBubble
+          <FileActivityTreemapVisx
             rawData={prepareEntitiesData(durationData.data, "entities")}
           />
           <div className="mt-12 flex justify-center gap-5">
