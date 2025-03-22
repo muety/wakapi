@@ -25,8 +25,7 @@ export default function DashboardStatsSummary({
     <div className="w-full text-white">
       <div className="mx-auto">
         <div className="flex flex-col space-y-6">
-          {/* Header with time range selector */}
-          <div className="xs:flex-col md:flex items-center justify-between py-4 rounded-sm">
+          <div className="xs:flex-col md:flex items-center space-y-5 md:space-y-0 justify-between py-4 rounded-sm">
             <div className="xs:flex-col md:flex align-middle items-center space-y-5 md:space-y-0 md:space-x-4">
               <div>
                 <h2 className="text-gray-400 text-sm font-medium mb-1">

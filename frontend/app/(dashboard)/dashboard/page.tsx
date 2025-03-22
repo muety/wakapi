@@ -5,9 +5,9 @@ import Link from "next/link";
 import { fetchData } from "@/actions";
 import { ActivityCategoriesChart } from "@/components/charts/ActivityCategoriesChart";
 import { DailyCodingSummaryOverTime } from "@/components/charts/DailyCodingSummaryOverTime";
+import { WBarChart } from "@/components/charts/WBarChart";
 import { WeekdaysBarChart } from "@/components/charts/WeekdaysBarChart";
 import { WGaugeChart } from "@/components/charts/WGaugeChart";
-import { WPieChart } from "@/components/charts/WPieChart";
 import DashboardStatsSummary from "@/components/dashboard-stats-summary";
 import DeveloperActivityChart from "@/components/developer-activity-chart-v2";
 import { ProjectCard } from "@/components/project-card";
@@ -75,10 +75,11 @@ export default async function Dashboard({
           <div className="my-5 space-y-5">
             <div className="charts-grid">
               <div className="chart-box">
-                <WPieChart
+                <WBarChart
                   innerRadius={34.45}
                   title="EDITORS"
                   colorNamespace="editors"
+                  defaultOrientation="vertical"
                   data={makePieChartDataFromRawApiResponse(
                     durationData.data,
                     "editors"
@@ -87,13 +88,14 @@ export default async function Dashboard({
                 />
               </div>
               <div className="chart-box">
-                <WPieChart
+                <WBarChart
                   innerRadius={34.45}
                   title="LANGUAGES"
                   data={makePieChartDataFromRawApiResponse(
                     durationData.data,
                     "languages"
                   )}
+                  defaultOrientation="vertical"
                   colorNamespace="languages"
                   durationSubtitle="Languages used over the "
                 />
@@ -101,23 +103,25 @@ export default async function Dashboard({
             </div>
             <div className="charts-grid">
               <div className="chart-box">
-                <WPieChart
+                <WBarChart
                   title="OPERATING SYSTEMS"
                   data={makePieChartDataFromRawApiResponse(
                     durationData.data,
                     "operating_systems"
                   )}
+                  defaultOrientation="horizontal"
                   colorNamespace="operating_systems"
                   durationSubtitle="Operating Systems used over the "
                 />
               </div>
               <div className="chart-box">
-                <WPieChart
+                <WBarChart
                   title="MACHINES"
                   data={makePieChartDataFromRawApiResponse(
                     durationData.data,
                     "machines"
                   )}
+                  defaultOrientation="horizontal"
                   colorNamespace="machines"
                   durationSubtitle="Machines used over the "
                 />
@@ -128,10 +132,7 @@ export default async function Dashboard({
                 <ActivityCategoriesChart data={durationData.data} />
               </div>
               <div className="chart-box">
-                <WeekdaysBarChart
-                  data={durationData.data}
-                  durationSubtitle="Average time per weekday over the "
-                />
+                <WeekdaysBarChart data={durationData.data} />
               </div>
             </div>
           </div>

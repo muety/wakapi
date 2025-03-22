@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 import { TooltipWithProvider } from "./tooltip-with-provider";
 
-function Hireable() {
+export function Hireable() {
   return (
     <div
       className="rounded-md border border-border"

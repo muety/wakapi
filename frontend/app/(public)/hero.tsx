@@ -52,7 +52,7 @@ export function Hero() {
         >
           <div className="z-10">
             <Image
-              src="/neo-dashboard-alt.png"
+              src="/neo-dashboard.png"
               alt="App image"
               width={1920}
               height={1080}

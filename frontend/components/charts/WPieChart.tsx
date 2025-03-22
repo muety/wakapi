@@ -18,7 +18,6 @@ import {
   getMachineColor,
 } from "@/lib/utils";
 
-import { DurationTooltip } from "./DurationTooltip";
 import { EmptyChartWrapper } from "./EmptyChartWrapper";
 
 export interface WPieChartDataItem {
