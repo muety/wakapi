@@ -5,7 +5,7 @@ import Image from "next/image";
 import { fetchData, getSession } from "@/actions";
 import { ActivityCategoriesChart } from "@/components/charts/ActivityCategoriesChart";
 import { DailyCodingSummaryLineChart } from "@/components/charts/DailyCodingSummaryLineChart";
-import { WPieChart } from "@/components/charts/WPieChart";
+import { WBarChart } from "@/components/charts/WBarChart";
 import { DashboardPeriodSelector } from "@/components/dashboard-period-selector";
 import FileActivityBubble from "@/components/file-activity-bubble-chart";
 import { ProjectFiles } from "@/components/ProjectFiles";
@@ -77,7 +77,7 @@ export default async function ProjectDetailPage({
           </section>
           <section className="charts-grid">
             <div>
-              <WPieChart
+              <WBarChart
                 title="Languages"
                 data={makePieChartDataFromRawApiResponse(
                   durationData.data,
@@ -88,7 +88,7 @@ export default async function ProjectDetailPage({
               />
             </div>
             <div>
-              <WPieChart
+              <WBarChart
                 title="Editors"
                 data={makePieChartDataFromRawApiResponse(
                   durationData.data,
