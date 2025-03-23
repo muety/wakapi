@@ -7,6 +7,7 @@ app = 'wakana'
 primary_region = 'ams'
 
 [build]
+  command = "./wakana serve"
 
 [deploy]
   strategy = "bluegreen"
