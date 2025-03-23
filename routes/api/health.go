@@ -1,10 +1,10 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/muety/wakapi/helpers"
 	"gorm.io/gorm"
 )
 
@@ -18,6 +18,7 @@ func NewHealthApiHandler(db *gorm.DB) *HealthApiHandler {
 
 func (h *HealthApiHandler) RegisterRoutes(router chi.Router) {
 	router.Get("/health", h.Get)
+	router.Get("/up", h.Get)
 }
 
 // @Summary Check the application's health status
@@ -34,6 +35,10 @@ func (h *HealthApiHandler) Get(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte(fmt.Sprintf("app=1\ndb=%d", dbStatus)))
+	helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+		"message": "All systems operating within normal parameters",
+		"status":  http.StatusBadRequest,
+		"db":      dbStatus,
+		"app":     1,
+	})
 }
