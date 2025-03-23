@@ -29,8 +29,8 @@ file_env "WAKAPI_SUBSCRIPTIONS_STRIPE_SECRET_KEY"
 file_env "WAKAPI_SUBSCRIPTIONS_STRIPE_ENDPOINT_SECRET"
 
 if [ "$WAKAPI_DB_TYPE" == "sqlite3" ] || [ "$WAKAPI_DB_TYPE" == "" ]; then
-  exec ./wakapi
+  exec su -c "./wakapi" app
 else
   echo "Waiting for database to come up"
-  exec ./wait-for-it.sh "$WAKAPI_DB_HOST:$WAKAPI_DB_PORT" -s -t 60 -- ./wakapi
+  exec ./wait-for-it.sh "$WAKAPI_DB_HOST:$WAKAPI_DB_PORT" -s -t 60 -- su -c "./wakapi" app
 fi
