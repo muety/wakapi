@@ -55,7 +55,7 @@ func (j CustomTime) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 	if db.Config.Dialector.Name() == (sqlserver.Dialector{}).Name() {
 		t = "datetimeoffset"
 	} else if db.Config.Dialector.Name() == (postgres.Dialector{}).Name() {
-		// TODO: migrate to timestamptz, see https://github.com/muety/wakapi/issues/761
+		// TODO: migrate to timestamptz, see https://github.com/muety/wakapi/issues/771
 	}
 
 	if scale, ok := field.TagSettings["TIMESCALE"]; ok {
@@ -101,10 +101,11 @@ func (j *CustomTime) Scan(value interface{}) error {
 		return errors.New(fmt.Sprintf("unsupported type: %T", value))
 	}
 
-	// see https://github.com/muety/wakapi/issues/762
+	// see https://github.com/muety/wakapi/issues/771
 	// -> "reinterpret" postgres dates (received as UTC) in local zone, assuming they had also originally been inserted as such
 	if !hacksInitialized {
 		postgresTimezoneHack = config.Get().Db.IsPostgres()
+		hacksInitialized = true
 	}
 	if postgresTimezoneHack {
 		t = utils.SetZone(t, time.Local)
