@@ -58,6 +58,11 @@ func LocalTZOffset() time.Duration {
 	return time.Duration(offset * int(time.Second))
 }
 
+// SetZone overwrites a date's timezone without reinterpreting at
+func SetZone(t time.Time, loc *time.Location) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), loc)
+}
+
 func ParseWeekday(s string) time.Weekday {
 	switch strings.ToLower(s) {
 	case "mon", strings.ToLower(time.Monday.String()):

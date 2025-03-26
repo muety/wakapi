@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/utils"
+	"gorm.io/driver/postgres"
 	"strconv"
 	"strings"
 	"time"
@@ -19,6 +22,11 @@ const (
 	ImprintKey            = "imprint"
 	AuthCookieKey         = "wakapi_auth"
 	PersistentIntervalKey = "wakapi_summary_interval"
+)
+
+var (
+	hacksInitialized     bool
+	postgresTimezoneHack bool
 )
 
 type KeyStringValue struct {
@@ -39,14 +47,15 @@ type KeyedInterval struct {
 // CustomTime is a wrapper type around time.Time, mainly used for the purpose of transparently unmarshalling Python timestamps in the format <sec>.<nsec> (e.g. 1619335137.3324468)
 type CustomTime time.Time
 
-// sql server doesn't allow multiple columns with timestamp type in a column
-// So we need to change the type to datetimeoffset
 func (j CustomTime) GormDBDataType(db *gorm.DB, field *schema.Field) string {
-
 	t := "timestamp"
 
+	// sql server doesn't allow multiple columns with timestamp type in a column
+	// So we need to change the type to datetimeoffset
 	if db.Config.Dialector.Name() == (sqlserver.Dialector{}).Name() {
 		t = "datetimeoffset"
+	} else if db.Config.Dialector.Name() == (postgres.Dialector{}).Name() {
+		// TODO: migrate to timestamptz, see https://github.com/muety/wakapi/issues/761
 	}
 
 	if scale, ok := field.TagSettings["TIMESCALE"]; ok {
@@ -92,15 +101,23 @@ func (j *CustomTime) Scan(value interface{}) error {
 		return errors.New(fmt.Sprintf("unsupported type: %T", value))
 	}
 
-	t = time.Unix(0, (t.UnixNano()/int64(time.Millisecond))*int64(time.Millisecond)) // round to millisecond precision
+	// see https://github.com/muety/wakapi/issues/762
+	// -> "reinterpret" postgres dates (received as UTC) in local zone, assuming they had also originally been inserted as such
+	if !hacksInitialized {
+		postgresTimezoneHack = config.Get().Db.IsPostgres()
+	}
+	if postgresTimezoneHack {
+		t = utils.SetZone(t, time.Local)
+	}
+
+	t = t.In(time.Local).Round(time.Millisecond)
 	*j = CustomTime(t)
 
 	return nil
 }
 
 func (j CustomTime) Value() (driver.Value, error) {
-	t := time.Unix(0, j.T().UnixNano()/int64(time.Millisecond)*int64(time.Millisecond)) // round to millisecond precision
-	return t, nil
+	return j.T().Round(time.Millisecond), nil
 }
 
 func (j *CustomTime) Hash() (uint64, error) {
