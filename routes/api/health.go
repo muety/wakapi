@@ -35,9 +35,9 @@ func (h *HealthApiHandler) Get(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+	helpers.RespondJSON(w, r, http.StatusAccepted, map[string]interface{}{
 		"message": "All systems operating within normal parameters",
-		"status":  http.StatusBadRequest,
+		"status":  http.StatusAccepted,
 		"db":      dbStatus,
 		"app":     1,
 	})

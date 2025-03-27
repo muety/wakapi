@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	DefaultConfigPath = "config.yml"
+	DefaultConfigPath = "./config.default.yml"
 
 	SQLDialectMysql    = "mysql"
 	SQLDialectPostgres = "postgres"

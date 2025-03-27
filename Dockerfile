@@ -13,8 +13,8 @@ RUN CGO_ENABLED=0 go build -ldflags "-s -w" -v -o wakapi main.go
 WORKDIR /staging
 RUN mkdir ./data ./app && \
     cp /src/wakapi app/ && \
-    cp /src/config.default.yml app/config.yml && \
-    sed -i 's/listen_ipv6: ::1/listen_ipv6: "-"/g' app/config.yml && \
+    cp /src/config.default.yml app/config.default.yml && \
+    sed -i 's/listen_ipv6: ::1/listen_ipv6: "-"/g' app/config.default.yml && \
     cp /src/wait-for-it.sh app/ && \
     cp /src/entrypoint.sh app/ && \
     chown 1000:1000 ./data
@@ -34,7 +34,7 @@ RUN addgroup -g 1000 app && \
 
 # See README.md and config.default.yml for all config options
 ENV ENVIRONMENT=prod \
-    WAKAPI_DB_TYPE=sqlite3 \
+    WAKAPI_DB_TYPE= \
     WAKAPI_DB_USER='' \
     WAKAPI_DB_PASSWORD='' \
     WAKAPI_DB_HOST='' \
@@ -47,11 +47,11 @@ ENV ENVIRONMENT=prod \
 COPY --from=build-env /staging /
 
 LABEL org.opencontainers.image.url="https://github.com/jemiluv8/wakana" \
-      org.opencontainers.image.documentation="https://github.com/jemiluv8/wakana" \
-      org.opencontainers.image.source="https://github.com/jemiluv8/wakana" \
-      org.opencontainers.image.title="Wakana" \
-      org.opencontainers.image.licenses="MIT" \
-      org.opencontainers.image.description="A minimalist, self-hosted WakaTime-compatible backend for coding statistics"
+    org.opencontainers.image.documentation="https://github.com/jemiluv8/wakana" \
+    org.opencontainers.image.source="https://github.com/jemiluv8/wakana" \
+    org.opencontainers.image.title="Wakana" \
+    org.opencontainers.image.licenses="MIT" \
+    org.opencontainers.image.description="A minimalist, self-hosted WakaTime-compatible backend for coding statistics"
 
 USER app
 
