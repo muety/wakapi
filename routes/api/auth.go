@@ -21,7 +21,7 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -215,6 +215,7 @@ func (h *AuthApiHandler) GithubOauth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userOauthDetails := models.UserOauth{
+		ID: uuid.New().String(),
 		Provider:   "github",
 		ProviderID: providerId,
 		Email:      &primaryEmail.Email,
@@ -241,8 +242,8 @@ func (h *AuthApiHandler) GithubOauth(w http.ResponseWriter, r *http.Request) {
 			return nil, err
 		}
 		u := &models.User{
-			ID:            uuid.NewV4().String(),
-			ApiKey:        uuid.NewV4().String(),
+			ID:            uuid.New().String(),
+			ApiKey:        uuid.New().String(),
 			Email:         email,
 			Password:      hash,
 			IsAdmin:       false,
