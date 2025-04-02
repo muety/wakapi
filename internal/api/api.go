@@ -1,9 +1,7 @@
 package api
 
 import (
-	"database/sql"
 	"fmt"
-	"log"
 	"log/slog"
 	"net"
 	"net/http"
@@ -12,16 +10,18 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	mw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/sirupsen/logrus"
 	_ "gorm.io/driver/mysql"
 	_ "gorm.io/driver/postgres"
 	_ "gorm.io/driver/sqlite"
 	_ "gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/internal/observability"
+	"github.com/muety/wakapi/internal/utilities"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/routes/api"
@@ -30,14 +30,99 @@ import (
 	"github.com/muety/wakapi/routes/relay"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/services/mail"
+	"github.com/sebest/xff"
 
 	_ "net/http/pprof"
 )
 
-var (
-	db    *gorm.DB
-	sqlDB *sql.DB
+const (
+	audHeaderName        = "X-JWT-AUD"
+	defaultVersion       = "unknown version"
+	APIVersionHeaderName = "api-version"
 )
+
+type API struct {
+	handler http.Handler
+	db      *gorm.DB
+	config  *conf.Config
+
+	// overrideTime can be used to override the clock used by handlers. Should only be used in tests!
+	overrideTime func() time.Time
+}
+
+func (a *API) Now() time.Time {
+	if a.overrideTime != nil {
+		return a.overrideTime()
+	}
+
+	return time.Now()
+}
+
+// NewAPI instantiates a new REST API
+// func NewAPI(globalConfig *conf.Config, db *gorm.DB) *API {
+// 	return NewAPIWithVersion(globalConfig, db)
+// }
+
+func NewAPI(globalConfig *conf.Config, db *gorm.DB) *API {
+	api := &API{config: globalConfig, db: db}
+
+	r := newRouter()
+	r.chi.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		sendJSON(w, http.StatusNotFound, nil, "Resource not found", "The resource you're looking for cannot be found")
+	})
+	setupGlobalMiddleware(r, api.config)
+
+	r.Get("/health", api.HealthCheck)
+
+	corsHandler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Client-IP", "X-Client-Info", audHeaderName, APIVersionHeaderName},
+		ExposedHeaders:   []string{"X-Total-Count", "Link", APIVersionHeaderName},
+		AllowCredentials: true,
+	})
+
+	api.handler = corsHandler.Handler(r)
+
+	return api
+}
+
+func setupGlobalMiddleware(r *router, globalConfig *conf.Config) {
+	xffmw, _ := xff.Default() // handles x forwarded by
+	logger := observability.NewStructuredLogger(logrus.StandardLogger(), globalConfig)
+	if err := observability.ConfigureLogging(&globalConfig.Logging); err != nil {
+		logrus.WithError(err).Error("unable to configure logging")
+	}
+	r.UseBypass(observability.AddRequestID(globalConfig))
+	r.UseBypass(logger)
+	r.UseBypass(xffmw.Handler)
+	r.UseBypass(recoverer)
+	r.UseBypass(mw.CleanPath)
+	r.UseBypass(mw.StripSlashes)
+	r.UseBypass(middlewares.NewPrincipalMiddleware())
+	r.UseBypass(
+		middlewares.NewLoggingMiddleware(slog.Info, []string{
+			"/assets",
+			"/favicon",
+			"/service-worker.js",
+			"/api/health",
+			"/api/avatar",
+		}),
+	)
+}
+
+func InitializeJobs(config *conf.Config) {
+	// Schedule background tasks
+	go conf.StartJobs()
+	go aggregationService.Schedule()
+	go reportService.Schedule()
+	go housekeepingService.Schedule()
+	go miscService.Schedule()
+
+	if config.App.LeaderboardEnabled {
+		go leaderboardService.Schedule()
+	}
+}
 
 var (
 	aliasRepository           repositories.IAliasRepository
@@ -81,42 +166,8 @@ var (
 	invoiceService         services.InvoiceService
 )
 
-func InitDB(config *conf.Config) (*gorm.DB, error) {
-	// Set up GORM
-	gormLogger := logger.New(
-		log.New(os.Stdout, "", log.LstdFlags),
-		logger.Config{
-			SlowThreshold: time.Minute,
-			Colorful:      false,
-			LogLevel:      logger.Error,
-		},
-	)
-
-	// Connect to database
-	var err error
-	slog.Info("starting with database", "dialect", config.Db.Dialect)
-	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{Logger: gormLogger}, conf.GetWakapiDBOpts(&config.Db))
-	if err != nil {
-		conf.Log().Fatal("could not connect to database", "error", err)
-		return nil, err
-	}
-
-	if config.IsDev() {
-		db = db.Debug()
-	}
-	sqlDB, err := db.DB()
-	if err != nil {
-		conf.Log().Fatal("could not connect to database", "error", err)
-		return nil, err
-	}
-	sqlDB.SetMaxIdleConns(int(config.Db.MaxConn))
-	sqlDB.SetMaxOpenConns(int(config.Db.MaxConn))
-
-	return db, nil
-}
-
 func StartApi(config *conf.Config) {
-	db, err := InitDB(config)
+	db, sqlDB, err := utilities.InitDB(config)
 
 	defer sqlDB.Close()
 
@@ -132,16 +183,17 @@ func StartApi(config *conf.Config) {
 	aliasRepository = repositories.NewAliasRepository(db)
 	heartbeatRepository = repositories.NewHeartbeatRepository(db)
 	userRepository = repositories.NewUserRepository(db)
-	userAgentPluginRepository = repositories.NewPluginUserAgentRepository(db)
 	languageMappingRepository = repositories.NewLanguageMappingRepository(db)
 	projectLabelRepository = repositories.NewProjectLabelRepository(db)
 	summaryRepository = repositories.NewSummaryRepository(db)
-	goalRepository = repositories.NewGoalRepository(db)
-	oauthUserRepository = repositories.NewUserOauthRepository(db)
 	leaderboardRepository = repositories.NewLeaderboardRepository(db)
 	keyValueRepository = repositories.NewKeyValueRepository(db)
 	diagnosticsRepository = repositories.NewDiagnosticsRepository(db)
 	metricsRepository = repositories.NewMetricsRepository(db)
+
+	userAgentPluginRepository = repositories.NewPluginUserAgentRepository(db)
+	oauthUserRepository = repositories.NewUserOauthRepository(db)
+	goalRepository = repositories.NewGoalRepository(db)
 	clientRepository = repositories.NewClientRepository(db)
 	invoiceRepository = repositories.NewInvoiceRepository(db)
 
@@ -168,21 +220,10 @@ func StartApi(config *conf.Config) {
 	invoiceService = *services.NewInvoiceService(invoiceRepository)
 	leaderboardService = services.NewLeaderboardService(leaderboardRepository, summaryService, userService)
 
-	// Schedule background tasks
-	go conf.StartJobs()
-	go aggregationService.Schedule()
-	go reportService.Schedule()
-	go housekeepingService.Schedule()
-	go miscService.Schedule()
-
-	if config.App.LeaderboardEnabled {
-		go leaderboardService.Schedule()
-	}
-
+	InitializeJobs(config)
 	// API Handlers
 	authApiHandler := api.NewAuthApiHandler(db, userService, oauthUserService, mailService, aggregationService, summaryService)
 	settingsApiHandler := api.NewSettingsHandler(userService, db)
-	healthApiHandler := api.NewHealthApiHandler(db)
 	heartbeatApiHandler := api.NewHeartbeatApiHandler(userService, heartbeatService, languageMappingService, userAgentPluginService)
 	summaryApiHandler := api.NewSummaryApiHandler(userService, summaryService)
 	metricsHandler := api.NewMetricsHandler(userService, summaryService, heartbeatService, leaderboardService, keyValueService, metricsRepository)
@@ -226,9 +267,9 @@ func StartApi(config *conf.Config) {
 	corsSetup(router)
 
 	router.Use(
-		middleware.CleanPath,
-		middleware.StripSlashes,
-		middleware.Recoverer,
+		mw.CleanPath,
+		mw.StripSlashes,
+		mw.Recoverer,
 		middlewares.NewPrincipalMiddleware(),
 		middlewares.NewLoggingMiddleware(slog.Info, []string{
 			"/assets",
@@ -259,7 +300,7 @@ func StartApi(config *conf.Config) {
 
 	// API route registrations
 	summaryApiHandler.RegisterRoutes(apiRouter)
-	healthApiHandler.RegisterRoutes(apiRouter)
+	// healthApiHandler.RegisterRoutes(apiRouter)
 	authApiHandler.RegisterRoutes(apiRouter)
 	settingsApiHandler.RegisterRoutes(apiRouter)
 	heartbeatApiHandler.RegisterRoutes(apiRouter)
@@ -403,4 +444,33 @@ func listen(handler http.Handler, config *conf.Config) {
 	}
 
 	<-make(chan interface{}, 1)
+}
+
+type HealthCheckResponse struct {
+	Version        string `json:"version"`
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	DatabaseStatus int    `json:"database_status"`
+}
+
+// HealthCheck endpoint indicates if the gotrue api service is available
+func (a *API) HealthCheck(w http.ResponseWriter, r *http.Request) error {
+	var dbStatus int
+	if sqlDb, err := a.db.DB(); err == nil {
+		if err := sqlDb.Ping(); err == nil {
+			dbStatus = 1
+		}
+	}
+	return sendJSON(w, http.StatusOK, HealthCheckResponse{
+		Version:        "0.0.1",
+		Name:           "Wakana",
+		Description:    "Wakana is an api for developer activity logs generated by IDE plugins",
+		DatabaseStatus: dbStatus,
+	}, "", "")
+}
+
+// ServeHTTP implements the http.Handler interface by passing the request along
+// to its underlying Handler.
+func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	a.handler.ServeHTTP(w, r)
 }

@@ -11,7 +11,7 @@ server:
   timeout_sec: 30 # request timeout
   tls_cert_path: # leave blank to not use https
   tls_key_path: # leave blank to not use https
-  port: 3000
+  port: 3003
   base_path: /
   public_url: http://localhost:3000 # required for links (e.g. password reset) in e-mail
 

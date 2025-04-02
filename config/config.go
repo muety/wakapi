@@ -196,6 +196,23 @@ type SMTPMailConfig struct {
 	SkipVerify bool   `env:"WAKAPI_MAIL_SMTP_SKIP_VERIFY"`
 }
 
+type ApiConfig struct {
+	RequestIDHeader string `yaml:"request_id_header" default:"X-Request-ID" env:"REQUEST_ID_HEADER"`
+	Port            string `default:"3003" env:"PORT"`
+	Host            string `default:"localhost" env:"HOST"`
+}
+
+type LoggingConfig struct {
+	RequestIDHeader  string                 `yaml:"request_id_header" default:"X-Request-ID" env:"REQUEST_ID_HEADER"`
+	Level            string                 `yaml:"log_level" default:"INFO" env:"LOG_LEVEL"`
+	File             string                 `yaml:"log_file" default:"logs" env:"LOG_FILE" json:"log_file"`
+	DisableColors    string                 `yaml:"disable_colors" default:"true" env:"DISABLE_COLORS" json:"disable_colors"`
+	QuoteEmptyFields string                 `yaml:"quote_empty_fields" default:"true" env:"QUOTE_EMPTY_FIELDS" json:"quote_empty_fields"`
+	TSFormat         string                 `yaml:"ts_format" json:"ts_format"`
+	Fields           map[string]interface{} `yaml:"fields" json:"fields"`
+	SQL              string                 `yaml:"sql" default:"all" json:"sql"`
+}
+
 type Config struct {
 	Env            string `default:"dev" env:"ENVIRONMENT"`
 	Version        string `yaml:"-"`
@@ -210,6 +227,8 @@ type Config struct {
 	Subscriptions  subscriptionsConfig
 	Sentry         sentryConfig
 	Mail           mailConfig
+	API            ApiConfig
+	Logging        LoggingConfig
 }
 
 func (c *Config) CreateCookie(name, value string) *http.Cookie {

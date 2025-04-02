@@ -22,8 +22,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// OTPService handles OTP-related operations
-
 type OTPService struct {
 	db          *gorm.DB
 	mailService IMailService
