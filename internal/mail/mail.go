@@ -8,7 +8,6 @@ import (
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/routes"
-	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"github.com/muety/wakapi/views/mail"
 
@@ -30,6 +29,15 @@ const (
 	subjectSubscriptionNotification    = "Wakana - Subscription expiring / expired"
 )
 
+type IMailService interface {
+	SendPasswordReset(*models.User, string) error
+	SendWakatimeFailureNotification(*models.User, int) error
+	SendImportNotification(*models.User, time.Duration, int) error
+	SendReport(*models.User, *models.Report) error
+	SendSubscriptionNotification(*models.User, bool) error
+	SendLoginOtp(string, string, time.Time) error
+}
+
 type SendingService interface {
 	Send(*models.Mail) error
 }
@@ -40,7 +48,7 @@ type MailService struct {
 	templates      utils.TemplateMap
 }
 
-func NewMailService() services.IMailService {
+func NewMailService() IMailService {
 	config := conf.Get()
 
 	var sendingService SendingService

@@ -1,11 +1,12 @@
 package v1
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models/types"
-	"net/http"
-	"time"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -26,10 +27,10 @@ type StatusBarHandler struct {
 	summarySrvc services.ISummaryService
 }
 
-func NewStatusBarHandler(userService services.IUserService, summaryService services.ISummaryService) *StatusBarHandler {
+func NewStatusBarHandler(services services.IServices) *StatusBarHandler {
 	return &StatusBarHandler{
-		userSrvc:    userService,
-		summarySrvc: summaryService,
+		userSrvc:    services.Users(),
+		summarySrvc: services.Summary(),
 		config:      conf.Get(),
 	}
 }

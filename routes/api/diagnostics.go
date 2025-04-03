@@ -2,9 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
-	"net/http"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -17,11 +18,11 @@ type DiagnosticsApiHandler struct {
 	diagnosticsSrvc services.IDiagnosticsService
 }
 
-func NewDiagnosticsApiHandler(userService services.IUserService, diagnosticsService services.IDiagnosticsService) *DiagnosticsApiHandler {
+func NewDiagnosticsApiHandler(services services.IServices) *DiagnosticsApiHandler {
 	return &DiagnosticsApiHandler{
 		config:          conf.Get(),
-		userSrvc:        userService,
-		diagnosticsSrvc: diagnosticsService,
+		userSrvc:        services.Users(),
+		diagnosticsSrvc: services.Diagnostics(),
 	}
 }
 

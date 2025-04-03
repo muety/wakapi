@@ -1,6 +1,9 @@
 package v1
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
@@ -10,8 +13,6 @@ import (
 	"github.com/muety/wakapi/models/types"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
-	"net/http"
-	"time"
 )
 
 type AllTimeHandler struct {
@@ -20,10 +21,10 @@ type AllTimeHandler struct {
 	summarySrvc services.ISummaryService
 }
 
-func NewAllTimeHandler(userService services.IUserService, summaryService services.ISummaryService) *AllTimeHandler {
+func NewAllTimeHandler(services services.IServices) *AllTimeHandler {
 	return &AllTimeHandler{
-		userSrvc:    userService,
-		summarySrvc: summaryService,
+		userSrvc:    services.Users(),
+		summarySrvc: services.Summary(),
 		config:      conf.Get(),
 	}
 }

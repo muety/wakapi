@@ -2,47 +2,87 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
-	"github.com/muety/wakapi/repositories"
 	"github.com/patrickmn/go-cache"
+	"gorm.io/gorm"
 )
 
 type ClientService struct {
-	config     *config.Config
-	cache      *cache.Cache
-	repository repositories.IClientRepository
+	config *config.Config
+	cache  *cache.Cache
+	db     *gorm.DB
 }
 
-func NewClientService(repository repositories.IClientRepository) *ClientService {
+func NewClientService(db *gorm.DB) *ClientService {
 	return &ClientService{
-		config:     config.Get(),
-		cache:      cache.New(1*time.Hour, 2*time.Hour),
-		repository: repository,
+		config: config.Get(),
+		cache:  cache.New(1*time.Hour, 2*time.Hour),
+		db:     db,
 	}
 }
 
 func (srv *ClientService) Create(newClient *models.Client) (*models.Client, error) {
-	return srv.repository.Create(newClient)
+	result := srv.db.Create(newClient)
+	if err := result.Error; err != nil {
+		return nil, err
+	}
+	return newClient, nil
 }
 
 func (srv *ClientService) Update(client *models.Client, update *models.ClientUpdate) (*models.Client, error) {
-	return srv.repository.Update(client, update)
+	result := srv.db.Model(client).Updates(update)
+	if err := result.Error; err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
-func (srv *ClientService) GetClientForUser(id, userID string) (*models.Client, error) {
-	return srv.repository.GetByIdForUser(id, userID)
+func (srv *ClientService) GetClientForUser(clientID, userID string) (*models.Client, error) {
+	g := &models.Client{}
+
+	err := srv.db.Where(models.Client{ID: clientID, UserID: userID}).First(g).Error
+	if err != nil {
+		return g, err
+	}
+
+	if g.ID != "" {
+		return g, nil
+	}
+	return nil, err
 }
 
-func (srv *ClientService) DeleteClient(id, userID string) error {
-	return srv.repository.DeleteByIdAndUser(id, userID)
+func (srv *ClientService) DeleteClient(clientID, userID string) error {
+	if err := srv.db.
+		Where("id = ?", clientID).
+		Where("user_id = ?", userID).
+		Delete(models.Client{}).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
-func (srv *ClientService) FetchUserClients(id, query string) ([]*models.Client, error) {
-	return srv.repository.FetchUserClients(id, query)
+func (srv *ClientService) FetchUserClients(userID, query string) ([]*models.Client, error) {
+	var clients []*models.Client
+
+	builtQuery := srv.db.
+		Order("created_at desc").
+		Limit(100). // TODO: paginate - when this becomes necessary. The average user has a limited number of clients - more an enterprise thingy?
+		Where(&models.Client{UserID: userID})
+
+	if query != "" {
+		likeQuery := fmt.Sprintf("%%%s%%", query)
+		builtQuery.Where("name iLIKE ?", likeQuery) // ILIKE IS MOSTLY PG - !#postgresql
+	}
+	if err := builtQuery.Find(&clients).Error; err != nil {
+		return nil, err
+	}
+	return clients, nil
 }
 
 func (srv *ClientService) FetchClientInvoiceLineItems(client *models.Client, user *models.User, summarySrvc ISummaryService, start, end time.Time) (*models.Summary, error) {

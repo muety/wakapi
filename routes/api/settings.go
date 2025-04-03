@@ -31,10 +31,10 @@ type actionResult struct {
 	Values  map[string]interface{} `json:"values,omitempty"`
 }
 
-func NewSettingsHandler(userService services.IUserService, db *gorm.DB) *SettingsHandler {
+func NewSettingsHandler(db *gorm.DB, services services.IServices) *SettingsHandler {
 	return &SettingsHandler{
 		config:     config.Get(),
-		userSrvc:   userService,
+		userSrvc:   services.Users(),
 		httpClient: &http.Client{Timeout: 10 * time.Second},
 		db:         db,
 	}

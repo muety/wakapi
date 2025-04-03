@@ -10,13 +10,15 @@ import (
 	"log/slog"
 	"math/rand"
 	"net/http"
-	"net/mail"
 	"strings"
 	"time"
+
+	netMail "net/mail"
 
 	"github.com/google/uuid"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
+	"github.com/muety/wakapi/internal/mail"
 	"github.com/muety/wakapi/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -24,10 +26,11 @@ import (
 
 type OTPService struct {
 	db          *gorm.DB
-	mailService IMailService
+	mailService mail.IMailService
 }
 
-func NewOTPService(db *gorm.DB, mailService IMailService) *OTPService {
+func NewOTPService(db *gorm.DB) IOTPService {
+	mailService := mail.NewMailService()
 	return &OTPService{db: db, mailService: mailService}
 }
 
@@ -234,7 +237,7 @@ func (s *OTPService) VerifyOTP(validateOtpRequest models.ValidateOTPRequest) (*m
 }
 
 func NormalizeEmail(email string) (string, error) {
-	parsed, err := mail.ParseAddress(strings.TrimSpace(email))
+	parsed, err := netMail.ParseAddress(strings.TrimSpace(email))
 	if err != nil {
 		return "", err
 	}
@@ -242,7 +245,7 @@ func NormalizeEmail(email string) (string, error) {
 }
 
 // HTTP Handlers
-func CreateOTPHandler(service *OTPService) http.HandlerFunc {
+func CreateOTPHandler(service IOTPService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var otpRequest models.InitiateOTPRequest
 		if err := json.NewDecoder(r.Body).Decode(&otpRequest); err != nil {
@@ -311,7 +314,7 @@ func CreateOTPHandler(service *OTPService) http.HandlerFunc {
 	}
 }
 
-func VerifyOTPHandler(service *OTPService) http.HandlerFunc {
+func VerifyOTPHandler(service IOTPService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var validateOtpRequest models.ValidateOTPRequest
 		if err := json.NewDecoder(r.Body).Decode(&validateOtpRequest); err != nil {
@@ -377,4 +380,9 @@ func VerifyOTPHandler(service *OTPService) http.HandlerFunc {
 
 		helpers.RespondJSON(w, r, http.StatusCreated, response)
 	}
+}
+
+type IOTPService interface {
+	CreateOTP(otpRequest models.InitiateOTPRequest) (*models.CreateOTPResponse, error)
+	VerifyOTP(validateOtpRequest models.ValidateOTPRequest) (*models.VerifyOTPResponse, error)
 }

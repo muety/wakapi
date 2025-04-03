@@ -23,13 +23,13 @@ type ClientsApiHandler struct {
 	summaryService services.ISummaryService
 }
 
-func NewClientsApiHandler(db *gorm.DB, clientService services.IClientService, userService services.IUserService, summaryService services.ISummaryService) *ClientsApiHandler {
+func NewClientsApiHandler(db *gorm.DB, services services.IServices) *ClientsApiHandler {
 	return &ClientsApiHandler{
 		db:             db,
-		clientService:  clientService,
-		userService:    userService,
 		config:         conf.Get(),
-		summaryService: summaryService,
+		clientService:  services.Client(),
+		userService:    services.Users(),
+		summaryService: services.Summary(),
 	}
 }
 

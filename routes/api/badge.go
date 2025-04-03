@@ -26,12 +26,12 @@ type BadgeHandler struct {
 	summarySrvc services.ISummaryService
 }
 
-func NewBadgeHandler(userService services.IUserService, summaryService services.ISummaryService) *BadgeHandler {
+func NewBadgeHandler(services services.IServices) *BadgeHandler {
 	return &BadgeHandler{
 		config:      conf.Get(),
 		cache:       cache.New(time.Hour, time.Hour),
-		userSrvc:    userService,
-		summarySrvc: summaryService,
+		userSrvc:    services.Users(),
+		summarySrvc: services.Summary(),
 	}
 }
 

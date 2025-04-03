@@ -1,15 +1,16 @@
 package services
 
 import (
+	"math/rand"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"math/rand"
-	"strings"
-	"testing"
-	"time"
 )
 
 const (
@@ -108,7 +109,7 @@ func TestSummaryServiceTestSuite(t *testing.T) {
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
-	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+	sut := NewTestSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
 
 	var (
 		from   time.Time
@@ -174,7 +175,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve() {
-	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+	sut := NewTestSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
 
 	var (
 		summaries []*models.Summary
@@ -333,7 +334,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve() {
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve_DuplicateSummaries() {
-	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+	sut := NewTestSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
 
 	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return([]*models.ProjectLabel{}, nil)
 
@@ -381,7 +382,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve_DuplicateSumma
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
-	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+	sut := NewTestSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
 
 	suite.AliasService.On("InitializeUser", suite.TestUser.ID).Return(nil)
 	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return([]*models.ProjectLabel{}, nil)
@@ -425,7 +426,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased_ProjectLabels() {
-	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+	sut := NewTestSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
 
 	var (
 		from   time.Time
@@ -464,7 +465,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased_ProjectLabels()
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
-	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+	sut := NewTestSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
 
 	suite.HeartbeatService.On("GetEntitySetByUser", models.SummaryProject, suite.TestUser.ID).Return([]string{TestProject1, TestProject2, TestProject3, TestProject4}, nil)
 	suite.AliasService.On("InitializeUser", suite.TestUser.ID).Return(nil)
@@ -505,7 +506,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_getMissingIntervals() {
-	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+	sut := NewTestSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
 
 	from1, _ := time.Parse(time.RFC822, "25 Mar 22 11:00 UTC")
 	to1, _ := time.Parse(time.RFC822, "25 Mar 22 13:00 UTC")

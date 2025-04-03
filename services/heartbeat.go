@@ -14,6 +14,7 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
+	"gorm.io/gorm"
 
 	"github.com/muety/wakapi/models"
 )
@@ -27,7 +28,10 @@ type HeartbeatService struct {
 	entityCacheLock     *sync.RWMutex
 }
 
-func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, languageMappingService ILanguageMappingService) *HeartbeatService {
+func NewHeartbeatService(db *gorm.DB) *HeartbeatService {
+	heartbeatRepo := repositories.NewHeartbeatRepository(db)
+	languageMappingService := NewLanguageMappingService(db)
+
 	srv := &HeartbeatService{
 		config:              config.Get(),
 		cache:               cache.New(24*time.Hour, 24*time.Hour),

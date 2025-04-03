@@ -2,7 +2,6 @@ package v1
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -23,8 +22,14 @@ type GoalsApiHandler struct {
 	summaryService services.ISummaryService
 }
 
-func NewGoalsApiHandler(db *gorm.DB, goalService services.IGoalService, userSrvc services.IUserService, summaryService services.ISummaryService) *GoalsApiHandler {
-	return &GoalsApiHandler{db: db, goalService: goalService, userSrvc: userSrvc, config: conf.Get(), summaryService: summaryService}
+func NewGoalsApiHandler(db *gorm.DB, services services.IServices) *GoalsApiHandler {
+	return &GoalsApiHandler{
+		db:             db,
+		goalService:    services.Goal(),
+		userSrvc:       services.Users(),
+		config:         conf.Get(),
+		summaryService: services.Summary(),
+	}
 }
 
 func (h *GoalsApiHandler) RegisterRoutes(router chi.Router) {
@@ -124,7 +129,6 @@ func (h *GoalsApiHandler) GetGoal(w http.ResponseWriter, r *http.Request) {
 
 func (h *GoalsApiHandler) DeleteGoal(w http.ResponseWriter, r *http.Request) {
 	user := helpers.ExtractUser(r)
-	fmt.Println("User", user)
 	goalID := chi.URLParam(r, "id")
 
 	if goalID == "" {

@@ -1,16 +1,19 @@
 package services
 
 import (
+	"log/slog"
+	"math/rand"
+	"time"
+
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/internal/mail"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
-	"log/slog"
-	"math/rand"
-	"time"
+	"gorm.io/gorm"
 )
 
 // delay between evey report generation task (to throttle email sending frequency)
@@ -24,19 +27,22 @@ type ReportService struct {
 	eventBus       *hub.Hub
 	summaryService ISummaryService
 	userService    IUserService
-	mailService    IMailService
+	mailService    mail.IMailService
 	rand           *rand.Rand
 	queueDefault   *artifex.Dispatcher
 	queueWorkers   *artifex.Dispatcher
 }
 
-func NewReportService(summaryService ISummaryService, userService IUserService, mailService IMailService) *ReportService {
+func NewReportService(db *gorm.DB) *ReportService {
+	summaryService := NewSummaryService(db)
+	userService := NewUserService(db)
+
 	srv := &ReportService{
 		config:         config.Get(),
 		eventBus:       config.EventBus(),
 		summaryService: summaryService,
 		userService:    userService,
-		mailService:    mailService,
+		mailService:    mail.NewMailService(),
 		rand:           rand.New(rand.NewSource(time.Now().Unix())),
 		queueDefault:   config.GetDefaultQueue(),
 		queueWorkers:   config.GetQueue(config.QueueReports),

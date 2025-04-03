@@ -1,11 +1,12 @@
 package v1
 
 import (
-	"github.com/muety/wakapi/models"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/muety/wakapi/models"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
@@ -24,10 +25,10 @@ type ProjectsHandler struct {
 	heartbeatSrvc services.IHeartbeatService
 }
 
-func NewProjectsHandler(userService services.IUserService, heartbeatsService services.IHeartbeatService) *ProjectsHandler {
+func NewProjectsHandler(services services.IServices) *ProjectsHandler {
 	return &ProjectsHandler{
-		userSrvc:      userService,
-		heartbeatSrvc: heartbeatsService,
+		userSrvc:      services.Users(),
+		heartbeatSrvc: services.Heartbeat(),
 		config:        conf.Get(),
 	}
 }

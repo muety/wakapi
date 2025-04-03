@@ -1,9 +1,10 @@
 package v1
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
-	"net/http"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -18,10 +19,10 @@ type UsersHandler struct {
 	heartbeatSrvc services.IHeartbeatService
 }
 
-func NewUsersHandler(userService services.IUserService, heartbeatService services.IHeartbeatService) *UsersHandler {
+func NewUsersHandler(services services.IServices) *UsersHandler {
 	return &UsersHandler{
-		userSrvc:      userService,
-		heartbeatSrvc: heartbeatService,
+		userSrvc:      services.Users(),
+		heartbeatSrvc: services.Heartbeat(),
 		config:        conf.Get(),
 	}
 }

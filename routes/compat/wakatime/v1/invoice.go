@@ -19,20 +19,20 @@ import (
 type InvoicesApiHandler struct {
 	db             *gorm.DB
 	config         *conf.Config
-	invoiceService services.InvoiceService
+	invoiceService services.IInvoiceService
 	userService    services.IUserService
 	summaryService services.ISummaryService
 	clientService  services.IClientService
 }
 
-func NewInvoicesApiHandler(db *gorm.DB, invoiceService services.InvoiceService, userService services.IUserService, summaryService services.ISummaryService, clientService services.IClientService) *InvoicesApiHandler {
+func NewInvoicesApiHandler(db *gorm.DB, services services.IServices) *InvoicesApiHandler {
 	return &InvoicesApiHandler{
 		db:             db,
-		invoiceService: invoiceService,
-		userService:    userService,
+		invoiceService: services.Invoice(),
+		userService:    services.Users(),
 		config:         conf.Get(),
-		clientService:  clientService,
-		summaryService: summaryService,
+		clientService:  services.Client(),
+		summaryService: services.Summary(),
 	}
 }
 

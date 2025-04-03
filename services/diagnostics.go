@@ -4,6 +4,7 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
+	"gorm.io/gorm"
 )
 
 type DiagnosticsService struct {
@@ -11,10 +12,11 @@ type DiagnosticsService struct {
 	repository repositories.IDiagnosticsRepository
 }
 
-func NewDiagnosticsService(diagnosticsRepo repositories.IDiagnosticsRepository) *DiagnosticsService {
+func NewDiagnosticsService(db *gorm.DB) *DiagnosticsService {
+	diagnosticsRepository := repositories.NewDiagnosticsRepository(db)
 	return &DiagnosticsService{
 		config:     config.Get(),
-		repository: diagnosticsRepo,
+		repository: diagnosticsRepository,
 	}
 }
 

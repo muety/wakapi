@@ -2,6 +2,13 @@ package api
 
 import (
 	"errors"
+	"log/slog"
+	"net/http"
+	"runtime"
+	"sort"
+	"sync"
+	"time"
+
 	"github.com/alitto/pond"
 	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
@@ -13,12 +20,7 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"log/slog"
-	"net/http"
-	"runtime"
-	"sort"
-	"sync"
-	"time"
+	"gorm.io/gorm"
 )
 
 const (
@@ -70,7 +72,13 @@ type MetricsHandler struct {
 	metricsRepo     *repositories.MetricsRepository
 }
 
-func NewMetricsHandler(userService services.IUserService, summaryService services.ISummaryService, heartbeatService services.IHeartbeatService, leaderboardService services.ILeaderboardService, keyValueService services.IKeyValueService, metricsRepo *repositories.MetricsRepository) *MetricsHandler {
+func NewMetricsHandler(db *gorm.DB) *MetricsHandler {
+	userService := services.NewUserService(db)
+	summaryService := services.NewSummaryService(db)
+	heartbeatService := services.NewHeartbeatService(db)
+	keyValueService := services.NewKeyValueService(db)
+	leaderboardService := services.NewLeaderboardService(db)
+	metricsRepo := repositories.NewMetricsRepository(db)
 	return &MetricsHandler{
 		userSrvc:        userService,
 		summarySrvc:     summaryService,

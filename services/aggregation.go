@@ -2,12 +2,14 @@ package services
 
 import (
 	"errors"
-	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
-	"github.com/muety/artifex/v2"
-	"github.com/muety/wakapi/config"
 	"log/slog"
 	"sync"
 	"time"
+
+	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
+	"github.com/muety/artifex/v2"
+	"github.com/muety/wakapi/config"
+	"gorm.io/gorm"
 
 	"github.com/muety/wakapi/models"
 )
@@ -28,7 +30,10 @@ type AggregationService struct {
 	queueWorkers     *artifex.Dispatcher
 }
 
-func NewAggregationService(userService IUserService, summaryService ISummaryService, heartbeatService IHeartbeatService) *AggregationService {
+func NewAggregationService(db *gorm.DB) *AggregationService {
+	summaryService := NewSummaryService(db)
+	userService := NewUserService(db)
+	heartbeatService := NewHeartbeatService(db)
 	return &AggregationService{
 		config:           config.Get(),
 		userService:      userService,

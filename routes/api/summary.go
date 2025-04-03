@@ -1,10 +1,11 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	routeutils "github.com/muety/wakapi/routes/utils"
-	"net/http"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -17,10 +18,10 @@ type SummaryApiHandler struct {
 	summarySrvc services.ISummaryService
 }
 
-func NewSummaryApiHandler(userService services.IUserService, summaryService services.ISummaryService) *SummaryApiHandler {
+func NewSummaryApiHandler(services services.IServices) *SummaryApiHandler {
 	return &SummaryApiHandler{
-		summarySrvc: summaryService,
-		userSrvc:    userService,
+		summarySrvc: services.Summary(),
+		userSrvc:    services.Users(),
 		config:      conf.Get(),
 	}
 }

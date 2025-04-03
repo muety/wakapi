@@ -14,14 +14,15 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
 
+	"github.com/google/uuid"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/integrations/github"
+	"github.com/muety/wakapi/internal/mail"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -29,24 +30,24 @@ type AuthApiHandler struct {
 	db                 *gorm.DB
 	config             *conf.Config
 	userService        services.IUserService
-	mailService        services.IMailService
+	mailService        mail.IMailService
 	oauthUserService   services.IUserOauthService
 	aggregationService services.IAggregationService
 	summaryService     services.ISummaryService
-	otpService         *services.OTPService
+	otpService         services.IOTPService
 }
 
-func NewAuthApiHandler(db *gorm.DB, userService services.IUserService, oauthUserService services.IUserOauthService, mailService services.IMailService, aggregationService services.IAggregationService, summaryService services.ISummaryService) *AuthApiHandler {
-	otpService := services.NewOTPService(db, mailService)
+func NewAuthApiHandler(db *gorm.DB, services services.IServices) *AuthApiHandler {
+	mailService := mail.NewMailService()
 	return &AuthApiHandler{
 		db:                 db,
-		userService:        userService,
-		oauthUserService:   oauthUserService,
+		userService:        services.Users(),
+		oauthUserService:   services.OAuth(),
 		config:             conf.Get(),
 		mailService:        mailService,
-		aggregationService: aggregationService,
-		summaryService:     summaryService,
-		otpService:         otpService,
+		aggregationService: services.Aggregation(),
+		summaryService:     services.Summary(),
+		otpService:         services.Otp(),
 	}
 }
 
@@ -215,13 +216,12 @@ func (h *AuthApiHandler) GithubOauth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userOauthDetails := models.UserOauth{
-		ID: uuid.New().String(),
+		ID:         uuid.New().String(),
 		Provider:   "github",
 		ProviderID: providerId,
 		Email:      &primaryEmail.Email,
-		// UserID:     user.ID,
-		Handle:    &githubUser.Login,
-		AvatarUrl: &githubUser.AvatarURL,
+		Handle:     &githubUser.Login,
+		AvatarUrl:  &githubUser.AvatarURL,
 	}
 
 	findUser := func(db *gorm.DB, email string) (*models.User, error) {

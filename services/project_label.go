@@ -2,13 +2,15 @@ package services
 
 import (
 	"errors"
+	"time"
+
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
 	"github.com/patrickmn/go-cache"
-	"time"
+	"gorm.io/gorm"
 )
 
 type ProjectLabelService struct {
@@ -18,7 +20,8 @@ type ProjectLabelService struct {
 	repository repositories.IProjectLabelRepository
 }
 
-func NewProjectLabelService(projectLabelRepository repositories.IProjectLabelRepository) *ProjectLabelService {
+func NewProjectLabelService(db *gorm.DB) *ProjectLabelService {
+	projectLabelRepository := repositories.NewProjectLabelRepository(db)
 	return &ProjectLabelService{
 		config:     config.Get(),
 		eventBus:   config.EventBus(),

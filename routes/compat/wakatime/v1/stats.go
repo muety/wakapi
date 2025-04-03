@@ -20,10 +20,10 @@ type StatsHandler struct {
 	summarySrvc services.ISummaryService
 }
 
-func NewStatsHandler(userService services.IUserService, summaryService services.ISummaryService) *StatsHandler {
+func NewStatsHandler(services services.IServices) *StatsHandler {
 	return &StatsHandler{
-		userSrvc:    userService,
-		summarySrvc: summaryService,
+		userSrvc:    services.Users(),
+		summarySrvc: services.Summary(),
 		config:      conf.Get(),
 	}
 }

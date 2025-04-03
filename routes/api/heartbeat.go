@@ -27,13 +27,13 @@ type HeartbeatApiHandler struct {
 	userAgentPluginService services.IPluginUserAgentService
 }
 
-func NewHeartbeatApiHandler(userService services.IUserService, heartbeatService services.IHeartbeatService, languageMappingService services.ILanguageMappingService, userAgentPluginService services.IPluginUserAgentService) *HeartbeatApiHandler {
+func NewHeartbeatApiHandler(services services.IServices) *HeartbeatApiHandler {
 	return &HeartbeatApiHandler{
 		config:                 conf.Get(),
-		userSrvc:               userService,
-		heartbeatSrvc:          heartbeatService,
-		languageMappingSrvc:    languageMappingService,
-		userAgentPluginService: userAgentPluginService,
+		userSrvc:               services.Users(),
+		heartbeatSrvc:          services.Heartbeat(),
+		languageMappingSrvc:    services.LanguageMapping(),
+		userAgentPluginService: services.UserAgentPlugin(),
 	}
 }
 

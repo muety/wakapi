@@ -25,10 +25,10 @@ type SummariesHandler struct {
 	summarySrvc services.ISummaryService
 }
 
-func NewSummariesHandler(userService services.IUserService, summaryService services.ISummaryService) *SummariesHandler {
+func NewSummariesHandler(services services.IServices) *SummariesHandler {
 	return &SummariesHandler{
-		userSrvc:    userService,
-		summarySrvc: summaryService,
+		userSrvc:    services.Users(),
+		summarySrvc: services.Summary(),
 		config:      conf.Get(),
 	}
 }

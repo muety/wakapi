@@ -17,11 +17,11 @@ type UserAgentsApiHandler struct {
 	userSrvc         services.IUserService
 }
 
-func NewUserAgentApiHandler(db *gorm.DB, userAgentService services.IPluginUserAgentService, userSrvc services.IUserService) *UserAgentsApiHandler {
+func NewUserAgentApiHandler(db *gorm.DB, services services.IServices) *UserAgentsApiHandler {
 	return &UserAgentsApiHandler{
 		db:               db,
-		userAgentService: userAgentService,
-		userSrvc:         userSrvc,
+		userAgentService: services.UserAgentPlugin(),
+		userSrvc:         services.Users(),
 	}
 }
 

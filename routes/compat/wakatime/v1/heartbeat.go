@@ -1,11 +1,12 @@
 package v1
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
-	"net/http"
-	"time"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -26,10 +27,10 @@ type HeartbeatHandler struct {
 	heartbeatSrvc services.IHeartbeatService
 }
 
-func NewHeartbeatHandler(userService services.IUserService, heartbeatService services.IHeartbeatService) *HeartbeatHandler {
+func NewHeartbeatHandler(services services.IServices) *HeartbeatHandler {
 	return &HeartbeatHandler{
-		userSrvc:      userService,
-		heartbeatSrvc: heartbeatService,
+		userSrvc:      services.Users(),
+		heartbeatSrvc: services.Heartbeat(),
 	}
 }
 

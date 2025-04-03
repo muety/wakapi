@@ -1,16 +1,17 @@
 package v1
 
 import (
+	"math"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
-	"math"
-	"net/http"
-	"strings"
-	"time"
 
 	conf "github.com/muety/wakapi/config"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
@@ -23,10 +24,10 @@ type LeadersHandler struct {
 	leaderboardSrvc services.ILeaderboardService
 }
 
-func NewLeadersHandler(userService services.IUserService, leaderboardService services.ILeaderboardService) *LeadersHandler {
+func NewLeadersHandler(services services.IServices) *LeadersHandler {
 	return &LeadersHandler{
-		userSrvc:        userService,
-		leaderboardSrvc: leaderboardService,
+		userSrvc:        services.Users(),
+		leaderboardSrvc: services.LeaderBoard(),
 		config:          conf.Get(),
 	}
 }

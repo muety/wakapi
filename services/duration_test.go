@@ -1,13 +1,14 @@
 package services
 
 import (
+	"math/rand"
+	"testing"
+	"time"
+
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"math/rand"
-	"testing"
-	"time"
 )
 
 const (
@@ -134,7 +135,7 @@ func TestDurationServiceTestSuite(t *testing.T) {
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 	// https://anchr.io/i/F0HEK.jpg
-	sut := NewDurationService(suite.HeartbeatService)
+	sut := NewTestDurationService(suite.HeartbeatService)
 
 	var (
 		from      time.Time
@@ -183,7 +184,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered() {
-	sut := NewDurationService(suite.HeartbeatService)
+	sut := NewTestDurationService(suite.HeartbeatService)
 
 	var (
 		from      time.Time
@@ -204,7 +205,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered() {
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
-	sut := NewDurationService(suite.HeartbeatService)
+	sut := NewTestDurationService(suite.HeartbeatService)
 
 	var (
 		from      time.Time

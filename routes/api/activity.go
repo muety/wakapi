@@ -1,6 +1,11 @@
 package api
 
 import (
+	"net/http"
+	"regexp"
+	"strings"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	conf "github.com/muety/wakapi/config"
@@ -9,10 +14,6 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"net/http"
-	"regexp"
-	"strings"
-	"time"
 )
 
 var userWithExtPattern *regexp.Regexp
@@ -27,10 +28,10 @@ type ActivityApiHandler struct {
 	activityService services.IActivityService
 }
 
-func NewActivityApiHandler(userService services.IUserService, activityService services.IActivityService) *ActivityApiHandler {
+func NewActivityApiHandler(services services.IServices) *ActivityApiHandler {
 	return &ActivityApiHandler{
-		activityService: activityService,
-		userService:     userService,
+		activityService: services.Activity(),
+		userService:     services.Users(),
 		config:          conf.Get(),
 	}
 }

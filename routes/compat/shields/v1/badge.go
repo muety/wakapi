@@ -2,12 +2,13 @@ package v1
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models/types"
 	routeutils "github.com/muety/wakapi/routes/utils"
-	"net/http"
-	"time"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -23,10 +24,10 @@ type BadgeHandler struct {
 	cache       *cache.Cache
 }
 
-func NewBadgeHandler(summaryService services.ISummaryService, userService services.IUserService) *BadgeHandler {
+func NewBadgeHandler(services services.IServices) *BadgeHandler {
 	return &BadgeHandler{
-		summarySrvc: summaryService,
-		userSrvc:    userService,
+		summarySrvc: services.Summary(),
+		userSrvc:    services.Users(),
 		cache:       cache.New(time.Hour, time.Hour),
 		config:      conf.Get(),
 	}

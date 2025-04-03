@@ -1,12 +1,13 @@
 package services
 
 import (
+	"testing"
+
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type AliasServiceTestSuite struct {
@@ -45,7 +46,7 @@ func TestAliasServiceTestSuite(t *testing.T) {
 }
 
 func (suite *AliasServiceTestSuite) TestAliasService_GetAliasOrDefault() {
-	sut := NewAliasService(suite.AliasRepository)
+	sut := NewTestAliasService(suite.AliasRepository)
 
 	result1, err1 := sut.GetAliasOrDefault(suite.TestUserId, models.SummaryProject, "wakapi-mobile")
 	result2, err2 := sut.GetAliasOrDefault(suite.TestUserId, models.SummaryProject, "wakapi")
