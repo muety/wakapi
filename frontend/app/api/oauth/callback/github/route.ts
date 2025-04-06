@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
 // throws
 async function handleGithubOauth(code: string) {
   const apiResponse = await fetch(
-    `${NEXT_PUBLIC_API_URL}/api/auth/oauth/github`,
+    `${NEXT_PUBLIC_API_URL}/api/v1/auth/oauth/github`,
     {
       method: "POST",
       headers: {

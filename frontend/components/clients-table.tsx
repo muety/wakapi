@@ -76,7 +76,7 @@ export function ClientsTable({
       if (!deleting) {
         return;
       }
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/compat/wakatime/v1/users/current/clients/${deleting.id}`;
+      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/users/current/clients/${deleting.id}`;
 
       setLoading(true);
       const response = await fetch(resourceUrl, {

@@ -40,18 +40,21 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const apiResponse = await fetch(`${NEXT_PUBLIC_API_URL}/api/auth/signup`, {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        password,
-        password_repeat,
-      }),
-    });
+    const apiResponse = await fetch(
+      `${NEXT_PUBLIC_API_URL}/api/v1/auth/signup`,
+      {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          password_repeat,
+        }),
+      }
+    );
 
     if (apiResponse.status > 202 || !apiResponse.status) {
       return Response.json(apiResponse.body, {

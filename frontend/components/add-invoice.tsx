@@ -35,7 +35,7 @@ export function AddInvoice({ clients, token, onChange, open }: iProps) {
     try {
       const { client, start_date, end_date } = values;
 
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/compat/wakatime/v1/users/current/invoices`;
+      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/users/current/invoices`;
       setLoading(true);
 
       const response = await fetch(resourceUrl, {

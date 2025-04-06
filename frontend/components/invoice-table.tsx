@@ -63,7 +63,7 @@ export function InvoicesTable({
       if (!deleting) {
         return;
       }
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/compat/wakatime/v1/users/current/invoices/${deleting.id}`;
+      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/users/current/invoices/${deleting.id}`;
 
       setLoading(true);
       const response = await fetch(resourceUrl, {

@@ -124,28 +124,6 @@ type ILeaderboardService interface {
 	GenerateAggregatedByUser(*models.User, *models.IntervalKey, uint8) ([]*models.LeaderboardItem, error)
 }
 
-// type IServices interface {
-// 	Users           IUserService,
-// 	LanguageMapping ILanguageMappingService
-// 	ProjectLabel    IProjectLabelService
-// 	Duration        IDurationService
-// 	Summary         ISummaryService
-// 	LeaderBoard     ILeaderboardService
-// 	Aggregation     IAggregationService
-// 	KeyValue        IKeyValueService
-// 	Report          IReportService
-// 	Activity        IActivityService
-// 	Diagnostics     IDiagnosticsService
-// 	HouseKeeping    IHousekeepingService
-// 	Misc            IMiscService
-// 	Goal            IGoalService
-// 	OAuth           IUserOauthService
-// 	UserAgentPlugin IPluginUserAgentService
-// 	Client          IClientService
-// 	Invoice         InvoiceService
-// 	Heartbeat       IHeartbeatService
-// }
-
 type IServices interface {
 	Alias() IAliasService
 	Users() IUserService

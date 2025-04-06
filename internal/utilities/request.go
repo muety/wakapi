@@ -2,12 +2,14 @@ package utilities
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/config"
 	"github.com/sirupsen/logrus"
 	// "github.com/supabase/auth/internal/conf"
@@ -115,4 +117,13 @@ func getRedirectTo(r *http.Request) (reqref string) {
 	}
 
 	return
+}
+
+func WithUrlParam(r *http.Request, key, value string) *http.Request {
+	r.URL.RawPath = strings.Replace(r.URL.RawPath, "{"+key+"}", value, 1)
+	r.URL.Path = strings.Replace(r.URL.Path, "{"+key+"}", value, 1)
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add(key, value)
+	r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
+	return r
 }

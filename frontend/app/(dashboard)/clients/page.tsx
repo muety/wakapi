@@ -13,10 +13,10 @@ export default async function Clients() {
   const session = await getSession();
 
   const clients = await fetchData<ClientsApiResponse | null>(
-    "compat/wakatime/v1/users/current/clients"
+    "/v1/users/current/clients"
   );
   const projects = await fetchData<{ data: Project[] } | null>(
-    "compat/wakatime/v1/users/current/projects"
+    "/v1/users/current/projects"
   );
 
   return (

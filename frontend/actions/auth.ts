@@ -107,7 +107,7 @@ export async function processForgotPassword({ email }: { email: string }) {
   let redirectPath = null;
   try {
     const apiResponse = await fetch(
-      `${NEXT_PUBLIC_API_URL}/api/auth/forgot-password`,
+      `${NEXT_PUBLIC_API_URL}/api/v1/auth/forgot-password`,
       {
         method: "POST",
         headers: {
@@ -164,7 +164,7 @@ export async function processEmailLogin(credentials: {
   const redirectPath = null;
   try {
     const apiResponse = await fetch(
-      `${NEXT_PUBLIC_API_URL}/api/auth/otp/create`,
+      `${NEXT_PUBLIC_API_URL}/api/v1/auth/otp/create`,
       {
         method: "POST",
         headers: {
@@ -222,14 +222,17 @@ export async function processLogin(credentials: {
 }) {
   let redirectPath = null;
   try {
-    const apiResponse = await fetch(`${NEXT_PUBLIC_API_URL}/api/auth/login`, {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify(credentials),
-    });
+    const apiResponse = await fetch(
+      `${NEXT_PUBLIC_API_URL}/api/v1/auth/login`,
+      {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(credentials),
+      }
+    );
 
     const json = (await apiResponse.json()) as {
       data: SessionData;
@@ -274,7 +277,7 @@ export async function processLoginWithOTP(credentials: {
   let redirectPath = null;
   try {
     const apiResponse = await fetch(
-      `${NEXT_PUBLIC_API_URL}/api/auth/otp/verify`,
+      `${NEXT_PUBLIC_API_URL}/api/v1/auth/otp/verify`,
       {
         method: "POST",
         headers: {

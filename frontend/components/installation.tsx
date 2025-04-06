@@ -31,7 +31,7 @@ export function Installation({ className = "" }: ConfigDisplayProps) {
         return;
       }
       setLoading(true);
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/auth/api-key`;
+      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/auth/api-key`;
       const response = await fetch(resourceUrl, {
         method: "GET",
         headers: {

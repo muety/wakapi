@@ -13,14 +13,14 @@ export default async function Goals() {
   const session = await getSession();
 
   const goalData = await fetchData<{ data: GoalData[] }>(
-    "compat/wakatime/v1/users/current/goals"
+    "/v1/users/current/goals"
   );
   if (!goalData) {
     return <p>Error fetching goals</p>;
   }
 
   const projects = await fetchData<{ data: Project[] }>(
-    "compat/wakatime/v1/users/current/projects"
+    "/v1/users/current/projects"
   );
 
   const goals = goalData.data;

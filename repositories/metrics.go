@@ -6,8 +6,8 @@ import (
 )
 
 type MetricsRepository struct {
-	config *config.Config
-	db     *gorm.DB
+	Config *config.Config
+	DB     *gorm.DB
 }
 
 const sizeTplMysql = `
@@ -23,19 +23,19 @@ SELECT page_count * page_size as size
 FROM pragma_page_count(), pragma_page_size();`
 
 func NewMetricsRepository(db *gorm.DB) *MetricsRepository {
-	return &MetricsRepository{config: config.Get(), db: db}
+	return &MetricsRepository{Config: config.Get(), DB: db}
 }
 
 func (srv *MetricsRepository) GetDatabaseSize() (size int64, err error) {
-	cfg := srv.config.Db
+	cfg := srv.Config.Db
 
-	query := srv.db.Raw("SELECT 0")
+	query := srv.DB.Raw("SELECT 0")
 	if cfg.IsMySQL() {
-		query = srv.db.Raw(sizeTplMysql, cfg.Name)
+		query = srv.DB.Raw(sizeTplMysql, cfg.Name)
 	} else if cfg.IsPostgres() {
-		query = srv.db.Raw(sizeTplPostgres, cfg.Name)
+		query = srv.DB.Raw(sizeTplPostgres, cfg.Name)
 	} else if cfg.IsSQLite() {
-		query = srv.db.Raw(sizeTplSqlite)
+		query = srv.DB.Raw(sizeTplSqlite)
 	}
 
 	err = query.Scan(&size).Error

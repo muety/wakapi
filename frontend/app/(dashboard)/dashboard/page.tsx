@@ -30,7 +30,7 @@ export default async function Dashboard({
   const start =
     searchParams.start || format(subDays(new Date(), 6), "yyyy-MM-dd");
   const end = searchParams.end || format(new Date(), "yyyy-MM-dd");
-  const url = `compat/wakatime/v1/users/current/summaries?${new URLSearchParams({ start, end })}`;
+  const url = `/v1/users/current/summaries?${new URLSearchParams({ start, end })}`;
 
   const durationData = await fetchData<SummariesApiResponse>(url, true);
   if (!durationData) {

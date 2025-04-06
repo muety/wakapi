@@ -11,16 +11,71 @@ import (
 	"github.com/go-chi/chi/v5"
 	mw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	lru "github.com/hashicorp/golang-lru"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/internal/mail"
 	"github.com/muety/wakapi/internal/utilities"
 	"github.com/muety/wakapi/middlewares"
-	"github.com/muety/wakapi/routes/api"
-	shieldsV1Routes "github.com/muety/wakapi/routes/compat/shields/v1"
-	wtV1Routes "github.com/muety/wakapi/routes/compat/wakatime/v1"
 	"github.com/muety/wakapi/routes/relay"
 	"github.com/muety/wakapi/services"
+	"github.com/patrickmn/go-cache"
 	"gorm.io/gorm"
 )
+
+type APIv1 struct {
+	db     *gorm.DB
+	config *conf.Config
+
+	// overrideTime can be used to override the clock used by handlers. Should only be used in tests!
+	overrideTime func() time.Time
+	mailService  mail.IMailService
+	services     services.IServices
+	httpClient   *http.Client
+	cache        *cache.Cache
+	lruCache     *lru.Cache
+}
+
+func (a *APIv1) Now() time.Time {
+	if a.overrideTime != nil {
+		return a.overrideTime()
+	}
+
+	return time.Now()
+}
+
+func (a *APIv1) initializeJobs() {
+	InitializeJobs(a.config, a.services)
+}
+
+func NewAPIv1(globalConfig *conf.Config, db *gorm.DB) *APIv1 {
+	api := &APIv1{
+		config:      globalConfig,
+		db:          db,
+		mailService: mail.NewMailService(),
+		services:    services.NewServices(db),
+		httpClient:  &http.Client{Timeout: 10 * time.Second},
+		cache:       cache.New(6*time.Hour, 6*time.Hour),
+	}
+
+	lruCache, err := lru.New(1 * 1000 * 64)
+	if err != nil {
+		panic(err)
+	}
+
+	api.lruCache = lruCache
+
+	r := chi.NewRouter()
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		sendJSON(w, http.StatusNotFound, nil, "Resource not found", "The resource you're looking for cannot be found")
+	})
+
+	setupGlobalMiddleware(r, api.config)
+	api.initializeJobs()
+
+	api.RegisterApiV1Routes(r)
+
+	return api
+}
 
 func InitializeJobs(config *conf.Config, services services.IServices) {
 	// Schedule background tasks
@@ -35,35 +90,15 @@ func InitializeJobs(config *conf.Config, services services.IServices) {
 	}
 }
 
-func RegisterApiRoutes(db *gorm.DB, services services.IServices, apiRouter *chi.Mux) {
-	// API route registrations
-	api.NewAuthApiHandler(db, services).RegisterRoutes(apiRouter)
-	api.NewSettingsHandler(db, services).RegisterRoutes(apiRouter)
-	api.NewHeartbeatApiHandler(services).RegisterRoutes(apiRouter)
-	api.NewSummaryApiHandler(services).RegisterRoutes(apiRouter)
-	api.NewMetricsHandler(db).RegisterRoutes(apiRouter)
-	api.NewDiagnosticsApiHandler(services).RegisterRoutes(apiRouter)
-	api.NewAvatarHandler().RegisterRoutes(apiRouter)
-	api.NewActivityApiHandler(services).RegisterRoutes(apiRouter)
-	api.NewBadgeHandler(services).RegisterRoutes(apiRouter)
-	api.NewCaptchaHandler().RegisterRoutes(apiRouter)
-
-	// WakaTime v1 routes
-	wtV1Routes.NewStatusBarHandler(services).RegisterRoutes(apiRouter)
-	wtV1Routes.NewAllTimeHandler(services).RegisterRoutes(apiRouter)
-	wtV1Routes.NewSummariesHandler(services).RegisterRoutes(apiRouter)
-	wtV1Routes.NewGoalsApiHandler(db, services).RegisterRoutes(apiRouter)
-	wtV1Routes.NewUserAgentApiHandler(db, services).RegisterRoutes(apiRouter)
-	wtV1Routes.NewStatsHandler(services).RegisterRoutes(apiRouter)
-	wtV1Routes.NewClientsApiHandler(db, services).RegisterRoutes(apiRouter)
-	wtV1Routes.NewInvoicesApiHandler(db, services).RegisterRoutes(apiRouter)
-	wtV1Routes.NewUsersHandler(services).RegisterRoutes(apiRouter)
-	wtV1Routes.NewProjectsHandler(services).RegisterRoutes(apiRouter)
-	wtV1Routes.NewHeartbeatHandler(services).RegisterRoutes(apiRouter)
-	wtV1Routes.NewLeadersHandler(services).RegisterRoutes(apiRouter)
-
-	// Shields v1 routes
-	shieldsV1Routes.NewBadgeHandler(services).RegisterRoutes(apiRouter)
+func corsSetup(r *chi.Mux) {
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
 }
 
 func StartApi(config *conf.Config) {
@@ -77,22 +112,13 @@ func StartApi(config *conf.Config) {
 
 	defer sqlDB.Close()
 
-	services := services.NewServices(db)
-	InitializeJobs(config, services)
+	// services := services.NewServices(db)
+	// InitializeJobs(config, services)
+
+	api := NewAPIv1(config, db)
 
 	// Other Handlers
 	relayHandler := relay.NewRelayHandler()
-
-	corsSetup := func(r *chi.Mux) {
-		r.Use(cors.Handler(cors.Options{
-			AllowedOrigins:   []string{"https://*", "http://*"},
-			AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-			AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "Token"},
-			ExposedHeaders:   []string{"Link"},
-			AllowCredentials: false,
-			MaxAge:           300,
-		}))
-	}
 
 	// Setup Routing
 	router := chi.NewRouter()
@@ -111,24 +137,12 @@ func StartApi(config *conf.Config) {
 			"/api/avatar",
 		}),
 	)
-	if config.Sentry.Dsn != "" {
-		router.Use(middlewares.NewSentryMiddleware())
-	}
-
-	// Setup Sub Routers
-	rootRouter := chi.NewRouter()
-	corsSetup(rootRouter)
-	rootRouter.Use(middlewares.NewSecurityMiddleware())
-
-	apiRouter := chi.NewRouter()
-	corsSetup(apiRouter)
 
 	// Hook sub routers
-	router.Mount("/", rootRouter)
-	router.Mount("/api", apiRouter)
-
-	relayHandler.RegisterRoutes(rootRouter)
-	RegisterApiRoutes(db, services, apiRouter)
+	router.Group(func(r chi.Router) {
+		r.Use(middlewares.NewSecurityMiddleware())
+		relayHandler.RegisterRoutes(r)
+	})
 
 	if config.EnablePprof {
 		slog.Info("profiling enabled, exposing pprof data", "url", "http://127.0.0.1:6060/debug/pprof")
@@ -138,6 +152,7 @@ func StartApi(config *conf.Config) {
 	}
 
 	// Listen HTTP
+	api.RegisterApiV1Routes(router)
 	listen(router, config)
 }
 

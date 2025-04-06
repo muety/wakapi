@@ -168,7 +168,7 @@ export function AddGoalDialog({
     return duration;
   }, [targetDuration, targetDurationType]);
 
-  const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/compat/wakatime/v1/users/current/goals`;
+  const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/users/current/goals`;
 
   const createGoal = async () => {
     try {

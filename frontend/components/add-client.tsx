@@ -51,7 +51,7 @@ export function AddClient({
 
   const updateClient = async (values: Partial<Client>, id: string) => {
     try {
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/compat/wakatime/v1/users/current/clients/${id}`;
+      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/users/current/clients/${id}`;
       setLoading(true);
       const response = await fetch(resourceUrl, {
         method: "PUT",
@@ -87,7 +87,7 @@ export function AddClient({
 
   const createClient = async (values: Partial<Client>) => {
     try {
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/compat/wakatime/v1/users/current/clients`;
+      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/users/current/clients`;
       setLoading(true);
       const response = await fetch(resourceUrl, {
         method: "POST",

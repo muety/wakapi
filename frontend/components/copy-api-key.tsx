@@ -27,7 +27,7 @@ export function ApiKeyCopier({ token }: { token: string }) {
   const getApiKey = React.useCallback(async () => {
     try {
       setLoading(true);
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/auth/api-key`;
+      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/auth/api-key`;
       const response = await fetch(resourceUrl, {
         method: "GET",
         headers: {
@@ -54,7 +54,7 @@ export function ApiKeyCopier({ token }: { token: string }) {
   const refreshApiKey = async () => {
     try {
       setLoading(true);
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/auth/api-key/refresh`;
+      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/auth/api-key/refresh`;
       const response = await fetch(resourceUrl, {
         method: "POST",
         headers: {

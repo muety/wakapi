@@ -150,6 +150,7 @@ export interface GoalChartData {
 export interface Invoice {
   id: string;
   name: string;
+  invoice_id: string;
   amount: number;
   origin: string;
   destination: string;

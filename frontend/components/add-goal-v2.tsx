@@ -172,7 +172,7 @@ export function AddGoalDialogV2({
     return duration;
   }, [targetDuration, targetDurationType]);
 
-  const resourceUrl = `/compat/wakatime/v1/users/current/goals`;
+  const resourceUrl = `/v1/users/current/goals`;
 
   const { trigger, isMutating: loading } = useSWRMutation(
     resourceUrl,
@@ -496,7 +496,7 @@ export function AddGoalDialogV3({
     return duration;
   }, [targetDuration, targetDurationType]);
 
-  const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/compat/wakatime/v1/users/current/goals`;
+  const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/users/current/goals`;
 
   const createGoal = async () => {
     try {

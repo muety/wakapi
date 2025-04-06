@@ -33,17 +33,20 @@ export async function POST(request: NextRequest) {
   };
 
   try {
-    const apiResponse = await fetch(`${NEXT_PUBLIC_API_URL}/api/auth/login`, {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        password,
-      }),
-    });
+    const apiResponse = await fetch(
+      `${NEXT_PUBLIC_API_URL}/api/v1/auth/login`,
+      {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      }
+    );
 
     const json = (await apiResponse.json()) as {
       data: SessionData;

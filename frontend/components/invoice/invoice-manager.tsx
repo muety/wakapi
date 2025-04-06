@@ -87,7 +87,7 @@ export function InvoiceManager({ data }: iProps) {
     ]);
   };
 
-  const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/compat/wakatime/v1/users/current/invoices/${data.id}`;
+  const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/users/current/invoices/${data.id}`;
 
   const saveInvoice = async () => {
     try {

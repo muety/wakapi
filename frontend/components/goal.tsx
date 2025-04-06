@@ -24,7 +24,7 @@ export function Goal({ data, token, onDeleteGoal }: iProps) {
   const originalText = data.custom_title || data.title;
   const [title, setTitle] = React.useState(originalText);
 
-  const resourceUrl = `/compat/wakatime/v1/users/current/goals/${data.id}`;
+  const resourceUrl = `/v1/users/current/goals/${data.id}`;
 
   const { trigger, isMutating: loading } = useSWRMutation(
     resourceUrl,

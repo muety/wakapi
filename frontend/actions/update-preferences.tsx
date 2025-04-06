@@ -12,7 +12,7 @@ type Preference =
 
 export const saveProfile = async (data: Record<string, any>) => {
   const session = await getSession();
-  const response = await fetch(`${NEXT_PUBLIC_API_URL}/api/profile`, {
+  const response = await fetch(`${NEXT_PUBLIC_API_URL}/api/v1/profile`, {
     method: "PUT",
     headers: {
       "content-type": "application/json",

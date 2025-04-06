@@ -14,10 +14,10 @@ export default async function Invoices() {
   const session = await getSession();
 
   const clients = await fetchData<ClientsApiResponse>(
-    "compat/wakatime/v1/users/current/clients"
+    "/v1/users/current/clients"
   );
   const invoices = await fetchData<{ data: Invoice[] }>(
-    "compat/wakatime/v1/users/current/invoices"
+    "/v1/users/current/invoices"
   );
 
   return (

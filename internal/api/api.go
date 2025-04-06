@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	mw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/sirupsen/logrus"
@@ -59,9 +60,9 @@ func NewAPI(globalConfig *conf.Config, db *gorm.DB) *API {
 	r.chi.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		sendJSON(w, http.StatusNotFound, nil, "Resource not found", "The resource you're looking for cannot be found")
 	})
-	setupGlobalMiddleware(r, api.config)
+	// setupGlobalMiddleware(r, api.config)
 
-	registerRoutes(r, api)
+	// registerRoutes(r, api)
 
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
@@ -76,20 +77,20 @@ func NewAPI(globalConfig *conf.Config, db *gorm.DB) *API {
 	return api
 }
 
-func setupGlobalMiddleware(r *router, globalConfig *conf.Config) {
+func setupGlobalMiddleware(r *chi.Mux, globalConfig *conf.Config) {
 	xffmw, _ := xff.Default() // handles x forwarded by
 	logger := observability.NewStructuredLogger(logrus.StandardLogger(), globalConfig)
 	if err := observability.ConfigureLogging(&globalConfig.Logging); err != nil {
 		logrus.WithError(err).Error("unable to configure logging")
 	}
-	r.UseBypass(observability.AddRequestID(globalConfig))
-	r.UseBypass(logger)
-	r.UseBypass(xffmw.Handler)
-	r.UseBypass(recoverer)
-	r.UseBypass(mw.CleanPath)
-	r.UseBypass(mw.StripSlashes)
-	r.UseBypass(middlewares.NewPrincipalMiddleware())
-	r.UseBypass(
+	r.Use(observability.AddRequestID(globalConfig))
+	r.Use(logger)
+	r.Use(xffmw.Handler)
+	r.Use(recoverer)
+	r.Use(mw.CleanPath)
+	r.Use(mw.StripSlashes)
+	r.Use(middlewares.NewPrincipalMiddleware())
+	r.Use(
 		middlewares.NewLoggingMiddleware(slog.Info, []string{
 			"/assets",
 			"/favicon",

@@ -20,9 +20,10 @@ export function CurrentWorkTime() {
   const fetchSummary = async () => {
     const start = startOfDay(new Date()).toISOString();
     const end = new Date().toISOString();
-    const url = `compat/wakatime/v1/users/current/summaries?${new URLSearchParams(
-      { start, end }
-    )}`;
+    const url = `/v1/users/current/summaries?${new URLSearchParams({
+      start,
+      end,
+    })}`;
     const durationData = await fetchData<SummariesApiResponse>(url);
     if (durationData)
       setTodaysCodingTime(durationData.cumulative_total.text || "");
