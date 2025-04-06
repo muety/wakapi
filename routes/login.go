@@ -2,6 +2,12 @@ package routes
 
 import (
 	"fmt"
+	"log/slog"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+
 	"github.com/dchest/captcha"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httprate"
@@ -12,11 +18,6 @@ import (
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"log/slog"
-	"net/http"
-	"net/url"
-	"strings"
-	"time"
 )
 
 type LoginHandler struct {
