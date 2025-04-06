@@ -204,7 +204,11 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 
 	if !signup.IsValid() {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("invalid parameters"))
+		errMsg := "invalid parameters"
+		if !models.ValidateUsername(signup.Username) {
+			errMsg = "User name is invalid"
+		}
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError(errMsg))
 		return
 	}
 
