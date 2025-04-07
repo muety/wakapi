@@ -2,6 +2,12 @@ package routes
 
 import (
 	"fmt"
+	"log/slog"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+
 	"github.com/dchest/captcha"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httprate"
@@ -12,11 +18,6 @@ import (
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"log/slog"
-	"net/http"
-	"net/url"
-	"strings"
-	"time"
 )
 
 type LoginHandler struct {
@@ -203,7 +204,11 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 
 	if !signup.IsValid() {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("invalid parameters"))
+		errMsg := "invalid parameters"
+		if !models.ValidateUsername(signup.Username) {
+			errMsg = "User name is invalid"
+		}
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError(errMsg))
 		return
 	}
 
