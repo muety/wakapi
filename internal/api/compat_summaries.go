@@ -15,27 +15,6 @@ import (
 	"github.com/muety/wakapi/utils"
 )
 
-// type SummariesHandler struct {
-// 	config      *conf.Config
-// 	userSrvc    services.IUserService
-// 	summarySrvc services.ISummaryService
-// }
-
-// func NewSummariesHandler(services services.IServices) *SummariesHandler {
-// 	return &SummariesHandler{
-// 		userSrvc:    services.Users(),
-// 		summarySrvc: services.Summary(),
-// 		config:      conf.Get(),
-// 	}
-// }
-
-// func (a *APIv1) RegisterRoutes(router chi.Router) {
-// 	router.Group(func(r chi.Router) {
-// 		r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler)
-// 		r.Get("/compat/wakatime/v1/users/{user}/summaries", h.Get)
-// 	})
-// }
-
 // TODO: Support parameters: project, branches, timeout, writes_only
 // See https://wakatime.com/developers#summaries.
 // Timezone can be specified via an offset suffix (e.g. +02:00) in date strings.
