@@ -4,8 +4,6 @@ import { LucidePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
 
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
-
 import { Client } from "./clients-table";
 import { NewInvoiceForm } from "./forms/new-invoice-form";
 import { Button } from "./ui/button";
@@ -18,15 +16,17 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { toast } from "./ui/use-toast";
+import { postData } from "@/actions/api";
+import { get } from "lodash";
+import { Invoice } from "@/lib/types";
 
 export interface iProps {
   clients: Client[];
-  token: string;
   open?: boolean;
   onChange: (open: boolean) => void;
 }
 
-export function AddInvoice({ clients, token, onChange, open }: iProps) {
+export function AddInvoice({ clients, onChange, open }: iProps) {
   const [loading, setLoading] = React.useState(false);
 
   const router = useRouter();
@@ -35,36 +35,27 @@ export function AddInvoice({ clients, token, onChange, open }: iProps) {
     try {
       const { client, start_date, end_date } = values;
 
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/users/current/invoices`;
+      const resourceUrl = `/v1/users/current/invoices`;
       setLoading(true);
 
-      const response = await fetch(resourceUrl, {
-        method: "POST",
-        body: JSON.stringify({
-          client_id: client,
-          start_date: start_date.toISOString(),
-          end_date: end_date.toISOString(),
-        }),
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          token: `${token}`,
-        },
+      const response = await postData<{ data: Invoice }>(resourceUrl, {
+        client_id: client,
+        start_date: start_date.toISOString(),
+        end_date: end_date.toISOString(),
       });
 
-      if (!response.ok) {
+      if (!response.success) {
         console.log("[response]", response);
         toast({
           title: "Failed to create client",
           variant: "destructive",
         });
       } else {
-        const data = await response.json();
         toast({
           title: "Invoice created successfully",
           variant: "success",
         });
-        router.push(`/invoices/${data.data.id}`);
+        router.push(`/invoices/${response.data.data.id}`);
       }
     } finally {
       setLoading(false);

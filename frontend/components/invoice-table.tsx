@@ -28,7 +28,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 import { Invoice, InvoiceLineItem } from "@/lib/types";
 import { convertSecondsToHours, formatNumber, humanizeDate } from "@/lib/utils";
 
@@ -42,15 +41,14 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { toast } from "./ui/use-toast";
+import { deleteData } from "@/actions/api";
 
 export function InvoicesTable({
   clients,
   invoices: currentInvoices = [],
-  token,
 }: {
   clients: Client[];
   invoices: Invoice[];
-  token: string;
 }) {
   const [deleting, setDeleting] = React.useState<Invoice | null>(null);
   const [invoices, setInvoices] = React.useState<Invoice[]>(currentInvoices);
@@ -63,19 +61,12 @@ export function InvoicesTable({
       if (!deleting) {
         return;
       }
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/users/current/invoices/${deleting.id}`;
+      const resourceUrl = `/v1/users/current/invoices/${deleting.id}`;
 
       setLoading(true);
-      const response = await fetch(resourceUrl, {
-        method: "DELETE",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          token: `${token}`,
-        },
-      });
+      const response = await deleteData(resourceUrl);
 
-      if (!response.ok) {
+      if (!response.success) {
         toast({
           title: "Failed to delete goal",
           variant: "destructive",
@@ -83,7 +74,7 @@ export function InvoicesTable({
       } else {
         toast({
           title: "Deleted",
-          description: `Invoice: ${deleting.name} - deleted`,
+          description: `Invoice - deleted`,
           variant: "success",
         });
         setInvoices(invoices.filter((client) => client.id !== deleting?.id));
@@ -230,7 +221,6 @@ export function InvoicesTable({
         />
         <div className="grow">
           <AddInvoice
-            token={token}
             clients={clients}
             open={showInvoiceModal}
             onChange={(val) => setShowInvoiceModal(val)}

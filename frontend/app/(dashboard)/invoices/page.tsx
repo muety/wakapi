@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 
-import { fetchData, getSession } from "@/actions";
-import { ClientsApiResponse } from "@/components/clients-table";
-import { InvoicesTable } from "@/components/invoice-table";
 import { Invoice } from "@/lib/types";
+import { fetchData } from "@/actions";
+import { InvoicesTable } from "@/components/invoice-table";
+import { ClientsApiResponse } from "@/components/clients-table";
 
 export const metadata: Metadata = {
   title: "Invoices",
@@ -11,8 +11,6 @@ export const metadata: Metadata = {
 };
 
 export default async function Invoices() {
-  const session = await getSession();
-
   const clients = await fetchData<ClientsApiResponse>(
     "/v1/users/current/clients"
   );
@@ -28,7 +26,6 @@ export default async function Invoices() {
       <InvoicesTable
         clients={clients?.data || []}
         invoices={invoices?.data || []}
-        token={session.token}
       />
     </div>
   );

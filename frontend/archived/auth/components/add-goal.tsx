@@ -22,10 +22,10 @@ import {
 import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 import { Project } from "@/lib/types";
 
-import { ClickToSelect } from "./click-to-select";
-import { Icons } from "./icons";
-import { Input } from "./ui/input";
-import WMultiSelect from "./w-multi-select";
+import { ClickToSelect } from "../../../components/click-to-select";
+import { Icons } from "../../../components/icons";
+import { Input } from "../../../components/ui/input";
+import WMultiSelect from "../../../components/w-multi-select";
 
 // Define the GoalActionType enum
 enum GoalActionType {

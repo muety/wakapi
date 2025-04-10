@@ -4,7 +4,6 @@ import { format } from "date-fns";
 import { LucidePlusCircle, LucideTrash2 } from "lucide-react";
 import React from "react";
 
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 import { getCurrencySymbol } from "@/lib/constants/currencies";
 import { useClientSession } from "@/lib/session";
 import { Invoice, InvoiceLineItem } from "@/lib/types";
@@ -15,6 +14,7 @@ import { Button } from "../ui/button";
 import { toast } from "../ui/use-toast";
 import styles from "./invoice-manager.module.css";
 import { InvoicePreview } from "./invoice-preview";
+import { updateData } from "@/actions/api";
 
 interface iProps {
   data: Invoice;
@@ -87,7 +87,7 @@ export function InvoiceManager({ data }: iProps) {
     ]);
   };
 
-  const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/users/current/invoices/${data.id}`;
+  const resourceUrl = `/v1/users/current/invoices/${data.id}`;
 
   const saveInvoice = async () => {
     try {
@@ -103,17 +103,9 @@ export function InvoiceManager({ data }: iProps) {
         payload.tax = +tax;
       }
       setLoading(true);
-      const response = await fetch(resourceUrl, {
-        method: "PUT",
-        body: JSON.stringify(payload),
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          token: `${token}`,
-        },
-      });
+      const response = await updateData(resourceUrl, payload);
 
-      if (!response.ok) {
+      if (!response.success) {
         toast({
           title: "Failed to update invoice",
           variant: "destructive",

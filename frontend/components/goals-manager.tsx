@@ -46,20 +46,16 @@ export default function GoalsManager({
     <div className="mx-2 my-6">
       <div className="mb-5 flex items-center justify-between">
         <h1 className="text-4xl">Work Goals</h1>
-        <AddGoalDialogV2
-          onAddGoal={onAddGoal}
-          projects={projects}
-          token={token}
-        />
+        <AddGoalDialogV2 onAddGoal={onAddGoal} projects={projects} />
       </div>
       <div className="flex flex-col gap-6">
-        {goals.map((goal) => (
+        {goals.map((goal, index) => (
           <div
-            key={goal.id}
-            id={goal.id}
-            className={removingGoalId === goal.id ? "slide-out" : ""}
+            key={goal?.id || index}
+            id={goal?.id || `goal-${index}`}
+            className={removingGoalId === goal?.id ? "slide-out" : ""}
           >
-            <Goal data={goal} token={token} onDeleteGoal={onDeleteGoal} />
+            <Goal data={goal} onDeleteGoal={onDeleteGoal} />
           </div>
         ))}
       </div>

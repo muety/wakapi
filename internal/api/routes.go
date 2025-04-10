@@ -6,6 +6,7 @@ import (
 	"github.com/dchest/captcha"
 	"github.com/go-chi/chi/v5"
 	mw "github.com/go-chi/chi/v5/middleware"
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
 	customMiddleware "github.com/muety/wakapi/middlewares/custom"
 	"github.com/muety/wakapi/services"
@@ -13,6 +14,12 @@ import (
 )
 
 func (api *APIv1) RegisterApiV1Routes(r *chi.Mux) {
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		helpers.RespondJSON(w, r, http.StatusNotFound, map[string]interface{}{
+			"error":   "not found",
+			"message": "The requested resource was not found",
+		})
+	})
 	// Global routes
 	r.Get("/health", api.HealthCheck)
 	r.Get("/api/compat/shields/v1/{user}/*", api.GetShield)

@@ -147,10 +147,6 @@ func StartApi(config *conf.Config) {
 
 	setupGlobalMiddleware(router, api.config)
 
-	router.NotFound(func(w http.ResponseWriter, r *http.Request) {
-		sendJSON(w, http.StatusNotFound, nil, "Resource not found", "The resource you're looking for cannot be found")
-	})
-
 	// Hook sub routers
 	router.Group(func(r chi.Router) {
 		r.Use(middlewares.NewSecurityMiddleware())

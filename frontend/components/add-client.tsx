@@ -1,14 +1,16 @@
 "use client";
 
-import { LucidePlus } from "lucide-react";
 import React from "react";
 
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 import { Project } from "@/lib/types";
+import { LucidePlus } from "lucide-react";
 
+import { Button } from "./ui/button";
+import { toast } from "./ui/use-toast";
 import { Client } from "./clients-table";
 import { ClientForm } from "./forms/client-form";
-import { Button } from "./ui/button";
+import { postData, updateData } from "@/actions/api";
+
 import {
   Dialog,
   DialogContent,
@@ -17,13 +19,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { toast } from "./ui/use-toast";
 
 export interface iProps {
   onAdd: (client: any) => void;
   onEdit: (client: any) => void;
   projects: Project[];
-  token: string;
   editing: Client | null;
   open?: boolean;
   onChange: (open: boolean) => void;
@@ -31,7 +31,6 @@ export interface iProps {
 
 export function AddClient({
   projects,
-  token,
   onAdd,
   onEdit,
   editing,
@@ -51,27 +50,19 @@ export function AddClient({
 
   const updateClient = async (values: Partial<Client>, id: string) => {
     try {
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/users/current/clients/${id}`;
+      const resourceUrl = `/v1/users/current/clients/${id}`;
       setLoading(true);
-      const response = await fetch(resourceUrl, {
-        method: "PUT",
-        body: JSON.stringify(values),
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          token: `${token}`,
-        },
-      });
+      const response = await updateData(resourceUrl, values);
 
-      if (!response.ok) {
-        const data = await response.json();
+      if (!response.success) {
+        const data = response.data;
         toast({
-          title: data.message || "Failed to update client",
+          title: response.error?.message || "Failed to update client",
           variant: "destructive",
         });
       } else {
         if (onEdit) {
-          const data = await response.json();
+          const data = response.data;
           onEdit(data.data);
         }
         toast({
@@ -87,25 +78,17 @@ export function AddClient({
 
   const createClient = async (values: Partial<Client>) => {
     try {
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/users/current/clients`;
+      const resourceUrl = `/v1/users/current/clients`;
       setLoading(true);
-      const response = await fetch(resourceUrl, {
-        method: "POST",
-        body: JSON.stringify(values),
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          token: `${token}`,
-        },
-      });
+      const response = await postData(resourceUrl, values);
 
-      if (!response.ok) {
+      if (!response.success) {
         toast({
           title: "Failed to create client",
           variant: "destructive",
         });
       } else {
-        const data = await response.json();
+        const data = response.data;
         onAdd(data.data);
         toast({
           title: "Client Created",

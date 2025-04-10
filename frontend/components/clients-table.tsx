@@ -25,7 +25,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 import { humanizeDate } from "@/lib/utils";
 
 import { AddClient } from "./add-client";
@@ -40,6 +39,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { toast } from "./ui/use-toast";
+import { deleteData } from "@/actions/api";
 
 export type Client = {
   id: string;
@@ -59,11 +59,9 @@ export type ClientsApiResponse = {
 export function ClientsTable({
   clients: currentClients,
   projects,
-  token,
 }: {
   clients: Client[];
   projects: Project[];
-  token: string;
 }) {
   const [editing, setEditing] = React.useState<Client | null>(null);
   const [deleting, setDeleting] = React.useState<Client | null>(null);
@@ -76,19 +74,12 @@ export function ClientsTable({
       if (!deleting) {
         return;
       }
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/users/current/clients/${deleting.id}`;
+      const resourceUrl = `/v1/users/current/clients/${deleting.id}`;
 
       setLoading(true);
-      const response = await fetch(resourceUrl, {
-        method: "DELETE",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          token: `${token}`,
-        },
-      });
+      const response = await deleteData(resourceUrl);
 
-      if (!response.ok) {
+      if (!response.success) {
         toast({
           title: "Failed to delete goal",
           variant: "destructive",
@@ -232,7 +223,6 @@ export function ClientsTable({
                 setEditing(null);
               }
             }}
-            token={token}
             projects={projects as any}
             editing={editing}
             open={showClientModal}
