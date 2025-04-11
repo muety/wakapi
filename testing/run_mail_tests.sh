@@ -2,7 +2,7 @@
 set -o nounset -o errexit -o pipefail
 
 cleanup() {
-    echo "Stopping and removing smtpdev ..."
+    echo "Stopping and removing existing smtp4dev instances ..."
     docker stop smtp4dev_wakapi &> /dev/null || true
     docker rm -f smtp4dev_wakapi &> /dev/null
 }

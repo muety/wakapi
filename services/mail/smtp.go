@@ -101,5 +101,9 @@ func (s *SMTPSendingService) Send(mail *models.Mail) error {
 		return err
 	}
 
-	return c.Quit()
+	if err := c.Quit(); err != nil {
+		return c.Close()
+	}
+
+	return nil
 }

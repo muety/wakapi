@@ -49,11 +49,12 @@ func (suite *SmtpTestSuite) BeforeTest(suiteName, testName string) {
 
 func TestSmtpTestSuite(t *testing.T) {
 	address := net.JoinHostPort(Smtp4DevHost, fmt.Sprintf("%d", Smtp4DevPort))
-	_, err := net.DialTimeout("tcp", address, time.Second)
+	conn, err := net.DialTimeout("tcp", address, time.Second)
 	if err != nil {
 		t.Skipf("WARNING: smtp4Dev not available at %s - skipping smtp tests", address)
 		return
 	}
+	conn.Close()
 
 	smtp4dev := newSmtp4DevClient()
 	for i := 0; i < 5; i++ {
@@ -164,6 +165,11 @@ func (c *Smtp4DevClient) Setup() error {
 	if c.Check() != nil {
 		return fmt.Errorf("smtp4Dev is unavailable at %s", c.ApiBaseUrl)
 	}
+
+	if err := c.SetConfigValue("deliverMessagesToUsersDefaultMailbox", false); err != nil {
+		return err
+	}
+	time.Sleep(2 * time.Second)
 
 	if err := c.CreateTestUsers(); err != nil {
 		return err
