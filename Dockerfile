@@ -28,9 +28,6 @@ RUN mkdir ./data ./app && \
 FROM alpine:3
 WORKDIR /app
 
-# Note: we're intentionally not running as `app` user, because see https://github.com/muety/wakapi/issues/769.
-# The entrypoint script will take care of starting the wakapi process as `app` instead.
-
 RUN addgroup -g 1000 app && \
     adduser -u 1000 -G app -s /bin/sh -D app && \
     apk add --no-cache bash ca-certificates tzdata
@@ -55,6 +52,8 @@ LABEL org.opencontainers.image.url="https://github.com/muety/wakapi" \
       org.opencontainers.image.title="Wakapi" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.description="A minimalist, self-hosted WakaTime-compatible backend for coding statistics"
+
+USER app
 
 EXPOSE 3000
 
