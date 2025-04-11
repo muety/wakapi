@@ -41,10 +41,15 @@ type SmtpTestSuite struct {
 
 func (suite *SmtpTestSuite) SetupSuite() {
 	suite.smtp4Dev = newSmtp4DevClient()
+	if err := suite.smtp4Dev.Setup(); err != nil {
+		suite.Error(err)
+	}
 }
 
 func (suite *SmtpTestSuite) BeforeTest(suiteName, testName string) {
-	suite.smtp4Dev.Setup()
+	if err := suite.smtp4Dev.ClearInboxes(); err != nil {
+		suite.Error(err)
+	}
 }
 
 func TestSmtpTestSuite(t *testing.T) {
@@ -169,7 +174,6 @@ func (c *Smtp4DevClient) Setup() error {
 	if err := c.SetConfigValue("deliverMessagesToUsersDefaultMailbox", false); err != nil {
 		return err
 	}
-	time.Sleep(2 * time.Second)
 
 	if err := c.CreateTestUsers(); err != nil {
 		return err
@@ -283,5 +287,6 @@ func (c *Smtp4DevClient) SetConfigValue(key string, val interface{}) error {
 		return err
 	}
 
+	time.Sleep(5 * time.Second) // server will restart to load config changes
 	return nil
 }
