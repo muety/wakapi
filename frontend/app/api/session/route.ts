@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 
-import { postData } from "@/actions/api";
+import { ApiClient } from "@/actions/api";
 import { createIronSession } from "@/lib/server/auth";
 import {
   defaultSession,
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   };
 
   try {
-    const apiResponse = await postData(
+    const apiResponse = await ApiClient.POST(
       "/v1/auth/login",
       { email, password },
       { skipAuth: true }

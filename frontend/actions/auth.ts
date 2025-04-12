@@ -11,7 +11,7 @@ import {
   userNameSchema,
 } from "@/lib/validations/user";
 
-import { postData } from "./api";
+import { ApiClient } from "./api";
 
 export async function loginAction(_: any, formData: FormData): Promise<any> {
   const validatedFields = userNameSchema.safeParse({
@@ -106,7 +106,7 @@ export async function forgotPasswordAction(
 export async function processForgotPassword({ email }: { email: string }) {
   let redirectPath = null;
   try {
-    const apiResponse = await postData(
+    const apiResponse = await ApiClient.POST(
       "/v1/auth/forgot-password",
       { email },
       { skipAuth: true }
@@ -157,9 +157,13 @@ export async function processEmailLogin(credentials: {
 }) {
   const redirectPath = null;
   try {
-    const apiResponse = await postData("/v1/auth/otp/create", credentials, {
-      skipAuth: true,
-    });
+    const apiResponse = await ApiClient.POST(
+      "/v1/auth/otp/create",
+      credentials,
+      {
+        skipAuth: true,
+      }
+    );
 
     const json = apiResponse.data as {
       data: SessionData;
@@ -208,7 +212,7 @@ export async function processLogin(credentials: {
 }) {
   let redirectPath = null;
   try {
-    const apiResponse = await postData("/v1/auth/login", credentials, {
+    const apiResponse = await ApiClient.POST("/v1/auth/login", credentials, {
       skipAuth: true,
     });
 
@@ -254,9 +258,13 @@ export async function processLoginWithOTP(credentials: {
   console.log("credentials", credentials);
   let redirectPath = null;
   try {
-    const apiResponse = await postData("/v1/auth/otp/verify", credentials, {
-      skipAuth: true,
-    });
+    const apiResponse = await ApiClient.POST(
+      "/v1/auth/otp/verify",
+      credentials,
+      {
+        skipAuth: true,
+      }
+    );
 
     const json = apiResponse.data as {
       data: SessionData;

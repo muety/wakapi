@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-import { postData } from "@/actions/api";
+import { ApiClient } from "@/actions/api";
 import { createIronSession } from "@/lib/server/auth";
 import { SessionData } from "@/lib/session/options";
 
@@ -38,11 +38,15 @@ export async function POST(request: NextRequest) {
     );
   }
   try {
-    const apiResponse = await postData("/v1/auth/signup", {
-      email,
-      password,
-      password_repeat,
-    });
+    const apiResponse = await ApiClient.POST(
+      "/v1/auth/signup",
+      {
+        email,
+        password,
+        password_repeat,
+      },
+      { skipAuth: true }
+    );
 
     if (!apiResponse.success) {
       return Response.json(apiResponse.data, {

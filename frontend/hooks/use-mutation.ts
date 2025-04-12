@@ -1,11 +1,11 @@
 import { useState } from "react";
 
-import { deleteData, postData, updateData } from "@/actions/api";
+import { ApiClient } from "@/actions/api";
 import { toast } from "@/components/ui/use-toast";
 
 type MutationMethod = "post" | "put" | "delete";
 
-interface UseMutationOptions<TData, TVariables> {
+interface UseMutationOptions<TData> {
   onSuccess?: (data: TData) => void;
   onError?: (error: Error) => void;
   successMessage?: string | ((data: TData) => string);
@@ -16,7 +16,7 @@ interface UseMutationOptions<TData, TVariables> {
 export function useMutation<TData = any, TVariables = any>(
   path: string,
   method: MutationMethod = "post",
-  options: UseMutationOptions<TData, TVariables> = {}
+  options: UseMutationOptions<TData> = {}
 ) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -31,19 +31,19 @@ export function useMutation<TData = any, TVariables = any>(
 
       // Be explicit about which function signature we're using
       if (method === "post") {
-        response = await postData<TData, TVariables>(
+        response = await ApiClient.POST<TData, TVariables>(
           path,
           variables as TVariables
         );
         console.log("POST RESPONSE", response);
       } else if (method === "put") {
-        response = await updateData<TData, TVariables>(
+        response = await ApiClient.PUT<TData, TVariables>(
           path,
           variables as TVariables
         );
       } else {
         // For delete, we might not have a body
-        response = await deleteData<TData>(path);
+        response = await ApiClient.DELETE<TData>(path);
       }
 
       if (!response.success) {

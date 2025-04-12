@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 
-import { postData } from "@/actions/api";
+import { ApiClient } from "@/actions/api";
 import { getGithubConfig } from "@/lib/oauth/github";
 import { createIronSession } from "@/lib/server/auth";
 import { SessionData } from "@/lib/session/options";
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
 // throws
 async function handleGithubOauth(code: string) {
-  const apiResponse = await postData(
+  const apiResponse = await ApiClient.POST(
     "/v1/auth/oauth/github",
     { code },
     { skipAuth: true }

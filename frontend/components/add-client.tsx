@@ -3,7 +3,7 @@
 import { LucidePlus } from "lucide-react";
 import React from "react";
 
-import { postData, updateData } from "@/actions/api";
+import { ApiClient } from "@/actions/api";
 import { Project } from "@/lib/types";
 
 import { Client } from "./clients-table";
@@ -51,7 +51,7 @@ export function AddClient({
     try {
       const resourceUrl = `/v1/users/current/clients/${id}`;
       setLoading(true);
-      const response = await updateData(resourceUrl, values);
+      const response = await ApiClient.PUT(resourceUrl, values);
 
       if (!response.success) {
         toast({
@@ -78,7 +78,7 @@ export function AddClient({
     try {
       const resourceUrl = `/v1/users/current/clients`;
       setLoading(true);
-      const response = await postData(resourceUrl, values);
+      const response = await ApiClient.POST(resourceUrl, values);
 
       if (!response.success) {
         toast({

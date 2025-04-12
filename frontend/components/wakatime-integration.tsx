@@ -3,7 +3,7 @@
 import { LucidePen, LucidePenOff, LucideSave } from "lucide-react";
 import React from "react";
 
-import { postData } from "@/actions/api";
+import { ApiClient } from "@/actions/api";
 import { toast } from "@/components/ui/use-toast";
 import useSession from "@/lib/session/use-session";
 
@@ -43,7 +43,7 @@ export function WakatimeIntegration() {
         api_key: apiKey,
       };
 
-      const response = await postData("/v1/settings", payload);
+      const response = await ApiClient.POST("/v1/settings", payload);
       if (!response.success) {
         throw new Error("Error setting wakatime api key");
       }

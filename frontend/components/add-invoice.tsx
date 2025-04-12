@@ -4,7 +4,7 @@ import { LucidePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
 
-import { postData } from "@/actions/api";
+import { ApiClient } from "@/actions/api";
 import { Invoice } from "@/lib/types";
 
 import { Client } from "./clients-table";
@@ -38,7 +38,7 @@ export function AddInvoice({ clients, onChange, open }: iProps) {
       const resourceUrl = `/v1/users/current/invoices`;
       setLoading(true);
 
-      const response = await postData<{ data: Invoice }>(resourceUrl, {
+      const response = await ApiClient.POST<{ data: Invoice }>(resourceUrl, {
         client_id: client,
         start_date: start_date.toISOString(),
         end_date: end_date.toISOString(),

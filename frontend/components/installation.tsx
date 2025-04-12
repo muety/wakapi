@@ -4,7 +4,7 @@ import { Check, Copy } from "lucide-react";
 import React from "react";
 import { useEffect, useState } from "react";
 
-import { getData } from "@/actions/api";
+import { ApiClient } from "@/actions/api";
 import { Button } from "@/components/ui/button";
 import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 import useSession from "@/lib/session/use-session";
@@ -32,7 +32,7 @@ export function Installation({ className = "" }: ConfigDisplayProps) {
         return;
       }
       setLoading(true);
-      const response = await getData("/v1/auth/api-key");
+      const response = await ApiClient.GET("/v1/auth/api-key");
 
       if (!response.success) {
         toast({

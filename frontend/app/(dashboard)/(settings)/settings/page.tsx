@@ -17,7 +17,7 @@ import { UserProfile } from "@/lib/types";
 
 export default async function Page() {
   const session = await getSession();
-  const user = await fetchData<UserProfile>("/v1/profile", true);
+  const user = await fetchData<UserProfile>("/v1/profile");
 
   return (
     <div className="grid gap-6">

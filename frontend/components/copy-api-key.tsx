@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import React from "react";
 
-import { getData, postData } from "@/actions/api";
+import { ApiClient } from "@/actions/api";
 import { copyApiKeyToClickBoard } from "@/lib/utils/ui";
 
 import { Icons } from "./icons";
@@ -27,7 +27,9 @@ export function ApiKeyCopier() {
   const getApiKey = React.useCallback(async () => {
     try {
       setLoading(true);
-      const response = await getData<{ apiKey: string }>("/v1/auth/api-key");
+      const response = await ApiClient.GET<{ apiKey: string }>(
+        "/v1/auth/api-key"
+      );
 
       if (!response.success) {
         toast({
@@ -47,7 +49,10 @@ export function ApiKeyCopier() {
     try {
       setLoading(true);
       const resourceUrl = `/v1/auth/api-key/refresh`;
-      const response = await postData<{ apiKey: string }>(resourceUrl, {});
+      const response = await ApiClient.POST<{ apiKey: string }>(
+        resourceUrl,
+        {}
+      );
 
       console.log("REFRESH RESPONSE");
 
