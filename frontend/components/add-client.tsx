@@ -1,16 +1,14 @@
 "use client";
 
+import { LucidePlus } from "lucide-react";
 import React from "react";
 
+import { postData, updateData } from "@/actions/api";
 import { Project } from "@/lib/types";
-import { LucidePlus } from "lucide-react";
 
-import { Button } from "./ui/button";
-import { toast } from "./ui/use-toast";
 import { Client } from "./clients-table";
 import { ClientForm } from "./forms/client-form";
-import { postData, updateData } from "@/actions/api";
-
+import { Button } from "./ui/button";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
+import { toast } from "./ui/use-toast";
 
 export interface iProps {
   onAdd: (client: any) => void;
@@ -55,7 +54,6 @@ export function AddClient({
       const response = await updateData(resourceUrl, values);
 
       if (!response.success) {
-        const data = response.data;
         toast({
           title: response.error?.message || "Failed to update client",
           variant: "destructive",
@@ -88,8 +86,7 @@ export function AddClient({
           variant: "destructive",
         });
       } else {
-        const data = response.data;
-        onAdd(data.data);
+        onAdd(response.data.data);
         toast({
           title: "Client Created",
           variant: "success",

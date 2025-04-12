@@ -8,14 +8,12 @@ import { AddGoalDialogV2 } from "./add-goal-v2";
 import { Goal } from "./goal";
 
 interface IProps {
-  token: string;
   goals: GoalData[];
   projects: Project[];
 }
 
 export default function GoalsManager({
   goals: initialGoals,
-  token,
   projects,
 }: IProps) {
   const [goals, setGoals] = useState(initialGoals);

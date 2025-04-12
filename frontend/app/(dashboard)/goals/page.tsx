@@ -1,7 +1,7 @@
-import { Metadata } from "next";
-
-import { fetchData, getSession } from "@/actions";
 import GoalsManager from "@/components/goals-manager";
+
+import { Metadata } from "next";
+import { fetchData } from "@/actions";
 import { GoalData, Project } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -10,8 +10,6 @@ export const metadata: Metadata = {
 };
 
 export default async function Goals() {
-  const session = await getSession();
-
   const goalData = await fetchData<{ data: GoalData[] }>(
     "/v1/users/current/goals"
   );
@@ -27,11 +25,7 @@ export default async function Goals() {
 
   return (
     <div className="my-6 min-h-screen min-w-full">
-      <GoalsManager
-        goals={goals}
-        token={session.token}
-        projects={projects?.data || []}
-      />
+      <GoalsManager goals={goals} projects={projects?.data || []} />
     </div>
   );
 }

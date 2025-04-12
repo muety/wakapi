@@ -45,6 +45,26 @@ func (l *Leaderboard) Add(item *LeaderboardItemRanked) {
 	}
 }
 
+// Deduplicate returns a new leaderboard with duplicate user entries removed
+// keeping only the first occurrence of each user
+func (l Leaderboard) Deduplicate() Leaderboard {
+	if len(l) == 0 {
+		return l
+	}
+
+	seen := make(map[string]bool)
+	result := make([]*LeaderboardItemRanked, 0, len(l))
+
+	for _, item := range l {
+		if !seen[item.UserID] {
+			seen[item.UserID] = true
+			result = append(result, item)
+		}
+	}
+
+	return result
+}
+
 func (l *Leaderboard) AddMany(items []*LeaderboardItemRanked) {
 	for _, item := range items {
 		l.Add(item)

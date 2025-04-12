@@ -1,6 +1,7 @@
 import { useState } from "react";
+
+import { deleteData, postData, updateData } from "@/actions/api";
 import { toast } from "@/components/ui/use-toast";
-import { postData, updateData, deleteData } from "@/actions/api";
 
 type MutationMethod = "post" | "put" | "delete";
 

@@ -1,6 +1,5 @@
 import { getSession } from "./session";
 
-// types/api.ts
 export type Result<D, E = Error> =
   | { success: true; data: D; error: null }
   | { success: false; data: null; error: E };
@@ -13,6 +12,7 @@ export type ApiRequestOptions<T = any> = {
   headers?: Record<string, string>;
   cache?: RequestCache;
   next?: NextFetchRequestConfig;
+  skipAuth?: boolean; // New option to skip authentication
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -23,47 +23,47 @@ export async function apiRequest<ResponseData = any, RequestBody = any>(
 ): Promise<Result<ResponseData, Error>> {
   try {
     const url = `${API_URL}/api/${path}`;
-
-    // Get session token server-side
-    const session = await getSession();
-    const token = session?.token;
-
-    if (!token) {
-      return {
-        success: false,
-        data: null,
-        error: new Error("Authentication required"),
-      };
+    const {
+      method = "GET",
+      body,
+      headers = {},
+      cache,
+      next,
+      skipAuth = false,
+    } = options || {};
+    const requestHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...headers,
+    };
+    if (!skipAuth) {
+      const session = await getSession();
+      const token = session?.token;
+      if (!token) {
+        return {
+          success: false,
+          data: null,
+          error: new Error("Authentication required"),
+        };
+      }
+      requestHeaders["Token"] = token;
     }
-
-    const { method = "GET", body, headers = {}, cache, next } = options || {};
-
     const response = await fetch(url, {
       method,
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Token: token,
-        ...headers,
-      },
+      headers: requestHeaders,
       body: body ? JSON.stringify(body) : undefined,
       cache,
       next,
     });
-
     // Handle non-JSON responses
     const contentType = response.headers.get("content-type");
     let data: ResponseData;
-
     if (contentType?.includes("application/json")) {
       data = await response.json();
     } else {
       // Handle other response types or empty responses
       data = (await response.text()) as unknown as ResponseData;
     }
-
-    console.log("API response", { status: response.status, data });
-
     if (!response.ok) {
       return {
         success: false,
@@ -73,7 +73,6 @@ export async function apiRequest<ResponseData = any, RequestBody = any>(
         ),
       };
     }
-
     return {
       success: true,
       data,

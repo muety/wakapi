@@ -3,14 +3,13 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 
+import { postData } from "@/actions/api";
 import { createIronSession } from "@/lib/server/auth";
 import {
   defaultSession,
   SessionData,
   sessionOptions,
 } from "@/lib/session/options";
-
-const { NEXT_PUBLIC_API_URL } = process.env;
 
 export async function POST(request: NextRequest) {
   let requestData;
@@ -33,27 +32,18 @@ export async function POST(request: NextRequest) {
   };
 
   try {
-    const apiResponse = await fetch(
-      `${NEXT_PUBLIC_API_URL}/api/v1/auth/login`,
-      {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      }
+    const apiResponse = await postData(
+      "/v1/auth/login",
+      { email, password },
+      { skipAuth: true }
     );
 
-    const json = (await apiResponse.json()) as {
+    const json = apiResponse.data as {
       data: SessionData;
       status?: number;
     };
 
-    if (apiResponse.status > 202) {
+    if (!apiResponse.success) {
       return Response.json(json, { status: json.status || 500 });
     }
 

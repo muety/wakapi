@@ -3,8 +3,8 @@
 import { LucidePen, LucidePenOff, LucideSave } from "lucide-react";
 import React from "react";
 
+import { postData } from "@/actions/api";
 import { toast } from "@/components/ui/use-toast";
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 import useSession from "@/lib/session/use-session";
 
 import { Icons } from "./icons";
@@ -17,9 +17,7 @@ import { Input } from "./ui/input";
  * know whether or not they have one set.
  */
 
-const RESOURCE_URL = `${NEXT_PUBLIC_API_URL}/api/settings`;
-
-export function WakatimeIntegration({ token }: { token: string }) {
+export function WakatimeIntegration() {
   const [copied, setCopied] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [showEditable, setShowEditable] = React.useState(false);
@@ -45,16 +43,8 @@ export function WakatimeIntegration({ token }: { token: string }) {
         api_key: apiKey,
       };
 
-      const response = await fetch(RESOURCE_URL, {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: {
-          "content-type": "application/json",
-          accept: "application/json",
-          token: `${token}`,
-        },
-      });
-      if (!response.ok) {
+      const response = await postData("/v1/settings", payload);
+      if (!response.success) {
         throw new Error("Error setting wakatime api key");
       }
       modifySession({ has_wakatime_integration: true }); // allow to fail silently

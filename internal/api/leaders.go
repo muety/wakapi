@@ -16,27 +16,6 @@ import (
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 )
 
-// type LeadersHandler struct {
-// 	config          *conf.Config
-// 	userSrvc        services.IUserService
-// 	leaderboardSrvc services.ILeaderboardService
-// }
-
-// func NewLeadersHandler(services services.IServices) *LeadersHandler {
-// 	return &LeadersHandler{
-// 		userSrvc:        services.Users(),
-// 		leaderboardSrvc: services.LeaderBoard(),
-// 		config:          conf.Get(),
-// 	}
-// }
-
-// func (h *LeadersHandler) RegisterRoutes(router chi.Router) {
-// 	router.Group(func(r chi.Router) {
-// 		r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalFor("/").Handler)
-// 		r.Get("/compat/wakatime/v1/leaders", h.Get)
-// 	})
-// }
-
 // @Summary List of users ranked by coding activity in descending order.
 // @Description Mimics https://wakatime.com/developers#leaders
 // @ID get-wakatime-leaders
@@ -99,6 +78,7 @@ func (a *APIv1) GetLeaderboard(w http.ResponseWriter, r *http.Request) {
 	if user != nil && !primaryLeaderboard.HasUser(user.ID) {
 		if l, err := loadPrimaryUserLeaderboard(); err == nil {
 			primaryLeaderboard.AddMany(l)
+			primaryLeaderboard = primaryLeaderboard.Deduplicate()
 		} else {
 			conf.Log().Request(r).Error("error while fetching own general user leaderboard", "userID", user.ID, "error", err)
 		}
@@ -154,7 +134,7 @@ func (a *APIv1) buildLeadersViewModel(globalLeaderboard, languageLeaderboard mod
 				HumanReadableTotal:        helpers.FmtWakatimeDuration(entry.Total),
 				DailyAverage:              float64(dailyAverage / time.Second),
 				HumanReadableDailyAverage: helpers.FmtWakatimeDuration(dailyAverage),
-				Languages: slice.Map[models.LeaderboardKeyTotal, *v1.LeadersLanguage](languageLeaderboard.TopKeysTotalsByUser(models.SummaryLanguage, entry.UserID), func(i int, item models.LeaderboardKeyTotal) *v1.LeadersLanguage {
+				Languages: slice.Map(languageLeaderboard.TopKeysTotalsByUser(models.SummaryLanguage, entry.UserID), func(i int, item models.LeaderboardKeyTotal) *v1.LeadersLanguage {
 					return &v1.LeadersLanguage{
 						Name:         item.Key,
 						TotalSeconds: float64(item.Total / time.Second),
@@ -166,4 +146,24 @@ func (a *APIv1) buildLeadersViewModel(globalLeaderboard, languageLeaderboard mod
 	}
 
 	return vm
+}
+
+// Deduplicate returns a new leaderboard with duplicate user entries removed
+// keeping only the first occurrence of each user
+func DeduplicateLeaderboard(l models.Leaderboard) models.Leaderboard {
+	if len(l) == 0 {
+		return l
+	}
+
+	seen := make(map[string]bool)
+	result := make([]*models.LeaderboardItemRanked, 0, len(l))
+
+	for _, item := range l {
+		if !seen[item.UserID] {
+			seen[item.UserID] = true
+			result = append(result, item)
+		}
+	}
+
+	return result
 }

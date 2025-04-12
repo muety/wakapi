@@ -4,8 +4,8 @@ import { format } from "date-fns";
 import { LucidePlusCircle, LucideTrash2 } from "lucide-react";
 import React from "react";
 
+import { updateData } from "@/actions/api";
 import { getCurrencySymbol } from "@/lib/constants/currencies";
-import { useClientSession } from "@/lib/session";
 import { Invoice, InvoiceLineItem } from "@/lib/types";
 import { cn, formatNumber, getHours } from "@/lib/utils";
 
@@ -14,18 +14,12 @@ import { Button } from "../ui/button";
 import { toast } from "../ui/use-toast";
 import styles from "./invoice-manager.module.css";
 import { InvoicePreview } from "./invoice-preview";
-import { updateData } from "@/actions/api";
 
 interface iProps {
   data: Invoice;
 }
 
 export function InvoiceManager({ data }: iProps) {
-  const session = useClientSession();
-  const token = React.useMemo(
-    () => session.data?.token || "",
-    [session.data?.token]
-  );
   const date = new Date();
   const { client } = data;
   const [loading, setLoading] = React.useState(false);

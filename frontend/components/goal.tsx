@@ -3,6 +3,7 @@
 import { LucideSave, LucideTrash2, LucideUndo } from "lucide-react";
 import React from "react";
 
+import { deleteData, updateData } from "@/actions/api";
 import { toast } from "@/components/ui/use-toast";
 import { GoalData } from "@/lib/types";
 
@@ -11,7 +12,6 @@ import { Icons } from "./icons";
 import { Button } from "./ui/button";
 import { Card, CardTitle } from "./ui/card";
 import { Confirm } from "./ui/confirm";
-import { deleteData, updateData } from "@/actions/api";
 
 interface iProps {
   data: GoalData;

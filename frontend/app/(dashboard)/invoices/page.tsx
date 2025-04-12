@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 
-import { Invoice } from "@/lib/types";
 import { fetchData } from "@/actions";
-import { InvoicesTable } from "@/components/invoice-table";
 import { ClientsApiResponse } from "@/components/clients-table";
+import { InvoicesTable } from "@/components/invoice-table";
+import { Invoice } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Invoices",

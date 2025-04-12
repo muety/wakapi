@@ -1,6 +1,6 @@
-"use client";
-
 import { apiRequest, ApiRequestOptions } from "./api-client";
+
+type RequestOptions = "method" | "body";
 
 export async function fetchData<ResponseData = any, RequestBody = any>(
   path: string,
@@ -12,7 +12,7 @@ export async function fetchData<ResponseData = any, RequestBody = any>(
 // Specialized API functions (optional, for common operations)
 export async function getData<T = any>(
   path: string,
-  options?: Omit<ApiRequestOptions, "method" | "body">
+  options?: Omit<ApiRequestOptions, RequestOptions>
 ) {
   return apiRequest<T>(path, { ...options, method: "GET" });
 }
@@ -20,7 +20,7 @@ export async function getData<T = any>(
 export async function postData<ResponseData = any, RequestBody = any>(
   path: string,
   body: RequestBody,
-  options?: Omit<ApiRequestOptions, "method" | "body">
+  options?: Omit<ApiRequestOptions, RequestOptions>
 ) {
   return apiRequest<ResponseData, RequestBody>(path, {
     ...options,
@@ -32,7 +32,7 @@ export async function postData<ResponseData = any, RequestBody = any>(
 export async function updateData<ResponseData = any, RequestBody = any>(
   path: string,
   body: RequestBody,
-  options?: Omit<ApiRequestOptions, "method" | "body">
+  options?: Omit<ApiRequestOptions, RequestOptions>
 ) {
   return apiRequest<ResponseData, RequestBody>(path, {
     ...options,
@@ -44,7 +44,7 @@ export async function updateData<ResponseData = any, RequestBody = any>(
 export async function patchData<ResponseData = any, RequestBody = any>(
   path: string,
   body: RequestBody,
-  options?: Omit<ApiRequestOptions, "method" | "body">
+  options?: Omit<ApiRequestOptions, RequestOptions>
 ) {
   return apiRequest<ResponseData, RequestBody>(path, {
     ...options,
@@ -55,7 +55,7 @@ export async function patchData<ResponseData = any, RequestBody = any>(
 
 export async function deleteData<ResponseData = any>(
   path: string,
-  options?: Omit<ApiRequestOptions, "method">
+  options?: Omit<ApiRequestOptions, "method" | "skipAuth">
 ) {
   return apiRequest<ResponseData>(path, { ...options, method: "DELETE" });
 }

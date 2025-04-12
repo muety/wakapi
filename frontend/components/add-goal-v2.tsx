@@ -1,10 +1,7 @@
 "use client";
 
-import React from "react";
-import styles from "./add-goal.module.css";
-import WMultiSelect from "./w-multi-select";
-
 import { LucidePlus } from "lucide-react";
+import React from "react";
 import { useReducer } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/use-toast";
+import { useMutation } from "@/hooks/use-mutation";
 import {
   CATEGORY_OPTIONS,
   EDITOR_OPTIONS,
@@ -25,11 +23,12 @@ import {
 import { GoalData, Project } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+import styles from "./add-goal.module.css";
 import { ClickToSelect } from "./click-to-select";
 import { Icons } from "./icons";
 import { SimpleSelect } from "./simple-select";
 import { Input } from "./ui/input";
-import { useMutation } from "@/hooks/use-mutation";
+import WMultiSelect from "./w-multi-select";
 
 enum GoalActionType {
   RESET = "RESET",

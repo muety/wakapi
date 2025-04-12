@@ -1,9 +1,8 @@
 import { NextRequest } from "next/server";
 
+import { postData } from "@/actions/api";
 import { createIronSession } from "@/lib/server/auth";
 import { SessionData } from "@/lib/session/options";
-
-const { NEXT_PUBLIC_API_URL } = process.env;
 
 export async function POST(request: NextRequest) {
   let requestData;
@@ -38,30 +37,21 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
-
   try {
-    const apiResponse = await fetch(
-      `${NEXT_PUBLIC_API_URL}/api/v1/auth/signup`,
-      {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          password_repeat,
-        }),
-      }
-    );
+    const apiResponse = await postData("/v1/auth/signup", {
+      email,
+      password,
+      password_repeat,
+    });
 
-    if (apiResponse.status > 202 || !apiResponse.status) {
-      return Response.json(apiResponse.body, {
-        status: apiResponse.status || 500,
+    if (!apiResponse.success) {
+      return Response.json(apiResponse.data, {
+        status: 500,
       });
     }
-    const json = (await apiResponse.json()) as { data: SessionData };
+    const json = apiResponse.data as { data: SessionData };
+    console.log("json", json);
+    // broken until manual testing
 
     const session = await createIronSession(json.data);
 

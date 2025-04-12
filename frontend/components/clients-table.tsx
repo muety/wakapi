@@ -15,6 +15,7 @@ import {
 } from "@tanstack/react-table";
 import * as React from "react";
 
+import { deleteData } from "@/actions/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -39,7 +40,6 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { toast } from "./ui/use-toast";
-import { deleteData } from "@/actions/api";
 
 export type Client = {
   id: string;

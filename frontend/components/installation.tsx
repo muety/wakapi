@@ -1,9 +1,10 @@
 "use client";
 
 import { Check, Copy } from "lucide-react";
-import { useEffect, useState } from "react";
 import React from "react";
+import { useEffect, useState } from "react";
 
+import { getData } from "@/actions/api";
 import { Button } from "@/components/ui/button";
 import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
 import useSession from "@/lib/session/use-session";
@@ -31,24 +32,15 @@ export function Installation({ className = "" }: ConfigDisplayProps) {
         return;
       }
       setLoading(true);
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/v1/auth/api-key`;
-      const response = await fetch(resourceUrl, {
-        method: "GET",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          token: `${token}`,
-        },
-      });
+      const response = await getData("/v1/auth/api-key");
 
-      if (!response.ok) {
+      if (!response.success) {
         toast({
           title: "Failed to fetch api key",
           variant: "destructive",
         });
       } else {
-        const data = await response.json();
-        setApiKey(data.apiKey);
+        setApiKey(response.data.apiKey);
       }
     } finally {
       setLoading(false);
@@ -59,7 +51,6 @@ export function Installation({ className = "" }: ConfigDisplayProps) {
 
   useEffect(() => {
     if (isLoggedIn) {
-      console.log("isLoggedIn", isLoggedIn);
       getApiKey();
     }
   }, [isLoggedIn, getApiKey]);

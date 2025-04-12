@@ -1,4 +1,4 @@
-import { fetchData } from "@/actions";
+import { getData } from "@/actions/api";
 import { LeaderBoardTable } from "@/components/leaderboard-table";
 import { LeaderboardApiResponse } from "@/lib/types";
 
@@ -9,15 +9,17 @@ export default async function Leaderboards({
 }) {
   const queryParams = new URLSearchParams(searchParams);
   const url = `/v1/leaders?${queryParams.toString()}`;
-  const durationData = await fetchData<LeaderboardApiResponse>(url, false);
+  const durationData = await getData<LeaderboardApiResponse>(url, {
+    skipAuth: true,
+  });
 
-  if (!durationData) {
+  if (!durationData.success) {
     return <div>There was an error fetching leaderboard data...</div>;
   }
 
   return (
     <LeaderBoardTable
-      data={durationData}
+      data={durationData.data}
       title="Top Coders"
       titleClass="text-center mb-8 text-6xl"
     />
