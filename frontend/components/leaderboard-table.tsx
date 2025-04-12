@@ -66,9 +66,9 @@ function RenderLanguages({ languages }: { languages: string[] }) {
   );
 }
 
-function rowMapper(dataItem: DataItem) {
+function rowMapper(dataItem: DataItem, index: number) {
   return {
-    rank: dataItem.rank,
+    rank: index + 1,
     programmer: dataItem.user.full_name || "Anonymous User",
     hours_coded: dataItem.running_total.human_readable_total,
     daily_average: dataItem.running_total.human_readable_daily_average,
@@ -83,7 +83,16 @@ export function LeaderBoardTable({
   titleClass = "",
 }: iProps) {
   const { data: rawLeaderboard, range } = leaderboardData;
-  const leaderboard = rawLeaderboard.map((item) => rowMapper(item));
+  const users = new Set();
+  const leaderboard = rawLeaderboard
+    .filter((leaderData) => {
+      if (users.has(leaderData.user.id)) {
+        return false;
+      }
+      users.add(leaderData.user.id);
+      return true;
+    })
+    .map((item, index) => rowMapper(item, index));
   return (
     <div>
       <div className="mb-2">
