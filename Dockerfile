@@ -12,7 +12,7 @@ RUN CGO_ENABLED=0 go build -ldflags "-s -w" -v -o wakana main.go
 
 WORKDIR /staging
 RUN mkdir ./data ./app && \
-    cp /src/wakapi app/ && \
+    cp /src/wakana app/ && \
     cp /src/config.default.yml app/config.default.yml && \
     sed -i 's/listen_ipv6: ::1/listen_ipv6: "-"/g' app/config.default.yml && \
     cp /src/wait-for-it.sh app/ && \
