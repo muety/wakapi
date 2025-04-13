@@ -26,8 +26,8 @@ file_env "WAKAPI_SUBSCRIPTIONS_STRIPE_ENDPOINT_SECRET"
 
 if [ "$WAKAPI_DB_TYPE" == "sqlite3" ] || [ "$WAKAPI_DB_TYPE" == "" ]; then
   echo "Using sqlite3"
-  exec ./wakapi serve
+  exec ./wakana serve
 else
   echo "Waiting for database to come up"
-  exec ./wait-for-it.sh "$WAKAPI_DB_HOST:$WAKAPI_DB_PORT" -s -t 60 -- ./wakapi serve
+  exec ./wait-for-it.sh "$WAKAPI_DB_HOST:$WAKAPI_DB_PORT" -s -t 60 -- ./wakana serve
 fi

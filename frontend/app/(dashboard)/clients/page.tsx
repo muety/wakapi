@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
-import { fetchData, getSession } from "@/actions";
-import { ClientsApiResponse, ClientsTable } from "@/components/clients-table";
+import { fetchData } from "@/actions";
 import { Project } from "@/components/projects-table";
+import { ClientsApiResponse, ClientsTable } from "@/components/clients-table";
 
 export const metadata: Metadata = {
   title: "Clients",
@@ -10,8 +10,6 @@ export const metadata: Metadata = {
 };
 
 export default async function Clients() {
-  const session = await getSession();
-
   const clients = await fetchData<ClientsApiResponse | null>(
     "/v1/users/current/clients"
   );
@@ -27,7 +25,6 @@ export default async function Clients() {
       <ClientsTable
         clients={clients?.data || []}
         projects={projects?.data || []}
-        token={session.token}
       />
     </div>
   );
