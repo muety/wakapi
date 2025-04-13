@@ -17,11 +17,11 @@ primary_region = 'ams'
   interval = "30s"
   method = "GET"
   timeout = "5s"
-  path = "/api/health"
+  path = "/api/v1/health"
 
 
 [http_service]
-  internal_port = 3000
+  internal_port = 3000g
   force_https = true
   auto_stop_machines = 'off'
   auto_start_machines = true
