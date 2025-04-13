@@ -306,7 +306,21 @@
                     {{ end }}
                 </div>
             </div>
+
+            <!-- Daily Timeline -->
+            <div class="row-span-1 col-span-1 md:col-span-3 md:row-span-3 p-4 px-6 pb-10 bg-gray-850 text-gray-300 rounded-md shadow flex flex-col w-full no-break" id="timeline-container" style="max-height: 448px;">
+                <div class="flex justify-between">
+                    <div class="flex items-center gap-x-2">
+                        <span class="font-semibold text-lg w-1/2 flex-1 whitespace-nowrap">Daily Timeline</span>
+                    </div>
+                </div>
+                <div id="chart-timeline" class="mt-2" style="height: 300px;"></div>
+                <div class="hidden placeholder-container flex items-center justify-center h-full flex-col">
+                    <span class="text-md font-semibold text-gray-500 mt-4">No data</span>
+                </div>
+            </div>
         </div>
+
 
         <div class="mt-12 flex flex-col space-y-2 text-gray-300 w-full no-break">
             <div class="flex justify-start space-x-2 items-center">
@@ -378,6 +392,7 @@
     wakapiData.labels = {{ .Labels | json }}
     wakapiData.categories = {{ .Categories | json }}
     wakapiData.dailyStats = {{ .DailyStats | json }}
+    wakapiData.timeLine = {{ .TimeLine | json }}
     {{ if .IsProjectDetails }}
     wakapiData.branches = {{ .Branches | json }}
     wakapiData.entities = {{ .Entities | json }}
@@ -385,7 +400,11 @@
     wakapiData.branches = []
     wakapiData.entities = []
     {{ end }}
+
+    wakapiData.startDate = {{ .SummaryParams.From }}
+    wakapiData.endDate = {{ .SummaryParams.To }}
 </script>
+<script src="assets/vendor/echarts.min.js"></script>
 <script src="assets/js/summary.js"></script>
 {{ end }}
 

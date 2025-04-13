@@ -17,6 +17,7 @@ type SummaryViewModel struct {
 	LanguageColors      map[string]string
 	OSColors            map[string]string
 	DailyStats          []*DailyProjectsViewModel
+	TimeLine            []*TimelineViewModel
 	RawQuery            string
 	UserFirstData       time.Time
 	DataRetentionMonths int
@@ -30,6 +31,17 @@ type DailyProjectsViewModel struct {
 type DailyProjectViewModel struct {
 	Name     string        `json:"name"`
 	Duration time.Duration `json:"duration"`
+}
+
+type TimelineViewModel struct {
+	Project string          `json:"project"`
+	Items   []*TimelineItem `json:"items"`
+}
+
+type TimelineItem struct {
+	FromTime time.Time     `json:"from_time"`
+	Duration time.Duration `json:"duration"`
+	Entity   string        `json:"entity"`
 }
 
 func NewDailyProjectStats(summaries []*models.Summary) []*DailyProjectsViewModel {
@@ -46,6 +58,30 @@ func NewDailyProjectStats(summaries []*models.Summary) []*DailyProjectsViewModel
 		})
 	}
 	return dailyProjects
+}
+
+func NewTimelineViewModel(durations models.Durations) []*TimelineViewModel {
+	timeline := make([]*TimelineViewModel, 0)
+	// Group by project
+	for _, duration := range durations {
+		project := duration.Project
+		timelineItem := &TimelineItem{
+			FromTime: duration.Time.T(),
+			Duration: duration.Duration,
+			Entity:   duration.Entity,
+		}
+		if lst, ok := slice.FindBy(timeline, func(index int, curTimeline *TimelineViewModel) (bool) {
+			return curTimeline.Project == project
+		}); ok {
+			lst.Items = append(lst.Items, timelineItem)
+		} else {
+			timeline = append(timeline, &TimelineViewModel{
+				Project: project,
+				Items:   []*TimelineItem{timelineItem},
+			})
+		}
+	}
+	return timeline
 }
 
 func (s SummaryViewModel) UserDataExpiring() bool {

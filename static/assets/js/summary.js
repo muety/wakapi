@@ -16,6 +16,7 @@ const branchesCanvas = document.getElementById('chart-branches')
 const entitiesCanvas = document.getElementById('chart-entities')
 const categoriesCanvas = document.getElementById('chart-categories')
 const dailyCanvas = document.getElementById('chart-daily-projects')
+const timelineCanvas = document.getElementById('chart-timeline')
 
 const projectContainer = document.getElementById('project-container')
 const osContainer = document.getElementById('os-container')
@@ -27,10 +28,11 @@ const branchContainer = document.getElementById('branch-container')
 const entityContainer = document.getElementById('entity-container')
 const categoryContainer = document.getElementById('category-container')
 const dailyContainer = document.getElementById('daily-container')
+const timelineContainer = document.getElementById('timeline-container')
 
-const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer, categoryContainer, dailyContainer]
-const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas, categoriesCanvas, dailyCanvas]
-const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches, wakapiData.entities, wakapiData.categories, wakapiData.dailyStats]
+const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer, categoryContainer, dailyContainer, timelineContainer]
+const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas, categoriesCanvas, dailyCanvas, timelineCanvas]
+const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches, wakapiData.entities, wakapiData.categories, wakapiData.dailyStats, wakapiData.timeLine]
 
 let topNPickers = [...document.getElementsByClassName('top-picker')]
 topNPickers.sort(((a, b) => parseInt(a.attributes['data-entity'].value) - parseInt(b.attributes['data-entity'].value)))
@@ -530,6 +532,100 @@ function draw(subselection) {
         })
         : null
 
+    var timelineChart = null
+    if (timelineCanvas && !timelineCanvas.classList.contains('hidden') && shouldUpdate(10)) {
+        if (!charts[10]) {
+            timelineChart = echarts.init(timelineCanvas)
+            window.addEventListener('resize', timelineChart.resize);
+        } else {
+            timelineChart = charts[10]
+        }
+        timelineChart.setOption({
+            tooltip: {
+                formatter: function (params) {
+                    return params.marker + params.name + ': ' + params.value[3].toString().toHHMMSS() + ' s';
+                }
+            },
+            dataZoom: [
+                {
+                    type: 'slider',
+                    filterMode: 'weakFilter',
+                    labelFormatter: val => new Date(val).toLocaleString(),
+                },
+                {
+                    type: 'inside',
+                    filterMode: 'weakFilter'
+                }
+            ],
+            grid: {
+                containLabel: true,
+                height: '60%',
+            },
+            xAxis: {
+                min: +new Date(wakapiData.startDate),
+                max: +new Date(wakapiData.endDate),
+                scale: true,
+                axisLabel: {
+                    formatter: val => new Date(val).toLocaleString(),
+                }
+            },
+            yAxis: {
+                data: wakapiData.timeLine.map(e => e.project),
+            },
+            series: [
+                {
+                    type: 'custom',
+                    renderItem: function (params, api) {
+                        var categoryIndex = api.value(0);
+                        var start = api.coord([api.value(1), categoryIndex]);
+                        var end = api.coord([api.value(2), categoryIndex]);
+                        var height = api.size([0, 1])[1] * 0.6;
+
+                        var rectShape = echarts.graphic.clipRectByRect({
+                            x: start[0],
+                            y: start[1] - height / 2,
+                            width: end[0] - start[0],
+                            height: height
+                        }, {
+                            x: params.coordSys.x,
+                            y: params.coordSys.y,
+                            width: params.coordSys.width,
+                            height: params.coordSys.height
+                        });
+
+                        return rectShape && {
+                            type: 'rect',
+                            shape: rectShape,
+                            style: api.style()
+                        };
+                    },
+                    itemStyle: {
+                        opacity: 0.8
+                    },
+                    encode: {
+                        x: [1, 2],
+                        y: 0
+                    },
+                    data: wakapiData.timeLine.flatMap((project, index) => {
+                        return project.items.map((item) => {
+                            const start = new Date(item.from_time)
+                            const duration = item.duration
+                            const end = new Date(start)
+                            end.setSeconds(end.getSeconds() + (duration / 1e9))
+                            return {
+                                name: item.entity,
+                                value: [index, +start, +end, duration / 1e9],
+                                itemStyle: {
+                                    color: vibrantColors ? getRandomColor(project) : getColor(project, index % baseColors.length)
+                                },
+                            }
+                        })
+                    }),
+                }
+            ]
+        })
+    }
+
     charts[0] = projectChart ? projectChart : charts[0]
     charts[1] = osChart ? osChart : charts[1]
     charts[2] = editorChart ? editorChart : charts[2]
@@ -540,6 +636,7 @@ function draw(subselection) {
     charts[7] = entityChart ? entityChart : charts[7]
     charts[8] = categoryChart ? categoryChart : charts[8]
     charts[9] = dailyChart ? dailyChart : charts[9]
+    charts[10] = timelineChart ? timelineChart : charts[10]
 }
 
 function parseTopN() {
@@ -564,7 +661,7 @@ function togglePlaceholders(mask) {
 }
 
 function getPresentDataMask() {
-    return data.map(list => (list ? list.reduce((acc, e) => acc + (e.total ? e.total : (e.projects ? e.projects.reduce((acc, f) => acc + f.duration, 0) : 0)), 0) : 0) > 0)
+    return data.map(list => (list ? list.reduce((acc, e) => acc + (e.total ? e.total : ((e.projects || e.items) ? (e.projects || e.items).reduce((acc, f) => acc + f.duration, 0) : 0)), 0) : 0) > 0)
 }
 
 function getColor(seed, index) {
@@ -608,10 +705,10 @@ function extractFile(filePath) {
 }
 
 function updateNumTotal() {
-    // Why length - 1:
-    //  We don't have a 'topN' for the DailyProjectStats
+    // Why length - 2:
+    //  We don't have a 'topN' for the DailyProjectStats & Timeline
     //  So there isn't a input for it.
-    for (let i = 0; i < data.length - 1; i++) {
+    for (let i = 0; i < data.length - 2; i++) {
         document.querySelector(`span[data-entity='${i}']`).innerText = data[i].length.toString()
     }
 }
