@@ -19,20 +19,23 @@ import (
 const (
 	dailyStatsMinRangeDays = 3
 	dailyStatsMaxRangeDays = 31
+	timeLineChartMaxRangeDays = 7
 )
 
 type SummaryHandler struct {
 	config       *conf.Config
 	userSrvc     services.IUserService
 	summarySrvc  services.ISummaryService
+	durationSrvc services.IDurationService
 	keyValueSrvc services.IKeyValueService
 }
 
-func NewSummaryHandler(summaryService services.ISummaryService, userService services.IUserService, keyValueService services.IKeyValueService) *SummaryHandler {
+func NewSummaryHandler(summaryService services.ISummaryService, userService services.IUserService, keyValueService services.IKeyValueService, durationService services.IDurationService) *SummaryHandler {
 	return &SummaryHandler{
 		summarySrvc:  summaryService,
 		userSrvc:     userService,
 		keyValueSrvc: keyValueService,
+		durationSrvc: durationService,
 		config:       conf.Get(),
 	}
 }
@@ -103,6 +106,16 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	var timeLineChart []*view.TimelineViewModel
+	if rangeDays := summaryParams.RangeDays(); rangeDays <= timeLineChartMaxRangeDays {
+		timeLineChartSummaries, err := h.durationSrvc.Get(summaryParams.From, summaryParams.To, summaryParams.User, summaryParams.Filters, nil, false)
+		if err != nil {
+			conf.Log().Request(r).Error("failed to load timeline chart", "error", err)
+		} else {
+			timeLineChart = view.NewTimelineViewModel(timeLineChartSummaries)
+		}
+	}
+
 	vm := view.SummaryViewModel{
 		SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 			SharedViewModel: view.NewSharedViewModel(h.config, nil),
@@ -117,6 +130,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		UserFirstData:       firstData,
 		DataRetentionMonths: h.config.App.DataRetentionMonths,
 		DailyStats:          dailyStats,
+		TimeLine:            timeLineChart,
 	}
 
 	templates[conf.SummaryTemplate].Execute(w, vm)

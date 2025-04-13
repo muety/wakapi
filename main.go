@@ -231,7 +231,7 @@ func main() {
 	shieldV1BadgeHandler := shieldsV1Routes.NewBadgeHandler(summaryService, userService)
 
 	// MVC Handlers
-	summaryHandler := routes.NewSummaryHandler(summaryService, userService, keyValueService)
+	summaryHandler := routes.NewSummaryHandler(summaryService, userService, keyValueService, durationService)
 	settingsHandler := routes.NewSettingsHandler(userService, heartbeatService, summaryService, aliasService, aggregationService, languageMappingService, projectLabelService, keyValueService, mailService)
 	subscriptionHandler := routes.NewSubscriptionHandler(userService, mailService, keyValueService)
 	projectsHandler := routes.NewProjectsHandler(userService, heartbeatService)
