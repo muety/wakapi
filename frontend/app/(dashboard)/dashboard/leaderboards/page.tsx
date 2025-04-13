@@ -11,6 +11,13 @@ export default async function Leaderboards({
   const url = `/v1/leaders?${queryParams.toString()}`;
   const durationData = await ApiClient.GET<LeaderboardApiResponse>(url, {
     skipAuth: true,
+    headers: {
+      "Cache-Control": "max-age=3600",
+    },
+    cache: "default",
+    next: {
+      revalidate: 3600,
+    },
   });
 
   if (!durationData.success) {

@@ -69,7 +69,7 @@ function RenderLanguages({ languages }: { languages: string[] }) {
 function rowMapper(dataItem: DataItem, index: number) {
   return {
     rank: index + 1,
-    programmer: dataItem.user.full_name || "Anonymous User",
+    programmer: dataItem.user.display_name || "Anonymous User",
     hours_coded: dataItem.running_total.human_readable_total,
     daily_average: dataItem.running_total.human_readable_daily_average,
     languages: dataItem.running_total.languages.map((l) => l.name),

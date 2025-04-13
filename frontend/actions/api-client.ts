@@ -27,7 +27,7 @@ export async function apiRequest<ResponseData = any, RequestBody = any>(
       method = "GET",
       body,
       headers = {},
-      cache,
+      cache = "no-cache",
       next,
       skipAuth = false,
     } = options || {};

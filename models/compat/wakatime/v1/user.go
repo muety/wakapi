@@ -48,15 +48,27 @@ func NewFromUser(user *models.User) *User {
 		avatarURL = fmt.Sprintf("%s%s/%s", cfg.Server.GetPublicUrl(), cfg.Server.BasePath, avatarURL)
 	}
 
+	var Email string
+	var DisplayName = "Anonymous User"
+
+	if user.ShowEmailInPublic {
+		Email = user.Email
+	}
+
+	if user.Name != "" {
+		DisplayName = user.Name
+	}
+
 	return &User{
-		ID:          user.ID,
-		DisplayName: user.ID,
-		Email:       user.Email,
-		TimeZone:    tz,
-		Username:    user.ID,
-		CreatedAt:   user.CreatedAt,
-		ModifiedAt:  user.CreatedAt,
-		Photo:       avatarURL,
+		ID:            user.ID,
+		DisplayName:   DisplayName,
+		Email:         Email,
+		TimeZone:      tz,
+		Username:      user.ID,
+		CreatedAt:     user.CreatedAt,
+		ModifiedAt:    user.CreatedAt,
+		Photo:         avatarURL,
+		IsEmailPublic: user.ShowEmailInPublic,
 	}
 }
 
