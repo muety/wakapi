@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 import { fetchData } from "@/actions";
-import { Project } from "@/components/projects-table";
 import { ClientsApiResponse, ClientsTable } from "@/components/clients-table";
+import { Project } from "@/components/projects-table";
 
 export const metadata: Metadata = {
   title: "Clients",
