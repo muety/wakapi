@@ -1,6 +1,6 @@
 "use server";
 
-import { updateData } from "./api";
+import { ApiClient } from "./api";
 
 type Preference =
   | "hireable"
@@ -9,7 +9,7 @@ type Preference =
   | "heartbeats_timeout_sec";
 
 export const saveProfile = async (data: Record<string, any>) => {
-  const response = await updateData("/v1/profile", data);
+  const response = await ApiClient.PUT("/v1/profile", data);
 
   if (!response.success) {
     console.log("data", response.error);

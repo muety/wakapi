@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { LucidePlusCircle, LucideTrash2 } from "lucide-react";
 import React from "react";
 
-import { updateData } from "@/actions/api";
+import { ApiClient } from "@/actions/api";
 import { getCurrencySymbol } from "@/lib/constants/currencies";
 import { Invoice, InvoiceLineItem } from "@/lib/types";
 import { cn, formatNumber, getHours } from "@/lib/utils";
@@ -97,7 +97,7 @@ export function InvoiceManager({ data }: iProps) {
         payload.tax = +tax;
       }
       setLoading(true);
-      const response = await updateData(resourceUrl, payload);
+      const response = await ApiClient.PUT(resourceUrl, payload);
 
       if (!response.success) {
         toast({

@@ -3,7 +3,7 @@
 import { LucideSave, LucideTrash2, LucideUndo } from "lucide-react";
 import React from "react";
 
-import { deleteData, updateData } from "@/actions/api";
+import { ApiClient } from "@/actions/api";
 import { toast } from "@/components/ui/use-toast";
 import { GoalData } from "@/lib/types";
 
@@ -29,7 +29,7 @@ export function Goal({ data, onDeleteGoal }: iProps) {
     if (title !== originalText) {
       try {
         setLoading(true);
-        await updateData<any, any>(resourceUrl, {
+        await ApiClient.PUT<any, any>(resourceUrl, {
           title,
         });
         toast({
@@ -51,7 +51,7 @@ export function Goal({ data, onDeleteGoal }: iProps) {
   const deleteGoal = async () => {
     try {
       setLoading(true);
-      await deleteData(resourceUrl);
+      await ApiClient.DELETE(resourceUrl);
       toast({
         title: "Deleted",
         description: `Goal with title: ${title} - deleted`,

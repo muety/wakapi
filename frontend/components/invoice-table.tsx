@@ -18,7 +18,7 @@ import { LucidePlus } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
-import { deleteData } from "@/actions/api";
+import { ApiClient } from "@/actions/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -64,7 +64,7 @@ export function InvoicesTable({
       const resourceUrl = `/v1/users/current/invoices/${deleting.id}`;
 
       setLoading(true);
-      const response = await deleteData(resourceUrl);
+      const response = await ApiClient.DELETE(resourceUrl);
 
       if (!response.success) {
         toast({

@@ -15,7 +15,7 @@ import {
 } from "@tanstack/react-table";
 import * as React from "react";
 
-import { deleteData } from "@/actions/api";
+import { ApiClient } from "@/actions/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -77,7 +77,7 @@ export function ClientsTable({
       const resourceUrl = `/v1/users/current/clients/${deleting.id}`;
 
       setLoading(true);
-      const response = await deleteData(resourceUrl);
+      const response = await ApiClient.DELETE(resourceUrl);
 
       if (!response.success) {
         toast({
