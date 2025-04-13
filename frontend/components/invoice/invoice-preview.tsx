@@ -76,7 +76,7 @@ export function InvoicePreview({ data, onTogglePreview }: iProps) {
                 <h1 className="font-bold">Date: </h1>
               </div>
               <div>
-                <p>{data.id.slice(0, 9)}</p>
+                <p>{data.invoice_id}</p>
                 <p>{format(data.created_at, "MMM dd, yyyy")}</p>
               </div>
             </div>

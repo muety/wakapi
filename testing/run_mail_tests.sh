@@ -15,4 +15,4 @@ docker run -d --rm -p 2525:25 -p 8080:80 --name smtp4dev_wakapi rnwood/smtp4dev
 
 echo "Running tests ..."
 script_dir=$(dirname "${BASH_SOURCE[0]}")
-go test -count=1 -run TestSmtpTestSuite "$script_dir/../services/mail"
+go test -count=1 -run TestSmtpTestSuite "$script_dir/../internal/mail"

@@ -3,12 +3,14 @@ package services
 import (
 	"errors"
 	"fmt"
+	"sync"
+
 	"github.com/becheran/wildmatch-go"
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
-	"sync"
+	"gorm.io/gorm"
 )
 
 type AliasService struct {
@@ -16,7 +18,15 @@ type AliasService struct {
 	repository repositories.IAliasRepository
 }
 
-func NewAliasService(aliasRepo repositories.IAliasRepository) *AliasService {
+func NewAliasService(db *gorm.DB) *AliasService {
+	aliasRepository := repositories.NewAliasRepository(db)
+	return &AliasService{
+		config:     config.Get(),
+		repository: aliasRepository,
+	}
+}
+
+func NewTestAliasService(aliasRepo repositories.IAliasRepository) *AliasService {
 	return &AliasService{
 		config:     config.Get(),
 		repository: aliasRepo,

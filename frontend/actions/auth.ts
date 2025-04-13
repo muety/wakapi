@@ -11,7 +11,7 @@ import {
   userNameSchema,
 } from "@/lib/validations/user";
 
-const { NEXT_PUBLIC_API_URL } = process.env;
+import { ApiClient } from "./api";
 
 export async function loginAction(_: any, formData: FormData): Promise<any> {
   const validatedFields = userNameSchema.safeParse({
@@ -106,19 +106,13 @@ export async function forgotPasswordAction(
 export async function processForgotPassword({ email }: { email: string }) {
   let redirectPath = null;
   try {
-    const apiResponse = await fetch(
-      `${NEXT_PUBLIC_API_URL}/api/auth/forgot-password`,
-      {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      }
+    const apiResponse = await ApiClient.POST(
+      "/v1/auth/forgot-password",
+      { email },
+      { skipAuth: true }
     );
 
-    const json = (await apiResponse.json()) as {
+    const json = apiResponse.data as {
       data: SessionData;
       status?: number;
       message?: string;
@@ -126,7 +120,7 @@ export async function processForgotPassword({ email }: { email: string }) {
 
     console.log("json", json);
 
-    if (apiResponse.status > 202) {
+    if (!apiResponse.success) {
       return {
         message: {
           description: json.message || "Unexpected error logging in",
@@ -163,25 +157,21 @@ export async function processEmailLogin(credentials: {
 }) {
   const redirectPath = null;
   try {
-    const apiResponse = await fetch(
-      `${NEXT_PUBLIC_API_URL}/api/auth/otp/create`,
+    const apiResponse = await ApiClient.POST(
+      "/v1/auth/otp/create",
+      credentials,
       {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(credentials),
+        skipAuth: true,
       }
     );
 
-    const json = (await apiResponse.json()) as {
+    const json = apiResponse.data as {
       data: SessionData;
       status?: number;
       message?: string;
     };
 
-    if (apiResponse.status > 202) {
+    if (!apiResponse.success) {
       return {
         message: {
           description: json.message || "Unexpected error logging in",
@@ -222,22 +212,17 @@ export async function processLogin(credentials: {
 }) {
   let redirectPath = null;
   try {
-    const apiResponse = await fetch(`${NEXT_PUBLIC_API_URL}/api/auth/login`, {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify(credentials),
+    const apiResponse = await ApiClient.POST("/v1/auth/login", credentials, {
+      skipAuth: true,
     });
 
-    const json = (await apiResponse.json()) as {
+    const json = apiResponse.data as {
       data: SessionData;
       status?: number;
       message?: string;
     };
 
-    if (apiResponse.status > 202) {
+    if (!apiResponse.success) {
       return {
         message: {
           description: json.message || "Unexpected error logging in",
@@ -273,25 +258,21 @@ export async function processLoginWithOTP(credentials: {
   console.log("credentials", credentials);
   let redirectPath = null;
   try {
-    const apiResponse = await fetch(
-      `${NEXT_PUBLIC_API_URL}/api/auth/otp/verify`,
+    const apiResponse = await ApiClient.POST(
+      "/v1/auth/otp/verify",
+      credentials,
       {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(credentials),
+        skipAuth: true,
       }
     );
 
-    const json = (await apiResponse.json()) as {
+    const json = apiResponse.data as {
       data: SessionData;
       status?: number;
       message?: string;
     };
 
-    if (apiResponse.status > 202) {
+    if (!apiResponse.success) {
       return {
         message: {
           description: json.message || "Unexpected error logging in",

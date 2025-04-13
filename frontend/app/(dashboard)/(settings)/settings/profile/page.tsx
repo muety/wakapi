@@ -10,7 +10,7 @@ import {
 import { UserProfile } from "@/lib/types";
 
 export default async function ProfilePage() {
-  const user = await fetchData<UserProfile>("/profile", true);
+  const user = await fetchData<UserProfile>("/v1/profile", true);
 
   return (
     <Card x-chunk="dashboard-04-chunk-1">

@@ -1,8 +1,6 @@
 "use server";
 
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
-
-import { getSession } from "./session";
+import { ApiClient } from "./api";
 
 type Preference =
   | "hireable"
@@ -11,25 +9,14 @@ type Preference =
   | "heartbeats_timeout_sec";
 
 export const saveProfile = async (data: Record<string, any>) => {
-  const session = await getSession();
-  const response = await fetch(`${NEXT_PUBLIC_API_URL}/api/profile`, {
-    method: "PUT",
-    headers: {
-      "content-type": "application/json",
-      accept: "application/json",
-      token: `${session.token}`,
-    },
-    body: JSON.stringify(data),
-  });
+  const response = await ApiClient.PUT("/v1/profile", data);
 
-  const response_data = await response.json();
-
-  if (!response.ok) {
-    console.log("data", response_data);
-    return { ok: false, data: response_data };
+  if (!response.success) {
+    console.log("data", response.error);
+    return { ok: false, data: { error: response.error } };
   }
 
-  return { ok: true, data: response_data };
+  return { ok: true, data: response.data };
 };
 
 export async function updatePreference(

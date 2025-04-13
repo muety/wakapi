@@ -2,11 +2,13 @@ package services
 
 import (
 	"errors"
+	"time"
+
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
 	"github.com/patrickmn/go-cache"
-	"time"
+	"gorm.io/gorm"
 )
 
 type LanguageMappingService struct {
@@ -15,7 +17,8 @@ type LanguageMappingService struct {
 	repository repositories.ILanguageMappingRepository
 }
 
-func NewLanguageMappingService(languageMappingsRepo repositories.ILanguageMappingRepository) *LanguageMappingService {
+func NewLanguageMappingService(db *gorm.DB) *LanguageMappingService {
+	languageMappingsRepo := repositories.NewLanguageMappingRepository(db)
 	return &LanguageMappingService{
 		config:     config.Get(),
 		repository: languageMappingsRepo,

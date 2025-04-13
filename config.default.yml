@@ -4,14 +4,14 @@ skip_migrations: false # whether to intentionally not run database migrations, o
 enable_pprof: false # whether to expose pprof (https://pkg.go.dev/runtime/pprof) profiling data as an endpoint for debugging
 
 server:
-  listen_ipv4: 127.0.0.1 # set to '-' to disable ipv4
+  listen_ipv4: 0.0.0.0 # set to '-' to disable ipv4
   listen_ipv6: ::1 # set to '-' to disable ipv6
   listen_socket: # set to '-' to disable unix sockets
   listen_socket_mode: 0666 # permission mode to create unix socket with
   timeout_sec: 30 # request timeout
   tls_cert_path: # leave blank to not use https
   tls_key_path: # leave blank to not use https
-  port: 3000
+  port: 3003
   base_path: /
   public_url: http://localhost:3000 # required for links (e.g. password reset) in e-mail
 

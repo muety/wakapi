@@ -17,7 +17,7 @@ import { UserProfile } from "@/lib/types";
 
 export default async function Page() {
   const session = await getSession();
-  const user = await fetchData<UserProfile>("/profile", true);
+  const user = await fetchData<UserProfile>("/v1/profile");
 
   return (
     <div className="grid gap-6">
@@ -30,7 +30,7 @@ export default async function Page() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ApiKeyCopier token={session.token} />
+          <ApiKeyCopier />
         </CardContent>
       </Card>
       <Card x-chunk="dashboard-04-chunk-2">
@@ -43,7 +43,7 @@ export default async function Page() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <WakatimeIntegration token={session.token} />
+          <WakatimeIntegration />
         </CardContent>
         <p></p>
         {session.user.has_wakatime_integration && (
@@ -66,10 +66,7 @@ export default async function Page() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <KeystrokeTimeout
-            initialValue={user?.heartbeats_timeout_sec}
-            token={session.token}
-          />
+          <KeystrokeTimeout initialValue={user?.heartbeats_timeout_sec} />
         </CardContent>
       </Card>
     </div>

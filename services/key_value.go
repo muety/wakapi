@@ -4,6 +4,7 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
+	"gorm.io/gorm"
 )
 
 type KeyValueService struct {
@@ -11,7 +12,8 @@ type KeyValueService struct {
 	repository repositories.IKeyValueRepository
 }
 
-func NewKeyValueService(keyValueRepo repositories.IKeyValueRepository) *KeyValueService {
+func NewKeyValueService(db *gorm.DB) *KeyValueService {
+	keyValueRepo := repositories.NewKeyValueRepository(db)
 	return &KeyValueService{
 		config:     config.Get(),
 		repository: keyValueRepo,

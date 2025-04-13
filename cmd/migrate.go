@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/internal/api"
+	"github.com/muety/wakapi/internal/utilities"
 	"github.com/muety/wakapi/migrations"
 )
 
@@ -27,7 +27,7 @@ func init() {
 
 func runMigrations() {
 	config := conf.Load(cfgFile, "0.00.01")
-	db, err := api.InitDB(config)
+	db, _, err := utilities.InitDB(config)
 	if err != nil {
 		fmt.Println("Error connecting to database")
 		return

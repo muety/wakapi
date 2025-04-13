@@ -37,9 +37,11 @@ export default async function ProjectDetailPage({
     end = format(new Date(), "yyyy-MM-dd"),
   } = searchParams;
 
-  const url = `/compat/wakatime/v1/users/current/summaries?${new URLSearchParams(
-    { start, end, project: params.id }
-  )}`;
+  const url = `/v1/users/current/summaries?${new URLSearchParams({
+    start,
+    end,
+    project: params.id,
+  })}`;
   const durationData = await fetchData<SummariesApiResponse>(url);
   return (
     <div className="my-6">

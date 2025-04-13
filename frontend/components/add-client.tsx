@@ -3,7 +3,7 @@
 import { LucidePlus } from "lucide-react";
 import React from "react";
 
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
+import { ApiClient } from "@/actions/api";
 import { Project } from "@/lib/types";
 
 import { Client } from "./clients-table";
@@ -23,7 +23,6 @@ export interface iProps {
   onAdd: (client: any) => void;
   onEdit: (client: any) => void;
   projects: Project[];
-  token: string;
   editing: Client | null;
   open?: boolean;
   onChange: (open: boolean) => void;
@@ -31,7 +30,6 @@ export interface iProps {
 
 export function AddClient({
   projects,
-  token,
   onAdd,
   onEdit,
   editing,
@@ -51,27 +49,18 @@ export function AddClient({
 
   const updateClient = async (values: Partial<Client>, id: string) => {
     try {
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/compat/wakatime/v1/users/current/clients/${id}`;
+      const resourceUrl = `/v1/users/current/clients/${id}`;
       setLoading(true);
-      const response = await fetch(resourceUrl, {
-        method: "PUT",
-        body: JSON.stringify(values),
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          token: `${token}`,
-        },
-      });
+      const response = await ApiClient.PUT(resourceUrl, values);
 
-      if (!response.ok) {
-        const data = await response.json();
+      if (!response.success) {
         toast({
-          title: data.message || "Failed to update client",
+          title: response.error?.message || "Failed to update client",
           variant: "destructive",
         });
       } else {
         if (onEdit) {
-          const data = await response.json();
+          const data = response.data;
           onEdit(data.data);
         }
         toast({
@@ -87,26 +76,17 @@ export function AddClient({
 
   const createClient = async (values: Partial<Client>) => {
     try {
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/compat/wakatime/v1/users/current/clients`;
+      const resourceUrl = `/v1/users/current/clients`;
       setLoading(true);
-      const response = await fetch(resourceUrl, {
-        method: "POST",
-        body: JSON.stringify(values),
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          token: `${token}`,
-        },
-      });
+      const response = await ApiClient.POST(resourceUrl, values);
 
-      if (!response.ok) {
+      if (!response.success) {
         toast({
           title: "Failed to create client",
           variant: "destructive",
         });
       } else {
-        const data = await response.json();
-        onAdd(data.data);
+        onAdd(response.data.data);
         toast({
           title: "Client Created",
           variant: "success",

@@ -5,6 +5,7 @@ import "time"
 type Invoice struct {
 	ID             string            `json:"id" gorm:"primary_key"`
 	UserID         string            `json:"user_id"`
+	InvoiceID      string            `json:"invoice_id"`
 	ClientID       string            `json:"client_id"`
 	Origin         string            `json:"origin"`
 	Destination    string            `json:"destination"`

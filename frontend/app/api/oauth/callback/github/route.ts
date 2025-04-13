@@ -1,11 +1,10 @@
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 
+import { ApiClient } from "@/actions/api";
 import { getGithubConfig } from "@/lib/oauth/github";
 import { createIronSession } from "@/lib/server/auth";
 import { SessionData } from "@/lib/session/options";
-
-const { NEXT_PUBLIC_API_URL } = process.env;
 
 // validates state and code from github oauth
 export async function GET(request: NextRequest) {
@@ -49,26 +48,22 @@ export async function GET(request: NextRequest) {
 
 // throws
 async function handleGithubOauth(code: string) {
-  const apiResponse = await fetch(
-    `${NEXT_PUBLIC_API_URL}/api/auth/oauth/github`,
-    {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({ code }),
-    }
+  const apiResponse = await ApiClient.POST(
+    "/v1/auth/oauth/github",
+    { code },
+    { skipAuth: true }
   );
 
-  const json = (await apiResponse.json()) as {
+  console.log("handleGithubOauth", apiResponse);
+
+  const payload = apiResponse.data as {
     data: SessionData;
     status?: number;
   };
 
-  if (apiResponse.status > 202) {
+  if (!apiResponse.success) {
     throw new Error("Error logging in");
   }
 
-  await createIronSession(json.data);
+  await createIronSession(payload.data);
 }

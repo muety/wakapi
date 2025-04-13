@@ -11,7 +11,7 @@ interface iProps {
 
 export default async function InvoiceDetail({ params }: iProps) {
   const invoiceData = await fetchData<{ data: Invoice }>(
-    `compat/wakatime/v1/users/current/invoices/${params.id}`
+    `/v1/users/current/invoices/${params.id}`
   );
 
   if (!invoiceData || !invoiceData.data) {

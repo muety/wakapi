@@ -2,6 +2,12 @@ package services
 
 import (
 	"fmt"
+	"log/slog"
+	"reflect"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
@@ -10,11 +16,7 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
-	"log/slog"
-	"reflect"
-	"strconv"
-	"strings"
-	"time"
+	"gorm.io/gorm"
 )
 
 type LeaderboardService struct {
@@ -29,7 +31,10 @@ type LeaderboardService struct {
 	defaultScope   *models.IntervalKey
 }
 
-func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, summaryService ISummaryService, userService IUserService) *LeaderboardService {
+func NewLeaderboardService(db *gorm.DB) *LeaderboardService {
+	leaderboardRepo := repositories.NewLeaderboardRepository(db)
+	summaryService := NewSummaryService(db)
+	userService := NewUserService(db)
 	srv := &LeaderboardService{
 		config:         config.Get(),
 		cache:          cache.New(6*time.Hour, 6*time.Hour),

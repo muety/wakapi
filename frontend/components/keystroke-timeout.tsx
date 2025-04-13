@@ -10,12 +10,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { toast } from "./ui/use-toast";
 
-export function KeystrokeTimeout({
-  initialValue,
-}: {
-  token: string;
-  initialValue?: number;
-}) {
+export function KeystrokeTimeout({ initialValue }: { initialValue?: number }) {
   const [loading, setLoading] = React.useState(false);
   const [keyStrokeTimeout, setKeyStrokeTimeout] = React.useState<number>(
     initialValue || 0

@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import React from "react";
 
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
+import { ApiClient } from "@/actions/api";
 import { copyApiKeyToClickBoard } from "@/lib/utils/ui";
 
 import { Icons } from "./icons";
@@ -18,7 +18,7 @@ import { Confirm } from "./ui/confirm";
 import { Input } from "./ui/input";
 import { toast } from "./ui/use-toast";
 
-export function ApiKeyCopier({ token }: { token: string }) {
+export function ApiKeyCopier() {
   const [copied, setCopied] = React.useState(false);
   const [masked, setMasked] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
@@ -27,52 +27,43 @@ export function ApiKeyCopier({ token }: { token: string }) {
   const getApiKey = React.useCallback(async () => {
     try {
       setLoading(true);
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/auth/api-key`;
-      const response = await fetch(resourceUrl, {
-        method: "GET",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          token: `${token}`,
-        },
-      });
+      const response = await ApiClient.GET<{ apiKey: string }>(
+        "/v1/auth/api-key"
+      );
 
-      if (!response.ok) {
+      if (!response.success) {
         toast({
           title: "Failed to fetch api key",
           variant: "destructive",
         });
       } else {
-        const data = await response.json();
+        const data = response.data;
         setApiKey(data.apiKey);
       }
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, []);
 
   const refreshApiKey = async () => {
     try {
       setLoading(true);
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/auth/api-key/refresh`;
-      const response = await fetch(resourceUrl, {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          token: `${token}`,
-        },
-      });
+      const resourceUrl = `/v1/auth/api-key/refresh`;
+      const response = await ApiClient.POST<{ apiKey: string }>(
+        resourceUrl,
+        {}
+      );
 
-      if (!response.ok) {
+      console.log("REFRESH RESPONSE");
+
+      if (!response.success) {
         toast({
           title: "Failed to refresh api key",
           variant: "destructive",
         });
       } else {
-        const data = await response.json();
         setMasked(false);
-        setApiKey(data.apiKey);
+        setApiKey(response.data.apiKey);
         toast({
           title: "Api key refreshed",
           description: `Api key refreshed. Copy and use this api key to use in your IDE.`,

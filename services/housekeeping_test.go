@@ -1,12 +1,13 @@
 package services
 
 import (
+	"testing"
+	"time"
+
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"testing"
-	"time"
 )
 
 type HousekeepingServiceTestSuite struct {
@@ -36,7 +37,7 @@ func TestHouseKeepingServiceTestSuite(t *testing.T) {
 }
 
 func (suite *HousekeepingServiceTestSuite) TestHousekeepingService_CleanInactiveUsers() {
-	sut := NewHousekeepingService(suite.UserService, suite.HeartbeatService, suite.SummaryService)
+	sut := NewTestHousekeepingService(suite.UserService, suite.HeartbeatService, suite.SummaryService)
 
 	suite.UserService.On("GetAll").Return(suite.TestUsers, nil)
 	suite.UserService.On("Delete", suite.TestUsers[0]).Return(nil)

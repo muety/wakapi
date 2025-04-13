@@ -18,6 +18,7 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
+	"gorm.io/gorm"
 )
 
 const (
@@ -39,7 +40,8 @@ type ActivityService struct {
 	summaryService ISummaryService
 }
 
-func NewActivityService(summaryService ISummaryService) *ActivityService {
+func NewActivityService(db *gorm.DB) *ActivityService {
+	summaryService := NewSummaryService(db)
 	return &ActivityService{
 		config:         config.Get(),
 		cache:          cache.New(6*time.Hour, 6*time.Hour),
