@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useState } from "react";
 import {
@@ -73,6 +74,7 @@ export interface iProps {
 }
 
 export function DailyCodingSummaryOverTimeComponent({ data }: iProps) {
+  const router = useRouter();
   const { theme } = useTheme();
   const lineColor = theme === "dark" ? "#ffffff" : "#000";
   // Resolve whatever fuckery is afoot here.
@@ -88,6 +90,9 @@ export function DailyCodingSummaryOverTimeComponent({ data }: iProps) {
     }),
     {}
   );
+
+  const handleBarClick = (barData: any) =>
+    router.push(`/dashboard/day/${barData.date}`);
 
   const [focusDataIndex, setFocusDataIndex] = useState<number | null>(null);
   return (
@@ -137,6 +142,7 @@ export function DailyCodingSummaryOverTimeComponent({ data }: iProps) {
               }
             }}
             onMouseLeave={() => setFocusDataIndex(null)}
+            onClick={handleBarClick}
           />
         ))}
         <Line

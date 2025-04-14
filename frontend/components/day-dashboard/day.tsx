@@ -3,7 +3,9 @@
 import { Group } from "@visx/group";
 import { scaleLinear, scaleTime } from "@visx/scale";
 import { Bar, Line } from "@visx/shape";
+import { addDays, format, isAfter, isToday, subDays } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import type React from "react";
 import { useMemo } from "react";
 
@@ -44,6 +46,74 @@ interface TimeTrackingProps {
 const defaultMargin = { top: 140, right: 40, bottom: 40, left: 220 };
 const ROW_HEIGHT = 50;
 const LANE_HEIGHT = 25;
+
+interface DateNavigationProps {
+  data: RawData;
+  totalTime: number;
+}
+
+export function DayHeader({ data, totalTime }: DateNavigationProps) {
+  const router = useRouter();
+
+  const totalHours = Math.floor(totalTime / 3600);
+  const totalMinutes = Math.floor((totalTime % 3600) / 60);
+
+  const currentDate = new Date(data.start);
+  const formattedDate = currentDate.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const DATE_FORMAT = "yyyy-MM-dd";
+
+  const gotoPreviousDay = () => {
+    router.push(
+      `/dashboard/day/${format(subDays(currentDate, 1), DATE_FORMAT)}`
+    );
+  };
+
+  const onCurrentDay = isToday(currentDate);
+
+  const gotoNextDay = () => {
+    if (onCurrentDay) return;
+
+    const nextDate = addDays(currentDate, 1);
+    router.push(`/dashboard/day/${format(nextDate, DATE_FORMAT)}`);
+  };
+
+  return (
+    <div className="flex items-center justify-center p-6 w-full">
+      <button
+        onClick={gotoPreviousDay}
+        className="flex items-center justify-start w-12 h-12 rounded-full border border-blue-500/50 hover:bg-blue-500/10 transition-all"
+        aria-label="Previous day"
+      >
+        <ChevronLeft className="w-10 h-10 text-blue-500 hover:text-blue-400 transition-colors" />
+      </button>
+
+      <div className="flex items-center mx-5">
+        <span className="text-4xl font-bold text-white mr-3">
+          {totalHours} hrs {totalMinutes} mins
+        </span>
+        <span className="text-2xl text-gray-400 mr-3">on</span>
+        <span className="text-3xl text-blue-500 border-b border-dashed border-blue-500">
+          {formattedDate}
+        </span>
+      </div>
+
+      <button
+        onClick={gotoNextDay}
+        className="flex items-center justify-end w-12 h-12 rounded-full border border-blue-500/50 hover:bg-blue-500/10 transition-all"
+        aria-label="Next day"
+        disabled={onCurrentDay}
+      >
+        <ChevronRight className="w-10 h-10 text-blue-500 hover:text-blue-400 transition-colors" />
+      </button>
+    </div>
+  );
+}
 
 const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
   width,
@@ -105,17 +175,6 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
     return `${hours}:${minutes.toString().padStart(2, "0")}`;
   };
 
-  const totalHours = Math.floor(totalTime / 3600);
-  const totalMinutes = Math.floor((totalTime % 3600) / 60);
-
-  const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-
   const getHourLabel = (date: Date) => {
     const hour = date.getHours();
     if (hour === 0) return "12a";
@@ -125,20 +184,7 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
 
   return (
     <div className="relative bg-[rgb(18,18,18)] rounded-xl p-4">
-      {/* Header */}
-      <div className="absolute top-4 left-0 right-0 flex items-center justify-center gap-3 px-4">
-        <ChevronLeft className="w-5 h-5 text-[#3b82f6] cursor-pointer hover:text-white" />
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-medium text-white">
-            {totalHours} hrs {totalMinutes} mins
-          </span>
-          <span className="text-xl text-[#3b82f6]">on</span>
-          <span className="text-xl text-[#3b82f6] border-b border-dashed border-[#3b82f6]">
-            {formattedDate}
-          </span>
-        </div>
-        <ChevronRight className="w-5 h-5 text-[#3b82f6] cursor-pointer hover:text-white" />
-      </div>
+      <DayHeader data={rawData} totalTime={totalTime} />
 
       <svg width={width} height={calculatedHeight}>
         {/* Surrounding box lines */}

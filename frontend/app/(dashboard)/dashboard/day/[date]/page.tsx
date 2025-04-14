@@ -1,7 +1,6 @@
-import TimeTrackingVisualization from "@/components/day-dashboard/day";
-
-import { DurationData } from "@/lib/types";
 import { fetchData } from "@/actions/data-fetching";
+import TimeTrackingVisualization from "@/components/day-dashboard/day";
+import { DurationData } from "@/lib/types";
 
 interface iProps {
   params: { date: string };
@@ -9,7 +8,7 @@ interface iProps {
 
 export default async function DayPage({ params: { date } }: iProps) {
   console.log("date");
-  const url = `/v1/users/current/summaries?${new URLSearchParams({
+  const url = `/v1/users/current/durations?${new URLSearchParams({
     date,
   })}`;
   const durationData = await fetchData<DurationData>(url);
