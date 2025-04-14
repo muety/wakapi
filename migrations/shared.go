@@ -1,10 +1,11 @@
 package migrations
 
 import (
+	"log/slog"
+
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
 	"gorm.io/gorm"
-	"log/slog"
 )
 
 func hasRun(name string, db *gorm.DB) bool {

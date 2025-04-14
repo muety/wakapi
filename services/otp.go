@@ -7,26 +7,31 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"math/rand"
 	"net/http"
 	"strings"
 	"time"
 
+	netMail "net/mail"
+
 	"github.com/google/uuid"
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
+	"github.com/muety/wakapi/internal/mail"
 	"github.com/muety/wakapi/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
-// OTPService handles OTP-related operations
-
 type OTPService struct {
-	db *gorm.DB
+	db          *gorm.DB
+	mailService mail.IMailService
 }
 
-func NewOTPService(db *gorm.DB) *OTPService {
-	return &OTPService{db: db}
+func NewOTPService(db *gorm.DB) IOTPService {
+	mailService := mail.NewMailService()
+	return &OTPService{db: db, mailService: mailService}
 }
 
 func GenerateOTPHash() (string, string, error) {
@@ -64,41 +69,36 @@ func (s *OTPService) getUser(email string) (*models.User, error) {
 }
 
 // getOrCreateUser retrieves existing user or creates new one
-func (s *OTPService) getOrCreateUser(email string) (*models.User, error) {
+func (s *OTPService) getOrCreateUser(email string) (*models.User, error, bool) {
 
 	existingUser, err := s.getUser(email)
 
-	if err == nil {
-		return existingUser, nil
+	if err == nil && existingUser != nil && existingUser.ID != "" {
+		return existingUser, nil, false
 	}
 
-	var user models.User
-	// Create new user with UUID
-	user = models.User{
-		ID:    uuid.New().String(), // Ensure you import "github.com/google/uuid"
-		Email: email,
+	user := models.User{
+		ID:            uuid.New().String(), // Ensure you import "github.com/google/uuid"
+		ApiKey:        uuid.New().String(),
+		Email:         email,
+		EmailVerified: true,
 	}
 
-	if err := s.db.Create(&user).Error; err != nil {
-		return nil, err
+	result := s.db.Create(&user)
+	if result.Error != nil {
+		return nil, result.Error, false
 	}
 
-	return &user, nil
+	return &user, nil, true
 }
 
 // CreateOTP creates a new OTP for a user
 func (s *OTPService) CreateOTP(otpRequest models.InitiateOTPRequest) (*models.CreateOTPResponse, error) {
-	// Get or create user
-	_, err := s.getOrCreateUser(otpRequest.Email)
-	if err != nil {
-		return nil, fmt.Errorf("failed to process user: %w", err)
-	}
-
 	// Check for existing non-expired OTP
 	var existingOTP models.OTP
 	now := time.Now().Unix()
 
-	err = s.db.Where("email = ? AND expires_in > ? AND used = ?",
+	err := s.db.Where("email = ? AND expires_in > ? AND used = ?",
 		otpRequest.Email, now, false).First(&existingOTP).Error
 
 	if err == nil {
@@ -120,11 +120,12 @@ func (s *OTPService) CreateOTP(otpRequest models.InitiateOTPRequest) (*models.Cr
 	}
 
 	// Create new OTP instance
+	expiryTime := time.Now().Add(3 * time.Minute)
 	otp := models.OTP{
 		Email:           otpRequest.Email,
 		CodeChallenge:   otpRequest.CodeChallenge,
 		ChallengeMethod: otpRequest.ChallengeMethod,
-		ExpiresIn:       time.Now().Add(3 * time.Minute).Unix(),
+		ExpiresIn:       expiryTime.Unix(),
 		Used:            false,
 		OTPHash:         otpHash,
 	}
@@ -133,10 +134,21 @@ func (s *OTPService) CreateOTP(otpRequest models.InitiateOTPRequest) (*models.Cr
 		return nil, err
 	}
 
-	// invalidate existing OTPs for the same user
+	if err := s.mailService.SendLoginOtp(otpRequest.Email, otpText, expiryTime); err != nil {
+		slog.Error("failed to send OTP email", "userID", otpRequest.Email, "error", err.Error())
 
-	// send OTP via email
-	fmt.Println("Sending OTP:", otpText)
+		if !config.Get().IsDev() {
+			fmt.Println("Login OTP: " + otpText)
+			return &models.CreateOTPResponse{
+				Message: "Failed to send otp email",
+				Success: false,
+			}, err
+		}
+	}
+
+	if !config.Get().IsDev() {
+		fmt.Println("Login OTP: " + otpText)
+	}
 
 	return &models.CreateOTPResponse{
 		Message: "OTP created successfully",
@@ -166,12 +178,13 @@ func (s *OTPService) VerifyOTP(validateOtpRequest models.ValidateOTPRequest) (*m
 	var user = &models.User{}
 	now := time.Now().Unix()
 
-	user, err := s.getUser(validateOtpRequest.Email)
+	user, err, new_user := s.getOrCreateUser(validateOtpRequest.Email)
 
 	if err != nil {
 		return &models.VerifyOTPResponse{
-			Message: "Invalid or expired OTP",
-			Valid:   false,
+			Message:   "Invalid or expired OTP",
+			Valid:     false,
+			IsNewUser: new_user,
 		}, nil //intentionally vague
 	}
 
@@ -182,8 +195,9 @@ func (s *OTPService) VerifyOTP(validateOtpRequest models.ValidateOTPRequest) (*m
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &models.VerifyOTPResponse{
-				Message: "Invalid or expired OTP",
-				Valid:   false,
+				Message:   "Invalid or expired OTP",
+				Valid:     false,
+				IsNewUser: new_user,
 			}, nil
 		}
 		return nil, err
@@ -193,16 +207,18 @@ func (s *OTPService) VerifyOTP(validateOtpRequest models.ValidateOTPRequest) (*m
 	err = bcrypt.CompareHashAndPassword([]byte(otp.OTPHash), []byte(validateOtpRequest.OTP))
 	if err != nil {
 		return &models.VerifyOTPResponse{
-			Message: "Invalid OTP",
-			Valid:   false,
+			Message:   "Invalid OTP",
+			Valid:     false,
+			IsNewUser: new_user,
 		}, nil
 	}
 
 	// Verify PKCE challenge
 	if !verifyPKCEChallenge(validateOtpRequest.CodeVerifier, otp.CodeChallenge, otp.ChallengeMethod) {
 		return &models.VerifyOTPResponse{
-			Message: "Invalid PKCE challenge",
-			Valid:   false,
+			Message:   "Invalid PKCE challenge",
+			Valid:     false,
+			IsNewUser: new_user,
 		}, nil
 	}
 
@@ -213,14 +229,23 @@ func (s *OTPService) VerifyOTP(validateOtpRequest models.ValidateOTPRequest) (*m
 	}
 
 	return &models.VerifyOTPResponse{
-		Message: "OTP verified successfully",
-		Valid:   true,
-		User:    user,
+		Message:   "OTP verified successfully",
+		Valid:     true,
+		User:      user,
+		IsNewUser: new_user,
 	}, nil
 }
 
+func NormalizeEmail(email string) (string, error) {
+	parsed, err := netMail.ParseAddress(strings.TrimSpace(email))
+	if err != nil {
+		return "", err
+	}
+	return strings.ToLower(parsed.Address), nil
+}
+
 // HTTP Handlers
-func CreateOTPHandler(service *OTPService) http.HandlerFunc {
+func CreateOTPHandler(service IOTPService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var otpRequest models.InitiateOTPRequest
 		if err := json.NewDecoder(r.Body).Decode(&otpRequest); err != nil {
@@ -238,6 +263,16 @@ func CreateOTPHandler(service *OTPService) http.HandlerFunc {
 			})
 			return
 		}
+
+		normalizedEmail, err := NormalizeEmail(otpRequest.Email)
+		if err != nil {
+			helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+				"message": "Invalid email",
+				"status":  http.StatusBadRequest,
+			})
+			return
+		}
+		otpRequest.Email = normalizedEmail
 
 		if otpRequest.CodeChallenge == "" {
 			helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
@@ -279,7 +314,7 @@ func CreateOTPHandler(service *OTPService) http.HandlerFunc {
 	}
 }
 
-func VerifyOTPHandler(service *OTPService) http.HandlerFunc {
+func VerifyOTPHandler(service IOTPService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var validateOtpRequest models.ValidateOTPRequest
 		if err := json.NewDecoder(r.Body).Decode(&validateOtpRequest); err != nil {
@@ -296,6 +331,16 @@ func VerifyOTPHandler(service *OTPService) http.HandlerFunc {
 			return
 		}
 
+		normalizedEmail, err := NormalizeEmail(validateOtpRequest.Email)
+		if err != nil {
+			helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+				"message": "Invalid email",
+				"status":  http.StatusBadRequest,
+			})
+			return
+		}
+		validateOtpRequest.Email = normalizedEmail
+
 		resp, err := service.VerifyOTP(validateOtpRequest)
 		if err != nil {
 			fmt.Println("Error creating OTP", err)
@@ -306,11 +351,20 @@ func VerifyOTPHandler(service *OTPService) http.HandlerFunc {
 			return
 		}
 
+		if resp.User == nil {
+			helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
+				"message": "User not found",
+				"status":  http.StatusBadRequest,
+			})
+			return
+		}
+
 		response, err := helpers.MakeAuthSuccessResponse(
 			&helpers.AuthSuccessResponse{
 				Message:   resp.Message,
 				User:      resp.User,
 				OauthUser: nil,
+				IsNewUser: resp.IsNewUser,
 			},
 		)
 
@@ -326,4 +380,9 @@ func VerifyOTPHandler(service *OTPService) http.HandlerFunc {
 
 		helpers.RespondJSON(w, r, http.StatusCreated, response)
 	}
+}
+
+type IOTPService interface {
+	CreateOTP(otpRequest models.InitiateOTPRequest) (*models.CreateOTPResponse, error)
+	VerifyOTP(validateOtpRequest models.ValidateOTPRequest) (*models.VerifyOTPResponse, error)
 }

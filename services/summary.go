@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"log/slog"
+
 	"github.com/becheran/wildmatch-go"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/slice"
@@ -15,7 +17,7 @@ import (
 	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/repositories"
 	"github.com/patrickmn/go-cache"
-	"log/slog"
+	"gorm.io/gorm"
 )
 
 type SummaryService struct {
@@ -29,7 +31,35 @@ type SummaryService struct {
 	projectLabelService IProjectLabelService
 }
 
-func NewSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatService IHeartbeatService, durationService IDurationService, aliasService IAliasService, projectLabelService IProjectLabelService) *SummaryService {
+func NewSummaryService(db *gorm.DB) *SummaryService {
+	summaryRepository := repositories.NewSummaryRepository(db)
+	aliasService := NewAliasService(db)
+	projectLabelService := NewProjectLabelService(db)
+	heartbeatService := NewHeartbeatService(db)
+	durationService := NewDurationService(db)
+
+	srv := &SummaryService{
+		config:              config.Get(),
+		cache:               cache.New(24*time.Hour, 24*time.Hour),
+		eventBus:            config.EventBus(),
+		repository:          summaryRepository,
+		heartbeatService:    heartbeatService,
+		durationService:     durationService,
+		aliasService:        aliasService,
+		projectLabelService: projectLabelService,
+	}
+
+	sub1 := srv.eventBus.Subscribe(0, config.TopicProjectLabel)
+	go func(sub *hub.Subscription) {
+		for m := range sub.Receiver {
+			srv.invalidateUserCache(m.Fields[config.FieldUserId].(string))
+		}
+	}(&sub1)
+
+	return srv
+}
+
+func NewTestSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatService IHeartbeatService, durationService IDurationService, aliasService IAliasService, projectLabelService IProjectLabelService) *SummaryService {
 	srv := &SummaryService{
 		config:              config.Get(),
 		cache:               cache.New(24*time.Hour, 24*time.Hour),
@@ -242,6 +272,10 @@ func (srv *SummaryService) Insert(summary *models.Summary) error {
 	return srv.repository.Insert(summary)
 }
 
+func (srv *SummaryService) GetHeartbeatsWritePercentage(userID string, start time.Time, end time.Time) (float64, error) {
+	return srv.heartbeatService.GetHeartbeatsWritePercentage(userID, start, end)
+}
+
 // Private summary generation and utility methods
 
 func (srv *SummaryService) aggregateBy(durations []*models.Duration, summaryType uint8, c chan models.SummaryItemContainer) {
@@ -414,7 +448,7 @@ func (srv *SummaryService) mergeSummaryItems(existing []*models.SummaryItem, new
 
 func (srv *SummaryService) getMissingIntervals(from, to time.Time, summaries []*models.Summary, precise bool) []*models.Interval {
 	if len(summaries) == 0 {
-		return []*models.Interval{{from, to}}
+		return []*models.Interval{{Start: from, End: to}}
 	}
 
 	intervals := make([]*models.Interval, 0)

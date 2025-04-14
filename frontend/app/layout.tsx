@@ -4,12 +4,15 @@ import type { Viewport } from "next";
 import { Metadata } from "next";
 import { Inter as FontSans, Rubik } from "next/font/google";
 import localFont from "next/font/local";
+import Script from "next/script";
 
 import { TailwindIndicator } from "@/components/tailwind-indicator";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
+
+const isProduction = process.env.NEXT_PUBLIC_NODE_ENV === "production";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -34,11 +37,11 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   keywords: [
-    "Next.js",
-    "React",
-    "Tailwind CSS",
-    "Server Components",
-    "Radix UI",
+    "Wakatime",
+    "Dashboard for developers",
+    "Fitbit for developers",
+    "Observe your work in real time",
+    "View work",
   ],
   authors: [
     {
@@ -66,7 +69,7 @@ export const metadata: Metadata = {
     shortcut: "/favicon-16x16.png",
     apple: "/apple-touch-icon.png",
   },
-  manifest: `${siteConfig.url}/site.webmanifest`,
+  // manifest: `${siteConfig.url}/site.webmanifest`,
 };
 
 export const viewport: Viewport = {
@@ -94,6 +97,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <TailwindIndicator />
         </ThemeProvider>
       </body>
+      {isProduction && (
+        <Script
+          defer
+          async
+          src="https://analytics.umami.is/script.js"
+          data-website-id="56f6cf38-cc98-4b20-bc0e-c8af17a90100"
+        />
+      )}
     </html>
   );
 }

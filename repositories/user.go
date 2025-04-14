@@ -25,7 +25,7 @@ func (r *UserRepository) FindOne(attributes models.User) (*models.User, error) {
 	result := r.db.Where(&attributes).First(u)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			return nil, nil // No record found
+			return nil, result.Error // No record found
 		}
 		return nil, result.Error
 	}

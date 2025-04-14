@@ -7,6 +7,7 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/utils"
+	"gorm.io/gorm"
 )
 
 type IAggregationService interface {
@@ -48,6 +49,7 @@ type IHeartbeatService interface {
 	DeleteByUser(*models.User) error
 	DeleteByUserBefore(*models.User, time.Time) error
 	GetUserProjectStats(*models.User, time.Time, time.Time, *utils.PageParams, bool) ([]*models.ProjectStats, error)
+	GetHeartbeatsWritePercentage(userID string, start, end time.Time) (float64, error)
 }
 
 type IDiagnosticsService interface {
@@ -79,14 +81,6 @@ type IProjectLabelService interface {
 	Delete(*models.ProjectLabel) error
 }
 
-type IMailService interface {
-	SendPasswordReset(*models.User, string) error
-	SendWakatimeFailureNotification(*models.User, int) error
-	SendImportNotification(*models.User, time.Duration, int) error
-	SendReport(*models.User, *models.Report) error
-	SendSubscriptionNotification(*models.User, bool) error
-}
-
 type IDurationService interface {
 	Get(time.Time, time.Time, *models.User, *models.Filters) (models.Durations, error)
 }
@@ -99,6 +93,7 @@ type ISummaryService interface {
 	DeleteByUser(string) error
 	DeleteByUserBefore(string, time.Time) error
 	Insert(*models.Summary) error
+	GetHeartbeatsWritePercentage(userID string, start time.Time, end time.Time) (float64, error)
 }
 
 type IActivityService interface {
@@ -127,4 +122,162 @@ type ILeaderboardService interface {
 	GetAggregatedByIntervalAndUser(*models.IntervalKey, string, *uint8, bool) (models.Leaderboard, error)
 	GenerateByUser(*models.User, *models.IntervalKey) (*models.LeaderboardItem, error)
 	GenerateAggregatedByUser(*models.User, *models.IntervalKey, uint8) ([]*models.LeaderboardItem, error)
+}
+
+type IServices interface {
+	Alias() IAliasService
+	Users() IUserService
+	LanguageMapping() ILanguageMappingService
+	ProjectLabel() IProjectLabelService
+	Duration() IDurationService
+	Summary() ISummaryService
+	LeaderBoard() ILeaderboardService
+	Aggregation() IAggregationService
+	KeyValue() IKeyValueService
+	Report() IReportService
+	Activity() IActivityService
+	Diagnostics() IDiagnosticsService
+	HouseKeeping() IHousekeepingService
+	Misc() IMiscService
+	Goal() IGoalService
+	OAuth() IUserOauthService
+	UserAgentPlugin() IPluginUserAgentService
+	Client() IClientService
+	Invoice() IInvoiceService
+	Heartbeat() IHeartbeatService
+	Otp() IOTPService
+}
+
+type Services struct {
+	alias           IAliasService
+	users           IUserService
+	languageMapping ILanguageMappingService
+	projectLabel    IProjectLabelService
+	duration        IDurationService
+	summary         ISummaryService
+	leaderBoard     ILeaderboardService
+	aggregation     IAggregationService
+	keyValue        IKeyValueService
+	report          IReportService
+	activity        IActivityService
+	diagnostics     IDiagnosticsService
+	houseKeeping    IHousekeepingService
+	misc            IMiscService
+	goal            IGoalService
+	oauth           IUserOauthService
+	userAgentPlugin IPluginUserAgentService
+	client          IClientService
+	invoice         IInvoiceService
+	heartbeat       IHeartbeatService
+	otp             IOTPService
+}
+
+// Implement the IServices interface
+func (s *Services) Users() IUserService {
+	return s.users
+}
+
+func (s *Services) Alias() IAliasService {
+	return s.alias
+}
+
+func (s *Services) LanguageMapping() ILanguageMappingService {
+	return s.languageMapping
+}
+
+func (s *Services) ProjectLabel() IProjectLabelService {
+	return s.projectLabel
+}
+
+func (s *Services) Duration() IDurationService {
+	return s.duration
+}
+
+func (s *Services) Summary() ISummaryService {
+	return s.summary
+}
+
+func (s *Services) LeaderBoard() ILeaderboardService {
+	return s.leaderBoard
+}
+
+func (s *Services) Aggregation() IAggregationService {
+	return s.aggregation
+}
+
+func (s *Services) KeyValue() IKeyValueService {
+	return s.keyValue
+}
+
+func (s *Services) Report() IReportService {
+	return s.report
+}
+
+func (s *Services) Activity() IActivityService {
+	return s.activity
+}
+
+func (s *Services) Diagnostics() IDiagnosticsService {
+	return s.diagnostics
+}
+
+func (s *Services) HouseKeeping() IHousekeepingService {
+	return s.houseKeeping
+}
+
+func (s *Services) Misc() IMiscService {
+	return s.misc
+}
+
+func (s *Services) Goal() IGoalService {
+	return s.goal
+}
+
+func (s *Services) OAuth() IUserOauthService {
+	return s.oauth
+}
+
+func (s *Services) UserAgentPlugin() IPluginUserAgentService {
+	return s.userAgentPlugin
+}
+
+func (s *Services) Client() IClientService {
+	return s.client
+}
+
+func (s *Services) Invoice() IInvoiceService {
+	return s.invoice
+}
+
+func (s *Services) Heartbeat() IHeartbeatService {
+	return s.heartbeat
+}
+
+func (s *Services) Otp() IOTPService {
+	return s.otp
+}
+
+func NewServices(db *gorm.DB) IServices {
+	return &Services{
+		users:           NewUserService(db),
+		languageMapping: NewLanguageMappingService(db),
+		projectLabel:    NewProjectLabelService(db),
+		duration:        NewDurationService(db),
+		summary:         NewSummaryService(db),
+		leaderBoard:     NewLeaderboardService(db),
+		aggregation:     NewAggregationService(db),
+		keyValue:        NewKeyValueService(db),
+		report:          NewReportService(db),
+		activity:        NewActivityService(db),
+		diagnostics:     NewDiagnosticsService(db),
+		houseKeeping:    NewHousekeepingService(db),
+		misc:            NewMiscService(db),
+		goal:            NewGoalService(db),
+		oauth:           NewUserOauthService(db),
+		userAgentPlugin: NewPluginUserAgentService(db),
+		client:          NewClientService(db),
+		invoice:         NewInvoiceService(db),
+		heartbeat:       NewHeartbeatService(db),
+		otp:             NewOTPService(db),
+	}
 }

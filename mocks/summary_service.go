@@ -1,10 +1,11 @@
 package mocks
 
 import (
+	"time"
+
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/types"
 	"github.com/stretchr/testify/mock"
-	"time"
 )
 
 type SummaryServiceMock struct {
@@ -19,6 +20,11 @@ func (m *SummaryServiceMock) Aliased(t time.Time, t2 time.Time, u *models.User, 
 func (m *SummaryServiceMock) Retrieve(t time.Time, t2 time.Time, u *models.User, f *models.Filters) (*models.Summary, error) {
 	args := m.Called(t, t2, u, f)
 	return args.Get(0).(*models.Summary), args.Error(1)
+}
+
+func (m *SummaryServiceMock) GetHeartbeatsWritePercentage(userID string, start, end time.Time) (float64, error) {
+	args := m.Called(userID, start, end)
+	return 50, args.Error(0)
 }
 
 func (m *SummaryServiceMock) Summarize(t time.Time, t2 time.Time, u *models.User, f *models.Filters) (*models.Summary, error) {

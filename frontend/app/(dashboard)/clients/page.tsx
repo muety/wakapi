@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 
-import { fetchData, getSession } from "@/actions";
+import { fetchData } from "@/actions";
 import { ClientsApiResponse, ClientsTable } from "@/components/clients-table";
 import { Project } from "@/components/projects-table";
 
@@ -10,13 +10,11 @@ export const metadata: Metadata = {
 };
 
 export default async function Clients() {
-  const session = await getSession();
-
   const clients = await fetchData<ClientsApiResponse | null>(
-    "compat/wakatime/v1/users/current/clients"
+    "/v1/users/current/clients"
   );
   const projects = await fetchData<{ data: Project[] } | null>(
-    "compat/wakatime/v1/users/current/projects"
+    "/v1/users/current/projects"
   );
 
   return (
@@ -27,7 +25,6 @@ export default async function Clients() {
       <ClientsTable
         clients={clients?.data || []}
         projects={projects?.data || []}
-        token={session.token}
       />
     </div>
   );

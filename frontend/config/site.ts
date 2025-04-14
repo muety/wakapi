@@ -1,9 +1,9 @@
 export const siteConfig = {
   name: "Wakana",
   description: "Dashboards for developers",
-  url: "https://wakatimer.vercel.app",
+  url: "https://wakana.io",
   links: {
-    github: "https://github.com/jemiluv8/wakatimer-proof-of-concept",
+    github: "https://github.com/jemiluv8/wakana",
     twitter: "https://x.com/jemiluv8",
   },
 };

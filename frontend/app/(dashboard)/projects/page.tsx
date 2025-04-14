@@ -17,9 +17,7 @@ export const metadata: Metadata = {
 
 export default async function Projects({ searchParams }: PageProps) {
   const projects = await fetchData<ProjectsApiResponse | null>(
-    `compat/wakatime/v1/users/current/projects${new URLSearchParams(
-      searchParams
-    )}`
+    `/v1/users/current/projects${new URLSearchParams(searchParams)}`
   );
 
   return (

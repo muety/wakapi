@@ -1,10 +1,11 @@
 package mocks
 
 import (
+	"time"
+
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
 	"github.com/stretchr/testify/mock"
-	"time"
 )
 
 type HeartbeatServiceMock struct {
@@ -14,6 +15,11 @@ type HeartbeatServiceMock struct {
 func (m *HeartbeatServiceMock) Insert(h *models.Heartbeat) error {
 	args := m.Called(h)
 	return args.Error(0)
+}
+
+func (m *HeartbeatServiceMock) GetWritePercentageRaw(userID string, start, end time.Time) (float64, error) {
+	args := m.Called(userID, start, end)
+	return 0.5, args.Error(0)
 }
 
 func (m *HeartbeatServiceMock) InsertBatch(h []*models.Heartbeat) error {
@@ -84,6 +90,11 @@ func (m *HeartbeatServiceMock) DeleteByUser(u *models.User) error {
 func (m *HeartbeatServiceMock) DeleteByUserBefore(u *models.User, t time.Time) error {
 	args := m.Called(u, t)
 	return args.Error(0)
+}
+
+func (m *HeartbeatServiceMock) GetHeartbeatsWritePercentage(userID string, start, end time.Time) (float64, error) {
+	args := m.Called(userID, start, end)
+	return 50, args.Error(0)
 }
 
 func (m *HeartbeatServiceMock) GetUserProjectStats(u *models.User, t, t2 time.Time, p *utils.PageParams, b bool) ([]*models.ProjectStats, error) {

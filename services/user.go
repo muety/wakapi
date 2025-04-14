@@ -12,21 +12,25 @@ import (
 	"github.com/gofrs/uuid/v5"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/internal/mail"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
+	"gorm.io/gorm"
 )
 
 type UserService struct {
 	config      *config.Config
 	cache       *cache.Cache
 	eventBus    *hub.Hub
-	mailService IMailService
+	mailService mail.IMailService
 	repository  repositories.IUserRepository
 }
 
-func NewUserService(mailService IMailService, userRepo repositories.IUserRepository) *UserService {
+func NewUserService(db *gorm.DB) *UserService {
+	mailService := mail.NewMailService()
+	userRepo := repositories.NewUserRepository(db)
 	srv := &UserService{
 		config:      config.Get(),
 		eventBus:    config.EventBus(),

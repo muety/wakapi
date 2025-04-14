@@ -64,6 +64,7 @@ type AuthSuccessResponse struct {
 	Message   string
 	User      *models.User
 	OauthUser *models.UserOauth
+	IsNewUser bool
 }
 
 func MakeAuthSuccessResponse(payload *AuthSuccessResponse) (map[string]interface{}, error) {
@@ -91,6 +92,7 @@ func MakeAuthSuccessResponse(payload *AuthSuccessResponse) (map[string]interface
 				"email":                    user.Email,
 				"has_wakatime_integration": user.WakatimeApiKey != "",
 				"avatar":                   avatar,
+				"is_new_user":              payload.IsNewUser,
 			},
 		},
 	}, nil

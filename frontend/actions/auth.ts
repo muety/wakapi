@@ -1,6 +1,5 @@
 "use server";
 
-// import { createSafeAction } from "next-safe-action";
 import { redirect } from "next/navigation";
 
 import { createIronSession } from "@/lib/server/auth";
@@ -12,7 +11,7 @@ import {
   userNameSchema,
 } from "@/lib/validations/user";
 
-const { NEXT_PUBLIC_API_URL } = process.env;
+import { ApiClient } from "./api";
 
 export async function loginAction(_: any, formData: FormData): Promise<any> {
   const validatedFields = userNameSchema.safeParse({
@@ -32,20 +31,6 @@ export async function loginAction(_: any, formData: FormData): Promise<any> {
 
   return processLogin(validatedFields.data);
 }
-
-// export const initiateOTPLoginAction = actionClient(
-//   z.object({
-//     email: z.string().email(),
-//   }),
-//   async (data: { email: string }) => {
-//     // Generate a secure challenge (e.g., a random string or hash)
-//     // const challenge = Buffer.from(email).toString("base64url"); // Simple encoding for demo
-
-//     // Instead of storing in sessionStorage (which is client-side),
-//     // return the challenge to the client
-//     return processEmailLogin(data);
-//   }
-// );
 
 export async function initiateOTPLoginAction(
   _: any,
@@ -121,19 +106,13 @@ export async function forgotPasswordAction(
 export async function processForgotPassword({ email }: { email: string }) {
   let redirectPath = null;
   try {
-    const apiResponse = await fetch(
-      `${NEXT_PUBLIC_API_URL}/api/auth/forgot-password`,
-      {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      }
+    const apiResponse = await ApiClient.POST(
+      "/v1/auth/forgot-password",
+      { email },
+      { skipAuth: true }
     );
 
-    const json = (await apiResponse.json()) as {
+    const json = apiResponse.data as {
       data: SessionData;
       status?: number;
       message?: string;
@@ -141,7 +120,7 @@ export async function processForgotPassword({ email }: { email: string }) {
 
     console.log("json", json);
 
-    if (apiResponse.status > 202) {
+    if (!apiResponse.success) {
       return {
         message: {
           description: json.message || "Unexpected error logging in",
@@ -178,38 +157,39 @@ export async function processEmailLogin(credentials: {
 }) {
   const redirectPath = null;
   try {
-    const apiResponse = await fetch(
-      `${NEXT_PUBLIC_API_URL}/api/auth/otp/create`,
+    const apiResponse = await ApiClient.POST(
+      "/v1/auth/otp/create",
+      credentials,
       {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(credentials),
+        skipAuth: true,
       }
     );
 
-    const json = (await apiResponse.json()) as {
+    const json = apiResponse.data as {
       data: SessionData;
       status?: number;
       message?: string;
     };
 
-    console.log("apiResponse", json, json.data);
-    console.log("[apiResponse.status]", apiResponse.status);
-
-    if (apiResponse.status > 202) {
+    if (!apiResponse.success) {
       return {
         message: {
           description: json.message || "Unexpected error logging in",
           title: "Login Error!",
           variant: "destructive",
         },
+        sucess: false,
       };
     }
 
-    return json;
+    return {
+      message: {
+        description: "Check your email for a login code",
+        title: "Login OTP!",
+        variant: "success",
+      },
+      success: true,
+    };
   } catch (error) {
     console.log("Error logging in", error);
     return {
@@ -232,22 +212,17 @@ export async function processLogin(credentials: {
 }) {
   let redirectPath = null;
   try {
-    const apiResponse = await fetch(`${NEXT_PUBLIC_API_URL}/api/auth/login`, {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify(credentials),
+    const apiResponse = await ApiClient.POST("/v1/auth/login", credentials, {
+      skipAuth: true,
     });
 
-    const json = (await apiResponse.json()) as {
+    const json = apiResponse.data as {
       data: SessionData;
       status?: number;
       message?: string;
     };
 
-    if (apiResponse.status > 202) {
+    if (!apiResponse.success) {
       return {
         message: {
           description: json.message || "Unexpected error logging in",
@@ -283,25 +258,21 @@ export async function processLoginWithOTP(credentials: {
   console.log("credentials", credentials);
   let redirectPath = null;
   try {
-    const apiResponse = await fetch(
-      `${NEXT_PUBLIC_API_URL}/api/auth/otp/verify`,
+    const apiResponse = await ApiClient.POST(
+      "/v1/auth/otp/verify",
+      credentials,
       {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(credentials),
+        skipAuth: true,
       }
     );
 
-    const json = (await apiResponse.json()) as {
+    const json = apiResponse.data as {
       data: SessionData;
       status?: number;
       message?: string;
     };
 
-    if (apiResponse.status > 202) {
+    if (!apiResponse.success) {
       return {
         message: {
           description: json.message || "Unexpected error logging in",
@@ -312,7 +283,8 @@ export async function processLoginWithOTP(credentials: {
     }
 
     await createIronSession(json.data);
-    redirectPath = "/dashboard";
+    const newUser = json.data.user.is_new_user;
+    redirectPath = newUser ? "/installation" : "/dashboard";
   } catch (error) {
     console.log("Error logging in", error);
     return {

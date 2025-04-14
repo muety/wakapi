@@ -2,6 +2,11 @@ package services
 
 import (
 	"fmt"
+	"math"
+	"strings"
+	"sync"
+	"time"
+
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/duke-git/lancet/v2/maputil"
 	"github.com/leandro-lugaresi/hub"
@@ -9,10 +14,7 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
-	"math"
-	"strings"
-	"sync"
-	"time"
+	"gorm.io/gorm"
 
 	"github.com/muety/wakapi/models"
 )
@@ -26,7 +28,10 @@ type HeartbeatService struct {
 	entityCacheLock     *sync.RWMutex
 }
 
-func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, languageMappingService ILanguageMappingService) *HeartbeatService {
+func NewHeartbeatService(db *gorm.DB) *HeartbeatService {
+	heartbeatRepo := repositories.NewHeartbeatRepository(db)
+	languageMappingService := NewLanguageMappingService(db)
+
 	srv := &HeartbeatService{
 		config:              config.Get(),
 		cache:               cache.New(24*time.Hour, 24*time.Hour),
@@ -55,6 +60,10 @@ func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, langua
 func (srv *HeartbeatService) Insert(heartbeat *models.Heartbeat) error {
 	go srv.updateEntityUserCacheByHeartbeat(heartbeat)
 	return srv.repository.InsertBatch([]*models.Heartbeat{heartbeat})
+}
+
+func (srv *HeartbeatService) GetHeartbeatsWritePercentage(userID string, start, end time.Time) (float64, error) {
+	return srv.repository.GetHeartbeatsWritePercentage(userID, start, end)
 }
 
 func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {

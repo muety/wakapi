@@ -2,16 +2,19 @@ package services
 
 import (
 	"fmt"
-	"github.com/duke-git/lancet/v2/slice"
-	"github.com/muety/artifex/v2"
-	"github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/utils"
-	"go.uber.org/atomic"
 	"log/slog"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/duke-git/lancet/v2/slice"
+	"github.com/muety/artifex/v2"
+	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/internal/mail"
+	"github.com/muety/wakapi/utils"
+	"go.uber.org/atomic"
+	"gorm.io/gorm"
 
 	"github.com/muety/wakapi/models"
 )
@@ -35,20 +38,25 @@ type MiscService struct {
 	heartbeatService IHeartbeatService
 	summaryService   ISummaryService
 	keyValueService  IKeyValueService
-	mailService      IMailService
+	mailService      mail.IMailService
 	queueDefault     *artifex.Dispatcher
 	queueWorkers     *artifex.Dispatcher
 	queueMails       *artifex.Dispatcher
 }
 
-func NewMiscService(userService IUserService, heartbeatService IHeartbeatService, summaryService ISummaryService, keyValueService IKeyValueService, mailService IMailService) *MiscService {
+func NewMiscService(db *gorm.DB) *MiscService {
+	summaryService := NewSummaryService(db)
+	userService := NewUserService(db)
+	heartbeatService := NewHeartbeatService(db)
+	keyValueService := NewKeyValueService(db)
+
 	return &MiscService{
 		config:           config.Get(),
 		userService:      userService,
 		heartbeatService: heartbeatService,
 		summaryService:   summaryService,
 		keyValueService:  keyValueService,
-		mailService:      mailService,
+		mailService:      mail.NewMailService(),
 		queueDefault:     config.GetDefaultQueue(),
 		queueWorkers:     config.GetQueue(config.QueueProcessing),
 		queueMails:       config.GetQueue(config.QueueMails),

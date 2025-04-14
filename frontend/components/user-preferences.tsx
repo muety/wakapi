@@ -6,31 +6,46 @@ import { useState } from "react";
 import { updatePreference } from "@/actions/update-preferences";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "@/components/ui/use-toast";
+import { UserProfile } from "@/lib/types";
 
-export function UserPreferences() {
-  const [hireableBadge, setHireableBadge] = useState(false);
-  const [displayEmail, setDisplayEmail] = useState(false);
-  const [displayCodeTime, setDisplayCodeTime] = useState(false);
+export function UserPreferences({ user }: { user: UserProfile }) {
+  const [hireable, setHireableBadge] = useState(user?.hireable);
+  const [show_email_in_public, setDisplayEmail] = useState(
+    user?.show_email_in_public
+  );
+  const [public_leaderboard, setDisplayCodeTime] = useState(
+    user?.public_leaderboard
+  );
   const [loading, setLoading] = useState<string | null>(null);
 
   const handleToggle = async (
-    preference: "hireableBadge" | "displayEmail" | "displayCodeTime",
+    preference: "hireable" | "show_email_in_public" | "public_leaderboard",
     value: boolean
   ) => {
-    setLoading(preference);
-    const newValue = await updatePreference(preference, value);
-    switch (preference) {
-      case "hireableBadge":
-        setHireableBadge(newValue);
-        break;
-      case "displayEmail":
-        setDisplayEmail(newValue);
-        break;
-      case "displayCodeTime":
-        setDisplayCodeTime(newValue);
-        break;
+    try {
+      setLoading(preference);
+      const newValue = (await updatePreference(preference, value)) as boolean;
+      switch (preference) {
+        case "hireable":
+          setHireableBadge(newValue);
+          break;
+        case "show_email_in_public":
+          setDisplayEmail(newValue);
+          break;
+        case "public_leaderboard":
+          setDisplayCodeTime(newValue);
+          break;
+      }
+    } catch (error) {
+      toast({
+        title: "Error updating preference",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(null);
     }
-    setLoading(null);
   };
 
   return (
@@ -44,14 +59,14 @@ export function UserPreferences() {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            {loading === "hireableBadge" && (
+            {loading === "hireable" && (
               <Loader2 className="size-4 animate-spin" />
             )}
             <Switch
               id="hireable-badge"
-              checked={hireableBadge}
-              onCheckedChange={(value) => handleToggle("hireableBadge", value)}
-              disabled={loading === "hireableBadge"}
+              checked={hireable}
+              onCheckedChange={(value) => handleToggle("hireable", value)}
+              disabled={loading === "hireable"}
             />
           </div>
         </div>
@@ -63,14 +78,16 @@ export function UserPreferences() {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            {loading === "displayEmail" && (
+            {loading === "show_email_in_public" && (
               <Loader2 className="size-4 animate-spin" />
             )}
             <Switch
               id="display-email"
-              checked={displayEmail}
-              onCheckedChange={(value) => handleToggle("displayEmail", value)}
-              disabled={loading === "displayEmail"}
+              checked={show_email_in_public}
+              onCheckedChange={(value) =>
+                handleToggle("show_email_in_public", value)
+              }
+              disabled={loading === "show_email_in_public"}
             />
           </div>
         </div>
@@ -82,16 +99,16 @@ export function UserPreferences() {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            {loading === "displayCodeTime" && (
+            {loading === "public_leaderboard" && (
               <Loader2 className="size-4 animate-spin" />
             )}
             <Switch
               id="display-code-time"
-              checked={displayCodeTime}
+              checked={public_leaderboard}
               onCheckedChange={(value) =>
-                handleToggle("displayCodeTime", value)
+                handleToggle("public_leaderboard", value)
               }
-              disabled={loading === "displayCodeTime"}
+              disabled={loading === "public_leaderboard"}
             />
           </div>
         </div>

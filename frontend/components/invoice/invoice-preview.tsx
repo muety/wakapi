@@ -4,7 +4,6 @@ import { format } from "date-fns";
 import { LucideEdit } from "lucide-react";
 import React from "react";
 
-import { getCurrencySymbol } from "@/lib/constants/currencies";
 import { Invoice } from "@/lib/types";
 import { cn, formatCurrency, formatNumber, getHours } from "@/lib/utils";
 
@@ -38,7 +37,7 @@ export function InvoicePreview({ data, onTogglePreview }: iProps) {
     return totalInvoice + taxTotal;
   }, [totalInvoice, taxTotal]);
 
-  const currencySymbol = getCurrencySymbol(client.currency) || client.currency;
+  const currencySymbol = client.currency;
 
   return (
     <div className={cn(styles.root, "px-6 my-6 mx-2 min-h-screen")}>
@@ -77,7 +76,7 @@ export function InvoicePreview({ data, onTogglePreview }: iProps) {
                 <h1 className="font-bold">Date: </h1>
               </div>
               <div>
-                <p>{data.id.slice(0, 9)}</p>
+                <p>{data.invoice_id}</p>
                 <p>{format(data.created_at, "MMM dd, yyyy")}</p>
               </div>
             </div>

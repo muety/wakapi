@@ -5,6 +5,7 @@ import {
   LayoutDashboardIcon,
   Quote,
   Receipt,
+  Settings2,
   SquareActivity,
   TrendingUpIcon,
   Trophy,
@@ -46,6 +47,11 @@ const SIMPLE_MENU_ITEMS = [
     title: "Plugin Status",
     url: "/plugins/status",
     icon: SquareActivity,
+  },
+  {
+    title: "Setup Guide",
+    url: "/installation",
+    icon: Settings2,
   },
 ];
 

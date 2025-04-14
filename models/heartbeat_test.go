@@ -2,9 +2,10 @@ package models
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHeartbeat_Valid_Success(t *testing.T) {
@@ -107,8 +108,8 @@ func TestHeartbeat_Hashed_NoCollision(t *testing.T) {
 }
 
 func TestHeartbeat_Unmarshal_IgnoreID(t *testing.T) {
-	raw1 := "{\n    \"branch\":\"<<LAST_BRANCH>>\",\n    \"entity\":\"https://wakapi.dev\",\n    \"id\":\"f3647f89-e255-4dd1-8fcd-e20ba8f1709b\",\n    \"project\":\"<<LAST_PROJECT>>\",\n    \"time\":\"1728422364.044\",\n    \"type\":\"domain\",\n    \"userAgent\":\"Chrome/129.0.0.0 mac_x86-64 chrome-wakatime/4.0.6\"\n  }"
-	raw2 := "{\n    \"branch\":\"<<LAST_BRANCH>>\",\n    \"entity\":\"https://wakapi.dev\",\n    \"id\":14,\n    \"project\":\"<<LAST_PROJECT>>\",\n    \"time\":\"1728422364.044\",\n    \"type\":\"domain\",\n    \"userAgent\":\"Chrome/129.0.0.0 mac_x86-64 chrome-wakatime/4.0.6\"\n  }"
+	raw1 := "{\n    \"branch\":\"<<LAST_BRANCH>>\",\n    \"entity\":\"https://wakana.io\",\n    \"id\":\"f3647f89-e255-4dd1-8fcd-e20ba8f1709b\",\n    \"project\":\"<<LAST_PROJECT>>\",\n    \"time\":\"1728422364.044\",\n    \"type\":\"domain\",\n    \"userAgent\":\"Chrome/129.0.0.0 mac_x86-64 chrome-wakatime/4.0.6\"\n  }"
+	raw2 := "{\n    \"branch\":\"<<LAST_BRANCH>>\",\n    \"entity\":\"https://wakana.io\",\n    \"id\":14,\n    \"project\":\"<<LAST_PROJECT>>\",\n    \"time\":\"1728422364.044\",\n    \"type\":\"domain\",\n    \"userAgent\":\"Chrome/129.0.0.0 mac_x86-64 chrome-wakatime/4.0.6\"\n  }"
 
 	var parsed Heartbeat
 	var err error

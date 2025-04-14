@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 function PluginStatusCard({ agent }: { agent: iPluginUserAgent }) {
-  const status = "OK";
+  const status = "Up";
 
   return (
     <div className="plugin-status surface flex-col justify-center gap-5 md:flex-row">
@@ -48,7 +48,7 @@ function PluginStatusCard({ agent }: { agent: iPluginUserAgent }) {
 
 export default async function Page() {
   const userAgents = await fetchData<{ data: iPluginUserAgent[] }>(
-    "compat/wakatime/v1/users/current/user-agents"
+    "/v1/users/current/user-agents"
   );
   if (!userAgents) {
     return <p>Error fetching </p>;

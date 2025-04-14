@@ -4,9 +4,8 @@ import { format } from "date-fns";
 import { LucidePlusCircle, LucideTrash2 } from "lucide-react";
 import React from "react";
 
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
+import { ApiClient } from "@/actions/api";
 import { getCurrencySymbol } from "@/lib/constants/currencies";
-import { useClientSession } from "@/lib/session";
 import { Invoice, InvoiceLineItem } from "@/lib/types";
 import { cn, formatNumber, getHours } from "@/lib/utils";
 
@@ -21,11 +20,6 @@ interface iProps {
 }
 
 export function InvoiceManager({ data }: iProps) {
-  const session = useClientSession();
-  const token = React.useMemo(
-    () => session.data?.token || "",
-    [session.data?.token]
-  );
   const date = new Date();
   const { client } = data;
   const [loading, setLoading] = React.useState(false);
@@ -87,7 +81,7 @@ export function InvoiceManager({ data }: iProps) {
     ]);
   };
 
-  const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/compat/wakatime/v1/users/current/invoices/${data.id}`;
+  const resourceUrl = `/v1/users/current/invoices/${data.id}`;
 
   const saveInvoice = async () => {
     try {
@@ -103,17 +97,9 @@ export function InvoiceManager({ data }: iProps) {
         payload.tax = +tax;
       }
       setLoading(true);
-      const response = await fetch(resourceUrl, {
-        method: "PUT",
-        body: JSON.stringify(payload),
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          token: `${token}`,
-        },
-      });
+      const response = await ApiClient.PUT(resourceUrl, payload);
 
-      if (!response.ok) {
+      if (!response.success) {
         toast({
           title: "Failed to update invoice",
           variant: "destructive",

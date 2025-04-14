@@ -10,9 +10,9 @@ server:
   public_url: http://localhost:3000
 
 app:
-  aggregation_time: '02:15'
-  report_time_weekly: 'fri,18:00'
-  heartbeat_max_age: 87600h  # 10 years
+  aggregation_time: "02:15"
+  report_time_weekly: "fri,18:00"
+  heartbeat_max_age: 87600h # 10 years
   inactive_days: 7
   custom_languages:
     vue: Vue
@@ -50,7 +50,7 @@ sentry:
 mail:
   enabled: false
   provider: smtp
-  sender: Wakapi <noreply@wakapi.dev>
+  sender: Wakana <noreply@wakana.io>
 
   smtp:
     host:

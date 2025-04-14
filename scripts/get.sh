@@ -2,11 +2,11 @@
 
 # This script installs Wakapi.
 #
-# Quick install: `curl https://wakapi.dev/get | bash`
+# Quick install: `curl https://wakana.io/get | bash`
 #
 # This script will install Wakapi to the directory you're in. To install
 # somewhere else (e.g. /usr/local/bin), cd there and make sure you can write to
-# that directory, e.g. `cd /usr/local/bin; curl https://wakapi.dev/get | sudo bash`
+# that directory, e.g. `cd /usr/local/bin; curl https://wakana.io/get | sudo bash`
 #
 # Acknowledgments:
 #   - Micro Editor for this script: https://micro-editor.github.io/
@@ -75,9 +75,9 @@ B. Define GETWAKAPI_HTTP to be a command (with arguments deliminated by spaces)
 
 For examples of option B, this script uses the below values for wget and curl:
 
-  $ curl https://wakapi.dev/get | GETWAKAPI_HTTP="curl -L" sh
+  $ curl https://wakana.io/get | GETWAKAPI_HTTP="curl -L" sh
 
-  $ wget -O- https://wakapi.dev/get | GETWAKAPI_HTTP="wget -O-" sh
+  $ wget -O- https://wakana.io/get | GETWAKAPI_HTTP="wget -O-" sh
 
 EOA
   exit 1

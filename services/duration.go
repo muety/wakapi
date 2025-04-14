@@ -1,11 +1,13 @@
 package services
 
 import (
+	"time"
+
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/mathutil"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
-	"time"
+	"gorm.io/gorm"
 )
 
 type DurationService struct {
@@ -13,7 +15,16 @@ type DurationService struct {
 	heartbeatService IHeartbeatService
 }
 
-func NewDurationService(heartbeatService IHeartbeatService) *DurationService {
+func NewDurationService(db *gorm.DB) *DurationService {
+	heartbeatService := NewHeartbeatService(db)
+	srv := &DurationService{
+		config:           config.Get(),
+		heartbeatService: heartbeatService,
+	}
+	return srv
+}
+
+func NewTestDurationService(heartbeatService IHeartbeatService) *DurationService {
 	srv := &DurationService{
 		config:           config.Get(),
 		heartbeatService: heartbeatService,

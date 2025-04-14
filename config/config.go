@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	DefaultConfigPath = "config.yml"
+	DefaultConfigPath = "./config.default.yml"
 
 	SQLDialectMysql    = "mysql"
 	SQLDialectPostgres = "postgres"
@@ -52,6 +52,7 @@ const (
 )
 
 const (
+	InstanceApiUrl               = "https://api.wakana.io/api"
 	WakatimeApiUrl               = "https://api.wakatime.com/api/v1"
 	WakatimeApiUserUrl           = "/users/current"
 	WakatimeApiAllTimeUrl        = "/users/current/all_time_since_today"
@@ -98,7 +99,7 @@ type appConfig struct {
 	DataCleanupDryRun         bool                         `yaml:"data_cleanup_dry_run" default:"false" env:"WAKAPI_DATA_CLEANUP_DRY_RUN"` // for debugging only
 	MaxInactiveMonths         int                          `yaml:"max_inactive_months" default:"-1" env:"WAKAPI_MAX_INACTIVE_MONTHS"`
 	AvatarURLTemplate         string                       `yaml:"avatar_url_template" default:"api/avatar/{username_hash}.svg" env:"WAKAPI_AVATAR_URL_TEMPLATE"`
-	SupportContact            string                       `yaml:"support_contact" default:"hostmaster@wakapi.dev" env:"WAKAPI_SUPPORT_CONTACT"`
+	SupportContact            string                       `yaml:"support_contact" default:"hostmaster@wakana.io" env:"WAKAPI_SUPPORT_CONTACT"`
 	DateFormat                string                       `yaml:"date_format" default:"Mon, 02 Jan 2006" env:"WAKAPI_DATE_FORMAT"`
 	DateTimeFormat            string                       `yaml:"datetime_format" default:"Mon, 02 Jan 2006 15:04" env:"WAKAPI_DATETIME_FORMAT"`
 	CustomLanguages           map[string]string            `yaml:"custom_languages"`
@@ -113,7 +114,7 @@ type securityConfig struct {
 	SignupCaptcha      bool   `yaml:"signup_captcha" default:"false" env:"WAKAPI_SIGNUP_CAPTCHA"`
 	InviteCodes        bool   `yaml:"invite_codes" default:"true" env:"WAKAPI_INVITE_CODES"`
 	ExposeMetrics      bool   `yaml:"expose_metrics" default:"false" env:"WAKAPI_EXPOSE_METRICS"`
-	EnableProxy        bool   `yaml:"enable_proxy" default:"false" env:"WAKAPI_ENABLE_PROXY"` // only intended for production instance at wakapi.dev
+	EnableProxy        bool   `yaml:"enable_proxy" default:"false" env:"WAKAPI_ENABLE_PROXY"` // only intended for production instance at wakana.io
 	DisableFrontpage   bool   `yaml:"disable_frontpage" default:"false" env:"WAKAPI_DISABLE_FRONTPAGE"`
 	// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
 	PasswordSalt               string                     `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
@@ -195,6 +196,23 @@ type SMTPMailConfig struct {
 	SkipVerify bool   `env:"WAKAPI_MAIL_SMTP_SKIP_VERIFY"`
 }
 
+type ApiConfig struct {
+	RequestIDHeader string `yaml:"request_id_header" default:"X-Request-ID" env:"REQUEST_ID_HEADER"`
+	Port            string `default:"3003" env:"PORT"`
+	Host            string `default:"localhost" env:"HOST"`
+}
+
+type LoggingConfig struct {
+	RequestIDHeader  string                 `yaml:"request_id_header" default:"X-Request-ID" env:"REQUEST_ID_HEADER"`
+	Level            string                 `yaml:"log_level" default:"INFO" env:"LOG_LEVEL"`
+	File             string                 `yaml:"log_file" default:"logs" env:"LOG_FILE" json:"log_file"`
+	DisableColors    string                 `yaml:"disable_colors" default:"true" env:"DISABLE_COLORS" json:"disable_colors"`
+	QuoteEmptyFields string                 `yaml:"quote_empty_fields" default:"true" env:"QUOTE_EMPTY_FIELDS" json:"quote_empty_fields"`
+	TSFormat         string                 `yaml:"ts_format" json:"ts_format"`
+	Fields           map[string]interface{} `yaml:"fields" json:"fields"`
+	SQL              string                 `yaml:"sql" default:"all" json:"sql"`
+}
+
 type Config struct {
 	Env            string `default:"dev" env:"ENVIRONMENT"`
 	Version        string `yaml:"-"`
@@ -209,6 +227,8 @@ type Config struct {
 	Subscriptions  subscriptionsConfig
 	Sentry         sentryConfig
 	Mail           mailConfig
+	API            ApiConfig
+	Logging        LoggingConfig
 }
 
 func (c *Config) CreateCookie(name, value string) *http.Cookie {

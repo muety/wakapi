@@ -2,10 +2,9 @@
 
 import { LucideSave, LucideTrash2, LucideUndo } from "lucide-react";
 import React from "react";
-import useSWRMutation from "swr/mutation";
 
+import { ApiClient } from "@/actions/api";
 import { toast } from "@/components/ui/use-toast";
-import { mutateData } from "@/hooks/api-utils";
 import { GoalData } from "@/lib/types";
 
 import { GoalChart } from "./charts/GoalChart";
@@ -16,36 +15,23 @@ import { Confirm } from "./ui/confirm";
 
 interface iProps {
   data: GoalData;
-  token: string;
   onDeleteGoal: (goal: GoalData) => void;
 }
 
-export function Goal({ data, token, onDeleteGoal }: iProps) {
+export function Goal({ data, onDeleteGoal }: iProps) {
   const originalText = data.custom_title || data.title;
   const [title, setTitle] = React.useState(originalText);
+  const [loading, setLoading] = React.useState(false);
 
-  const resourceUrl = `/compat/wakatime/v1/users/current/goals/${data.id}`;
-
-  const { trigger, isMutating: loading } = useSWRMutation(
-    resourceUrl,
-    mutateData
-  );
-
-  const { trigger: updateTrigger, isMutating } = useSWRMutation(
-    resourceUrl,
-    mutateData
-  );
+  const resourceUrl = `/v1/users/current/goals/${data.id}`;
 
   const updateGoal = async () => {
-    console.log("Updating goal...");
     if (title !== originalText) {
       try {
-        const response = await updateTrigger({
-          method: "PUT",
-          body: { title },
-          token,
+        setLoading(true);
+        await ApiClient.PUT<any, any>(resourceUrl, {
+          title,
         });
-        console.log("response", response);
         toast({
           title: "Goal updated",
           variant: "success",
@@ -56,16 +42,16 @@ export function Goal({ data, token, onDeleteGoal }: iProps) {
           variant: "destructive",
           description: (error as Error).message,
         });
+      } finally {
+        setLoading(false);
       }
     }
   };
 
   const deleteGoal = async () => {
     try {
-      await trigger({
-        method: "DELETE",
-        token,
-      });
+      setLoading(true);
+      await ApiClient.DELETE(resourceUrl);
       toast({
         title: "Deleted",
         description: `Goal with title: ${title} - deleted`,
@@ -78,6 +64,8 @@ export function Goal({ data, token, onDeleteGoal }: iProps) {
         variant: "destructive",
         description: (error as Error).message,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -106,7 +94,7 @@ export function Goal({ data, token, onDeleteGoal }: iProps) {
                       updateGoal();
                     }}
                   >
-                    {!(loading || isMutating) ? (
+                    {!loading ? (
                       <LucideSave className="size-4 cursor-pointer text-gray-400" />
                     ) : (
                       <Icons.spinner className="mr-2 size-4 animate-spin" />

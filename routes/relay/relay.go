@@ -1,12 +1,13 @@
 package relay
 
 import (
-	"github.com/go-chi/chi/v5"
-	conf "github.com/muety/wakapi/config"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"regexp"
+
+	"github.com/go-chi/chi/v5"
+	conf "github.com/muety/wakapi/config"
 )
 
 const targetUrlHeader = "X-Target-URL"
@@ -77,7 +78,7 @@ func (h *RelayHandler) Any(w http.ResponseWriter, r *http.Request) {
 	p.ServeHTTP(w, r)
 }
 
-// @Summary Proxy an GET API request to another Wakapi instance
+// @Summary Proxy an GET API request to another Wakana instance
 // @ID relay-get
 // @Tags relay
 // @Param X-Target-URL header string true "Original URL to perform the request to"
@@ -86,7 +87,7 @@ func (h *RelayHandler) Any(w http.ResponseWriter, r *http.Request) {
 // @Router /relay [get]
 func (h *RelayHandler) alias1() {}
 
-// @Summary Proxy an POST API request to another Wakapi instance
+// @Summary Proxy an POST API request to another Wakana instance
 // @ID relay-post
 // @Tags relay
 // @Param X-Target-URL header string true "Original URL to perform the request to"
@@ -95,7 +96,7 @@ func (h *RelayHandler) alias1() {}
 // @Router /relay [post]
 func (h *RelayHandler) alias2() {}
 
-// @Summary Proxy an PUT API request to another Wakapi instance
+// @Summary Proxy an PUT API request to another Wakana instance
 // @ID relay-put
 // @Tags relay
 // @Param X-Target-URL header string true "Original URL to perform the request to"
@@ -104,7 +105,7 @@ func (h *RelayHandler) alias2() {}
 // @Router /relay [put]
 func (h *RelayHandler) alias3() {}
 
-// @Summary Proxy an PATCH API request to another Wakapi instance
+// @Summary Proxy an PATCH API request to another Wakana instance
 // @ID relay-patch
 // @Tags relay
 // @Param X-Target-URL header string true "Original URL to perform the request to"
@@ -113,7 +114,7 @@ func (h *RelayHandler) alias3() {}
 // @Router /relay [patch]
 func (h *RelayHandler) alias4() {}
 
-// @Summary Proxy an DELETE API request to another Wakapi instance
+// @Summary Proxy an DELETE API request to another Wakana instance
 // @ID relay-delete
 // @Tags relay
 // @Param X-Target-URL header string true "Original URL to perform the request to"

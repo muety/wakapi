@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { getSession } from "@/actions";
+import { fetchData, getSession } from "@/actions";
 import { ApiKeyCopier } from "@/components/copy-api-key";
 import { DisconnectWakatime } from "@/components/disconnect-wakatime";
 import { KeystrokeTimeout } from "@/components/keystroke-timeout";
@@ -13,9 +13,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { WakatimeIntegration } from "@/components/wakatime-integration";
+import { UserProfile } from "@/lib/types";
 
 export default async function Page() {
   const session = await getSession();
+  const user = await fetchData<UserProfile>("/v1/profile");
 
   return (
     <div className="grid gap-6">
@@ -28,7 +30,7 @@ export default async function Page() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ApiKeyCopier token={session.token} />
+          <ApiKeyCopier />
         </CardContent>
       </Card>
       <Card x-chunk="dashboard-04-chunk-2">
@@ -41,7 +43,7 @@ export default async function Page() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <WakatimeIntegration token={session.token} />
+          <WakatimeIntegration />
         </CardContent>
         <p></p>
         {session.user.has_wakatime_integration && (
@@ -59,13 +61,12 @@ export default async function Page() {
           <CardTitle>Keystroke Timeout</CardTitle>
           <CardDescription>
             This setting affects how a series of consecutive heartbeats sent by
-            your IDE are aggregated to compute your total coding time. Please
-            see the "How are durations calculated?" section in our{" "}
-            <Link href="/faqs"></Link> to learn more.
+            your IDE are aggregated to compute your total coding time.
+            <Link href="/faqs">faqs</Link> to learn more.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <KeystrokeTimeout token={session.token} />
+          <KeystrokeTimeout initialValue={user?.heartbeats_timeout_sec} />
         </CardContent>
       </Card>
     </div>

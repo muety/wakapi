@@ -35,6 +35,7 @@ type IHeartbeatRepository interface {
 	DeleteByUser(*models.User) error
 	DeleteByUserBefore(*models.User, time.Time) error
 	GetUserProjectStats(*models.User, time.Time, time.Time, int, int) ([]*models.ProjectStats, error)
+	GetHeartbeatsWritePercentage(userID string, start, end time.Time) (float64, error)
 }
 
 type IDiagnosticsRepository interface {

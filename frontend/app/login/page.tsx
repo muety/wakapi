@@ -21,7 +21,7 @@ export default async function LoginPage() {
           Terms of Service
         </a>{" "}
         and{" "}
-        <a href="https://midday.ai/policy" className="underline">
+        <a href="https://wakana.io/policy" className="underline">
           Privacy Policy
         </a>
         .

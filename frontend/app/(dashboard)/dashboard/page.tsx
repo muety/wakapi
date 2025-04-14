@@ -1,21 +1,16 @@
-import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { format, subDays } from "date-fns";
 import { Metadata } from "next";
+import Link from "next/link";
 
 import { fetchData } from "@/actions";
 import { ActivityCategoriesChart } from "@/components/charts/ActivityCategoriesChart";
 import { DailyCodingSummaryOverTime } from "@/components/charts/DailyCodingSummaryOverTime";
+import { WBarChart } from "@/components/charts/WBarChart";
 import { WeekdaysBarChart } from "@/components/charts/WeekdaysBarChart";
 import { WGaugeChart } from "@/components/charts/WGaugeChart";
-import { WPieChart } from "@/components/charts/WPieChart";
-import { DashboardPeriodSelector } from "@/components/dashboard-period-selector";
+import DashboardStatsSummary from "@/components/dashboard-stats-summary";
+import DeveloperActivityChart from "@/components/developer-activity-chart-v2";
 import { ProjectCard } from "@/components/project-card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { SummariesApiResponse } from "@/lib/types";
 import {
   convertSecondsToHoursAndMinutes,
@@ -32,34 +27,42 @@ export default async function Dashboard({
 }: {
   searchParams: Record<string, any>;
 }) {
-  const {
-    start = format(subDays(new Date(), 6), "yyyy-MM-dd"),
-    end = format(new Date(), "yyyy-MM-dd"),
-  } = searchParams;
+  const start =
+    searchParams.start || format(subDays(new Date(), 6), "yyyy-MM-dd");
+  const end = searchParams.end || format(new Date(), "yyyy-MM-dd");
+  const url = `/v1/users/current/summaries?${new URLSearchParams({ start, end })}`;
 
-  const url = `compat/wakatime/v1/users/current/summaries?${new URLSearchParams(
-    { start, end }
-  )}`;
-
-  const durationData = await fetchData<SummariesApiResponse>(url);
+  const durationData = await fetchData<SummariesApiResponse>(url, true);
   if (!durationData) {
-    throw Error("Internal Server error");
+    return (
+      <h3 className="text-center text-red-500">
+        Error fetching dashboard stats
+      </h3>
+    );
   }
-  const projects = durationData
-    ? makePieChartDataFromRawApiResponse(durationData.data, "projects")
-    : [];
+
+  const projects = makePieChartDataFromRawApiResponse(
+    durationData.data,
+    "projects"
+  );
   return (
     <div className="my-6">
       {durationData && (
-        <main className="main-dashboard">
-          <div className="m-0 my-5 text-2xl">
-            <b>{durationData.cumulative_total.text}</b> <span>over the</span>{" "}
-            <DashboardPeriodSelector searchParams={searchParams} />
-          </div>
+        <main className="main-dashboard space-y-5">
+          <DashboardStatsSummary
+            searchParams={searchParams}
+            data={durationData}
+          />
 
           <section className="charts-grid-top">
             <div className="chart-box min-h-52">
               <DailyCodingSummaryOverTime data={durationData.data} />
+            </div>
+            <div className="chart-box min-h-52">
+              <DeveloperActivityChart
+                writePercentage={durationData.write_percentage}
+                totalSeconds={+durationData.cumulative_total.seconds}
+              />
             </div>
             <div className="chart-box min-h-52">
               <WGaugeChart
@@ -69,13 +72,14 @@ export default async function Dashboard({
             </div>
           </section>
 
-          <div className="my-5">
+          <div className="my-5 space-y-5">
             <div className="charts-grid">
               <div className="chart-box">
-                <WPieChart
-                  innerRadius={44.45}
-                  title="Editors"
+                <WBarChart
+                  innerRadius={34.45}
+                  title="EDITORS"
                   colorNamespace="editors"
+                  defaultOrientation="vertical"
                   data={makePieChartDataFromRawApiResponse(
                     durationData.data,
                     "editors"
@@ -84,12 +88,14 @@ export default async function Dashboard({
                 />
               </div>
               <div className="chart-box">
-                <WPieChart
-                  title="Languages"
+                <WBarChart
+                  innerRadius={34.45}
+                  title="LANGUAGES"
                   data={makePieChartDataFromRawApiResponse(
                     durationData.data,
                     "languages"
                   )}
+                  defaultOrientation="vertical"
                   colorNamespace="languages"
                   durationSubtitle="Languages used over the "
                 />
@@ -97,25 +103,25 @@ export default async function Dashboard({
             </div>
             <div className="charts-grid">
               <div className="chart-box">
-                <WPieChart
-                  innerRadius={44.45}
-                  title="Operating Systems"
+                <WBarChart
+                  title="OPERATING SYSTEMS"
                   data={makePieChartDataFromRawApiResponse(
                     durationData.data,
                     "operating_systems"
                   )}
+                  defaultOrientation="horizontal"
                   colorNamespace="operating_systems"
                   durationSubtitle="Operating Systems used over the "
                 />
               </div>
               <div className="chart-box">
-                <WPieChart
-                  innerRadius={44.45}
-                  title="Machines"
+                <WBarChart
+                  title="MACHINES"
                   data={makePieChartDataFromRawApiResponse(
                     durationData.data,
                     "machines"
                   )}
+                  defaultOrientation="horizontal"
                   colorNamespace="machines"
                   durationSubtitle="Machines used over the "
                 />
@@ -126,30 +132,17 @@ export default async function Dashboard({
                 <ActivityCategoriesChart data={durationData.data} />
               </div>
               <div className="chart-box">
-                <WeekdaysBarChart
-                  data={durationData.data}
-                  durationSubtitle="Average time per weekday over the "
-                />
+                <WeekdaysBarChart data={durationData.data} />
               </div>
             </div>
           </div>
 
           <div className="my-5">
             <div className="flex items-baseline gap-1 align-middle">
-              <h1 className="text-2xl">Projects</h1>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <QuestionMarkCircledIcon />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Projects worked on over the last 7 days</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <h1 className="text-2xl mb-4">Projects</h1>
             </div>
-            <div className="col-xs-12">
-              <div className="my-4 flex flex-wrap" id="projects">
+            <div className="w-full">
+              <div className="three-grid" id="projects">
                 {projects.map((project: { key: string; total: number }) => (
                   <ProjectCard
                     key={project.key}
@@ -166,7 +159,14 @@ export default async function Dashboard({
                       <div className="project-content">
                         <h3>No projects available yet</h3>
                         <p>
-                          Check your plugin status if you have doubts about this
+                          Check your plugin status to see if any of your plugins
+                          have been detected.
+                        </p>
+                        <p className="mt-2 cursor-pointer">
+                          You may also checkout{" "}
+                          <Link href="/installation" className="underline">
+                            Installation Guide
+                          </Link>
                         </p>
                       </div>
                     </a>

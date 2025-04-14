@@ -204,6 +204,9 @@ export function convertSecondsToHoursAndMinutes(
   value: number,
   verbose = false
 ) {
+  if (value === 0 || !value) {
+    return "0h 0m";
+  }
   const valueInMinutes = value / 60;
   const hours = Math.floor(valueInMinutes / 60);
   const minutes = Math.floor(valueInMinutes - hours * 60);

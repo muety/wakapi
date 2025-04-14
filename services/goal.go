@@ -9,43 +9,77 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
-	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
-	"github.com/patrickmn/go-cache"
+	"gorm.io/gorm"
 )
 
 type GoalService struct {
-	config     *config.Config
-	cache      *cache.Cache
-	repository repositories.IGoalRepository
+	config *config.Config
+	db     *gorm.DB
 }
 
-func NewGoalService(goalRepo repositories.IGoalRepository) *GoalService {
+func NewGoalService(db *gorm.DB) *GoalService {
 	return &GoalService{
-		config:     config.Get(),
-		cache:      cache.New(1*time.Hour, 2*time.Hour),
-		repository: goalRepo,
+		config: config.Get(),
+		db:     db,
 	}
 }
 
 func (srv *GoalService) Create(newGoal *models.Goal) (*models.Goal, error) {
-	return srv.repository.Create(newGoal)
+	result := srv.db.Create(newGoal)
+	if err := result.Error; err != nil {
+		return nil, err
+	}
+	return newGoal, nil
 }
 
 func (srv *GoalService) Update(newGaol *models.Goal) (*models.Goal, error) {
-	return srv.repository.Update(newGaol)
+	updateMap := map[string]interface{}{
+		"custom_title": newGaol.CustomTitle,
+	}
+
+	result := srv.db.Model(newGaol).Updates(updateMap)
+	if err := result.Error; err != nil {
+		return nil, err
+	}
+
+	return newGaol, nil
 }
 
-func (srv *GoalService) GetGoalForUser(id, userID string) (*models.Goal, error) {
-	return srv.repository.GetByIdForUser(id, userID)
+func (srv *GoalService) GetGoalForUser(goalID, userID string) (*models.Goal, error) {
+	g := &models.Goal{}
+
+	err := srv.db.Where(models.Goal{ID: goalID, UserID: userID}).First(g).Error
+	if err != nil {
+		return g, err
+	}
+
+	if g.ID != "" {
+		return g, nil
+	}
+	return nil, err
 }
 
-func (srv *GoalService) DeleteGoal(id, userID string) error {
-	return srv.repository.DeleteByIdAndUser(id, userID)
+func (srv *GoalService) DeleteGoal(goalId, userID string) error {
+	if err := srv.db.
+		Where("id = ?", goalId).
+		Where("user_id = ?", userID).
+		Delete(models.Goal{}).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
-func (srv *GoalService) FetchUserGoals(id string) ([]*models.Goal, error) {
-	return srv.repository.FetchUserGoals(id)
+func (srv *GoalService) FetchUserGoals(userID string) ([]*models.Goal, error) {
+	var goals []*models.Goal
+	if err := srv.db.
+		Order("created_at desc").
+		Limit(100). // TODO: paginate
+		Where(&models.Goal{UserID: userID}).
+		Find(&goals).Error; err != nil {
+		return nil, err
+	}
+	return goals, nil
 }
 
 func (srv *GoalService) LoadGoalChartData(goal *models.Goal, user *models.User, summarySrvc ISummaryService) ([]*models.GoalChartData, error) {
@@ -74,7 +108,6 @@ func (srv *GoalService) LoadGoalChartData(goal *models.Goal, user *models.User, 
 	overallParams := &models.SummaryParams{
 		From: start,
 		To:   end,
-		User: user,
 	}
 
 	intervals := utils.SplitRangeByDays(overallParams.From, overallParams.To)

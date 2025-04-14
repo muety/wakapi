@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 import { TooltipWithProvider } from "./tooltip-with-provider";
 
-function Hireable() {
+export function Hireable() {
   return (
     <div
       className="rounded-md border border-border"
@@ -66,10 +66,10 @@ function RenderLanguages({ languages }: { languages: string[] }) {
   );
 }
 
-function rowMapper(dataItem: DataItem) {
+function rowMapper(dataItem: DataItem, index: number) {
   return {
-    rank: dataItem.rank,
-    programmer: dataItem.user.full_name || "Anonymous User",
+    rank: index + 1,
+    programmer: dataItem.user.display_name || "Anonymous User",
     hours_coded: dataItem.running_total.human_readable_total,
     daily_average: dataItem.running_total.human_readable_daily_average,
     languages: dataItem.running_total.languages.map((l) => l.name),
@@ -83,7 +83,16 @@ export function LeaderBoardTable({
   titleClass = "",
 }: iProps) {
   const { data: rawLeaderboard, range } = leaderboardData;
-  const leaderboard = rawLeaderboard.map((item) => rowMapper(item));
+  const users = new Set();
+  const leaderboard = rawLeaderboard
+    .filter((leaderData) => {
+      if (users.has(leaderData.user.id)) {
+        return false;
+      }
+      users.add(leaderData.user.id);
+      return true;
+    })
+    .map((item, index) => rowMapper(item, index));
   return (
     <div>
       <div className="mb-2">
@@ -129,9 +138,6 @@ export function LeaderBoardTable({
                 style={{ maxWidth: "550px" }}
               >
                 <RenderLanguages languages={leader.languages} />
-              </TableCell>
-              <TableCell className="w-32 text-center font-semibold">
-                {leader.hireable && <Hireable />}
               </TableCell>
               <TableCell className="w-24 text-right font-semibold"></TableCell>
             </TableRow>

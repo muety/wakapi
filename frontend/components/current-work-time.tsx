@@ -7,7 +7,7 @@ import { fetchData } from "@/actions";
 import { useClientSession } from "@/lib/session";
 import { SummariesApiResponse } from "@/lib/types";
 
-import { PulseIndicator } from "./pulse-indicator";
+// import { PulseIndicator } from "./pulse-indicator";
 
 export function CurrentWorkTime() {
   const { data: session, isLoading } = useClientSession();
@@ -20,9 +20,10 @@ export function CurrentWorkTime() {
   const fetchSummary = async () => {
     const start = startOfDay(new Date()).toISOString();
     const end = new Date().toISOString();
-    const url = `compat/wakatime/v1/users/current/summaries?${new URLSearchParams(
-      { start, end }
-    )}`;
+    const url = `/v1/users/current/summaries?${new URLSearchParams({
+      start,
+      end,
+    })}`;
     const durationData = await fetchData<SummariesApiResponse>(url);
     if (durationData)
       setTodaysCodingTime(durationData.cumulative_total.text || "");
@@ -53,7 +54,7 @@ export function CurrentWorkTime() {
       }}
     >
       <div className="flex items-center justify-center gap-1">
-        <PulseIndicator />
+        <div className="h-1.5 w-1.5 rounded-full border-double bg-red-500 outline outline-white mr-1 slow-pulse"></div>
         {todaysCodingTime}
       </div>
     </div>

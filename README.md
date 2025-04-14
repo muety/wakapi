@@ -5,7 +5,7 @@
 <!-- <p align="center">
   <img src="https://badges.fw-web.space/github/license/muety/wakapi">
   <a href="https://liberapay.com/muety/"><img src="https://badges.fw-web.space/liberapay/receives/muety.svg?logo=liberapay"></a>
-  <img src="https://wakapi.dev/api/badge/n1try/interval:any/project:wakapi?label=wakapi">
+  <img src="https://wakana.io/api/badge/n1try/interval:any/project:wakapi?label=wakapi">
   <img src="https://badges.fw-web.space/github/languages/code-size/muety/wakapi">
   <a href="https://goreportcard.com/report/github.com/muety/wakapi"><img src="https://goreportcard.com/badge/github.com/muety/wakapi"></a>
   <a href="https://sonarcloud.io/dashboard?id=muety_wakapi"><img src="https://sonarcloud.io/api/project_badges/measure?project=muety_wakapi&metric=ncloc"></a>
@@ -31,28 +31,28 @@
   <img src="frontend/docs/screenshots/home.png">
 </p>
 
-Installation instructions can be found below and in the [Wiki](https://github.com/muety/wakapi/wiki).
+Installation instructions can be found below and in the [Wakana.io](https://wakana.io).
 
 ## 🚀 Features
 
-* ✅ Free and open-source
-* ✅ Built by developers for developers
-* ✅ Statistics for projects, languages, editors, hosts and operating systems
-* ✅ Badges
-* ✅ Weekly E-Mail reports
-* ✅ REST API
-* ✅ Partially compatible with WakaTime
-* ✅ WakaTime integration
-* ✅ Support for Prometheus exports
-* ✅ Lightning fast
-* ✅ Self-hosted
+- ✅ Free and open-source
+- ✅ Built by developers for developers
+- ✅ Statistics for projects, languages, editors, hosts and operating systems
+- ✅ Badges
+- ✅ Weekly E-Mail reports
+- ✅ REST API
+- ✅ Partially compatible with WakaTime
+- ✅ WakaTime integration
+- ✅ Support for Prometheus exports
+- ✅ Lightning fast
+- ✅ Self-hosted
 
 ## ⌨️ How to use?
 
-There are different options for how to use Wakapi, ranging from our hosted cloud service to self-hosting it. Regardless
+There are different options for how to use Wakana, ranging from our hosted cloud service to self-hosting it. Regardless
 of which option choose, you will always have to do the [client setup](#-client-setup) in addition.
 
-### ☁️ Option 1: Use [wakapi.dev](https://wakapi.dev)
+### ☁️ Option 1: Use [wakana.io](https://wakana.io)
 
 If you want to try out a free, hosted cloud service, all you need to do is create an account and then set up your
 client-side tooling (see below).
@@ -60,7 +60,7 @@ client-side tooling (see below).
 ### 📦 Option 2: Quick-run a release
 
 ```bash
-$ curl -L https://wakapi.dev/get | bash
+$ curl -L https://wakana.io/get | bash
 ```
 
 **Alternatively** using [eget](https://github.com/zyedidia/eget):
@@ -86,16 +86,18 @@ $ docker run -d \
   ghcr.io/muety/wakapi:latest
 ```
 
-**Note:** By default, SQLite is used as a database. To run Wakapi in Docker with MySQL or Postgres, see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile) and [config.default.yml](https://github.com/muety/wakapi/blob/master/config.default.yml) for further options.
+**Note:** By default, SQLite is used as a database. To run Wakana in Docker with MySQL or Postgres, see [Dockerfile](https://github.com/muety/wakapi/blob/master/Dockerfile) and [config.default.yml](https://github.com/muety/wakapi/blob/master/config.default.yml) for further options.
 
-If you want to run Wakapi on **Kubernetes**, there is [wakapi-helm-chart](https://github.com/andreymaznyak/wakapi-helm-chart) for quick and easy deployment.
+If you want to run Wakana on **Kubernetes**, there is [wakapi-helm-chart](https://github.com/andreymaznyak/wakapi-helm-chart) for quick and easy deployment.
 
 #### Docker Compose
+
 Alternatively, you can use Docker Compose for an even more straightforward deployment. See [compose.yml](https://github.com/muety/wakapi/blob/master/compose.yml) for configuration details.
 
-Wakapi supports [Docker Secrets](https://docs.docker.com/compose/how-tos/use-secrets/) for the following variables: `WAKAPI_PASSWORD_SALT`, `WAKAPI_DB_PASSWORD`, `WAKAPI_MAIL_SMTP_PASS`. You can set these either by having them mounted as a secret file, or directly pass them as environment variables.
+Wakana supports [Docker Secrets](https://docs.docker.com/compose/how-tos/use-secrets/) for the following variables: `WAKAPI_PASSWORD_SALT`, `WAKAPI_DB_PASSWORD`, `WAKAPI_MAIL_SMTP_PASS`. You can set these either by having them mounted as a secret file, or directly pass them as environment variables.
 
 ##### Example
+
 ```bash
 export WAKAPI_PASSWORD_SALT=changeme
 export WAKAPI_DB_PASSWORD=changeme
@@ -123,13 +125,13 @@ $ ./wakapi -config wakapi.yml
 
 **Note:** Check the comments in `config.yml` for best practices regarding security configuration and more.
 
-💡 When running Wakapi standalone (without Docker), it is recommended to run it as
+💡 When running Wakana standalone (without Docker), it is recommended to run it as
 a [SystemD service](etc/wakapi.service).
 
 ### 💻 Client setup
 
-Wakapi relies on the open-source [WakaTime](https://github.com/wakatime/wakatime-cli) client tools. In order to collect
-statistics for Wakapi, you need to set them up.
+Wakana relies on the open-source [WakaTime](https://github.com/wakatime/wakatime-cli) client tools. In order to collect
+statistics for Wakana, you need to set them up.
 
 1. **Set up WakaTime** for your specific IDE or editor. Please refer to the
    respective [plugin guide](https://wakatime.com/plugins)
@@ -138,10 +140,10 @@ statistics for Wakapi, you need to set them up.
 ```ini
 [settings]
 
-# Your Wakapi server URL or 'https://wakapi.dev/api' when using the cloud server
+# Your Wakana server URL or 'https://wakana.io/api' when using the cloud server
 api_url = http://localhost:3000/api
 
-# Your Wakapi API key (get it from the web interface after having created an account)
+# Your Wakana API key (get it from the web interface after having created an account)
 api_key = 406fe41f-6d69-4183-a4cc-121e0c524c2b
 ```
 
@@ -154,7 +156,7 @@ You can specify configuration options either via a config file (default: `config
 argument) or via environment variables. Here is an overview of all options.
 
 | YAML key / Env. variable                                                     | Default                                          | Description                                                                                                                                                                     |
-|------------------------------------------------------------------------------|--------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ---------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `env` /<br>`ENVIRONMENT`                                                     | `dev`                                            | Whether to use development- or production settings                                                                                                                              |
 | `app.leaderboard_enabled` /<br>`WAKAPI_LEADERBOARD_ENABLED`                  | `true`                                           | Whether to enable the public leaderboard                                                                                                                                        |
 | `app.leaderboard_scope` /<br>`WAKAPI_LEADERBOARD_SCOPE`                      | `7_days`                                         | Aggregation interval for public leaderboard (see [here](https://github.com/muety/wakapi/blob/7d156cd3edeb93af2997bd95f12933b0aabef0c9/config/config.go#L71) for allowed values) |
@@ -162,7 +164,7 @@ argument) or via environment variables. Here is an overview of all options.
 | `app.aggregation_time` /<br>`WAKAPI_AGGREGATION_TIME`                        | `0 15 2 * * *`                                   | Time of day at which to periodically run summary generation for all users                                                                                                       |
 | `app.report_time_weekly` /<br>`WAKAPI_REPORT_TIME_WEEKLY`                    | `0 0 18 * * 5`                                   | Week day and time at which to send e-mail reports                                                                                                                               |
 | `app.data_cleanup_time` /<br>`WAKAPI_DATA_CLEANUP_TIME`                      | `0 0 6 * * 0`                                    | When to perform data cleanup operations (see `app.data_retention_months`)                                                                                                       |
-| `app.import_enabled` /<br>`WAKAPI_IMPORT_ENABLED`                            | `true`                                           | Whether data imports from WakaTime or other Wakapi instances are permitted                                                                                                      |
+| `app.import_enabled` /<br>`WAKAPI_IMPORT_ENABLED`                            | `true`                                           | Whether data imports from WakaTime or other Wakana instances are permitted                                                                                                      |
 | `app.import_batch_size` /<br>`WAKAPI_IMPORT_BATCH_SIZE`                      | `50`                                             | Size of batches of heartbeats to insert to the database during importing from external services                                                                                 |
 | `app.import_backoff_min` /<br>`WAKAPI_IMPORT_BACKOFF_MIN`                    | `5`                                              | "Cooldown" period in minutes before user may attempt another data import                                                                                                        |
 | `app.import_max_rate` /<br>`WAKAPI_IMPORT_MAX_RATE`                          | `24`                                             | Minimum number of hours to wait after a successful data import before user may attempt another one                                                                              |
@@ -172,7 +174,7 @@ argument) or via environment variables. Here is an overview of all options.
 | `app.avatar_url_template` /<br>`WAKAPI_AVATAR_URL_TEMPLATE`                  | (see [`config.default.yml`](config.default.yml)) | URL template for external user avatar images (e.g. from [Dicebear](https://dicebear.com) or [Gravatar](https://gravatar.com))                                                   |
 | `app.date_format` /<br>`WAKAPI_DATE_FORMAT`                                  | `Mon, 02 Jan 2006`                               | Go time format strings to format human-readable date (see [`Time.Format`](https://pkg.go.dev/time#Time.Format))                                                                 |
 | `app.datetime_format` /<br>`WAKAPI_DATETIME_FORMAT`                          | `Mon, 02 Jan 2006 15:04`                         | Go time format strings to format human-readable datetime (see [`Time.Format`](https://pkg.go.dev/time#Time.Format))                                                             |
-| `app.support_contact` /<br>`WAKAPI_SUPPORT_CONTACT`                          | `hostmaster@wakapi.dev`                          | E-Mail address to display as a support contact on the page                                                                                                                      |
+| `app.support_contact` /<br>`WAKAPI_SUPPORT_CONTACT`                          | `hostmaster@wakana.io`                           | E-Mail address to display as a support contact on the page                                                                                                                      |
 | `app.data_retention_months` /<br>`WAKAPI_DATA_RETENTION_MONTHS`              | `-1`                                             | Maximum retention period in months for user data (heartbeats) (-1 for unlimited)                                                                                                |
 | `app.max_inactive_months` /<br>`WAKAPI_MAX_INACTIVE_MONTHS`                  | `12`                                             | Maximum number of inactive months after which to delete user accounts without data (-1 for unlimited)                                                                           |
 | `server.port` /<br> `WAKAPI_PORT`                                            | `3000`                                           | Port to listen on                                                                                                                                                               |
@@ -184,7 +186,7 @@ argument) or via environment variables. Here is an overview of all options.
 | `server.tls_cert_path` /<br> `WAKAPI_TLS_CERT_PATH`                          | -                                                | Path of SSL server certificate (leave blank to not use HTTPS)                                                                                                                   |
 | `server.tls_key_path` /<br> `WAKAPI_TLS_KEY_PATH`                            | -                                                | Path of SSL server private key (leave blank to not use HTTPS)                                                                                                                   |
 | `server.base_path` /<br> `WAKAPI_BASE_PATH`                                  | `/`                                              | Web base path (change when running behind a proxy under a sub-path)                                                                                                             |
-| `server.public_url` /<br> `WAKAPI_PUBLIC_URL`                                | `http://localhost:3000`                          | URL at which your Wakapi instance can be found publicly                                                                                                                         |
+| `server.public_url` /<br> `WAKAPI_PUBLIC_URL`                                | `http://localhost:3000`                          | URL at which your Wakana instance can be found publicly                                                                                                                         |
 | `security.password_salt` /<br> `WAKAPI_PASSWORD_SALT`                        | -                                                | Pepper to use for password hashing                                                                                                                                              |
 | `security.insecure_cookies` /<br> `WAKAPI_INSECURE_COOKIES`                  | `false`                                          | Whether or not to allow cookies over HTTP                                                                                                                                       |
 | `security.cookie_max_age` /<br> `WAKAPI_COOKIE_MAX_AGE`                      | `172800`                                         | Lifetime of authentication cookies in seconds or `0` to use [Session](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Define_the_lifetime_of_a_cookie) cookies        |
@@ -210,8 +212,8 @@ argument) or via environment variables. Here is an overview of all options.
 | `db.max_conn` /<br> `WAKAPI_DB_MAX_CONNECTIONS`                              | `2`                                              | Maximum number of database connections                                                                                                                                          |
 | `db.ssl` /<br> `WAKAPI_DB_SSL`                                               | `false`                                          | Whether to use TLS encryption for database connection (Postgres and CockroachDB only)                                                                                           |
 | `db.automgirate_fail_silently` /<br> `WAKAPI_DB_AUTOMIGRATE_FAIL_SILENTLY`   | `false`                                          | Whether to ignore schema auto-migration failures when starting up                                                                                                               |
-| `mail.enabled` /<br> `WAKAPI_MAIL_ENABLED`                                   | `true`                                           | Whether to allow Wakapi to send e-mail (e.g. for password resets)                                                                                                               |
-| `mail.sender` /<br> `WAKAPI_MAIL_SENDER`                                     | `Wakapi <noreply@wakapi.dev>`                    | Default sender address for outgoing mails                                                                                                                                       |
+| `mail.enabled` /<br> `WAKAPI_MAIL_ENABLED`                                   | `true`                                           | Whether to allow Wakana to send e-mail (e.g. for password resets)                                                                                                               |
+| `mail.sender` /<br> `WAKAPI_MAIL_SENDER`                                     | `Wakana <noreply@wakana.io>`                     | Default sender address for outgoing mails                                                                                                                                       |
 | `mail.provider` /<br> `WAKAPI_MAIL_PROVIDER`                                 | `smtp`                                           | Implementation to use for sending mails (one of [`smtp`])                                                                                                                       |
 | `mail.smtp.host` /<br> `WAKAPI_MAIL_SMTP_HOST`                               | -                                                | SMTP server address for sending mail (if using `smtp` mail provider)                                                                                                            |
 | `mail.smtp.port` /<br> `WAKAPI_MAIL_SMTP_PORT`                               | -                                                | SMTP server port (usually 465)                                                                                                                                                  |
@@ -229,38 +231,38 @@ argument) or via environment variables. Here is an overview of all options.
 
 ### Supported databases
 
-Wakapi uses [GORM](https://gorm.io) as an ORM. As a consequence, a set of different relational databases is supported.
+Wakana uses [GORM](https://gorm.io) as an ORM. As a consequence, a set of different relational databases is supported.
 
-* [SQLite](https://sqlite.org/) (_default, easy setup_)
-* [MySQL](https://hub.docker.com/_/mysql) (_recommended, because most extensively tested_)
-* [MariaDB](https://hub.docker.com/_/mariadb) (_open-source MySQL alternative_)
-* [Postgres](https://hub.docker.com/_/postgres) (_open-source as well_)
-* [CockroachDB](https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html) (_cloud-native, distributed,
+- [SQLite](https://sqlite.org/) (_default, easy setup_)
+- [MySQL](https://hub.docker.com/_/mysql) (_recommended, because most extensively tested_)
+- [MariaDB](https://hub.docker.com/_/mariadb) (_open-source MySQL alternative_)
+- [Postgres](https://hub.docker.com/_/postgres) (_open-source as well_)
+- [CockroachDB](https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html) (_cloud-native, distributed,
   Postgres-compatible API_)
-* [Microsoft SQL Server](https://hub.docker.com/_/microsoft-mssql-server) (_Microsoft SQL Server_)
+- [Microsoft SQL Server](https://hub.docker.com/_/microsoft-mssql-server) (_Microsoft SQL Server_)
 
 ## 🔐 Authentication
 
-Wakapi supports different types of user authentication.
+Wakana supports different types of user authentication.
 
-* **Cookie:** This method is used in the browser. Users authenticate by sending along an encrypted, secure, HTTP-only
+- **Cookie:** This method is used in the browser. Users authenticate by sending along an encrypted, secure, HTTP-only
   cookie (`wakapi_auth`) that was set in the server's response upon login.
-* **API key:**
-    * **Via header:** This method is inspired
-      by [WakaTime's auth. mechanism](https://wakatime.com/developers/#authentication) and is the common way to
-      authenticate against API endpoints. Users set the `Authorization` header to `Basic <BASE64_TOKEN>`, where the
-      latter part corresponds to your base64-hashed API key.
-    * **Vis query param:** Alternatively, users can also pass their plain API key as a query parameter (
-      e.g. `?api_key=86648d74-19c5-452b-ba01-fb3ec70d4c2f`) in the URL with every request.
-* **Trusted header:** This mechanism allows to delegate authentication to a **reverse proxy** (e.g. for SSO), that
-  Wakapi will then trust blindly. See [#534](https://github.com/muety/wakapi/issues/534) for details.
-    * Must be enabled via `trusted_header_auth` and configuring `trust_reverse_proxy_ip` in the config
-    * Warning: This type of authentication is quite prone to misconfiguration. Make sure that your reverse proxy
-      properly strips relevant headers from client requests.
+- **API key:**
+  - **Via header:** This method is inspired
+    by [WakaTime's auth. mechanism](https://wakatime.com/developers/#authentication) and is the common way to
+    authenticate against API endpoints. Users set the `Authorization` header to `Basic <BASE64_TOKEN>`, where the
+    latter part corresponds to your base64-hashed API key.
+  - **Vis query param:** Alternatively, users can also pass their plain API key as a query parameter (
+    e.g. `?api_key=86648d74-19c5-452b-ba01-fb3ec70d4c2f`) in the URL with every request.
+- **Trusted header:** This mechanism allows to delegate authentication to a **reverse proxy** (e.g. for SSO), that
+  Wakana will then trust blindly. See [#534](https://github.com/muety/wakapi/issues/534) for details.
+  - Must be enabled via `trusted_header_auth` and configuring `trust_reverse_proxy_ip` in the config
+  - Warning: This type of authentication is quite prone to misconfiguration. Make sure that your reverse proxy
+    properly strips relevant headers from client requests.
 
 ## 🔧 API endpoints
 
-See our [Swagger API Documentation](https://wakapi.dev/swagger-ui).
+See our [Swagger API Documentation](https://wakana.io/swagger-ui).
 
 ### Generating Swagger docs
 
@@ -273,10 +275,10 @@ $ swag init -o static/docs
 
 ### Prometheus export
 
-You can export your Wakapi statistics to Prometheus to view them in a Grafana dashboard or so. Here is how.
+You can export your Wakana statistics to Prometheus to view them in a Grafana dashboard or so. Here is how.
 
 ```bash
-# 1. Start Wakapi with the feature enabled
+# 1. Start Wakana with the feature enabled
 $ export WAKAPI_EXPOSE_METRICS=true
 $ ./wakapi
 
@@ -290,15 +292,15 @@ $ echo "<YOUR_API_KEY>" | base64
 
 ```yml
 # prometheus.yml
-# (assuming your Wakapi instance listens at localhost, port 3000)
+# (assuming your Wakana instance listens at localhost, port 3000)
 
 scrape_configs:
-  - job_name: 'wakapi'
+  - job_name: "wakapi"
     scrape_interval: 1m
-    metrics_path: '/api/metrics'
-    bearer_token: '<YOUR_BASE64_HASHED_TOKEN>'
+    metrics_path: "/api/metrics"
+    bearer_token: "<YOUR_BASE64_HASHED_TOKEN>"
     static_configs:
-      - targets: [ 'localhost:3000' ]
+      - targets: ["localhost:3000"]
 ```
 
 #### Grafana
@@ -310,25 +312,25 @@ of [wakatime_exporter](https://github.com/MacroPower/wakatime_exporter).
 
 ### WakaTime integration
 
-Wakapi plays well together with [WakaTime](https://wakatime.com). For one thing, you can **forward heartbeats** from
-Wakapi to WakaTime to effectively use both services simultaneously. In addition, there is the option to **import
+Wakana plays well together with [WakaTime](https://wakatime.com). For one thing, you can **forward heartbeats** from
+Wakana to WakaTime to effectively use both services simultaneously. In addition, there is the option to **import
 historic data** from WakaTime for consistency between both services. Both features can be enabled in the _Integrations_
-section of your Wakapi instance's settings page.
+section of your Wakana instance's settings page.
 
 ### GitHub Readme Stats integrations
 
-Wakapi also integrates
+Wakana also integrates
 with [GitHub Readme Stats](https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats) to generate fancy
 cards for you. Here is an example. To use this, don't forget to **enable public data**
-under [Settings -> Permissions](https://wakapi.dev/settings#permissions).
+under [Settings -> Permissions](https://wakana.io/settings#permissions).
 
-![](https://github-readme-stats.vercel.app/api/wakatime?username=n1try&api_domain=wakapi.dev&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact&range=last_7_days)
+![](https://github-readme-stats.vercel.app/api/wakatime?username=n1try&api_domain=wakana.io&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakana%20Week%20Stats&layout=compact&range=last_7_days)
 
 <details>
 <summary>Click to view code</summary>
 
 ```markdown
-![](https://github-readme-stats.vercel.app/api/wakatime?username={yourusername}&api_domain=wakapi.dev&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakapi%20Week%20Stats&layout=compact)
+![](https://github-readme-stats.vercel.app/api/wakatime?username={yourusername}&api_domain=wakana.io&bg_color=2D3748&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title=Wakana%20Week%20Stats&layout=compact)
 ```
 
 </details>
@@ -337,8 +339,8 @@ under [Settings -> Permissions](https://wakapi.dev/settings#permissions).
 ### Github Readme Metrics integration
 
 There is a [WakaTime plugin](https://github.com/lowlighter/metrics/tree/master/source/plugins/wakatime) for
-GitHub [Metrics](https://github.com/lowlighter/metrics/) that is also compatible with Wakapi. To use this, don't forget
-to **enable public data** under [Settings -> Permissions](https://wakapi.dev/settings#permissions).
+GitHub [Metrics](https://github.com/lowlighter/metrics/) that is also compatible with Wakana. To use this, don't forget
+to **enable public data** under [Settings -> Permissions](https://wakana.io/settings#permissions).
 
 Preview:
 
@@ -352,13 +354,12 @@ Preview:
   with:
     # ... other options
     plugin_wakatime: yes
-    plugin_wakatime_token: ${{ secrets.WAKATIME_TOKEN }}      # Required
-    plugin_wakatime_days: 7                                   # Display last week stats
+    plugin_wakatime_token: ${{ secrets.WAKATIME_TOKEN }} # Required
+    plugin_wakatime_days: 7 # Display last week stats
     plugin_wakatime_sections: time, projects, projects-graphs # Display time and projects sections, along with projects graphs
-    plugin_wakatime_limit: 4                                  # Show 4 entries per graph
-    plugin_wakatime_url: http://wakapi.dev                    # Wakatime url endpoint
-    plugin_wakatime_user: .user.login                         # User
-
+    plugin_wakatime_limit: 4 # Show 4 entries per graph
+    plugin_wakatime_url: http://wakana.io # Wakatime url endpoint
+    plugin_wakatime_user: .user.login # User
 ```
 
 </details>
@@ -367,23 +368,23 @@ Preview:
 ### Browser Plugin (Chrome & Firefox)
 
 The [browser-wakatime](https://github.com/wakatime/browser-wakatime) plugin enables you to track your web surfing in
-WakaTime (and Wakapi, of course). Visited websites will appear as "files" in the summary. Follow these instructions to
+WakaTime (and Wakana, of course). Visited websites will appear as "files" in the summary. Follow these instructions to
 get started:
 
 1. Install the browser extension from the official
    store ([Firefox](https://addons.mozilla.org/en-US/firefox/addon/wakatimes), [Chrome](https://chrome.google.com/webstore/detail/wakatime/jnbbnacmeggbgdjgaoojpmhdlkkpblgi?hl=de))
 2. Open the extension settings dialog
 3. Configure it like so (see screenshot below):
-    * API Key: Your personal API key (get it at [wakapi.dev](https://wakapi.dev))
-    * Logging Type: _Only the domain_
-    * API URL: `https://wakapi.dev/api/compat/wakatime/v1` (alternatively, replace _wakapi.dev_ with your self-hosted
-      instance hostname)
+   - API Key: Your personal API key (get it at [wakana.io](https://wakana.io))
+   - Logging Type: _Only the domain_
+   - API URL: `https://wakana.io/api/compat/wakatime/v1` (alternatively, replace _wakapi.dev_ with your self-hosted
+     instance hostname)
 4. Save
 5. Start browsing!
 
 ![](.github/assets/screenshot_browser_plugin.png)
 
-Note: the plugin will only sync heartbeats once in a while, so it might take some time for them to appear on Wakapi.
+Note: the plugin will only sync heartbeats once in a while, so it might take some time for them to appear on Wakana.
 To "force" it to sync, simply bring up the plugin main dialog.
 
 ### Gnome Extension
@@ -401,7 +402,7 @@ command as a status bar indicator:
 
 ## 📦 Data Export
 
-You can export your coding activity from Wakapi to CSV in the form of raw heartbeats. While there is no way to
+You can export your coding activity from Wakana to CSV in the form of raw heartbeats. While there is no way to
 accomplish this directly through the web UI, we provide an easy-to-use Python [script](scripts/download_heartbeats.py)
 instead.
 
@@ -416,7 +417,7 @@ $ python scripts/download_heartbeats.py --api_key API_KEY [--url URL] [--from FR
 
 ```bash
 python scripts/download_heartbeats.py --api_key 04648d14-15c9-432b-b901-dbeec70d4eaf \
-  --url https://wakapi.dev/api \
+  --url https://wakana.io/api \
   --from 2023-01-01 \
   --to 2023-01-31 \
   --output wakapi_export.csv
@@ -448,14 +449,14 @@ $ CGO_ENABLED=0 go test `go list ./... | grep -v 'github.com/muety/wakapi/script
 
 ### API tests
 
-API tests are implemented as black box tests, which interact with a fully-fledged, standalone Wakapi through HTTP
-requests. They are supposed to check Wakapi's web stack and endpoints, including response codes, headers and data on a
+API tests are implemented as black box tests, which interact with a fully-fledged, standalone Wakana through HTTP
+requests. They are supposed to check Wakana's web stack and endpoints, including response codes, headers and data on a
 syntactical level, rather than checking the actual content that is returned.
 
 Our API (or end-to-end, in some way) tests are implemented as a [Postman](https://www.postman.com/) collection and can
 be run either from inside Postman, or using [newman](https://www.npmjs.com/package/newman) as a command-line runner.
 
-To get a predictable environment, tests are run against a fresh and clean Wakapi instance with a SQLite database that is
+To get a predictable environment, tests are run against a fresh and clean Wakana instance with a SQLite database that is
 populated with nothing but some seed data (see [data.sql](testing/data.sql)). It is usually recommended for software
 tests to be [safe](https://www.restapitutorial.com/lessons/idempotency.html), stateless and without side effects. In
 contrary to that paradigm, our API tests strictly require a fixed execution order (which Postman assures) and their
@@ -522,11 +523,11 @@ $ yarn compress
 
 ## ❔ FAQs
 
-Since Wakapi heavily relies on the concepts provided by WakaTime, [their FAQs](https://wakatime.com/faq) largely apply
-to Wakapi as well. You might find answers there.
+Since Wakana heavily relies on the concepts provided by WakaTime, [their FAQs](https://wakatime.com/faq) largely apply
+to Wakana as well. You might find answers there.
 
 <details>
-<summary><b>What data are sent to Wakapi?</b></summary>
+<summary><b>What data are sent to Wakana?</b></summary>
 
 <ul>
   <li>File names</li>
@@ -539,29 +540,32 @@ to Wakapi as well. You might find answers there.
 
 See the related [WakaTime FAQ section](https://wakatime.com/faq#data-collected) for details.
 
-If you host Wakapi yourself, you have control over all your data. However, if you use our webservice and are concerned
+If you host Wakana yourself, you have control over all your data. However, if you use our webservice and are concerned
 about privacy, you can also [exclude or obfuscate](https://wakatime.com/faq#exclude-paths) certain file- or project
 names.
+
 </details>
 
 <details>
 <summary><b>What happens if I'm offline?</b></summary>
 
 All data are cached locally on your machine and sent in batches once you're online again.
+
 </details>
 
 <details>
-<summary><b>How did Wakapi come about?</b></summary>
+<summary><b>How did Wakana come about?</b></summary>
 
-Wakapi was started when I was a student, who wanted to track detailed statistics about my coding time. Although I'm a
+Wakana was started when I was a student, who wanted to track detailed statistics about my coding time. Although I'm a
 big fan of WakaTime I didn't want to pay <a href="https://wakatime.com/pricing">$9 a month</a> back then. Luckily, most
 parts of WakaTime are open source!
+
 </details>
 
 <details>
-<summary><b>How does Wakapi compare to WakaTime?</b></summary>
+<summary><b>How does Wakana compare to WakaTime?</b></summary>
 
-Wakapi is a small subset of WakaTime and has a lot less features. Cool WakaTime features, that are missing Wakapi,
+Wakana is a small subset of WakaTime and has a lot less features. Cool WakaTime features, that are missing Wakana,
 include:
 
 <ul>
@@ -574,14 +578,15 @@ include:
 </ul>
 
 WakaTime is worth the price. However, if you only need basic statistics and like to keep sovereignty over your data, you
-might want to go with Wakapi.
+might want to go with Wakana.
+
 </details>
 
 <details>
 <summary><b>How are durations calculated?</b></summary>
 
 Inferring a measure for your coding time from heartbeats works a bit differently than in WakaTime. While WakaTime
-has <a href="https://wakatime.com/faq#timeout">timeout intervals</a>, Wakapi essentially just pads every heartbeat that
+has <a href="https://wakatime.com/faq#timeout">timeout intervals</a>, Wakana essentially just pads every heartbeat that
 occurs after a longer pause with 2 extra minutes.
 
 Here is an example (circles are heartbeats):
@@ -599,42 +604,40 @@ typing code?
 <ul>
   <li><b>WakaTime</b> (with 5 min timeout): 3 min 20 sec
   <li><b>WakaTime</b> (with 2 min timeout): 20 sec
-  <li><b>Wakapi:</b> 10 sec + 2 min + 10 sec = 2 min 20 sec</li>
+  <li><b>Wakana:</b> 10 sec + 2 min + 10 sec = 2 min 20 sec</li>
 </ul>
 
-Wakapi adds a "padding" of two minutes before the third heartbeat. This is why total times will slightly vary between
-Wakapi and WakaTime.
+Wakana adds a "padding" of two minutes before the third heartbeat. This is why total times will slightly vary between
+Wakana and WakaTime.
+
 </details>
 
 ## 👥 Community contributions
 
-* 💻 [Code] Image generator from Wakapi
+- 💻 [Code] Image generator from Wakana
   stats – [LacazeThomas/wakapi-stats](https://github.com/LacazeThomas/wakapi-stats) (`Go`)
-* 💻 [Code] Discord integration for
-  Wakapi - [LLoneDev6/Wakapi-Discord](https://github.com/LoneDev6/Wakapi-Discord) (`JavaScript`)
-* 💻 [Code] Alternative heartbeats export
+- 💻 [Code] Discord integration for
+  Wakana - [LLoneDev6/Wakana-Discord](https://github.com/LoneDev6/Wakana-Discord) (`JavaScript`)
+- 💻 [Code] Alternative heartbeats export
   script - [wakapiexporter.nim](https://github.com/theAkito/mini-tools-nim/tree/master/generic/web/wakapiexporter) (
   `Nim`)
-* 💻 [Code] Wakapi Helm chart for K8s
+- 💻 [Code] Wakana Helm chart for K8s
   deployments - [andreymaznyak/wakapi-helm-chart](https://github.com/andreymaznyak/wakapi-helm-chart) (`YAML`)
-* 🗒 [Article] [Wakamonth: hours reporting tool](https://bitstillery.com/2024/01/09/wakamonth-hours-reporting-tool/)
+- 🗒 [Article] [Wakamonth: hours reporting tool](https://bitstillery.com/2024/01/09/wakamonth-hours-reporting-tool/)
 
 ## 👏 Support
 
 Coding in open source is my passion and I would love to do it on a full-time basis and make a living from it one day. So
 if you like this project, please consider supporting it 🙂. You can donate either
-through [buying me a coffee](https://buymeacoff.ee/n1try) or becoming a GitHub sponsor. Every little donation is highly
-appreciated and boosts my motivation to keep improving Wakapi!
+through [buying me a coffee](https://buymeacoffee.com/jemiluv8) or becoming a GitHub sponsor. Every little donation is highly
+appreciated and boosts my motivation to keep improving Wakana!
 
 ## 🙏 Thanks
 
 I highly appreciate the efforts of **[@alanhamlett](https://github.com/alanhamlett)** and the WakaTime team and am
-thankful for their software being open source.
-
-Moreover, thanks to **[server.camp](https://server.camp)** for sponsoring server infrastructure for Wakapi.dev.
-
-<img src=".github/assets/servercamp_logo.png" width="220px" />
+thankful for their software being open source. Also **[@muety](https://github.com/muety)** whose project I forked
+to get this started.
 
 ## 📓 License
 
-MIT @ [Ferdinand Mütsch](https://muetsch.io)
+MIT @ [Jemilu Mohammed](https://github.com/jemiluv8)

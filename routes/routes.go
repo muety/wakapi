@@ -1,23 +1,17 @@
 package routes
 
 import (
-	"github.com/duke-git/lancet/v2/strutil"
-	"github.com/muety/wakapi/helpers"
 	"html/template"
 	"strings"
+
+	"github.com/duke-git/lancet/v2/strutil"
+	"github.com/muety/wakapi/helpers"
 
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
-	"github.com/muety/wakapi/views"
 )
-
-var templates map[string]*template.Template
-
-func Init() {
-	loadTemplates()
-}
 
 func DefaultTemplateFuncs() template.FuncMap {
 	return template.FuncMap{
@@ -98,20 +92,6 @@ func typeName(t uint8) string {
 		return "category"
 	}
 	return "unknown"
-}
-
-func loadTemplates() {
-	// Use local file system when in 'dev' environment, go embed file system otherwise
-	templateFs := config.ChooseFS("views", views.TemplateFiles)
-	if tpls, err := utils.LoadTemplates(templateFs, DefaultTemplateFuncs()); err == nil {
-		templates = tpls
-	} else {
-		panic(err)
-	}
-}
-
-func defaultErrorRedirectTarget() string {
-	return config.Get().Server.BasePath + "/"
 }
 
 func add(i, j int) int {

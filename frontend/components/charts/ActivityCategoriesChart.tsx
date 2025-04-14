@@ -13,13 +13,16 @@ import { SummariesResponse } from "@/lib/types";
 import { makeCategorySummaryData } from "@/lib/utils";
 
 import { ActivityCategoriesSummaryChart } from "./ActivityCategoriesSummaryChart";
+import { EmptyChartWrapper } from "./EmptyChartWrapper";
 import { StackedTooltipContentForCategories } from "./StackedTooltipContent";
 
 export interface iProps {
   data: SummariesResponse[];
 }
 
-export function ActivityCategoriesChart({ data: rawSummaries }: iProps) {
+export function ActivityCategoriesChartComponent({
+  data: rawSummaries,
+}: iProps) {
   const [groupedSummaryData, categoryData] =
     makeCategorySummaryData(rawSummaries);
   return (
@@ -58,5 +61,16 @@ export function ActivityCategoriesChart({ data: rawSummaries }: iProps) {
         </BarChart>
       </ResponsiveContainer>
     </>
+  );
+}
+
+export function ActivityCategoriesChart({ data }: iProps) {
+  const totalSeconds = data
+    .map((d) => d.grand_total.total_seconds || 0)
+    .reduce((a, b) => a + b, 0);
+  return (
+    <EmptyChartWrapper hasData={totalSeconds > 0}>
+      <ActivityCategoriesChartComponent data={data} />
+    </EmptyChartWrapper>
   );
 }

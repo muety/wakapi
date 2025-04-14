@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 
-import { fetchData, getSession } from "@/actions";
+import { fetchData } from "@/actions";
 import { ClientsApiResponse } from "@/components/clients-table";
 import { InvoicesTable } from "@/components/invoice-table";
 import { Invoice } from "@/lib/types";
@@ -11,13 +11,11 @@ export const metadata: Metadata = {
 };
 
 export default async function Invoices() {
-  const session = await getSession();
-
   const clients = await fetchData<ClientsApiResponse>(
-    "compat/wakatime/v1/users/current/clients"
+    "/v1/users/current/clients"
   );
   const invoices = await fetchData<{ data: Invoice[] }>(
-    "compat/wakatime/v1/users/current/invoices"
+    "/v1/users/current/invoices"
   );
 
   return (
@@ -28,7 +26,6 @@ export default async function Invoices() {
       <InvoicesTable
         clients={clients?.data || []}
         invoices={invoices?.data || []}
-        token={session.token}
       />
     </div>
   );

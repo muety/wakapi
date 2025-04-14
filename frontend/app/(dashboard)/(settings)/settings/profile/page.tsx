@@ -1,3 +1,4 @@
+import { fetchData } from "@/actions";
 import { ProfileForm } from "@/components/profile-form";
 import {
   Card,
@@ -6,8 +7,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { UserProfile } from "@/lib/types";
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+  const user = await fetchData<UserProfile>("/v1/profile", true);
+
   return (
     <Card x-chunk="dashboard-04-chunk-1">
       <CardHeader>
@@ -17,7 +21,7 @@ export default function ProfilePage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ProfileForm />
+        <ProfileForm user={user!} />
       </CardContent>
     </Card>
   );

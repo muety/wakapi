@@ -29,9 +29,9 @@ export const TOP_FAQS: Faq[] = [
     answer:
       "This is a work in progress. We are not yet ready for production use. We are still working on the UI and adding features. We are also working on a managed version of this website that will be available to paying customers to help fund the continued work on this project.",
   },
-  {
-    question: "My state of mind",
-    answer:
-      "It is 29th October, 2024, 00:40 GMT. I work two jobs that pay me a total of under ${430}. I'm just ranting and hope you excuse some of the language. I hope this turns out well though. And of course, one of you cool guys will clean this up eventually.",
-  },
+  // {
+  //   question: "My state of mind",
+  //   answer:
+  //     "It is 29th October, 2024, 00:40 GMT. I work two jobs that pay me a total of under ${430}. I'm just ranting and hope you excuse some of the language. I hope this turns out well though. And of course, one of you cool guys will clean this up eventually.",
+  // },
 ];

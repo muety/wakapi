@@ -5,6 +5,10 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"math"
+	"sync"
+	"time"
+
 	svg "github.com/ajstarks/svgo/float"
 	"github.com/alitto/pond"
 	"github.com/duke-git/lancet/v2/condition"
@@ -14,9 +18,7 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
-	"math"
-	"sync"
-	"time"
+	"gorm.io/gorm"
 )
 
 const (
@@ -38,7 +40,8 @@ type ActivityService struct {
 	summaryService ISummaryService
 }
 
-func NewActivityService(summaryService ISummaryService) *ActivityService {
+func NewActivityService(db *gorm.DB) *ActivityService {
+	summaryService := NewSummaryService(db)
 	return &ActivityService{
 		config:         config.Get(),
 		cache:          cache.New(6*time.Hour, 6*time.Hour),
@@ -138,8 +141,8 @@ func (s *ActivityService) getChartPastYear(user *models.User, darkTheme, hideAtt
 
 	if !hideAttribution {
 		canvas.Group()
-		canvas.Title("Wakapi.dev")
-		canvas.Image(w-60, h-24, 60, 24, "https://wakapi.dev/assets/images/logo-gh.svg")
+		canvas.Title("Wakana.io")
+		canvas.Image(w-60, h-24, 60, 24, "https://wakana.io/assets/images/logo-gh.svg")
 		canvas.Gend()
 	}
 

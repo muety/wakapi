@@ -1,8 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import React from "react";
 import { useForm } from "react-hook-form";
 
+import { saveProfile } from "@/actions/update-preferences";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -17,40 +19,53 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { profileFormSchema, type ProfileFormValues } from "@/lib/schema";
+import { UserProfile } from "@/lib/types";
 
-export function ProfileForm() {
-  // on;y set value for fields if the exist. Otherwise react0hoo-forms behaves weirdly
+import { Icons } from "./icons";
+
+export function ProfileForm({ user }: { user: UserProfile }) {
+  const [loading, setLoading] = React.useState(false);
+
+  // only set value for fields if the exist. Otherwise react-hool-forms behaves weirdly
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      // name: undefined,
-      // username: undefined,
-      // bio: undefined,
-      // github: undefined,
-      // twitter: undefined,
-      // linkedin: undefined,
+      name: user?.name || undefined,
+      username: user?.username || undefined,
+      bio: user?.bio || undefined,
+      github_handle: user?.github_handle || undefined,
+      twitter_handle: user?.twitter_handle || undefined,
+      linked_in_handle: user?.linked_in_handle || undefined,
     },
   });
 
-  // we need to fetch the users profile information
-  // and use it to set default values
+  const onSubmit = async (data: ProfileFormValues) => {
+    setLoading(true);
+    try {
+      const response = await saveProfile(data);
 
-  // const form = useForm<ProfileFormValues>({
-  //   resolver: zodResolver(profileFormSchema),
-  //   mode: "onSubmit", // Ensures validation occurs on submit
-  // });
+      if (!response.ok) {
+        toast({
+          title: "Failed to save profile",
+          variant: "destructive",
+        });
+        console.error("error", response);
+      }
 
-  function onSubmit(data: ProfileFormValues) {
-    // make the call to save these sorry ...
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
-  }
+      toast({
+        title: "Profile Saved!",
+        variant: "success",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to save profile",
+        variant: "destructive",
+      });
+      console.error("error", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Form {...form}>
@@ -105,25 +120,9 @@ export function ProfileForm() {
             </FormItem>
           )}
         />
-        {/* <FormField
-          control={form.control}
-          name="key_stroke_timeout"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Keystroke Timeout (ms)</FormLabel>
-              <FormControl>
-                <Input placeholder="Keystroke timeout" {...field} />
-              </FormControl>
-              <FormDescription>
-                Minutes between keystrokes before timeout is stopped.{" "}
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        /> */}
         <FormField
           control={form.control}
-          name="github"
+          name="github_handle"
           render={({ field }) => (
             <FormItem>
               <FormLabel>GitHub</FormLabel>
@@ -142,7 +141,7 @@ export function ProfileForm() {
         />
         <FormField
           control={form.control}
-          name="twitter"
+          name="twitter_handle"
           render={({ field }) => (
             <FormItem>
               <FormLabel>X (Twitter)</FormLabel>
@@ -163,7 +162,7 @@ export function ProfileForm() {
         />
         <FormField
           control={form.control}
-          name="linkedin"
+          name="linked_in_handle"
           render={({ field }) => (
             <FormItem>
               <FormLabel>LinkedIn</FormLabel>
@@ -180,7 +179,10 @@ export function ProfileForm() {
             </FormItem>
           )}
         />
-        <Button type="submit">Update profile</Button>
+        <Button type="submit">
+          {loading && <Icons.spinner className="mr-2 size-5 animate-spin" />}
+          Update profile
+        </Button>
       </form>
     </Form>
   );

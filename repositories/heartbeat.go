@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -241,6 +242,30 @@ func (r *HeartbeatRepository) DeleteByUserBefore(user *models.User, t time.Time)
 		return err
 	}
 	return nil
+}
+
+// GetHeartbeatsWritePercentage calculates the percentage of write operations within a given time range
+// using a raw optimized PostgreSQL query, formatted to 2 decimal places
+func (r *HeartbeatRepository) GetHeartbeatsWritePercentage(userID string, start, end time.Time) (float64, error) {
+	var writePercentage float64
+
+	query := `
+	SELECT 
+		CASE 
+			WHEN COUNT(*) = 0 THEN 0.00
+			ELSE (SUM(CASE WHEN is_write THEN 1 ELSE 0 END)::float / COUNT(*)) * 100
+		END AS write_percentage
+	FROM heartbeats
+	WHERE user_id = ? AND time >= ? AND time <= ?
+`
+
+	// Execute the raw query
+	err := r.db.Raw(query, userID, start, end).Scan(&writePercentage).Error
+	if err != nil {
+		return 0, fmt.Errorf("error executing raw query for write percentage: %w", err)
+	}
+
+	return writePercentage, nil
 }
 
 func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to time.Time, limit, offset int) ([]*models.ProjectStats, error) {

@@ -21,6 +21,7 @@ import { PKCEGenerator, PKCEResult } from "@/lib/oauth/pkce";
 import { cn } from "@/lib/utils";
 
 import { Icons } from "./icons";
+import { OTPLoadingWrapper } from "./otp-loading-wrapper";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -103,55 +104,56 @@ export function OTPSignIn({ className }: Props) {
   async function onComplete(otp: string) {
     try {
       setIsLoading(true);
+      if (!email || !pkce?.code_verifier) {
+        return toast({
+          title: "Invalid OTP",
+          description: "Please check your OTP and try again.",
+          variant: "destructive",
+        });
+      }
+      const response = await processLoginWithOTP({
+        email,
+        otp,
+        code_verifier: pkce?.code_verifier || "",
+      });
+
+      if (response && response.message) {
+        const { message } = response;
+        toast({
+          title: message.title,
+          description: message.description,
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error(error);
     } finally {
       setIsLoading(false);
-    }
-    if (!email || !pkce?.code_verifier) {
-      return toast({
-        title: "Invalid OTP",
-        description: "Please check your OTP and try again.",
-        variant: "destructive",
-      });
-    }
-
-    const response = await processLoginWithOTP({
-      email,
-      otp,
-      code_verifier: pkce?.code_verifier || "",
-    });
-
-    if (response && response.message) {
-      const { message } = response;
-      toast({
-        title: message.title,
-        description: message.description,
-        variant: "destructive",
-      });
     }
   }
 
   if (isSent) {
     return (
       <div className={cn("flex flex-col space-y-4 items-center", className)}>
-        <InputOTP
-          maxLength={6}
-          autoFocus
-          onComplete={onComplete}
-          disabled={isLoading}
-          render={({ slots }) => (
-            <InputOTPGroup>
-              {slots.map((slot, index) => (
-                <InputOTPSlot
-                  key={index.toString()}
-                  {...slot}
-                  className="w-[62px] h-[62px]"
-                />
-              ))}
-            </InputOTPGroup>
-          )}
-        />
+        <OTPLoadingWrapper loading={isLoading} loaderType="spinner">
+          <InputOTP
+            maxLength={6}
+            autoFocus
+            onComplete={onComplete}
+            disabled={isLoading}
+            render={({ slots }) => (
+              <InputOTPGroup>
+                {slots.map((slot, index) => (
+                  <InputOTPSlot
+                    key={index.toString()}
+                    {...slot}
+                    className="w-[62px] h-[62px]"
+                  />
+                ))}
+              </InputOTPGroup>
+            )}
+          />
+        </OTPLoadingWrapper>
 
         <div className="flex space-x-2">
           <span className="text-sm text-[#878787]">

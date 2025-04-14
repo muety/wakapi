@@ -12,7 +12,7 @@ import { COLORS } from "@/lib/constants";
 import { SummariesResponse } from "@/lib/types";
 import { makeCategorySummaryDataForWeekdays } from "@/lib/utils";
 
-import { DurationTooltip } from "./DurationTooltip";
+import { EmptyChartWrapper } from "./EmptyChartWrapper";
 import { StackedTooltipContent } from "./StackedTooltipContent";
 
 export interface iProps {
@@ -20,12 +20,12 @@ export interface iProps {
   durationSubtitle?: string;
 }
 
-export function WeekdaysBarChart({ data, durationSubtitle }: iProps) {
+export function WeekdaysBarChartComponent({ data }: iProps) {
   const [groupedSummaryData, categoryData] =
     makeCategorySummaryDataForWeekdays(data);
   return (
     <>
-      <DurationTooltip title="Weekdays" subtitle={durationSubtitle} />
+      <div className="chart-box-title">WEEKDAYS</div>
       <ResponsiveContainer width="100%" height={190}>
         <BarChart data={groupedSummaryData}>
           <XAxis
@@ -56,5 +56,16 @@ export function WeekdaysBarChart({ data, durationSubtitle }: iProps) {
         </BarChart>
       </ResponsiveContainer>
     </>
+  );
+}
+
+export function WeekdaysBarChart({ data }: iProps) {
+  const totalSeconds = data
+    .map((d) => d.grand_total.total_seconds || 0)
+    .reduce((a, b) => a + b, 0);
+  return (
+    <EmptyChartWrapper hasData={totalSeconds > 0}>
+      <WeekdaysBarChartComponent data={data} />
+    </EmptyChartWrapper>
   );
 }

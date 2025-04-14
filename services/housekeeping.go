@@ -1,13 +1,15 @@
 package services
 
 import (
+	"log/slog"
+	"time"
+
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
-	"log/slog"
-	"time"
+	"gorm.io/gorm"
 )
 
 type HousekeepingService struct {
@@ -19,7 +21,21 @@ type HousekeepingService struct {
 	queueWorkers  *artifex.Dispatcher
 }
 
-func NewHousekeepingService(userService IUserService, heartbeatService IHeartbeatService, summaryService ISummaryService) *HousekeepingService {
+func NewHousekeepingService(db *gorm.DB) *HousekeepingService {
+	summaryService := NewSummaryService(db)
+	userService := NewUserService(db)
+	heartbeatService := NewHeartbeatService(db)
+	return &HousekeepingService{
+		config:        config.Get(),
+		userSrvc:      userService,
+		heartbeatSrvc: heartbeatService,
+		summarySrvc:   summaryService,
+		queueDefault:  config.GetDefaultQueue(),
+		queueWorkers:  config.GetQueue(config.QueueHousekeeping),
+	}
+}
+
+func NewTestHousekeepingService(userService IUserService, heartbeatService IHeartbeatService, summaryService ISummaryService) *HousekeepingService {
 	return &HousekeepingService{
 		config:        config.Get(),
 		userSrvc:      userService,

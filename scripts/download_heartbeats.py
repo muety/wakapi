@@ -19,7 +19,7 @@ import requests
 
 # globals
 http: requests.Session = requests.Session()
-api_url: str = 'https://wakapi.dev/api'
+api_url: str = 'https://wakana.io/api'
 
 Heartbeats = List[Dict[str, Any]]
 

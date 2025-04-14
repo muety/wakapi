@@ -88,7 +88,7 @@ export interface SummariesResponse {
 export interface CumulativeTotal {
   decimal: string;
   digital: string;
-  seconds: string;
+  seconds: number;
   text: string;
 }
 
@@ -108,6 +108,7 @@ export interface SummariesApiResponse {
   end: string;
   cumulative_total: CumulativeTotal;
   daily_average: DailyAverage;
+  write_percentage: number;
 }
 
 export interface GoalData {
@@ -149,6 +150,7 @@ export interface GoalChartData {
 export interface Invoice {
   id: string;
   name: string;
+  invoice_id: string;
   amount: number;
   origin: string;
   destination: string;
@@ -195,6 +197,25 @@ export interface User {
   modified_at: string;
   photo: string;
 }
+
+export type UserProfile = {
+  id: string;
+  email: string;
+  location: string;
+  created_at: string; // ISO date string
+  last_logged_in_at: string; // ISO date string
+  email_verified: boolean;
+  public_leaderboard: boolean;
+  hireable: boolean;
+  show_email_in_public: boolean;
+  heartbeats_timeout_sec: number;
+  name: string;
+  username: string;
+  bio: string;
+  github_handle: string;
+  twitter_handle: string;
+  linked_in_handle: string;
+};
 
 export interface DataItem {
   rank: number;

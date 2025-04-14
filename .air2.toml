@@ -1,0 +1,6 @@
+[build]
+cmd = "go build -o ./wakana ."
+bin = "./wakana"
+full_bin = "./wakana new-serve --config config.default.yml"
+include_ext = ["go", "tpl", "tmpl", "html"]
+exclude_dir = [".github", "frontend", "notes", "static"]

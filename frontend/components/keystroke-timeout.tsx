@@ -3,46 +3,37 @@
 import { LucideSave } from "lucide-react";
 import React from "react";
 
-import { NEXT_PUBLIC_API_URL } from "@/lib/constants/config";
+import { updatePreference } from "@/actions/update-preferences";
 
 import { Icons } from "./icons";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { toast } from "./ui/use-toast";
 
-export function KeystrokeTimeout({ token }: { token: string }) {
+export function KeystrokeTimeout({ initialValue }: { initialValue?: number }) {
   const [loading, setLoading] = React.useState(false);
-  const [keyStrokeTimeout, setKeyStrokeTimeout] = React.useState("");
+  const [keyStrokeTimeout, setKeyStrokeTimeout] = React.useState<number>(
+    initialValue || 0
+  );
 
   const saveKeystrokeTimeout = async () => {
+    if (!keyStrokeTimeout) {
+      return;
+    }
     try {
       setLoading(true);
-      const resourceUrl = `${NEXT_PUBLIC_API_URL}/api/settings`;
-      const response = await fetch(resourceUrl, {
-        method: "POST",
-        body: JSON.stringify({
-          action: "set_keystroke_timeout",
-          keystroke_timeout: keyStrokeTimeout,
-        }),
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          token: `${token}`,
-        },
+      await updatePreference("heartbeats_timeout_sec", keyStrokeTimeout);
+      toast({
+        title: "Saved keystroke timeout",
+        description: `Keystroke timeout saved. Future summaries will now use this to compute time spent.`,
+        variant: "success",
       });
-
-      if (!response.ok) {
-        toast({
-          title: "Failed to update keystroke timeout",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Saved keystroke timeout",
-          description: `Keystroke timeout saved. We've started recomputing your stats.`,
-          variant: "success",
-        });
-      }
+    } catch (error) {
+      toast({
+        title: "Error updating keystroke timeout",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -51,11 +42,12 @@ export function KeystrokeTimeout({ token }: { token: string }) {
   return (
     <div className="flex gap-2">
       <Input
+        type="number"
         className="h-9 py-0"
         placeholder="Keystroke Timeout"
         disabled={loading}
         value={keyStrokeTimeout}
-        onChange={(e) => setKeyStrokeTimeout(e.target.value)}
+        onChange={(e) => setKeyStrokeTimeout(+e.target.value)}
       />
       <Button
         variant="outline"
