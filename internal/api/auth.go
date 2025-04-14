@@ -53,7 +53,6 @@ func (a *APIv1) Signin(w http.ResponseWriter, r *http.Request) {
 	params.Email = strings.ToLower(params.Email)
 	user, err := a.services.Users().GetUserByEmail(params.Email)
 	if err != nil || user == nil {
-		w.WriteHeader(http.StatusNotFound)
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
 			"message": "Invalid credentials",
 			"status":  http.StatusBadRequest,
@@ -61,10 +60,7 @@ func (a *APIv1) Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// go a.regenerateSummaries(user)
-
 	if !utils.ComparePassword(user.Password, params.Password, a.config.Security.PasswordSalt) {
-		w.WriteHeader(http.StatusUnauthorized)
 		helpers.RespondJSON(w, r, http.StatusBadRequest, map[string]interface{}{
 			"message": "Invalid credentials",
 			"status":  http.StatusBadRequest,
