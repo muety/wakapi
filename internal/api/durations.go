@@ -43,8 +43,8 @@ func (d *DurationResult) TotalTime() time.Duration {
 // Overall result structure matching Wakatime API response
 type DurationResult struct {
 	Data       []DurationBlock               `json:"data"`
-	Start      string                        `json:"start"`    // ISO 8601 format string
-	End        string                        `json:"end"`      // ISO 8601 format string
+	Start      time.Time                     `json:"start"`    // ISO 8601 format string
+	End        time.Time                     `json:"end"`      // ISO 8601 format string
 	Timezone   string                        `json:"timezone"` // Timezone name (e.g., "Africa/Accra")
 	GrandTotal *wakatime.SummariesGrandTotal `json:"grand_totel"`
 }
@@ -229,8 +229,8 @@ func ProcessHeartbeats(heartbeats []*models.Heartbeat, start time.Time, end time
 	// 5. Construct Final Result
 	result := DurationResult{
 		Data:     finalDurations,
-		Start:    start.Format(time.RFC3339),
-		End:      end.Format(time.RFC3339),
+		Start:    start,
+		End:      end,
 		Timezone: timezone.String(),
 	}
 
@@ -268,6 +268,38 @@ func (a *APIv1) GetDurations(w http.ResponseWriter, r *http.Request) {
 	timezone := user.TZ()
 	rangeFrom, rangeTo := datetime.BeginOfDay(date.In(timezone)), datetime.EndOfDay(date.In(timezone))
 
+	var lastHeartbeatFromYesterday models.Heartbeat
+
+	result := a.db.
+		Where("user_id = ? AND time < ?", user.ID, rangeFrom).
+		Order("time DESC").
+		Limit(1).
+		Find(&lastHeartbeatFromYesterday)
+
+	if result.Error != nil {
+		helpers.RespondJSON(w, r, http.StatusInternalServerError, map[string]interface{}{
+			"message": "Failed to retrieve last heartbeat from yesterday",
+			"error":   result.Error,
+		})
+		return
+	}
+
+	startOfTomorrow := rangeTo.Add(time.Second)
+	var firstHeartbeatFromTomorrow models.Heartbeat
+	result = a.db.
+		Where("user_id = ? AND time >= ?", user.ID, startOfTomorrow).
+		Order("time ASC").
+		Limit(1).
+		Find(&firstHeartbeatFromTomorrow)
+
+	if result.Error != nil {
+		helpers.RespondJSON(w, r, http.StatusInternalServerError, map[string]interface{}{
+			"message": "Failed to retrieve first heartbeat from tomorrow",
+			"error":   result.Error,
+		})
+		return
+	}
+
 	heartbeats, err := a.services.Heartbeat().GetAllWithin(rangeFrom, rangeTo, user)
 	if err != nil {
 		errMessage := "Failed to retrieve heartbeats"
@@ -285,8 +317,8 @@ func (a *APIv1) GetDurations(w http.ResponseWriter, r *http.Request) {
 		rangeTo,
 		15,
 		timezone,
-		nil,
-		nil,
+		&lastHeartbeatFromYesterday,
+		&firstHeartbeatFromTomorrow,
 	)
 
 	if err != nil {

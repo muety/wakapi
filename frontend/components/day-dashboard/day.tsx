@@ -3,11 +3,11 @@
 import { Group } from "@visx/group";
 import { scaleLinear, scaleTime } from "@visx/scale";
 import { Bar, Line } from "@visx/shape";
-import { addDays, format, isAfter, isToday, subDays } from "date-fns";
+import { addDays, format, isToday, subDays } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState, useRef } from "react";
 
 interface RawTimeEntry {
   time: number;
@@ -38,14 +38,13 @@ interface ProjectGroup {
 }
 
 interface TimeTrackingProps {
-  width: number;
-  margin?: { top: number; right: number; bottom: number; left: number };
   data: RawData;
+  margin?: { top: number; right: number; bottom: number; left: number };
 }
 
-const defaultMargin = { top: 140, right: 40, bottom: 40, left: 220 };
-const ROW_HEIGHT = 50;
-const LANE_HEIGHT = 25;
+const defaultMargin = { top: 80, right: 40, bottom: 40, left: 220 };
+const ROW_HEIGHT = 45;
+const LANE_HEIGHT = 33;
 
 interface DateNavigationProps {
   data: RawData;
@@ -84,7 +83,7 @@ export function DayHeader({ data, totalTime }: DateNavigationProps) {
   };
 
   return (
-    <div className="flex items-center justify-center p-6 w-full">
+    <div className="flex items-center justify-center p-4 w-full">
       <button
         onClick={gotoPreviousDay}
         className="flex items-center justify-start w-12 h-12 rounded-full border border-blue-500/50 hover:bg-blue-500/10 transition-all"
@@ -116,10 +115,39 @@ export function DayHeader({ data, totalTime }: DateNavigationProps) {
 }
 
 const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
-  width,
-  margin = defaultMargin,
   data: rawData,
+  margin = defaultMargin,
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+
+  // Effect to measure and update container dimensions
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const { width } = containerRef.current.getBoundingClientRect();
+        setDimensions((prev) => ({ ...prev, width }));
+      }
+    };
+
+    // Initial measurement
+    updateDimensions();
+
+    // Setup resize observer for responsive updates
+    const resizeObserver = new ResizeObserver(updateDimensions);
+    resizeObserver.observe(containerRef.current);
+
+    // Cleanup
+    return () => {
+      if (containerRef.current) {
+        resizeObserver.unobserve(containerRef.current);
+      }
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   const { timeScale, yScale, projects, totalTime, calculatedHeight } =
     useMemo(() => {
       const startDate = new Date(rawData.start);
@@ -153,12 +181,14 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
         (sum, project) => sum + project.totalDuration,
         0
       );
+
+      // Calculate height based on projects and adjust to container if needed
       const calculatedHeight =
         projects.length * ROW_HEIGHT + margin.top + margin.bottom;
 
       const timeScale = scaleTime({
         domain: [startDate, endDate],
-        range: [margin.left, width - margin.right],
+        range: [margin.left, dimensions.width - margin.right],
       });
 
       const yScale = scaleLinear({
@@ -167,7 +197,12 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
       });
 
       return { timeScale, yScale, projects, totalTime, calculatedHeight };
-    }, [width, margin, rawData]);
+    }, [dimensions.width, margin, rawData]);
+
+  // Update height when calculated height changes
+  useEffect(() => {
+    setDimensions((prev) => ({ ...prev, height: calculatedHeight }));
+  }, [calculatedHeight]);
 
   const formatDuration = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
@@ -182,11 +217,23 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
     return `${hour % 12}${hour < 12 ? "a" : "p"}`;
   };
 
+  // Responsive tick generation based on available width
+  const tickCount = useMemo(() => {
+    // Use fewer ticks on smaller screens
+    const width = dimensions.width;
+    if (width < 600) return 6; // Every 4 hours
+    if (width < 960) return 12; // Every 2 hours
+    return 24; // Every hour
+  }, [dimensions.width]);
+
   return (
-    <div className="relative bg-[rgb(18,18,18)] rounded-xl p-4">
+    <div
+      ref={containerRef}
+      className="relative bg-[rgb(18,18,18)] rounded-xl p-4 w-full h-full"
+    >
       <DayHeader data={rawData} totalTime={totalTime} />
 
-      <svg width={width} height={calculatedHeight}>
+      <svg width="100%" height={dimensions.height}>
         {/* Surrounding box lines */}
         <Line
           from={{ x: margin.left, y: margin.top }}
@@ -195,24 +242,27 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
           strokeWidth={1}
         />
         <Line
-          from={{ x: width - margin.right, y: margin.top }}
-          to={{ x: width - margin.right, y: calculatedHeight - margin.bottom }}
+          from={{ x: dimensions.width - margin.right, y: margin.top }}
+          to={{
+            x: dimensions.width - margin.right,
+            y: calculatedHeight - margin.bottom,
+          }}
           stroke="rgba(255,255,255,0.1)"
           strokeWidth={1}
         />
 
-        {/* Time axis with ticks below labels */}
-        <Group top={margin.top - 50}>
-          {timeScale.ticks(24).map((date, i) => {
+        {/* Time axis with ticks below labels - reduced the positioning from margin.top - 50 to margin.top - 25 */}
+        <Group top={margin.top - 25}>
+          {timeScale.ticks(tickCount).map((date, i) => {
             const x = timeScale(date);
             const label = getHourLabel(date);
-            const isEdge = i === 0 || i === 23;
+            const isEdge = i === 0 || i === tickCount - 1;
 
             return (
               <g key={i}>
                 <text
                   x={x}
-                  y={30} // Position text above the tick
+                  y={15} // Reduced from 30 to 15
                   textAnchor={isEdge ? (i === 0 ? "start" : "end") : "middle"}
                   fill="#6b7280"
                   fontSize={12}
@@ -221,8 +271,8 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
                   {label}
                 </text>
                 <Line
-                  from={{ x, y: 40 }} // Start tick below text
-                  to={{ x, y: 50 }} // End tick at top of first row
+                  from={{ x, y: 20 }} // Reduced from 40 to 20
+                  to={{ x, y: 25 }} // Reduced from 50 to 25
                   stroke="rgba(255,255,255,0.1)"
                   strokeWidth={1}
                 />
@@ -240,7 +290,7 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
               {index === 0 && (
                 <Line
                   from={{ x: margin.left, y: 0 }}
-                  to={{ x: width - margin.right, y: 0 }}
+                  to={{ x: dimensions.width - margin.right, y: 0 }}
                   stroke="rgba(255,255,255,0.1)"
                   strokeWidth={1}
                 />
@@ -250,7 +300,7 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
               <rect
                 x={margin.left}
                 y={0}
-                width={width - margin.left - margin.right}
+                width={dimensions.width - margin.left - margin.right}
                 height={ROW_HEIGHT}
                 fill="rgba(255,255,255,0.03)"
               />
@@ -287,7 +337,7 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
               {/* Bottom row line */}
               <Line
                 from={{ x: margin.left, y: ROW_HEIGHT }}
-                to={{ x: width - margin.right, y: ROW_HEIGHT }}
+                to={{ x: dimensions.width - margin.right, y: ROW_HEIGHT }}
                 stroke="rgba(255,255,255,0.1)"
                 strokeWidth={1}
               />
