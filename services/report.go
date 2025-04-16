@@ -90,7 +90,7 @@ func (srv *ReportService) Schedule() {
 		for _, u := range users {
 			scheduleUserReport(u)
 		}
-	}, "0 6 * * 1")
+	}, "0 0 6 * * 1")
 
 	if err != nil {
 		config.Log().Error("failed to dispatch report generation jobs", "error", err)
