@@ -33,7 +33,7 @@ export async function fetchData<T>(
       redirect("/login");
     }
 
-    const apiResponse = await fetch(`${NEXT_PUBLIC_API_URL}/api/${url}`, {
+    const apiResponse = await fetch(`${NEXT_PUBLIC_API_URL}/api${url}`, {
       method: "GET",
       headers: {
         accept: "application/json",

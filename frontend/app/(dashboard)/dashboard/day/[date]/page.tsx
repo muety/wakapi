@@ -19,5 +19,5 @@ export default async function DayPage({ params: { date } }: iProps) {
       </h3>
     );
   }
-  return <TimeTrackingVisualization width={1224} data={durationData} />;
+  return <TimeTrackingVisualization data={durationData} />;
 }

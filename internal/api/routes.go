@@ -83,8 +83,12 @@ func (api *APIv1) RegisterApiV1Routes(r *chi.Mux) {
 		r.Get("/stats/{range}", api.GetUserStats)
 		r.Get("/statusbar/{range}", api.GetStatusBarRange)
 	})
-
 	r.Get("/api/v1/leaders", api.GetLeaderboard)
+
+	r.Route("/api", func(r chi.Router) {
+		r.Use(middlewares.NewAuthenticateMiddleware(api.services.Users()).Handler)
+		r.Get("/users/{user}/statusbar/today", api.GetStatusBarRange)
+	})
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/health", api.HealthCheck)
@@ -125,7 +129,6 @@ func (api *APIv1) RegisterApiV1Routes(r *chi.Mux) {
 			r.Get("/summaries", api.GetSummaries)
 			r.Get("/projects", api.GetProjects)
 			r.Get("/projects/{id}", api.GetProject)
-
 			r.Get("/durations", api.GetDurations)
 
 			r.Route("/clients", func(r chi.Router) {
