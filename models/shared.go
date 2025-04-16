@@ -62,11 +62,22 @@ func (j *CustomTime) MarshalJSON() ([]byte, error) {
 
 func (j *CustomTime) UnmarshalJSON(b []byte) error {
 	s := strings.Trim(string(b), "\"")
+
+	// Try to parse as a floating-point timestamp first
 	ts, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		return err
+	if err == nil {
+		// Successfully parsed as float
+		t := time.Unix(0, int64(ts*1e9)) // ms to ns
+		*j = CustomTime(t)
+		return nil
 	}
-	t := time.Unix(0, int64(ts*1e9)) // ms to ns
+
+	// If not a float, try parsing as ISO 8601 date string
+	t, err := time.Parse(time.RFC3339Nano, s)
+	if err != nil {
+		return fmt.Errorf("failed to parse time value %q: %v", s, err)
+	}
+
 	*j = CustomTime(t)
 	return nil
 }

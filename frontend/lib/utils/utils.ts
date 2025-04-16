@@ -245,14 +245,15 @@ export function getEntityColor(namespace: string, key: string) {
 }
 
 export function prepareDailyCodingData(arg: SummariesResponse) {
-  const name = format(new Date(arg.range.start), "LLL do");
+  const name = format(new Date(arg.range.start), "EEE LLL do");
+  const date = format(new Date(arg.range.start), "yyyy-MM-dd");
   const amalgamated = arg.projects.reduce(
     (prev, curr) => ({
       [curr.name]: curr.total_seconds,
       ...prev,
       total: prev.total + curr.total_seconds,
     }),
-    { name, total: 0 }
+    { name, total: 0, date }
   );
   return amalgamated;
 }
@@ -285,7 +286,7 @@ export function getUniqueProjects(
   const projects = new Set<string>();
   rawChartData.forEach((d) =>
     Object.keys(d).forEach(
-      (key) => !["name", "total"].includes(key) && projects.add(key)
+      (key) => !["name", "total", "date"].includes(key) && projects.add(key)
     )
   );
   return Array.from(projects);

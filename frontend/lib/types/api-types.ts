@@ -111,6 +111,29 @@ export interface SummariesApiResponse {
   write_percentage: number;
 }
 
+type TimeEntry = {
+  time: number; // Unix timestamp in seconds (with decimals)
+  project: string;
+  duration: number; // duration in seconds
+  color: string | null;
+};
+
+type GrandTotal = {
+  digital: string; // e.g., "7:35"
+  hours: number; // e.g., 7
+  minutes: number; // e.g., 35
+  text: string; // e.g., "7 hrs 35 mins"
+  total_seconds: number; // e.g., 27321
+};
+
+export type DurationData = {
+  data: TimeEntry[];
+  start: string; // ISO date string
+  end: string; // ISO date string
+  timezone: string; // e.g., "Local"
+  grand_totel: GrandTotal; // assuming the typo "totel" is intentional in the source
+};
+
 export interface GoalData {
   id: string;
   user_id: string;
