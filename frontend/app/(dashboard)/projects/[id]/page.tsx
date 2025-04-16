@@ -97,7 +97,7 @@ export default async function ProjectDetailPage({
                   "editors"
                 )}
                 colorNamespace="editors"
-                durationSubtitle="Languages used over the "
+                durationSubtitle="Editors used over the "
               />
             </div>
           </section>
