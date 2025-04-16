@@ -9,6 +9,8 @@ import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { convertSecondsToHoursAndMinutes } from "@/lib/utils";
+
 interface RawTimeEntry {
   time: number;
   project: string;
@@ -118,6 +120,11 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+  const [tooltip, setTooltip] = useState<{
+    x: number;
+    y: number;
+    activity: ProcessedActivity;
+  } | null>(null);
 
   // Effect to measure and update container dimensions
   useEffect(() => {
@@ -332,6 +339,15 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
                   fill="#3b82f6"
                   rx={2}
                   style={{ cursor: "pointer" }}
+                  onMouseEnter={(event) => {
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    setTooltip({
+                      x: rect.left + rect.width / 2,
+                      y: rect.top,
+                      activity,
+                    });
+                  }}
+                  onMouseLeave={() => setTooltip(null)}
                 />
               ))}
 
@@ -346,6 +362,32 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
           );
         })}
       </svg>
+      {tooltip && (
+        <div
+          className="absolute z-10 text-white p-2 rounded shadow-lg text-xs custom-tooltip"
+          style={{
+            left: `${tooltip.x}px`,
+            top: `${tooltip.y - 5}px`,
+            transform: "translate(-50%, -100%)",
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            className="custom-tooltip-header text-center shadow"
+            style={{ color: "white" }}
+          >
+            {tooltip.activity.project}
+          </div>
+          <div>
+            {format(tooltip.activity.start, "h:mm a")} -{" "}
+            {format(tooltip.activity.end, "h:mm a")}
+          </div>
+          <div>
+            Duration:{" "}
+            {convertSecondsToHoursAndMinutes(tooltip.activity.duration)}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
