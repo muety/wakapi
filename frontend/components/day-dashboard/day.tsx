@@ -7,7 +7,7 @@ import { addDays, format, isToday, subDays } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useMemo, useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface RawTimeEntry {
   time: number;
@@ -86,10 +86,10 @@ export function DayHeader({ data, totalTime }: DateNavigationProps) {
     <div className="flex items-center justify-center p-4 w-full">
       <button
         onClick={gotoPreviousDay}
-        className="flex items-center justify-start w-12 h-12 rounded-full border border-blue-500/50 hover:bg-blue-500/10 transition-all"
+        className="flex items-center justify-start size-8 rounded-full border border-blue-500/50 hover:bg-blue-500/10 transition-all"
         aria-label="Previous day"
       >
-        <ChevronLeft className="w-10 h-10 text-blue-500 hover:text-blue-400 transition-colors" />
+        <ChevronLeft className="size-8 text-blue-500 hover:text-blue-400 transition-colors" />
       </button>
 
       <div className="flex items-center mx-5">
@@ -97,18 +97,16 @@ export function DayHeader({ data, totalTime }: DateNavigationProps) {
           {totalHours} hrs {totalMinutes} mins
         </span>
         <span className="text-2xl text-gray-400 mr-3">on</span>
-        <span className="text-3xl text-blue-500 border-b border-dashed border-blue-500">
-          {formattedDate}
-        </span>
+        <span className="text-3xl text-blue-500">{formattedDate}</span>
       </div>
 
       <button
         onClick={gotoNextDay}
-        className="flex items-center justify-end w-12 h-12 rounded-full border border-blue-500/50 hover:bg-blue-500/10 transition-all"
+        className="flex items-center justify-end size-8 rounded-full border border-blue-500/50 hover:bg-blue-500/10 transition-all"
         aria-label="Next day"
         disabled={onCurrentDay}
       >
-        <ChevronRight className="w-10 h-10 text-blue-500 hover:text-blue-400 transition-colors" />
+        <ChevronRight className="size-8 text-blue-500 hover:text-blue-400 transition-colors" />
       </button>
     </div>
   );
@@ -135,14 +133,17 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
     // Initial measurement
     updateDimensions();
 
+    // Copy the ref value to a local variable - helps with cleanup
+    const currentContainer = containerRef.current;
+
     // Setup resize observer for responsive updates
     const resizeObserver = new ResizeObserver(updateDimensions);
-    resizeObserver.observe(containerRef.current);
+    resizeObserver.observe(currentContainer);
 
     // Cleanup
     return () => {
-      if (containerRef.current) {
-        resizeObserver.unobserve(containerRef.current);
+      if (currentContainer) {
+        resizeObserver.unobserve(currentContainer);
       }
       resizeObserver.disconnect();
     };
