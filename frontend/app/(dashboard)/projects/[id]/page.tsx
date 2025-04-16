@@ -94,9 +94,9 @@ export default async function ProjectDetailPage({
                 title="Editors"
                 data={makePieChartDataFromRawApiResponse(
                   durationData.data,
-                  "languages"
+                  "editors"
                 )}
-                colorNamespace="languages"
+                colorNamespace="editors"
                 durationSubtitle="Languages used over the "
               />
             </div>
