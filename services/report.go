@@ -63,7 +63,7 @@ func (srv *ReportService) Schedule() {
 			}
 
 			// make the job take at least reportDelay seconds
-			if diff := reportDelay - time.Now().Sub(t0); diff > 0 {
+			if diff := reportDelay - time.Since(t0); diff > 0 {
 				slog.Debug("waiting before sending next report", "duration", diff)
 				time.Sleep(diff)
 			}
@@ -81,7 +81,7 @@ func (srv *ReportService) Schedule() {
 		}
 
 		// filter users who have their email set
-		users = slice.Filter[*models.User](users, func(i int, u *models.User) bool {
+		users = slice.Filter(users, func(i int, u *models.User) bool {
 			return u.Email != ""
 		})
 
@@ -90,7 +90,7 @@ func (srv *ReportService) Schedule() {
 		for _, u := range users {
 			scheduleUserReport(u)
 		}
-	}, srv.config.App.GetWeeklyReportCron())
+	}, "0 6 * * 1")
 
 	if err != nil {
 		config.Log().Error("failed to dispatch report generation jobs", "error", err)
@@ -104,9 +104,8 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 	}
 
 	slog.Info("generating report for user", "userID", user.ID)
-
-	end := time.Now().In(user.TZ())
-	start := time.Now().Add(-1 * duration)
+	end := datetime.EndOfDay(time.Now().Add(-24 * time.Hour).In(user.TZ()))
+	start := end.Add(-1 * duration).Add(1 * time.Second)
 
 	fullSummary, err := srv.summaryService.Aliased(start, end, user, srv.summaryService.Retrieve, nil, false)
 	if err != nil {

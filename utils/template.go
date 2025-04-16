@@ -29,7 +29,7 @@ func LoadTemplates(templateFs fs.FS, funcs template.FuncMap) (TemplateMap, error
 	tpls := template.New("").Funcs(funcs)
 	templates := make(map[string]*template.Template)
 
-	files, err := fs.ReadDir(templateFs, ".")
+	files, err := fs.ReadDir(templateFs, "templates") // Read the "templates" subdirectory
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func LoadTemplates(templateFs fs.FS, funcs template.FuncMap) (TemplateMap, error
 			continue
 		}
 
-		templateFile, err := templateFs.Open(tplName)
+		templateFile, err := templateFs.Open(path.Join("templates", tplName)) // Open file from "templates"
 		if err != nil {
 			return nil, err
 		}

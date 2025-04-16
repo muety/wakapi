@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
@@ -75,6 +76,16 @@ func (a *APIv1) GetProfile(w http.ResponseWriter, r *http.Request) {
 	user := middlewares.GetPrincipal(r)
 	defer a.services.Users().FlushCache()
 	helpers.RespondJSON(w, r, 200, user)
+}
+
+func (a *APIv1) SendReport(w http.ResponseWriter, r *http.Request) {
+	user := middlewares.GetPrincipal(r)
+	const reportRange = 7 * 24 * time.Hour
+	err := a.services.Report().SendReport(user, reportRange)
+	helpers.RespondJSON(w, r, 200, map[string]any{
+		"success": err == nil,
+		"message": "report sent",
+	})
 }
 
 func (a *APIv1) actionSetWakatimeApiKey(wakatimeSettings *SettingsPayload, user *models.User) actionResult {

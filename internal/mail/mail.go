@@ -2,6 +2,7 @@ package mail
 
 import (
 	"bytes"
+	"embed"
 	"fmt"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/routes"
 	"github.com/muety/wakapi/utils"
-	"github.com/muety/wakapi/views/mail"
 
 	conf "github.com/muety/wakapi/config"
 )
@@ -28,6 +28,9 @@ const (
 	subjectReport                      = "Wakana - Report from %s"
 	subjectSubscriptionNotification    = "Wakana - Subscription expiring / expired"
 )
+
+//go:embed templates/*.html
+var TemplateFiles embed.FS
 
 type IMailService interface {
 	SendPasswordReset(*models.User, string) error
@@ -61,9 +64,9 @@ func NewMailService() IMailService {
 	}
 
 	// Use local file system when in 'dev' environment, go embed file system otherwise
-	templateFs := conf.ChooseFS("views/mail", mail.TemplateFiles)
-	templates, err := utils.LoadTemplates(templateFs, routes.DefaultTemplateFuncs())
+	templates, err := utils.LoadTemplates(TemplateFiles, routes.DefaultTemplateFuncs())
 	if err != nil {
+		fmt.Println("ERROR LOADING templates")
 		panic(err)
 	}
 
@@ -134,6 +137,11 @@ func (m *MailService) SendImportNotification(recipient *models.User, duration ti
 }
 
 func (m *MailService) SendReport(recipient *models.User, report *models.Report) error {
+	if report.Summary.NumHeartbeats == 0 {
+		conf.Log().Info("the user has no activity for this period", "userID", recipient.ID)
+		return nil
+	}
+
 	tpl, err := m.getReportTemplate(ReportTplData{report})
 	if err != nil {
 		return err

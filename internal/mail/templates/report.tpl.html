@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+
+{{ template "head.tpl.html" . }}
+
+<body class="" style="background-color: #f6f6f6; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
+<table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background-color: #f6f6f6;">
+    <tr>
+        <td>&nbsp;</td>
+        <td class="container" style="display: block; Margin: 0 auto; max-width: 580px; padding: 10px; width: 580px;">
+            {{ template "theader.tpl.html" . }}
+
+            <div class="content" style="max-width: 580px; padding: 10px;">
+                <table width="100%" align="center" class="main" style="background: #ffffff; border-radius: 3px;">
+                    <tr>
+                        <td width="41">&nbsp;</td>
+                        <td height="36">&nbsp;</td>
+                        <td width="41">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td width="41">&nbsp;</td>
+                        <td class="wrapper" style="font-family:'Proxima Nova', Calibri, Helvetica, sans-serif;font-size:16px;color:#505050;text-align:left;line-height:25.6px;">
+                            <table width="100%">
+                                <tr>
+                                    <td>
+                                        <p style="font-size:14px;margin-top:0px;margin-bottom:10px;">
+                                            Weekly code stats for
+                                            <a href="{{ frontendUri }}/dashboard?start={{ .Report.From | simpledate | urlSafe }}&end={{ .Report.To | simpledate | urlSafe }}">
+                                                {{ .Report.From | simpledate }} - {{ .Report.To | simpledate }}
+                                            </a>
+                                        </p>
+
+                                        <table style="width:100%;margin-top: 20px; margin-bottom: 20px;">
+                                            <tbody>
+                                              <tr>
+                                                <td style="white-space:nowrap;padding-right:8px;">
+                                                  <div style="font-size:22px;font-weight:bold;">{{ .Report.Summary.TotalTime | duration }}</div>
+                                                  <div style="font-size:16px;color:#838383;padding-left:2px;">total</div>
+                                                </td>
+                                                <td style="white-space:nowrap;padding-left:8px;">
+                                                  <div style="font-size:22px;font-weight:bold;">{{ .Report.DailyAverage | duration }}</div>
+                                                  <div style="font-size:16px;color:#838383;padding-left:2px;">daily average</div>
+                                                </td>
+                                              </tr>
+                                            </tbody>
+                                        </table>
+
+                                        <table style="border:0px;">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="2" style="text-align:left;"><h3 style="margin-top:0;margin-bottom:2px;text-decoration:underline;">Categories:</h3></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {{ range $i, $item := .Report.Summary.Categories }}
+                                                <tr>
+                                                    <td style="padding-right:6px; text-transform: capitalize;"><b>{{ $item.Key }}</b></td>
+                                                    <td>{{ $item.TotalFixed | duration }}</td>
+                                                </tr>
+                                                {{ end }}
+                                            </tbody>
+                                        </table>
+
+                                        <table style="border:0px;">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="2" style="text-align:left;"><h3 style="margin-top:30px;margin-bottom:2px;text-decoration:underline;">Projects:</h3></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {{ range $i, $item := .Report.Summary.Projects }}
+                                                <tr>
+                                                    <td style="padding-right:6px;"><b>{{ $item.Key }}</b></td>
+                                                    <td>{{ $item.TotalFixed | duration }}</td>
+                                                </tr>
+                                                {{ end }}
+                                            </tbody>
+                                        </table>
+
+                                        {{ if len .Report.DailySummaries }}
+                                        <table style="border:0px;">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="2" style="text-align:left;"><h3 style="margin-top:30px;margin-bottom:2px;text-decoration:underline;">Weekdays:</h3></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {{ range $i, $summary := .Report.DailySummaries }}
+                                                <tr>
+                                                    <td style="padding-right:6px; text-transform: capitalize;"><b>{{ $summary.FromTime.T | date }}</b></td>
+                                                    <td>{{ $summary.TotalTime | duration }}</td>
+                                                </tr>
+                                                {{ end }}
+                                            </tbody>
+                                        </table>
+                                        {{ end }}
+
+                                        <table style="border:0px;">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="2" style="text-align:left;"><h3 style="margin-top:30px;margin-bottom:2px;text-decoration:underline;">Languages:</h3></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {{ range $i, $item := .Report.Summary.Languages }}
+                                                <tr>
+                                                    <td style="padding-right:6px; text-transform: capitalize;"><b>{{ $item.Key }}</b></td>
+                                                    <td>{{ $item.TotalFixed | duration }}</td>
+                                                </tr>
+                                                {{ end }}
+                                            </tbody>
+                                        </table>
+
+                                        <table style="border:0px;">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="2" style="text-align:left;"><h3 style="margin-top:30px;margin-bottom:2px;text-decoration:underline;">Editors:</h3></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {{ range $i, $item := .Report.Summary.Editors }}
+                                                <tr>
+                                                    <td style="padding-right:6px; text-transform: capitalize;"><b>{{ $item.Key }}</b></td>
+                                                    <td>{{ $item.TotalFixed | duration }}</td>
+                                                </tr>
+                                                {{ end }}
+                                            </tbody>
+                                        </table>
+
+                                        <table style="border:0px;">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="2" style="text-align:left;"><h3 style="margin-top:30px;margin-bottom:2px;text-decoration:underline;">Operating Systems:</h3></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {{ range $i, $item := .Report.Summary.OperatingSystems }}
+                                                <tr>
+                                                    <td style="padding-right:6px; text-transform: capitalize;"><b>{{ $item.Key }}</b></td>
+                                                    <td>{{ $item.TotalFixed | duration }}</td>
+                                                </tr>
+                                                {{ end }}
+                                            </tbody>
+                                        </table>
+
+                                        <table style="border:0px;">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="2" style="text-align:left;"><h3 style="margin-top:30px;margin-bottom:2px;text-decoration:underline;">Machines:</h3></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {{ range $i, $item := .Report.Summary.Machines }}
+                                                <tr>
+                                                    <td style="padding-right:6px; text-transform: capitalize;"><b>{{ $item.Key }}</b></td>
+                                                    <td>{{ $item.TotalFixed | duration }}</td>
+                                                </tr>
+                                                {{ end }}
+                                            </tbody>
+                                        </table>
+
+                                        <p style="font-size:14px; margin-top:30px;">If you do not want to receive e-mail reports anymore, please log in to your dashboard and go to
+                                            <a href="{{ frontendUri }}/settings/preferences">
+                                                <i>Settings</i>
+                                            </a>
+                                            to disable them.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+
+                {{ template "tfooter.tpl.html" . }}
+            </div>
+        </td>
+        <td>&nbsp;</td>
+    </tr>
+</table>
+</body>
+</html>

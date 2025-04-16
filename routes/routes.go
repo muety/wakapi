@@ -2,6 +2,7 @@ package routes
 
 import (
 	"html/template"
+	"net/url"
 	"strings"
 
 	"github.com/duke-git/lancet/v2/strutil"
@@ -20,7 +21,7 @@ func DefaultTemplateFuncs() template.FuncMap {
 		"datetime":       helpers.FormatDateTimeHuman,
 		"simpledate":     helpers.FormatDate,
 		"simpledatetime": helpers.FormatDateTime,
-		"duration":       helpers.FmtWakatimeDuration,
+		"duration":       helpers.FmtWakatimeDurationV2,
 		"floordate":      datetime.BeginOfDay,
 		"ceildate":       utils.CeilDate,
 		"title":          strings.Title,
@@ -33,6 +34,9 @@ func DefaultTemplateFuncs() template.FuncMap {
 		"entityTypes":    models.SummaryTypes,
 		"strslice":       utils.SubSlice[string],
 		"typeName":       typeName,
+		"frontendUri": func() string {
+			return config.Get().Server.FrontendUri
+		},
 		"isDev": func() bool {
 			return config.Get().IsDev()
 		},
@@ -49,7 +53,7 @@ func DefaultTemplateFuncs() template.FuncMap {
 			return template.HTML(html)
 		},
 		"urlSafe": func(s string) template.URL {
-			return template.URL(s)
+			return template.URL(url.QueryEscape(s))
 		},
 		"cssSafe": func(s string) template.CSS {
 			return template.CSS(s)
