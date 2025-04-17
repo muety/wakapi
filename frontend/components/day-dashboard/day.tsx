@@ -4,7 +4,7 @@ import { Group } from "@visx/group";
 import { scaleLinear, scaleTime } from "@visx/scale";
 import { Bar, Line } from "@visx/shape";
 import { addDays, format, isToday, subDays } from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, FileBarChart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -110,6 +110,30 @@ export function DayHeader({ data, totalTime }: DateNavigationProps) {
       >
         <ChevronRight className="size-8 text-blue-500 hover:text-blue-400 transition-colors" />
       </button>
+    </div>
+  );
+}
+
+// Empty state component
+function EmptyState({ date }: { date: Date }) {
+  const formattedDate = date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  return (
+    <div className="flex flex-col items-center justify-center h-[400px] w-full">
+      <div className="bg-blue-500/10 rounded-full p-6 mb-6">
+        <FileBarChart className="size-16 text-blue-500" />
+      </div>
+      <h3 className="text-2xl font-bold text-white mb-2">
+        No time entries found
+      </h3>
+      <p className="text-gray-400 mb-6 text-center max-w-md">
+        There are no time entries recorded for {formattedDate}.
+      </p>
     </div>
   );
 }
@@ -234,158 +258,172 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
     return 24; // Every hour
   }, [dimensions.width]);
 
+  // Check if there's no data
+  const hasNoData = rawData.data.length === 0;
+
   return (
     <div
       ref={containerRef}
       className="relative bg-[rgb(18,18,18)] rounded-xl p-4 w-full h-full"
     >
-      <DayHeader data={rawData} totalTime={totalTime} />
+      {hasNoData ? (
+        <>
+          <DayHeader data={rawData} totalTime={0} />
+          <EmptyState date={new Date(rawData.start)} />
+        </>
+      ) : (
+        <>
+          <DayHeader data={rawData} totalTime={totalTime} />
 
-      <svg width="100%" height={dimensions.height}>
-        {/* Surrounding box lines */}
-        <Line
-          from={{ x: margin.left, y: margin.top }}
-          to={{ x: margin.left, y: calculatedHeight - margin.bottom }}
-          stroke="rgba(255,255,255,0.1)"
-          strokeWidth={1}
-        />
-        <Line
-          from={{ x: dimensions.width - margin.right, y: margin.top }}
-          to={{
-            x: dimensions.width - margin.right,
-            y: calculatedHeight - margin.bottom,
-          }}
-          stroke="rgba(255,255,255,0.1)"
-          strokeWidth={1}
-        />
+          <svg width="100%" height={dimensions.height}>
+            {/* Surrounding box lines */}
+            <Line
+              from={{ x: margin.left, y: margin.top }}
+              to={{ x: margin.left, y: calculatedHeight - margin.bottom }}
+              stroke="rgba(255,255,255,0.1)"
+              strokeWidth={1}
+            />
+            <Line
+              from={{ x: dimensions.width - margin.right, y: margin.top }}
+              to={{
+                x: dimensions.width - margin.right,
+                y: calculatedHeight - margin.bottom,
+              }}
+              stroke="rgba(255,255,255,0.1)"
+              strokeWidth={1}
+            />
 
-        {/* Time axis with ticks below labels - reduced the positioning from margin.top - 50 to margin.top - 25 */}
-        <Group top={margin.top - 25}>
-          {timeScale.ticks(tickCount).map((date, i) => {
-            const x = timeScale(date);
-            const label = getHourLabel(date);
-            const isEdge = i === 0 || i === tickCount - 1;
+            {/* Time axis with ticks below labels - reduced the positioning from margin.top - 50 to margin.top - 25 */}
+            <Group top={margin.top - 25}>
+              {timeScale.ticks(tickCount).map((date, i) => {
+                const x = timeScale(date);
+                const label = getHourLabel(date);
+                const isEdge = i === 0 || i === tickCount - 1;
 
-            return (
-              <g key={i}>
-                <text
-                  x={x}
-                  y={15} // Reduced from 30 to 15
-                  textAnchor={isEdge ? (i === 0 ? "start" : "end") : "middle"}
-                  fill="#6b7280"
-                  fontSize={12}
-                  fontFamily="monospace"
-                >
-                  {label}
-                </text>
-                <Line
-                  from={{ x, y: 20 }} // Reduced from 40 to 20
-                  to={{ x, y: 25 }} // Reduced from 50 to 25
-                  stroke="rgba(255,255,255,0.1)"
-                  strokeWidth={1}
-                />
-              </g>
-            );
-          })}
-        </Group>
-
-        {/* Project lanes */}
-        {projects.map((project, index) => {
-          const yPos = yScale(index);
-          return (
-            <Group key={project.name} top={yPos}>
-              {/* First row top line to align with tick endings */}
-              {index === 0 && (
-                <Line
-                  from={{ x: margin.left, y: 0 }}
-                  to={{ x: dimensions.width - margin.right, y: 0 }}
-                  stroke="rgba(255,255,255,0.1)"
-                  strokeWidth={1}
-                />
-              )}
-
-              {/* Row background */}
-              <rect
-                x={margin.left}
-                y={0}
-                width={dimensions.width - margin.left - margin.right}
-                height={ROW_HEIGHT}
-                fill="rgba(255,255,255,0.03)"
-              />
-
-              {/* Project label */}
-              <text
-                x={margin.left - 20}
-                y={ROW_HEIGHT / 2 + 10}
-                fill="#fff"
-                textAnchor="end"
-                fontSize={14}
-                fontFamily="monospace"
-              >
-                {`${project.name} ${formatDuration(project.totalDuration)}`}
-              </text>
-
-              {/* Activity bars */}
-              {project.activities.map((activity) => (
-                <Bar
-                  key={activity.id}
-                  x={timeScale(activity.start)}
-                  y={(ROW_HEIGHT - LANE_HEIGHT) / 2}
-                  width={Math.max(
-                    2,
-                    timeScale(activity.end) - timeScale(activity.start)
-                  )}
-                  height={LANE_HEIGHT}
-                  fill="#3b82f6"
-                  rx={2}
-                  style={{ cursor: "pointer" }}
-                  onMouseEnter={(event) => {
-                    setTooltip({
-                      x: event.clientX,
-                      y: event.clientY,
-                      activity,
-                    });
-                  }}
-                  onMouseLeave={() => setTooltip(null)}
-                />
-              ))}
-
-              {/* Bottom row line */}
-              <Line
-                from={{ x: margin.left, y: ROW_HEIGHT }}
-                to={{ x: dimensions.width - margin.right, y: ROW_HEIGHT }}
-                stroke="rgba(255,255,255,0.1)"
-                strokeWidth={1}
-              />
+                return (
+                  <g key={i}>
+                    <text
+                      x={x}
+                      y={15} // Reduced from 30 to 15
+                      textAnchor={
+                        isEdge ? (i === 0 ? "start" : "end") : "middle"
+                      }
+                      fill="#6b7280"
+                      fontSize={12}
+                      fontFamily="monospace"
+                    >
+                      {label}
+                    </text>
+                    <Line
+                      from={{ x, y: 20 }} // Reduced from 40 to 20
+                      to={{ x, y: 25 }} // Reduced from 50 to 25
+                      stroke="rgba(255,255,255,0.1)"
+                      strokeWidth={1}
+                    />
+                  </g>
+                );
+              })}
             </Group>
-          );
-        })}
-      </svg>
-      {tooltip && (
-        <div
-          className="absolute z-10 text-white p-2 rounded shadow-lg text-xs custom-tooltip"
-          style={{
-            left: `${tooltip.x}px`,
-            top: `${tooltip.y}px`,
-            transform: "translateY(-100%) translateX(-150%)",
-            pointerEvents: "none",
-          }}
-        >
-          <div
-            className="custom-tooltip-header text-center shadow"
-            style={{ color: "white" }}
-          >
-            {tooltip.activity.project}
-          </div>
-          <div>
-            {format(tooltip.activity.start, "h:mm a")} -{" "}
-            {format(tooltip.activity.end, "h:mm a")}
-          </div>
-          <div>
-            Duration:{" "}
-            {convertSecondsToHoursAndMinutes(tooltip.activity.duration)}
-          </div>
-        </div>
+
+            {/* Project lanes */}
+            {projects.map((project, index) => {
+              const yPos = yScale(index);
+              return (
+                <Group key={project.name} top={yPos}>
+                  {/* First row top line to align with tick endings */}
+                  {index === 0 && (
+                    <Line
+                      from={{ x: margin.left, y: 0 }}
+                      to={{ x: dimensions.width - margin.right, y: 0 }}
+                      stroke="rgba(255,255,255,0.1)"
+                      strokeWidth={1}
+                    />
+                  )}
+
+                  {/* Row background */}
+                  <rect
+                    x={margin.left}
+                    y={0}
+                    width={dimensions.width - margin.left - margin.right}
+                    height={ROW_HEIGHT}
+                    fill="rgba(255,255,255,0.03)"
+                  />
+
+                  {/* Project label */}
+                  <text
+                    x={margin.left - 20}
+                    y={ROW_HEIGHT / 2 + 10}
+                    fill="#fff"
+                    textAnchor="end"
+                    fontSize={14}
+                    fontFamily="monospace"
+                  >
+                    {`${project.name} ${formatDuration(project.totalDuration)}`}
+                  </text>
+
+                  {/* Activity bars */}
+                  {project.activities.map((activity) => (
+                    <Bar
+                      key={activity.id}
+                      x={timeScale(activity.start)}
+                      y={(ROW_HEIGHT - LANE_HEIGHT) / 2}
+                      width={Math.max(
+                        2,
+                        timeScale(activity.end) - timeScale(activity.start)
+                      )}
+                      height={LANE_HEIGHT}
+                      fill="#3b82f6"
+                      rx={2}
+                      style={{ cursor: "pointer" }}
+                      onMouseEnter={(event) => {
+                        setTooltip({
+                          x: event.clientX,
+                          y: event.clientY,
+                          activity,
+                        });
+                      }}
+                      onMouseLeave={() => setTooltip(null)}
+                    />
+                  ))}
+
+                  {/* Bottom row line */}
+                  <Line
+                    from={{ x: margin.left, y: ROW_HEIGHT }}
+                    to={{ x: dimensions.width - margin.right, y: ROW_HEIGHT }}
+                    stroke="rgba(255,255,255,0.1)"
+                    strokeWidth={1}
+                  />
+                </Group>
+              );
+            })}
+          </svg>
+          {tooltip && (
+            <div
+              className="absolute z-10 text-white p-2 rounded shadow-lg text-xs custom-tooltip"
+              style={{
+                left: `${tooltip.x}px`,
+                top: `${tooltip.y}px`,
+                transform: "translateY(-100%) translateX(-150%)",
+                pointerEvents: "none",
+              }}
+            >
+              <div
+                className="custom-tooltip-header text-center shadow"
+                style={{ color: "white" }}
+              >
+                {tooltip.activity.project}
+              </div>
+              <div>
+                {format(tooltip.activity.start, "h:mm a")} -{" "}
+                {format(tooltip.activity.end, "h:mm a")}
+              </div>
+              <div>
+                Duration:{" "}
+                {convertSecondsToHoursAndMinutes(tooltip.activity.duration)}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
