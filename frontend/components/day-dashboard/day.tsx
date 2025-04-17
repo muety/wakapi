@@ -340,10 +340,9 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
                   rx={2}
                   style={{ cursor: "pointer" }}
                   onMouseEnter={(event) => {
-                    const rect = event.currentTarget.getBoundingClientRect();
                     setTooltip({
-                      x: rect.left + rect.width / 2,
-                      y: rect.top,
+                      x: event.clientX,
+                      y: event.clientY,
                       activity,
                     });
                   }}
@@ -367,8 +366,8 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
           className="absolute z-10 text-white p-2 rounded shadow-lg text-xs custom-tooltip"
           style={{
             left: `${tooltip.x}px`,
-            top: `${tooltip.y - 5}px`,
-            transform: "translate(-50%, -100%)",
+            top: `${tooltip.y}px`,
+            transform: "translateY(-100%) translateX(-150%)",
             pointerEvents: "none",
           }}
         >
