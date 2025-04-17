@@ -13,7 +13,7 @@ import {
 } from "recharts";
 
 import { SAMPLE_COLORS } from "@/lib/constants";
-import { SummariesResponse } from "@/lib/types";
+import type { SummariesResponse } from "@/lib/types";
 import {
   getUniqueProjects,
   prepareDailyCodingData,
@@ -37,6 +37,7 @@ const CustomBarShape = (props: any) => {
         fill={fill}
         stroke="none"
         strokeWidth={0}
+        style={{ cursor: "pointer" }}
       />
       {/* Top stroke */}
       <line
@@ -46,6 +47,7 @@ const CustomBarShape = (props: any) => {
         y2={y}
         stroke={stroke}
         strokeWidth={strokeWidth || 1}
+        style={{ cursor: "pointer" }}
       />
       {/* Left stroke */}
       <line
@@ -55,6 +57,7 @@ const CustomBarShape = (props: any) => {
         y2={y + height}
         stroke={stroke}
         strokeWidth={strokeWidth || 1}
+        style={{ cursor: "pointer" }}
       />
       {/* Right stroke */}
       <line
@@ -64,6 +67,7 @@ const CustomBarShape = (props: any) => {
         y2={y + height}
         stroke={stroke}
         strokeWidth={strokeWidth || 1}
+        style={{ cursor: "pointer" }}
       />
     </>
   );
@@ -143,6 +147,7 @@ export function DailyCodingSummaryOverTimeComponent({ data }: iProps) {
             }}
             onMouseLeave={() => setFocusDataIndex(null)}
             onClick={handleBarClick}
+            className="cursor-pointer"
           />
         ))}
         <Line
