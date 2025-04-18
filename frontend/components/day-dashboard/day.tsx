@@ -4,11 +4,18 @@ import { Group } from "@visx/group";
 import { scaleLinear, scaleTime } from "@visx/scale";
 import { Bar, Line } from "@visx/shape";
 import { addDays, format, isToday, subDays } from "date-fns";
-import { ChevronLeft, ChevronRight, Clock, FileBarChart } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileBarChart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { startCase } from "lodash";
 import { convertSecondsToHoursAndMinutes } from "@/lib/utils";
 
 interface RawTimeEntry {
@@ -124,7 +131,7 @@ function EmptyState({ date }: { date: Date }) {
   });
 
   return (
-    <div className="flex flex-col items-center justify-center h-[400px] w-full">
+    <div className="flex flex-col items-center justify-center h-96 w-full">
       <div className="bg-blue-500/10 rounded-full p-6 mb-6">
         <FileBarChart className="size-16 text-blue-500" />
       </div>
@@ -138,17 +145,74 @@ function EmptyState({ date }: { date: Date }) {
   );
 }
 
+interface BarModalProps {
+  activity: ProcessedActivity;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+const BarModal: React.FC<BarModalProps> = ({
+  activity,
+  open,
+  onOpenChange,
+}) => {
+  const durationString = convertSecondsToHoursAndMinutes(activity.duration);
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-zinc-900 text-zinc-100 border-zinc-800">
+        <DialogHeader>
+          <DialogTitle>{startCase(activity.project)}</DialogTitle>
+          <DialogDescription>Details of this activity.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 gap-2">
+            <div className="text-zinc-400">Project:</div>
+            <div className="col-span-3 font-semibold">
+              {startCase(activity.project)}
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            <div className="text-zinc-400">Duration:</div>
+            <div className="col-span-3">{durationString}</div>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            <div className="text-zinc-400">Start Time:</div>
+            <div className="col-span-3">
+              {format(activity.start, "yyyy-MM-dd hh:mm a")}
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            <div className="text-zinc-400">End Time:</div>
+            <div className="col-span-3">
+              {format(activity.end, "yyyy-MM-dd hh:mm a")}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
   data: rawData,
   margin = defaultMargin,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+  const [modalActivity, setModalActivity] = useState<ProcessedActivity | null>(
+    null
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [tooltip, setTooltip] = useState<{
     x: number;
     y: number;
     activity: ProcessedActivity;
   } | null>(null);
+
+  const handleBarClick = (activity: ProcessedActivity) => {
+    setModalActivity(activity);
+    setIsModalOpen(true);
+  };
 
   // Effect to measure and update container dimensions
   useEffect(() => {
@@ -266,15 +330,12 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
       ref={containerRef}
       className="relative bg-[rgb(18,18,18)] rounded-xl p-4 w-full h-full"
     >
+      <DayHeader data={rawData} totalTime={totalTime} />
+
       {hasNoData ? (
-        <>
-          <DayHeader data={rawData} totalTime={0} />
-          <EmptyState date={new Date(rawData.start)} />
-        </>
+        <EmptyState date={new Date(rawData.start)} />
       ) : (
         <>
-          <DayHeader data={rawData} totalTime={totalTime} />
-
           <svg width="100%" height={dimensions.height}>
             {/* Surrounding box lines */}
             <Line
@@ -293,7 +354,7 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
               strokeWidth={1}
             />
 
-            {/* Time axis with ticks below labels - reduced the positioning from margin.top - 50 to margin.top - 25 */}
+            {/* Time axis with ticks below labels */}
             <Group top={margin.top - 25}>
               {timeScale.ticks(tickCount).map((date, i) => {
                 const x = timeScale(date);
@@ -304,7 +365,7 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
                   <g key={i}>
                     <text
                       x={x}
-                      y={15} // Reduced from 30 to 15
+                      y={15}
                       textAnchor={
                         isEdge ? (i === 0 ? "start" : "end") : "middle"
                       }
@@ -315,8 +376,8 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
                       {label}
                     </text>
                     <Line
-                      from={{ x, y: 20 }} // Reduced from 40 to 20
-                      to={{ x, y: 25 }} // Reduced from 50 to 25
+                      from={{ x, y: 20 }}
+                      to={{ x, y: 25 }}
                       stroke="rgba(255,255,255,0.1)"
                       strokeWidth={1}
                     />
@@ -362,29 +423,37 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
                   </text>
 
                   {/* Activity bars */}
-                  {project.activities.map((activity) => (
-                    <Bar
-                      key={activity.id}
-                      x={timeScale(activity.start)}
-                      y={(ROW_HEIGHT - LANE_HEIGHT) / 2}
-                      width={Math.max(
-                        2,
-                        timeScale(activity.end) - timeScale(activity.start)
-                      )}
-                      height={LANE_HEIGHT}
-                      fill="#3b82f6"
-                      rx={2}
-                      style={{ cursor: "pointer" }}
-                      onMouseEnter={(event) => {
-                        setTooltip({
-                          x: event.clientX,
-                          y: event.clientY,
-                          activity,
-                        });
-                      }}
-                      onMouseLeave={() => setTooltip(null)}
-                    />
-                  ))}
+                  {project.activities.map((activity) => {
+                    // Calculate bar dimensions
+                    const x = timeScale(activity.start);
+                    const width = Math.max(
+                      2,
+                      timeScale(activity.end) - timeScale(activity.start)
+                    );
+                    const y = (ROW_HEIGHT - LANE_HEIGHT) / 2;
+
+                    return (
+                      <Bar
+                        key={activity.id}
+                        x={x}
+                        y={y}
+                        width={width}
+                        height={LANE_HEIGHT}
+                        fill="#3b82f6"
+                        rx={2}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleBarClick(activity)}
+                        onMouseEnter={(event) => {
+                          setTooltip({
+                            x: event.clientX,
+                            y: event.clientY,
+                            activity,
+                          });
+                        }}
+                        onMouseLeave={() => setTooltip(null)}
+                      />
+                    );
+                  })}
 
                   {/* Bottom row line */}
                   <Line
@@ -397,6 +466,7 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
               );
             })}
           </svg>
+
           {tooltip && (
             <div
               className="absolute z-10 text-white p-2 rounded shadow-lg text-xs custom-tooltip"
@@ -424,6 +494,14 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
             </div>
           )}
         </>
+      )}
+
+      {modalActivity && (
+        <BarModal
+          activity={modalActivity}
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+        />
       )}
     </div>
   );
