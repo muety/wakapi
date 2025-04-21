@@ -41,19 +41,25 @@ type SmtpTestSuite struct {
 
 func (suite *SmtpTestSuite) SetupSuite() {
 	suite.smtp4Dev = newSmtp4DevClient()
+	if err := suite.smtp4Dev.Setup(); err != nil {
+		suite.Error(err)
+	}
 }
 
 func (suite *SmtpTestSuite) BeforeTest(suiteName, testName string) {
-	suite.smtp4Dev.Setup()
+	if err := suite.smtp4Dev.ClearInboxes(); err != nil {
+		suite.Error(err)
+	}
 }
 
 func TestSmtpTestSuite(t *testing.T) {
 	address := net.JoinHostPort(Smtp4DevHost, fmt.Sprintf("%d", Smtp4DevPort))
-	_, err := net.DialTimeout("tcp", address, time.Second)
+	conn, err := net.DialTimeout("tcp", address, time.Second)
 	if err != nil {
 		t.Skipf("WARNING: smtp4Dev not available at %s - skipping smtp tests", address)
 		return
 	}
+	conn.Close()
 
 	smtp4dev := newSmtp4DevClient()
 	for i := 0; i < 5; i++ {
@@ -163,6 +169,10 @@ func (c *Smtp4DevClient) Check() error {
 func (c *Smtp4DevClient) Setup() error {
 	if c.Check() != nil {
 		return fmt.Errorf("smtp4Dev is unavailable at %s", c.ApiBaseUrl)
+	}
+
+	if err := c.SetConfigValue("deliverMessagesToUsersDefaultMailbox", false); err != nil {
+		return err
 	}
 
 	if err := c.CreateTestUsers(); err != nil {
@@ -277,5 +287,6 @@ func (c *Smtp4DevClient) SetConfigValue(key string, val interface{}) error {
 		return err
 	}
 
+	time.Sleep(5 * time.Second) // server will restart to load config changes
 	return nil
 }
