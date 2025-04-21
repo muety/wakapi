@@ -15,8 +15,8 @@ const labelsCanvas = document.getElementById('chart-label')
 const branchesCanvas = document.getElementById('chart-branches')
 const entitiesCanvas = document.getElementById('chart-entities')
 const categoriesCanvas = document.getElementById('chart-categories')
-const dailyCanvas = document.getElementById('chart-daily-projects')
-const timelineCanvas = document.getElementById('chart-timeline')
+const timeLineCanvas = document.getElementById('chart-daily-projects')
+const hourlyCanvas = document.getElementById('chart-hourly')
 
 const projectContainer = document.getElementById('project-container')
 const osContainer = document.getElementById('os-container')
@@ -27,12 +27,12 @@ const labelContainer = document.getElementById('label-container')
 const branchContainer = document.getElementById('branch-container')
 const entityContainer = document.getElementById('entity-container')
 const categoryContainer = document.getElementById('category-container')
-const dailyContainer = document.getElementById('daily-container')
-const timelineContainer = document.getElementById('timeline-container')
+const timeLineContainer = document.getElementById('daily-container')
+const hourlyContainer = document.getElementById('hourly-container')
 
-const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer, categoryContainer, dailyContainer, timelineContainer]
-const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas, categoriesCanvas, dailyCanvas, timelineCanvas]
-const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches, wakapiData.entities, wakapiData.categories, wakapiData.dailyStats, wakapiData.timeLine]
+const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer, categoryContainer, timeLineContainer, hourlyContainer]
+const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas, categoriesCanvas, timeLineCanvas, hourlyCanvas]
+const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches, wakapiData.entities, wakapiData.categories, wakapiData.timelineStats, wakapiData.hourlyBreakdown]
 
 let topNPickers = [...document.getElementsByClassName('top-picker')]
 topNPickers.sort(((a, b) => parseInt(a.attributes['data-entity'].value) - parseInt(b.attributes['data-entity'].value)))
@@ -475,8 +475,8 @@ function draw(subselection) {
         })
         : null
 
-    let dailyChart = dailyCanvas && !dailyCanvas.classList.contains('hidden') && shouldUpdate(9)
-        ? new Chart(dailyCanvas.getContext('2d'), {
+    let dailyChart = timeLineCanvas && !timeLineCanvas.classList.contains('hidden') && shouldUpdate(9)
+        ? new Chart(timeLineCanvas.getContext('2d'), {
             type: 'bar',
             data: {
                 labels: wakapiData.dailyStats.map(day => new Date(day.date).toLocaleDateString()),
@@ -532,99 +532,76 @@ function draw(subselection) {
         })
         : null
 
-    var timelineChart = null
-    if (timelineCanvas && !timelineCanvas.classList.contains('hidden') && shouldUpdate(10)) {
-        if (!charts[10]) {
-            timelineChart = echarts.init(timelineCanvas)
-            window.addEventListener('resize', timelineChart.resize);
-        } else {
-            timelineChart = charts[10]
-        }
-        timelineChart.setOption({
-            tooltip: {
-                formatter: function (params) {
-                    return params.marker + params.name + ': ' + params.value[3].toString().toHHMMSS() + ' s';
-                }
+    // https://stackoverflow.com/a/73071513
+    let timelineChart = hourlyCanvas && !hourlyCanvas.classList.contains('hidden') && shouldUpdate(10)
+        ? new Chart(hourlyCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: wakapiData.hourlyBreakdown.map(i => i.project),
+                datasets: wakapiData.hourlyBreakdown.flatMap((cur, i) => {
+                    let project = cur.project
+                    let pre = 0;
+                    return cur.items.map((cur, _) => {
+                        let data = wakapiData.hourlyBreakdown.map(() => null)
+                        let from_time = new Date(cur.from_time)
+                        let to_time = new Date(from_time.getTime() + (cur.duration / 1e9 * 1e3))
+
+                        // "The values for the first bar of a stack are absolute values, all following values of the same stack must be relative to the end of the previous bar"
+                        data[i] = [+from_time - pre, +to_time - pre, `${from_time.toLocaleTimeString()} - ${to_time.toLocaleTimeString()} (${(cur.duration / 1e9).toString().toHHMMSS()})`]
+                        pre = +to_time
+                        return {
+                            data,
+                            backgroundColor: vibrantColors ? getRandomColor(project) : getColor(project, i % baseColors.length),
+                            label: cur.entity,
+                            stack: project,
+                            skipNull: true,
+                        }
+                    })
+                })
             },
-            dataZoom: [
-                {
-                    type: 'slider',
-                    filterMode: 'weakFilter',
-                    labelFormatter: val => new Date(val).toLocaleString(),
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        stacked: true,
+                        min: +new Date(wakapiData.hourlyBreakdownFromTime),
+                        max: +new Date(wakapiData.hourlyBreakdownToTime),
+                        ticks: {
+                            stepSize: 1000 * 60 * 60, // pre hour
+                            callback: (value) => {
+                                return new Date(value).toLocaleTimeString()
+                            },
+                        },
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Projects'
+                        }
+                    }
                 },
-                {
-                    type: 'inside',
-                    filterMode: 'weakFilter'
-                }
-            ],
-            grid: {
-                containLabel: true,
-                height: '60%',
-            },
-            xAxis: {
-                min: +new Date(wakapiData.startDate),
-                max: +new Date(wakapiData.endDate),
-                scale: true,
-                axisLabel: {
-                    formatter: val => new Date(val).toLocaleString(),
-                }
-            },
-            yAxis: {
-                data: wakapiData.timeLine.map(e => e.project),
-            },
-            series: [
-                {
-                    type: 'custom',
-                    renderItem: function (params, api) {
-                        var categoryIndex = api.value(0);
-                        var start = api.coord([api.value(1), categoryIndex]);
-                        var end = api.coord([api.value(2), categoryIndex]);
-                        var height = api.size([0, 1])[1] * 0.6;
-
-                        var rectShape = echarts.graphic.clipRectByRect({
-                            x: start[0],
-                            y: start[1] - height / 2,
-                            width: end[0] - start[0],
-                            height: height
-                        }, {
-                            x: params.coordSys.x,
-                            y: params.coordSys.y,
-                            width: params.coordSys.width,
-                            height: params.coordSys.height
-                        });
-
-                        return rectShape && {
-                            type: 'rect',
-                            shape: rectShape,
-                            style: api.style()
-                        };
-                    },
-                    itemStyle: {
-                        opacity: 0.8
-                    },
-                    encode: {
-                        x: [1, 2],
-                        y: 0
-                    },
-                    data: wakapiData.timeLine.flatMap((project, index) => {
-                        return project.items.map((item) => {
-                            const start = new Date(item.from_time)
-                            const duration = item.duration
-                            const end = new Date(start)
-                            end.setSeconds(end.getSeconds() + (duration / 1e9))
-                            return {
-                                name: item.entity,
-                                value: [index, +start, +end, duration / 1e9],
-                                itemStyle: {
-                                    color: vibrantColors ? getRandomColor(project) : getColor(project, index % baseColors.length)
-                                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                return `${context.dataset.label}: ${context.raw[2]}`
                             }
-                        })
-                    }),
+                        }
+                    },
+                    legend: {
+                        display: false
+                    }
                 }
-            ]
+            }
         })
-    }
+        : null
 
     charts[0] = projectChart ? projectChart : charts[0]
     charts[1] = osChart ? osChart : charts[1]

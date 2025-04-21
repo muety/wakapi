@@ -19,7 +19,6 @@ import (
 const (
 	dailyStatsMinRangeDays = 3
 	dailyStatsMaxRangeDays = 31
-	timeLineChartMaxRangeDays = 7
 )
 
 type SummaryHandler struct {
@@ -96,24 +95,27 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		firstData, _ = time.Parse(time.RFC822Z, firstDataKv.Value)
 	}
 
-	var dailyStats []*view.DailyProjectsViewModel
+	var timeLine []*view.TimeLineViewModel
 	if rangeDays := summaryParams.RangeDays(); rangeDays >= dailyStatsMinRangeDays && rangeDays <= dailyStatsMaxRangeDays {
 		dailyStatsSummaries, err := h.fetchSplitSummaries(summaryParams)
 		if err != nil {
 			conf.Log().Request(r).Error("failed to load daily stats", "error", err)
 		} else {
-			dailyStats = view.NewDailyProjectStats(dailyStatsSummaries)
+			timeLine = view.NewTimeLineViewModel(dailyStatsSummaries)
 		}
 	}
 
-	var timeLineChart []*view.TimelineViewModel
-	if rangeDays := summaryParams.RangeDays(); rangeDays <= timeLineChartMaxRangeDays {
-		timeLineChartSummaries, err := h.durationSrvc.Get(summaryParams.From, summaryParams.To, summaryParams.User, summaryParams.Filters, nil, false)
-		if err != nil {
-			conf.Log().Request(r).Error("failed to load timeline chart", "error", err)
-		} else {
-			timeLineChart = view.NewTimelineViewModel(timeLineChartSummaries)
-		}
+	var hourlyBreakdown []*view.HourlyBreakdownViewModel
+	// Get at most 24 hours of hourly breakdown
+	hourlyBreakdownFromtime := summaryParams.From
+	if summaryParams.RangeDays() > 1 {
+		hourlyBreakdownFromtime = summaryParams.To.Add(-24 * time.Hour)
+	}
+	timeLineChartSummaries, err := h.durationSrvc.Get(hourlyBreakdownFromtime, summaryParams.To, summaryParams.User, summaryParams.Filters, nil, false)
+	if err != nil {
+		conf.Log().Request(r).Error("failed to load timeline chart", "error", err)
+	} else {
+		hourlyBreakdown = view.NewHourlyBreakdownItems(timeLineChartSummaries)
 	}
 
 	vm := view.SummaryViewModel{
@@ -129,8 +131,9 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		RawQuery:            rawQuery,
 		UserFirstData:       firstData,
 		DataRetentionMonths: h.config.App.DataRetentionMonths,
-		DailyStats:          dailyStats,
-		TimeLine:            timeLineChart,
+		TimeLine:            timeLine,
+		HourlyBreakdown:     hourlyBreakdown,
+		HourlyBreakdownFrom: hourlyBreakdownFromtime,
 	}
 
 	templates[conf.SummaryTemplate].Execute(w, vm)
