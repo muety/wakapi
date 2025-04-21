@@ -475,7 +475,7 @@ function draw(subselection) {
         })
         : null
 
-    let dailyChart = timeLineCanvas && !timeLineCanvas.classList.contains('hidden') && shouldUpdate(9)
+    let timeLineChart = timeLineCanvas && !timeLineCanvas.classList.contains('hidden') && shouldUpdate(9)
         ? new Chart(timeLineCanvas.getContext('2d'), {
             type: 'bar',
             data: {
@@ -533,7 +533,7 @@ function draw(subselection) {
         : null
 
     // https://stackoverflow.com/a/73071513
-    let timelineChart = hourlyCanvas && !hourlyCanvas.classList.contains('hidden') && shouldUpdate(10)
+    let hourlyBreakdownChart = hourlyCanvas && !hourlyCanvas.classList.contains('hidden') && shouldUpdate(10)
         ? new Chart(hourlyCanvas.getContext('2d'), {
             type: 'bar',
             data: {
@@ -612,8 +612,8 @@ function draw(subselection) {
     charts[6] = branchChart ? branchChart : charts[6]
     charts[7] = entityChart ? entityChart : charts[7]
     charts[8] = categoryChart ? categoryChart : charts[8]
-    charts[9] = dailyChart ? dailyChart : charts[9]
-    charts[10] = timelineChart ? timelineChart : charts[10]
+    charts[9] = timeLineChart ? timeLineChart : charts[9]
+    charts[10] = hourlyBreakdownChart ? hourlyBreakdownChart : charts[10]
 }
 
 function parseTopN() {
