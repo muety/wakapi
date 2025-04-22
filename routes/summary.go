@@ -26,15 +26,17 @@ type SummaryHandler struct {
 	userSrvc     services.IUserService
 	summarySrvc  services.ISummaryService
 	durationSrvc services.IDurationService
+	aliasSrvc    services.IAliasService
 	keyValueSrvc services.IKeyValueService
 }
 
-func NewSummaryHandler(summaryService services.ISummaryService, userService services.IUserService, keyValueService services.IKeyValueService, durationService services.IDurationService) *SummaryHandler {
+func NewSummaryHandler(summaryService services.ISummaryService, userService services.IUserService, keyValueService services.IKeyValueService, durationService services.IDurationService, aliasService services.IAliasService) *SummaryHandler {
 	return &SummaryHandler{
 		summarySrvc:  summaryService,
 		userSrvc:     userService,
 		keyValueSrvc: keyValueService,
 		durationSrvc: durationService,
+		aliasSrvc:    aliasService,
 		config:       conf.Get(),
 	}
 }
@@ -105,7 +107,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var hourlyBreakdown []*view.HourlyBreakdownViewModel
+	var hourlyBreakdown view.HourlyBreakdownsViewModel
 	// Get at most 24 hours of hourly breakdown
 	hourlyBreakdownFromtime := summaryParams.From
 	if summaryParams.RangeDays() > 1 {
@@ -115,7 +117,10 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		conf.Log().Request(r).Error("failed to load timeline chart", "error", err)
 	} else {
-		hourlyBreakdown = view.NewHourlyBreakdownItems(timeLineChartSummaries)
+		hourlyBreakdown = view.NewHourlyBreakdownViewModel(view.NewHourlyBreakdownItems(timeLineChartSummaries).Aliased(func(t uint8, k string) string {
+			s, _ := h.aliasSrvc.GetAliasOrDefault(user.ID, t, k)
+			return s
+		}))
 	}
 
 	vm := view.SummaryViewModel{

@@ -34,10 +34,14 @@ type TimeLineItem struct {
 	Duration time.Duration `json:"duration"`
 }
 
+type HourlyBreakdownsViewModel []*HourlyBreakdownViewModel
+
 type HourlyBreakdownViewModel struct {
 	Items   []*HourlyBreakdownItem `json:"items"`
 	Project string                 `json:"project"`
 }
+
+type HourlyBreakdownItems []*HourlyBreakdownItem
 
 type HourlyBreakdownItem struct {
 	FromTime time.Time     `json:"from_time"`
@@ -45,6 +49,8 @@ type HourlyBreakdownItem struct {
 	Entity   string        `json:"entity"`
 	Project  string        `json:"-"`
 }
+
+type AliasResolver func(t uint8, k string) string
 
 func NewTimeLineViewModel(summaries []*models.Summary) []*TimeLineViewModel {
 	timeLine := make([]*TimeLineViewModel, 0)
@@ -62,15 +68,28 @@ func NewTimeLineViewModel(summaries []*models.Summary) []*TimeLineViewModel {
 	return timeLine
 }
 
-func NewHourlyBreakdownItems(durations models.Durations) []*HourlyBreakdownViewModel {
-	hourlyBreakdownMap := slice.GroupWith(slice.Map(durations, func(_ int, duration *models.Duration) *HourlyBreakdownItem {
+func NewHourlyBreakdownItems(durations models.Durations) HourlyBreakdownItems {
+	hourlyBreakdowns := slice.Map(durations, func(_ int, duration *models.Duration) *HourlyBreakdownItem {
 		return &HourlyBreakdownItem{
 			FromTime: duration.Time.T(),
 			Duration: duration.Duration,
 			Entity:   duration.Entity,
 			Project:  duration.Project,
 		}
-	}), func(item *HourlyBreakdownItem) string { return item.Project })
+	})
+	return hourlyBreakdowns
+}
+
+func (m HourlyBreakdownItems) Aliased(resolve AliasResolver) HourlyBreakdownItems {
+	return slice.Map(m, func(_ int, item *HourlyBreakdownItem) *HourlyBreakdownItem {
+		item.Project = resolve(models.SummaryProject, item.Project)
+		item.Entity = resolve(models.SummaryEntity, item.Entity)
+		return item
+	})
+}
+
+func NewHourlyBreakdownViewModel(items HourlyBreakdownItems) HourlyBreakdownsViewModel {
+	hourlyBreakdownMap := slice.GroupWith(items, func(item *HourlyBreakdownItem) string { return item.Project })
 
 	hourlyBreakdown := make([]*HourlyBreakdownViewModel, 0)
 	for project, items := range hourlyBreakdownMap {
