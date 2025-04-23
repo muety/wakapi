@@ -24,11 +24,14 @@ export default async function Leaderboards({
     return <div>There was an error fetching leaderboard data...</div>;
   }
 
-  console.log("durationData", durationData);
-
+  // console.log("durationData", durationData);
   return (
     <div className="mt-5 min-h-screen">
-      <LeaderBoardTable data={durationData.data} title="Public" />
+      <LeaderBoardTable
+        data={durationData.data}
+        title="Public"
+        searchParams={searchParams}
+      />
     </div>
   );
 }

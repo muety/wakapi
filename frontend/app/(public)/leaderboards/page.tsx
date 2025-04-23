@@ -28,7 +28,8 @@ export default async function Leaderboards({
     <LeaderBoardTable
       data={durationData.data}
       title="Top Coders"
-      titleClass="text-center mb-8 text-6xl"
+      titleClass="text-center mb-8 text-5xl underline"
+      searchParams={searchParams}
     />
   );
 }
