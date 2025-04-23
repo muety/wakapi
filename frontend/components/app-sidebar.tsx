@@ -11,6 +11,7 @@ import {
   Trophy,
   UsersIcon,
 } from "lucide-react";
+import Link from "next/link";
 
 import {
   Sidebar,
@@ -125,10 +126,10 @@ export function AppSidebar() {
                         // isActive={sidebarActive(item)}
                         // @todo: move this to client component and implement isActive
                       >
-                        <a href={item.url}>
+                        <Link prefetch href={item.url}>
                           <item.icon />
                           <span>{item.title}</span>
-                        </a>
+                        </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}

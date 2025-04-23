@@ -1,11 +1,12 @@
 import { cookies } from "next/headers";
-import React from "react";
+import React, { Suspense } from "react";
 
 import { getSession } from "@/actions";
 import { AppSidebar } from "@/components/app-sidebar";
 import { DashboardHeader } from "@/components/dashboard-header";
-// import { MobileHeader } from "@/components/mobile-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+
+import Loading from "./loading";
 
 export default async function Layout({
   children,
@@ -23,12 +24,14 @@ export default async function Layout({
       <SidebarInset className="shadow-lg border border-[##dddddd] m-5">
         <DashboardHeader />
         {/* <MobileHeader /> */}
-        <main
-          className="min-h-full md:px-5 w-full"
-          style={{ minHeight: "50vh" }}
-        >
-          {children}
-        </main>
+        <Suspense fallback={<Loading />}>
+          <main
+            className="min-h-full md:px-5 w-full"
+            style={{ minHeight: "50vh" }}
+          >
+            {children}
+          </main>
+        </Suspense>
       </SidebarInset>
     </SidebarProvider>
   );

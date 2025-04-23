@@ -14,7 +14,6 @@ export default async function Leaderboards({
     headers: {
       "Cache-Control": "max-age=3600",
     },
-    cache: "default",
     next: {
       revalidate: 3600,
     },
