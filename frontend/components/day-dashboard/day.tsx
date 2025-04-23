@@ -4,7 +4,7 @@ import { Group } from "@visx/group";
 import { scaleLinear, scaleTime } from "@visx/scale";
 import { Bar, Line } from "@visx/shape";
 import { addDays, format, isToday, subDays } from "date-fns";
-import { ChevronLeft, ChevronRight, Clock, FileBarChart } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileBarChart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
