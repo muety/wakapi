@@ -15,7 +15,7 @@ const labelsCanvas = document.getElementById('chart-label')
 const branchesCanvas = document.getElementById('chart-branches')
 const entitiesCanvas = document.getElementById('chart-entities')
 const categoriesCanvas = document.getElementById('chart-categories')
-const timeLineCanvas = document.getElementById('chart-daily-projects')
+const timelineCanvas = document.getElementById('chart-timeline')
 const hourlyCanvas = document.getElementById('chart-hourly')
 
 const projectContainer = document.getElementById('project-container')
@@ -27,11 +27,11 @@ const labelContainer = document.getElementById('label-container')
 const branchContainer = document.getElementById('branch-container')
 const entityContainer = document.getElementById('entity-container')
 const categoryContainer = document.getElementById('category-container')
-const timeLineContainer = document.getElementById('daily-container')
+const timelineContainer = document.getElementById('timeline-container')
 const hourlyContainer = document.getElementById('hourly-container')
 
-const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer, categoryContainer, timeLineContainer, hourlyContainer]
-const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas, categoriesCanvas, timeLineCanvas, hourlyCanvas]
+const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer, categoryContainer, timelineContainer, hourlyContainer]
+const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas, categoriesCanvas, timelineCanvas, hourlyCanvas]
 const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches, wakapiData.entities, wakapiData.categories, wakapiData.timelineStats, wakapiData.hourlyBreakdown]
 
 let topNPickers = [...document.getElementsByClassName('top-picker')]
@@ -475,18 +475,18 @@ function draw(subselection) {
         })
         : null
 
-    let timeLineChart = timeLineCanvas && !timeLineCanvas.classList.contains('hidden') && shouldUpdate(9)
-        ? new Chart(timeLineCanvas.getContext('2d'), {
+    let timelineChart = timelineCanvas && !timelineCanvas.classList.contains('hidden') && shouldUpdate(9)
+        ? new Chart(timelineCanvas.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: wakapiData.dailyStats.map(day => new Date(day.date).toLocaleDateString()),
-                datasets: wakapiData.dailyStats
+                labels: wakapiData.timelineStats.map(day => new Date(day.date).toLocaleDateString()),
+                datasets: wakapiData.timelineStats
                     .flatMap(day => day.projects.map(project => project.name))
                     .sort()
                     .filter((value, index, self) => self.indexOf(value) === index)
                     .map((project, i) => ({
                         label: project,
-                        data: wakapiData.dailyStats.map(day => day.projects.reduce((acc, p) => p.name === project ? acc + p.duration : acc, 0)),
+                        data: wakapiData.timelineStats.map(day => day.projects.reduce((acc, p) => p.name === project ? acc + p.duration : acc, 0)),
                         backgroundColor: vibrantColors ? getRandomColor(project) : getColor(project, i % baseColors.length),
                         barPercentage: 1.0
                     }))
@@ -612,7 +612,7 @@ function draw(subselection) {
     charts[6] = branchChart ? branchChart : charts[6]
     charts[7] = entityChart ? entityChart : charts[7]
     charts[8] = categoryChart ? categoryChart : charts[8]
-    charts[9] = timeLineChart ? timeLineChart : charts[9]
+    charts[9] = timelineChart ? timelineChart : charts[9]
     charts[10] = hourlyBreakdownChart ? hourlyBreakdownChart : charts[10]
 }
 

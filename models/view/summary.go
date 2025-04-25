@@ -16,7 +16,7 @@ type SummaryViewModel struct {
 	EditorColors        map[string]string
 	LanguageColors      map[string]string
 	OSColors            map[string]string
-	TimeLine            []*TimeLineViewModel
+	Timeline            []*TimelineViewModel
 	HourlyBreakdown     []*HourlyBreakdownViewModel
 	HourlyBreakdownFrom time.Time
 	RawQuery            string
@@ -24,12 +24,12 @@ type SummaryViewModel struct {
 	DataRetentionMonths int
 }
 
-type TimeLineViewModel struct {
+type TimelineViewModel struct {
 	Date     time.Time       `json:"date"`
-	Projects []*TimeLineItem `json:"projects"`
+	Projects []*TimelineItem `json:"projects"`
 }
 
-type TimeLineItem struct {
+type TimelineItem struct {
 	Name     string        `json:"name"`
 	Duration time.Duration `json:"duration"`
 }
@@ -50,42 +50,40 @@ type HourlyBreakdownItem struct {
 	Project  string        `json:"-"`
 }
 
-type AliasResolver func(t uint8, k string) string
-
-func NewTimeLineViewModel(summaries []*models.Summary) []*TimeLineViewModel {
-	timeLine := make([]*TimeLineViewModel, 0)
+func NewTimelineViewModel(summaries []*models.Summary) []*TimelineViewModel {
+	vm := make([]*TimelineViewModel, 0)
 	for _, summary := range summaries {
-		timeLine = append(timeLine, &TimeLineViewModel{
+		vm = append(vm, &TimelineViewModel{
 			Date: summary.FromTime.T(),
-			Projects: slice.Map(summary.Projects, func(_ int, curProject *models.SummaryItem) *TimeLineItem {
-				return &TimeLineItem{
+			Projects: slice.Map(summary.Projects, func(_ int, curProject *models.SummaryItem) *TimelineItem {
+				return &TimelineItem{
 					Name:     curProject.Key,
 					Duration: curProject.Total,
 				}
 			}),
 		})
 	}
-	return timeLine
+	return vm
 }
 
-func NewHourlyBreakdownItems(durations models.Durations) HourlyBreakdownItems {
-	hourlyBreakdowns := slice.Map(durations, func(_ int, duration *models.Duration) *HourlyBreakdownItem {
-		return &HourlyBreakdownItem{
-			FromTime: duration.Time.T(),
-			Duration: duration.Duration,
-			Entity:   duration.Entity,
-			Project:  duration.Project,
-		}
-	})
-	return hourlyBreakdowns
-}
+func NewHourlyBreakdownItems(durations models.Durations, resolve models.AliasResolver) HourlyBreakdownItems {
+	hourlyBreakdowns := slice.
+		Map(durations, func(_ int, duration *models.Duration) *HourlyBreakdownItem {
+			return &HourlyBreakdownItem{
+				FromTime: duration.Time.T(),
+				Duration: duration.Duration,
+				Entity:   duration.Entity,
+				Project:  duration.Project,
+			}
+		})
 
-func (m HourlyBreakdownItems) Aliased(resolve AliasResolver) HourlyBreakdownItems {
-	return slice.Map(m, func(_ int, item *HourlyBreakdownItem) *HourlyBreakdownItem {
+	hourlyBreakdowns = slice.Map(hourlyBreakdowns, func(_ int, item *HourlyBreakdownItem) *HourlyBreakdownItem {
 		item.Project = resolve(models.SummaryProject, item.Project)
 		item.Entity = resolve(models.SummaryEntity, item.Entity)
 		return item
 	})
+
+	return hourlyBreakdowns
 }
 
 func NewHourlyBreakdownViewModel(items HourlyBreakdownItems) HourlyBreakdownsViewModel {

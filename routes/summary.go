@@ -97,30 +97,28 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		firstData, _ = time.Parse(time.RFC822Z, firstDataKv.Value)
 	}
 
-	var timeLine []*view.TimeLineViewModel
+	var timeline []*view.TimelineViewModel
 	if rangeDays := summaryParams.RangeDays(); rangeDays >= dailyStatsMinRangeDays && rangeDays <= dailyStatsMaxRangeDays {
 		dailyStatsSummaries, err := h.fetchSplitSummaries(summaryParams)
 		if err != nil {
-			conf.Log().Request(r).Error("failed to load daily stats", "error", err)
+			conf.Log().Request(r).Error("failed to load timeline stats", "error", err)
 		} else {
-			timeLine = view.NewTimeLineViewModel(dailyStatsSummaries)
+			timeline = view.NewTimelineViewModel(dailyStatsSummaries)
 		}
 	}
 
 	var hourlyBreakdown view.HourlyBreakdownsViewModel
-	// Get at most 24 hours of hourly breakdown
-	hourlyBreakdownFromtime := summaryParams.From
-	if summaryParams.RangeDays() > 1 {
-		hourlyBreakdownFromtime = summaryParams.To.Add(-24 * time.Hour)
+	hourlyBreakdownFrom := summaryParams.From
+	if summaryParams.RangeDays() > 1 { // get at most 24 hours of hourly breakdown
+		hourlyBreakdownFrom = summaryParams.To.Add(-24 * time.Hour)
 	}
-	timeLineChartSummaries, err := h.durationSrvc.Get(hourlyBreakdownFromtime, summaryParams.To, summaryParams.User, summaryParams.Filters, nil, false)
-	if err != nil {
-		conf.Log().Request(r).Error("failed to load timeline chart", "error", err)
-	} else {
-		hourlyBreakdown = view.NewHourlyBreakdownViewModel(view.NewHourlyBreakdownItems(timeLineChartSummaries).Aliased(func(t uint8, k string) string {
+	if summaries, err := h.durationSrvc.Get(hourlyBreakdownFrom, summaryParams.To, summaryParams.User, summaryParams.Filters, nil, false); err == nil {
+		hourlyBreakdown = view.NewHourlyBreakdownViewModel(view.NewHourlyBreakdownItems(summaries, func(t uint8, k string) string {
 			s, _ := h.aliasSrvc.GetAliasOrDefault(user.ID, t, k)
 			return s
 		}))
+	} else {
+		conf.Log().Request(r).Error("failed to load hourly breakdown stats", "error", err)
 	}
 
 	vm := view.SummaryViewModel{
@@ -136,9 +134,9 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		RawQuery:            rawQuery,
 		UserFirstData:       firstData,
 		DataRetentionMonths: h.config.App.DataRetentionMonths,
-		TimeLine:            timeLine,
+		Timeline:            timeline,
 		HourlyBreakdown:     hourlyBreakdown,
-		HourlyBreakdownFrom: hourlyBreakdownFromtime,
+		HourlyBreakdownFrom: hourlyBreakdownFrom,
 	}
 
 	templates[conf.SummaryTemplate].Execute(w, vm)
