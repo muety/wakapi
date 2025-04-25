@@ -14,6 +14,7 @@ import (
 // TODO: support multiple durations per time per user for different heartbeat timeouts
 // see discussion at https://github.com/muety/wakapi/issues/675
 type Duration struct {
+	ID              int64         `json:"-" gorm:"primaryKey; autoIncrement"` // https://github.com/muety/wakapi/issues/777
 	UserID          string        `json:"user_id" gorm:"not null; index:idx_time_duration_user"`
 	Time            CustomTime    `json:"time" hash:"ignore" gorm:"not null; index:idx_time_duration_user"` // time of first heartbeat of this duration
 	Duration        time.Duration `json:"duration" hash:"ignore" gorm:"not null"`
