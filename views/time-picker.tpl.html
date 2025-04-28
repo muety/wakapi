@@ -21,13 +21,11 @@
             <form id="time-picker-form" class="flex flex-col space-y-1">
                 <div class="flex flex-col space-x-1 bg-gray-900 rounded p-1 border-2 border-gray-800">
                     <label for="from-date-picker" class="text-gray-500 text-xs ml-2">Start:</label>
-                    <input v-model="fromDate" id="from-date-picker" type="date" name="from" max="{{ .ToTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-900 cursor-pointer"
-                           required data-trigger-for="showDropdownTimepicker">
+                    <input v-model="fromDate" id="from-date-picker" type="date" name="from" max="toDate" class="text-sm text-gray-300 bg-gray-900 cursor-pointer" required data-trigger-for="showDropdownTimepicker">
                 </div>
                 <div class="flex flex-col space-x-1 bg-gray-900 rounded p-1 border-2 border-gray-800">
                     <label for="to-date-picker" class="text-gray-500 text-xs ml-2">End:</label>
-                    <input v-model="toDate" id="to-date-picker" type="date" name="to" min="{{ .FromTime.T | simpledate }}" class="text-sm text-gray-300 bg-gray-900 cursor-pointer"
-                           required data-trigger-for="showDropdownTimepicker">
+                    <input v-model="toDate" id="to-date-picker" type="date" name="to" :min="fromDate" class="text-sm text-gray-300 bg-gray-900 cursor-pointer" required data-trigger-for="showDropdownTimepicker">
                 </div>
                 <button type="submit" class="btn-primary btn-small my-1 text-center text-xsi cursor-pointer">Apply</button>
             </form>
