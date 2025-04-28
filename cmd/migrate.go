@@ -32,5 +32,5 @@ func runMigrations() {
 		fmt.Println("Error connecting to database")
 		return
 	}
-	migrations.Run(db, config)
+	migrations.RunSchemaMigrations(db, config)
 }
