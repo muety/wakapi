@@ -157,7 +157,7 @@ type serverConfig struct {
 	TimeoutSec       int    `yaml:"timeout_sec" default:"30" env:"WAKAPI_TIMEOUT_SEC"`
 	BasePath         string `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
 	PublicUrl        string `yaml:"public_url" default:"http://localhost:3000" env:"WAKAPI_PUBLIC_URL"`
-	FrontendUri      string `yaml:"frontend_uri" default:"https://localhost:3000" env:"WAKAPI_FRONTEND_URI"`
+	FrontendUri      string `yaml:"frontend_uri" default:"https://localhost:3000" env:"FRONTEND_URI"`
 	TlsCertPath      string `yaml:"tls_cert_path" default:"" env:"WAKAPI_TLS_CERT_PATH"`
 	TlsKeyPath       string `yaml:"tls_key_path" default:"" env:"WAKAPI_TLS_KEY_PATH"`
 }

@@ -146,7 +146,7 @@ func (r *SummaryRepository) DeleteByUserBefore(userId string, t time.Time) error
 func (r *SummaryRepository) populateItems(summaries []*models.Summary, conditions []clause.Interface) error {
 	var items []*models.SummaryItem
 
-	summaryMap := slice.GroupWith[*models.Summary, uint](summaries, func(s *models.Summary) uint {
+	summaryMap := slice.GroupWith(summaries, func(s *models.Summary) uint {
 		return s.ID
 	})
 

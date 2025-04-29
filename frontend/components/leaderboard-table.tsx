@@ -1,5 +1,3 @@
-import { truncate } from "lodash";
-
 import {
   Table,
   TableBody,
@@ -13,6 +11,7 @@ import {
 import { DataItem, LeaderboardApiResponse } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+import { RenderLanguages } from "./render-languages";
 import { TooltipWithProvider } from "./tooltip-with-provider";
 
 export function Hireable() {
@@ -30,40 +29,7 @@ interface iProps {
   title: string;
   data: LeaderboardApiResponse;
   titleClass?: string;
-}
-
-function RenderLanguages({ languages }: { languages: string[] }) {
-  const truncated = truncate(languages.join(", "), { length: 75 });
-  const truncatedArray = truncated.split(", ");
-  const last_item = truncatedArray.pop();
-  const items = truncatedArray.map((item, index) => (
-    <a
-      key={index}
-      href={`/leaderboards?languages=${item}`}
-      className="gap-2 text-white hover:underline"
-    >
-      {item},
-    </a>
-  ));
-  const totalCharacters = truncatedArray.reduce(
-    (acc, item) => acc + item.length + 1,
-    0
-  );
-  const remainingCharacters = 300 - totalCharacters;
-  const lastItemText = truncate(last_item, { length: remainingCharacters });
-  return (
-    <div className="flex" style={{ gap: "1px" }} title={languages.join(", ")}>
-      {items}
-      {last_item && (
-        <a
-          href={`/leaderboards?languages=${last_item}`}
-          className="text-white hover:underline"
-        >
-          {lastItemText}
-        </a>
-      )}
-    </div>
-  );
+  searchParams?: Record<string, any>;
 }
 
 function rowMapper(dataItem: DataItem, index: number) {
@@ -81,6 +47,7 @@ export function LeaderBoardTable({
   title,
   data: leaderboardData,
   titleClass = "",
+  searchParams,
 }: iProps) {
   const { data: rawLeaderboard, range } = leaderboardData;
   const users = new Set();
@@ -93,10 +60,14 @@ export function LeaderBoardTable({
       return true;
     })
     .map((item, index) => rowMapper(item, index));
+
+  const subtitle = searchParams?.language ? `- ${searchParams.language}` : "";
   return (
     <div>
-      <div className="mb-2">
-        <h1 className={cn("text-4xl", titleClass)}>{title}</h1>
+      <div className="mb-2 text-left">
+        <h1 className={cn("text-3xl", titleClass)}>
+          {title} {subtitle}
+        </h1>
       </div>
       <Table className="w-100 w-full">
         <TableCaption>

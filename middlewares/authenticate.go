@@ -96,16 +96,10 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		}
 
 		if m.redirectTarget == "" {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(conf.ErrUnauthorized))
-		} else {
-			if m.redirectErrorMessage != "" {
-				session, _ := conf.GetSessionStore().Get(r, conf.SessionKeyDefault)
-				session.AddFlash(m.redirectErrorMessage, "error")
-				session.Save(r, w)
-			}
-			http.SetCookie(w, m.config.GetClearCookie(models.AuthCookieKey))
-			http.Redirect(w, r, m.redirectTarget, http.StatusFound)
+			helpers.RespondJSON(w, r, http.StatusUnauthorized, map[string]string{
+				"error": conf.ErrUnauthorized,
+			})
+			return
 		}
 		return
 	}
