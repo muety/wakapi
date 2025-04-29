@@ -4,10 +4,12 @@ import { Group } from "@visx/group";
 import { scaleLinear, scaleTime } from "@visx/scale";
 import { Bar, Line } from "@visx/shape";
 import { addDays, format, isToday, subDays } from "date-fns";
+import { startCase } from "lodash";
 import { ChevronLeft, ChevronRight, FileBarChart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import {
   Dialog,
   DialogContent,
@@ -15,9 +17,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { startCase } from "lodash";
-import { convertSecondsToHoursAndMinutes } from "@/lib/utils";
 import { COLORS } from "@/lib/constants";
+import { convertSecondsToHoursAndMinutes } from "@/lib/utils";
 
 interface RawTimeEntry {
   time: number;

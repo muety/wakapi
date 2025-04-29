@@ -1,10 +1,16 @@
-type ColorCategory =
+export type ColorCategory =
   | "languages"
   | "editors"
   | "operating_systems"
   | "categories";
 
-export const COLORS: Record<ColorCategory, any> = {
+export type ColorCategoryRecord = {
+  [K in ColorCategory]?: any;
+} & {
+  [key: string]: any;
+};
+
+export const COLORS: ColorCategoryRecord = {
   languages: {
     "1C Enterprise": "#814CCC",
     "2-Dimensional Array": "#38761D",
