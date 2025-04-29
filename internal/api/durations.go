@@ -21,17 +21,18 @@ type MiniDurationHeartbeat struct {
 	CalculatedDuration float64 // Duration calculated in heartbeatsToMiniDurations step (seconds)
 }
 
-// Updated DurationBlock to include fields for all potential slice dimensions
+// Updated DurationBlock with omitempty tags.
+// Fields will only be populated if relevant to the slice_by param.
 type DurationBlock struct {
 	Time     float64 `json:"time"`
-	Project  string  `json:"project,omitempty"`
-	Language string  `json:"language,omitempty"`
-	Entity   string  `json:"entity,omitempty"`
+	Project  string  `json:"project,omitempty"`  // Always populate project
+	Language string  `json:"language,omitempty"` // Populate only if slicing by language
+	Entity   string  `json:"entity,omitempty"`   // Populate only if slicing by entity
 	// Dependencies string `json:"dependencies,omitempty"` // Not in Heartbeat model
-	Os       string  `json:"os,omitempty"`
-	Editor   string  `json:"editor,omitempty"`
-	Category string  `json:"category,omitempty"`
-	Machine  string  `json:"machine,omitempty"`
+	Os       string  `json:"os,omitempty"`       // Populate only if slicing by os
+	Editor   string  `json:"editor,omitempty"`   // Populate only if slicing by editor
+	Category string  `json:"category,omitempty"` // Populate only if slicing by category
+	Machine  string  `json:"machine,omitempty"`  // Populate only if slicing by machine
 	Duration float64 `json:"duration"`
 	Color    *string `json:"color"`
 }
@@ -57,7 +58,6 @@ type DurationResult struct {
 	GrandTotal *wakatime.SummariesGrandTotal `json:"grand_total"`
 }
 
-// Renamed defaultProject to UnknownValue for broader use
 const UnknownValue = "Unknown"
 const floatPrecision = 4 // Number of decimal places for rounding durations/times
 
@@ -103,8 +103,6 @@ func heartbeatsToMiniDurations(heartbeats []*models.Heartbeat, timeoutMinutes in
 		if i < len(heartbeats)-1 {
 			nextHeartbeat = heartbeats[i+1]
 		}
-
-		// No need to set defaultProject here anymore, handled when creating DurationBlock
 
 		if nextHeartbeat != nil {
 			// Use time.Time subtraction for accurate duration calculation
@@ -154,49 +152,57 @@ func getValueForSlice(hb *models.Heartbeat, sliceBy string) string {
 	return value
 }
 
-// populateDurationBlockFields populates all potential fields in a DurationBlock
-// from a MiniDurationHeartbeat, setting "Unknown" for empty values.
-func populateDurationBlockFields(block *DurationBlock, item MiniDurationHeartbeat) {
+// populateDurationBlockFields conditionally populates fields in a DurationBlock
+// from a MiniDurationHeartbeat based on the sliceBy parameter,
+// setting "Unknown" for empty values where populated.
+// Fields not relevant to the sliceBy parameter (except Project) are left as zero value.
+func populateDurationBlockFields(block *DurationBlock, item MiniDurationHeartbeat, sliceBy string) {
+	// Always populate Project
 	block.Project = item.Project
 	if block.Project == "" {
 		block.Project = UnknownValue
 	}
 
-	block.Language = item.Language
-	if block.Language == "" {
-		block.Language = UnknownValue
+	// Populate the field corresponding to sliceBy, ONLY if it's not Project
+	if sliceBy != SliceByProject {
+		switch sliceBy {
+		case SliceByLanguage:
+			block.Language = item.Language
+			if block.Language == "" {
+				block.Language = UnknownValue
+			}
+		case SliceByEntity:
+			block.Entity = item.Entity
+			if block.Entity == "" {
+				block.Entity = UnknownValue
+			}
+		case SliceByOS:
+			block.Os = item.OperatingSystem
+			if block.Os == "" {
+				block.Os = UnknownValue
+			}
+		case SliceByEditor:
+			block.Editor = item.Editor
+			if block.Editor == "" {
+				block.Editor = UnknownValue
+			}
+		case SliceByCategory:
+			block.Category = item.Category
+			if block.Category == "" {
+				block.Category = UnknownValue
+			}
+		case SliceByMachine:
+			block.Machine = item.Machine
+			if block.Machine == "" {
+				block.Machine = UnknownValue
+			}
+		}
 	}
-
-	block.Entity = item.Entity
-	if block.Entity == "" {
-		block.Entity = UnknownValue
-	}
-
-	block.Os = item.OperatingSystem
-	if block.Os == "" {
-		block.Os = UnknownValue
-	}
-
-	block.Editor = item.Editor
-	if block.Editor == "" {
-		block.Editor = UnknownValue
-	}
-
-	block.Category = item.Category
-	if block.Category == "" {
-		block.Category = UnknownValue
-	}
-
-	block.Machine = item.Machine
-	if block.Machine == "" {
-		block.Machine = UnknownValue
-	}
-
-	// Other fields like Time, Duration, Color are set separately
 }
 
 // shouldJoinDuration determines if the current mini-duration heartbeat should be joined
 // with the previous one, based on the sliceBy dimension.
+// No change needed here from previous step.
 func shouldJoinDuration(current MiniDurationHeartbeat, last MiniDurationHeartbeat, timeoutMinutes int, sliceBy string) bool {
 	timeoutDuration := time.Duration(timeoutMinutes) * time.Minute
 
@@ -230,7 +236,7 @@ func shouldJoinDuration(current MiniDurationHeartbeat, last MiniDurationHeartbea
 }
 
 // combineMiniDurations merges consecutive mini-duration heartbeats into final DurationBlocks,
-// grouping by the specified sliceBy dimension.
+// grouping by the specified sliceBy dimension and populating fields conditionally.
 func combineMiniDurations(miniDurations []MiniDurationHeartbeat, timeoutMinutes int, sliceBy string) []DurationBlock {
 	if len(miniDurations) == 0 {
 		return []DurationBlock{}
@@ -247,8 +253,8 @@ func combineMiniDurations(miniDurations []MiniDurationHeartbeat, timeoutMinutes 
 			Duration: round(firstHB.CalculatedDuration, floatPrecision),
 			Color:    nil, // Color logic might be needed here or later
 		}
-		// Populate all fields, using "Unknown" for empty ones
-		populateDurationBlockFields(&firstBlock, firstHB)
+
+		populateDurationBlockFields(&firstBlock, firstHB, sliceBy)
 
 		if firstBlock.Duration < 0 {
 			firstBlock.Duration = 0
@@ -277,9 +283,7 @@ func combineMiniDurations(miniDurations []MiniDurationHeartbeat, timeoutMinutes 
 				currentBlock.Duration = 0
 			}
 
-			// Update all fields in the block to reflect the most recent heartbeat's values,
-			// applying the "Unknown" default for empty strings.
-			populateDurationBlockFields(currentBlock, currentItem)
+			populateDurationBlockFields(currentBlock, currentItem, sliceBy)
 
 		} else {
 			// Start a new block
@@ -288,8 +292,8 @@ func combineMiniDurations(miniDurations []MiniDurationHeartbeat, timeoutMinutes 
 				Duration: round(currentItem.CalculatedDuration, floatPrecision),
 				Color:    nil, // Color logic
 			}
-			// Populate all fields, using "Unknown" for empty ones
-			populateDurationBlockFields(&newBlock, currentItem)
+			// Conditionally populate fields based on sliceBy
+			populateDurationBlockFields(&newBlock, currentItem, sliceBy)
 
 			if newBlock.Duration < 0 {
 				newBlock.Duration = 0
@@ -420,7 +424,6 @@ func (a *APIv1) GetDurations(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		// Use lowercase for consistent lookup
 		sliceBy = strings.ToLower(sliceBy)
 	}
 	// --- End slice_by handling ---
