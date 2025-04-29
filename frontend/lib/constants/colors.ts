@@ -1,4 +1,10 @@
-export const COLORS: Record<string, any> = {
+type ColorCategory =
+  | "languages"
+  | "editors"
+  | "operating_systems"
+  | "categories";
+
+export const COLORS: Record<ColorCategory, any> = {
   languages: {
     "1C Enterprise": "#814CCC",
     "2-Dimensional Array": "#38761D",

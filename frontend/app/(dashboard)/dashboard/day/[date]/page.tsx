@@ -7,7 +7,6 @@ interface iProps {
 }
 
 export default async function DayPage({ params: { date } }: iProps) {
-  console.log("date");
   const url = `/v1/users/current/durations?${new URLSearchParams({
     date,
   })}`;

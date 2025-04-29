@@ -31,6 +31,46 @@ type ReportService struct {
 	rand           *rand.Rand
 	queueDefault   *artifex.Dispatcher
 	queueWorkers   *artifex.Dispatcher
+	db             *gorm.DB
+}
+
+// a special type used to perform business logic that ensures a report is not sent multiple times
+// for the same user on the same day. This is non-invasive
+type ReportDeduplicator struct {
+	db         *gorm.DB
+	user       *models.User
+	reportDate time.Time
+}
+
+func ReportSentTracker(db *gorm.DB, user *models.User) *ReportDeduplicator {
+	return &ReportDeduplicator{
+		db:         db,
+		user:       user,
+		reportDate: time.Now().Truncate(24 * time.Hour),
+	}
+}
+
+func (rst *ReportDeduplicator) IsReportSent() bool {
+	var existingReportSent models.UserReportSent
+	err := rst.db.Where("user_id = ? AND report_date = ?", rst.user.ID, rst.reportDate).First(&existingReportSent).Error
+	return err == nil
+}
+
+func (rst *ReportDeduplicator) MarkReportAsSent() error {
+	reportSent := &models.UserReportSent{
+		UserID:     rst.user.ID,
+		ReportDate: rst.reportDate, // Use server's local date
+		SentAt:     time.Now(),
+	}
+	if err := rst.db.Create(reportSent).Error; err != nil {
+		slog.Warn("failed to save report sent record (possible race condition or duplicate)",
+			"userID", reportSent.UserID,
+			"reportDate", reportSent.ReportDate,
+			"error", err)
+		return nil
+	}
+	slog.Debug("saved report sent record", "userID", reportSent.UserID, "reportDate", reportSent.ReportDate)
+	return nil
 }
 
 func NewReportService(db *gorm.DB) *ReportService {
@@ -46,6 +86,7 @@ func NewReportService(db *gorm.DB) *ReportService {
 		rand:           rand.New(rand.NewSource(time.Now().Unix())),
 		queueDefault:   config.GetDefaultQueue(),
 		queueWorkers:   config.GetQueue(config.QueueReports),
+		db:             db,
 	}
 
 	return srv
@@ -103,6 +144,12 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 		return nil
 	}
 
+	tracker := ReportSentTracker(srv.db, user)
+	if tracker.IsReportSent() {
+		slog.Debug("report already sent for today, skipping", "userID", user.ID)
+		return nil
+	}
+
 	slog.Info("generating report for user", "userID", user.ID)
 	end := datetime.EndOfDay(time.Now().Add(-24 * time.Hour).In(user.TZ()))
 	start := end.Add(-1 * duration).Add(1 * time.Second)
@@ -143,5 +190,6 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 	}
 
 	slog.Info("sent report to user", "userID", user.ID)
+	_ = tracker.MarkReportAsSent()
 	return nil
 }

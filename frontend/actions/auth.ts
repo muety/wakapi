@@ -165,6 +165,8 @@ export async function processEmailLogin(credentials: {
       }
     );
 
+    console.log("apiResponse", apiResponse);
+
     const json = apiResponse.data as {
       data: SessionData;
       status?: number;

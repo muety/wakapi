@@ -7,7 +7,7 @@ import { addDays, format, isToday, subDays } from "date-fns";
 import { ChevronLeft, ChevronRight, FileBarChart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -17,12 +17,14 @@ import {
 } from "@/components/ui/dialog";
 import { startCase } from "lodash";
 import { convertSecondsToHoursAndMinutes } from "@/lib/utils";
+import { COLORS } from "@/lib/constants";
 
 interface RawTimeEntry {
   time: number;
   project: string;
   duration: number;
   color: string | null;
+  [key: string]: any; // Allow for arbitrary keys based on sliceBy
 }
 
 interface RawData {
@@ -36,12 +38,13 @@ interface ProcessedActivity {
   id: string;
   start: Date;
   end: Date;
-  project: string;
+  project: string; // Keep project for potential display
   duration: number;
+  [key: string]: any; // Allow for arbitrary keys based on sliceBy
 }
 
-interface ProjectGroup {
-  name: string;
+interface DataGroup {
+  name: string; // This will be the value of the sliceBy key
   activities: ProcessedActivity[];
   totalDuration: number;
 }
@@ -49,6 +52,7 @@ interface ProjectGroup {
 interface TimeTrackingProps {
   data: RawData;
   margin?: { top: number; right: number; bottom: number; left: number };
+  sliceBy?: string; // New prop to specify the key for grouping
 }
 
 const defaultMargin = { top: 80, right: 40, bottom: 40, left: 220 };
@@ -149,27 +153,28 @@ interface BarModalProps {
   activity: ProcessedActivity;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  sliceBy?: string;
 }
 
 const BarModal: React.FC<BarModalProps> = ({
   activity,
   open,
   onOpenChange,
+  sliceBy = "project",
 }) => {
   const durationString = convertSecondsToHoursAndMinutes(activity.duration);
+  const title = startCase(activity[sliceBy] || "Unknown");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-zinc-900 text-zinc-100 border-zinc-800">
         <DialogHeader>
-          <DialogTitle>{startCase(activity.project)}</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Details of this activity.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 gap-2">
-            <div className="text-zinc-400">Project:</div>
-            <div className="col-span-3 font-semibold">
-              {startCase(activity.project)}
-            </div>
+            <div className="text-zinc-400">{startCase(sliceBy)}:</div>
+            <div className="col-span-3 font-semibold">{title}</div>
           </div>
           <div className="grid grid-cols-4 gap-2">
             <div className="text-zinc-400">Duration:</div>
@@ -196,6 +201,7 @@ const BarModal: React.FC<BarModalProps> = ({
 const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
   data: rawData,
   margin = defaultMargin,
+  sliceBy = "project", // Default to 'project'
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
@@ -213,6 +219,24 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
     setModalActivity(activity);
     setIsModalOpen(true);
   };
+
+  const getColor = useCallback(
+    (activity: ProcessedActivity) => {
+      const defaultColor = "#3b82f6"; // Default color if no specific color is found
+      if (sliceBy === "language") {
+        return COLORS.languages[activity.language] || defaultColor;
+      }
+      if (sliceBy === "editor") {
+        return COLORS.editors[activity.editor] || defaultColor;
+      }
+
+      if (sliceBy === "category") {
+        return COLORS.categories[activity.category] || defaultColor;
+      }
+      return defaultColor;
+    },
+    [sliceBy]
+  );
 
   // Effect to measure and update container dimensions
   useEffect(() => {
@@ -244,7 +268,7 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
     };
   }, []);
 
-  const { timeScale, yScale, projects, totalTime, calculatedHeight } =
+  const { timeScale, yScale, groups, totalTime, calculatedHeight } =
     useMemo(() => {
       const startDate = new Date(rawData.start);
       const endDate = new Date(rawData.end);
@@ -253,34 +277,40 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
         id: item.time.toString(),
         start: new Date(item.time * 1000),
         end: new Date((item.time + item.duration) * 1000),
-        project: item.project,
+        project: item.project, // Keep project data
         duration: item.duration,
+        ...Object.fromEntries(
+          Object.keys(item)
+            .filter((key) => key !== "time" && key !== "duration")
+            .map((key) => [key, item[key]])
+        ), // Include other potential slicing keys
       }));
 
-      const projectGroups: { [key: string]: ProcessedActivity[] } = {};
+      const dataGroups: { [key: string]: ProcessedActivity[] } = {};
       activities.forEach((activity) => {
-        if (!projectGroups[activity.project]) {
-          projectGroups[activity.project] = [];
+        const groupKey = activity[sliceBy] || "Unknown";
+        if (!dataGroups[groupKey]) {
+          dataGroups[groupKey] = [];
         }
-        projectGroups[activity.project].push(activity);
+        dataGroups[groupKey].push(activity);
       });
 
-      const projects: ProjectGroup[] = Object.entries(projectGroups)
+      const groups: DataGroup[] = Object.entries(dataGroups)
         .map(([name, activities]) => ({
           name,
           activities,
           totalDuration: activities.reduce((sum, act) => sum + act.duration, 0),
         }))
-        .sort((a, b) => b.totalDuration - a.totalDuration);
+        .sort((a, b) => b.totalDuration - a.totalDuration); // Sort by total duration
 
-      const totalTime = projects.reduce(
-        (sum, project) => sum + project.totalDuration,
+      const totalTime = groups.reduce(
+        (sum, group) => sum + group.totalDuration,
         0
       );
 
-      // Calculate height based on projects and adjust to container if needed
+      // Calculate height based on number of groups
       const calculatedHeight =
-        projects.length * ROW_HEIGHT + margin.top + margin.bottom;
+        groups.length * ROW_HEIGHT + margin.top + margin.bottom;
 
       const timeScale = scaleTime({
         domain: [startDate, endDate],
@@ -288,12 +318,12 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
       });
 
       const yScale = scaleLinear({
-        domain: [0, projects.length],
+        domain: [0, groups.length],
         range: [margin.top, calculatedHeight - margin.bottom],
       });
 
-      return { timeScale, yScale, projects, totalTime, calculatedHeight };
-    }, [dimensions.width, margin, rawData]);
+      return { timeScale, yScale, groups, totalTime, calculatedHeight };
+    }, [dimensions.width, margin, rawData, sliceBy]); // Add sliceBy to dependency array
 
   // Update height when calculated height changes
   useEffect(() => {
@@ -386,11 +416,11 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
               })}
             </Group>
 
-            {/* Project lanes */}
-            {projects.map((project, index) => {
+            {/* Data Group lanes */}
+            {groups.map((group, index) => {
               const yPos = yScale(index);
               return (
-                <Group key={project.name} top={yPos}>
+                <Group key={group.name} top={yPos}>
                   {/* First row top line to align with tick endings */}
                   {index === 0 && (
                     <Line
@@ -410,7 +440,7 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
                     fill="rgba(255,255,255,0.03)"
                   />
 
-                  {/* Project label */}
+                  {/* Group label */}
                   <text
                     x={margin.left - 20}
                     y={ROW_HEIGHT / 2 + 10}
@@ -419,41 +449,34 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
                     fontSize={14}
                     fontFamily="monospace"
                   >
-                    {`${project.name} ${formatDuration(project.totalDuration)}`}
+                    {`${group.name} ${formatDuration(group.totalDuration)}`}
                   </text>
 
                   {/* Activity bars */}
-                  {project.activities.map((activity) => {
-                    // Calculate bar dimensions
-                    const x = timeScale(activity.start);
-                    const width = Math.max(
-                      2,
-                      timeScale(activity.end) - timeScale(activity.start)
-                    );
-                    const y = (ROW_HEIGHT - LANE_HEIGHT) / 2;
-
-                    return (
-                      <Bar
-                        key={activity.id}
-                        x={x}
-                        y={y}
-                        width={width}
-                        height={LANE_HEIGHT}
-                        fill="#3b82f6"
-                        rx={2}
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleBarClick(activity)}
-                        onMouseEnter={(event) => {
-                          setTooltip({
-                            x: event.clientX,
-                            y: event.clientY,
-                            activity,
-                          });
-                        }}
-                        onMouseLeave={() => setTooltip(null)}
-                      />
-                    );
-                  })}
+                  {group.activities.map((activity) => (
+                    <Bar
+                      key={activity.id}
+                      x={timeScale(activity.start)}
+                      y={(ROW_HEIGHT - LANE_HEIGHT) / 2}
+                      width={Math.max(
+                        2,
+                        timeScale(activity.end) - timeScale(activity.start)
+                      )}
+                      height={LANE_HEIGHT}
+                      fill={getColor(activity)} // Consider using a color based on the grouping if available
+                      rx={2}
+                      style={{ cursor: "pointer" }}
+                      onMouseEnter={(event) => {
+                        setTooltip({
+                          x: event.clientX,
+                          y: event.clientY,
+                          activity,
+                        });
+                      }}
+                      onMouseLeave={() => setTooltip(null)}
+                      onClick={() => handleBarClick(activity)}
+                    />
+                  ))}
 
                   {/* Bottom row line */}
                   <Line
@@ -481,7 +504,8 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
                 className="custom-tooltip-header text-center shadow"
                 style={{ color: "white" }}
               >
-                {tooltip.activity.project}
+                {/* Display the value of the sliceBy key for the tooltip header */}
+                {tooltip.activity[sliceBy] || "Unknown"}
               </div>
               <div>
                 {format(tooltip.activity.start, "h:mm a")} -{" "}
@@ -491,6 +515,10 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
                 Duration:{" "}
                 {convertSecondsToHoursAndMinutes(tooltip.activity.duration)}
               </div>
+              {/* Optionally display the project name as well */}
+              {sliceBy !== "project" && (
+                <div>Project: {tooltip.activity.project}</div>
+              )}
             </div>
           )}
         </>
@@ -501,6 +529,7 @@ const TimeTrackingVisualization: React.FC<TimeTrackingProps> = ({
           activity={modalActivity}
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
+          sliceBy={sliceBy}
         />
       )}
     </div>
