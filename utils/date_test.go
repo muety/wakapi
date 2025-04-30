@@ -12,6 +12,7 @@ var (
 	tzUtc   *time.Location
 	tzCet   *time.Location
 	tzPst   *time.Location
+	tzCch   *time.Location
 )
 
 func init() {
@@ -19,6 +20,7 @@ func init() {
 	tzUtc, _ = time.LoadLocation("UTC")
 	tzCet, _ = time.LoadLocation("Europe/Berlin")
 	tzPst, _ = time.LoadLocation("America/Los_Angeles")
+	tzCch, _ = time.LoadLocation("America/Santiago")
 }
 
 func TestDate_SplitRangeByDays(t *testing.T) {
@@ -56,4 +58,12 @@ func TestDate_SplitRangeByDays(t *testing.T) {
 	assert.Equal(t, result3[0][1], dt3)
 
 	assert.Len(t, result4, 0)
+}
+
+func TestDate_SplitRangeByDays_DSTBug(t *testing.T) {
+	// https://github.com/muety/wakapi/issues/779
+	df1 := time.Date(2024, time.April, 29, 0, 0, 0, 0, tzCch)
+	dt1 := time.Date(2025, time.April, 30, 2, 8, 25, 645879355, tzCch)
+	result1 := SplitRangeByDays(df1, dt1)
+	assert.Len(t, result1, 367)
 }
