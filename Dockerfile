@@ -1,4 +1,4 @@
-FROM golang:alpine AS build-env
+FROM --platform=$BUILDPLATFORM golang:alpine AS build-env
 WORKDIR /src
 
 RUN wget "https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh" -O wait-for-it.sh && \
@@ -8,7 +8,7 @@ COPY ./go.mod ./go.sum ./
 RUN go mod download
 COPY . .
 
-RUN CGO_ENABLED=0 go build -ldflags "-s -w" -v -o wakapi main.go
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 go build -ldflags "-s -w" -v -o wakapi main.go
 
 WORKDIR /staging
 RUN mkdir ./data ./app && \
@@ -47,11 +47,11 @@ ENV ENVIRONMENT=prod \
 COPY --from=build-env /staging /
 
 LABEL org.opencontainers.image.url="https://github.com/muety/wakapi" \
-      org.opencontainers.image.documentation="https://github.com/muety/wakapi" \
-      org.opencontainers.image.source="https://github.com/muety/wakapi" \
-      org.opencontainers.image.title="Wakapi" \
-      org.opencontainers.image.licenses="MIT" \
-      org.opencontainers.image.description="A minimalist, self-hosted WakaTime-compatible backend for coding statistics"
+    org.opencontainers.image.documentation="https://github.com/muety/wakapi" \
+    org.opencontainers.image.source="https://github.com/muety/wakapi" \
+    org.opencontainers.image.title="Wakapi" \
+    org.opencontainers.image.licenses="MIT" \
+    org.opencontainers.image.description="A minimalist, self-hosted WakaTime-compatible backend for coding statistics"
 
 USER app
 
