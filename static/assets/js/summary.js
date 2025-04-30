@@ -571,7 +571,10 @@ function draw(subselection) {
                         ticks: {
                             stepSize: 1000 * 60 * 60, // pre hour
                             callback: (value) => {
-                                return new Date(value).toLocaleTimeString()
+                                return new Date(value).toLocaleString([], {
+                                    dateStyle: "short",
+                                    timeStyle: "short",
+                                })
                             },
                         },
                         title: {
