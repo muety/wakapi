@@ -1,0 +1,187 @@
+{
+  "data": [
+    {
+      "time": 1744623937,
+      "project": "api-medpharma",
+      "duration": 1056,
+      "color": null
+    },
+    { "time": 1744624993, "project": "wakana", "duration": 171, "color": null },
+    {
+      "time": 1744625164,
+      "project": "api-medpharma",
+      "duration": 234,
+      "color": null
+    },
+    {
+      "time": 1744626408,
+      "project": "api-medpharma",
+      "duration": 1532,
+      "color": null
+    },
+    {
+      "time": 1744629840,
+      "project": "api-medpharma",
+      "duration": 3346,
+      "color": null
+    },
+    {
+      "time": 1744640046,
+      "project": "api-medpharma",
+      "duration": 64,
+      "color": null
+    },
+    {
+      "time": 1744640110,
+      "project": "proxify",
+      "duration": 357,
+      "color": null
+    },
+    { "time": 1744640467, "project": "wakana", "duration": 626, "color": null },
+    {
+      "time": 1744641093,
+      "project": "proxify",
+      "duration": 140,
+      "color": null
+    },
+    {
+      "time": 1744641233,
+      "project": "api-medpharma",
+      "duration": 49,
+      "color": null
+    },
+    {
+      "time": 1744641282,
+      "project": "proxify",
+      "duration": 1354,
+      "color": null
+    },
+    { "time": 1744642636, "project": "wakana", "duration": 38, "color": null },
+    { "time": 1744642674, "project": "proxify", "duration": 54, "color": null },
+    { "time": 1744642728, "project": "wakana", "duration": 247, "color": null },
+    {
+      "time": 1744642975,
+      "project": "api-medpharma",
+      "duration": 1343,
+      "color": null
+    },
+    { "time": 1744644318, "project": "wakana", "duration": 0, "color": null },
+    { "time": 1744645451, "project": "wakana", "duration": 312, "color": null },
+    {
+      "time": 1744645763,
+      "project": "api-medpharma",
+      "duration": 533,
+      "color": null
+    },
+    { "time": 1744646296, "project": "wakana", "duration": 181, "color": null },
+    { "time": 1744646477, "project": "proxify", "duration": 11, "color": null },
+    { "time": 1744646488, "project": "wakana", "duration": 165, "color": null },
+    {
+      "time": 1744646653,
+      "project": "proxify",
+      "duration": 185,
+      "color": null
+    },
+    {
+      "time": 1744646838,
+      "project": "api-medpharma",
+      "duration": 165,
+      "color": null
+    },
+    {
+      "time": 1744647003,
+      "project": "proxify",
+      "duration": 372,
+      "color": null
+    },
+    {
+      "time": 1744647375,
+      "project": "api-medpharma",
+      "duration": 767,
+      "color": null
+    },
+    {
+      "time": 1744648142,
+      "project": "proxify",
+      "duration": 2995,
+      "color": null
+    },
+    { "time": 1744651137, "project": "wakana", "duration": 465, "color": null },
+    {
+      "time": 1744651602,
+      "project": "proxify",
+      "duration": 1530,
+      "color": null
+    },
+    { "time": 1744653132, "project": "wakana", "duration": 39, "color": null },
+    {
+      "time": 1744653171,
+      "project": "proxify",
+      "duration": 776,
+      "color": null
+    },
+    { "time": 1744653947, "project": "wakana", "duration": 111, "color": null },
+    {
+      "time": 1744654058,
+      "project": "proxify",
+      "duration": 129,
+      "color": null
+    },
+    {
+      "time": 1744654187,
+      "project": "go-play",
+      "duration": 203,
+      "color": null
+    },
+    { "time": 1744654390, "project": "proxify", "duration": 9, "color": null },
+    { "time": 1744654399, "project": "go-play", "duration": 79, "color": null },
+    { "time": 1744654478, "project": "wakana", "duration": 48, "color": null },
+    { "time": 1744654526, "project": "proxify", "duration": 0, "color": null },
+    { "time": 1744654526, "project": "go-play", "duration": 55, "color": null },
+    {
+      "time": 1744654581,
+      "project": "proxify",
+      "duration": 397,
+      "color": null
+    },
+    { "time": 1744654978, "project": "go-play", "duration": 86, "color": null },
+    { "time": 1744655064, "project": "proxify", "duration": 83, "color": null },
+    {
+      "time": 1744655147,
+      "project": "go-play",
+      "duration": 1853,
+      "color": null
+    },
+    { "time": 1744657000, "project": "proxify", "duration": 4, "color": null },
+    { "time": 1744657004, "project": "go-play", "duration": 16, "color": null },
+    { "time": 1744657020, "project": "proxify", "duration": 12, "color": null },
+    { "time": 1744657032, "project": "wakana", "duration": 344, "color": null },
+    { "time": 1744657376, "project": ".asdf", "duration": 22, "color": null },
+    { "time": 1744657398, "project": "wakana", "duration": 228, "color": null },
+    {
+      "time": 1744659906,
+      "project": "wakana",
+      "duration": 1244,
+      "color": null
+    },
+    { "time": 1744661150, "project": "go-play", "duration": 18, "color": null },
+    {
+      "time": 1744661168,
+      "project": "wakana",
+      "duration": 7352,
+      "color": null
+    },
+    { "time": 1744668520, "project": "go-play", "duration": 53, "color": null },
+    { "time": 1744668573, "project": "wakana", "duration": 6627, "color": null }
+  ],
+  "start": "2025-04-14T00:00:00Z",
+  "end": "2025-04-14T23:59:59.999999999Z",
+  "timezone": "UTC",
+  "grand_total": {
+    "digital": "10:34",
+    "hours": 10,
+    "minutes": 34,
+    "text": "10 hrs 35 mins",
+    "total_seconds": 38080
+  }
+}

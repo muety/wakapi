@@ -37,6 +37,17 @@ type DurationBlock struct {
 	Color    *string `json:"color"`
 }
 
+type ProcessHeartbeatsArgs struct {
+	Heartbeats             []*models.Heartbeat
+	Start                  time.Time
+	End                    time.Time
+	TimeoutMinutes         int
+	Timezone               *time.Location
+	LastHeartbeatYesterday *models.Heartbeat
+	FirstHeartbeatTomorrow *models.Heartbeat
+	SliceBy                string
+}
+
 func (d *DurationResult) ComputeTotalTimeFromDurations() float64 {
 	total := 0.0
 	for _, item := range d.Data {
@@ -307,54 +318,54 @@ func combineMiniDurations(miniDurations []MiniDurationHeartbeat, timeoutMinutes 
 	return finalDurations
 }
 
-func ProcessHeartbeats(heartbeats []*models.Heartbeat, start time.Time, end time.Time, timeoutMinutes int, timezone *time.Location, yesterday *models.Heartbeat, tomorrow *models.Heartbeat, sliceBy string) (DurationResult, error) {
-	timeoutDuration := time.Duration(timeoutMinutes) * time.Minute
+func ProcessHeartbeats(args ProcessHeartbeatsArgs) (DurationResult, error) {
+	timeoutDuration := time.Duration(args.TimeoutMinutes) * time.Minute
 
-	sort.SliceStable(heartbeats, func(i, j int) bool {
-		return heartbeats[i].Time.T().Before(heartbeats[j].Time.T())
+	sort.SliceStable(args.Heartbeats, func(i, j int) bool {
+		return args.Heartbeats[i].Time.T().Before(args.Heartbeats[j].Time.T())
 	})
 
 	// 3. Handle Boundary Heartbeats
-	tempHeartbeats := make([]*models.Heartbeat, 0, len(heartbeats)+2) // Preallocate slice
+	tempHeartbeats := make([]*models.Heartbeat, 0, len(args.Heartbeats)+2) // Preallocate slice
 
 	// Check if yesterday heartbeat exists and is within timeout of the first heartbeat in rangeFrom/rangeTo
-	if yesterday != nil && len(heartbeats) > 0 {
-		diff := heartbeats[0].Time.T().Sub(yesterday.Time.T())
+	if args.LastHeartbeatYesterday != nil && len(args.Heartbeats) > 0 {
+		diff := args.Heartbeats[0].Time.T().Sub(args.LastHeartbeatYesterday.Time.T())
 		// Important: Check if the slice value matches for yesterday's heartbeat and the first heartbeat of the day
 		// Use getValueForSlice which now handles the "Unknown" default
-		yesterdaySliceValue := getValueForSlice(yesterday, sliceBy)
-		firstDaySliceValue := getValueForSlice(heartbeats[0], sliceBy)
+		yesterdaySliceValue := getValueForSlice(args.LastHeartbeatYesterday, args.SliceBy)
+		firstDaySliceValue := getValueForSlice(args.Heartbeats[0], args.SliceBy)
 
 		if diff > 0 && diff < timeoutDuration && strings.EqualFold(yesterdaySliceValue, firstDaySliceValue) {
 			// Make a copy and adjust time if it bridges the gap
-			yesterdayCopy := *yesterday                   // Create a copy
-			yesterdayCopy.Time = models.CustomTime(start) // Set its time to the start of the period
+			yesterdayCopy := *args.LastHeartbeatYesterday      // Create a copy
+			yesterdayCopy.Time = models.CustomTime(args.Start) // Set its time to the start of the period
 			tempHeartbeats = append(tempHeartbeats, &yesterdayCopy)
 		}
-	} else if yesterday != nil && len(heartbeats) == 0 && yesterday.Time.T().After(start) && yesterday.Time.T().Before(end) {
-		yesterdayCopy := *yesterday // Create a copy
+	} else if args.LastHeartbeatYesterday != nil && len(args.Heartbeats) == 0 && args.LastHeartbeatYesterday.Time.T().After(args.Start) && args.LastHeartbeatYesterday.Time.T().Before(args.End) {
+		yesterdayCopy := *args.LastHeartbeatYesterday // Create a copy
 		tempHeartbeats = append(tempHeartbeats, &yesterdayCopy)
 	}
 
-	tempHeartbeats = append(tempHeartbeats, heartbeats...) // Add the main heartbeats
+	tempHeartbeats = append(tempHeartbeats, args.Heartbeats...) // Add the main heartbeats
 
 	// Check if tomorrow heartbeat exists and is within timeout of the last heartbeat in tempHeartbeats
-	if tomorrow != nil && len(tempHeartbeats) > 0 {
+	if args.FirstHeartbeatTomorrow != nil && len(tempHeartbeats) > 0 {
 		lastHeartbeat := tempHeartbeats[len(tempHeartbeats)-1]
-		diff := tomorrow.Time.T().Sub(lastHeartbeat.Time.T())
+		diff := args.FirstHeartbeatTomorrow.Time.T().Sub(lastHeartbeat.Time.T())
 		// Important: Check if the slice value matches for tomorrow's heartbeat and the last heartbeat of the day
 		// Use getValueForSlice which now handles the "Unknown" default
-		tomorrowSliceValue := getValueForSlice(tomorrow, sliceBy)
-		lastDaySliceValue := getValueForSlice(lastHeartbeat, sliceBy)
+		tomorrowSliceValue := getValueForSlice(args.FirstHeartbeatTomorrow, args.SliceBy)
+		lastDaySliceValue := getValueForSlice(lastHeartbeat, args.SliceBy)
 
 		if diff > 0 && diff < timeoutDuration && strings.EqualFold(tomorrowSliceValue, lastDaySliceValue) {
 			// Make a copy and adjust time if it bridges the gap
-			tomorrowCopy := *tomorrow                  // Create a copy
-			tomorrowCopy.Time = models.CustomTime(end) // Set its time to the end of the period
+			tomorrowCopy := *args.FirstHeartbeatTomorrow    // Create a copy
+			tomorrowCopy.Time = models.CustomTime(args.End) // Set its time to the end of the period
 			tempHeartbeats = append(tempHeartbeats, &tomorrowCopy)
 		}
-	} else if tomorrow != nil && len(tempHeartbeats) == 0 && tomorrow.Time.T().After(start) && tomorrow.Time.T().Before(end) {
-		tomorrowCopy := *tomorrow // Create a copy
+	} else if args.FirstHeartbeatTomorrow != nil && len(tempHeartbeats) == 0 && args.FirstHeartbeatTomorrow.Time.T().After(args.Start) && args.FirstHeartbeatTomorrow.Time.T().Before(args.End) {
+		tomorrowCopy := *args.FirstHeartbeatTomorrow // Create a copy
 		tempHeartbeats = append(tempHeartbeats, &tomorrowCopy)
 	}
 
@@ -363,19 +374,19 @@ func ProcessHeartbeats(heartbeats []*models.Heartbeat, start time.Time, end time
 		return tempHeartbeats[i].Time.T().Before(tempHeartbeats[j].Time.T())
 	})
 
-	heartbeats = tempHeartbeats // Use the potentially expanded list
+	heartbeats := tempHeartbeats // Use the potentially expanded list
 
 	// 4. Run Wakatime Processing Steps
-	miniDurations := heartbeatsToMiniDurations(heartbeats, timeoutMinutes)
+	miniDurations := heartbeatsToMiniDurations(heartbeats, args.TimeoutMinutes)
 	// Skipping external durations step
-	finalDurations := combineMiniDurations(miniDurations, timeoutMinutes, sliceBy) // Pass sliceBy here
+	finalDurations := combineMiniDurations(miniDurations, args.TimeoutMinutes, args.SliceBy) // Pass sliceBy here
 
 	// 5. Construct Final Result
 	result := DurationResult{
 		Data:     finalDurations,
-		Start:    start,
-		End:      end,
-		Timezone: timezone.String(),
+		Start:    args.Start,
+		End:      args.End,
+		Timezone: args.Timezone.String(),
 	}
 
 	total := result.TotalTime()
@@ -487,20 +498,22 @@ func (a *APIv1) GetDurations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	durations, err := ProcessHeartbeats(
-		heartbeats,
-		rangeFrom,
-		rangeTo,
-		15, // Assuming a default timeout of 15 minutes as in your code
-		timezone,
-		yesterdayHB, // Pass nil if no heartbeat was found
-		tomorrowHB,  // Pass nil if no heartbeat was found
-		sliceBy,     // Pass the determined slice_by parameter
-	)
+	args := ProcessHeartbeatsArgs{
+		Heartbeats:             heartbeats,
+		Start:                  rangeFrom,
+		End:                    rangeTo,
+		TimeoutMinutes:         15,
+		Timezone:               timezone,
+		LastHeartbeatYesterday: yesterdayHB,
+		FirstHeartbeatTomorrow: tomorrowHB,
+		SliceBy:                sliceBy,
+	}
+
+	durations, err := ProcessHeartbeats(args)
 
 	if err != nil {
 		conf.Log().Request(r).Error("Error computing durations", "error", err)
-		helpers.RespondJSON(w, r, http.StatusOK, map[string]interface{}{ // StatusOK might be intentional here, or should it be 500? Sticking to original code.
+		helpers.RespondJSON(w, r, http.StatusOK, map[string]any{ // StatusOK might be intentional here, or should it be 500? Sticking to original code.
 			"message": "Error computing durations",
 			"error":   err.Error(),
 		})
