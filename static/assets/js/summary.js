@@ -600,6 +600,30 @@ function draw(subselection) {
                     },
                     legend: {
                         display: false
+                    },
+                    zoom: {
+                        pan: {
+                            enabled: true,
+                        },
+                        zoom: {
+                            wheel: {
+                                enabled: true,
+                            },
+                            pinch: {
+                                enabled: true,
+                            },
+                            // disabled drag-to-zoom (that is, select a range to zoom there) beacause it conflicts with the pan
+                            // drag: {
+                            //     enabled: true,
+                            // },
+                            mode: 'x',
+                        },
+                        limits: {
+                            x: {
+                                min: "original",
+                                max: "original",
+                            },
+                        },
                     }
                 }
             }
