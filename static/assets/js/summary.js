@@ -543,12 +543,12 @@ function draw(subselection) {
                     let pre = 0;
                     return cur.items.map((cur, _) => {
                         let data = wakapiData.hourlyBreakdown.map(() => null)
-                        let from_time = new Date(cur.from_time)
-                        let to_time = new Date(from_time.getTime() + (cur.duration / 1e9 * 1e3))
+                        let fromTime = new Date(cur.from_time)
+                        let toTime = new Date(fromTime.getTime() + (cur.duration / 1e9 * 1e3))
 
                         // "The values for the first bar of a stack are absolute values, all following values of the same stack must be relative to the end of the previous bar"
-                        data[i] = [+from_time - pre, +to_time - pre, `${from_time.toLocaleTimeString()} - ${to_time.toLocaleTimeString()} (${(cur.duration / 1e9).toString().toHHMMSS()})`]
-                        pre = +to_time
+                        data[i] = [+fromTime - pre, +toTime - pre, `${fromTime.toLocaleTimeString()} - ${toTime.toLocaleTimeString()} (${(cur.duration / 1e9).toString().toHHMMSS()})`]
+                        pre = +toTime
                         return {
                             data,
                             backgroundColor: vibrantColors ? getRandomColor(project) : getColor(project, i % baseColors.length),
@@ -572,8 +572,8 @@ function draw(subselection) {
                             stepSize: 1000 * 60 * 60, // pre hour
                             callback: (value) => {
                                 return new Date(value).toLocaleString([], {
-                                    dateStyle: "short",
-                                    timeStyle: "short",
+                                    dateStyle: 'short',
+                                    timeStyle: 'short',
                                 })
                             },
                         },
@@ -608,6 +608,7 @@ function draw(subselection) {
                         zoom: {
                             wheel: {
                                 enabled: true,
+                                modifierKey: 'ctrl',
                             },
                             pinch: {
                                 enabled: true,
