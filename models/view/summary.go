@@ -16,36 +16,95 @@ type SummaryViewModel struct {
 	EditorColors        map[string]string
 	LanguageColors      map[string]string
 	OSColors            map[string]string
-	DailyStats          []*DailyProjectsViewModel
+	Timeline            []*TimelineViewModel
+	HourlyBreakdown     []*HourlyBreakdownViewModel
+	HourlyBreakdownFrom time.Time
 	RawQuery            string
 	UserFirstData       time.Time
 	DataRetentionMonths int
 }
 
-type DailyProjectsViewModel struct {
-	Date     time.Time                `json:"date"`
-	Projects []*DailyProjectViewModel `json:"projects"`
+type TimelineViewModel struct {
+	Date     time.Time       `json:"date"`
+	Projects []*TimelineItem `json:"projects"`
 }
 
-type DailyProjectViewModel struct {
+type TimelineItem struct {
 	Name     string        `json:"name"`
 	Duration time.Duration `json:"duration"`
 }
 
-func NewDailyProjectStats(summaries []*models.Summary) []*DailyProjectsViewModel {
-	dailyProjects := make([]*DailyProjectsViewModel, 0)
+type HourlyBreakdownsViewModel []*HourlyBreakdownViewModel
+
+type HourlyBreakdownViewModel struct {
+	Items   []*HourlyBreakdownItem `json:"items"`
+	Project string                 `json:"project"`
+}
+
+type HourlyBreakdownItems []*HourlyBreakdownItem
+
+type HourlyBreakdownItem struct {
+	FromTime time.Time     `json:"from_time"`
+	Duration time.Duration `json:"duration"`
+	Entity   string        `json:"entity"`
+	Project  string        `json:"-"`
+}
+
+func NewTimelineViewModel(summaries []*models.Summary) []*TimelineViewModel {
+	vm := make([]*TimelineViewModel, 0)
 	for _, summary := range summaries {
-		dailyProjects = append(dailyProjects, &DailyProjectsViewModel{
+		vm = append(vm, &TimelineViewModel{
 			Date: summary.FromTime.T(),
-			Projects: slice.Map(summary.Projects, func(_ int, curProject *models.SummaryItem) *DailyProjectViewModel {
-				return &DailyProjectViewModel{
+			Projects: slice.Map(summary.Projects, func(_ int, curProject *models.SummaryItem) *TimelineItem {
+				return &TimelineItem{
 					Name:     curProject.Key,
 					Duration: curProject.Total,
 				}
 			}),
 		})
 	}
-	return dailyProjects
+	return vm
+}
+
+func NewHourlyBreakdownItems(durations models.Durations, resolve models.AliasResolver) HourlyBreakdownItems {
+	hourlyBreakdowns := slice.
+		Map(durations, func(_ int, duration *models.Duration) *HourlyBreakdownItem {
+			return &HourlyBreakdownItem{
+				FromTime: duration.Time.T(),
+				Duration: duration.Duration,
+				Entity:   duration.Entity,
+				Project:  duration.Project,
+			}
+		})
+
+	hourlyBreakdowns = slice.Map(hourlyBreakdowns, func(_ int, item *HourlyBreakdownItem) *HourlyBreakdownItem {
+		item.Project = resolve(models.SummaryProject, item.Project)
+		item.Entity = resolve(models.SummaryEntity, item.Entity)
+		return item
+	})
+
+	return hourlyBreakdowns
+}
+
+func NewHourlyBreakdownViewModel(items HourlyBreakdownItems) HourlyBreakdownsViewModel {
+	hourlyBreakdownMap := slice.GroupWith(items, func(item *HourlyBreakdownItem) string { return item.Project })
+
+	hourlyBreakdown := make([]*HourlyBreakdownViewModel, 0)
+	for project, items := range hourlyBreakdownMap {
+		hourlyBreakdown = append(hourlyBreakdown, &HourlyBreakdownViewModel{
+			Items:   items,
+			Project: project,
+		})
+	}
+
+	hourlyBreakdownSorted := slice.Map(hourlyBreakdown, func(_ int, item *HourlyBreakdownViewModel) *HourlyBreakdownViewModel {
+		slice.SortBy(item.Items, func(i, j *HourlyBreakdownItem) bool {
+			return i.FromTime.Before(j.FromTime)
+		})
+		return item
+	})
+
+	return hourlyBreakdownSorted
 }
 
 func (s SummaryViewModel) UserDataExpiring() bool {

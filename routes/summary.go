@@ -25,14 +25,18 @@ type SummaryHandler struct {
 	config       *conf.Config
 	userSrvc     services.IUserService
 	summarySrvc  services.ISummaryService
+	durationSrvc services.IDurationService
+	aliasSrvc    services.IAliasService
 	keyValueSrvc services.IKeyValueService
 }
 
-func NewSummaryHandler(summaryService services.ISummaryService, userService services.IUserService, keyValueService services.IKeyValueService) *SummaryHandler {
+func NewSummaryHandler(summaryService services.ISummaryService, userService services.IUserService, keyValueService services.IKeyValueService, durationService services.IDurationService, aliasService services.IAliasService) *SummaryHandler {
 	return &SummaryHandler{
 		summarySrvc:  summaryService,
 		userSrvc:     userService,
 		keyValueSrvc: keyValueService,
+		durationSrvc: durationService,
+		aliasSrvc:    aliasService,
 		config:       conf.Get(),
 	}
 }
@@ -93,14 +97,28 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		firstData, _ = time.Parse(time.RFC822Z, firstDataKv.Value)
 	}
 
-	var dailyStats []*view.DailyProjectsViewModel
+	var timeline []*view.TimelineViewModel
 	if rangeDays := summaryParams.RangeDays(); rangeDays >= dailyStatsMinRangeDays && rangeDays <= dailyStatsMaxRangeDays {
 		dailyStatsSummaries, err := h.fetchSplitSummaries(summaryParams)
 		if err != nil {
-			conf.Log().Request(r).Error("failed to load daily stats", "error", err)
+			conf.Log().Request(r).Error("failed to load timeline stats", "error", err)
 		} else {
-			dailyStats = view.NewDailyProjectStats(dailyStatsSummaries)
+			timeline = view.NewTimelineViewModel(dailyStatsSummaries)
 		}
+	}
+
+	var hourlyBreakdown view.HourlyBreakdownsViewModel
+	hourlyBreakdownFrom := summaryParams.From
+	if summaryParams.RangeDays() > 1 { // get at most 24 hours of hourly breakdown
+		hourlyBreakdownFrom = summaryParams.To.Add(-24 * time.Hour)
+	}
+	if summaries, err := h.durationSrvc.Get(hourlyBreakdownFrom, summaryParams.To, summaryParams.User, summaryParams.Filters, nil, false); err == nil {
+		hourlyBreakdown = view.NewHourlyBreakdownViewModel(view.NewHourlyBreakdownItems(summaries, func(t uint8, k string) string {
+			s, _ := h.aliasSrvc.GetAliasOrDefault(user.ID, t, k)
+			return s
+		}))
+	} else {
+		conf.Log().Request(r).Error("failed to load hourly breakdown stats", "error", err)
 	}
 
 	vm := view.SummaryViewModel{
@@ -116,7 +134,9 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		RawQuery:            rawQuery,
 		UserFirstData:       firstData,
 		DataRetentionMonths: h.config.App.DataRetentionMonths,
-		DailyStats:          dailyStats,
+		Timeline:            timeline,
+		HourlyBreakdown:     hourlyBreakdown,
+		HourlyBreakdownFrom: hourlyBreakdownFrom,
 	}
 
 	templates[conf.SummaryTemplate].Execute(w, vm)

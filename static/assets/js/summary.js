@@ -15,7 +15,8 @@ const labelsCanvas = document.getElementById('chart-label')
 const branchesCanvas = document.getElementById('chart-branches')
 const entitiesCanvas = document.getElementById('chart-entities')
 const categoriesCanvas = document.getElementById('chart-categories')
-const dailyCanvas = document.getElementById('chart-daily-projects')
+const timelineCanvas = document.getElementById('chart-timeline')
+const hourlyCanvas = document.getElementById('chart-hourly')
 
 const projectContainer = document.getElementById('project-container')
 const osContainer = document.getElementById('os-container')
@@ -26,11 +27,12 @@ const labelContainer = document.getElementById('label-container')
 const branchContainer = document.getElementById('branch-container')
 const entityContainer = document.getElementById('entity-container')
 const categoryContainer = document.getElementById('category-container')
-const dailyContainer = document.getElementById('daily-container')
+const timelineContainer = document.getElementById('timeline-container')
+const hourlyContainer = document.getElementById('hourly-container')
 
-const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer, categoryContainer, dailyContainer]
-const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas, categoriesCanvas, dailyCanvas]
-const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches, wakapiData.entities, wakapiData.categories, wakapiData.dailyStats]
+const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer, categoryContainer, timelineContainer, hourlyContainer]
+const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas, categoriesCanvas, timelineCanvas, hourlyCanvas]
+const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches, wakapiData.entities, wakapiData.categories, wakapiData.timelineStats, wakapiData.hourlyBreakdown]
 
 let topNPickers = [...document.getElementsByClassName('top-picker')]
 topNPickers.sort(((a, b) => parseInt(a.attributes['data-entity'].value) - parseInt(b.attributes['data-entity'].value)))
@@ -473,18 +475,18 @@ function draw(subselection) {
         })
         : null
 
-    let dailyChart = dailyCanvas && !dailyCanvas.classList.contains('hidden') && shouldUpdate(9)
-        ? new Chart(dailyCanvas.getContext('2d'), {
+    let timelineChart = timelineCanvas && !timelineCanvas.classList.contains('hidden') && shouldUpdate(9)
+        ? new Chart(timelineCanvas.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: wakapiData.dailyStats.map(day => new Date(day.date).toLocaleDateString()),
-                datasets: wakapiData.dailyStats
+                labels: wakapiData.timelineStats.map(day => new Date(day.date).toLocaleDateString()),
+                datasets: wakapiData.timelineStats
                     .flatMap(day => day.projects.map(project => project.name))
                     .sort()
                     .filter((value, index, self) => self.indexOf(value) === index)
                     .map((project, i) => ({
                         label: project,
-                        data: wakapiData.dailyStats.map(day => day.projects.reduce((acc, p) => p.name === project ? acc + p.duration : acc, 0)),
+                        data: wakapiData.timelineStats.map(day => day.projects.reduce((acc, p) => p.name === project ? acc + p.duration : acc, 0)),
                         backgroundColor: vibrantColors ? getRandomColor(project) : getColor(project, i % baseColors.length),
                         barPercentage: 1.0
                     }))
@@ -530,6 +532,104 @@ function draw(subselection) {
         })
         : null
 
+    // https://stackoverflow.com/a/73071513
+    let hourlyBreakdownChart = hourlyCanvas && !hourlyCanvas.classList.contains('hidden') && shouldUpdate(10)
+        ? new Chart(hourlyCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: wakapiData.hourlyBreakdown.map(i => i.project),
+                datasets: wakapiData.hourlyBreakdown.flatMap((cur, i) => {
+                    let project = cur.project
+                    let pre = 0;
+                    return cur.items.map((cur, _) => {
+                        let data = wakapiData.hourlyBreakdown.map(() => null)
+                        let from_time = new Date(cur.from_time)
+                        let to_time = new Date(from_time.getTime() + (cur.duration / 1e9 * 1e3))
+
+                        // "The values for the first bar of a stack are absolute values, all following values of the same stack must be relative to the end of the previous bar"
+                        data[i] = [+from_time - pre, +to_time - pre, `${from_time.toLocaleTimeString()} - ${to_time.toLocaleTimeString()} (${(cur.duration / 1e9).toString().toHHMMSS()})`]
+                        pre = +to_time
+                        return {
+                            data,
+                            backgroundColor: vibrantColors ? getRandomColor(project) : getColor(project, i % baseColors.length),
+                            label: cur.entity,
+                            stack: project,
+                            skipNull: true,
+                        }
+                    })
+                })
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        stacked: true,
+                        min: +new Date(wakapiData.hourlyBreakdownFromTime),
+                        max: +new Date(wakapiData.hourlyBreakdownToTime),
+                        ticks: {
+                            stepSize: 1000 * 60 * 60, // pre hour
+                            callback: (value) => {
+                                return new Date(value).toLocaleString([], {
+                                    dateStyle: "short",
+                                    timeStyle: "short",
+                                })
+                            },
+                        },
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Projects'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                return `${context.dataset.label}: ${context.raw[2]}`
+                            }
+                        }
+                    },
+                    legend: {
+                        display: false
+                    },
+                    zoom: {
+                        pan: {
+                            enabled: true,
+                        },
+                        zoom: {
+                            wheel: {
+                                enabled: true,
+                            },
+                            pinch: {
+                                enabled: true,
+                            },
+                            // disabled drag-to-zoom (that is, select a range to zoom there) beacause it conflicts with the pan
+                            // drag: {
+                            //     enabled: true,
+                            // },
+                            mode: 'x',
+                        },
+                        limits: {
+                            x: {
+                                min: "original",
+                                max: "original",
+                            },
+                        },
+                    }
+                }
+            }
+        })
+        : null
+
     charts[0] = projectChart ? projectChart : charts[0]
     charts[1] = osChart ? osChart : charts[1]
     charts[2] = editorChart ? editorChart : charts[2]
@@ -539,7 +639,8 @@ function draw(subselection) {
     charts[6] = branchChart ? branchChart : charts[6]
     charts[7] = entityChart ? entityChart : charts[7]
     charts[8] = categoryChart ? categoryChart : charts[8]
-    charts[9] = dailyChart ? dailyChart : charts[9]
+    charts[9] = timelineChart ? timelineChart : charts[9]
+    charts[10] = hourlyBreakdownChart ? hourlyBreakdownChart : charts[10]
 }
 
 function parseTopN() {
@@ -564,7 +665,7 @@ function togglePlaceholders(mask) {
 }
 
 function getPresentDataMask() {
-    return data.map(list => (list ? list.reduce((acc, e) => acc + (e.total ? e.total : (e.projects ? e.projects.reduce((acc, f) => acc + f.duration, 0) : 0)), 0) : 0) > 0)
+    return data.map(list => (list ? list.reduce((acc, e) => acc + (e.total ? e.total : ((e.projects || e.items) ? (e.projects || e.items).reduce((acc, f) => acc + f.duration, 0) : 0)), 0) : 0) > 0)
 }
 
 function getColor(seed, index) {
@@ -608,10 +709,10 @@ function extractFile(filePath) {
 }
 
 function updateNumTotal() {
-    // Why length - 1:
-    //  We don't have a 'topN' for the DailyProjectStats
+    // Why length - 2:
+    //  We don't have a 'topN' for the DailyProjectStats & Timeline
     //  So there isn't a input for it.
-    for (let i = 0; i < data.length - 1; i++) {
+    for (let i = 0; i < data.length - 2; i++) {
         document.querySelector(`span[data-entity='${i}']`).innerText = data[i].length.toString()
     }
 }
