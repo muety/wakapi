@@ -4,10 +4,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
+	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/muety/wakapi/config"
+	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -136,4 +139,34 @@ func (a *APIv1) validateWakatimeKey(apiKey string, baseUrl string) bool {
 	}
 
 	return true
+}
+
+func (a *APIv1) RegenerateSummaries(w http.ResponseWriter, r *http.Request) {
+	user := middlewares.GetPrincipal(r)
+
+	go func(user *models.User, r *http.Request) {
+		if err := a.regenerateSummaries(user); err != nil {
+			conf.Log().Request(r).Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
+		}
+	}(user, r)
+
+	message := "summaries are being regenerated - this may take a up to a couple of minutes, please come back later"
+
+	helpers.RespondJSON(w, r, http.StatusAccepted, map[string]string{"message": message})
+}
+
+func (a *APIv1) regenerateSummaries(user *models.User) error {
+	slog.Info("clearing summaries and durations for user", "userID", user.ID)
+
+	if err := a.services.Summary().DeleteByUser(user.ID); err != nil {
+		conf.Log().Error("failed to clear summaries", "error", err)
+		return err
+	}
+
+	if err := a.services.Aggregation().AggregateSummaries(datastructure.New(user.ID)); err != nil { // involves regenerating durations as well
+		conf.Log().Error("failed to regenerate summaries", "error", err)
+		return err
+	}
+
+	return nil
 }

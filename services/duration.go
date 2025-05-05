@@ -33,13 +33,16 @@ func NewTestDurationService(heartbeatService IHeartbeatService) *DurationService
 }
 
 func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *models.Filters) (models.Durations, error) {
-	heartbeatsTimeout := user.HeartbeatsTimeout()
-
 	heartbeats, err := srv.heartbeatService.GetAllWithin(from, to, user)
 	if err != nil {
 		return nil, err
 	}
 
+	return MakeDurationsFromHeartbeatsReconciled(heartbeats, user, filters)
+}
+
+func (srv *DurationService) MakeDurationsFromHeartbeats(heartbeats []*models.Heartbeat, user *models.User, filters *models.Filters) (models.Durations, error) {
+	heartbeatsTimeout := user.HeartbeatsTimeout()
 	// Aggregation
 	// the below logic is approximately equivalent to the SQL query at scripts/aggregate_durations_mysql.sql
 	// a postgres-compatible script was contributed by @cwilby and is available at scripts/aggregate_durations_postgres.sql

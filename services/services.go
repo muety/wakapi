@@ -83,6 +83,7 @@ type IProjectLabelService interface {
 
 type IDurationService interface {
 	Get(time.Time, time.Time, *models.User, *models.Filters) (models.Durations, error)
+	MakeDurationsFromHeartbeats(heartbeats []*models.Heartbeat, user *models.User, filters *models.Filters) (models.Durations, error)
 }
 
 type ISummaryService interface {
