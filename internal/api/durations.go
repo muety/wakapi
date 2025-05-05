@@ -15,7 +15,6 @@ import (
 	"github.com/muety/wakapi/internal/utilities"
 	"github.com/muety/wakapi/models"
 	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
-	"github.com/muety/wakapi/services"
 )
 
 func NewSummariesGrandTotal(originalDuration time.Duration) *wakatime.SummariesGrandTotal {
@@ -529,7 +528,6 @@ func (a *APIv1) GetDurationsV2(w http.ResponseWriter, r *http.Request) {
 	durations, mapping, err := MakeDurationsFromHeartbeats(heartbeats, user, &models.Filters{})
 	minidurations := heartbeatsToMiniDurations(heartbeats, 15)
 	finalDurations := combineMiniDurations(minidurations, 15, "entity")
-	reconciled, _ := services.MakeDurationsFromHeartbeatsReconciled(heartbeats, user, &models.Filters{})
 
 	if err != nil {
 		conf.Log().Request(r).Error("Error computing durations", "error", err)
@@ -543,11 +541,6 @@ func (a *APIv1) GetDurationsV2(w http.ResponseWriter, r *http.Request) {
 	var totalDuration time.Duration
 	for _, duration := range durations {
 		totalDuration += duration.Duration
-	}
-
-	var totalReconciledDuration time.Duration
-	for _, duration := range reconciled {
-		totalReconciledDuration += duration.Duration
 	}
 
 	result := DurationResult{

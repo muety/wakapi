@@ -38,7 +38,7 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 		return nil, err
 	}
 
-	return MakeDurationsFromHeartbeatsReconciled(heartbeats, user, filters)
+	return srv.MakeDurationsFromHeartbeats(heartbeats, user, filters)
 }
 
 func (srv *DurationService) MakeDurationsFromHeartbeats(heartbeats []*models.Heartbeat, user *models.User, filters *models.Filters) (models.Durations, error) {
