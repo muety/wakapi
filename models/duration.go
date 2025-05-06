@@ -2,11 +2,43 @@ package models
 
 import (
 	"fmt"
-	"github.com/mitchellh/hashstructure/v2"
 	"log/slog"
+	"math"
 	"time"
 	"unicode"
+
+	"github.com/mitchellh/hashstructure/v2"
 )
+
+type DurationBlock struct {
+	UserID       string        `json:"-"`
+	Time         float64       `json:"time"`
+	Project      string        `json:"project,omitempty"`
+	Language     string        `json:"language,omitempty"`
+	Entity       string        `json:"entity,omitempty"`
+	Os           string        `json:"os,omitempty"`
+	Editor       string        `json:"editor,omitempty"`
+	Category     string        `json:"category,omitempty"`
+	Machine      string        `json:"machine,omitempty"`
+	DurationSecs float64       `json:"duration"`
+	Duration     time.Duration `json:"-"`
+	Color        *string       `json:"color"`
+	Branch       string        `json:"branch,omitempty"`
+}
+
+type ProcessHeartbeatsArgs struct {
+	Heartbeats             []*Heartbeat
+	Start                  time.Time
+	End                    time.Time
+	User                   *User
+	LastHeartbeatYesterday *Heartbeat
+	FirstHeartbeatTomorrow *Heartbeat
+	SliceBy                string
+}
+
+func (d *DurationBlock) AddDurationSecs() {
+	d.DurationSecs = d.Duration.Seconds()
+}
 
 type Duration struct {
 	UserID          string        `json:"user_id"`
@@ -39,6 +71,15 @@ func (d *Duration) HashInclude(field string, v interface{}) (bool, error) {
 	return true, nil
 }
 
+func round(number float64, precision int) float64 {
+	factor := math.Pow(10, float64(precision))
+	return math.Round(number*factor) / factor
+}
+
+func customTimeFromFloat(timeFloat float64) time.Time {
+	return time.Unix(0, int64(round(timeFloat, 9)*1e9))
+}
+
 func NewDurationFromHeartbeat(h *Heartbeat) *Duration {
 	d := &Duration{
 		UserID:          h.UserID,
@@ -52,6 +93,25 @@ func NewDurationFromHeartbeat(h *Heartbeat) *Duration {
 		Category:        h.Category,
 		Branch:          h.Branch,
 		Entity:          h.Entity,
+		NumHeartbeats:   1,
+	}
+	return d.Hashed()
+}
+
+func NewDurationFromBlock(b *DurationBlock) *Duration {
+	blockTime := customTimeFromFloat(b.Time)
+	d := &Duration{
+		UserID:          b.UserID,
+		Time:            CustomTime(blockTime),
+		Duration:        b.Duration,
+		Project:         b.Project,
+		Language:        b.Language,
+		Editor:          b.Editor,
+		OperatingSystem: b.Os,
+		Machine:         b.Machine,
+		Category:        b.Category,
+		Branch:          b.Branch,
+		Entity:          b.Entity,
 		NumHeartbeats:   1,
 	}
 	return d.Hashed()

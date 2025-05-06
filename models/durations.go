@@ -1,6 +1,9 @@
 package models
 
-import "sort"
+import (
+	"sort"
+	"time"
+)
 
 type Durations []*Duration
 
@@ -43,4 +46,16 @@ func (d *Durations) Last() *Duration {
 		return nil
 	}
 	return (*d)[d.Len()-1]
+}
+
+type MakeDurationOptions struct {
+	ExcludeUnknownProjects bool
+	Filters                *Filters
+	HeartBeats             []*Heartbeat
+	HeartbeatsTimeout      time.Duration
+	From                   time.Time
+	To                     time.Time
+	Timezone               *time.Location
+	LastHeartbeatYesterday *Heartbeat
+	FirstHeartbeatTomorrow *Heartbeat
 }

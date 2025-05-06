@@ -16,7 +16,7 @@ func (m *DurationServiceMock) Get(time time.Time, time2 time.Time, user *models.
 	return args.Get(0).(models.Durations), args.Error(1)
 }
 
-func (m *DurationServiceMock) MakeDurationsFromHeartbeats(heartbeats []*models.Heartbeat, user *models.User, filters *models.Filters) (models.Durations, error) {
-	args := m.Called(heartbeats, user, filters)
+func (m *DurationServiceMock) MakeDurationsFromHeartbeats(options models.ProcessHeartbeatsArgs, f *models.Filters) (models.Durations, error) {
+	args := m.Called(options, f)
 	return args.Get(0).(models.Durations), args.Error(1)
 }
