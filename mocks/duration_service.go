@@ -11,8 +11,8 @@ type DurationServiceMock struct {
 	mock.Mock
 }
 
-func (m *DurationServiceMock) Get(time time.Time, time2 time.Time, user *models.User, f *models.Filters) (models.Durations, error) {
-	args := m.Called(time, time2, user, f)
+func (m *DurationServiceMock) Get(time time.Time, time2 time.Time, user *models.User, f *models.Filters, sliceBy string) (models.Durations, error) {
+	args := m.Called(time, time2, user, f, sliceBy)
 	return args.Get(0).(models.Durations), args.Error(1)
 }
 

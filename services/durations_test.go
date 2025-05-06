@@ -44,7 +44,7 @@ var user = &models.User{
 
 func TestDurationsWithOverlappingFirstLastHeartbeat(t *testing.T) {
 	data := loadJSON[[]*models.Heartbeat](t, testDataJSON)
-	snapshot := loadJSON[*DurationResult](t, durationSnapshot)
+	snapshot := loadJSON[*models.DurationResult](t, durationSnapshot)
 
 	if len(data) == 0 {
 		t.Errorf("Expected heartbeats length to be greater than 0, got 0")

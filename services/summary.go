@@ -179,7 +179,7 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 
 func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filters *models.Filters) (*models.Summary, error) {
 	// Initialize and fetch data
-	durations, err := srv.durationService.Get(from, to, user, filters)
+	durations, err := srv.durationService.Get(from, to, user, filters, "")
 	if err != nil {
 		return nil, err
 	}

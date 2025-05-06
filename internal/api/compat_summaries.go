@@ -51,7 +51,7 @@ func (a *APIv1) GetSummaries(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	summaries, err, status := a.loadUserSummaries(r, user)
+	summaries, status, err := a.loadUserSummaries(r, user)
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))
@@ -123,10 +123,10 @@ func (a *APIv1) ComputeTimeRange(r *http.Request, user *models.User) (time.Time,
 	return start, end, nil, http.StatusOK
 }
 
-func (a *APIv1) loadUserSummaries(r *http.Request, user *models.User) ([]*models.Summary, error, int) {
+func (a *APIv1) loadUserSummaries(r *http.Request, user *models.User) ([]*models.Summary, int, error) {
 	start, end, err, status := a.ComputeTimeRange(r, user)
 	if err != nil {
-		return nil, err, status
+		return nil, status, err
 	}
 
 	overallParams := &models.SummaryParams{
@@ -143,7 +143,7 @@ func (a *APIv1) loadUserSummaries(r *http.Request, user *models.User) ([]*models
 	for i, interval := range intervals {
 		summary, err := a.services.Summary().Aliased(interval[0], interval[1], user, a.services.Summary().Retrieve, filters, end.After(time.Now()))
 		if err != nil {
-			return nil, err, http.StatusInternalServerError
+			return nil, http.StatusInternalServerError, err
 		}
 		// wakatime returns requested instead of actual summary range
 		summary.FromTime = models.CustomTime(interval[0])
@@ -151,5 +151,5 @@ func (a *APIv1) loadUserSummaries(r *http.Request, user *models.User) ([]*models
 		summaries[i] = summary
 	}
 
-	return summaries, nil, http.StatusOK
+	return summaries, http.StatusOK, nil
 }

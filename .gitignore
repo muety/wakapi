@@ -18,3 +18,4 @@ notes.DS_Store
 notes
 .DS_Store
 wakana
+coverage/*

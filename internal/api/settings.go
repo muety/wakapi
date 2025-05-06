@@ -9,7 +9,6 @@ import (
 	"time"
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
-	"github.com/muety/wakapi/config"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
@@ -101,7 +100,7 @@ func (a *APIv1) actionSetWakatimeApiKey(wakatimeSettings *SettingsPayload, user 
 	}
 
 	if _, err := a.services.Users().SetWakatimeApiCredentials(user, wakatimeSettings.ApiKey, wakatimeSettings.ApiUrl); err != nil {
-		return actionResult{http.StatusInternalServerError, "", config.ErrInternalServerError, nil}
+		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
 	}
 
 	return actionResult{http.StatusOK, "Wakatime API key set", "", nil}
@@ -113,7 +112,7 @@ func (a *APIv1) respondWithError(w http.ResponseWriter, r *http.Request, code in
 
 func (a *APIv1) validateWakatimeKey(apiKey string, baseUrl string) bool {
 	if baseUrl == "" {
-		baseUrl = config.WakatimeApiUrl
+		baseUrl = conf.WakatimeApiUrl
 	}
 
 	headers := http.Header{
@@ -125,7 +124,7 @@ func (a *APIv1) validateWakatimeKey(apiKey string, baseUrl string) bool {
 
 	request, err := http.NewRequest(
 		http.MethodGet,
-		baseUrl+config.WakatimeApiUserUrl,
+		baseUrl+conf.WakatimeApiUserUrl,
 		nil,
 	)
 	if err != nil {

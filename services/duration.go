@@ -39,20 +39,30 @@ func NewTestDurationService(heartbeatService IHeartbeatService) *DurationService
 	return srv
 }
 
-func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *models.Filters) (models.Durations, error) {
+func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *models.Filters, sliceBy string) (models.Durations, error) {
+	if sliceBy == "" {
+		sliceBy = SliceByEntity
+	}
 	heartbeats, err := srv.heartbeatService.GetAllWithin(from, to, user)
 	if err != nil {
 		return nil, err
 	}
 
-	last_heartbeat_from_yesterday, err := srv.GetYesterdaysLastHeartbeat(user, from)
-	if err != nil {
-		return nil, err
-	}
+	var last_heartbeat_from_yesterday *models.Heartbeat = nil
+	var first_heartbeat_from_tomorrow *models.Heartbeat = nil
 
-	first_heartbeat_from_tomorrow, err := srv.FirstHearbeatFromTomorrow(user, from)
-	if err != nil {
-		return nil, err
+	if (srv.db != nil) && (user != nil) {
+
+		last_heartbeat_from_yesterday, err = srv.GetYesterdaysLastHeartbeat(user, from)
+		if err != nil {
+			return nil, err
+		}
+
+		first_heartbeat_from_tomorrow, err = srv.FirstHearbeatFromTomorrow(user, from)
+		if err != nil {
+			return nil, err
+		}
+
 	}
 
 	args := models.ProcessHeartbeatsArgs{
@@ -69,12 +79,12 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 }
 
 func (srv *DurationService) MakeDurationsFromHeartbeats(args models.ProcessHeartbeatsArgs, filters *models.Filters) (models.Durations, error) {
-	durationBlocks := MakeHeartbeatDurationBlocks(args)
+	rawDurations := MakeHeartbeatDurations(args)
 	excludeUnknownProjects := args.User.ExcludeUnknownProjects
 
 	durations := make(models.Durations, 0)
-	for _, block := range durationBlocks {
-		d := srv.convertToDurationBlock(&block, excludeUnknownProjects, filters)
+	for _, block := range rawDurations {
+		d := srv.hashAndFilterDuration(block, excludeUnknownProjects, filters)
 		if d != nil {
 			durations = append(durations, d)
 		}
@@ -123,8 +133,8 @@ func (srv *DurationService) GetYesterdaysLastHeartbeat(user *models.User, rangeF
 	return yesterdayHB, nil
 }
 
-func (srv *DurationService) convertToDurationBlock(dh *models.DurationBlock, excludeUnknownProjects bool, filters *models.Filters) *models.Duration {
-	d := models.NewDurationFromBlock(dh).WithEntityIgnored().Hashed()
+func (srv *DurationService) hashAndFilterDuration(dh *models.Duration, excludeUnknownProjects bool, filters *models.Filters) *models.Duration {
+	d := dh.WithEntityIgnored().Hashed()
 
 	if excludeUnknownProjects && d.Project == "" {
 		return nil

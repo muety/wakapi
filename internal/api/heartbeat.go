@@ -100,8 +100,8 @@ func (a *APIv1) ProcessHeartBeat(w http.ResponseWriter, r *http.Request) {
 				editor = ua.Editor
 			} else {
 				localOpSys, localEditor, _ := utils.ParseUserAgent(userAgent)
-				opSys = condition.TernaryOperator[bool, string](localOpSys != "", localOpSys, opSys)
-				editor = condition.TernaryOperator[bool, string](localEditor != "", localEditor, editor)
+				opSys = condition.TernaryOperator(localOpSys != "", localOpSys, opSys)
+				editor = condition.TernaryOperator(localEditor != "", localEditor, editor)
 			}
 		}
 		if hb.Machine != "" {

@@ -36,10 +36,6 @@ func sendJSON(w http.ResponseWriter, status int, data interface{}, message strin
 	return nil
 }
 
-func sendJSONError(w http.ResponseWriter, status int, err error) error {
-	return sendJSON(w, status, nil, "", err.Error())
-}
-
 func sendJSONSuccess(w http.ResponseWriter, status int, data interface{}) error {
 	return sendJSON(w, status, data, "", "")
 }

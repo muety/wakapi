@@ -554,24 +554,13 @@ All data are cached locally on your machine and sent in batches once you're onli
 </details>
 
 <details>
-<summary><b>How did Wakana come about?</b></summary>
-
-Wakana was started when I was a student, who wanted to track detailed statistics about my coding time. Although I'm a
-big fan of WakaTime I didn't want to pay <a href="https://wakatime.com/pricing">$9 a month</a> back then. Luckily, most
-parts of WakaTime are open source!
-
-</details>
-
-<details>
 <summary><b>How does Wakana compare to WakaTime?</b></summary>
 
 Wakana is a small subset of WakaTime and has a lot less features. Cool WakaTime features, that are missing Wakana,
 include:
 
 <ul>
-  <li>Leaderboards</li>
   <li><a href="https://wakatime.com/share/embed">Embeddable Charts</a></li>
-  <li>Personal Goals</li>
   <li>Team- / Organization Support</li>
   <li>Additional Integrations (with GitLab, etc.)</li>
   <li>Richer API</li>
@@ -585,30 +574,9 @@ might want to go with Wakana.
 <details>
 <summary><b>How are durations calculated?</b></summary>
 
-Inferring a measure for your coding time from heartbeats works a bit differently than in WakaTime. While WakaTime
-has <a href="https://wakatime.com/faq#timeout">timeout intervals</a>, Wakana essentially just pads every heartbeat that
-occurs after a longer pause with 2 extra minutes.
-
-Here is an example (circles are heartbeats):
-
-```text
-|---o---o--------------o---o---|
-|   |10s|      3m      |10s|   |
-
-```
-
-It is unclear how to handle the three minutes in between. Did the developer do a 3-minute break, or were just no
-heartbeats being sent, e.g. because the developer was staring at the screen trying to find a solution, but not actually
-typing code?
-
-<ul>
-  <li><b>WakaTime</b> (with 5 min timeout): 3 min 20 sec
-  <li><b>WakaTime</b> (with 2 min timeout): 20 sec
-  <li><b>Wakana:</b> 10 sec + 2 min + 10 sec = 2 min 20 sec</li>
-</ul>
-
-Wakana adds a "padding" of two minutes before the third heartbeat. This is why total times will slightly vary between
-Wakana and WakaTime.
+Inferring a measure for your coding time from heartbeats works the same as in WakaTime.
+Heartbeats that occur within <a href="https://wakatime.com/faq#timeout">timeout intervals</a>,
+are considered part of a single session.
 
 </details>
 

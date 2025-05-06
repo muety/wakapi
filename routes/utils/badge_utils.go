@@ -2,9 +2,10 @@ package utils
 
 import (
 	"errors"
+	"regexp"
+
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
-	"regexp"
 )
 
 const (

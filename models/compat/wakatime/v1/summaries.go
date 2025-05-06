@@ -43,17 +43,17 @@ type SummariesDailyAverage struct {
 }
 
 type SummariesData struct {
-	Categories       []*SummariesEntry    `json:"categories"`
-	Dependencies     []*SummariesEntry    `json:"dependencies"`
-	Editors          []*SummariesEntry    `json:"editors"`
-	Languages        []*SummariesEntry    `json:"languages"`
-	Machines         []*SummariesEntry    `json:"machines"`
-	OperatingSystems []*SummariesEntry    `json:"operating_systems"`
-	Projects         []*SummariesEntry    `json:"projects"`
-	Branches         []*SummariesEntry    `json:"branches"`
-	Entities         []*SummariesEntry    `json:"entities"`
-	GrandTotal       *SummariesGrandTotal `json:"grand_total"`
-	Range            *SummariesRange      `json:"range"`
+	Categories       []*SummariesEntry           `json:"categories"`
+	Dependencies     []*SummariesEntry           `json:"dependencies"`
+	Editors          []*SummariesEntry           `json:"editors"`
+	Languages        []*SummariesEntry           `json:"languages"`
+	Machines         []*SummariesEntry           `json:"machines"`
+	OperatingSystems []*SummariesEntry           `json:"operating_systems"`
+	Projects         []*SummariesEntry           `json:"projects"`
+	Branches         []*SummariesEntry           `json:"branches"`
+	Entities         []*SummariesEntry           `json:"entities"`
+	GrandTotal       *models.SummariesGrandTotal `json:"grand_total"`
+	Range            *SummariesRange             `json:"range"`
 }
 
 type SummariesEntry struct {
@@ -63,14 +63,6 @@ type SummariesEntry struct {
 	Name         string  `json:"name"`
 	Percent      float64 `json:"percent"`
 	Seconds      int     `json:"seconds"`
-	Text         string  `json:"text"`
-	TotalSeconds float64 `json:"total_seconds"`
-}
-
-type SummariesGrandTotal struct {
-	Digital      string  `json:"digital"`
-	Hours        int     `json:"hours"`
-	Minutes      int     `json:"minutes"`
 	Text         string  `json:"text"`
 	TotalSeconds float64 `json:"total_seconds"`
 }
@@ -161,7 +153,7 @@ func newDataFrom(s *models.Summary) *SummariesData {
 		Branches:         make([]*SummariesEntry, len(s.Branches)),
 		Entities:         make([]*SummariesEntry, len(s.Entities)),
 		Categories:       make([]*SummariesEntry, len(s.Categories)),
-		GrandTotal: &SummariesGrandTotal{
+		GrandTotal: &models.SummariesGrandTotal{
 			Digital:      fmt.Sprintf("%d:%d", totalHrs, totalMins),
 			Hours:        totalHrs,
 			Minutes:      totalMins,

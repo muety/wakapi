@@ -130,7 +130,6 @@ func (api *APIv1) RegisterApiV1Routes(r *chi.Mux) {
 			r.Get("/projects", api.GetProjects)
 			r.Get("/projects/{id}", api.GetProject)
 			r.Get("/durations", api.GetDurations)
-			r.Get("/durations-v2", api.GetDurationsV2)
 			r.Get("/report", api.SendReport)
 
 			r.Post("/regenerate-summaries", api.RegenerateSummaries)

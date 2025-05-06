@@ -2,16 +2,14 @@ package services
 
 import (
 	"fmt"
-	"math"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/muety/wakapi/models"
-	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
 )
 
-func NewSummariesGrandTotal(originalDuration time.Duration) *wakatime.SummariesGrandTotal {
+func NewSummariesGrandTotal(originalDuration time.Duration) *models.SummariesGrandTotal {
 	d := originalDuration.Round(time.Minute)
 
 	totalSeconds := originalDuration.Round(time.Second).Seconds()
@@ -21,38 +19,13 @@ func NewSummariesGrandTotal(originalDuration time.Duration) *wakatime.SummariesG
 	digital := fmt.Sprintf("%02d:%02d", hours, minutes)
 	text := fmt.Sprintf("%d hrs %d mins", hours, minutes)
 
-	return &wakatime.SummariesGrandTotal{
+	return &models.SummariesGrandTotal{
 		Digital:      digital,
 		Hours:        hours,
 		Minutes:      minutes,
 		Text:         text,
 		TotalSeconds: totalSeconds,
 	}
-}
-
-type MiniDurationHeartbeat struct {
-	models.Heartbeat                 // Embed original heartbeat fields
-	CalculatedDuration time.Duration // Duration calculated in HeartbeatsToMiniDurations step (seconds)
-}
-
-func (d *DurationResult) ComputeTotalTimeFromDurations() time.Duration {
-	var total time.Duration
-	for _, item := range d.Data {
-		total += item.Duration
-	}
-	return total
-}
-
-func (d *DurationResult) TotalTime() time.Duration {
-	return d.ComputeTotalTimeFromDurations()
-}
-
-type DurationResult struct {
-	Data       []models.DurationBlock        `json:"data"`
-	Start      time.Time                     `json:"start"`
-	End        time.Time                     `json:"end"`
-	Timezone   string                        `json:"timezone"`
-	GrandTotal *wakatime.SummariesGrandTotal `json:"grand_total"`
 }
 
 const UnknownValue = "Unknown"
@@ -78,13 +51,8 @@ var AllowedSliceBy = map[string]bool{
 	SliceByMachine:  true,
 }
 
-func round(number float64, precision int) float64 {
-	factor := math.Pow(10, float64(precision))
-	return math.Round(number*factor) / factor
-}
-
-func HeartbeatsToMiniDurations(heartbeats []*models.Heartbeat, timeoutDuration time.Duration) []MiniDurationHeartbeat {
-	miniDurations := make([]MiniDurationHeartbeat, 0, len(heartbeats))
+func HeartbeatsToMiniDurations(heartbeats []*models.Heartbeat, timeoutDuration time.Duration) []models.MiniDurationHeartbeat {
+	miniDurations := make([]models.MiniDurationHeartbeat, 0, len(heartbeats))
 
 	for i := range heartbeats {
 		hb := heartbeats[i]
@@ -102,9 +70,9 @@ func HeartbeatsToMiniDurations(heartbeats []*models.Heartbeat, timeoutDuration t
 			}
 		}
 
-		miniDurations = append(miniDurations, MiniDurationHeartbeat{
-			Heartbeat:          *hb,
-			CalculatedDuration: duration,
+		miniDurations = append(miniDurations, models.MiniDurationHeartbeat{
+			Heartbeat: *hb,
+			Duration:  duration,
 		})
 	}
 	return miniDurations
@@ -137,7 +105,7 @@ func getValueForSlice(hb *models.Heartbeat, sliceBy string) string {
 	return value
 }
 
-func populateDurationBlockFields(block *models.DurationBlock, item MiniDurationHeartbeat, sliceBy string, respectSliceBy bool) {
+func populateDurationFields(block *models.Duration, item models.MiniDurationHeartbeat, sliceBy string, respectSliceBy bool) {
 	// Helper function to assign value or default to UnknownValue if empty
 	setField := func(field *string, value string, fieldName string) {
 		if fieldName != "project" && respectSliceBy {
@@ -158,14 +126,14 @@ func populateDurationBlockFields(block *models.DurationBlock, item MiniDurationH
 	setField(&block.Project, item.Project, "project")
 	setField(&block.Language, item.Language, "language")
 	setField(&block.Entity, item.Entity, "entity")
-	setField(&block.Os, item.OperatingSystem, "os")
+	setField(&block.OperatingSystem, item.OperatingSystem, "os")
 	setField(&block.Editor, item.Editor, "editor")
 	setField(&block.Category, item.Category, "category")
 	setField(&block.Machine, item.Machine, "machine")
 	setField(&block.Branch, item.Branch, "branch")
 }
 
-func shouldJoinDuration(current MiniDurationHeartbeat, last MiniDurationHeartbeat, timeoutDuration time.Duration, sliceBy string) bool {
+func shouldJoinDuration(current models.MiniDurationHeartbeat, last models.MiniDurationHeartbeat, timeoutDuration time.Duration, sliceBy string) bool {
 
 	currentSliceValue := getValueForSlice(&current.Heartbeat, sliceBy)
 	lastSliceValue := getValueForSlice(&last.Heartbeat, sliceBy)
@@ -174,7 +142,7 @@ func shouldJoinDuration(current MiniDurationHeartbeat, last MiniDurationHeartbea
 		return false
 	}
 
-	lastDuration := last.CalculatedDuration
+	lastDuration := last.Duration
 	lastTimeEnd := last.Time.T().Add(lastDuration)
 	gap := current.Time.T().Sub(lastTimeEnd)
 
@@ -189,82 +157,58 @@ func shouldJoinDuration(current MiniDurationHeartbeat, last MiniDurationHeartbea
 	return false
 }
 
-func ShouldJoinDurationBasedOnHash(current MiniDurationHeartbeat, last MiniDurationHeartbeat, timeoutMinutes int, sliceBy string) bool {
-	timeoutDuration := time.Duration(timeoutMinutes) * time.Minute
-
-	currentEntityHash := models.NewDurationFromHeartbeat(&current.Heartbeat).WithEntityIgnored().Hashed().GroupHash
-	lastEntityHash := models.NewDurationFromHeartbeat(&last.Heartbeat).WithEntityIgnored().Hashed().GroupHash
-
-	if lastEntityHash != currentEntityHash {
-		return false
-	}
-
-	lastDuration := last.CalculatedDuration
-	lastTimeEnd := last.Time.T().Add(lastDuration)
-	gap := current.Time.T().Sub(lastTimeEnd)
-
-	if gap >= 0 && gap <= timeoutDuration {
-		return true
-	}
-
-	if gap < 0 {
-		return true
-	}
-
-	return false
-}
-
-func CombineMiniDurations(miniDurations []MiniDurationHeartbeat, timeoutMinutes time.Duration, sliceBy string) []models.DurationBlock {
+func CombineMiniDurations(miniDurations []models.MiniDurationHeartbeat, timeoutMinutes time.Duration, sliceBy string) []*models.Duration {
 	if len(miniDurations) == 0 {
-		return []models.DurationBlock{}
+		return []*models.Duration{}
 	}
 
-	finalDurations := make([]models.DurationBlock, 0)
-	var lastProcessed MiniDurationHeartbeat
+	finalDurations := make([]*models.Duration, 0)
+	var lastProcessed models.MiniDurationHeartbeat
 
 	firstHB := miniDurations[0]
-	firstBlock := models.DurationBlock{
-		Time:     round(float64(firstHB.Time.T().UnixNano())/1e9, 6),
-		Duration: firstHB.CalculatedDuration,
-		Color:    nil,
+	firstBlock := models.Duration{
+		Time:         firstHB.Time,
+		Duration:     firstHB.Duration,
+		DurationSecs: firstHB.Duration.Seconds(),
+		Color:        nil,
 	}
 
-	populateDurationBlockFields(&firstBlock, firstHB, sliceBy, sliceBy != SliceByEntity)
+	populateDurationFields(&firstBlock, firstHB, sliceBy, sliceBy != SliceByEntity)
 
 	if firstBlock.Duration < 0 {
 		firstBlock.Duration = 0
 	}
-	finalDurations = append(finalDurations, firstBlock)
+	finalDurations = append(finalDurations, &firstBlock)
 	lastProcessed = firstHB
 
 	for i := 1; i < len(miniDurations); i++ {
 		currentItem := miniDurations[i]
-		currentBlock := &finalDurations[len(finalDurations)-1]
+		currentBlock := finalDurations[len(finalDurations)-1]
 
 		if shouldJoinDuration(currentItem, lastProcessed, timeoutMinutes, sliceBy) {
-			itemDuration := currentItem.CalculatedDuration
+			itemDuration := currentItem.Duration
 			endTime := currentItem.Time.T().Add(itemDuration)
-			startTime := time.Unix(0, int64(round(currentBlock.Time, 9)*1e9))
+			startTime := currentBlock.Time.T()
 			newDuration := endTime.Sub(startTime)
 
 			currentBlock.Duration = max(newDuration, time.Duration(0))
 			currentBlock.DurationSecs = currentBlock.Duration.Seconds()
 
-			populateDurationBlockFields(currentBlock, currentItem, sliceBy, sliceBy != SliceByEntity)
+			populateDurationFields(currentBlock, currentItem, sliceBy, sliceBy != SliceByEntity)
 
 		} else {
-			newBlock := models.DurationBlock{
-				Time:     round(float64(currentItem.Time.T().UnixNano())/1e9, 6),
-				Duration: currentItem.CalculatedDuration,
+			newBlock := models.Duration{
+				Time:     currentItem.Time,
+				Duration: currentItem.Duration,
 				Color:    nil,
 			}
-			populateDurationBlockFields(&newBlock, currentItem, sliceBy, sliceBy != SliceByEntity)
+			populateDurationFields(&newBlock, currentItem, sliceBy, sliceBy != SliceByEntity)
 
 			if newBlock.Duration < 0 {
 				newBlock.Duration = 0
 			}
 			newBlock.DurationSecs = newBlock.Duration.Seconds()
-			finalDurations = append(finalDurations, newBlock)
+			finalDurations = append(finalDurations, &newBlock)
 		}
 		lastProcessed = currentItem
 	}
@@ -312,7 +256,7 @@ func handleBoundaryHeartbeats(args models.ProcessHeartbeatsArgs) []*models.Heart
 	return tempHeartbeats
 }
 
-func MakeHeartbeatDurationBlocks(args models.ProcessHeartbeatsArgs) []models.DurationBlock {
+func MakeHeartbeatDurations(args models.ProcessHeartbeatsArgs) []*models.Duration {
 	tempHeartbeats := handleBoundaryHeartbeats(args)
 
 	// 2. Sort Heartbeats
@@ -326,17 +270,14 @@ func MakeHeartbeatDurationBlocks(args models.ProcessHeartbeatsArgs) []models.Dur
 
 	finalDurations := CombineMiniDurations(miniDurations, args.User.HeartbeatsTimeout(), args.SliceBy)
 
-	for _, duration := range finalDurations {
-		duration.AddDurationSecs()
-	}
 	return finalDurations
 }
 
-func ProcessHeartbeats(args models.ProcessHeartbeatsArgs) (DurationResult, error) {
-	durationBlocks := MakeHeartbeatDurationBlocks(args)
+func ProcessHeartbeats(args models.ProcessHeartbeatsArgs) (models.DurationResult, error) {
+	durations := MakeHeartbeatDurations(args)
 
-	result := DurationResult{
-		Data:     durationBlocks,
+	result := models.DurationResult{
+		Data:     models.Durations(durations),
 		Start:    args.Start,
 		End:      args.End,
 		Timezone: args.User.TZ().String(),

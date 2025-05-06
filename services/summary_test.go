@@ -120,7 +120,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
 
 	/* TEST 1 */
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(-1*time.Minute)
-	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything).Return(filterDurations(from, to, suite.TestDurations), nil)
+	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything, "").Return(filterDurations(from, to, suite.TestDurations), nil)
 
 	result, err = sut.Summarize(from, to, suite.TestUser, nil)
 
@@ -134,7 +134,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
 
 	/* TEST 2 */
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Second)
-	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything).Return(filterDurations(from, to, suite.TestDurations), nil)
+	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything, "").Return(filterDurations(from, to, suite.TestDurations), nil)
 
 	result, err = sut.Summarize(from, to, suite.TestUser, nil)
 
@@ -148,7 +148,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Summarize() {
 
 	/* TEST 3 */
 	from, to = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
-	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything).Return(filterDurations(from, to, suite.TestDurations), nil)
+	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything, "").Return(filterDurations(from, to, suite.TestDurations), nil)
 
 	result, err = sut.Summarize(from, to, suite.TestUser, nil)
 
@@ -209,8 +209,8 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve() {
 	}
 
 	suite.SummaryRepository.On("GetByUserWithin", suite.TestUser, from, to).Return(summaries, nil)
-	suite.DurationService.On("Get", from, summaries[0].FromTime.T(), suite.TestUser, mock.Anything).Return(models.Durations{}, nil)
-	suite.DurationService.On("Get", summaries[0].ToTime.T(), to, suite.TestUser, mock.Anything).Return(models.Durations{}, nil)
+	suite.DurationService.On("Get", from, summaries[0].FromTime.T(), suite.TestUser, mock.Anything, "").Return(models.Durations{}, nil)
+	suite.DurationService.On("Get", summaries[0].ToTime.T(), to, suite.TestUser, mock.Anything, "").Return(models.Durations{}, nil)
 
 	result, err = sut.Retrieve(from, to, suite.TestUser, nil)
 
@@ -263,7 +263,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve() {
 	}
 
 	suite.SummaryRepository.On("GetByUserWithin", suite.TestUser, from, to).Return(summaries, nil)
-	suite.DurationService.On("Get", from, summaries[0].FromTime.T(), suite.TestUser, mock.Anything).Return(filterDurations(from, summaries[0].FromTime.T(), suite.TestDurations), nil)
+	suite.DurationService.On("Get", from, summaries[0].FromTime.T(), suite.TestUser, mock.Anything, "").Return(filterDurations(from, summaries[0].FromTime.T(), suite.TestDurations), nil)
 
 	result, err = sut.Retrieve(from, to, suite.TestUser, nil)
 
@@ -319,7 +319,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve() {
 	}
 
 	suite.SummaryRepository.On("GetByUserWithin", suite.TestUser, from, to).Return(summaries, nil)
-	suite.DurationService.On("Get", summaries[0].ToTime.T(), summaries[1].FromTime.T(), suite.TestUser, mock.Anything).Return(filterDurations(summaries[0].ToTime.T(), summaries[1].FromTime.T(), suite.TestDurations), nil)
+	suite.DurationService.On("Get", summaries[0].ToTime.T(), summaries[1].FromTime.T(), suite.TestUser, mock.Anything, "").Return(filterDurations(summaries[0].ToTime.T(), summaries[1].FromTime.T(), suite.TestDurations), nil)
 
 	result, err = sut.Retrieve(from, to, suite.TestUser, nil)
 
@@ -369,8 +369,8 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve_DuplicateSumma
 	summaries = append(summaries, &(*summaries[0])) // add same summary again -> mustn't be counted twice!
 
 	suite.SummaryRepository.On("GetByUserWithin", suite.TestUser, from, to).Return(summaries, nil)
-	suite.DurationService.On("Get", from, summaries[0].FromTime.T(), suite.TestUser, mock.Anything).Return(models.Durations{}, nil)
-	suite.DurationService.On("Get", summaries[0].ToTime.T(), to, suite.TestUser, mock.Anything).Return(models.Durations{}, nil)
+	suite.DurationService.On("Get", from, summaries[0].FromTime.T(), suite.TestUser, mock.Anything, "").Return(models.Durations{}, nil)
+	suite.DurationService.On("Get", summaries[0].ToTime.T(), to, suite.TestUser, mock.Anything, "").Return(models.Durations{}, nil)
 
 	result, err = sut.Retrieve(from, to, suite.TestUser, nil)
 
@@ -408,7 +408,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
 		Duration:        0, // not relevant here
 	})
 
-	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything).Return(durations, nil)
+	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything, "").Return(durations, nil)
 	suite.AliasService.On("InitializeUser", TestUserId).Return(nil)
 	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, TestProject1).Return(TestProject2, nil)
 	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, TestProject2).Return(TestProject2, nil)
@@ -450,11 +450,11 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased_ProjectLabels()
 	})
 
 	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return(suite.TestLabels, nil).Once()
-	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything).Return(models.Durations(durations), nil)
+	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything, "").Return(models.Durations(durations), nil)
 	suite.AliasService.On("InitializeUser", TestUserId).Return(nil)
 	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, TestProject1).Return(TestProject1, nil)
 	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, TestProject2).Return(TestProject1, nil)
-	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, mock.Anything).Return("", nil)
+	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, mock.Anything, "").Return("", nil)
 
 	result, err = sut.Aliased(from, to, suite.TestUser, sut.Summarize, nil, false)
 
@@ -474,7 +474,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
 	from, to := suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
 	filters := models.NewFiltersWith(models.SummaryProject, TestProject1).With(models.SummaryLabel, TestProjectLabel3)
 
-	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything).Return(models.Durations{}, nil)
+	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything, "").Return(models.Durations{}, nil)
 	suite.AliasService.On("InitializeUser", TestUserId).Return(nil)
 	suite.AliasService.On("GetByUserAndKeyAndType", TestUserId, TestProject1, models.SummaryProject).Return([]*models.Alias{
 		{

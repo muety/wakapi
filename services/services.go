@@ -82,7 +82,7 @@ type IProjectLabelService interface {
 }
 
 type IDurationService interface {
-	Get(time.Time, time.Time, *models.User, *models.Filters) (models.Durations, error)
+	Get(time.Time, time.Time, *models.User, *models.Filters, string) (models.Durations, error)
 	MakeDurationsFromHeartbeats(models.ProcessHeartbeatsArgs, *models.Filters) (models.Durations, error)
 }
 
