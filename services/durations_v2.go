@@ -14,7 +14,7 @@ import (
 func NewSummariesGrandTotal(originalDuration time.Duration) *wakatime.SummariesGrandTotal {
 	d := originalDuration.Round(time.Minute)
 
-	totalSeconds := originalDuration.Seconds()
+	totalSeconds := originalDuration.Round(time.Second).Seconds()
 	hours := int(d / time.Hour)
 	minutes := int((d % time.Hour) / time.Minute)
 
@@ -44,7 +44,7 @@ func (d *DurationResult) ComputeTotalTimeFromDurations() time.Duration {
 }
 
 func (d *DurationResult) TotalTime() time.Duration {
-	return time.Duration(d.ComputeTotalTimeFromDurations()) //* time.Second
+	return d.ComputeTotalTimeFromDurations()
 }
 
 type DurationResult struct {

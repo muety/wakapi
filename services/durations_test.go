@@ -1,4 +1,4 @@
-package api
+package services
 
 import (
 	_ "embed"
@@ -13,7 +13,7 @@ import (
 )
 
 /**
- * This is a glorified snapshot test. Nothing more.
+ * Snapshot testing for durations computation algorithm
 **/
 
 //go:embed testData/heartbeats.json
@@ -28,17 +28,18 @@ var lastHeartbeatFromYesterday []byte
 //go:embed testData/tomorrows_first_heartbeat.json
 var tomorrowsFirstHeartbeat []byte
 
-// HeartbeatsData represents the structure of our JSON test data
-type HeartbeatsData struct {
-	Heartbeats []models.Heartbeat `json:"heartbeats"`
-}
-
 func loadJSON[T any](t *testing.T, data []byte) T {
 	var result T
 	if err := json.Unmarshal(data, &result); err != nil {
 		t.Fatalf("Failed to parse JSON: %v", err)
 	}
 	return result
+}
+
+var user = &models.User{
+	ExcludeUnknownProjects: false,
+	HeartbeatsTimeoutSec:   900,
+	Location:               "Local",
 }
 
 func TestDurationsWithOverlappingFirstLastHeartbeat(t *testing.T) {
@@ -57,22 +58,22 @@ func TestDurationsWithOverlappingFirstLastHeartbeat(t *testing.T) {
 	yesterdaysLastHeartbeat := loadJSON[*models.Heartbeat](t, lastHeartbeatFromYesterday)
 	firsttHeartbeatFromTomorrow := loadJSON[*models.Heartbeat](t, tomorrowsFirstHeartbeat)
 
-	args := ProcessHeartbeatsArgs{
+	args := models.ProcessHeartbeatsArgs{
 		Heartbeats:             data,
 		Start:                  rangeFrom,
 		End:                    rangeTo,
-		TimeoutMinutes:         15,
-		Timezone:               timezone,
+		User:                   user,
 		LastHeartbeatYesterday: yesterdaysLastHeartbeat,
 		FirstHeartbeatTomorrow: firsttHeartbeatFromTomorrow,
 		SliceBy:                "project",
 	}
 
 	result, err := ProcessHeartbeats(args)
-	var totalSeconds = snapshot.GrandTotal.TotalSeconds
+	var expectedSeconds = snapshot.GrandTotal.TotalSeconds
+	var actualSeconds = result.GrandTotal.TotalSeconds
 
-	assert.Equal(t, err, nil, "Expected process heartbeat to not return an error")
-	assert.Equal(t, result.GrandTotal.TotalSeconds, totalSeconds, fmt.Sprintf("Total seconds computation must equal %f", totalSeconds))
+	assert.Equal(t, err, nil, "Heartbeat processing must succeed")
+	assert.Equal(t, actualSeconds, expectedSeconds, fmt.Sprintf("Expected %f got %f", expectedSeconds, actualSeconds))
 	assert.Equal(t, result.Start, rangeFrom, "start date check")
 	assert.Equal(t, result.End, rangeTo, "end date check")
 }
@@ -89,12 +90,11 @@ func TestHeartbeatsLength(t *testing.T) {
 
 	rangeFrom, rangeTo := datetime.BeginOfDay(start.In(timezone)), datetime.EndOfDay(start.In(timezone))
 
-	args := ProcessHeartbeatsArgs{
+	args := models.ProcessHeartbeatsArgs{
 		Heartbeats:             data,
 		Start:                  rangeFrom,
 		End:                    rangeTo,
-		TimeoutMinutes:         15,
-		Timezone:               timezone,
+		User:                   user,
 		LastHeartbeatYesterday: nil,
 		FirstHeartbeatTomorrow: nil,
 		SliceBy:                "project",
