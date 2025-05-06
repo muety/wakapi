@@ -57,7 +57,7 @@ func (j CustomTime) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 }
 
 func (j *CustomTime) MarshalJSON() ([]byte, error) {
-	return json.Marshal(j.T())
+	return json.Marshal(time.Time(*j).Unix())
 }
 
 func (j *CustomTime) UnmarshalJSON(b []byte) error {
