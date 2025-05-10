@@ -94,6 +94,7 @@ type IDurationService interface {
 	Get(time.Time, time.Time, *models.User, *models.Filters, *time.Duration, bool) (models.Durations, error)
 	Regenerate(*models.User, bool)
 	RegenerateAll()
+	DeleteByUser(*models.User) error
 }
 
 type ISummaryService interface {

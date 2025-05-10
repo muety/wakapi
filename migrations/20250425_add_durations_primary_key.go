@@ -46,7 +46,7 @@ func init() {
 				if err := tx.Migrator().CreateTable(&models.Duration{}); err != nil {
 					return err
 				}
-				if err := tx.Exec("insert into durations(user_id, time, duration, project, language, editor, operating_system, machine, category, branch, entity, num_heartbeats, group_hash, timeout) select user_id, time, duration, project, language, editor, operating_system, machine, category, branch, entity, num_heartbeats, group_hash, timeout from durations_old").Error; err != nil {
+				if err := tx.Exec("insert into durations(user_id, time, duration, project, language, editor, operating_system, machine, category, branch, entity, num_heartbeats, group_hash, timeout) select * from durations_old").Error; err != nil {
 					return err
 				}
 				if err := tx.Migrator().DropTable("durations_old"); err != nil {

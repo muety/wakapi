@@ -232,13 +232,13 @@ func main() {
 
 	// MVC Handlers
 	summaryHandler := routes.NewSummaryHandler(summaryService, userService, keyValueService, durationService, aliasService)
-	settingsHandler := routes.NewSettingsHandler(userService, heartbeatService, summaryService, aliasService, aggregationService, languageMappingService, projectLabelService, keyValueService, mailService)
+	settingsHandler := routes.NewSettingsHandler(userService, heartbeatService, durationService, summaryService, aliasService, aggregationService, languageMappingService, projectLabelService, keyValueService, mailService)
 	subscriptionHandler := routes.NewSubscriptionHandler(userService, mailService, keyValueService)
 	projectsHandler := routes.NewProjectsHandler(userService, heartbeatService)
 	homeHandler := routes.NewHomeHandler(userService, keyValueService)
 	loginHandler := routes.NewLoginHandler(userService, mailService, keyValueService)
 	imprintHandler := routes.NewImprintHandler(keyValueService)
-	leaderboardHandler := condition.TernaryOperator[bool, routes.Handler](config.App.LeaderboardEnabled, routes.NewLeaderboardHandler(userService, leaderboardService), routes.NewNoopHandler())
+	leaderboardHandler := condition.Ternary[bool, routes.Handler](config.App.LeaderboardEnabled, routes.NewLeaderboardHandler(userService, leaderboardService), routes.NewNoopHandler())
 
 	// Other Handlers
 	relayHandler := relay.NewRelayHandler()
