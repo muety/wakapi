@@ -30,16 +30,23 @@ func init() {
 			}
 
 			if err := db.Transaction(func(tx *gorm.DB) error {
+				if tx.Migrator().HasColumn(&models.Duration{}, "interval") { // legacy stuff
+					if err := tx.Migrator().DropColumn(&models.Duration{}, "interval"); err != nil {
+						return err
+					}
+				}
 				if err := tx.Migrator().RenameTable("durations", "durations_old"); err != nil {
 					return err
 				}
-				if err := tx.Migrator().DropIndex(&models.Duration{}, "idx_time_duration_user"); err != nil {
-					return err
+				if tx.Migrator().HasIndex(&models.Duration{}, "idx_time_duration_user") {
+					if err := tx.Migrator().DropIndex(&models.Duration{}, "idx_time_duration_user"); err != nil {
+						return err
+					}
 				}
 				if err := tx.Migrator().CreateTable(&models.Duration{}); err != nil {
 					return err
 				}
-				if err := tx.Exec("insert into durations(user_id, time, duration, project, language, editor, operating_system, machine, category, branch, entity, num_heartbeats, group_hash, timeout) select * from durations_old").Error; err != nil {
+				if err := tx.Exec("insert into durations(user_id, time, duration, project, language, editor, operating_system, machine, category, branch, entity, num_heartbeats, group_hash, timeout) select user_id, time, duration, project, language, editor, operating_system, machine, category, branch, entity, num_heartbeats, group_hash, timeout from durations_old").Error; err != nil {
 					return err
 				}
 				if err := tx.Migrator().DropTable("durations_old"); err != nil {
