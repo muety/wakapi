@@ -209,6 +209,7 @@ func main() {
 	routes.Init()
 
 	// API Handlers
+	rootApiHandler := api.NewApiRootHandler()
 	healthApiHandler := api.NewHealthApiHandler(db)
 	heartbeatApiHandler := api.NewHeartbeatApiHandler(userService, heartbeatService, languageMappingService)
 	summaryApiHandler := api.NewSummaryApiHandler(userService, summaryService)
@@ -284,6 +285,7 @@ func main() {
 	relayHandler.RegisterRoutes(rootRouter)
 
 	// API route registrations
+	rootApiHandler.RegisterRoutes(apiRouter)
 	summaryApiHandler.RegisterRoutes(apiRouter)
 	healthApiHandler.RegisterRoutes(apiRouter)
 	heartbeatApiHandler.RegisterRoutes(apiRouter)
