@@ -21,3 +21,8 @@ func (m *DurationServiceMock) Regenerate(u *models.User, b bool) {
 
 func (m *DurationServiceMock) RegenerateAll() {
 }
+
+func (m *DurationServiceMock) DeleteByUser(u *models.User) error {
+	args := m.Called(u)
+	return args.Error(0)
+}

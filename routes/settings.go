@@ -34,6 +34,7 @@ type SettingsHandler struct {
 	userSrvc            services.IUserService
 	summarySrvc         services.ISummaryService
 	heartbeatSrvc       services.IHeartbeatService
+	durationSrvc        services.IDurationService
 	aliasSrvc           services.IAliasService
 	aggregationSrvc     services.IAggregationService
 	languageMappingSrvc services.ILanguageMappingService
@@ -60,6 +61,7 @@ var credentialsDecoder = schema.NewDecoder()
 func NewSettingsHandler(
 	userService services.IUserService,
 	heartbeatService services.IHeartbeatService,
+	durationService services.IDurationService,
 	summaryService services.ISummaryService,
 	aliasService services.IAliasService,
 	aggregationService services.IAggregationService,
@@ -77,6 +79,7 @@ func NewSettingsHandler(
 		projectLabelSrvc:    projectLabelService,
 		userSrvc:            userService,
 		heartbeatSrvc:       heartbeatService,
+		durationSrvc:        durationService,
 		keyValueSrvc:        keyValueService,
 		mailSrvc:            mailService,
 		httpClient:          &http.Client{Timeout: 10 * time.Second},
@@ -748,6 +751,11 @@ func (h *SettingsHandler) actionClearData(w http.ResponseWriter, r *http.Request
 		slog.Info("deleting summaries for user", "userID", user.ID)
 		if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
 			conf.Log().Request(r).Error("failed to clear summaries", "error", err)
+		}
+
+		slog.Info("deleting durations for user", "userID", user.ID)
+		if err := h.durationSrvc.DeleteByUser(user); err != nil {
+			conf.Log().Request(r).Error("failed to clear durations", "error", err)
 		}
 
 		slog.Info("deleting heartbeats for user", "userID", user.ID)

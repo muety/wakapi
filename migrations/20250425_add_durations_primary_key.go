@@ -30,11 +30,18 @@ func init() {
 			}
 
 			if err := db.Transaction(func(tx *gorm.DB) error {
+				if tx.Migrator().HasColumn(&models.Duration{}, "interval") { // legacy stuff
+					if err := tx.Migrator().DropColumn(&models.Duration{}, "interval"); err != nil {
+						return err
+					}
+				}
 				if err := tx.Migrator().RenameTable("durations", "durations_old"); err != nil {
 					return err
 				}
-				if err := tx.Migrator().DropIndex(&models.Duration{}, "idx_time_duration_user"); err != nil {
-					return err
+				if tx.Migrator().HasIndex(&models.Duration{}, "idx_time_duration_user") {
+					if err := tx.Migrator().DropIndex(&models.Duration{}, "idx_time_duration_user"); err != nil {
+						return err
+					}
 				}
 				if err := tx.Migrator().CreateTable(&models.Duration{}); err != nil {
 					return err
