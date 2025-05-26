@@ -3,9 +3,9 @@
 
 {{ template "head.tpl.html" . }}
 
-<script src="assets/js/components/time-picker.js"></script>
-<script src="assets/js/components/entity-filter.js"></script>
-<script type="module" src="assets/js/components/summary.js"></script>
+<script src="assets/js/components/time-picker.js?v={{ getVersion }}"></script>
+<script src="assets/js/components/entity-filter.js?v={{ getVersion }}"></script>
+<script type="module" src="assets/js/components/summary.js?v={{ getVersion }}"></script>
 
 <body class="relative bg-gray-900 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto">
 
@@ -409,7 +409,7 @@
 </script>
 <script src="assets/vendor/hammer.min.js"></script>
 <script src="assets/vendor/chartjs-plugin-zoom.min.js"></script>
-<script src="assets/js/summary.js"></script>
+<script src="assets/js/summary.js?v={{ getVersion }}"></script>
 {{ end }}
 
 </body>
