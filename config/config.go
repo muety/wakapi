@@ -231,6 +231,16 @@ type Config struct {
 	Logging        LoggingConfig
 }
 
+func (c *Config) GetPgConnectionString() string {
+	sslMode := "disable" // Default to disable if Ssl is false
+	if c.Db.Ssl {
+		sslMode = "require"
+	}
+	formatString := "postgresql://%s:%s@%s:%d/%s?sslmode=%s"
+	return fmt.Sprintf(formatString,
+		c.Db.User, c.Db.Password, c.Db.Host, c.Db.Port, c.Db.Name, sslMode)
+}
+
 func (c *Config) CreateCookie(name, value string) *http.Cookie {
 	return c.createCookie(name, value, c.Server.BasePath, c.Security.CookieMaxAgeSec)
 }

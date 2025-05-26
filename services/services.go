@@ -104,6 +104,7 @@ type IActivityService interface {
 type IReportService interface {
 	Schedule()
 	SendReport(*models.User, time.Duration) error
+	SendWeeklyReports() error
 }
 
 type IHousekeepingService interface {

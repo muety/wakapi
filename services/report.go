@@ -190,6 +190,28 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 	}
 
 	slog.Info("sent report to user", "userID", user.ID)
-	_ = tracker.MarkReportAsSent()
+	err = tracker.MarkReportAsSent()
+	if err != nil {
+		slog.Debug("error marking report as sent", "userID", user.ID, err.Error(), err)
+	}
+	return nil
+}
+
+func (srv *ReportService) SendWeeklyReports() error {
+	users, err := srv.userService.GetAllByReports(true)
+	if err != nil {
+		config.Log().Error("failed to get users for report generation", "error", err)
+		return err
+	}
+
+	// schedule jobs, throttled by one job per x seconds
+	slog.Info("scheduling report generation", "userCount", len(users))
+
+	// this is where I kinda wonder if it makes sense to create a separate job to send these emails or just ...
+	for _, user := range users {
+		if err := srv.SendReport(user, reportRange); err != nil {
+			config.Log().Error("failed to send report for user", "userID", user.ID, "error", err)
+		}
+	}
 	return nil
 }

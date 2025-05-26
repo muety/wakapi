@@ -1,6 +1,8 @@
 package api
 
 import (
+	"context"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -12,7 +14,9 @@ import (
 	mw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/jackc/pgx/v5"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/internal/jobs"
 	"github.com/muety/wakapi/internal/mail"
 	"github.com/muety/wakapi/internal/observability"
 	"github.com/muety/wakapi/internal/utilities"
@@ -20,6 +24,7 @@ import (
 	"github.com/muety/wakapi/routes/relay"
 	"github.com/muety/wakapi/services"
 	"github.com/patrickmn/go-cache"
+	"github.com/riverqueue/river"
 	"github.com/sebest/xff"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -36,6 +41,8 @@ type APIv1 struct {
 	httpClient   *http.Client
 	cache        *cache.Cache
 	lruCache     *lru.Cache
+	workers      *river.Workers
+	river        *river.Client[pgx.Tx]
 }
 
 func (a *APIv1) Now() time.Time {
@@ -69,6 +76,15 @@ func setupGlobalMiddleware(r *chi.Mux, globalConfig *conf.Config) {
 	)
 }
 
+func (a *APIv1) StartRiverJobs() {
+	if err := a.river.Start(context.Background()); err != nil {
+		// handle error
+		slog.Error("error starting riverClient to add worker", err)
+	}
+	slog.Info("👉 Worker Client started", "name", "river-jobs")
+	<-make(chan any, 1)
+}
+
 func NewAPIv1(globalConfig *conf.Config, db *gorm.DB) *APIv1 {
 	api := &APIv1{
 		config:      globalConfig,
@@ -77,6 +93,7 @@ func NewAPIv1(globalConfig *conf.Config, db *gorm.DB) *APIv1 {
 		services:    services.NewServices(db),
 		httpClient:  &http.Client{Timeout: 10 * time.Second},
 		cache:       cache.New(6*time.Hour, 6*time.Hour),
+		workers:     river.NewWorkers(),
 	}
 
 	lruCache, err := lru.New(1 * 1000 * 64)
@@ -86,20 +103,51 @@ func NewAPIv1(globalConfig *conf.Config, db *gorm.DB) *APIv1 {
 
 	api.lruCache = lruCache
 
+	if err := river.AddWorkerSafely(api.workers, river.WorkFunc(api.weeklyReportWorker)); err != nil {
+		fmt.Println(fmt.Errorf("failed to add worker: %w", err))
+	}
+
+	riverClient, err := jobs.NewRiverClient(context.Background(), api.workers, globalConfig)
+	if err != nil {
+		panic(err)
+	}
+	api.river = riverClient
+
 	return api
+}
+
+func (a *APIv1) RegisterPeriodicJobs() error {
+	periodicJobs := []*river.PeriodicJob{
+		river.NewPeriodicJob(
+			jobs.EVERY_MONDAY_MORNING,
+			// river.PeriodicInterval(time.Minute*5),
+			func() (river.JobArgs, *river.InsertOpts) {
+				return WeeklyReportArgs{}, nil
+			},
+			&river.PeriodicJobOpts{RunOnStart: true},
+		),
+	}
+	a.river.PeriodicJobs().AddMany(periodicJobs)
+	return nil
 }
 
 func (a *APIv1) initializeJobs() {
 	// Schedule background tasks
+	// migrate all cron jobs to periodic river jobs
 	go conf.StartJobs()
 	go a.services.Aggregation().Schedule()
-	go a.services.Report().Schedule()
 	go a.services.HouseKeeping().Schedule()
 	go a.services.Misc().Schedule()
 
 	if a.config.App.LeaderboardEnabled {
 		go a.services.LeaderBoard().Schedule()
 	}
+
+	err := a.RegisterPeriodicJobs()
+	if err != nil {
+		slog.Error("error setting up river jobs", err)
+	}
+	go a.StartRiverJobs()
 }
 
 func corsSetup(r *chi.Mux) {
@@ -111,6 +159,25 @@ func corsSetup(r *chi.Mux) {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
+}
+
+func StartApiRiverClient(config *conf.Config) {
+	db, sqlDB, err := utilities.InitDB(config)
+
+	if err != nil {
+		conf.Log().Fatal("could not connect to database", "error", err)
+		os.Exit(1)
+		return
+	}
+
+	defer sqlDB.Close()
+
+	api := NewAPIv1(config, db)
+	err = api.RegisterPeriodicJobs()
+	if err != nil {
+		slog.Error("error setting up river jobs", err)
+	}
+	api.StartRiverJobs()
 }
 
 func StartApi(config *conf.Config) {
