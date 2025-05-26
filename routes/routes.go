@@ -52,6 +52,13 @@ func DefaultTemplateFuncs() template.FuncMap {
 		"getDbType": func() string {
 			return strings.ToLower(config.Get().Db.Type)
 		},
+		"getCacheBuster": func() string {
+			cfg := config.Get()
+			if v := config.Get().Version; v != "dev" {
+				return v
+			}
+			return cfg.AppStartTimestamp()
+		},
 		"htmlSafe": func(html string) template.HTML {
 			return template.HTML(html)
 		},
