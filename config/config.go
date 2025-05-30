@@ -76,6 +76,8 @@ const colorsFile = "data/colors.json"
 
 var leaderboardScopes = []string{"24_hours", "week", "month", "year", "7_days", "14_days", "30_days", "6_months", "12_months", "all_time"}
 
+var appStartTime = time.Now()
+
 var cfg *Config
 var env string
 
@@ -206,6 +208,10 @@ type Config struct {
 	Subscriptions  subscriptionsConfig
 	Sentry         sentryConfig
 	Mail           mailConfig
+}
+
+func (c *Config) AppStartTimestamp() string {
+	return fmt.Sprintf("%d", appStartTime.Unix())
 }
 
 func (c *Config) CreateCookie(name, value string) *http.Cookie {

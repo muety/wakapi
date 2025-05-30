@@ -15,11 +15,8 @@ wakapi.yourdomain.tld {
     @notapi not path_regexp "^/api.*"
 
     push @notapi /assets/vendor/source-sans-3.css
-    push @notapi /assets/css/app.dist.css
     push @notapi /assets/vendor/petite-vue.min.js
     push @notapi /assets/vendor/chart.min.js
     push @notapi /assets/vendor/iconify.basic.min.js
-    push @notapi /assets/js/icons.dist.js
-    push @notapi /assets/js/base.js
     push @notapi /assets/images/logo.svg
 }
