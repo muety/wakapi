@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
@@ -16,6 +17,8 @@ type AliasServiceTestSuite struct {
 }
 
 func (suite *AliasServiceTestSuite) SetupSuite() {
+	config.Set(config.Empty())
+
 	suite.TestUserId = "johndoe@example.org"
 
 	aliases := []*models.Alias{
@@ -51,7 +54,8 @@ func (suite *AliasServiceTestSuite) TestAliasService_GetAliasOrDefault() {
 	result2, err2 := sut.GetAliasOrDefault(suite.TestUserId, models.SummaryProject, "wakapi")
 	result3, err3 := sut.GetAliasOrDefault(suite.TestUserId, models.SummaryProject, "anchr")
 	result4, err4 := sut.GetAliasOrDefault(suite.TestUserId, models.SummaryProject, "telepush-mobile")
-	result5, err5 := sut.GetAliasOrDefault(suite.TestUserId, models.SummaryLanguage, "telepush-mobile")
+	result5, err5 := sut.GetAliasOrDefault(suite.TestUserId, models.SummaryEntity, "telepush-mobile")
+	result6, err6 := sut.GetAliasOrDefault(suite.TestUserId, models.SummaryLanguage, "telepush-mobile")
 
 	assert.Equal(suite.T(), "wakapi", result1)
 	assert.Nil(suite.T(), err1)
@@ -63,4 +67,6 @@ func (suite *AliasServiceTestSuite) TestAliasService_GetAliasOrDefault() {
 	assert.Nil(suite.T(), err4)
 	assert.Equal(suite.T(), "telepush-mobile", result5)
 	assert.Nil(suite.T(), err5)
+	assert.Equal(suite.T(), "Telepush-mobile", result6) // not really scope of this test, but nevertheless: language shall always be capitaliized
+	assert.Nil(suite.T(), err6)
 }

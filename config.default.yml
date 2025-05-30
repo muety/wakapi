@@ -40,6 +40,21 @@ app:
     ipynb: Python
     svelte: Svelte
     astro: Astro
+  canonical_language_names:
+    'java': 'Java'
+    'ini': 'INI'
+    'xml': 'XML'
+    'jsx': 'JSX'
+    'tsx': 'TSX'
+    'php': 'PHP'
+    'yaml': 'YAML'
+    'toml': 'TOML'
+    'sql': 'SQL'
+    'css': 'CSS'
+    'scss': 'SCSS'
+    'jsp': 'JSP'
+    'svg': 'SVG'
+    'csv': 'CSV'
 
   # url template for user avatar images (to be used with services like gravatar or dicebear)
   # available variable placeholders are: username, username_hash, email, email_hash

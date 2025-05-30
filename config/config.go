@@ -103,6 +103,7 @@ type appConfig struct {
 	DateFormat                string                       `yaml:"date_format" default:"Mon, 02 Jan 2006" env:"WAKAPI_DATE_FORMAT"`
 	DateTimeFormat            string                       `yaml:"datetime_format" default:"Mon, 02 Jan 2006 15:04" env:"WAKAPI_DATETIME_FORMAT"`
 	CustomLanguages           map[string]string            `yaml:"custom_languages"`
+	CanonicalLanguageNames    map[string]string            `yaml:"canonical_language_names"` // lower case, compacted representation -> canonical name
 	Colors                    map[string]map[string]string `yaml:"-"`
 }
 
@@ -237,6 +238,13 @@ func (c *Config) UseTLS() bool {
 
 func (c *appConfig) GetCustomLanguages() map[string]string {
 	return utils.CloneStringMap(c.CustomLanguages, false)
+}
+
+func (c *appConfig) GetCanonicalLanguageNames() map[string]string {
+	if c.CanonicalLanguageNames == nil {
+		return make(map[string]string)
+	}
+	return utils.CloneStringMap(c.CanonicalLanguageNames, false)
 }
 
 func (c *appConfig) GetLanguageColors() map[string]string {

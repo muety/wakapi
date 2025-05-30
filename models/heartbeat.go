@@ -8,7 +8,6 @@ import (
 
 	"log/slog"
 
-	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/gohugoio/hashstructure"
 )
 
@@ -50,8 +49,9 @@ func (h *Heartbeat) Timely(maxAge time.Duration) bool {
 }
 
 func (h *Heartbeat) Sanitize() *Heartbeat {
-	h.OperatingSystem = strutil.Capitalize(h.OperatingSystem)
-	h.Editor = strutil.Capitalize(h.Editor)
+	h.OperatingSystem = CanonicalName(h.OperatingSystem, SummaryOS)
+	h.Editor = CanonicalName(h.Editor, SummaryEditor)
+	h.Language = CanonicalName(h.Language, SummaryLanguage)
 	if h.Category == "" && (h.Type == "domain" || h.Type == "url") {
 		h.Category = "browsing"
 	}

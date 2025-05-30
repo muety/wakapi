@@ -76,6 +76,8 @@ func (srv *AliasService) GetAliasOrDefault(userId string, summaryType uint8, val
 		srv.MayInitializeUser(userId)
 	}
 
+	value = models.CanonicalName(value, summaryType) // currently only implemented for languages
+
 	match := func(aliasValue string, itemKey string) bool {
 		return wildmatch.NewWildMatch(aliasValue).IsMatch(itemKey)
 	}
