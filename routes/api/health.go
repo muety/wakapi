@@ -42,7 +42,7 @@ func (h *HealthApiHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if strings.Contains(r.Header.Get("Content-Type"), "application/json") {
-		helpers.RespondJSON(w, r, http.StatusOK, HealthResponse{App: 1, DB: 1})
+		helpers.RespondJSON(w, r, http.StatusOK, HealthResponse{App: 1, DB: dbStatus})
 		return
 	}
 
