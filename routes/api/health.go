@@ -1,8 +1,10 @@
 package api
 
 import (
-	"encoding/json"
+	"fmt"
+	"github.com/muety/wakapi/helpers"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
@@ -28,18 +30,22 @@ func (h *HealthApiHandler) RegisterRoutes(router chi.Router) {
 // @Summary Check the application's health status
 // @ID get-health
 // @Tags misc
-// @Produce json
-// @Success 200 {object} map[string]int
+// @Produce plain
+// @Success 200 {string} string
 // @Router /health [get]
 func (h *HealthApiHandler) Get(w http.ResponseWriter, r *http.Request) {
-	response := HealthResponse{App: 1, DB: 0}
-
+	var dbStatus int
 	if sqlDb, err := h.db.DB(); err == nil {
 		if err := sqlDb.Ping(); err == nil {
-			response.DB = 1
+			dbStatus = 1
 		}
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	if strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+		helpers.RespondJSON(w, r, http.StatusOK, HealthResponse{App: 1, DB: 1})
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte(fmt.Sprintf("app=1\ndb=%d", dbStatus)))
 }
