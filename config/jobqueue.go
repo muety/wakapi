@@ -13,6 +13,7 @@ var jobCounts map[string]int
 const (
 	QueueDefault      = "wakapi.default"
 	QueueProcessing   = "wakapi.processing"
+	QueueProcessing2  = "wakapi.processing_2"
 	QueueReports      = "wakapi.reports"
 	QueueMails        = "wakapi.mail"
 	QueueImports      = "wakapi.imports"
@@ -32,6 +33,7 @@ func init() {
 func StartJobs() {
 	InitQueue(QueueDefault, 1)
 	InitQueue(QueueProcessing, utils.HalfCPUs())
+	InitQueue(QueueProcessing2, utils.HalfCPUs())
 	InitQueue(QueueReports, 1)
 	InitQueue(QueueMails, 1)
 	InitQueue(QueueImports, 1)

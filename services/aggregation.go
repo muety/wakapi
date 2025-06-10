@@ -19,26 +19,28 @@ const (
 var aggregationLock = sync.Mutex{}
 
 type AggregationService struct {
-	config           *config.Config
-	userService      IUserService
-	summaryService   ISummaryService
-	heartbeatService IHeartbeatService
-	durationService  IDurationService
-	inProgress       datastructure.Set[string]
-	queueDefault     *artifex.Dispatcher
-	queueWorkers     *artifex.Dispatcher
+	config                *config.Config
+	userService           IUserService
+	summaryService        ISummaryService
+	heartbeatService      IHeartbeatService
+	durationService       IDurationService
+	inProgress            datastructure.Set[string]
+	queueDefault          *artifex.Dispatcher
+	queueSummaryWorkers   *artifex.Dispatcher
+	queuedDurationWorkers *artifex.Dispatcher
 }
 
 func NewAggregationService(userService IUserService, summaryService ISummaryService, heartbeatService IHeartbeatService, durationService IDurationService) *AggregationService {
 	return &AggregationService{
-		config:           config.Get(),
-		userService:      userService,
-		summaryService:   summaryService,
-		heartbeatService: heartbeatService,
-		durationService:  durationService,
-		inProgress:       datastructure.New[string](),
-		queueDefault:     config.GetDefaultQueue(),
-		queueWorkers:     config.GetQueue(config.QueueProcessing),
+		config:                config.Get(),
+		userService:           userService,
+		summaryService:        summaryService,
+		heartbeatService:      heartbeatService,
+		durationService:       durationService,
+		inProgress:            datastructure.New[string](),
+		queueDefault:          config.GetDefaultQueue(),
+		queueSummaryWorkers:   config.GetQueue(config.QueueProcessing),
+		queuedDurationWorkers: config.GetQueue(config.QueueProcessing2),
 	}
 }
 
@@ -105,9 +107,13 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 		u := *user
 		jobs := make([]*AggregationJob, 0)
 
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+
 		// regenerate durations for the user
-		srv.queueWorkers.Dispatch(func() {
+		srv.queuedDurationWorkers.Dispatch(func() {
 			slog.Info("regenerating user durations as part of summary aggregation", "user", user.ID)
+			defer wg.Done()
 			srv.durationService.Regenerate(&u, true)
 		})
 
@@ -137,7 +143,8 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 		// dispatch the jobs for current user
 		for _, jobRef := range jobs {
 			job := *jobRef
-			if err := srv.queueWorkers.Dispatch(func() {
+			if err := srv.queueSummaryWorkers.Dispatch(func() {
+				wg.Wait()
 				srv.process(job)
 			}); err != nil {
 				config.Log().Error("failed to dispatch summary generation job", "userID", job.User.ID)
@@ -169,7 +176,7 @@ func (srv *AggregationService) AggregateDurations(userIds datastructure.Set[stri
 
 	for _, u := range users {
 		user := &(*u)
-		srv.queueWorkers.Dispatch(func() {
+		srv.queuedDurationWorkers.Dispatch(func() {
 			srv.durationService.Regenerate(user, true)
 		})
 	}
