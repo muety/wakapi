@@ -8,6 +8,8 @@ COPY ./go.mod ./go.sum ./
 RUN go mod download
 COPY . .
 
+ARG TARGETOS
+ARG TARGETARCH
 RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 go build -ldflags "-s -w" -v -o wakapi main.go
 
 WORKDIR /staging
