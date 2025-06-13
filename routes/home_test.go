@@ -37,6 +37,7 @@ func TestHomeHandler_Get_NotLoggedIn(t *testing.T) {
 
 	userServiceMock := new(mocks.UserServiceMock)
 	userServiceMock.On("GetUserById", user1.ID).Return(&user1, nil)
+	userServiceMock.On("CountCurrentlyOnline").Return(0, nil)
 
 	keyValueServiceMock := new(mocks.KeyValueServiceMock)
 	keyValueServiceMock.On("GetString", config.KeyLatestTotalTime).Return(&models.KeyStringValue{Key: config.KeyLatestTotalTime, Value: "0"}, nil)

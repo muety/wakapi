@@ -21,7 +21,7 @@
 
         <h1 class="text-8xl font-semibold antialiased text-center mb-10 leading-snug">Keep Track of<br><span
                 class="text-green-700">Your</span> Coding Time</h1>
-        <p class="text-center text-gray-500 text-xl my-2">Wakapi is an open-source tool that helps you keep track of the
+        <p class="text-center text-gray-400 text-xl my-2">Wakapi is an open-source tool that helps you keep track of the
             time you have spent coding on different projects in different programming languages and more.<br>Ideal for
             statistics freaks and anyone else.</p>
 
@@ -46,7 +46,7 @@
             </a>
         </div>
 
-        <p class="text-center text-gray-500 text-sm my-4">
+        <p class="text-center text-gray-400 text-md mt-4 mb-4">
             This system has tracked a total of </span>
             {{ range $d := .TotalHours | printf "%d" | toRunes }}
             <span class="bg-gray-900 rounded-sm p-1 border border-gray-700 font-mono text-gray-400" style="margin: auto -1px;" title="{{ $.TotalHours }} hours (updated every hour)">{{ $d }}</span>
@@ -58,13 +58,18 @@
             <span class="ml-1">users.</span>
         </p>
 
+        <div id="online-indicator" class="text-center text-gray-400 text-md font-semibold flex justify-center items-center gap-2">
+            <div class="live-indicator"></div>
+            <span>{{ .CurrentlyOnline }} currently active users</span>
+        </div>
+
         <div class="flex justify-center my-8">
             <img alt="App screenshot" src="assets/images/screenshot.webp" width="800px" height="513px" loading="lazy">
         </div>
 
         <div class="flex flex-col items-center mt-10">
             <h1 class="font-semibold text-3xl text-white m-0">Features</h1>
-            <div class="mt-4 text-lg text-gray-500">
+            <div class="mt-4 text-lg text-gray-400">
                 <ul>
                     <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; 100 % free and open-source</li>
                     <li><span class="iconify inline text-green-700" data-icon="eva:checkmark-circle-2-fill"></span> &nbsp; Built by developers for developers</li>

@@ -199,6 +199,31 @@ main {
 .wi-min {
     width: min-content !important;
 }
+
+#online-indicator {
+}
+
+.live-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #047857;
+    display: inline-block;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.5;
+    }
+}
+
 @media print {
 
     /* Avoid the element from being breaked */

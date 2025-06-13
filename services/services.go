@@ -149,6 +149,7 @@ type IUserService interface {
 	GetAllByLeaderboard(bool) ([]*models.User, error)
 	GetActive(bool) ([]*models.User, error)
 	Count() (int64, error)
+	CountCurrentlyOnline() (int, error)
 	CreateOrGet(*models.Signup, bool) (*models.User, bool, error)
 	Update(*models.User) (*models.User, error)
 	Delete(*models.User) error

@@ -59,9 +59,12 @@ func (h *HomeHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HomeHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *view.HomeViewModel {
-	var totalHours int
-	var totalUsers int
-	var newsbox view.Newsbox
+	var (
+		totalHours      int
+		totalUsers      int
+		currentlyOnline int
+		newsbox         view.Newsbox
+	)
 
 	if kv, err := h.keyValueSrvc.GetString(conf.KeyLatestTotalTime); err == nil && kv != nil && kv.Value != "" {
 		if d, err := time.ParseDuration(kv.Value); err == nil {
@@ -81,12 +84,19 @@ func (h *HomeHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *vi
 		}
 	}
 
+	if c, err := h.userSrvc.CountCurrentlyOnline(); err == nil {
+		currentlyOnline = c
+	} else {
+		conf.Log().Request(r).Error("failed to count currently online users", "error", err)
+	}
+
 	sharedVm := view.NewSharedViewModel(h.config, nil)
 	sharedVm.LeaderboardEnabled = sharedVm.LeaderboardEnabled && !h.config.App.LeaderboardRequireAuth // logged in users will never actually see the home route's view
 	vm := &view.HomeViewModel{
 		SharedViewModel: sharedVm,
 		TotalHours:      totalHours,
 		TotalUsers:      totalUsers,
+		CurrentlyOnline: currentlyOnline,
 		Newsbox:         &newsbox,
 	}
 	return routeutils.WithSessionMessages(vm, r, w)

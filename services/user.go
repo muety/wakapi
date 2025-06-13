@@ -14,26 +14,30 @@ import (
 	"github.com/patrickmn/go-cache"
 	"log/slog"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
 type UserService struct {
-	config          *config.Config
-	cache           *cache.Cache
-	eventBus        *hub.Hub
-	keyValueService IKeyValueService
-	mailService     IMailService
-	repository      repositories.IUserRepository
+	config              *config.Config
+	cache               *cache.Cache
+	eventBus            *hub.Hub
+	keyValueService     IKeyValueService
+	mailService         IMailService
+	repository          repositories.IUserRepository
+	currentOnlineUsers  *cache.Cache
+	countersInitialized atomic.Bool
 }
 
 func NewUserService(keyValueService IKeyValueService, mailService IMailService, userRepo repositories.IUserRepository) *UserService {
 	srv := &UserService{
-		config:          config.Get(),
-		eventBus:        config.EventBus(),
-		cache:           cache.New(1*time.Hour, 2*time.Hour),
-		keyValueService: keyValueService,
-		mailService:     mailService,
-		repository:      userRepo,
+		config:             config.Get(),
+		eventBus:           config.EventBus(),
+		cache:              cache.New(1*time.Hour, 2*time.Hour),
+		keyValueService:    keyValueService,
+		mailService:        mailService,
+		repository:         userRepo,
+		currentOnlineUsers: cache.New(models.DefaultHeartbeatsTimeout, 1*time.Minute),
 	}
 
 	sub1 := srv.eventBus.Subscribe(0, config.EventWakatimeFailure)
@@ -57,6 +61,18 @@ func NewUserService(keyValueService IKeyValueService, mailService IMailService, 
 			}
 		}
 	}(&sub1)
+
+	sub2 := srv.eventBus.Subscribe(0, config.EventHeartbeatCreate)
+	go func(sub *hub.Subscription) {
+		for m := range sub.Receiver {
+			heartbeat := m.Fields[config.FieldPayload].(*models.Heartbeat)
+			if time.Now().Sub(heartbeat.Time.T()) > models.DefaultHeartbeatsTimeout {
+				continue
+			}
+			srv.currentOnlineUsers.SetDefault(heartbeat.UserID, true)
+			slog.Info("user became active again", "timeout", models.DefaultHeartbeatsTimeout, "user", heartbeat.UserID)
+		}
+	}(&sub2)
 
 	return srv
 }
@@ -172,6 +188,22 @@ func (srv *UserService) GetActive(exact bool) ([]*models.User, error) {
 
 func (srv *UserService) Count() (int64, error) {
 	return srv.repository.Count()
+}
+
+func (srv *UserService) CountCurrentlyOnline() (int, error) {
+	if !srv.countersInitialized.Load() {
+		minDate := time.Now().Add(-1 * models.DefaultHeartbeatsTimeout)
+		result, err := srv.repository.GetByLastActiveAfter(minDate)
+		if err != nil {
+			return 0, err
+		}
+		for _, r := range result {
+			srv.currentOnlineUsers.SetDefault(r.ID, true)
+		}
+		srv.countersInitialized.Store(true)
+	}
+
+	return srv.currentOnlineUsers.ItemCount(), nil
 }
 
 func (srv *UserService) CreateOrGet(signup *models.Signup, isAdmin bool) (*models.User, bool, error) {
