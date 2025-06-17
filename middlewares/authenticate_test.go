@@ -2,8 +2,10 @@ package middlewares
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/muety/wakapi/config"
+	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/url"
 	"testing"
@@ -121,7 +123,7 @@ func TestAuthenticateMiddleware_tryGetUserByTrustedHeader_Disabled(t *testing.T)
 
 	sut := NewAuthenticateMiddleware(userServiceMock)
 
-	result, actualErr := sut.tryGetUserByTrustedHeader(mockRequest)
+	result, actualErr := sut.tryGetUserByTrustedHeader(mockRequest, false)
 	assert.Error(t, actualErr)
 	assert.Nil(t, result)
 }
@@ -151,7 +153,7 @@ func TestAuthenticateMiddleware_tryGetUserByTrustedHeader_Untrusted(t *testing.T
 
 		sut := NewAuthenticateMiddleware(userServiceMock)
 
-		result, actualErr := sut.tryGetUserByTrustedHeader(mockRequest)
+		result, actualErr := sut.tryGetUserByTrustedHeader(mockRequest, false)
 		assert.Error(t, actualErr)
 		assert.Nil(t, result)
 	}
@@ -179,9 +181,71 @@ func TestAuthenticateMiddleware_tryGetUserByTrustedHeader_Success(t *testing.T) 
 
 		sut := NewAuthenticateMiddleware(userServiceMock)
 
-		result, actualErr := sut.tryGetUserByTrustedHeader(mockRequest)
+		result, actualErr := sut.tryGetUserByTrustedHeader(mockRequest, false)
 		assert.Equal(t, testUser, result)
 		assert.Nil(t, actualErr)
+	}
+}
+
+func TestAuthenticateMiddleware_tryGetUserByTrustedHeader_NoSignup(t *testing.T) {
+	cfg := config.Empty()
+	cfg.Security.TrustedHeaderAuth = true
+	cfg.Security.TrustedHeaderAuthAllowSignup = false
+	cfg.Security.TrustedHeaderAuthKey = "Remote-User"
+	cfg.Security.TrustReverseProxyIps = "127.0.0.1,::1,192.168.0.1,192.168.178.0/24,33b7:08d8:c07a:c2ee:0fac:cb95:dadc:dafb,1ddc:e2d6:dcce:ab6c::1/64"
+	cfg.Security.ParseTrustReverseProxyIPs()
+	config.Set(cfg)
+
+	testIps := []string{"127.0.0.1", "[::1]", "192.168.0.1", "192.168.178.1", "192.168.178.35", "[33b7:08d8:c07a:c2ee:0fac:cb95:dadc:dafb]", "[1ddc:e2d6:dcce:ab6c:2ba7:7aaa:58dc:a42b]", "[1ddc:e2d6:dcce:ab6c:1ba7:7aaa:58dc:a42b]"} // all of these should be authorized
+	testUser := &models.User{ID: "nonexisting"}
+
+	for _, ip := range testIps {
+		mockRequest := &http.Request{
+			Header:     http.Header{"Remote-User": []string{testUser.ID}},
+			RemoteAddr: fmt.Sprintf("%s:54654", ip),
+		}
+
+		userServiceMock := new(mocks.UserServiceMock)
+		userServiceMock.On("GetUserById", testUser.ID).Return(nil, errors.New("record not found"))
+
+		sut := NewAuthenticateMiddleware(userServiceMock)
+
+		result, actualErr := sut.tryGetUserByTrustedHeader(mockRequest, false)
+		assert.Error(t, actualErr)
+		assert.Nil(t, result)
+		userServiceMock.AssertNumberOfCalls(t, "GetUserById", 1)
+	}
+}
+
+func TestAuthenticateMiddleware_tryGetUserByTrustedHeader_Signup(t *testing.T) {
+	cfg := config.Empty()
+	cfg.Security.TrustedHeaderAuth = true
+	cfg.Security.TrustedHeaderAuthAllowSignup = true
+	cfg.Security.TrustedHeaderAuthKey = "Remote-User"
+	cfg.Security.TrustReverseProxyIps = "127.0.0.1,::1,192.168.0.1,192.168.178.0/24,33b7:08d8:c07a:c2ee:0fac:cb95:dadc:dafb,1ddc:e2d6:dcce:ab6c::1/64"
+	cfg.Security.ParseTrustReverseProxyIPs()
+	config.Set(cfg)
+
+	testIps := []string{"127.0.0.1", "[::1]", "192.168.0.1", "192.168.178.1", "192.168.178.35", "[33b7:08d8:c07a:c2ee:0fac:cb95:dadc:dafb]", "[1ddc:e2d6:dcce:ab6c:2ba7:7aaa:58dc:a42b]", "[1ddc:e2d6:dcce:ab6c:1ba7:7aaa:58dc:a42b]"} // all of these should be authorized
+	testUser := &models.User{ID: "tobecreated"}
+
+	for _, ip := range testIps {
+		mockRequest := &http.Request{
+			Header:     http.Header{"Remote-User": []string{testUser.ID}},
+			RemoteAddr: fmt.Sprintf("%s:54654", ip),
+		}
+
+		userServiceMock := new(mocks.UserServiceMock)
+		userServiceMock.On("GetUserById", testUser.ID).Return(nil, errors.New("record not found"))
+		userServiceMock.On("CreateOrGet", mock.Anything, false).Return(testUser, true, nil)
+		userServiceMock.On("GetUserById", testUser.ID).Return(testUser, nil)
+
+		sut := NewAuthenticateMiddleware(userServiceMock)
+
+		result, actualErr := sut.tryGetUserByTrustedHeader(mockRequest, true)
+		assert.Error(t, actualErr)
+		assert.Nil(t, result)
+		userServiceMock.AssertNumberOfCalls(t, "GetUserById", 2)
 	}
 }
 

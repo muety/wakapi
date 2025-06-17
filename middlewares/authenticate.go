@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/duke-git/lancet/v2/slice"
+	"github.com/gofrs/uuid/v5"
 	"github.com/muety/wakapi/helpers"
 	"net"
 	"net/http"
@@ -79,7 +80,7 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		user, err = m.tryGetUserByApiKeyQuery(r)
 	}
 	if err != nil && m.config.Security.TrustedHeaderAuth {
-		user, err = m.tryGetUserByTrustedHeader(r)
+		user, err = m.tryGetUserByTrustedHeader(r, m.config.Security.TrustedHeaderAuthAllowSignup)
 	}
 
 	if err != nil || user == nil {
@@ -150,10 +151,11 @@ func (m *AuthenticateMiddleware) tryGetUserByApiKeyQuery(r *http.Request) (*mode
 	return user, nil
 }
 
-func (m *AuthenticateMiddleware) tryGetUserByTrustedHeader(r *http.Request) (*models.User, error) {
+func (m *AuthenticateMiddleware) tryGetUserByTrustedHeader(r *http.Request, create bool) (*models.User, error) {
 	if !m.config.Security.TrustedHeaderAuth {
 		return nil, errors.New("trusted header auth disabled")
 	}
+	create = create && m.config.Security.TrustedHeaderAuthAllowSignup // double-check
 
 	remoteUser := r.Header.Get(m.config.Security.TrustedHeaderAuthKey)
 	if remoteUser == "" {
@@ -165,6 +167,25 @@ func (m *AuthenticateMiddleware) tryGetUserByTrustedHeader(r *http.Request) (*mo
 		return nil, errors.New("reverse proxy not trusted")
 	}
 
+	user, err := m.userSrvc.GetUserById(remoteUser)
+	if err == nil {
+		return user, nil
+	}
+
+	if err.Error() != "record not found" || !create {
+		return nil, err
+	}
+
+	// register new user solely based on upstream provided username (see https://github.com/muety/wakapi/issues/808)
+	signup := &models.Signup{
+		Username: remoteUser,
+		Password: uuid.Must(uuid.NewV4()).String(), // throwaway random string as password
+	}
+
+	conf.Log().Request(r).Warn("registering new remotely authenticated user based on trusted header auth", "user_id", remoteUser)
+	if _, _, err := m.userSrvc.CreateOrGet(signup, false); err != nil {
+		return nil, err
+	}
 	return m.userSrvc.GetUserById(remoteUser)
 }
 

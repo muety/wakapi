@@ -11,6 +11,9 @@ type UserServiceMock struct {
 
 func (m *UserServiceMock) GetUserById(s string) (*models.User, error) {
 	args := m.Called(s)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
