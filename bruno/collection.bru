@@ -1,0 +1,31 @@
+meta {
+  name: Wakapi
+  seq: 1
+}
+
+auth {
+  mode: none
+}
+
+script:pre-request {
+  const apiKey = bru.getEnvVar('API_KEY')
+  
+  if (!apiKey) {
+      throw new Error('no api key given')
+  }
+  
+  const token = base64encode(apiKey)
+  bru.setVar('TOKEN', token)
+  
+  function base64encode(str) {
+      return Buffer.from(str, 'utf-8').toString('base64')
+  }
+}
+
+docs {
+  # Wakapi basic API routes
+  
+  Start by selecting an environment (there is a premade one called "prod") and configuring values for `BASE_URL` and `API_KEY` variables.
+  
+  For a complete list of API routes, refer to <https://wakapi.dev/swagger-ui>.
+}

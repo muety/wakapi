@@ -1,0 +1,19 @@
+meta {
+  name: Get heartbeats
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current/heartbeats?date=2021-02-10
+  body: none
+  auth: none
+}
+
+params:query {
+  date: 2021-02-10
+}
+
+headers {
+  Authorization: Basic {{TOKEN}}
+}

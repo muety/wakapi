@@ -1,0 +1,15 @@
+meta {
+  name: Get statusbar
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current/statusbar/today
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Basic {{TOKEN}}
+}

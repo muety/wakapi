@@ -1,0 +1,19 @@
+meta {
+  name: Get summary
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=last_7_days
+  body: none
+  auth: none
+}
+
+params:query {
+  interval: last_7_days
+}
+
+headers {
+  Authorization: Basic {{TOKEN}}
+}

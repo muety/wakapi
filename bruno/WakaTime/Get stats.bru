@@ -1,0 +1,15 @@
+meta {
+  name: Get stats
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current/stats
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Basic {{TOKEN}}
+}

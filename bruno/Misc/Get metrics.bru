@@ -1,0 +1,15 @@
+meta {
+  name: Get metrics
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{BASE_URL}}/api/metrics
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Basic {{TOKEN}}
+}
