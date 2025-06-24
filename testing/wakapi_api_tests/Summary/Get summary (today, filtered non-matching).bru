@@ -1,0 +1,43 @@
+meta {
+  name: Get summary (today, filtered non-matching)
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=today&project=wakapi&language=JavaScript
+  body: none
+  auth: bearer
+}
+
+params:query {
+  interval: today
+  project: wakapi
+  language: JavaScript
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+script:post-response {
+  const moment = require('moment')
+  
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Correct user", function () {
+      const jsonData = res.getBody();
+      expect(jsonData.user_id).to.eql("writeuser");
+  });
+  
+  test("Correct summary data", function () {
+      const jsonData = res.getBody();
+      expect(jsonData.projects.length).to.eql(0);
+      expect(jsonData.languages.length).to.eql(0);
+      expect(jsonData.editors.length).to.eql(0);
+      expect(jsonData.operating_systems.length).to.eql(0);
+      expect(jsonData.machines.length).to.eql(0);
+  });
+}

@@ -1,0 +1,17 @@
+meta {
+  name: Get all time (unauthenticated)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/writeuser/all_time_since_today
+  body: none
+  auth: none
+}
+
+script:post-response {
+  test("Status code is 401", function () {
+      expect(res.getStatus()).to.equal(401);
+  });
+}

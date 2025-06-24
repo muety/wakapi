@@ -1,0 +1,54 @@
+meta {
+  name: Get summary (today)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=today
+  body: none
+  auth: bearer
+}
+
+params:query {
+  interval: today
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+script:post-response {
+  const moment = require('moment')
+  
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Correct user", function () {
+      const jsonData = res.getBody();
+      expect(jsonData.user_id).to.eql("writeuser");
+  });
+  
+  test("Correct summary data", function () {
+      const jsonData = res.getBody();
+      expect(jsonData.projects.length).to.eql(1);
+      expect(jsonData.languages.length).to.eql(1);
+      expect(jsonData.editors.length).to.eql(1);
+      expect(jsonData.operating_systems.length).to.eql(1);
+      expect(jsonData.machines.length).to.eql(1);
+      expect(jsonData.branches).to.be.null;
+  });
+  
+  /*
+  // This is something the unit tests are supposed to check
+  // pm.test("Correct summary range", function () {
+  //     const jsonData = pm.response.json();
+      const from = moment(jsonData.from)
+      const to = moment(jsonData.to)
+  
+  //     pm.expect(moment.duration(moment().diff(from.add(2, 'm'))).asSeconds()).to.lt(10); // first heartbeat is now minus 1 min minus some latency
+  //     pm.expect(moment.duration(moment().diff(to.add(1, 'm'))).asSeconds()).to.lt(10); // first heartbeat is now minus 1 min minus some latency
+  });
+  */
+}

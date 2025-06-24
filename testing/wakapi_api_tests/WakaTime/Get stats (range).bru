@@ -1,0 +1,22 @@
+meta {
+  name: Get stats (range)
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/writeuser/stats/last_7_days
+  body: none
+  auth: none
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Correct content", function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data.projects.length).to.eql(1);
+  });
+}

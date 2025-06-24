@@ -1,0 +1,18 @@
+meta {
+  name: Get shields (non-shared entity type)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/shields/v1/writeuser/interval:today/language:Go
+  body: none
+  auth: none
+}
+
+script:post-response {
+  test("Status code is 403", function () {
+      expect(res.getStatus()).to.equal(403);
+  });
+  
+}

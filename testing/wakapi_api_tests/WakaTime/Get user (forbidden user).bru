@@ -1,0 +1,22 @@
+meta {
+  name: Get user (forbidden user)
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/readuser
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+script:post-response {
+  test("Status code is 401", function () {
+      expect(res.getStatus()).to.equal(401);
+  });
+  
+}

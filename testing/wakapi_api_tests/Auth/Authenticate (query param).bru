@@ -1,0 +1,22 @@
+meta {
+  name: Authenticate (query param)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=today&api_key={{WRITEUSER_API_KEY}}
+  body: none
+  auth: none
+}
+
+params:query {
+  interval: today
+  api_key: {{WRITEUSER_API_KEY}}
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+}

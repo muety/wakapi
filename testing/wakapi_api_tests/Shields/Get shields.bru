@@ -1,0 +1,22 @@
+meta {
+  name: Get shields
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/shields/v1/writeuser/interval:last_7_days/project:wakapi
+  body: none
+  auth: none
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Correct content", function () {
+      const jsonData = res.getBody();
+      expect(jsonData.message).to.eql('0 hrs 2 mins');
+  });
+}

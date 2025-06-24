@@ -1,0 +1,34 @@
+meta {
+  name: Create heartbeats (non-matching)
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{BASE_URL}}/api/v2/users/current/heartbeats
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+body:json {
+  {
+      "entity": "/home/user1/dev/project1/main.go",
+      "project": "wakapi",
+      "language": "Go",
+      "is_write": true,
+      "type": "file",
+      "category": null,
+      "branch": null,
+      "time": {{ts1}}
+  }
+}
+
+script:post-response {
+  test("Status code is 404", function () {
+      expect(res.getStatus()).to.equal(404);
+  });
+}

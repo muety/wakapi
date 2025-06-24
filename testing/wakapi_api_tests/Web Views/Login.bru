@@ -1,0 +1,22 @@
+meta {
+  name: Login
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BASE_URL}}/login
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  username: writeuser
+  password: {{WRITEUSER_PASSWORD}}
+}
+
+script:post-response {
+  test("Full template is rendered", function() {
+      expect(JSON.stringify(res.getBody())).to.include("</html>")
+  })
+}

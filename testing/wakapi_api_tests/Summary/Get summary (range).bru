@@ -1,0 +1,49 @@
+meta {
+  name: Get summary (range)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?from={{tsStartOfDayIso}}&to={{tsEndOfDayIso}}
+  body: none
+  auth: bearer
+}
+
+params:query {
+  from: {{tsStartOfDayIso}}
+  to: {{tsEndOfDayIso}}
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+script:post-response {
+  const moment = require('moment')
+  
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Correct user", function () {
+      const jsonData = res.getBody();
+      expect(jsonData.user_id).to.eql("writeuser");
+  });
+  
+  test("Correct summary data", function () {
+      const jsonData = res.getBody();
+      expect(jsonData.projects.length).to.eql(1);
+      expect(jsonData.languages.length).to.eql(1);
+      expect(jsonData.editors.length).to.eql(1);
+      expect(jsonData.operating_systems.length).to.eql(1);
+      expect(jsonData.machines.length).to.eql(1);
+  });
+  
+  test("Correct dates", function () {
+      const jsonData = res.getBody();
+      expect(moment(jsonData.from).unix()).to.gte(moment(bru.getVar('tsStartOfDayIso')).unix())
+      expect(moment(jsonData.to).unix()).to.lte(moment(bru.getVar('tsEndOfDayIso')).unix())
+  });
+  
+}

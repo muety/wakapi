@@ -1,0 +1,32 @@
+meta {
+  name: Get stats (filtered non-matching)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current/stats?project=wakapi&language=JavaScript
+  body: none
+  auth: bearer
+}
+
+params:query {
+  project: wakapi
+  language: JavaScript
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Correct content", function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data.projects.length).to.eql(0);
+      expect(jsonData.data.total_seconds).to.eql(0);
+  });
+}

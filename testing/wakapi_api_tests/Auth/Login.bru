@@ -1,0 +1,36 @@
+meta {
+  name: Login
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{BASE_URL}}/login
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  username: testuser
+  password: testpassword
+}
+
+script:pre-request {
+  // Do not follow 3xx redirects
+  req.setMaxRedirects(0)
+}
+
+script:post-response {
+  test("Status code is 302", function () {
+      expect(res.getStatus()).to.equal(302);
+  });
+  
+  test("Redirect to summary", function () {
+      expect(res.getHeader("location")).to.eql("/summary");
+  });
+  
+  test("Sets cookie", function () {
+    console.log(1213)
+      res.headers["set-cookie"].some(str => str.includes("wakapi_auth="));
+  });
+}

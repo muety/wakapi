@@ -1,0 +1,21 @@
+meta {
+  name: Logout
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{BASE_URL}}/logout
+  body: none
+  auth: none
+}
+
+script:post-response {
+  test("Full template is rendered", function() {
+      expect(JSON.stringify(res.getBody())).to.include("</html>")
+  })
+  
+  test("User is not logged in", function() {
+      expect(JSON.stringify(res.getBody())).to.not.include("User Profile Avatar")
+  })
+}

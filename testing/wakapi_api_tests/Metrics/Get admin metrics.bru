@@ -1,0 +1,30 @@
+meta {
+  name: Get admin metrics
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{BASE_URL}}/api/metrics
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{READUSER_TOKEN}}
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Correct Content-Type", function () {
+      expect(res.getHeader("content-type")).to.eql("text/plain; charset=utf-8");
+  });
+  
+  test("Body matches string", function () {
+      expect(JSON.stringify(res.getBody())).to.include("wakatime_heartbeats_total");
+      expect(JSON.stringify(res.getBody())).to.include("wakatime_admin_heartbeats_total");
+  });
+}

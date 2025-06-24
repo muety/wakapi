@@ -1,0 +1,35 @@
+meta {
+  name: Get summary (default tz)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?from=2021-05-28&to=2021-05-28
+  body: none
+  auth: bearer
+}
+
+params:query {
+  from: 2021-05-28
+  to: 2021-05-28
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+script:post-response {
+  const moment = require('moment')
+  
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Correct time zone", function () {
+      const jsonData = res.getBody();
+      const targetDateTz = moment(`2021-05-28T00:00:00${bru.getCollectionVar('TZ_OFFSET')}`)
+      expect(moment(jsonData.from).isSame(targetDateTz)).to.eql(true)
+  });
+  
+}

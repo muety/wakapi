@@ -1,0 +1,22 @@
+meta {
+  name: Summary
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{BASE_URL}}/summary
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+script:post-response {
+  test("Full template is rendered", function() {
+      expect(res.body.includes('</html>'))
+      expect(res.body.includes('<span class="text-sm">Logout</span>'))
+  })
+}

@@ -1,0 +1,21 @@
+meta {
+  name: Get summary (unauthenticated)
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=today
+  body: none
+  auth: none
+}
+
+params:query {
+  interval: today
+}
+
+script:post-response {
+  test("Status code is 401", function () {
+      expect(res.getStatus()).to.equal(401);
+  });
+}

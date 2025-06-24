@@ -1,0 +1,54 @@
+meta {
+  name: Create heartbeats (get heartbeats test)
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{BASE_URL}}/api/heartbeat
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+body:json {
+  [{
+      "entity": "/home/user1/dev/project1/main.go",
+      "project": "wakapi",
+      "language": "Go",
+      "is_write": true,
+      "type": "file",
+      "category": null,
+      "branch": null,
+      "time": 1640995200
+  },
+  {
+      "entity": "/home/user1/dev/project1/main.go",
+      "project": "wakapi",
+      "language": "Go",
+      "is_write": true,
+      "type": "file",
+      "category": null,
+      "branch": null,
+      "time": 1641074400
+  },
+  {
+      "entity": "/home/user1/dev/project1/main.go",
+      "project": "wakapi",
+      "language": "Go",
+      "is_write": true,
+      "type": "file",
+      "category": null,
+      "branch": null,
+      "time": 1641081600
+  }]
+}
+
+script:post-response {
+  test("Status code is 201", function () {
+      expect(res.getStatus()).to.equal(201);
+  });
+}

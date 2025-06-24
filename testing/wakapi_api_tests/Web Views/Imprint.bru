@@ -1,0 +1,17 @@
+meta {
+  name: Imprint
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{BASE_URL}}/imprint
+  body: none
+  auth: none
+}
+
+script:post-response {
+  test("Full template is rendered", function() {
+      expect(JSON.stringify(res.getBody())).to.include("</html>")
+  })
+}

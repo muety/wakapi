@@ -1,0 +1,18 @@
+meta {
+  name: Get user (unauthenticated)
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/writeuser
+  body: none
+  auth: none
+}
+
+script:post-response {
+  test("Status code is 401", function () {
+      expect(res.getStatus()).to.equal(401);
+  });
+  
+}

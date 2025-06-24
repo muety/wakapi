@@ -1,0 +1,26 @@
+meta {
+  name: 4. Remove custom mapping
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{BASE_URL}}/settings
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  action: delete_mapping
+  mapping_id: 0
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Body contains string", function () {
+      expect(JSON.stringify(res.getBody())).to.include("Mapping deleted successfully");
+  });
+}

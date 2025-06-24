@@ -1,0 +1,23 @@
+meta {
+  name: Get stats (by user)
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/writeuser/stats
+  body: none
+  auth: none
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Correct content", function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data.languages.length).to.eql(0);  // share_languages is false
+      expect(jsonData.data.projects.length).to.eql(1);
+  });
+}

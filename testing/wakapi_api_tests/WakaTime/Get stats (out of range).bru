@@ -1,0 +1,17 @@
+meta {
+  name: Get stats (out of range)
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/writeuser/stats/30_days
+  body: none
+  auth: none
+}
+
+script:post-response {
+  test("Status code is 403", function () {
+      expect(res.getStatus()).to.equal(403);
+  });
+}

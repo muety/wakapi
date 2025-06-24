@@ -1,0 +1,34 @@
+meta {
+  name: Get heartbeats
+  type: http
+  seq: 12
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current/heartbeats?date=2022-01-01
+  body: none
+  auth: bearer
+}
+
+params:query {
+  date: 2022-01-01
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response body is correct", function () {
+      var jsonData = res.getBody();
+      expect(jsonData.timezone).to.eql(bru.getCollectionVar('TZ'));
+      var date = new Date("2022-01-01T00:00:00+0100")
+      expect(new Date(jsonData.start)).to.eql(date);
+      expect(new Date(jsonData.end)).to.eql(new Date(date.getTime() + 3600 * 1000 * 24 - 1000));
+      expect(jsonData.data.length).to.eql(2);
+  });
+}

@@ -1,0 +1,29 @@
+meta {
+  name: Sign up existing user (conflict)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BASE_URL}}/signup
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  location: {{TZ}}
+  username: testuser
+  email: testuser@wakapi.dev
+  password: testpassword
+  password_repeat: testpassword
+}
+
+script:post-response {
+  test("Status code is 409", function () {
+      expect(res.getStatus()).to.equal(409);
+  });
+  
+  test("Body matches string", function () {
+      expect(JSON.stringify(res.getBody())).to.include("User already existing");
+  });
+}

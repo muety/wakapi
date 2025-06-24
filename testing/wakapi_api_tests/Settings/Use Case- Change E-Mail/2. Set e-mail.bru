@@ -1,0 +1,27 @@
+meta {
+  name: 2. Set e-mail
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BASE_URL}}/settings
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  action: update_user
+  location: Europe/Berlin
+  email: foo@example.org
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Body contains string", function () {
+      expect(JSON.stringify(res.getBody())).to.include("User updated successfully");
+  });
+}

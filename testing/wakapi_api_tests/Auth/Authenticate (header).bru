@@ -1,0 +1,25 @@
+meta {
+  name: Authenticate (header)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=today
+  body: none
+  auth: bearer
+}
+
+params:query {
+  interval: today
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+}

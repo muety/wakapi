@@ -1,0 +1,42 @@
+meta {
+  name: Get summary (last 7 days)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=last_7_days
+  body: none
+  auth: bearer
+}
+
+params:query {
+  interval: last_7_days
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+script:post-response {
+  const moment = require('moment')
+  
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Correct user", function () {
+      const jsonData = res.getBody();
+      expect(jsonData.user_id).to.eql("writeuser");
+  });
+  
+  test("Correct summary data", function () {
+      const jsonData = res.getBody();
+      expect(jsonData.projects.length).to.eql(1);
+      expect(jsonData.languages.length).to.eql(1);
+      expect(jsonData.editors.length).to.eql(1);
+      expect(jsonData.operating_systems.length).to.eql(1);
+      expect(jsonData.machines.length).to.eql(1);
+  });
+  
+}

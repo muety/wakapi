@@ -1,0 +1,17 @@
+meta {
+  name: Projects
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{BASE_URL}}/projects
+  body: none
+  auth: none
+}
+
+script:post-response {
+  test("Full template is rendered", function() {
+      expect(JSON.stringify(res.getBody())).to.include("</html>")
+  })
+}

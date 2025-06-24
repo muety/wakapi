@@ -1,0 +1,17 @@
+meta {
+  name: Leaderboard
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/leaderboard
+  body: none
+  auth: none
+}
+
+script:post-response {
+  test("Full template is rendered", function() {
+      expect(JSON.stringify(res.getBody())).to.include("</html>")
+  })
+}

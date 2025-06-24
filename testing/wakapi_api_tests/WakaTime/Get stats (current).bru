@@ -1,0 +1,28 @@
+meta {
+  name: Get stats (current)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current/stats
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Correct content", function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data.languages.length).to.eql(1); // share_languages is false, but user is authorized
+      expect(jsonData.data.projects.length).to.eql(1);
+      expect(jsonData.data.branches).to.be.undefined;
+  });
+}

@@ -1,0 +1,17 @@
+meta {
+  name: Settings
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_URL}}/settings
+  body: none
+  auth: none
+}
+
+script:post-response {
+  test("Full template is rendered", function() {
+      expect(JSON.stringify(res.getBody())).to.include("</html>")
+  })
+}

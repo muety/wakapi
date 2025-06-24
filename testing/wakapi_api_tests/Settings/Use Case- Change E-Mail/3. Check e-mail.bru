@@ -1,0 +1,27 @@
+meta {
+  name: 3. Check e-mail
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Correct e-mail address", function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data.email).to.eql('foo@example.org');
+  });
+  
+}

@@ -1,0 +1,30 @@
+meta {
+  name: Create heartbeats (unauthorized)
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{BASE_URL}}/api/heartbeat
+  body: json
+  auth: none
+}
+
+body:json {
+  [{
+      "entity": "/home/user1/dev/proejct1/main.go",
+      "project": "wakapi",
+      "language": "Go",
+      "is_write": true,
+      "type": "file",
+      "category": null,
+      "branch": null,
+      "time": {{tsNowMinus1Min}}
+  }]
+}
+
+script:post-response {
+  test("Status code is 401", function () {
+      expect(res.getStatus()).to.equal(401);
+  });
+}

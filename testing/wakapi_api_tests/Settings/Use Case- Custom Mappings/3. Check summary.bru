@@ -1,0 +1,36 @@
+meta {
+  name: 3. Check summary
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=today
+  body: none
+  auth: bearer
+}
+
+params:query {
+  interval: today
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+script:pre-request {
+  setTimeout(() => {}, 1000)
+}
+
+script:post-response {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Correct language", function () {
+      const jsonData = res.getBody();
+      expect(jsonData.languages.length).to.eql(1);
+      expect(jsonData.languages[0].key).to.eql('Gogo');
+  });
+  
+}
