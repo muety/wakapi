@@ -43,8 +43,6 @@ script:pre-request {
   const readApiKey = bru.getCollectionVar('READUSER_API_KEY')
   const writeApiKey = bru.getCollectionVar('WRITEUSER_API_KEY')
   
-  console.log(readApiKey)
-  
   if (!readApiKey || !writeApiKey) {
       throw new Error('no api key given')
   }

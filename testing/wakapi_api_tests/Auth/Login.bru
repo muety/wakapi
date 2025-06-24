@@ -30,7 +30,6 @@ script:post-response {
   });
   
   test("Sets cookie", function () {
-    console.log(1213)
       res.headers["set-cookie"].some(str => str.includes("wakapi_auth="));
   });
 }
