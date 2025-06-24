@@ -27,7 +27,7 @@ jobs:
 
     - name: API Tests
       run: |
-        npm -g install newman
+        npm install -g @usebruno/cli
         ./testing/run_api_tests.sh
 
     - name: Mail Tests
@@ -54,4 +54,6 @@ jobs:
         go-version: ^1.24
       id: go
 
+    - run: npm install -g @usebruno/cli
+    
     - run: ./testing/run_api_tests.sh ${{ matrix.db }} --migration
