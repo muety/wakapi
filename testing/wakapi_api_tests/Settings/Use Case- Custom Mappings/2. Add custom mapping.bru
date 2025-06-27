@@ -16,12 +16,7 @@ body:form-urlencoded {
   language: Gogo
 }
 
-script:post-response {
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
-  
-  test("Body contains string", function () {
-      expect(JSON.stringify(res.getBody())).to.include("Mapping added successfully");
-  });
+assert {
+  res.status: eq 200
+  res.body: contains Mapping added successfully
 }

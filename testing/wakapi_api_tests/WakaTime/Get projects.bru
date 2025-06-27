@@ -14,13 +14,7 @@ auth:bearer {
   token: {{WRITEUSER_TOKEN}}
 }
 
-script:post-response {
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
-  
-  test("Correct content", function () {
-      const jsonData = res.getBody();
-      expect(jsonData.data.length).to.eql(1);
-  });
+assert {
+  res.status: eq 200
+  res('data'): length 1
 }

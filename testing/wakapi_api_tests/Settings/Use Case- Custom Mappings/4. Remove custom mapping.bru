@@ -15,12 +15,7 @@ body:form-urlencoded {
   mapping_id: 0
 }
 
-script:post-response {
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
-  
-  test("Body contains string", function () {
-      expect(JSON.stringify(res.getBody())).to.include("Mapping deleted successfully");
-  });
+assert {
+  res.status: eq 200
+  res.body: contains Mapping deleted successfully
 }

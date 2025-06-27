@@ -14,14 +14,8 @@ auth:bearer {
   token: {{WRITEUSER_TOKEN}}
 }
 
-script:post-response {
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
-  
-  test("Correct content", function () {
-      const jsonData = res.getBody();
-      expect(jsonData.data.languages.length).to.eql(1); // share_languages is false, but user is authorized
-      expect(jsonData.data.projects.length).to.eql(1);
-  });
+assert {
+  res.status: eq 200
+  res('data.languages'): length 1
+  res('data.projects'): length 1
 }

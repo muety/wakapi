@@ -47,8 +47,6 @@ body:json {
   }]
 }
 
-script:post-response {
-  test("Status code is 201", function () {
-      expect(res.getStatus()).to.equal(201);
-  });
+assert {
+  res.status: eq 201
 }

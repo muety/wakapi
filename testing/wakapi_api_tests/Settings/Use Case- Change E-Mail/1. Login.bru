@@ -15,12 +15,7 @@ body:form-urlencoded {
   password: {{WRITEUSER_PASSWORD}}
 }
 
-script:post-response {
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
-  
-  test("Body contains string", function () {
-      expect(JSON.stringify(res.getBody())).to.include("Total Time");
-  });
+assert {
+  res.status: eq 200
+  res.body: contains Total Time
 }

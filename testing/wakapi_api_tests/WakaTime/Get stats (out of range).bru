@@ -10,8 +10,6 @@ get {
   auth: none
 }
 
-script:post-response {
-  test("Status code is 403", function () {
-      expect(res.getStatus()).to.equal(403);
-  });
+assert {
+  res.status: eq 403
 }

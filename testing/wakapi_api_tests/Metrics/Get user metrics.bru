@@ -14,17 +14,9 @@ auth:bearer {
   token: {{WRITEUSER_TOKEN}}
 }
 
-script:post-response {
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
-  
-  test("Correct Content-Type", function () {
-      expect(res.getHeader("content-type")).to.eql("text/plain; charset=utf-8");
-  });
-  
-  test("Body matches string", function () {
-      expect(JSON.stringify(res.getBody())).to.include("wakatime_heartbeats_total");
-      expect(JSON.stringify(res.getBody())).to.not.include("wakatime_admin_heartbeats_total");
-  });
+assert {
+  res.status: eq 200
+  res.headers['content-type']: eq text/plain; charset=utf-8
+  res.body: contains wakatime_heartbeats_total
+  res.body: notContains wakatime_admin_heartbeats_total
 }

@@ -14,9 +14,7 @@ auth:bearer {
   token: {{WRITEUSER_TOKEN}}
 }
 
-script:post-response {
-  test("Full template is rendered", function() {
-      expect(res.body.includes('</html>'))
-      expect(res.body.includes('<span class="text-sm">Logout</span>'))
-  })
+assert {
+  res.body: contains </html>
+  res.body: contains <span class="text-sm">Logout</span>
 }

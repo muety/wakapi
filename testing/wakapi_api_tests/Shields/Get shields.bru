@@ -10,13 +10,7 @@ get {
   auth: none
 }
 
-script:post-response {
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
-  
-  test("Correct content", function () {
-      const jsonData = res.getBody();
-      expect(jsonData.message).to.eql('0 hrs 2 mins');
-  });
+assert {
+  res.status: eq 200
+  res('message'): eq 0 hrs 2 mins
 }

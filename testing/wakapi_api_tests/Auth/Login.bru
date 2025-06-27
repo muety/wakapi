@@ -15,21 +15,18 @@ body:form-urlencoded {
   password: testpassword
 }
 
+assert {
+  res.status: eq 302
+  res.headers['location']: eq /summary
+}
+
 script:pre-request {
   // Do not follow 3xx redirects
   req.setMaxRedirects(0)
 }
 
-script:post-response {
-  test("Status code is 302", function () {
-      expect(res.getStatus()).to.equal(302);
-  });
-  
-  test("Redirect to summary", function () {
-      expect(res.getHeader("location")).to.eql("/summary");
-  });
-  
+tests {
   test("Sets cookie", function () {
-      res.headers["set-cookie"].some(str => str.includes("wakapi_auth="));
+      expect(res.headers["set-cookie"].some(str => str.includes("wakapi_auth="))).to.be.true
   });
 }

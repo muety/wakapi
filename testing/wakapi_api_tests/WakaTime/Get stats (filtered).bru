@@ -19,15 +19,9 @@ auth:bearer {
   token: {{WRITEUSER_TOKEN}}
 }
 
-script:post-response {
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
-  
-  test("Correct content", function () {
-      const jsonData = res.getBody();
-      expect(jsonData.data.projects.length).to.eql(1);
-      expect(jsonData.data.total_seconds).to.gt(0);
-      expect(jsonData.data.branches.length).to.eql(1);
-  });
+assert {
+  res.status: eq 200
+  res('data.projects'): length 1
+  res('data.total_seconds'): gt 0
+  res('data.branches'): length 1
 }

@@ -18,12 +18,7 @@ body:form-urlencoded {
   password_repeat: testpassword
 }
 
-script:post-response {
-  test("Status code is 409", function () {
-      expect(res.getStatus()).to.equal(409);
-  });
-  
-  test("Body matches string", function () {
-      expect(JSON.stringify(res.getBody())).to.include("User already existing");
-  });
+assert {
+  res.status: eq 409
+  res.body: contains User already existing
 }

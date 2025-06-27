@@ -18,12 +18,7 @@ body:form-urlencoded {
   password_repeat: testpassword
 }
 
-script:post-response {
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
-  
-  test("Body matches string", function () {
-      expect(JSON.stringify(res.getBody())).to.include("Account created successfully");
-  });
+assert {
+  res.status: eq 200
+  res.body: contains Account created successfully
 }

@@ -19,18 +19,17 @@ auth:bearer {
   token: {{WRITEUSER_TOKEN}}
 }
 
-script:post-response {
+assert {
+  res.status: eq 200
+}
+
+tests {
   const moment = require('moment')
   
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
-  
   test("Correct time zone", function () {
-      const jsonData = res.getBody();
       // when it was midnight in UTC+3, it was still 11 pm in Germany
       const targetDateTz = moment(`2021-05-28T00:00:00${bru.getCollectionVar('TZ_OFFSET')}`).add(-1, 'h')
-      expect(moment(jsonData.from).isSame(targetDateTz)).to.eql(true)
+      expect(moment(res.body.from).isSame(targetDateTz)).to.eql(true)
   });
   
 }

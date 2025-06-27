@@ -18,15 +18,14 @@ auth:bearer {
   token: {{WRITEUSER_TOKEN}}
 }
 
-script:post-response {
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
-  
+assert {
+  res.status: eq 200
+  res('languages'): length 1
+}
+
+tests {
   test("Correct language", function () {
-      const jsonData = res.getBody();
-      expect(jsonData.languages.length).to.eql(1);
-      expect(jsonData.languages[0].key).to.eql('Go');
+      expect(res.body.languages[0].key).to.eql('Go');
   });
   
 }

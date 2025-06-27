@@ -15,8 +15,6 @@ params:query {
   api_key: {{WRITEUSER_API_KEY}}
 }
 
-script:post-response {
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
+assert {
+  res.status: eq 200
 }

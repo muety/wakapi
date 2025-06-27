@@ -15,8 +15,6 @@ body:form-urlencoded {
   password: {{WRITEUSER_PASSWORD}}
 }
 
-script:post-response {
-  test("Full template is rendered", function() {
-      expect(JSON.stringify(res.getBody())).to.include("</html>")
-  })
+assert {
+  res.body: contains </html>
 }

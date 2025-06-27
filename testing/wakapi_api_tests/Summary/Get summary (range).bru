@@ -19,31 +19,22 @@ auth:bearer {
   token: {{WRITEUSER_TOKEN}}
 }
 
-script:post-response {
+assert {
+  res.status: eq 200
+  res('user_id'): eq writeuser
+  res('projects'): length 1
+  res('languages'): length 1
+  res('editors'): length 1
+  res('operating_systems'): length 1
+  res('machines'): length 1
+}
+
+tests {
   const moment = require('moment')
   
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
-  
-  test("Correct user", function () {
-      const jsonData = res.getBody();
-      expect(jsonData.user_id).to.eql("writeuser");
-  });
-  
-  test("Correct summary data", function () {
-      const jsonData = res.getBody();
-      expect(jsonData.projects.length).to.eql(1);
-      expect(jsonData.languages.length).to.eql(1);
-      expect(jsonData.editors.length).to.eql(1);
-      expect(jsonData.operating_systems.length).to.eql(1);
-      expect(jsonData.machines.length).to.eql(1);
-  });
-  
   test("Correct dates", function () {
-      const jsonData = res.getBody();
-      expect(moment(jsonData.from).unix()).to.gte(moment(bru.getVar('tsStartOfDayIso')).unix())
-      expect(moment(jsonData.to).unix()).to.lte(moment(bru.getVar('tsEndOfDayIso')).unix())
+      expect(moment(res.body.from).unix()).to.gte(moment(bru.getVar('tsStartOfDayIso')).unix())
+      expect(moment(res.body.to).unix()).to.lte(moment(bru.getVar('tsEndOfDayIso')).unix())
   });
   
 }

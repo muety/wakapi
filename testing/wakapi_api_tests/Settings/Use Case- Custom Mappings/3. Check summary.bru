@@ -18,19 +18,19 @@ auth:bearer {
   token: {{WRITEUSER_TOKEN}}
 }
 
+assert {
+  res.status: eq 200
+  res('languages'): length 1
+}
+
 script:pre-request {
+  // Wait for changes from the 2nd step to be applied.
   setTimeout(() => {}, 1000)
 }
 
-script:post-response {
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
-  
+tests {
   test("Correct language", function () {
-      const jsonData = res.getBody();
-      expect(jsonData.languages.length).to.eql(1);
-      expect(jsonData.languages[0].key).to.eql('Gogo');
+      expect(res.body.languages[0].key).to.eql('Gogo');
   });
   
 }
