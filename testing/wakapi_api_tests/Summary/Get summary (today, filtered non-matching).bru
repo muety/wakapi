@@ -20,24 +20,17 @@ auth:bearer {
   token: {{WRITEUSER_TOKEN}}
 }
 
-script:post-response {
-  const moment = require('moment')
-  
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
-  
-  test("Correct user", function () {
-      const jsonData = res.getBody();
-      expect(jsonData.user_id).to.eql("writeuser");
-  });
-  
+assert {
+  res.status: eq 200
+  res('user_id'): eq writeuser
+}
+
+tests {
   test("Correct summary data", function () {
-      const jsonData = res.getBody();
-      expect(jsonData.projects.length).to.eql(0);
-      expect(jsonData.languages.length).to.eql(0);
-      expect(jsonData.editors.length).to.eql(0);
-      expect(jsonData.operating_systems.length).to.eql(0);
-      expect(jsonData.machines.length).to.eql(0);
+      expect(res.body.projects).to.be.an('array').and.have.lengthOf(0);
+      expect(res.body.languages).to.be.an('array').and.have.lengthOf(0);
+      expect(res.body.editors).to.be.an('array').and.have.lengthOf(0);
+      expect(res.body.operating_systems).to.be.an('array').and.have.lengthOf(0);
+      expect(res.body.machines).to.be.an('array').and.have.lengthOf(0);
   });
 }

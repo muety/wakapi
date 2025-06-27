@@ -10,14 +10,13 @@ get {
   auth: none
 }
 
-script:post-response {
-  test("Status code is 200", function () {
-      expect(res.getStatus()).to.equal(200);
-  });
-  
+assert {
+  res.status: eq 200
+  res('data.projects'): length 1
+}
+
+tests {
   test("Correct content", function () {
-      const jsonData = res.getBody();
-      expect(jsonData.data.languages.length).to.eql(0);  // share_languages is false
-      expect(jsonData.data.projects.length).to.eql(1);
+      expect(res.body.data.languages).to.be.an('array').and.lengthOf(0); // share_languages is false
   });
 }
