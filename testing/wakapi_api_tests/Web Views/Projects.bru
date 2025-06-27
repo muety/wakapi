@@ -1,0 +1,15 @@
+meta {
+  name: Projects
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{BASE_URL}}/projects
+  body: none
+  auth: none
+}
+
+assert {
+  res.body: contains </html>
+}

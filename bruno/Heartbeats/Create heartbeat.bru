@@ -1,0 +1,31 @@
+meta {
+  name: Create heartbeat
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BASE_URL}}/api/heartbeat
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Basic {{TOKEN}}
+  X-Machine-Name: devmachine
+  User-Agent: wakatime/13.0.7 (Linux-4.15.0-91-generic-x86_64-with-glibc2.4) Python3.8.0.final.0 generator/1.42.1 generator-wakatime/4.0.0
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "entity": "/home/user1/dev/proejct1/main.go",
+      "project": "Project 1",
+      "language": "Go",
+      "is_write": true,
+      "type": "file",
+      "category": null,
+      "branch": null,
+      "time": 1750701956
+  }
+}

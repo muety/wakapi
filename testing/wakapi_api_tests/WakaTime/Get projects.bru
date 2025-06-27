@@ -1,0 +1,20 @@
+meta {
+  name: Get projects
+  type: http
+  seq: 12
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current/projects
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res('data'): length 1
+}

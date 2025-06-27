@@ -1,0 +1,15 @@
+meta {
+  name: Get stats with range
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current/stats/last_7_days
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Basic {{TOKEN}}
+}

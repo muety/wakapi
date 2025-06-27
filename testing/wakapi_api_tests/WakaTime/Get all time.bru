@@ -1,0 +1,20 @@
+meta {
+  name: Get all time
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current/all_time_since_today
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res('data.text'): eq 0 hrs 2 mins
+}

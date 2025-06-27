@@ -1,0 +1,22 @@
+meta {
+  name: Get stats (current)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current/stats
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res('data.languages'): length 1
+  res('data.projects'): length 1
+  res('data.branches'): isUndefined
+}

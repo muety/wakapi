@@ -1,0 +1,15 @@
+meta {
+  name: Get stats (not sharing)
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/readuser/stats/today
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 403
+}

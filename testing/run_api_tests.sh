@@ -3,8 +3,8 @@ set -o nounset -o pipefail -o errexit
 
 DB_TYPE=${1-sqlite}
 
-if ! command -v newman &> /dev/null; then
-    echo "newman could not be found. Run 'npm install -g newman' first."
+if ! command -v bru &> /dev/null; then
+    echo "Bruno CLI could not be found. Run 'npm install -g @usebruno/cli' first."
     exit 1
 fi
 
@@ -143,8 +143,8 @@ if [ "$DB_TYPE" == "sqlite" ]; then
 
     start_wakapi_background "../wakapi" "$config"
     echo "Running test collection ..."
-    if ! newman run "wakapi_api_tests.postman_collection.json"; then
-        echo "newman failed"
+    if ! (cd "wakapi_api_tests"; bru run); then
+        echo "bruno cli failed"
         exit 1
     fi
 

@@ -420,9 +420,9 @@ $ CGO_ENABLED=0 go test `go list ./... | grep -v 'github.com/muety/wakapi/script
 
 API tests are implemented as black box tests, which interact with a fully-fledged, standalone Wakapi through HTTP requests. They are supposed to check Wakapi's web stack and endpoints, including response codes, headers and data on a syntactical level, rather than checking the actual content that is returned.
 
-Our API (or end-to-end, in some way) tests are implemented as a [Postman](https://www.postman.com/) collection and can be run either from inside Postman, or using [newman](https://www.npmjs.com/package/newman) as a command-line runner.
+Our API (or end-to-end, in some way) tests are implemented as a [Bruno](https://www.usebruno.com/) collection and can be run either from inside Bruno, or using [Bruno CLI](https://www.npmjs.com/package/@usebruno/cli) as a command-line runner.
 
-To get a predictable environment, tests are run against a fresh and clean Wakapi instance with a SQLite database that is populated with nothing but some seed data (see [data.sql](testing/data.sql)). It is usually recommended for software tests to be [safe](https://www.restapitutorial.com/lessons/idempotency.html), stateless and without side effects. In contrary to that paradigm, our API tests strictly require a fixed execution order (which Postman assures) and their assertions may rely on specific previous tests having succeeded.
+To get a predictable environment, tests are run against a fresh and clean Wakapi instance with a SQLite database that is populated with nothing but some seed data (see [data.sql](testing/data.sql)). It is usually recommended for software tests to be [safe](https://www.restapitutorial.com/lessons/idempotency.html), stateless and without side effects. In contrary to that paradigm, our API tests strictly require a fixed execution order (which Bruno assures) and their assertions may rely on specific previous tests having succeeded.
 
 #### Prerequisites (Linux only)
 
@@ -430,8 +430,8 @@ To get a predictable environment, tests are run against a fresh and clean Wakapi
 # 1. sqlite (cli)
 $ sudo apt install sqlite  # Fedora: sudo dnf install sqlite
 
-# 2. newman
-$ npm install -g newman
+# 2. bruno cli
+$ npm install -g @usebruno/cli
 ```
 
 #### How to run (Linux only)

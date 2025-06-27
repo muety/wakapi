@@ -1,0 +1,32 @@
+meta {
+  name: Get summary (today, filtered)
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=today&project=wakapi&language=Go
+  body: none
+  auth: bearer
+}
+
+params:query {
+  interval: today
+  project: wakapi
+  language: Go
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res('user_id'): eq writeuser
+  res('projects'): length 1
+  res('languages'): length 1
+  res('editors'): length 1
+  res('operating_systems'): length 1
+  res('machines'): length 1
+  res('branches'): length 1
+}

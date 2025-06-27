@@ -1,0 +1,20 @@
+meta {
+  name: Summary
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{BASE_URL}}/summary
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+assert {
+  res.body: contains </html>
+  res.body: contains <span class="text-sm">Logout</span>
+}

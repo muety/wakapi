@@ -1,0 +1,15 @@
+meta {
+  name: Get all time
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current/all_time_since_today
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Basic {{TOKEN}}
+}

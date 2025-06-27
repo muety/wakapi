@@ -1,0 +1,16 @@
+meta {
+  name: Logout
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{BASE_URL}}/logout
+  body: none
+  auth: none
+}
+
+assert {
+  res.body: contains </html>
+  res.body: notContains User Profile Avatar
+}

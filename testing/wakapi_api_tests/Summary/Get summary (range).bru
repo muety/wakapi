@@ -1,0 +1,40 @@
+meta {
+  name: Get summary (range)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?from={{tsStartOfDayIso}}&to={{tsEndOfDayIso}}
+  body: none
+  auth: bearer
+}
+
+params:query {
+  from: {{tsStartOfDayIso}}
+  to: {{tsEndOfDayIso}}
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res('user_id'): eq writeuser
+  res('projects'): length 1
+  res('languages'): length 1
+  res('editors'): length 1
+  res('operating_systems'): length 1
+  res('machines'): length 1
+}
+
+tests {
+  const moment = require('moment')
+  
+  test("Correct dates", function () {
+      expect(moment(res.body.from).unix()).to.gte(moment(bru.getVar('tsStartOfDayIso')).unix())
+      expect(moment(res.body.to).unix()).to.lte(moment(bru.getVar('tsEndOfDayIso')).unix())
+  });
+  
+}

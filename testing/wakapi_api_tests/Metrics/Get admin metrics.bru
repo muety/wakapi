@@ -1,0 +1,22 @@
+meta {
+  name: Get admin metrics
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{BASE_URL}}/api/metrics
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{READUSER_TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res.headers['content-type']: eq text/plain; charset=utf-8
+  res.body: contains wakatime_heartbeats_total
+  res.body: contains wakatime_admin_heartbeats_total
+}

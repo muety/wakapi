@@ -1,0 +1,15 @@
+meta {
+  name: Get Shields data
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/shields/v1/n1try/interval:today/language:Go
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Basic {{TOKEN}}
+}

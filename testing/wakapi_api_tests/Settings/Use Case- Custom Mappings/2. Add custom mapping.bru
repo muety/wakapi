@@ -1,0 +1,22 @@
+meta {
+  name: 2. Add custom mapping
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BASE_URL}}/settings
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  action: add_mapping
+  extension: go
+  language: Gogo
+}
+
+assert {
+  res.status: eq 200
+  res.body: contains Mapping added successfully
+}

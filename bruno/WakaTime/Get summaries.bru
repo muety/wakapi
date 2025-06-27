@@ -1,0 +1,20 @@
+meta {
+  name: Get summaries
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current/summaries?start=2020-03-01T15:04:05Z&end=2020-03-31T15:04:05Z
+  body: none
+  auth: none
+}
+
+params:query {
+  start: 2020-03-01T15:04:05Z
+  end: 2020-03-31T15:04:05Z
+}
+
+headers {
+  Authorization: Basic {{TOKEN}}
+}

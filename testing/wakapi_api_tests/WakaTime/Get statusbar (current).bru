@@ -1,0 +1,21 @@
+meta {
+  name: Get statusbar (current)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current/statusbar/today
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res('data.grand_total.text'): contains 0 hrs
+  res('data.categories'): isArray
+}

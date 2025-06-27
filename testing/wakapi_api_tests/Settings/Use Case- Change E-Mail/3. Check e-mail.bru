@@ -1,0 +1,20 @@
+meta {
+  name: 3. Check e-mail
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res('data.email'): eq foo@example.org
+}

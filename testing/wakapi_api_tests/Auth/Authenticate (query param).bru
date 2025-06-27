@@ -1,0 +1,20 @@
+meta {
+  name: Authenticate (query param)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=today&api_key={{WRITEUSER_API_KEY}}
+  body: none
+  auth: none
+}
+
+params:query {
+  interval: today
+  api_key: {{WRITEUSER_API_KEY}}
+}
+
+assert {
+  res.status: eq 200
+}

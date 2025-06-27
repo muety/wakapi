@@ -1,0 +1,15 @@
+meta {
+  name: Imprint
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{BASE_URL}}/imprint
+  body: none
+  auth: none
+}
+
+assert {
+  res.body: contains </html>
+}

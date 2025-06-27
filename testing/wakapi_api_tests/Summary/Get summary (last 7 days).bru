@@ -1,0 +1,29 @@
+meta {
+  name: Get summary (last 7 days)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=last_7_days
+  body: none
+  auth: bearer
+}
+
+params:query {
+  interval: last_7_days
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res('user_id'): eq writeuser
+  res('projects'): length 1
+  res('languages'): length 1
+  res('editors'): length 1
+  res('operating_systems'): length 1
+  res('machines'): length 1
+}

@@ -1,0 +1,15 @@
+meta {
+  name: Get stats (out of range)
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/writeuser/stats/30_days
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 403
+}

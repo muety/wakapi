@@ -1,0 +1,27 @@
+meta {
+  name: Get stats (filtered)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/current/stats?project=wakapi&language=Go
+  body: none
+  auth: bearer
+}
+
+params:query {
+  project: wakapi
+  language: Go
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res('data.projects'): length 1
+  res('data.total_seconds'): gt 0
+  res('data.branches'): length 1
+}

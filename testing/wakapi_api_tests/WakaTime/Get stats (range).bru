@@ -1,0 +1,16 @@
+meta {
+  name: Get stats (range)
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/writeuser/stats/last_7_days
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res('data.projects'): length 1
+}

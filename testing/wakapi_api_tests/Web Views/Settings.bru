@@ -1,0 +1,15 @@
+meta {
+  name: Settings
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_URL}}/settings
+  body: none
+  auth: none
+}
+
+assert {
+  res.body: contains </html>
+}

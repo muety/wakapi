@@ -1,0 +1,15 @@
+meta {
+  name: Get projects (unauthenticated)
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{BASE_URL}}/api/compat/wakatime/v1/users/writeuser/projects
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

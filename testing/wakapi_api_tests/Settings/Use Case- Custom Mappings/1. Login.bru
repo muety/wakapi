@@ -1,0 +1,21 @@
+meta {
+  name: 1. Login
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BASE_URL}}/login
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  username: writeuser
+  password: {{WRITEUSER_PASSWORD}}
+}
+
+assert {
+  res.status: eq 200
+  res.body: contains Total Time
+}

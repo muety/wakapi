@@ -1,0 +1,21 @@
+meta {
+  name: 4. Remove custom mapping
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{BASE_URL}}/settings
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  action: delete_mapping
+  mapping_id: 0
+}
+
+assert {
+  res.status: eq 200
+  res.body: contains Mapping deleted successfully
+}

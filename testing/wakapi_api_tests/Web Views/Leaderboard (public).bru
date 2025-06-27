@@ -1,0 +1,15 @@
+meta {
+  name: Leaderboard (public)
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{BASE_URL}}/leaderboard
+  body: none
+  auth: none
+}
+
+assert {
+  res.body: contains </html>
+}

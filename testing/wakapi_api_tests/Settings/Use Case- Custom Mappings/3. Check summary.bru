@@ -1,0 +1,36 @@
+meta {
+  name: 3. Check summary
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=today
+  body: none
+  auth: bearer
+}
+
+params:query {
+  interval: today
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res('languages'): length 1
+}
+
+script:pre-request {
+  // Wait for changes from the 2nd step to be applied.
+  setTimeout(() => {}, 1000)
+}
+
+tests {
+  test("Correct language", function () {
+      expect(res.body.languages[0].key).to.eql('Gogo');
+  });
+  
+}

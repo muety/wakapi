@@ -1,0 +1,19 @@
+meta {
+  name: Get summary (unauthenticated)
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=today
+  body: none
+  auth: none
+}
+
+params:query {
+  interval: today
+}
+
+assert {
+  res.status: eq 401
+}

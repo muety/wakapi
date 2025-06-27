@@ -1,0 +1,29 @@
+meta {
+  name: Get summary (week)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?start=week
+  body: none
+  auth: bearer
+}
+
+params:query {
+  start: week
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res('user_id'): eq writeuser
+  res('projects'): length 1
+  res('languages'): length 1
+  res('editors'): length 1
+  res('operating_systems'): length 1
+  res('machines'): length 1
+}
