@@ -9,7 +9,8 @@ import (
 	"time"
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
-	conf "github.com/muety/wakapi/config"
+	"github.com/duke-git/lancet/v2/slice"
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -100,7 +101,7 @@ func (a *APIv1) actionSetWakatimeApiKey(wakatimeSettings *SettingsPayload, user 
 	}
 
 	if _, err := a.services.Users().SetWakatimeApiCredentials(user, wakatimeSettings.ApiKey, wakatimeSettings.ApiUrl); err != nil {
-		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
+		return actionResult{http.StatusInternalServerError, "", config.ErrInternalServerError, nil}
 	}
 
 	return actionResult{http.StatusOK, "Wakatime API key set", "", nil}
@@ -112,7 +113,7 @@ func (a *APIv1) respondWithError(w http.ResponseWriter, r *http.Request, code in
 
 func (a *APIv1) validateWakatimeKey(apiKey string, baseUrl string) bool {
 	if baseUrl == "" {
-		baseUrl = conf.WakatimeApiUrl
+		baseUrl = config.WakatimeApiUrl
 	}
 
 	headers := http.Header{
@@ -124,7 +125,7 @@ func (a *APIv1) validateWakatimeKey(apiKey string, baseUrl string) bool {
 
 	request, err := http.NewRequest(
 		http.MethodGet,
-		baseUrl+conf.WakatimeApiUserUrl,
+		baseUrl+config.WakatimeApiUserUrl,
 		nil,
 	)
 	if err != nil {
@@ -145,7 +146,7 @@ func (a *APIv1) RegenerateSummaries(w http.ResponseWriter, r *http.Request) {
 
 	go func(user *models.User, r *http.Request) {
 		if err := a.regenerateSummaries(user); err != nil {
-			conf.Log().Request(r).Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
+			config.Log().Request(r).Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
 		}
 	}(user, r)
 
@@ -158,14 +159,39 @@ func (a *APIv1) regenerateSummaries(user *models.User) error {
 	slog.Info("clearing summaries and durations for user", "userID", user.ID)
 
 	if err := a.services.Summary().DeleteByUser(user.ID); err != nil {
-		conf.Log().Error("failed to clear summaries", "error", err)
+		config.Log().Error("failed to clear summaries", "error", err)
 		return err
 	}
 
 	if err := a.services.Aggregation().AggregateSummaries(datastructure.New(user.ID)); err != nil { // involves regenerating durations as well
-		conf.Log().Error("failed to regenerate summaries", "error", err)
+		config.Log().Error("failed to regenerate summaries", "error", err)
 		return err
 	}
 
 	return nil
+}
+
+func (a *APIv1) RegenerateAllUserSummaries() {
+	users, err := a.services.Users().GetAllByReports(true)
+	if err != nil {
+		config.Log().Error("failed to get users for report generation", "error", err)
+		return
+	}
+
+	// filter users who have their email set
+	users = slice.Filter(users, func(i int, u *models.User) bool {
+		return u.Email != ""
+	})
+
+	// schedule jobs, throttled by one job per x seconds
+	slog.Info("regenerating summaries", "userCount", len(users))
+	for _, u := range users {
+		go func(user *models.User) {
+			if err := a.regenerateSummaries(user); err != nil {
+				config.Log().Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
+			} else {
+				slog.Info("successfully regenerated summaries for user", "userID", user.ID)
+			}
+		}(u)
+	}
 }
