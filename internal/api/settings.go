@@ -172,7 +172,7 @@ func (a *APIv1) regenerateSummaries(user *models.User) error {
 }
 
 func (a *APIv1) RegenerateAllUserSummaries() {
-	users, err := a.services.Users().GetAllByReports(true)
+	users, err := a.services.Users().GetAll()
 	if err != nil {
 		config.Log().Error("failed to get users for report generation", "error", err)
 		return
@@ -185,13 +185,11 @@ func (a *APIv1) RegenerateAllUserSummaries() {
 
 	// schedule jobs, throttled by one job per x seconds
 	slog.Info("regenerating summaries", "userCount", len(users))
-	for _, u := range users {
-		go func(user *models.User) {
-			if err := a.regenerateSummaries(user); err != nil {
-				config.Log().Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
-			} else {
-				slog.Info("successfully regenerated summaries for user", "userID", user.ID)
-			}
-		}(u)
+	for _, user := range users {
+		if err := a.regenerateSummaries(user); err != nil {
+			config.Log().Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
+		} else {
+			slog.Info("successfully regenerated summaries for user", "userID", user.ID)
+		}
 	}
 }
