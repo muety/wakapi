@@ -516,6 +516,9 @@ func Load(configFlag string, version string) *Config {
 	config.InstanceId = uuid.Must(uuid.NewV4()).String()
 	config.App.Colors = readColors()
 	config.Db.Dialect = resolveDbDialect(config.Db.Type)
+	if config.Db.Type == "cockroach" {
+		slog.Warn("cockroach is not officially supported, it is strongly recommended to migrate to postgres instead")
+	}
 
 	hashKey := securecookie.GenerateRandomKey(64)
 	blockKey := securecookie.GenerateRandomKey(32)
