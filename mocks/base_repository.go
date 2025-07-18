@@ -22,3 +22,6 @@ func (m *BaseRepositoryMock) GetTableDDLSqlite(s string) (string, error) {
 	args := m.Called(s)
 	return args.Get(0).(string), args.Error(1)
 }
+
+func (m *BaseRepositoryMock) VacuumOrOptimize() {
+}

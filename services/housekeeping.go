@@ -5,6 +5,7 @@ import (
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"log/slog"
 	"time"
@@ -15,16 +16,18 @@ type HousekeepingService struct {
 	userSrvc      IUserService
 	heartbeatSrvc IHeartbeatService
 	summarySrvc   ISummaryService
+	baseRepo      repositories.IBaseRepository
 	queueDefault  *artifex.Dispatcher
 	queueWorkers  *artifex.Dispatcher
 }
 
-func NewHousekeepingService(userService IUserService, heartbeatService IHeartbeatService, summaryService ISummaryService) *HousekeepingService {
+func NewHousekeepingService(userService IUserService, heartbeatService IHeartbeatService, summaryService ISummaryService, baseRepository repositories.IBaseRepository) *HousekeepingService {
 	return &HousekeepingService{
 		config:        config.Get(),
 		userSrvc:      userService,
 		heartbeatSrvc: heartbeatService,
 		summarySrvc:   summaryService,
+		baseRepo:      baseRepository,
 		queueDefault:  config.GetDefaultQueue(),
 		queueWorkers:  config.GetQueue(config.QueueHousekeeping),
 	}
@@ -33,6 +36,7 @@ func NewHousekeepingService(userService IUserService, heartbeatService IHeartbea
 func (s *HousekeepingService) Schedule() {
 	s.scheduleDataCleanups()
 	s.scheduleInactiveUsersCleanup()
+	s.scheduleVacuumOrOptimizeDatabase()
 	if s.config.App.WarmCaches {
 		s.scheduleProjectStatsCacheWarming()
 	}
@@ -160,6 +164,10 @@ func (s *HousekeepingService) runCleanInactiveUsers() {
 	})
 }
 
+func (s *HousekeepingService) runVacuumOrOptimizeDatabase() {
+	s.baseRepo.VacuumOrOptimize()
+}
+
 // individual scheduling functions
 
 func (s *HousekeepingService) scheduleDataCleanups() {
@@ -201,5 +209,13 @@ func (s *HousekeepingService) scheduleProjectStatsCacheWarming() {
 		if err := s.queueDefault.DispatchIn(s.runWarmProjectStatsCache, 1*time.Minute); err != nil {
 			config.Log().Error("failed to dispatch pre-warming project stats cache", "error", err)
 		}
+	}
+}
+
+func (s *HousekeepingService) scheduleVacuumOrOptimizeDatabase() {
+	slog.Info("scheduling database vacuuming or optimization")
+	_, err := s.queueDefault.DispatchCron(s.runVacuumOrOptimizeDatabase, s.config.App.OptimizeDatabaseTime)
+	if err != nil {
+		config.Log().Error("failed to dispatch database vacuuming / optimization", "error", err)
 	}
 }

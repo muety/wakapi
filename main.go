@@ -188,7 +188,7 @@ func main() {
 	reportService = services.NewReportService(summaryService, userService, mailService)
 	activityService = services.NewActivityService(summaryService)
 	diagnosticsService = services.NewDiagnosticsService(diagnosticsRepository)
-	housekeepingService = services.NewHousekeepingService(userService, heartbeatService, summaryService)
+	housekeepingService = services.NewHousekeepingService(userService, heartbeatService, summaryService, aliasRepository) // can pass any repo here
 	miscService = services.NewMiscService(userService, heartbeatService, summaryService, keyValueService, mailService)
 
 	if config.App.LeaderboardEnabled {

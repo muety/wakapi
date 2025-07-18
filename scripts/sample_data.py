@@ -217,6 +217,7 @@ def make_gui(callback: Callable[[ConfigParams, Callable[[int], None]], None]) ->
         dlg.setWindowTitle('Error')
         dlg.setText(e)
         btn = dlg.exec()
+        start_button.setEnabled(True)
 
     def call_back():
         params = parse_params()

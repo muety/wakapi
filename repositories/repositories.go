@@ -9,6 +9,7 @@ type IBaseRepository interface {
 	GetDialector() string
 	GetTableDDLMysql(string) (string, error)
 	GetTableDDLSqlite(string) (string, error)
+	VacuumOrOptimize()
 }
 
 type IAliasRepository interface {

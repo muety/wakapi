@@ -89,6 +89,7 @@ type appConfig struct {
 	AggregationTime           string                       `yaml:"aggregation_time" default:"0 15 2 * * *" env:"WAKAPI_AGGREGATION_TIME"`
 	ReportTimeWeekly          string                       `yaml:"report_time_weekly" default:"0 0 18 * * 5" env:"WAKAPI_REPORT_TIME_WEEKLY"`
 	DataCleanupTime           string                       `yaml:"data_cleanup_time" default:"0 0 6 * * 0" env:"WAKAPI_DATA_CLEANUP_TIME"`
+	OptimizeDatabaseTime      string                       `yaml:"optimize_database_time" default:"0 0 8 1 * *" env:"WAKAPI_OPTIMIZE_DATABASE_TIME"`
 	ImportEnabled             bool                         `yaml:"import_enabled" default:"true" env:"WAKAPI_IMPORT_ENABLED"`
 	ImportBackoffMin          int                          `yaml:"import_backoff_min" default:"5" env:"WAKAPI_IMPORT_BACKOFF_MIN"`
 	ImportMaxRate             int                          `yaml:"import_max_rate" default:"24" env:"WAKAPI_IMPORT_MAX_RATE"` // at max one successful import every x hours

@@ -15,6 +15,7 @@ type HousekeepingServiceTestSuite struct {
 	UserService      *mocks.UserServiceMock
 	HeartbeatService *mocks.HeartbeatServiceMock
 	SummaryService   *mocks.SummaryServiceMock
+	BaseRepository   *mocks.BaseRepositoryMock
 }
 
 func (suite *HousekeepingServiceTestSuite) SetupSuite() {
@@ -29,6 +30,7 @@ func (suite *HousekeepingServiceTestSuite) BeforeTest(suiteName, testName string
 	suite.UserService = new(mocks.UserServiceMock)
 	suite.HeartbeatService = new(mocks.HeartbeatServiceMock)
 	suite.SummaryService = new(mocks.SummaryServiceMock)
+	suite.BaseRepository = new(mocks.BaseRepositoryMock)
 }
 
 func TestHouseKeepingServiceTestSuite(t *testing.T) {
@@ -36,7 +38,7 @@ func TestHouseKeepingServiceTestSuite(t *testing.T) {
 }
 
 func (suite *HousekeepingServiceTestSuite) TestHousekeepingService_CleanInactiveUsers() {
-	sut := NewHousekeepingService(suite.UserService, suite.HeartbeatService, suite.SummaryService)
+	sut := NewHousekeepingService(suite.UserService, suite.HeartbeatService, suite.SummaryService, suite.BaseRepository)
 
 	suite.UserService.On("GetAll").Return(suite.TestUsers, nil)
 	suite.UserService.On("Delete", suite.TestUsers[0]).Return(nil)
