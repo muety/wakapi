@@ -146,6 +146,7 @@ type dbConfig struct {
 	DSN                     string `yaml:"DSN" default:"" env:"WAKAPI_DB_DSN"`
 	MaxConn                 uint   `yaml:"max_conn" default:"10" env:"WAKAPI_DB_MAX_CONNECTIONS"`
 	Ssl                     bool   `default:"false" env:"WAKAPI_DB_SSL"`
+	MysqlOptimize           bool   `default:"false" env:"WAKAPI_MYSQL_OPTIMIZE"` // apparently not recommended, because usually has very little effect but takes forever and partially locks the table
 	AutoMigrateFailSilently bool   `yaml:"automigrate_fail_silently" default:"false" env:"WAKAPI_DB_AUTOMIGRATE_FAIL_SILENTLY"`
 }
 

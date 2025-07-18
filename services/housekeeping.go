@@ -36,9 +36,11 @@ func NewHousekeepingService(userService IUserService, heartbeatService IHeartbea
 func (s *HousekeepingService) Schedule() {
 	s.scheduleDataCleanups()
 	s.scheduleInactiveUsersCleanup()
-	s.scheduleVacuumOrOptimizeDatabase()
 	if s.config.App.WarmCaches {
 		s.scheduleProjectStatsCacheWarming()
+	}
+	if !s.config.Db.IsMySQL() || s.config.Db.MysqlOptimize {
+		s.scheduleVacuumOrOptimizeDatabase()
 	}
 }
 
