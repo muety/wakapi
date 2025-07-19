@@ -571,3 +571,50 @@ func assertNumAllItems(t *testing.T, expected int, summary *models.Summary, exce
 		assert.Len(t, summary.Machines, expected)
 	}
 }
+
+func (suite *SummaryServiceTestSuite) TestSummaryService_RetrieveWithAliases() {
+	from, to := suite.TestStartTime, suite.TestStartTime.Add(24*time.Hour)
+
+	sut := NewTestSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+
+	// Retrieve with aliases should behave identically to Aliased with Retrieve function
+	suite.SummaryRepository.On("GetByUserWithin", suite.TestUser, from, to).Return([]*models.Summary{}, nil)
+	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything).Return(filterDurations(from, to, suite.TestDurations), nil)
+	suite.AliasService.On("IsInitialized").Return(true)
+	suite.AliasService.On("InitializeUser", TestUserId).Return(nil)
+	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, TestProject1).Return(TestProject2, nil)
+	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, TestProject2).Return(TestProject2, nil)
+	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, mock.Anything).Return("", nil)
+	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return(suite.TestLabels, nil).Once()
+
+	result, err := sut.RetrieveWithAliases(from, to, suite.TestUser, nil, false)
+
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), result)
+	assert.Zero(suite.T(), result.TotalTimeByKey(models.SummaryProject, TestProject1))
+	assert.NotZero(suite.T(), result.TotalTimeByKey(models.SummaryProject, TestProject2))
+	assert.Equal(suite.T(), 6, result.NumHeartbeats)
+}
+
+func (suite *SummaryServiceTestSuite) TestSummaryService_SummarizeWithAliases() {
+	from, to := suite.TestStartTime, suite.TestStartTime.Add(24*time.Hour)
+
+	sut := NewTestSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+
+	// Summarize with aliases should behave identically to Aliased with Summarize function
+	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything).Return(filterDurations(from, to, suite.TestDurations), nil)
+	suite.AliasService.On("IsInitialized").Return(true)
+	suite.AliasService.On("InitializeUser", TestUserId).Return(nil)
+	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, TestProject1).Return(TestProject2, nil)
+	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, TestProject2).Return(TestProject2, nil)
+	suite.AliasService.On("GetAliasOrDefault", TestUserId, mock.Anything, mock.Anything).Return("", nil)
+	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return(suite.TestLabels, nil).Once()
+
+	result, err := sut.SummarizeWithAliases(from, to, suite.TestUser, nil, false)
+
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), result)
+	assert.Zero(suite.T(), result.TotalTimeByKey(models.SummaryProject, TestProject1))
+	assert.NotZero(suite.T(), result.TotalTimeByKey(models.SummaryProject, TestProject2))
+	assert.Equal(suite.T(), 6, result.NumHeartbeats)
+}

@@ -235,7 +235,7 @@ func (srv *LeaderboardService) GenerateByUser(user *models.User, interval *model
 		return nil, err
 	}
 
-	summary, err := srv.summaryService.Aliased(from, to, user, srv.summaryService.Retrieve, nil, false)
+	summary, err := srv.summaryService.RetrieveWithAliases(from, to, user, nil, false)
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +256,7 @@ func (srv *LeaderboardService) GenerateAggregatedByUser(user *models.User, inter
 		return nil, err
 	}
 
-	summary, err := srv.summaryService.Aliased(from, to, user, srv.summaryService.Retrieve, nil, false)
+	summary, err := srv.summaryService.RetrieveWithAliases(from, to, user, nil, false)
 	if err != nil {
 		return nil, err
 	}

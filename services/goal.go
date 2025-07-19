@@ -116,7 +116,7 @@ func (srv *GoalService) LoadGoalChartData(goal *models.Goal, user *models.User, 
 
 	chartData := make([]*models.GoalChartData, len(intervals))
 	for i, interval := range intervals {
-		summary, err := summarySrvc.Aliased(interval[0], interval[1], user, summarySrvc.Retrieve, filters, end.After(time.Now()))
+		summary, err := summarySrvc.RetrieveWithAliases(interval[0], interval[1], user, filters, end.After(time.Now()))
 		if err != nil {
 			return nil, err
 		}

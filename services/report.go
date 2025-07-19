@@ -154,7 +154,7 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 	end := datetime.EndOfDay(time.Now().Add(-24 * time.Hour).In(user.TZ()))
 	start := end.Add(-1 * duration).Add(1 * time.Second)
 
-	fullSummary, err := srv.summaryService.Aliased(start, end, user, srv.summaryService.Retrieve, nil, false)
+	fullSummary, err := srv.summaryService.RetrieveWithAliases(start, end, user, nil, false)
 	if err != nil {
 		config.Log().Error("failed to generate report", "userID", user.ID, "error", err)
 		return err
@@ -166,7 +166,7 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 
 	for i, interval := range dayIntervals {
 		from, to := datetime.BeginOfDay(interval[0]), interval[1]
-		summary, err := srv.summaryService.Aliased(from, to, user, srv.summaryService.Retrieve, nil, false)
+		summary, err := srv.summaryService.RetrieveWithAliases(from, to, user, nil, false)
 		if err != nil {
 			config.Log().Error("failed to generate day summary for report", "from", from, "to", to, "userID", user.ID, "error", err)
 			break

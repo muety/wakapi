@@ -17,6 +17,16 @@ func (m *SummaryServiceMock) Aliased(t time.Time, t2 time.Time, u *models.User, 
 	return args.Get(0).(*models.Summary), args.Error(1)
 }
 
+func (m *SummaryServiceMock) RetrieveWithAliases(t time.Time, t2 time.Time, u *models.User, f *models.Filters, b bool) (*models.Summary, error) {
+	args := m.Called(t, t2, u, f, b)
+	return args.Get(0).(*models.Summary), args.Error(1)
+}
+
+func (m *SummaryServiceMock) SummarizeWithAliases(t time.Time, t2 time.Time, u *models.User, f *models.Filters, b bool) (*models.Summary, error) {
+	args := m.Called(t, t2, u, f, b)
+	return args.Get(0).(*models.Summary), args.Error(1)
+}
+
 func (m *SummaryServiceMock) Retrieve(t time.Time, t2 time.Time, u *models.User, f *models.Filters) (*models.Summary, error) {
 	args := m.Called(t, t2, u, f)
 	return args.Get(0).(*models.Summary), args.Error(1)

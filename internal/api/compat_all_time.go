@@ -8,7 +8,6 @@ import (
 	"github.com/muety/wakapi/internal/utilities"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
-	"github.com/muety/wakapi/models/types"
 )
 
 // type AllTimeHandler struct {
@@ -66,19 +65,14 @@ func (a *APIv1) GetAllTime(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *APIv1) loadUserSummary(summaryParams *models.SummaryParams, filters *models.Filters) (*models.Summary, error, int) {
-	var retrieveSummary types.SummaryRetriever = a.services.Summary().Retrieve
-	if summaryParams.Recompute {
-		retrieveSummary = a.services.Summary().Summarize
-	}
+	var summary *models.Summary
+	var err error
 
-	summary, err := a.services.Summary().Aliased(
-		summaryParams.From,
-		summaryParams.To,
-		summaryParams.User,
-		retrieveSummary,
-		filters,
-		summaryParams.Recompute,
-	)
+	if summaryParams.Recompute {
+		summary, err = a.services.Summary().SummarizeWithAliases(summaryParams.From, summaryParams.To, summaryParams.User, filters, summaryParams.Recompute)
+	} else {
+		summary, err = a.services.Summary().RetrieveWithAliases(summaryParams.From, summaryParams.To, summaryParams.User, filters, summaryParams.Recompute)
+	}
 	if err != nil {
 		return nil, err, http.StatusInternalServerError
 	}

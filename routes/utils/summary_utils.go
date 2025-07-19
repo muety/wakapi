@@ -3,7 +3,6 @@ package utils
 import (
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
-	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/services"
 	"net/http"
 	"strings"
@@ -18,19 +17,14 @@ func LoadUserSummary(ss services.ISummaryService, r *http.Request) (*models.Summ
 }
 
 func LoadUserSummaryByParams(ss services.ISummaryService, params *models.SummaryParams) (*models.Summary, error, int) {
-	var retrieveSummary types.SummaryRetriever = ss.Retrieve
-	if params.Recompute {
-		retrieveSummary = ss.Summarize
-	}
+	var summary *models.Summary
+	var err error
 
-	summary, err := ss.Aliased(
-		params.From,
-		params.To,
-		params.User,
-		retrieveSummary,
-		params.Filters,
-		params.Recompute,
-	)
+	if params.Recompute {
+		summary, err = ss.SummarizeWithAliases(params.From, params.To, params.User, params.Filters, params.Recompute)
+	} else {
+		summary, err = ss.RetrieveWithAliases(params.From, params.To, params.User, params.Filters, params.Recompute)
+	}
 	if err != nil {
 		return nil, err, http.StatusInternalServerError
 	}

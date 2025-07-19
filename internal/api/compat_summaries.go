@@ -141,7 +141,7 @@ func (a *APIv1) loadUserSummaries(r *http.Request, user *models.User) ([]*models
 	filters := helpers.ParseSummaryFilters(r)
 
 	for i, interval := range intervals {
-		summary, err := a.services.Summary().Aliased(interval[0], interval[1], user, a.services.Summary().Retrieve, filters, end.After(time.Now()))
+		summary, err := a.services.Summary().RetrieveWithAliases(interval[0], interval[1], user, filters, end.After(time.Now()))
 		if err != nil {
 			return nil, http.StatusInternalServerError, err
 		}
@@ -151,5 +151,5 @@ func (a *APIv1) loadUserSummaries(r *http.Request, user *models.User) ([]*models
 		summaries[i] = summary
 	}
 
-	return summaries, http.StatusOK, nil
+	return summaries, http.StatusOK, err
 }

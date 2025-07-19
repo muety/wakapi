@@ -251,6 +251,16 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filt
 	return summary.Sorted(), nil
 }
 
+// RetrieveWithAliases is a simplified version of Aliased that uses the Retrieve method internally
+func (srv *SummaryService) RetrieveWithAliases(from, to time.Time, user *models.User, filters *models.Filters, skipCache bool) (*models.Summary, error) {
+	return srv.Aliased(from, to, user, srv.Retrieve, filters, skipCache)
+}
+
+// SummarizeWithAliases is a simplified version of Aliased that uses the Summarize method internally
+func (srv *SummaryService) SummarizeWithAliases(from, to time.Time, user *models.User, filters *models.Filters, skipCache bool) (*models.Summary, error) {
+	return srv.Aliased(from, to, user, srv.Summarize, filters, skipCache)
+}
+
 // CRUD methods
 
 func (srv *SummaryService) GetLatestByUser() ([]*models.TimeByUser, error) {

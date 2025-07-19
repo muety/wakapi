@@ -93,7 +93,7 @@ func (srv *ClientService) FetchClientInvoiceLineItems(client *models.Client, use
 	}
 
 	filters := client.GetSummaryFilters()
-	summary, err := summarySrvc.Aliased(start, end, user, summarySrvc.Retrieve, filters, end.After(time.Now()))
+	summary, err := summarySrvc.RetrieveWithAliases(start, end, user, filters, end.After(time.Now()))
 
 	if err != nil {
 		return nil, err

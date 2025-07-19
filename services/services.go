@@ -88,6 +88,8 @@ type IDurationService interface {
 
 type ISummaryService interface {
 	Aliased(time.Time, time.Time, *models.User, types.SummaryRetriever, *models.Filters, bool) (*models.Summary, error)
+	RetrieveWithAliases(time.Time, time.Time, *models.User, *models.Filters, bool) (*models.Summary, error)
+	SummarizeWithAliases(time.Time, time.Time, *models.User, *models.Filters, bool) (*models.Summary, error)
 	Retrieve(time.Time, time.Time, *models.User, *models.Filters) (*models.Summary, error)
 	Summarize(time.Time, time.Time, *models.User, *models.Filters) (*models.Summary, error)
 	GetLatestByUser() ([]*models.TimeByUser, error)
