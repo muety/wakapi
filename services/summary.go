@@ -178,7 +178,7 @@ func (srv *SummaryService) RetrieveFromStorage(request *summarytypes.SummaryRequ
 // ComputeFromDurations computes fresh summaries from duration data
 func (srv *SummaryService) ComputeFromDurations(request *summarytypes.SummaryRequest) (*models.Summary, error) {
 	// Initialize and fetch data
-	durations, err := srv.durationService.Get(request.From, request.To, request.User, request.Filters, "")
+	durations, err := srv.durationService.Get(request.From, request.To, request.User, request.Filters, "project")
 	if err != nil {
 		return nil, err
 	}
