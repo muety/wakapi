@@ -1,10 +1,17 @@
 package utils
 
 import (
-	"github.com/duke-git/lancet/v2/datetime"
 	"strings"
 	"time"
+
+	"github.com/duke-git/lancet/v2/datetime"
 )
+
+// Interval represents a time range with start and end times
+type Interval struct {
+	Start time.Time
+	End   time.Time
+}
 
 func MustParseTime(layout, value string) time.Time {
 	t, _ := time.Parse(layout, value)
@@ -37,15 +44,15 @@ func CeilDate(date time.Time) time.Time {
 }
 
 // SplitRangeByDays creates a slice of intervals between from and to, each of which is at max of 24 hours length and has its split at midnight
-func SplitRangeByDays(from time.Time, to time.Time) [][]time.Time {
-	intervals := make([][]time.Time, 0)
+func SplitRangeByDays(from time.Time, to time.Time) []*Interval {
+	intervals := make([]*Interval, 0)
 
 	for t1 := from; t1.Before(to); {
 		t2 := datetime.BeginOfDay(t1).AddDate(0, 0, 1)
 		if t2.After(to) {
 			t2 = to
 		}
-		intervals = append(intervals, []time.Time{t1, t2})
+		intervals = append(intervals, &Interval{Start: t1, End: t2})
 		t1 = t2
 	}
 

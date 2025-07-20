@@ -8,6 +8,7 @@ import (
 	"github.com/muety/wakapi/internal/utilities"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
+	summarytypes "github.com/muety/wakapi/types"
 )
 
 // type AllTimeHandler struct {
@@ -68,10 +69,20 @@ func (a *APIv1) loadUserSummary(summaryParams *models.SummaryParams, filters *mo
 	var summary *models.Summary
 	var err error
 
+	request := summarytypes.NewSummaryRequest(summaryParams.From, summaryParams.To, summaryParams.User).WithFilters(filters)
 	if summaryParams.Recompute {
-		summary, err = a.services.Summary().SummarizeWithAliases(summaryParams.From, summaryParams.To, summaryParams.User, filters, summaryParams.Recompute)
+		request = request.WithoutCache()
+	}
+	options := summarytypes.DefaultProcessingOptions()
+	
+	if summaryParams.Recompute {
+		summary, err = a.services.Summary().ComputeFromDurations(request)
+		if err == nil {
+			// Apply aliases and project labels manually for computed summaries
+			summary, err = a.services.Summary().Generate(request, options)
+		}
 	} else {
-		summary, err = a.services.Summary().RetrieveWithAliases(summaryParams.From, summaryParams.To, summaryParams.User, filters, summaryParams.Recompute)
+		summary, err = a.services.Summary().Generate(request, options)
 	}
 	if err != nil {
 		return nil, err, http.StatusInternalServerError

@@ -730,7 +730,9 @@ export const COLORS: ColorCategoryRecord = {
     running_tests: "#ec5756",
     translating: "#5a42cf",
     writing_docs: "#36e3ff",
+    "writing docs": "#36e3ff",
     writing_tests: "#3cec76",
+    "ai coding": "#4a4ffe",
   },
 };
 

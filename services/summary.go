@@ -14,8 +14,8 @@ import (
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
-	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/repositories"
+	summarytypes "github.com/muety/wakapi/types"
 	"github.com/patrickmn/go-cache"
 	"gorm.io/gorm"
 )
@@ -83,62 +83,60 @@ func NewTestSummaryService(summaryRepo repositories.ISummaryRepository, heartbea
 
 // Public summary generation methods
 
-// Aliased retrieves or computes a new summary based on the given SummaryRetriever and augments it with entity aliases and project labels
-func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f types.SummaryRetriever, filters *models.Filters, skipCache bool) (*models.Summary, error) {
-	// Check cache (or skip for sub second-level date precision)
-	cacheKey := srv.getHash(from.String(), to.String(), user.ID, filters.Hash(), "--aliased")
-	if to.Truncate(time.Second).Equal(to) && from.Truncate(time.Second).Equal(from) {
-		if cacheResult, ok := srv.cache.Get(cacheKey); ok && !skipCache {
-			return cacheResult.(*models.Summary), nil
+// Generate is the main method that tells the complete story of summary generation
+func (srv *SummaryService) Generate(request *summarytypes.SummaryRequest, options *summarytypes.ProcessingOptions) (*models.Summary, error) {
+	// Step 1: Validate the request
+	if err := request.Validate(); err != nil {
+		return nil, err
+	}
+
+	// Step 2: Try to retrieve existing summaries
+	summary, err := srv.RetrieveFromStorage(request)
+	if err != nil || srv.needsComputation(summary, request) {
+		// Step 3: Compute missing parts
+		computed, err := srv.ComputeFromDurations(request)
+		if err != nil {
+			return nil, err
 		}
+		summary = srv.mergeSummaryWithComputed(summary, computed)
 	}
 
-	// Resolver functions
-	resolveAliases := srv.getAliasResolver(user)
-	resolveAliasesReverse := srv.getAliasReverseResolver(user)
-	resolveProjectLabelsReverse := srv.getProjectLabelsReverseResolver(user)
-
-	// Post-process filters
-	if filters != nil {
-		filters = filters.WithAliases(resolveAliasesReverse)
-		filters = filters.WithProjectLabels(resolveProjectLabelsReverse)
+	// Step 4: Apply enhancements based on options
+	if options.ApplyAliases || options.ApplyProjectLabels {
+		summary = srv.applyEnhancements(summary, request.User, options)
 	}
 
-	// Initialize alias resolver service
-	if err := srv.aliasService.InitializeUser(user.ID); err != nil {
-		return nil, err
+	// Step 5: Cache if needed
+	if options.UseCache && !request.SkipCache {
+		srv.cacheResult(summary, request)
 	}
 
-	// Get actual summary
-	s, err := f(from, to, user, filters)
-	if err != nil {
-		return nil, err
-	}
-
-	// Post-process summary and cache it
-	summary := s.WithResolvedAliases(resolveAliases)
-	summary = srv.withProjectLabels(summary)
-	summary.FillBy(models.SummaryProject, models.SummaryLabel) // first fill up labels from projects
-	summary.FillMissing()                                      // then, full up types which are entirely missing
-
-	if withDetails := filters != nil && filters.IsProjectDetails(); !withDetails {
-		summary.Branches = nil
-		summary.Entities = nil
-	}
-
-	srv.cache.SetDefault(cacheKey, summary)
-	return summary.Sorted(), nil
+	return summary, nil
 }
 
-func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filters *models.Filters) (*models.Summary, error) {
+// QuickSummary provides a simple way to get a summary with default settings
+func (srv *SummaryService) QuickSummary(from, to time.Time, user *models.User) (*models.Summary, error) {
+	request := summarytypes.NewSummaryRequest(from, to, user)
+	options := summarytypes.DefaultProcessingOptions()
+	return srv.Generate(request, options)
+}
+
+// DetailedSummary provides a detailed summary with full processing
+func (srv *SummaryService) DetailedSummary(request *summarytypes.SummaryRequest) (*models.Summary, error) {
+	options := summarytypes.DefaultProcessingOptions()
+	return srv.Generate(request, options)
+}
+
+// RetrieveFromStorage gets summaries from the database
+func (srv *SummaryService) RetrieveFromStorage(request *summarytypes.SummaryRequest) (*models.Summary, error) {
 	summaries := make([]*models.Summary, 0)
 
 	// Filtered summaries are not persisted currently
 	// Special case: if (a) filters apply to only one entity type and (b) we're only interested in the summary items of that particular entity type,
 	// we can still fetch the persisted summary and drop all irrelevant parts from it
-	if filters == nil || filters.IsEmpty() || (filters.CountDistinctTypes() == 1 && filters.SelectFilteredOnly) {
+	if request.Filters == nil || request.Filters.IsEmpty() || (request.Filters.CountDistinctTypes() == 1 && request.Filters.SelectFilteredOnly) {
 		// Get all already existing, pre-generated summaries that fall into the requested interval
-		result, err := srv.repository.GetByUserWithin(user, from, to)
+		result, err := srv.repository.GetByUserWithin(request.User, request.From, request.To)
 		if err == nil {
 			summaries = result
 		} else {
@@ -147,9 +145,9 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 	}
 
 	// Generate missing slots (especially before and after existing summaries) from durations (formerly raw heartbeats)
-	missingIntervals := srv.getMissingIntervals(from, to, summaries, false)
+	missingIntervals := srv.getMissingIntervals(request.From, request.To, summaries, false)
 	for _, interval := range missingIntervals {
-		if s, err := srv.Summarize(interval.Start, interval.End, user, filters); err == nil {
+		if s, err := srv.ComputeFromDurations(summarytypes.NewSummaryRequest(interval.Start, interval.End, request.User).WithFilters(request.Filters)); err == nil {
 			if len(missingIntervals) > 2 && s.FromTime.T().Equal(s.ToTime.T()) {
 				// little hack here: GetAllWithin will query for >= from_date
 				// however, for "in-between" / intra-day missing intervals, we want strictly > from_date to prevent double-counting
@@ -169,23 +167,24 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 		return nil, err
 	}
 
-	if filters != nil && filters.CountDistinctTypes() == 1 && filters.SelectFilteredOnly {
-		filter := filters.OneOrEmpty()
+	if request.Filters != nil && request.Filters.CountDistinctTypes() == 1 && request.Filters.SelectFilteredOnly {
+		filter := request.Filters.OneOrEmpty()
 		summary.KeepOnly(map[uint8]bool{filter.Entity: true}).ApplyFilter(filter)
 	}
 
 	return summary.Sorted(), nil
 }
 
-func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filters *models.Filters) (*models.Summary, error) {
+// ComputeFromDurations computes fresh summaries from duration data
+func (srv *SummaryService) ComputeFromDurations(request *summarytypes.SummaryRequest) (*models.Summary, error) {
 	// Initialize and fetch data
-	durations, err := srv.durationService.Get(from, to, user, filters, "")
+	durations, err := srv.durationService.Get(request.From, request.To, request.User, request.Filters, "")
 	if err != nil {
 		return nil, err
 	}
 
 	types := models.PersistedSummaryTypes()
-	if filters != nil && filters.IsProjectDetails() {
+	if request.Filters != nil && request.Filters.IsProjectDetails() {
 		types = append(types, models.SummaryBranch)
 		types = append(types, models.SummaryEntity)
 	}
@@ -228,13 +227,15 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filt
 		}
 	}
 
+	from := request.From
+	to := request.To
 	if durations.Len() > 0 {
 		from = time.Time(durations.First().Time)
 		to = time.Time(durations.Last().Time)
 	}
 
 	summary := &models.Summary{
-		UserID:           user.ID,
+		UserID:           request.User.ID,
 		FromTime:         models.CustomTime(from),
 		ToTime:           models.CustomTime(to),
 		Projects:         projectItems,
@@ -251,14 +252,56 @@ func (srv *SummaryService) Summarize(from, to time.Time, user *models.User, filt
 	return summary.Sorted(), nil
 }
 
-// RetrieveWithAliases is a simplified version of Aliased that uses the Retrieve method internally
-func (srv *SummaryService) RetrieveWithAliases(from, to time.Time, user *models.User, filters *models.Filters, skipCache bool) (*models.Summary, error) {
-	return srv.Aliased(from, to, user, srv.Retrieve, filters, skipCache)
+// Helper methods for the Generate method
+
+func (srv *SummaryService) needsComputation(summary *models.Summary, request *summarytypes.SummaryRequest) bool {
+	// If we have no summary, we definitely need computation
+	if summary == nil {
+		return true
+	}
+
+	// If the summary doesn't cover the full requested range, we need computation
+	if summary.FromTime.T().After(request.From) || summary.ToTime.T().Before(request.To) {
+		return true
+	}
+
+	return false
 }
 
-// SummarizeWithAliases is a simplified version of Aliased that uses the Summarize method internally
-func (srv *SummaryService) SummarizeWithAliases(from, to time.Time, user *models.User, filters *models.Filters, skipCache bool) (*models.Summary, error) {
-	return srv.Aliased(from, to, user, srv.Summarize, filters, skipCache)
+func (srv *SummaryService) mergeSummaryWithComputed(existing, computed *models.Summary) *models.Summary {
+	if existing == nil {
+		return computed
+	}
+	if computed == nil {
+		return existing
+	}
+
+	// Use the existing merge logic
+	merged, _ := srv.mergeSummaries([]*models.Summary{existing, computed})
+	return merged
+}
+
+func (srv *SummaryService) applyEnhancements(summary *models.Summary, user *models.User, options *summarytypes.ProcessingOptions) *models.Summary {
+	if options.ApplyAliases {
+		// Apply alias resolution logic from the existing Aliased method
+		resolveAliases := srv.getAliasResolver(user)
+		summary = summary.WithResolvedAliases(resolveAliases)
+	}
+
+	if options.ApplyProjectLabels {
+		// Apply project labels
+		summary = srv.withProjectLabels(summary)
+	}
+
+	return summary
+}
+
+func (srv *SummaryService) cacheResult(summary *models.Summary, request *summarytypes.SummaryRequest) {
+	// Use existing cache logic
+	cacheKey := srv.getHash(request.From.String(), request.To.String(), request.User.ID, request.Filters.Hash(), "--generated")
+	if request.To.Truncate(time.Second).Equal(request.To) && request.From.Truncate(time.Second).Equal(request.From) {
+		srv.cache.Set(cacheKey, summary, 0)
+	}
 }
 
 // CRUD methods

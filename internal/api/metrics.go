@@ -17,6 +17,7 @@ import (
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	mm "github.com/muety/wakapi/models/metrics"
 	"github.com/muety/wakapi/repositories"
+	summarytypes "github.com/muety/wakapi/types"
 	"github.com/muety/wakapi/utils"
 )
 
@@ -98,7 +99,9 @@ func (a *APIv1) GetMetrics(w http.ResponseWriter, r *http.Request) {
 func (a *APIv1) getUserMetrics(user *models.User) (*mm.Metrics, error) {
 	var metrics mm.Metrics
 
-	summaryAllTime, err := a.services.Summary().RetrieveWithAliases(time.Time{}, time.Now(), user, nil, false)
+	allTimeRequest := summarytypes.NewSummaryRequest(time.Time{}, time.Now(), user)
+	options := summarytypes.DefaultProcessingOptions()
+	summaryAllTime, err := a.services.Summary().Generate(allTimeRequest, options)
 	if err != nil {
 		conf.Log().Error("failed to retrieve all time summary for metric", "userID", user.ID, "error", err)
 		return nil, err
@@ -106,7 +109,8 @@ func (a *APIv1) getUserMetrics(user *models.User) (*mm.Metrics, error) {
 
 	from, to := helpers.MustResolveIntervalRawTZ("today", user.TZ())
 
-	summaryToday, err := a.services.Summary().RetrieveWithAliases(from, to, user, nil, false)
+	todayRequest := summarytypes.NewSummaryRequest(from, to, user)
+	summaryToday, err := a.services.Summary().Generate(todayRequest, options)
 	if err != nil {
 		conf.Log().Error("failed to retrieve today's summary for metric", "userID", user.ID, "error", err)
 		return nil, err
@@ -423,7 +427,9 @@ func (a *APIv1) getAdminMetrics(user *models.User) (*mm.Metrics, error) {
 
 	for i := range activeUsers {
 		wp.Submit(func() {
-			summary, err := a.services.Summary().RetrieveWithAliases(from, to, activeUsers[i], nil, false) // using RetrieveWithAliases which has caching
+			request := summarytypes.NewSummaryRequest(from, to, activeUsers[i])
+			options := summarytypes.DefaultProcessingOptions()
+			summary, err := a.services.Summary().Generate(request, options) // using Generate which has caching
 			if err != nil {
 				conf.Log().Error("failed to get total time for user as part of metrics", "userID", activeUsers[i].ID, "error", err)
 				return

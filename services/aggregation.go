@@ -9,9 +9,9 @@ import (
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
-	"gorm.io/gorm"
-
 	"github.com/muety/wakapi/models"
+	summarytypes "github.com/muety/wakapi/types"
+	"gorm.io/gorm"
 )
 
 const (
@@ -142,7 +142,8 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 }
 
 func (srv *AggregationService) process(job AggregationJob) {
-	if summary, err := srv.summaryService.Summarize(job.From, job.To, job.User, nil); err != nil {
+	request := summarytypes.NewSummaryRequest(job.From, job.To, job.User)
+	if summary, err := srv.summaryService.ComputeFromDurations(request); err != nil {
 		config.Log().Error("failed to generate summary", "from", job.From, "to", job.To, "userID", job.User.ID, "error", err)
 	} else {
 		slog.Info("successfully generated summary", "from", job.From, "to", job.To, "userID", job.User.ID)

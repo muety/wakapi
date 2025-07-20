@@ -1,11 +1,13 @@
 package utils
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
-	"net/http"
-	"strings"
+	summarytypes "github.com/muety/wakapi/types"
 )
 
 func LoadUserSummary(ss services.ISummaryService, r *http.Request) (*models.Summary, error, int) {
@@ -20,10 +22,20 @@ func LoadUserSummaryByParams(ss services.ISummaryService, params *models.Summary
 	var summary *models.Summary
 	var err error
 
+	request := summarytypes.NewSummaryRequest(params.From, params.To, params.User).WithFilters(params.Filters)
 	if params.Recompute {
-		summary, err = ss.SummarizeWithAliases(params.From, params.To, params.User, params.Filters, params.Recompute)
+		request = request.WithoutCache()
+	}
+	options := summarytypes.DefaultProcessingOptions()
+	
+	if params.Recompute {
+		summary, err = ss.ComputeFromDurations(request)
+		if err == nil {
+			// Apply aliases and project labels manually for computed summaries
+			summary, err = ss.Generate(request, options)
+		}
 	} else {
-		summary, err = ss.RetrieveWithAliases(params.From, params.To, params.User, params.Filters, params.Recompute)
+		summary, err = ss.Generate(request, options)
 	}
 	if err != nil {
 		return nil, err, http.StatusInternalServerError

@@ -9,9 +9,9 @@ import (
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/internal/utilities"
-
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
+	summarytypes "github.com/muety/wakapi/types"
 	"github.com/muety/wakapi/utils"
 )
 
@@ -141,13 +141,18 @@ func (a *APIv1) loadUserSummaries(r *http.Request, user *models.User) ([]*models
 	filters := helpers.ParseSummaryFilters(r)
 
 	for i, interval := range intervals {
-		summary, err := a.services.Summary().RetrieveWithAliases(interval[0], interval[1], user, filters, end.After(time.Now()))
+		request := summarytypes.NewSummaryRequest(interval.Start, interval.End, user).WithFilters(filters)
+		if end.After(time.Now()) {
+			request = request.WithoutCache()
+		}
+		options := summarytypes.DefaultProcessingOptions()
+		summary, err := a.services.Summary().Generate(request, options)
 		if err != nil {
 			return nil, http.StatusInternalServerError, err
 		}
 		// wakatime returns requested instead of actual summary range
-		summary.FromTime = models.CustomTime(interval[0])
-		summary.ToTime = models.CustomTime(interval[1].Add(-1 * time.Second))
+		summary.FromTime = models.CustomTime(interval.Start)
+		summary.ToTime = models.CustomTime(interval.End.Add(-1 * time.Second))
 		summaries[i] = summary
 	}
 

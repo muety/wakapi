@@ -12,6 +12,7 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/internal/mail"
 	"github.com/muety/wakapi/models"
+	summarytypes "github.com/muety/wakapi/types"
 	"github.com/muety/wakapi/utils"
 	"gorm.io/gorm"
 )
@@ -154,7 +155,9 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 	end := datetime.EndOfDay(time.Now().Add(-24 * time.Hour).In(user.TZ()))
 	start := end.Add(-1 * duration).Add(1 * time.Second)
 
-	fullSummary, err := srv.summaryService.RetrieveWithAliases(start, end, user, nil, false)
+	request := summarytypes.NewSummaryRequest(start, end, user)
+	options := summarytypes.DefaultProcessingOptions()
+	fullSummary, err := srv.summaryService.Generate(request, options)
 	if err != nil {
 		config.Log().Error("failed to generate report", "userID", user.ID, "error", err)
 		return err
@@ -165,8 +168,10 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 	dailySummaries := make([]*models.Summary, len(dayIntervals))
 
 	for i, interval := range dayIntervals {
-		from, to := datetime.BeginOfDay(interval[0]), interval[1]
-		summary, err := srv.summaryService.RetrieveWithAliases(from, to, user, nil, false)
+		from, to := datetime.BeginOfDay(interval.Start), interval.End
+		request := summarytypes.NewSummaryRequest(from, to, user)
+		options := summarytypes.DefaultProcessingOptions()
+		summary, err := srv.summaryService.Generate(request, options)
 		if err != nil {
 			config.Log().Error("failed to generate day summary for report", "from", from, "to", to, "userID", user.ID, "error", err)
 			break

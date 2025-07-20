@@ -8,6 +8,7 @@ import (
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	summarytypes "github.com/muety/wakapi/types"
 	"github.com/patrickmn/go-cache"
 	"gorm.io/gorm"
 )
@@ -93,7 +94,12 @@ func (srv *ClientService) FetchClientInvoiceLineItems(client *models.Client, use
 	}
 
 	filters := client.GetSummaryFilters()
-	summary, err := summarySrvc.RetrieveWithAliases(start, end, user, filters, end.After(time.Now()))
+	request := summarytypes.NewSummaryRequest(start, end, user).WithFilters(filters)
+	if end.After(time.Now()) {
+		request = request.WithoutCache()
+	}
+	options := summarytypes.DefaultProcessingOptions()
+	summary, err := summarySrvc.Generate(request, options)
 
 	if err != nil {
 		return nil, err

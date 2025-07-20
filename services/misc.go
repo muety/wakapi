@@ -12,11 +12,11 @@ import (
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/internal/mail"
+	"github.com/muety/wakapi/models"
+	summarytypes "github.com/muety/wakapi/types"
 	"github.com/muety/wakapi/utils"
 	"go.uber.org/atomic"
 	"gorm.io/gorm"
-
-	"github.com/muety/wakapi/models"
 )
 
 const (
@@ -247,7 +247,9 @@ func (srv *MiscService) NotifyExpiringSubscription() {
 }
 
 func (srv *MiscService) countUserTotalTime(userId string) time.Duration {
-	result, err := srv.summaryService.RetrieveWithAliases(time.Time{}, time.Now(), &models.User{ID: userId}, nil, false)
+	request := summarytypes.NewSummaryRequest(time.Time{}, time.Now(), &models.User{ID: userId})
+	options := summarytypes.DefaultProcessingOptions()
+	result, err := srv.summaryService.Generate(request, options)
 	if err != nil {
 		config.Log().Error("failed to count total for user", "userID", userId, "error", err)
 		return 0

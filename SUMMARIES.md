@@ -207,31 +207,30 @@ type Summary struct {
 
 ### Before: Complex Function Parameter Pattern
 ```go
-// Old ceremonious API requiring function parameters
+// Old ceremonious API requiring function parameters and array indexing
 summary, err := a.services.Summary().Aliased(
-    interval[0], interval[1], user, 
-    a.services.Summary().Retrieve,  // Function parameter!
+    interval[0], interval[1], user,  // Cryptic array indexing
+    a.services.Summary().Retrieve,   // Function parameter!
     filters, end.After(time.Now())
 )
 ```
 
 ### After: Simplified Direct Methods
 ```go
-// New simplified API - no function parameters needed
-summary, err := a.services.Summary().RetrieveWithAliases(
-    interval[0], interval[1], user, 
-    filters, end.After(time.Now())
-)
-
-// For recomputation scenarios
-summary, err := a.services.Summary().SummarizeWithAliases(
-    interval[0], interval[1], user, 
-    filters, end.After(time.Now())
-)
+// New structured API with meaningful field names
+request := summarytypes.NewSummaryRequest(interval.Start, interval.End, user).WithFilters(filters)
+if end.After(time.Now()) {
+    request = request.WithoutCache()
+}
+options := summarytypes.DefaultProcessingOptions()
+summary, err := a.services.Summary().Generate(request, options)
 ```
 
 ### Benefits of Simplification
 - **Eliminated ceremonious function parameters**: No more passing `service.Retrieve` as parameter
+- **Meaningful interval access**: `interval.Start` and `interval.End` instead of cryptic `[0]` and `[1]`
+- **Structured request objects**: Clear, self-documenting API with fluent interface
+- **Type safety**: Strong typing prevents array index errors
 - **Improved readability**: Code intent is immediately clear
 - **Reduced complexity**: Fewer parameters to understand and maintain
 - **Maintained functionality**: All existing features (caching, aliasing, project labels) work identically

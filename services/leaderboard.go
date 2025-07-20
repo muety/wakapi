@@ -14,6 +14,7 @@ import (
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
+	summarytypes "github.com/muety/wakapi/types"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
 	"gorm.io/gorm"
@@ -235,7 +236,9 @@ func (srv *LeaderboardService) GenerateByUser(user *models.User, interval *model
 		return nil, err
 	}
 
-	summary, err := srv.summaryService.RetrieveWithAliases(from, to, user, nil, false)
+	request := summarytypes.NewSummaryRequest(from, to, user)
+	options := summarytypes.DefaultProcessingOptions()
+	summary, err := srv.summaryService.Generate(request, options)
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +259,9 @@ func (srv *LeaderboardService) GenerateAggregatedByUser(user *models.User, inter
 		return nil, err
 	}
 
-	summary, err := srv.summaryService.RetrieveWithAliases(from, to, user, nil, false)
+	request := summarytypes.NewSummaryRequest(from, to, user)
+	options := summarytypes.DefaultProcessingOptions()
+	summary, err := srv.summaryService.Generate(request, options)
 	if err != nil {
 		return nil, err
 	}

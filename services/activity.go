@@ -16,6 +16,7 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
+	summarytypes "github.com/muety/wakapi/types"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
 	"gorm.io/gorm"
@@ -88,7 +89,8 @@ func (s *ActivityService) getChartPastYear(user *models.User, darkTheme, hideAtt
 		interval := interval
 
 		wp.Submit(func() {
-			summary, err := s.summaryService.Retrieve(interval[0], interval[1], user, nil)
+			request := summarytypes.NewSummaryRequest(interval.Start, interval.End, user)
+			summary, err := s.summaryService.RetrieveFromStorage(request)
 			if err != nil {
 				config.Log().Warn("failed to retrieve summary for activity chart", "userID", user.ID, "from", from, "to", to)
 				summary = models.NewEmptySummary()

@@ -9,6 +9,7 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
+	summarytypes "github.com/muety/wakapi/types"
 	"github.com/muety/wakapi/utils"
 	"gorm.io/gorm"
 )
@@ -116,13 +117,18 @@ func (srv *GoalService) LoadGoalChartData(goal *models.Goal, user *models.User, 
 
 	chartData := make([]*models.GoalChartData, len(intervals))
 	for i, interval := range intervals {
-		summary, err := summarySrvc.RetrieveWithAliases(interval[0], interval[1], user, filters, end.After(time.Now()))
+		request := summarytypes.NewSummaryRequest(interval.Start, interval.End, user).WithFilters(filters)
+		if end.After(time.Now()) {
+			request = request.WithoutCache()
+		}
+		options := summarytypes.DefaultProcessingOptions()
+		summary, err := summarySrvc.Generate(request, options)
 		if err != nil {
 			return nil, err
 		}
 		// wakatime returns requested instead of actual summary range
-		summary.FromTime = models.CustomTime(interval[0])
-		summary.ToTime = models.CustomTime(interval[1].Add(-1 * time.Second))
+		summary.FromTime = models.CustomTime(interval.Start)
+		summary.ToTime = models.CustomTime(interval.End.Add(-1 * time.Second))
 		chartData[i] = prepareGoalSummary(summary, goal)
 	}
 

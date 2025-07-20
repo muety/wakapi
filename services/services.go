@@ -5,7 +5,7 @@ import (
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/muety/wakapi/models"
-	"github.com/muety/wakapi/models/types"
+	summarytypes "github.com/muety/wakapi/types"
 	"github.com/muety/wakapi/utils"
 	"gorm.io/gorm"
 )
@@ -87,11 +87,18 @@ type IDurationService interface {
 }
 
 type ISummaryService interface {
-	Aliased(time.Time, time.Time, *models.User, types.SummaryRetriever, *models.Filters, bool) (*models.Summary, error)
-	RetrieveWithAliases(time.Time, time.Time, *models.User, *models.Filters, bool) (*models.Summary, error)
-	SummarizeWithAliases(time.Time, time.Time, *models.User, *models.Filters, bool) (*models.Summary, error)
-	Retrieve(time.Time, time.Time, *models.User, *models.Filters) (*models.Summary, error)
-	Summarize(time.Time, time.Time, *models.User, *models.Filters) (*models.Summary, error)
+	// Core summary generation - tells the complete story
+	Generate(request *summarytypes.SummaryRequest, options *summarytypes.ProcessingOptions) (*models.Summary, error)
+	
+	// Convenience methods for common scenarios  
+	QuickSummary(from, to time.Time, user *models.User) (*models.Summary, error)
+	DetailedSummary(request *summarytypes.SummaryRequest) (*models.Summary, error)
+	
+	// Strategy-specific methods
+	RetrieveFromStorage(request *summarytypes.SummaryRequest) (*models.Summary, error)
+	ComputeFromDurations(request *summarytypes.SummaryRequest) (*models.Summary, error)
+	
+	// CRUD operations
 	GetLatestByUser() ([]*models.TimeByUser, error)
 	DeleteByUser(string) error
 	DeleteByUserBefore(string, time.Time) error
