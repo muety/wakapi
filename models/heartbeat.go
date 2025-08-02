@@ -52,9 +52,14 @@ func (h *Heartbeat) Sanitize() *Heartbeat {
 	h.OperatingSystem = CanonicalName(h.OperatingSystem, SummaryOS)
 	h.Editor = CanonicalName(h.Editor, SummaryEditor)
 	h.Language = CanonicalName(h.Language, SummaryLanguage)
-	if h.Category == "" && (h.Type == "domain" || h.Type == "url") {
-		h.Category = "browsing"
+	if h.Category == "" {
+		if h.Type == "domain" || h.Type == "url" {
+			h.Category = "browsing"
+		} else if h.Type == "file" && h.Language != "" {
+			h.Category = "coding" // assuming coding as default, see https://github.com/muety/wakapi/issues/817#issuecomment-3146365708
+		}
 	}
+
 	return h
 }
 
