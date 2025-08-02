@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/duke-git/lancet/v2/condition"
 	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/mileusna/useragent"
 	"io"
@@ -90,6 +91,7 @@ func ParseUserAgent(ua string) (string, string, error) { // os, editor, err
 	// try parse wakatime client user agents
 	var (
 		os, editor string
+		osAllCaps  bool
 	)
 
 	if groups := userAgent.FindAllStringSubmatch(ua, -1); len(groups) > 0 && len(groups[0]) == 4 {
@@ -100,6 +102,11 @@ func ParseUserAgent(ua string) (string, string, error) { // os, editor, err
 		}
 		if os == "darwin" {
 			os = "macos"
+		}
+		// special treatment for wsl (see https://github.com/muety/wakapi/issues/817)
+		if strings.Contains(ua, "-WSL2-") {
+			os = "wsl"
+			osAllCaps = true
 		}
 
 		// parse editor
@@ -112,7 +119,8 @@ func ParseUserAgent(ua string) (string, string, error) { // os, editor, err
 			editor = "kate"
 		}
 
-		return strutil.Capitalize(os), editor, nil
+		os = condition.Ternary[bool, string](osAllCaps, strings.ToUpper(os), strutil.Capitalize(os))
+		return os, editor, nil
 	}
 
 	// try parse browser user agent as a fallback
