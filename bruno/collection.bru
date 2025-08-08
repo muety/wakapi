@@ -20,6 +20,12 @@ script:pre-request {
   function base64encode(str) {
       return Buffer.from(str, 'utf-8').toString('base64')
   }
+  
+  bru.setVar('tsNow', parseInt(new Date().getTime() / 1000))
+  bru.setVar('ts1MinAgo', parseInt((new Date().getTime() - 1000*60*1) / 1000))
+  bru.setVar('ts2MinAgo', parseInt((new Date().getTime() - 1000*60*2) / 1000))
+  bru.setVar('ts1HourAgo', parseInt((new Date().getTime() - 1000*60*60*1) / 1000))
+  bru.setVar('ts1MonthAgo', parseInt((new Date().getTime() - 1000*60*60*24*30*1) / 1000))
 }
 
 docs {

@@ -34,6 +34,16 @@ body:json {
       "category": null,
       "branch": null,
       "time": {{ts2}}
+  },
+  {
+      "entity": "/home/user1/dev/project1/main.go",
+      "project": "wakapi",
+      "language": "Go",
+      "is_write": true,
+      "type": "file",
+      "category": null,
+      "branch": null,
+      "time": {{ts4}}
   }]
 }
 
@@ -43,10 +53,13 @@ assert {
 
 tests {
   test("Response body is correct", function () {
-      expect(res.body.responses.length).to.eql(2);
+      expect(res.body.responses.length).to.eql(3);
       expect(res.body.responses[0].length).to.eql(2);
       expect(res.body.responses[1].length).to.eql(2);
+      expect(res.body.responses[2].length).to.eql(2);
       expect(res.body.responses[0][1]).to.eql(201);
       expect(res.body.responses[1][1]).to.eql(201);
+      expect(res.body.responses[2][0].error).to.not.be.empty;
+      expect(res.body.responses[2][1]).to.eql(400);
   });
 }

@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"github.com/duke-git/lancet/v2/stream"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -13,6 +15,33 @@ type HeartbeatsViewModel struct {
 
 type HeartbeatResponseViewModel struct {
 	Responses [][]interface{} `json:"responses"`
+}
+
+type HeartbeatCreationResult struct {
+	Data   *HeartbeatResponseData
+	Status int
+}
+
+type HeartbeatCreationResults []*HeartbeatCreationResult
+
+func (l HeartbeatCreationResults) All() bool {
+	return stream.FromSlice(l).AllMatch(func(r *HeartbeatCreationResult) bool {
+		return r.Status >= 200 && r.Status < 300
+	})
+}
+
+func (l HeartbeatCreationResults) None() bool {
+	return stream.FromSlice(l).AllMatch(func(r *HeartbeatCreationResult) bool {
+		return r.Status < 200 || r.Status >= 300
+	})
+}
+
+var HeartbeatSuccess = &HeartbeatCreationResult{
+	Status: http.StatusCreated,
+	Data: &HeartbeatResponseData{
+		Data:  nil, // see comment in struct declaration for details
+		Error: nil,
+	},
 }
 
 type HeartbeatResponseData struct {

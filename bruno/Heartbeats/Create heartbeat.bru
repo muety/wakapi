@@ -18,7 +18,8 @@ headers {
 }
 
 body:json {
-  {
+  [
+    {
       "entity": "/home/user1/dev/proejct1/main.go",
       "project": "Project 1",
       "language": "Go",
@@ -26,6 +27,17 @@ body:json {
       "type": "file",
       "category": null,
       "branch": null,
-      "time": 1750701956
-  }
+      "time": {{tsNow}}
+    },
+    {
+      "entity": "/home/user1/dev/proejct1/main.go",
+      "project": "Project 1",
+      "language": "Go",
+      "is_write": true,
+      "type": "file",
+      "category": null,
+      "branch": null,
+      "time": {{ts1MonthAgo}}
+    }
+  ]
 }

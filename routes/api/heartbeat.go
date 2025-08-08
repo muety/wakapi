@@ -84,19 +84,23 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	opSys, editor, _ := utils.ParseUserAgent(userAgent)
 	machineName := r.Header.Get("X-Machine-Name")
 
-	for _, hb := range heartbeats {
+	creationResults := make(v1.HeartbeatCreationResults, len(heartbeats))
+
+	for i, hb := range heartbeats {
 		if hb == nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("invalid heartbeat object"))
-			return
+			creationResults[i] = &v1.HeartbeatCreationResult{
+				Status: http.StatusBadRequest,
+				Data:   &v1.HeartbeatResponseData{Error: "invalid heartbeat object"},
+			}
+			continue
 		}
 
 		// TODO: unit test this
 		if hb.UserAgent != "" {
 			userAgent = hb.UserAgent
 			localOpSys, localEditor, _ := utils.ParseUserAgent(userAgent)
-			opSys = condition.TernaryOperator[bool, string](localOpSys != "", localOpSys, opSys)
-			editor = condition.TernaryOperator[bool, string](localEditor != "", localEditor, editor)
+			opSys = condition.Ternary[bool, string](localOpSys != "", localOpSys, opSys)
+			editor = condition.Ternary[bool, string](localEditor != "", localEditor, editor)
 		}
 		if hb.Machine != "" {
 			machineName = hb.Machine
@@ -112,12 +116,15 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 		hb.UserAgent = userAgent
 
 		if !hb.Valid() || !hb.Timely(h.config.App.HeartbeatsMaxAge()) {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("invalid heartbeat object"))
-			return
+			creationResults[i] = &v1.HeartbeatCreationResult{
+				Status: http.StatusBadRequest,
+				Data:   &v1.HeartbeatResponseData{Error: "invalid heartbeat object"},
+			}
+			continue
 		}
 
 		hb.Hashed()
+		creationResults[i] = v1.HeartbeatSuccess
 	}
 
 	if err := h.heartbeatSrvc.InsertBatch(heartbeats); err != nil {
@@ -137,27 +144,23 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	defer func() {}()
+	if creationResults.None() {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("no valid heartbeat object given"))
+		return
+	}
 
-	helpers.RespondJSON(w, r, http.StatusCreated, constructSuccessResponse(&heartbeats))
+	helpers.RespondJSON(w, r, http.StatusCreated, makeBulkResponse(creationResults))
 }
 
 // construct wakatime response format https://wakatime.com/developers#heartbeats (well, not quite...)
-func constructSuccessResponse(heartbeats *[]*models.Heartbeat) *v1.HeartbeatResponseViewModel {
+func makeBulkResponse(results []*v1.HeartbeatCreationResult) *v1.HeartbeatResponseViewModel {
 	vm := &v1.HeartbeatResponseViewModel{
-		Responses: make([][]interface{}, len(*heartbeats)),
+		Responses: make([][]interface{}, len(results)),
 	}
-
-	for i := range *heartbeats {
-		r := make([]interface{}, 2)
-		r[0] = &v1.HeartbeatResponseData{
-			Data:  nil, // see comment in struct declaration for details
-			Error: nil,
-		}
-		r[1] = http.StatusCreated
-		vm.Responses[i] = r
+	for i, r := range results {
+		vm.Responses[i] = []interface{}{r.Data, r.Status}
 	}
-
 	return vm
 }
 

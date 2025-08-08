@@ -1,0 +1,33 @@
+meta {
+  name: Create heartbeats (all invalid)
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/users/current/heartbeats.bulk
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+body:json {
+  [{
+      "entity": "/home/user1/dev/project1/main.go",
+      "project": "wakapi",
+      "language": "Go",
+      "is_write": true,
+      "type": "file",
+      "category": null,
+      "branch": null,
+      "time": {{ts4}}
+  }]
+}
+
+assert {
+  res.status: eq 400
+  res.body: eq no valid heartbeat object given
+}

@@ -32,12 +32,15 @@ script:pre-request {
     return offset / 1000 / 60;
   }
   
-  const utcOffset = getTimezoneOffset(userZone);
+  const utcOffset = getTimezoneOffset(userZone)
+  bru.setVar('utcOffset', utcOffset)
   
   const now = moment().utcOffset(utcOffset)
   const startOfDay = now.clone().startOf('day')
   const endOfDay = now.clone().endOf('day')
   const endOfTomorrow = now.clone().add(1, 'd').endOf('day')
+  const startOfYesterday = now.clone().add(-1, 'day').startOf('day')
+  const endOfYesterday = now.clone().add(-1, 'day').endOf('day')
   
   // Auth stuff
   const readApiKey = bru.getCollectionVar('READUSER_API_KEY')
@@ -60,7 +63,11 @@ script:pre-request {
   bru.setVar('tsNowMinus2Min', now.clone().add(-2, 'm').format('x') / 1000)
   bru.setVar('tsNowMinus3Min', now.clone().add(-3, 'm').format('x') / 1000)
   bru.setVar('tsStartOfDay', startOfDay.format('x') / 1000)
+  bru.setVar('tsLateNightToday', startOfDay.clone().add(22, 'h').format('x') / 1000)
   bru.setVar('tsEndOfDay', endOfDay.format('x') / 1000)
+  bru.setVar('tsStartOfYesterday', startOfYesterday.format('x') / 1000)
+  bru.setVar('tsLateNightYesterday', startOfYesterday.clone().add(22, 'h').format('x') / 1000)
+  bru.setVar('tsEndOfYesterday', endOfYesterday.format('x') / 1000)
   bru.setVar('tsEndOfTomorrow', endOfTomorrow.format('x') / 1000)
   bru.setVar('tsStartOfDayIso', startOfDay.toISOString())
   bru.setVar('tsEndOfDayIso', endOfDay.toISOString())
@@ -68,4 +75,9 @@ script:pre-request {
   bru.setVar('ts1', now.clone().startOf('hour').format('x') / 1000)
   bru.setVar('ts2', now.clone().startOf('hour').add(1, 'm').format('x') / 1000)
   bru.setVar('ts3', now.clone().startOf('hour').add(2, 'm').format('x') / 1000)
+  bru.setVar('ts4', now.clone().add(-1, 'months').format('x') / 1000)  // last month
+  bru.setVar('todayDate', startOfDay.format('YYYY-MM-DD'))
+  bru.setVar('todayDateIso', startOfDay.toISOString(true))
+  bru.setVar('yesterdayDate', startOfYesterday.format('YYYY-MM-DD'))
+  bru.setVar('yesterdayDateIso', startOfYesterday.toISOString(true))
 }
