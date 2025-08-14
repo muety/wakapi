@@ -1,0 +1,127 @@
+env: production
+quick_start: false                  # whether to skip initial tasks on application startup, like summary generation
+skip_migrations: false              # whether to intentionally not run database migrations, only use for dev purposes
+enable_pprof: false                 # whether to expose pprof (https://pkg.go.dev/runtime/pprof) profiling data as an endpoint for debugging
+
+server:
+  listen_ipv4: 127.0.0.1              # set to '-' to disable ipv4
+  listen_ipv6: ::1                    # set to '-' to disable ipv6
+  listen_socket:                      # set to '-' to disable unix sockets
+  listen_socket_mode: 0666            # permission mode to create unix socket with
+  timeout_sec: 30                     # request timeout
+  tls_cert_path:                      # leave blank to not use https
+  tls_key_path:                       # leave blank to not use https
+  port: 3000
+  base_path: /
+  public_url: http://localhost:3000   # required for links (e.g. password reset) in e-mail
+
+app:
+  leaderboard_enabled: true                                 # whether to enable public leaderboards
+  leaderboard_scope: 7_days                                 # leaderboard time interval (e.g. 14_days, 6_months, ...)
+  leaderboard_generation_time: '0 0 6 * * *,0 0 18 * * *'   # times at which to re-calculate the leaderboard
+  leaderboard_require_auth: false                           # restrict leaderboard access only to logged in user
+  aggregation_time: '0 15 2 * * *'                          # time at which to run daily aggregation batch jobs
+  report_time_weekly: '0 0 18 * * 5'                        # time at which to fan out weekly reports (extended cron)
+  data_cleanup_time: '0 0 6 * * 0'                          # time at which to run old data cleanup (if enabled through data_retention_months)
+  optimize_database_time: '0 0 8 1 * *'                     # time at which to run database vacuuming (sqlite, postgres) or table optimization (mysql)
+  inactive_days: 7                                          # time of previous days within a user must have logged in to be considered active
+  import_enabled: true                                      # whether data import from wakatime or other wakapi instances is allowed
+  import_backoff_min: 5                                     # time (in minutes) for "cooldown" before allowing another data import attempt by a user
+  import_max_rate: 24                                       # minimum hours to pass after a successful data import by a user before attempting a new one
+  import_batch_size: 50                                     # maximum number of heartbeats to insert into the database within one transaction
+  heartbeat_max_age: '4320h'                                # maximum acceptable age of a heartbeat (see https://pkg.go.dev/time#ParseDuration)
+  data_retention_months: -1                                 # maximum retention period on months for user data (heartbeats) (-1 for infinity)
+  max_inactive_months: 12                                   # maximum months of inactivity before deleting user accounts
+  warm_caches: true                                         # whether to run some initial cache warming upon startup
+  custom_languages:
+    vue: Vue
+    jsx: JSX
+    tsx: TSX
+    cjs: JavaScript
+    ipynb: Python
+    svelte: Svelte
+    astro: Astro
+  canonical_language_names:
+    'java': 'Java'
+    'ini': 'INI'
+    'xml': 'XML'
+    'jsx': 'JSX'
+    'tsx': 'TSX'
+    'php': 'PHP'
+    'yaml': 'YAML'
+    'toml': 'TOML'
+    'sql': 'SQL'
+    'css': 'CSS'
+    'scss': 'SCSS'
+    'jsp': 'JSP'
+    'svg': 'SVG'
+    'csv': 'CSV'
+
+  # url template for user avatar images (to be used with services like gravatar or dicebear)
+  # available variable placeholders are: username, username_hash, email, email_hash
+  # defaults to wakapi's internal avatar rendering powered by https://codeberg.org/Codeberg/avatars
+  avatar_url_template: api/avatar/{username_hash}.svg
+
+  # go time format strings to format human-readable dates
+  # for details, check https://pkg.go.dev/time#Time.Format
+  date_format: Mon, 02 Jan 2006
+  datetime_format: Mon, 02 Jan 2006 15:04
+
+db:
+  host:                               # leave blank when using sqlite3
+  port:                               # leave blank when using sqlite3
+  socket:                             # alternative to db.host (leave blank when using sqlite3)
+  user:                               # leave blank when using sqlite3
+  password:                           # leave blank when using sqlite3
+  name: wakapi_db.db                  # database name for mysql / postgres or file path for sqlite (e.g. /tmp/wakapi.db)
+  dialect: sqlite3                    # mysql, postgres, sqlite3, mssql
+  charset: utf8mb4                    # only used for mysql connections
+  max_conn: 10                        # maximum number of concurrent connections to maintain
+  ssl: false                          # whether to use tls for db connection (must be true for cockroachdb) (ignored for mysql and sqlite) (true means encrypt=true in mssql)
+  automigrate_fail_silently: false    # whether to ignore schema auto-migration failures when starting up
+
+security:
+  password_salt:                        # change this
+  insecure_cookies: true                # should be set to 'false', except when not running with HTTPS (e.g. on localhost)
+  cookie_max_age: 172800
+  allow_signup: true
+  signup_captcha: false
+  invite_codes: true                    # whether to enable invite codes for overriding disabled signups
+  disable_frontpage: false
+  expose_metrics: false
+  enable_proxy: false                       # only intended for production instance at wakapi.dev
+  trusted_header_auth: false                # whether to enable trusted header auth for reverse proxies, use with caution!! (https://github.com/muety/wakapi/issues/534)
+  trusted_header_auth_key: Remote-User      # header field for trusted header auth (warning: your proxy must correctly strip this header from client requests!!)
+  trusted_header_auth_allow_signup: false   # whether to allow creation of new users based on upstream trusted header authentication (https://github.com/muety/wakapi/issues/808)
+  trust_reverse_proxy_ips:                  # single ip address of the reverse proxy which you trust to pass headers for authentication
+  signup_max_rate: 5/1h                     # signup endpoint rate limit pattern
+  login_max_rate: 10/1m                     # login endpoint rate limit pattern
+  password_reset_max_rate: 5/1h             # password reset endpoint rate limit pattern
+
+sentry:
+  dsn:                                # leave blank to disable sentry integration
+  enable_tracing: true                # whether to use performance monitoring
+  sample_rate: 0.75                   # probability of tracing a request
+  sample_rate_heartbeats: 0.1         # probability of tracing a heartbeat request
+
+# only relevant for running wakapi as a hosted service with paid subscriptions and stripe payments
+subscriptions:
+  enabled: false
+  expiry_notifications: true
+  stripe_api_key:
+  stripe_secret_key:
+  stripe_endpoint_secret:
+  standard_price_id:
+
+mail:
+  enabled: true                         # whether to enable mails (used for password resets, reports, etc.)
+  provider: smtp                        # method for sending mails, currently one of ['smtp']
+  sender: Wakapi <noreply@wakapi.dev>
+
+  # smtp settings when sending mails via smtp
+  smtp:
+    host:
+    port:
+    username:
+    password:
+    tls:
