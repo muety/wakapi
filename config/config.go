@@ -13,13 +13,14 @@ import (
 
 	"github.com/duke-git/lancet/v2/slice"
 
+	"log/slog"
+
 	"github.com/gofrs/uuid/v5"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
 	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/utils"
 	"github.com/robfig/cron/v3"
-	"log/slog"
 )
 
 const (
@@ -182,10 +183,11 @@ type sentryConfig struct {
 }
 
 type mailConfig struct {
-	Enabled  bool           `env:"WAKAPI_MAIL_ENABLED" default:"true"`
-	Provider string         `env:"WAKAPI_MAIL_PROVIDER" default:"smtp"`
-	Smtp     SMTPMailConfig `yaml:"smtp"`
-	Sender   string         `env:"WAKAPI_MAIL_SENDER" yaml:"sender"`
+	Enabled            bool           `env:"WAKAPI_MAIL_ENABLED" default:"true"`
+	Provider           string         `env:"WAKAPI_MAIL_PROVIDER" default:"smtp"`
+	Smtp               SMTPMailConfig `yaml:"smtp"`
+	Sender             string         `env:"WAKAPI_MAIL_SENDER" yaml:"sender"`
+	SkipVerifyMXRecord bool           `yaml:"skip_verify_mx_record" env:"WAKAPI_MAIL_SKIP_VERIFY_MX_RECORD" default:"false"`
 }
 
 type SMTPMailConfig struct {

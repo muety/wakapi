@@ -3,12 +3,13 @@ package models
 import (
 	"crypto/md5"
 	"fmt"
-	"github.com/dchest/captcha"
-	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/utils"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/dchest/captcha"
+	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/utils"
 )
 
 const (
@@ -231,7 +232,9 @@ func ValidateCaptcha(captchaId, captchaValue string) bool {
 
 // ValidateEmail checks that, if an email address is given, it has proper syntax and (if not in dev mode) an MX record exists for the domain
 func ValidateEmail(email string) bool {
-	return email == "" || (mailRegex.MatchString(email) && (conf.Get().IsDev() || utils.CheckEmailMX(email)))
+	cfg := conf.Get()
+	verifyMx := !cfg.IsDev() && !cfg.Mail.SkipVerifyMXRecord
+	return email == "" || (mailRegex.MatchString(email) && (!verifyMx || utils.CheckEmailMX(email)))
 }
 
 func ValidateTimezone(tz string) bool {
