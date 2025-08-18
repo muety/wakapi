@@ -3,8 +3,9 @@ package repositories
 import (
 	"errors"
 	"fmt"
-	"github.com/duke-git/lancet/v2/condition"
 	"time"
+
+	"github.com/duke-git/lancet/v2/condition"
 
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
@@ -144,6 +145,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"has_data":                 user.HasData,
 		"reset_token":              user.ResetToken,
 		"location":                 user.Location,
+		"start_of_week":            user.StartOfWeek,
 		"reports_weekly":           user.ReportsWeekly,
 		"public_leaderboard":       user.PublicLeaderboard,
 		"subscribed_until":         user.SubscribedUntil,

@@ -2,6 +2,12 @@ package services
 
 import (
 	"fmt"
+	"log/slog"
+	"reflect"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
@@ -10,11 +16,6 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
-	"log/slog"
-	"reflect"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type LeaderboardService struct {
@@ -225,7 +226,7 @@ func (srv *LeaderboardService) GetAggregatedByIntervalAndUser(interval *models.I
 }
 
 func (srv *LeaderboardService) GenerateByUser(user *models.User, interval *models.IntervalKey) (*models.LeaderboardItem, error) {
-	err, from, to := helpers.ResolveIntervalTZ(interval, user.TZ())
+	err, from, to := helpers.ResolveIntervalTZ(interval, user.TZ(), user.StartOfWeekDay())
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +248,7 @@ func (srv *LeaderboardService) GenerateByUser(user *models.User, interval *model
 }
 
 func (srv *LeaderboardService) GenerateAggregatedByUser(user *models.User, interval *models.IntervalKey, by uint8) ([]*models.LeaderboardItem, error) {
-	err, from, to := helpers.ResolveIntervalTZ(interval, user.TZ())
+	err, from, to := helpers.ResolveIntervalTZ(interval, user.TZ(), user.StartOfWeekDay())
 	if err != nil {
 		return nil, err
 	}

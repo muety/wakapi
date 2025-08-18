@@ -2,6 +2,13 @@ package api
 
 import (
 	"errors"
+	"log/slog"
+	"net/http"
+	"runtime"
+	"sort"
+	"sync"
+	"time"
+
 	"github.com/alitto/pond/v2"
 	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
@@ -13,12 +20,6 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"log/slog"
-	"net/http"
-	"runtime"
-	"sort"
-	"sync"
-	"time"
 )
 
 const (
@@ -145,7 +146,7 @@ func (h *MetricsHandler) getUserMetrics(user *models.User) (*mm.Metrics, error) 
 		return nil, err
 	}
 
-	from, to := helpers.MustResolveIntervalRawTZ("today", user.TZ())
+	from, to := helpers.MustResolveIntervalRawTZ("today", user.TZ(), user.StartOfWeekDay())
 
 	summaryToday, err := h.summarySrvc.Aliased(from, to, user, h.summarySrvc.Retrieve, nil, nil, false)
 	if err != nil {
@@ -455,7 +456,7 @@ func (h *MetricsHandler) getAdminMetrics(user *models.User) (*mm.Metrics, error)
 
 	// Get per-user total activity
 
-	_, from, to := helpers.ResolveIntervalTZ(models.IntervalAny, time.Local)
+	_, from, to := helpers.ResolveIntervalTZ(models.IntervalAny, time.Local, time.Monday)
 	to = to.Truncate(time.Hour)
 
 	wp := pond.NewPool(utils.HalfCPUs())

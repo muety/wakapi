@@ -28,6 +28,7 @@ type User struct {
 	ApiKey                 string      `json:"api_key" gorm:"unique; default:NULL"`
 	Email                  string      `json:"email" gorm:"index:idx_user_email; size:255"`
 	Location               string      `json:"location"`
+	StartOfWeek            int         `json:"start_of_week" gorm:"default:1"`
 	Password               string      `json:"-"`
 	CreatedAt              CustomTime  `swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"` // filled by gorm, see https://gorm.io/docs/conventions.html#CreatedAt
 	LastLoggedInAt         CustomTime  `swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"` // filled by gorm, see https://gorm.io/docs/conventions.html#CreatedAt
@@ -90,6 +91,7 @@ type CredentialsReset struct {
 type UserDataUpdate struct {
 	Email             string `schema:"email"`
 	Location          string `schema:"location"`
+	StartOfWeek       int    `schema:"start_of_week"`
 	ReportsWeekly     bool   `schema:"reports_weekly"`
 	PublicLeaderboard bool   `schema:"public_leaderboard"`
 }
@@ -124,6 +126,14 @@ func (u *User) TZ() *time.Location {
 func (u *User) TZOffset() time.Duration {
 	_, offset := time.Now().In(u.TZ()).Zone()
 	return time.Duration(offset * int(time.Second))
+}
+
+// StartOfWeekDay returns the user's preferred start of week as time.Weekday
+func (u *User) StartOfWeekDay() time.Weekday {
+	if u.StartOfWeek < 0 || u.StartOfWeek > 6 {
+		u.StartOfWeek = 1 // Default to Monday
+	}
+	return time.Weekday(u.StartOfWeek)
 }
 
 func (u *User) AvatarURL(urlTemplate string) string {
@@ -215,7 +225,7 @@ func (s *Signup) IsValid() bool {
 }
 
 func (r *UserDataUpdate) IsValid() bool {
-	return ValidateEmail(r.Email) && ValidateTimezone(r.Location)
+	return ValidateEmail(r.Email) && ValidateTimezone(r.Location) && ValidateStartOfWeek(r.StartOfWeek)
 }
 
 func ValidateUsername(username string) bool {
@@ -240,4 +250,8 @@ func ValidateEmail(email string) bool {
 func ValidateTimezone(tz string) bool {
 	_, err := time.LoadLocation(tz)
 	return err == nil
+}
+
+func ValidateStartOfWeek(startOfWeek int) bool {
+	return startOfWeek >= 0 && startOfWeek <= 6
 }

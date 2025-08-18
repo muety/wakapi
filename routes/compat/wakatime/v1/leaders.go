@@ -1,16 +1,17 @@
 package v1
 
 import (
+	"math"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
-	"math"
-	"net/http"
-	"strings"
-	"time"
 
 	conf "github.com/muety/wakapi/config"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
@@ -120,7 +121,7 @@ func (h *LeadersHandler) buildViewModel(globalLeaderboard, languageLeaderboard m
 	totalUsers, _ := h.leaderboardSrvc.CountUsers(true)
 	totalPages := int(totalUsers/int64(pageParams.PageSize) + 1)
 
-	_, from, to := helpers.ResolveIntervalTZ(interval, time.UTC)
+	_, from, to := helpers.ResolveIntervalTZ(interval, time.UTC, time.Monday)
 	numDays := len(utils.SplitRangeByDays(from, to))
 
 	vm := &v1.LeadersViewModel{
