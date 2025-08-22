@@ -1,8 +1,9 @@
 package repositories
 
 import (
-	"github.com/muety/wakapi/models"
 	"time"
+
+	"github.com/muety/wakapi/models"
 )
 
 type IBaseRepository interface {
@@ -28,15 +29,16 @@ type IHeartbeatRepository interface {
 	IBaseRepository
 	InsertBatch([]*models.Heartbeat) error
 	GetAll() ([]*models.Heartbeat, error)
-	GetAllWithin(time.Time, time.Time, *models.User) ([]*models.Heartbeat, error)
+	GetWithin(time.Time, time.Time, *models.User) ([]*models.Heartbeat, error)
 	GetAllWithinByFilters(time.Time, time.Time, *models.User, map[string][]string) ([]*models.Heartbeat, error)
 	GetLatestByFilters(*models.User, map[string][]string) (*models.Heartbeat, error)
 	GetFirstByUsers() ([]*models.TimeByUser, error)
 	GetLastByUsers() ([]*models.TimeByUser, error)
 	GetLatestByUser(*models.User) (*models.Heartbeat, error)
 	GetLatestByOriginAndUser(string, *models.User) (*models.Heartbeat, error)
-	StreamAllWithin(time.Time, time.Time, *models.User) (chan *models.Heartbeat, error)
-	StreamAllWithinByFilters(time.Time, time.Time, *models.User, map[string][]string) (chan *models.Heartbeat, error)
+	StreamWithin(time.Time, time.Time, *models.User) (chan *models.Heartbeat, error)
+	StreamWithinByFilters(time.Time, time.Time, *models.User, map[string][]string) (chan *models.Heartbeat, error)
+	StreamWithinBatched(time.Time, time.Time, *models.User, int) (chan []*models.Heartbeat, error)
 	Count(bool) (int64, error)
 	CountByUser(*models.User) (int64, error)
 	CountByUsers([]*models.User) ([]*models.CountByUser, error)
@@ -50,8 +52,10 @@ type IHeartbeatRepository interface {
 type IDurationRepository interface {
 	IBaseRepository
 	InsertBatch([]*models.Duration) error
+	GetAll() ([]*models.Duration, error)
 	GetAllWithin(time.Time, time.Time, *models.User) ([]*models.Duration, error)
 	GetAllWithinByFilters(time.Time, time.Time, *models.User, map[string][]string) ([]*models.Duration, error)
+	StreamAllBatched(int) (chan []*models.Duration, error)
 	GetLatestByUser(*models.User) (*models.Duration, error)
 	DeleteByUser(*models.User) error
 	DeleteByUserBefore(*models.User, time.Time) error
@@ -125,6 +129,7 @@ type ILeaderboardRepository interface {
 	CountUsers(bool) (int64, error)
 	DeleteByUser(string) error
 	DeleteByUserAndInterval(string, *models.IntervalKey) error
+	GetAll() ([]*models.LeaderboardItem, error)
 	GetAllAggregatedByInterval(*models.IntervalKey, *uint8, int, int) ([]*models.LeaderboardItemRanked, error)
 	GetAggregatedByUserAndInterval(string, *models.IntervalKey, *uint8, int, int) ([]*models.LeaderboardItemRanked, error)
 }

@@ -1,9 +1,10 @@
 package mocks
 
 import (
+	"time"
+
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/mock"
-	"time"
 )
 
 type DurationRepositoryMock struct {
@@ -16,6 +17,11 @@ func (m *DurationRepositoryMock) InsertBatch(d []*models.Duration) error {
 	return args.Error(0)
 }
 
+func (m *DurationRepositoryMock) GetAll() ([]*models.Duration, error) {
+	args := m.Called()
+	return args.Get(0).([]*models.Duration), args.Error(1)
+}
+
 func (m *DurationRepositoryMock) GetAllWithin(t time.Time, t2 time.Time, u *models.User) ([]*models.Duration, error) {
 	args := m.Called(t, t2, u)
 	return args.Get(0).([]*models.Duration), args.Error(1)
@@ -24,6 +30,11 @@ func (m *DurationRepositoryMock) GetAllWithin(t time.Time, t2 time.Time, u *mode
 func (m *DurationRepositoryMock) GetAllWithinByFilters(t time.Time, t2 time.Time, u *models.User, m2 map[string][]string) ([]*models.Duration, error) {
 	args := m.Called(t, t2, u, m2)
 	return args.Get(0).([]*models.Duration), args.Error(1)
+}
+
+func (m *DurationRepositoryMock) StreamAllBatched(i int) (chan []*models.Duration, error) {
+	args := m.Called(i)
+	return args.Get(0).(chan []*models.Duration), args.Error(1)
 }
 
 func (m *DurationRepositoryMock) GetLatestByUser(u *models.User) (*models.Duration, error) {

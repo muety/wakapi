@@ -3,13 +3,14 @@ package repositories
 import (
 	"database/sql"
 	"errors"
+	"strings"
+	"time"
+
 	"github.com/duke-git/lancet/v2/slice"
 	conf "github.com/muety/wakapi/config"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"strings"
-	"time"
 )
 
 const chunkSize = 4096
@@ -138,6 +139,32 @@ func streamRows[T any](rows *sql.Rows, channel chan *T, db *gorm.DB, onErr func(
 			continue
 		}
 		channel <- &item
+	}
+}
+
+func streamRowsBatched[T any](rows *sql.Rows, channel chan []*T, db *gorm.DB, batchSize int, onErr func(error)) {
+	defer close(channel)
+	defer rows.Close()
+
+	buffer := make([]*T, 0, batchSize)
+
+	for rows.Next() {
+		var item T
+		if err := db.ScanRows(rows, &item); err != nil {
+			onErr(err)
+			continue
+		}
+
+		buffer = append(buffer, &item)
+
+		if len(buffer) == batchSize {
+			channel <- buffer
+			buffer = make([]*T, 0, batchSize)
+		}
+	}
+
+	if len(buffer) > 0 {
+		channel <- buffer
 	}
 }
 

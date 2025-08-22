@@ -86,9 +86,6 @@ func (r *AliasRepository) GetByUserAndTypeAndValue(userId string, summaryType ui
 }
 
 func (r *AliasRepository) Insert(alias *models.Alias) (*models.Alias, error) {
-	if !alias.IsValid() {
-		return nil, errors.New("invalid alias")
-	}
 	result := r.db.Create(alias)
 	if err := result.Error; err != nil {
 		return nil, err

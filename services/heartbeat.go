@@ -136,7 +136,7 @@ func (srv *HeartbeatService) CountByUsers(users []*models.User) ([]*models.Count
 }
 
 func (srv *HeartbeatService) GetAllWithin(from, to time.Time, user *models.User) ([]*models.Heartbeat, error) {
-	heartbeats, err := srv.repository.GetAllWithin(from, to, user)
+	heartbeats, err := srv.repository.GetWithin(from, to, user)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (srv *HeartbeatService) StreamAllWithin(from, to time.Time, user *models.Us
 		return nil, err
 	}
 
-	c, err := srv.repository.StreamAllWithin(from, to, user)
+	c, err := srv.repository.StreamWithin(from, to, user)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +170,7 @@ func (srv *HeartbeatService) StreamAllWithinByFilters(from, to time.Time, user *
 		return nil, err
 	}
 
-	c, err := srv.repository.StreamAllWithinByFilters(from, to, user, srv.filtersToColumnMap(filters))
+	c, err := srv.repository.StreamWithinByFilters(from, to, user, srv.filtersToColumnMap(filters))
 	if err != nil {
 		return nil, err
 	}

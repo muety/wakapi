@@ -414,7 +414,7 @@ Unit tests are supposed to test business logic on a fine-grained level. They are
 
 ```bash
 $ go install github.com/mfridman/tparse@latest  # optional
-$ CGO_ENABLED=0 go test `go list ./... | grep -v 'github.com/muety/wakapi/scripts'` -json -coverprofile=coverage/coverage.out ./... -run ./... | tparse -all
+$ CGO_ENABLED=0 go test -json -coverprofile=coverage/coverage.out ./... -run ./... | tparse -all
 ```
 
 ### API tests

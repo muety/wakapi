@@ -127,7 +127,7 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 	for _, interval := range missingIntervals {
 		if s, err := srv.Summarize(interval.Start, interval.End, user, filters, customTimeout); err == nil {
 			if len(missingIntervals) > 2 && s.FromTime.T().Equal(s.ToTime.T()) {
-				// little hack here: GetAllWithin will query for >= from_date
+				// little hack here: GetWithin will query for >= from_date
 				// however, for "in-between" / intra-day missing intervals, we want strictly > from_date to prevent double-counting
 				// to not have to rewrite many interfaces, we skip these summaries here
 				continue

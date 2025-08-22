@@ -43,6 +43,16 @@ func (r *LeaderboardRepository) CountUsers(excludeZero bool) (int64, error) {
 	return count, err
 }
 
+func (r *LeaderboardRepository) GetAll() ([]*models.LeaderboardItem, error) {
+	var items []*models.LeaderboardItem
+	if err := r.db.
+		Where(&models.LeaderboardItem{}).
+		Find(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 func (r *LeaderboardRepository) GetAllAggregatedByInterval(key *models.IntervalKey, by *uint8, limit, skip int) ([]*models.LeaderboardItemRanked, error) {
 	// TODO: distinct by (user, key) to filter out potential duplicates ?
 

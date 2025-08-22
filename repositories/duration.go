@@ -17,6 +17,30 @@ func NewDurationRepository(db *gorm.DB) *DurationRepository {
 	return &DurationRepository{BaseRepository: NewBaseRepository(db), config: conf.Get()}
 }
 
+func (r *DurationRepository) GetAll() ([]*models.Duration, error) {
+	var durations []*models.Duration
+	if err := r.db.
+		Where(&models.Duration{}).
+		Find(&durations).Error; err != nil {
+		return nil, err
+	}
+	return durations, nil
+}
+
+func (r *DurationRepository) StreamAllBatched(batchSize int) (chan []*models.Duration, error) {
+	out := make(chan []*models.Duration)
+
+	rows, err := r.db.Model(&models.Duration{}).Rows()
+	if err != nil {
+		return nil, err
+	}
+
+	go streamRowsBatched[models.Duration](rows, out, r.db, batchSize, func(err error) {
+		conf.Log().Error("failed to scan duration row", "error", err)
+	})
+	return out, nil
+}
+
 func (r *DurationRepository) GetAllWithin(from, to time.Time, user *models.User) ([]*models.Duration, error) {
 	return r.GetAllWithinByFilters(from, to, user, map[string][]string{})
 }

@@ -16,3 +16,4 @@ node_modules
 .venv
 venv
 .env
+scripts/mysql_to_*.yml
