@@ -2,9 +2,10 @@ package utils
 
 import (
 	"errors"
+	"regexp"
+
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
-	"regexp"
 )
 
 const (
@@ -37,7 +38,7 @@ func GetBadgeParams(reqPath string, authorizedUser, requestedUser *models.User) 
 		}
 	}
 
-	_, rangeFrom, rangeTo := helpers.ResolveIntervalTZ(intervalKey, requestedUser.TZ())
+	_, rangeFrom, rangeTo := helpers.ResolveIntervalTZ(intervalKey, requestedUser.TZ(), requestedUser.StartOfWeekDay())
 	interval := &models.KeyedInterval{
 		Interval: models.Interval{Start: rangeFrom, End: rangeTo},
 		Key:      intervalKey,

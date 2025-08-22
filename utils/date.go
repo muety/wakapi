@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"github.com/duke-git/lancet/v2/datetime"
 	"strings"
 	"time"
+
+	"github.com/duke-git/lancet/v2/datetime"
 )
 
 func MustParseTime(layout, value string) time.Time {
@@ -15,8 +16,8 @@ func BeginOfToday(tz *time.Location) time.Time {
 	return datetime.BeginOfDay(time.Now().In(tz))
 }
 
-func BeginOfThisWeek(tz *time.Location) time.Time {
-	return datetime.BeginOfWeek(time.Now().In(tz), time.Monday)
+func BeginOfThisWeek(tz *time.Location, startOfWeek time.Weekday) time.Time {
+	return datetime.BeginOfWeek(time.Now().In(tz), startOfWeek)
 }
 
 func BeginOfThisMonth(tz *time.Location) time.Time {

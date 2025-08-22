@@ -1,11 +1,12 @@
 package v1
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models/types"
-	"net/http"
-	"time"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -63,7 +64,7 @@ func (h *StatusBarHandler) Get(w http.ResponseWriter, r *http.Request) {
 		rangeParam = (*models.IntervalToday)[0]
 	}
 
-	err, rangeFrom, rangeTo := helpers.ResolveIntervalRawTZ(rangeParam, user.TZ())
+	err, rangeFrom, rangeTo := helpers.ResolveIntervalRawTZ(rangeParam, user.TZ(), user.StartOfWeekDay())
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("invalid range"))

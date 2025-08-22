@@ -87,7 +87,7 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err, rangeFrom, rangeTo := helpers.ResolveIntervalRawTZ(rangeParam, requestedUser.TZ())
+	err, rangeFrom, rangeTo := helpers.ResolveIntervalRawTZ(rangeParam, requestedUser.TZ(), requestedUser.StartOfWeekDay())
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("invalid range"))

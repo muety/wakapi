@@ -2,9 +2,10 @@ package helpers
 
 import (
 	"errors"
+	"time"
+
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
-	"time"
 )
 
 func ParseInterval(interval string) (*models.IntervalKey, error) {
@@ -21,20 +22,20 @@ func MustParseInterval(interval string) *models.IntervalKey {
 	return key
 }
 
-func MustResolveIntervalRawTZ(interval string, tz *time.Location) (from, to time.Time) {
-	_, from, to = ResolveIntervalRawTZ(interval, tz)
+func MustResolveIntervalRawTZ(interval string, tz *time.Location, startOfWeek time.Weekday) (from, to time.Time) {
+	_, from, to = ResolveIntervalRawTZ(interval, tz, startOfWeek)
 	return from, to
 }
 
-func ResolveIntervalRawTZ(interval string, tz *time.Location) (err error, from, to time.Time) {
+func ResolveIntervalRawTZ(interval string, tz *time.Location, startOfWeek time.Weekday) (err error, from, to time.Time) {
 	parsed, err := ParseInterval(interval)
 	if err != nil {
 		return err, time.Time{}, time.Time{}
 	}
-	return ResolveIntervalTZ(parsed, tz)
+	return ResolveIntervalTZ(parsed, tz, startOfWeek)
 }
 
-func ResolveIntervalTZ(interval *models.IntervalKey, tz *time.Location) (err error, from, to time.Time) {
+func ResolveIntervalTZ(interval *models.IntervalKey, tz *time.Location, startOfWeek time.Weekday) (err error, from, to time.Time) {
 	now := time.Now().In(tz)
 	to = now
 
@@ -47,10 +48,10 @@ func ResolveIntervalTZ(interval *models.IntervalKey, tz *time.Location) (err err
 	case models.IntervalPastDay:
 		from = now.Add(-24 * time.Hour)
 	case models.IntervalThisWeek:
-		from = utils.BeginOfThisWeek(tz)
+		from = utils.BeginOfThisWeek(tz, startOfWeek)
 	case models.IntervalLastWeek:
-		from = utils.BeginOfThisWeek(tz).AddDate(0, 0, -7)
-		to = utils.BeginOfThisWeek(tz)
+		from = utils.BeginOfThisWeek(tz, startOfWeek).AddDate(0, 0, -7)
+		to = utils.BeginOfThisWeek(tz, startOfWeek)
 	case models.IntervalThisMonth:
 		from = utils.BeginOfThisMonth(tz)
 	case models.IntervalLastMonth:

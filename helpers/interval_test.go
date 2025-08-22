@@ -1,16 +1,17 @@
 package helpers
 
 import (
-	"github.com/muety/wakapi/models"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/muety/wakapi/models"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestResolveMaximumRange_Default(t *testing.T) {
 	for i := 1; i <= 367; i++ {
 		err1, maximumInterval := ResolveMaximumRange(i)
-		err2, from, to := ResolveIntervalTZ(maximumInterval, time.UTC)
+		err2, from, to := ResolveIntervalTZ(maximumInterval, time.UTC, time.Monday)
 
 		assert.Nil(t, err1)
 		assert.Nil(t, err2)

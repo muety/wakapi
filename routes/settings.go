@@ -3,16 +3,19 @@ package routes
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/duke-git/lancet/v2/condition"
-	"github.com/go-chi/chi/v5"
-	"github.com/gofrs/uuid/v5"
-	"github.com/muety/wakapi/helpers"
 	"net/http"
 	"net/url"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/duke-git/lancet/v2/condition"
+	"github.com/go-chi/chi/v5"
+	"github.com/gofrs/uuid/v5"
+	"github.com/muety/wakapi/helpers"
+
+	"log/slog"
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/gorilla/schema"
@@ -24,7 +27,6 @@ import (
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/services/imports"
 	"github.com/muety/wakapi/utils"
-	"log/slog"
 )
 
 const criticalError = "a critical error has occurred, sorry"
@@ -220,6 +222,7 @@ func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Reques
 
 	user.Email = payload.Email
 	user.Location = payload.Location
+	user.StartOfWeek = payload.StartOfWeek
 	user.ReportsWeekly = payload.ReportsWeekly
 	user.PublicLeaderboard = payload.PublicLeaderboard
 

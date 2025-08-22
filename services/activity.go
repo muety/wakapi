@@ -5,6 +5,10 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"math"
+	"sync"
+	"time"
+
 	svg "github.com/ajstarks/svgo/float"
 	"github.com/alitto/pond/v2"
 	"github.com/duke-git/lancet/v2/condition"
@@ -14,9 +18,6 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
-	"math"
-	"sync"
-	"time"
 )
 
 const (
@@ -67,7 +68,8 @@ func (s *ActivityService) GetChart(user *models.User, interval *models.IntervalK
 }
 
 func (s *ActivityService) getChartPastYear(user *models.User, darkTheme, hideAttribution bool) (string, error) {
-	err, from, to := helpers.ResolveIntervalTZ(models.IntervalPast12Months, user.TZ())
+	err, from, to := helpers.ResolveIntervalTZ(models.IntervalPast12Months, user.TZ(), user.StartOfWeekDay())
+	// TODO: I am not sure if we have to handle startOfWeekDay here, but it seems like we do not need to.
 	from = datetime.BeginOfWeek(from, time.Monday)
 	if err != nil {
 		return "", err
