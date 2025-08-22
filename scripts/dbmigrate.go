@@ -13,9 +13,15 @@ Usage:
 
 Example: config.yml
 -------------------
+with_key_values: true
+with_users: true
 with_leaderboard: false
+with_language_mappings: true
+with_aliases: true
 with_summaries: false
 with_durations: false
+with_heartbeats: true
+with_project_labels: true
 
 source:
   name: ../wakapi_db.db
@@ -60,11 +66,17 @@ import (
 )
 
 type config struct {
-	WithLeaderboard bool `yaml:"with_leaderboard"`
-	WithSummaries   bool `yaml:"with_summaries"`
-	WithDurations   bool `yaml:"with_durations"`
-	Source          dbConfig
-	Target          dbConfig
+	WithKeyValues        bool `yaml:"with_key_values" default:"true"`
+	WithUsers            bool `yaml:"with_users" default:"true"`
+	WithLeaderboard      bool `yaml:"with_leaderboard" default:"false"`
+	WithLanguageMappings bool `yaml:"with_language_mappings" default:"true"`
+	WithAliases          bool `yaml:"with_aliases" default:"true"`
+	WithSummaries        bool `yaml:"with_summaries" default:"false"`
+	WithDurations        bool `yaml:"with_durations" default:"false"`
+	WithHeartbeats       bool `yaml:"with_heartbeats" default:"true"`
+	WithProjectLabels    bool `yaml:"with_project_labels" default:"true"`
+	Source               dbConfig
+	Target               dbConfig
 }
 
 type dbConfig struct {
@@ -163,139 +175,157 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	log.Println("Migrating key-value pairs ...")
-	if data, err := keyValueSource.GetAll(); err == nil {
-		bar = progressbar.Default(int64(len(data)))
-		for _, e := range data {
-			if err := keyValueTarget.PutString(e); err != nil {
-				log.Printf("warning: failed to insert key-value pair %s (%s)\n", e.Key, err)
-				continue
-			}
-			bar.Add(1)
-		}
-	} else {
-		log.Fatalln(err)
-	}
-
-	log.Println("Migrating users ...")
-	if data, err := userSource.GetAll(); err == nil {
-		bar = progressbar.Default(int64(len(data)))
-		for _, e := range data {
-			if _, _, err := userTarget.InsertOrGet(e); err != nil {
-				log.Printf("warning: failed to insert user %s (%s)\n", e.ID, err)
-				continue
-			}
-			bar.Add(1)
-		}
-	} else {
-		log.Fatalln(err)
-	}
-
-	log.Println("Migrating language mappings ...")
-	if data, err := languageMappingSource.GetAll(); err == nil {
-		bar = progressbar.Default(int64(len(data)))
-		for _, e := range data {
-			id := e.ID
-			e.ID = 0
-			if _, err := languageMappingTarget.Insert(e); err != nil {
-				log.Printf("warning: failed to insert language mapping %d (%s)\n", id, err)
-				continue
-			}
-			bar.Add(1)
-		}
-	} else {
-		log.Fatalln(err)
-	}
-
-	log.Println("Migrating project labels ...")
-	if data, err := projectLabelsSource.GetAll(); err == nil {
-		bar = progressbar.Default(int64(len(data)))
-		for _, e := range data {
-			id := e.ID
-			e.ID = 0
-			if _, err := projectLabelsTarget.Insert(e); err != nil {
-				log.Printf("warning: failed to insert project label %d (%s)\n", id, err)
-				continue
-			}
-			bar.Add(1)
-		}
-	} else {
-		log.Fatalln(err)
-	}
-
-	log.Println("Migrating aliases ...")
-	if data, err := aliasSource.GetAll(); err == nil {
-		bar = progressbar.Default(int64(len(data)))
-		for _, e := range data {
-			id := e.ID
-			e.ID = 0
-			if _, err := aliasTarget.Insert(e); err != nil {
-				log.Printf("warning: failed to insert alias %d (%s)\n", id, err)
-				continue
-			}
-			bar.Add(1)
-		}
-	} else {
-		log.Fatalln(err)
-	}
-
-	log.Println("Migrating leaderboard ...")
-	if data, err := leaderboardSource.GetAll(); err == nil {
-		if err := leaderboardTarget.InsertBatch(data); err != nil {
-			log.Printf("warning: failed to migrate leaderboards (%s)\n", err)
-		}
-		bar.Add(len(data))
-	} else {
-		log.Fatalln(err)
-	}
-
-	// TODO: stream and batch-insert
-	log.Println("Migrating summaries ...")
-	if data, err := summarySource.GetAll(); err == nil {
-		bar = progressbar.Default(int64(len(data)))
-		for _, e := range data {
-			id := e.ID
-			e.ID = 0
-			if err := summaryTarget.Insert(e); err != nil {
-				log.Printf("warning: failed to insert summary %d (%s)\n", id, err)
-				continue
-			}
-			bar.Add(1)
-		}
-	} else {
-		log.Fatalln(err)
-	}
-
-	// TODO: stream and batch-insert
-	log.Println("Migrating durations ...")
-	bar = progressbar.Default(0)
-	if data, err := durationsSource.StreamAllBatched(InsertBatchSize); err == nil {
-		for durations := range data {
-			if err := durationsTarget.InsertBatch(durations); err != nil {
-				log.Printf("warning: failed to insert batch of durations (%s)\n", err)
-				continue
-			}
-			bar.Add(len(durations))
-		}
-	} else {
-		log.Fatalln(err)
-	}
-
-	log.Println("Migrating heartbeats ...")
-	bar = progressbar.Default(int64(len(users)))
-	for _, user := range users {
-		if data, err := heartbeatSource.StreamWithinBatched(time.Time{}, time.Now(), user, InsertBatchSize); err == nil {
-			for heartbeats := range data {
-				if err := heartbeatTarget.InsertBatch(heartbeats); err != nil {
-					log.Printf("warning: failed to insert batch of heartbeats for user (%s)\n", user.ID, err)
+	if cfg.WithKeyValues {
+		log.Println("Migrating key-value pairs ...")
+		if data, err := keyValueSource.GetAll(); err == nil {
+			bar = progressbar.Default(int64(len(data)))
+			for _, e := range data {
+				if err := keyValueTarget.PutString(e); err != nil {
+					log.Printf("warning: failed to insert key-value pair %s (%s)\n", e.Key, err)
 					continue
 				}
+				bar.Add(1)
 			}
 		} else {
 			log.Fatalln(err)
 		}
+	}
 
-		bar.Add(1)
+	if cfg.WithUsers {
+		log.Println("Migrating users ...")
+		if data, err := userSource.GetAll(); err == nil {
+			bar = progressbar.Default(int64(len(data)))
+			for _, e := range data {
+				if _, _, err := userTarget.InsertOrGet(e); err != nil {
+					log.Printf("warning: failed to insert user %s (%s)\n", e.ID, err)
+					continue
+				}
+				bar.Add(1)
+			}
+		} else {
+			log.Fatalln(err)
+		}
+	}
+
+	if cfg.WithLanguageMappings {
+		log.Println("Migrating language mappings ...")
+		if data, err := languageMappingSource.GetAll(); err == nil {
+			bar = progressbar.Default(int64(len(data)))
+			for _, e := range data {
+				id := e.ID
+				e.ID = 0
+				if _, err := languageMappingTarget.Insert(e); err != nil {
+					log.Printf("warning: failed to insert language mapping %d (%s)\n", id, err)
+					continue
+				}
+				bar.Add(1)
+			}
+		} else {
+			log.Fatalln(err)
+		}
+	}
+
+	if cfg.WithProjectLabels {
+		log.Println("Migrating project labels ...")
+		if data, err := projectLabelsSource.GetAll(); err == nil {
+			bar = progressbar.Default(int64(len(data)))
+			for _, e := range data {
+				id := e.ID
+				e.ID = 0
+				if _, err := projectLabelsTarget.Insert(e); err != nil {
+					log.Printf("warning: failed to insert project label %d (%s)\n", id, err)
+					continue
+				}
+				bar.Add(1)
+			}
+		} else {
+			log.Fatalln(err)
+		}
+	}
+
+	if cfg.WithAliases {
+		log.Println("Migrating aliases ...")
+		if data, err := aliasSource.GetAll(); err == nil {
+			bar = progressbar.Default(int64(len(data)))
+			for _, e := range data {
+				id := e.ID
+				e.ID = 0
+				if _, err := aliasTarget.Insert(e); err != nil {
+					log.Printf("warning: failed to insert alias %d (%s)\n", id, err)
+					continue
+				}
+				bar.Add(1)
+			}
+		} else {
+			log.Fatalln(err)
+		}
+	}
+
+	if cfg.WithLeaderboard {
+		log.Println("Migrating leaderboard ...")
+		if data, err := leaderboardSource.GetAll(); err == nil {
+			if err := leaderboardTarget.InsertBatch(data); err != nil {
+				log.Printf("warning: failed to migrate leaderboards (%s)\n", err)
+			}
+			bar.Add(len(data))
+		} else {
+			log.Fatalln(err)
+		}
+	}
+
+	if cfg.WithSummaries {
+		// TODO: stream and batch-insert
+		log.Println("Migrating summaries ...")
+		if data, err := summarySource.GetAll(); err == nil {
+			bar = progressbar.Default(int64(len(data)))
+			for _, e := range data {
+				id := e.ID
+				e.ID = 0
+				if err := summaryTarget.Insert(e); err != nil {
+					log.Printf("warning: failed to insert summary %d (%s)\n", id, err)
+					continue
+				}
+				bar.Add(1)
+			}
+		} else {
+			log.Fatalln(err)
+		}
+	}
+
+	if cfg.WithDurations {
+		// TODO: stream and batch-insert
+		log.Println("Migrating durations ...")
+		bar = progressbar.Default(0)
+		if data, err := durationsSource.StreamAllBatched(InsertBatchSize); err == nil {
+			for durations := range data {
+				if err := durationsTarget.InsertBatch(durations); err != nil {
+					log.Printf("warning: failed to insert batch of durations (%s)\n", err)
+					continue
+				}
+				bar.Add(len(durations))
+			}
+		} else {
+			log.Fatalln(err)
+		}
+	}
+
+	if cfg.WithHeartbeats {
+		log.Println("Migrating heartbeats ...")
+		bar = progressbar.Default(int64(len(users)))
+		for _, user := range users {
+			if data, err := heartbeatSource.StreamWithinBatched(time.Time{}, time.Now(), user, InsertBatchSize); err == nil {
+				for heartbeats := range data {
+					if err := heartbeatTarget.InsertBatch(heartbeats); err != nil {
+						log.Printf("warning: failed to insert batch of heartbeats for user (%s)\n", user.ID, err)
+						continue
+					}
+				}
+			} else {
+				log.Fatalln(err)
+			}
+
+			bar.Add(1)
+		}
 	}
 }
 

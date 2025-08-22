@@ -17,3 +17,4 @@ node_modules
 venv
 .env
 scripts/mysql_to_*.yml
+*.db-journal
