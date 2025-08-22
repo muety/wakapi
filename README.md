@@ -31,7 +31,8 @@
   <img src="static/assets/images/screenshot.webp" width="500px">
 </p>
 
-Installation instructions can be found below and in the [Wiki](https://github.com/muety/wakapi/wiki).
+> [!IMPORTANT]
+> Upvote Wakapi on [AlternativeTo](https://alternativeto.net/software/wakapi/about/) and [ProductHunt](https://www.producthunt.com/posts/wakapi-coding-statistics) to support the project 🌈.
 
 ## 🚀 Features
 
