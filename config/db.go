@@ -2,12 +2,13 @@ package config
 
 import (
 	"fmt"
+	"net/url"
+
 	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
-	"net/url"
 )
 
 /*
@@ -116,7 +117,7 @@ func postgresConnectionString(config *dbConfig) string {
 }
 
 func sqliteConnectionString(config *dbConfig) string {
-	return config.Name
+	return fmt.Sprintf("%s?busy_timeout=10000&journal_mode=wal", config.Name)
 }
 
 func mssqlConnectionString(config *dbConfig) string {
