@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -87,8 +88,11 @@ func Test_sqliteConnectionString(t *testing.T) {
 		Name:    "test_name",
 		Dialect: "sqlite3",
 	}
-	assert.True(t, strings.HasPrefix(sqliteConnectionString(c), c.Name))
-	assert.Contains(t, strings.ToLower(sqliteConnectionString(c)), "journal_mode=wal")
+	sut, err := url.QueryUnescape(sqliteConnectionString(c))
+	assert.Nil(t, err)
+	assert.True(t, strings.HasPrefix(sut, fmt.Sprintf("file:%s", c.Name)))
+	assert.Contains(t, strings.ToLower(sut), "journal_mode=wal")
+	assert.Contains(t, strings.ToLower(sut), "_timefmt=2006-01-02 15:04:05.999-07:00")
 }
 
 func Test_mssqlConnectionString(t *testing.T) {

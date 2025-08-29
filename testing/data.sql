@@ -16,12 +16,12 @@ INSERT INTO "users" ("id", "api_key", "email", "location", "password", "created_
                      "share_data_max_days", "share_editors", "share_languages", "share_projects", "share_oss",
                      "share_machines", "is_admin", "has_data", "wakatime_api_key", "reset_token", "reports_weekly")
 VALUES ('readuser', '33e7f538-0dce-4eba-8ffe-53db6814ed42', '', 'Europe/Berlin',
-        '$2a$10$93CAptdjLGRtc1D3xrZJcu8B/YBAPSjCZOHZRId.xpyrsLAeHOoA.', '2021-05-28 12:34:25',
+        '$2a$10$93CAptdjLGRtc1D3xrZJcu8B/YBAPSjCZOHZRId.xpyrsLAeHOoA.', '2021-05-28 12:34:25.000+02:00',
         '2021-05-28 14:34:34.178+02:00', 0, 0, 0, 0, 0, 0, 1, 0, '', '', 0);
 INSERT INTO "users" ("id", "api_key", "email", "location", "password", "created_at", "last_logged_in_at",
                      "share_data_max_days", "share_editors", "share_languages", "share_projects", "share_oss",
                      "share_machines", "is_admin", "has_data", "wakatime_api_key", "reset_token", "reports_weekly")
 VALUES ('writeuser', 'f7aa255c-8647-4d0b-b90f-621c58fd580f', '', 'Europe/Berlin',
-        '$2a$10$93CAptdjLGRtc1D3xrZJcu8B/YBAPSjCZOHZRId.xpyrsLAeHOoA.', '2021-05-28 12:34:56',
+        '$2a$10$93CAptdjLGRtc1D3xrZJcu8B/YBAPSjCZOHZRId.xpyrsLAeHOoA.', '2021-05-28 12:34:56.000+02:00',
         '2021-05-28 14:35:05.118+02:00', 7, 0, 0, 1, 0, 0, 0, 1, '', '', 0);
 COMMIT;
