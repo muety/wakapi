@@ -58,7 +58,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/glebarez/sqlite"
 	"github.com/jinzhu/configor"
 	wakapiConfig "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
