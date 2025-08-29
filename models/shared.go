@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/utils"
-	"gorm.io/driver/postgres"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/glebarez/sqlite"
+	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/utils"
+	"gorm.io/driver/postgres"
 
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
@@ -58,8 +60,10 @@ func (j CustomTime) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 		// TODO: migrate to timestamptz, see https://github.com/muety/wakapi/issues/771
 	}
 
-	if scale, ok := field.TagSettings["TIMESCALE"]; ok {
-		t += fmt.Sprintf("(%s)", scale)
+	if db.Dialector.Name() != (sqlite.Dialector{}).Name() { // https://github.com/glebarez/go-sqlite/issues/186
+		if scale, ok := field.TagSettings["TIMESCALE"]; ok {
+			t += fmt.Sprintf("(%s)", scale)
+		}
 	}
 
 	return t
@@ -88,9 +92,12 @@ func (j *CustomTime) Scan(value interface{}) error {
 
 	switch value.(type) {
 	case string:
-		// with sqlite, some queries (like GetLastByUser()) return dates as strings,
-		// however, most of the time they are returned as time.Time
-		t, err = time.Parse("2006-01-02 15:04:05-07:00", value.(string))
+		// this is only for safety / backwards compatibility, because, the driver itself should already properly parse dates
+		// however, that's not always guaranteed, e.g. see https://github.com/glebarez/go-sqlite/issues/186
+		t, err = time.Parse("2006-01-02 15:04:05-07:00", value.(string)) // string format used by glebarez/sqlite driver
+		if err != nil {
+			t, err = time.Parse(time.RFC3339, value.(string)) // iso format used by ncruces/go-sqlite3 driver and others
+		}
 		if err != nil {
 			return errors.New(fmt.Sprintf("unsupported date time format: %s", value))
 		}
