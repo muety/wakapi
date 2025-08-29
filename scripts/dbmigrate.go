@@ -54,6 +54,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"time"
 
@@ -62,6 +63,8 @@ import (
 	wakapiConfig "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
+	_ "github.com/ncruces/go-sqlite3/embed"
+	sqlite "github.com/ncruces/go-sqlite3/gormlite"
 	"github.com/schollz/progressbar/v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -358,7 +361,12 @@ func getDb(cfg *dbConfig) (*gorm.DB, error) {
 	)
 
 	if cfg.Dialect == "sqlite" {
-		return gorm.Open(sqlite.Open(cfg.Name), &gorm.Config{
+		query := url.Values{}
+		query.Add("busy_timeout", "10000")
+		query.Add("journal_mode", "wal")
+		query.Add("_timefmt", "2006-01-02 15:04:05.999-07:00")
+
+		return gorm.Open(sqlite.Open(fmt.Sprintf("file:%s?%s", cfg.Name, query.Encode())), &gorm.Config{
 			Logger: gormLogger,
 		})
 	}

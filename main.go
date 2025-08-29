@@ -14,10 +14,10 @@ import (
 
 	"github.com/duke-git/lancet/v2/condition"
 
-	_ "github.com/glebarez/sqlite"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/lpar/gzipped/v2"
+	_ "github.com/ncruces/go-sqlite3/embed"
 	httpSwagger "github.com/swaggo/http-swagger"
 	_ "gorm.io/driver/mysql"
 	_ "gorm.io/driver/postgres"
