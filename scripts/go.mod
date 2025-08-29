@@ -5,12 +5,12 @@ go 1.24.0
 replace github.com/muety/wakapi => ..
 
 require (
+	github.com/glebarez/sqlite v1.11.0
 	github.com/jinzhu/configor v1.2.2
 	github.com/muety/wakapi v0.0.0-00010101000000-000000000000
 	github.com/schollz/progressbar/v3 v3.18.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/driver/postgres v1.6.0
-	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.30.1
 )
 
@@ -24,7 +24,6 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/getsentry/sentry-go v0.34.1 // indirect
 	github.com/glebarez/go-sqlite v1.22.0 // indirect
-	github.com/glebarez/sqlite v1.11.0 // indirect
 	github.com/go-sql-driver/mysql v1.9.3 // indirect
 	github.com/gofrs/uuid/v5 v5.3.2 // indirect
 	github.com/gohugoio/hashstructure v0.5.0 // indirect
@@ -42,7 +41,6 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leandro-lugaresi/hub v1.1.1 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-sqlite3 v1.14.28 // indirect
 	github.com/microsoft/go-mssqldb v1.9.2 // indirect
 	github.com/mileusna/useragent v1.3.5 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect

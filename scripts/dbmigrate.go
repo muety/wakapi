@@ -22,6 +22,10 @@ with_summaries: false
 with_durations: false
 with_heartbeats: true
 with_project_labels: true
+users:
+	# optional, if not set, all users will be migrated
+	- user1
+	- user2
 
 source:
   name: ../wakapi_db.db
@@ -53,6 +57,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/glebarez/sqlite"
 	"github.com/jinzhu/configor"
 	wakapiConfig "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -60,21 +65,21 @@ import (
 	"github.com/schollz/progressbar/v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
 type config struct {
-	WithKeyValues        bool `yaml:"with_key_values" default:"true"`
-	WithUsers            bool `yaml:"with_users" default:"true"`
-	WithLeaderboard      bool `yaml:"with_leaderboard" default:"false"`
-	WithLanguageMappings bool `yaml:"with_language_mappings" default:"true"`
-	WithAliases          bool `yaml:"with_aliases" default:"true"`
-	WithSummaries        bool `yaml:"with_summaries" default:"false"`
-	WithDurations        bool `yaml:"with_durations" default:"false"`
-	WithHeartbeats       bool `yaml:"with_heartbeats" default:"true"`
-	WithProjectLabels    bool `yaml:"with_project_labels" default:"true"`
+	WithKeyValues        bool     `yaml:"with_key_values" default:"true"`
+	WithUsers            bool     `yaml:"with_users" default:"true"`
+	WithLeaderboard      bool     `yaml:"with_leaderboard" default:"false"`
+	WithLanguageMappings bool     `yaml:"with_language_mappings" default:"true"`
+	WithAliases          bool     `yaml:"with_aliases" default:"true"`
+	WithSummaries        bool     `yaml:"with_summaries" default:"false"`
+	WithDurations        bool     `yaml:"with_durations" default:"false"`
+	WithHeartbeats       bool     `yaml:"with_heartbeats" default:"true"`
+	WithProjectLabels    bool     `yaml:"with_project_labels" default:"true"`
+	Users                []string `yaml:"users"`
 	Source               dbConfig
 	Target               dbConfig
 }
@@ -96,6 +101,7 @@ var cFlag *string
 
 func init() {
 	cfg = &config{}
+
 	wakapiConfig.Set(wakapiConfig.Empty())
 	wakapiConfig.Get().Db.Dialect = cfg.Source.Dialect // only required because of the "postgresTimezoneHack" in shared.go
 
@@ -170,7 +176,13 @@ func main() {
 
 	var bar *progressbar.ProgressBar
 
-	users, err := userSource.GetAll()
+	getUsers := userSource.GetAll
+	if len(cfg.Users) > 0 {
+		getUsers = func() ([]*models.User, error) {
+			return userSource.GetMany(cfg.Users)
+		}
+	}
+	users, err := getUsers()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -193,71 +205,73 @@ func main() {
 
 	if cfg.WithUsers {
 		log.Println("Migrating users ...")
-		if data, err := userSource.GetAll(); err == nil {
-			bar = progressbar.Default(int64(len(data)))
-			for _, e := range data {
-				if _, _, err := userTarget.InsertOrGet(e); err != nil {
-					log.Printf("warning: failed to insert user %s (%s)\n", e.ID, err)
-					continue
-				}
-				bar.Add(1)
+		bar = progressbar.Default(int64(len(users)))
+		for _, e := range users {
+			if _, _, err := userTarget.InsertOrGet(e); err != nil {
+				log.Printf("warning: failed to insert user %s (%s)\n", e.ID, err)
+				continue
 			}
-		} else {
-			log.Fatalln(err)
+			bar.Add(1)
 		}
 	}
 
 	if cfg.WithLanguageMappings {
 		log.Println("Migrating language mappings ...")
-		if data, err := languageMappingSource.GetAll(); err == nil {
-			bar = progressbar.Default(int64(len(data)))
-			for _, e := range data {
-				id := e.ID
-				e.ID = 0
-				if _, err := languageMappingTarget.Insert(e); err != nil {
-					log.Printf("warning: failed to insert language mapping %d (%s)\n", id, err)
-					continue
+		bar = progressbar.Default(int64(len(users)))
+		for _, user := range users {
+			if data, err := languageMappingSource.GetByUser(user.ID); err == nil {
+				for _, e := range data {
+					id := e.ID
+					e.ID = 0
+					if _, err := languageMappingTarget.Insert(e); err != nil {
+						log.Printf("warning: failed to insert language mapping %d (%s)\n", id, err)
+						continue
+					}
 				}
-				bar.Add(1)
+			} else {
+				log.Fatalln(err)
 			}
-		} else {
-			log.Fatalln(err)
+			bar.Add(1)
 		}
 	}
 
 	if cfg.WithProjectLabels {
 		log.Println("Migrating project labels ...")
-		if data, err := projectLabelsSource.GetAll(); err == nil {
-			bar = progressbar.Default(int64(len(data)))
-			for _, e := range data {
-				id := e.ID
-				e.ID = 0
-				if _, err := projectLabelsTarget.Insert(e); err != nil {
-					log.Printf("warning: failed to insert project label %d (%s)\n", id, err)
-					continue
+		bar = progressbar.Default(int64(len(users)))
+		for _, user := range users {
+			if data, err := projectLabelsSource.GetByUser(user.ID); err == nil {
+				for _, e := range data {
+					id := e.ID
+					e.ID = 0
+					if _, err := projectLabelsTarget.Insert(e); err != nil {
+						log.Printf("warning: failed to insert project label %d (%s)\n", id, err)
+						continue
+					}
 				}
-				bar.Add(1)
+			} else {
+				log.Fatalln(err)
 			}
-		} else {
-			log.Fatalln(err)
+			bar.Add(1)
 		}
 	}
 
 	if cfg.WithAliases {
 		log.Println("Migrating aliases ...")
-		if data, err := aliasSource.GetAll(); err == nil {
-			bar = progressbar.Default(int64(len(data)))
-			for _, e := range data {
-				id := e.ID
-				e.ID = 0
-				if _, err := aliasTarget.Insert(e); err != nil {
-					log.Printf("warning: failed to insert alias %d (%s)\n", id, err)
-					continue
+		bar = progressbar.Default(int64(len(users)))
+		for _, user := range users {
+			if data, err := aliasSource.GetByUser(user.ID); err == nil {
+				for _, e := range data {
+					id := e.ID
+					e.ID = 0
+					if _, err := aliasTarget.Insert(e); err != nil {
+						log.Printf("warning: failed to insert alias %d (%s)\n", id, err)
+						continue
+					}
 				}
-				bar.Add(1)
+			} else {
+				log.Fatalln(err)
 			}
-		} else {
-			log.Fatalln(err)
+			bar.Add(1)
 		}
 	}
 
@@ -276,36 +290,40 @@ func main() {
 	if cfg.WithSummaries {
 		// TODO: stream and batch-insert
 		log.Println("Migrating summaries ...")
-		if data, err := summarySource.GetAll(); err == nil {
-			bar = progressbar.Default(int64(len(data)))
-			for _, e := range data {
-				id := e.ID
-				e.ID = 0
-				if err := summaryTarget.Insert(e); err != nil {
-					log.Printf("warning: failed to insert summary %d (%s)\n", id, err)
-					continue
+		bar = progressbar.Default(int64(len(users)))
+		for _, user := range users {
+			if data, err := summarySource.GetByUserWithin(user, time.Time{}, time.Now()); err == nil {
+				for _, e := range data {
+					id := e.ID
+					e.ID = 0
+					if err := summaryTarget.Insert(e); err != nil {
+						log.Printf("warning: failed to insert summary %d (%s)\n", id, err)
+						continue
+					}
 				}
-				bar.Add(1)
+			} else {
+				log.Fatalln(err)
 			}
-		} else {
-			log.Fatalln(err)
+			bar.Add(1)
 		}
 	}
 
 	if cfg.WithDurations {
 		// TODO: stream and batch-insert
 		log.Println("Migrating durations ...")
-		bar = progressbar.Default(0)
-		if data, err := durationsSource.StreamAllBatched(InsertBatchSize); err == nil {
-			for durations := range data {
-				if err := durationsTarget.InsertBatch(durations); err != nil {
-					log.Printf("warning: failed to insert batch of durations (%s)\n", err)
-					continue
+		bar = progressbar.Default(int64(len(users)))
+		for _, user := range users {
+			if data, err := durationsSource.StreamByUserBatched(user, InsertBatchSize); err == nil {
+				for durations := range data {
+					if err := durationsTarget.InsertBatch(durations); err != nil {
+						log.Printf("warning: failed to insert batch of durations (%s)\n", err)
+						continue
+					}
 				}
-				bar.Add(len(durations))
+			} else {
+				log.Fatalln(err)
 			}
-		} else {
-			log.Fatalln(err)
+			bar.Add(1)
 		}
 	}
 

@@ -37,6 +37,11 @@ func (m *DurationRepositoryMock) StreamAllBatched(i int) (chan []*models.Duratio
 	return args.Get(0).(chan []*models.Duration), args.Error(1)
 }
 
+func (m *DurationRepositoryMock) StreamByUserBatched(u *models.User, i int) (chan []*models.Duration, error) {
+	args := m.Called(u, i)
+	return args.Get(0).(chan []*models.Duration), args.Error(1)
+}
+
 func (m *DurationRepositoryMock) GetLatestByUser(u *models.User) (*models.Duration, error) {
 	args := m.Called(u)
 	return args.Get(0).(*models.Duration), args.Error(1)
