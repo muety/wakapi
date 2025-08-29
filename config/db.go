@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/glebarez/sqlite"
+	sqlite "github.com/ncruces/go-sqlite3/gormlite"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlserver"
@@ -117,7 +117,11 @@ func postgresConnectionString(config *dbConfig) string {
 }
 
 func sqliteConnectionString(config *dbConfig) string {
-	return fmt.Sprintf("%s?busy_timeout=10000&journal_mode=wal", config.Name)
+	query := url.Values{}
+	query.Add("busy_timeout", "10000")
+	query.Add("journal_mode", "wal")
+	query.Add("_timefmt", "2006-01-02 15:04:05.999-07:00") // required
+	return fmt.Sprintf("file:%s?%s", config.Name, query.Encode())
 }
 
 func mssqlConnectionString(config *dbConfig) string {
