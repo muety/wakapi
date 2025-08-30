@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/glebarez/sqlite"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
 	"gorm.io/driver/postgres"
@@ -60,7 +59,7 @@ func (j CustomTime) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 		// TODO: migrate to timestamptz, see https://github.com/muety/wakapi/issues/771
 	}
 
-	if db.Dialector.Name() != (sqlite.Dialector{}).Name() { // https://github.com/glebarez/go-sqlite/issues/186
+	if db.Dialector.Name() != "sqlite" { // https://github.com/glebarez/go-sqlite/issues/186
 		if scale, ok := field.TagSettings["TIMESCALE"]; ok {
 			t += fmt.Sprintf("(%s)", scale)
 		}
