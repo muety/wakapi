@@ -2,12 +2,13 @@ package v1
 
 import (
 	"errors"
-	"github.com/duke-git/lancet/v2/datetime"
-	"github.com/go-chi/chi/v5"
-	"github.com/muety/wakapi/helpers"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/duke-git/lancet/v2/datetime"
+	"github.com/go-chi/chi/v5"
+	"github.com/muety/wakapi/helpers"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -84,6 +85,7 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request, user *models.User)
 	rangeParam, startParam, endParam, tzParam := params.Get("range"), params.Get("start"), params.Get("end"), params.Get("timezone")
 
 	timezone := user.TZ()
+	startOfWeek := user.StartOfWeekDay()
 	if tzParam != "" {
 		if tz, err := time.LoadLocation(tzParam); err == nil {
 			timezone = tz
@@ -93,12 +95,12 @@ func (h *SummariesHandler) loadUserSummaries(r *http.Request, user *models.User)
 	var start, end time.Time
 	if rangeParam != "" {
 		// range param takes precedence
-		if err, parsedFrom, parsedTo := helpers.ResolveIntervalRawTZ(rangeParam, timezone); err == nil {
+		if err, parsedFrom, parsedTo := helpers.ResolveIntervalRawTZ(rangeParam, timezone, startOfWeek); err == nil {
 			start, end = parsedFrom, parsedTo
 		} else {
 			return nil, errors.New("invalid 'range' parameter"), http.StatusBadRequest
 		}
-	} else if err, parsedFrom, parsedTo := helpers.ResolveIntervalRawTZ(startParam, timezone); err == nil && startParam == endParam {
+	} else if err, parsedFrom, parsedTo := helpers.ResolveIntervalRawTZ(startParam, timezone, startOfWeek); err == nil && startParam == endParam {
 		// also accept start param to be a range param
 		start, end = parsedFrom, parsedTo
 	} else {

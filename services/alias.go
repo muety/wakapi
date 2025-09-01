@@ -3,12 +3,13 @@ package services
 import (
 	"errors"
 	"fmt"
+	"sync"
+
 	"github.com/becheran/wildmatch-go"
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
-	"sync"
 )
 
 type AliasService struct {
@@ -94,6 +95,9 @@ func (srv *AliasService) GetAliasOrDefault(userId string, summaryType uint8, val
 }
 
 func (srv *AliasService) Create(alias *models.Alias) (*models.Alias, error) {
+	if !alias.IsValid() {
+		return nil, errors.New("invalid alias")
+	}
 	result, err := srv.repository.Insert(alias)
 	if err != nil {
 		return nil, err

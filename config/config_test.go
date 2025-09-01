@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -86,7 +87,8 @@ func Test_sqliteConnectionString(t *testing.T) {
 		Name:    "test_name",
 		Dialect: "sqlite3",
 	}
-	assert.Equal(t, c.Name, sqliteConnectionString(c))
+	assert.True(t, strings.HasPrefix(sqliteConnectionString(c), c.Name))
+	assert.Contains(t, strings.ToLower(sqliteConnectionString(c)), "journal_mode=wal")
 }
 
 func Test_mssqlConnectionString(t *testing.T) {

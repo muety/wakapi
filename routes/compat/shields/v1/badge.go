@@ -2,12 +2,13 @@ package v1
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models/types"
 	routeutils "github.com/muety/wakapi/routes/utils"
-	"net/http"
-	"time"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -88,7 +89,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BadgeHandler) loadUserSummary(user *models.User, interval *models.IntervalKey, filters *models.Filters) (*models.Summary, error, int) {
-	err, from, to := helpers.ResolveIntervalTZ(interval, user.TZ())
+	err, from, to := helpers.ResolveIntervalTZ(interval, user.TZ(), user.StartOfWeekDay())
 	if err != nil {
 		return nil, err, http.StatusBadRequest
 	}

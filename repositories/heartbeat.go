@@ -61,7 +61,7 @@ func (r *HeartbeatRepository) GetLatestByOriginAndUser(origin string, user *mode
 	return &heartbeat, nil
 }
 
-func (r *HeartbeatRepository) GetAllWithin(from, to time.Time, user *models.User) ([]*models.Heartbeat, error) {
+func (r *HeartbeatRepository) GetWithin(from, to time.Time, user *models.User) ([]*models.Heartbeat, error) {
 	// https://stackoverflow.com/a/20765152/3112139
 	var heartbeats []*models.Heartbeat
 	if err := r.db.
@@ -75,7 +75,7 @@ func (r *HeartbeatRepository) GetAllWithin(from, to time.Time, user *models.User
 	return heartbeats, nil
 }
 
-func (r *HeartbeatRepository) StreamAllWithin(from, to time.Time, user *models.User) (chan *models.Heartbeat, error) {
+func (r *HeartbeatRepository) StreamWithin(from, to time.Time, user *models.User) (chan *models.Heartbeat, error) {
 	out := make(chan *models.Heartbeat)
 
 	rows, err := r.db.
@@ -85,7 +85,6 @@ func (r *HeartbeatRepository) StreamAllWithin(from, to time.Time, user *models.U
 		Where("time < ?", to.Local()).
 		Order("time asc").
 		Rows()
-
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +92,26 @@ func (r *HeartbeatRepository) StreamAllWithin(from, to time.Time, user *models.U
 	go streamRows[models.Heartbeat](rows, out, r.db, func(err error) {
 		conf.Log().Error("failed to scan heartbeats row", "user", user.ID, "from", from, "to", to, "error", err)
 	})
+	return out, nil
+}
 
+func (r *HeartbeatRepository) StreamWithinBatched(from, to time.Time, user *models.User, batchSize int) (chan []*models.Heartbeat, error) {
+	out := make(chan []*models.Heartbeat)
+
+	rows, err := r.db.
+		Model(&models.Heartbeat{}).
+		Where(&models.Heartbeat{UserID: user.ID}).
+		Where("time >= ?", from.Local()).
+		Where("time < ?", to.Local()).
+		Order("time asc").
+		Rows()
+	if err != nil {
+		return nil, err
+	}
+
+	go streamRowsBatched[models.Heartbeat](rows, out, r.db, batchSize, func(err error) {
+		conf.Log().Error("failed to scan heartbeats row", "user", user.ID, "from", from, "to", to, "error", err)
+	})
 	return out, nil
 }
 
@@ -114,7 +132,7 @@ func (r *HeartbeatRepository) GetAllWithinByFilters(from, to time.Time, user *mo
 	return heartbeats, nil
 }
 
-func (r *HeartbeatRepository) StreamAllWithinByFilters(from, to time.Time, user *models.User, filterMap map[string][]string) (chan *models.Heartbeat, error) {
+func (r *HeartbeatRepository) StreamWithinByFilters(from, to time.Time, user *models.User, filterMap map[string][]string) (chan *models.Heartbeat, error) {
 	out := make(chan *models.Heartbeat)
 
 	q := r.db.

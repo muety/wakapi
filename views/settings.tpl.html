@@ -78,6 +78,23 @@
 
                 <div class="flex mb-8">
                     <div class="w-1/2 mr-4 inline-block">
+                        <label class="font-semibold text-foreground" for="select-start-of-week">Start of Week</label>
+                        <span class="block text-sm text-muted">Choose which day your week starts on. This affects "This Week" and "Last Week" intervals.</span>
+                    </div>
+                    <div class="w-1/2 ml-4">
+                        <select name="start_of_week" id="select-start-of-week" class="select-default">
+                            <option value="0" {{ if eq .User.StartOfWeek 0 }}selected{{ end }}>Sunday</option>
+                            <option value="1" {{ if eq .User.StartOfWeek 1 }}selected{{ end }}>Monday</option>
+                            <option value="2" {{ if eq .User.StartOfWeek 2 }}selected{{ end }}>Tuesday</option>
+                            <option value="3" {{ if eq .User.StartOfWeek 3 }}selected{{ end }}>Wednesday</option>
+                            <option value="4" {{ if eq .User.StartOfWeek 4 }}selected{{ end }}>Thursday</option>
+                            <option value="5" {{ if eq .User.StartOfWeek 5 }}selected{{ end }}>Friday</option>
+                            <option value="6" {{ if eq .User.StartOfWeek 6 }}selected{{ end }}>Saturday</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex mb-8">
+                    <div class="w-1/2 mr-4 inline-block">
                         <label class="font-semibold text-foreground" for="email">E-Mail Address</label>
                         <span class="block text-sm text-muted">
                             Optional in general, but required for weekly reports and for resetting your password.

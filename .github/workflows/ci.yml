@@ -17,7 +17,7 @@ jobs:
     - name: Set up Go 1.x
       uses: actions/setup-go@v5
       with:
-        go-version: ^1.24
+        go-version: ^1.25
       id: go
 
     - name: Get dependencies
@@ -52,7 +52,7 @@ jobs:
     - name: Set up Go 1.x
       uses: actions/setup-go@v5
       with:
-        go-version: ^1.24
+        go-version: ^1.25
       id: go
 
     - run: npm install -g @usebruno/cli

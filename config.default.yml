@@ -117,6 +117,7 @@ mail:
   enabled: true                         # whether to enable mails (used for password resets, reports, etc.)
   provider: smtp                        # method for sending mails, currently one of ['smtp']
   sender: Wakapi <noreply@wakapi.dev>
+  skip_verify_mx_record: false          # whether to skip validating mx dns record for user email addresses
 
   # smtp settings when sending mails via smtp
   smtp:

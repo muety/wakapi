@@ -3,6 +3,11 @@ package services
 import (
 	"errors"
 	"fmt"
+	"log/slog"
+	"strings"
+	"sync/atomic"
+	"time"
+
 	"github.com/duke-git/lancet/v2/convertor"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/gofrs/uuid/v5"
@@ -12,10 +17,6 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
-	"log/slog"
-	"strings"
-	"sync/atomic"
-	"time"
 )
 
 type UserService struct {
@@ -70,7 +71,6 @@ func NewUserService(keyValueService IKeyValueService, mailService IMailService, 
 				continue
 			}
 			srv.currentOnlineUsers.SetDefault(heartbeat.UserID, true)
-			slog.Info("user became active again", "timeout", models.DefaultHeartbeatsTimeout, "user", heartbeat.UserID)
 		}
 	}(&sub2)
 

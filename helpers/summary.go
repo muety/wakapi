@@ -2,9 +2,10 @@ package helpers
 
 import (
 	"errors"
-	"github.com/muety/wakapi/models"
 	"net/http"
 	"time"
+
+	"github.com/muety/wakapi/models"
 )
 
 func ParseSummaryParams(r *http.Request) (*models.SummaryParams, error) {
@@ -15,9 +16,9 @@ func ParseSummaryParams(r *http.Request) (*models.SummaryParams, error) {
 	var from, to time.Time
 
 	if interval := params.Get("interval"); interval != "" {
-		err, from, to = ResolveIntervalRawTZ(interval, user.TZ())
+		err, from, to = ResolveIntervalRawTZ(interval, user.TZ(), user.StartOfWeekDay())
 	} else if start := params.Get("start"); start != "" {
-		err, from, to = ResolveIntervalRawTZ(start, user.TZ())
+		err, from, to = ResolveIntervalRawTZ(start, user.TZ(), user.StartOfWeekDay())
 	} else {
 		from, err = ParseDateTimeTZ(params.Get("from"), user.TZ())
 		if err != nil {
