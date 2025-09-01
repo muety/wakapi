@@ -19,13 +19,14 @@ main {
 :root {
   --background: rgb(17 24 39);
 
-  --card: #242b3a;
+  --card: 36 43 58;
   --muted: rgb(107 114 128);
   --secondary: rgb(156 163 175);
   --foreground: rgb(209 213 219);
+  --focused: 31 41 55;
 
   --primary: rgb(55 65 81);
-  --accent: 21 128 61;
+  --accent: 4 120 87;
   --danger: 220 38 38;
 }
 

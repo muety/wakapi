@@ -7,13 +7,14 @@ module.exports = {
             colors: {
                 green: colors.emerald,
                 background: 'var(--background)',
-                card: 'var(--card)',
+                card: 'rgb(var(--card) / <alpha-value>)',
 
                 muted: 'var(--muted)',
 
                 secondary: 'var(--secondary)',
                 primary: 'var(--primary)',
                 foreground: 'var(--foreground)',
+                focused: 'rgb(var(--focused) / <alpha-value>)',
                 accent: 'rgb(var(--accent) / <alpha-value>)',
                 danger: 'rgb(var(--danger) / <alpha-value>)',
             },
