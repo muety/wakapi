@@ -16,6 +16,19 @@ main {
     display: none;
 }
 
+:root {
+  --background: rgb(17 24 39);
+
+  --card: #242b3a;
+  --muted: rgb(107 114 128);
+  --secondary: rgb(156 163 175);
+  --foreground: rgb(209 213 219);
+
+  --primary: rgb(55 65 81);
+  --accent: 21 128 61;
+  --danger: 220 38 38;
+}
+
 /* Additional classes */
 
 .bg-gray-850 {
@@ -72,11 +85,11 @@ main {
 }
 
 .btn-primary {
-    @apply py-2 px-4 font-semibold rounded bg-green-700 hover:bg-green-800 text-white text-sm;
+    @apply py-2 px-4 font-semibold rounded bg-accent hover:bg-accent/80 text-white text-sm;
 }
 
 .btn-danger {
-    @apply py-2 px-4 font-semibold rounded bg-red-600 hover:bg-red-700 text-white text-sm;
+    @apply py-2 px-4 font-semibold rounded bg-danger hover:bg-danger/80 text-white text-sm;
 }
 
 .btn-small {
@@ -84,7 +97,7 @@ main {
 }
 
 .input-default {
-    @apply appearance-none bg-gray-850 focus:bg-gray-800 text-gray-300 outline-none rounded w-full py-2 px-4;
+    @apply appearance-none bg-card focus:bg-card text-foreground outline-none rounded w-full py-2 px-4;
 }
 
 .select-default {
@@ -92,11 +105,11 @@ main {
 }
 
 .menu-item {
-    @apply flex items-center text-sm font-semibold space-x-2 rounded hover:bg-gray-850 py-2 px-4 cursor-pointer;
+    @apply flex items-center text-sm font-semibold space-x-2 rounded hover:bg-card py-2 px-4 cursor-pointer;
 }
 
 .submenu-item {
-    @apply hover:bg-gray-800 rounded p-1 text-right;
+    @apply hover:bg-card rounded p-1 text-right;
 }
 
 .chip {
@@ -179,7 +192,7 @@ main {
 
 .entity-filter-control {
     width: 180px; 
-    @apply text-gray-300 text-sm;
+    @apply text-foreground text-sm;
 }
 
 .entity-filter-control label {
