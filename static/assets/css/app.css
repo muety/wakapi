@@ -25,21 +25,12 @@ main {
   --foreground: rgb(209 213 219);
   --focused: 31 41 55;
 
-  --primary: rgb(55 65 81);
+  --primary: rgb(255 255 255);
   --accent: 4 120 87;
   --danger: 220 38 38;
 }
 
 /* Additional classes */
-
-.bg-gray-850 {
-    background-color: #242b3a;
-}
-
-.hover\:bg-gray-850:hover {
-    --bg-opacity: 1;
-    background-color: #242b3a;
-}
 
 .text-xsi {
     font-size: 0.75rem !important;
@@ -70,27 +61,27 @@ main {
 
 /* Custom classes */
 .h1 {
-    @apply font-semibold text-3xl text-white m-0
+    @apply font-semibold text-3xl text-primary m-0
 }
 
 .h1-subcaption {
-    @apply text-gray-600 text-sm;
+    @apply text-muted text-sm;
 }
 
 .btn-default {
-    @apply py-2 px-4 font-semibold rounded bg-gray-800 hover:bg-gray-850 text-white text-sm;
+    @apply py-2 px-4 font-semibold rounded bg-focused hover:bg-card text-primary text-sm;
 }
 
 .btn-disabled {
-    @apply py-2 px-4 font-semibold rounded bg-gray-800 text-gray-600 text-sm;
+    @apply py-2 px-4 font-semibold rounded bg-focused text-muted text-sm;
 }
 
 .btn-primary {
-    @apply py-2 px-4 font-semibold rounded bg-accent hover:bg-accent/80 text-white text-sm;
+    @apply py-2 px-4 font-semibold rounded bg-accent hover:bg-accent/80 text-primary text-sm;
 }
 
 .btn-danger {
-    @apply py-2 px-4 font-semibold rounded bg-danger hover:bg-danger/80 text-white text-sm;
+    @apply py-2 px-4 font-semibold rounded bg-danger hover:bg-danger/80 text-primary text-sm;
 }
 
 .btn-small {
@@ -114,19 +105,19 @@ main {
 }
 
 .chip {
-    @apply text-xs bg-gray-850 rounded rounded-full py-1 px-2 font-semibold inline-block mb-1;
+    @apply text-xs bg-card rounded rounded-full py-1 px-2 font-semibold inline-block mb-1;
 }
 
 .link {
-    @apply font-semibold text-gray-400 hover:text-gray-300;
+    @apply font-semibold text-secondary hover:text-foreground;
 }
 
 .newsbox {
-    @apply px-4 py-2 border-2 border-red-700 bg-gray-850 rounded-md text-white border-green-700;
+    @apply px-4 py-2 border-2 border-danger bg-card rounded-md text-primary border-accent;
 }
 
 .newsbox-default {
-    @apply border-green-700;
+    @apply border-accent;
 }
 
 .newsbox-warning {
@@ -134,11 +125,11 @@ main {
 }
 
 .newsbox-danger {
-    @apply border-red-700;
+    @apply border-danger;
 }
 
 .leaderboard-default {
-    @apply border-gray-700;
+    @apply border-muted;
 }
 
 .leaderboard-self {
@@ -146,7 +137,7 @@ main {
     margin-right: -10px;
     padding-left: calc(1rem + 10px);
     padding-right: calc(1rem + 10px);
-    @apply border-green-700 bg-gray-800;
+    @apply border-accent bg-focused;
 }
 
 .text-gold {
@@ -177,7 +168,7 @@ main {
 }
 
 .projects-item a {
-    @apply flex flex-col align-middle bg-gray-800 hover:bg-gray-850 py-2 px-4 rounded rounded-md shadow-md hover:shadow-lg;
+    @apply flex flex-col align-middle bg-focused hover:bg-card py-2 px-4 rounded rounded-md shadow-md hover:shadow-lg;
 }
 
 .projects-item .color-fading {
