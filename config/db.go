@@ -83,13 +83,14 @@ func mysqlConnectionString(config *dbConfig) string {
 		host = fmt.Sprintf("unix(%s)", config.Socket)
 	}
 
-	return fmt.Sprintf("%s:%s@%s/%s?charset=%s&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
+	return fmt.Sprintf("%s:%s@%s/%s?charset=%s&parseTime=true&loc=%s&compress=%v&sql_mode=ANSI_QUOTES",
 		config.User,
 		config.Password,
 		host,
 		config.Name,
 		config.Charset,
 		"Local",
+		config.Compress,
 	)
 }
 

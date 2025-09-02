@@ -26,10 +26,11 @@ func Test_mysqlConnectionString(t *testing.T) {
 		Dialect:  "mysql",
 		Charset:  "utf8mb4",
 		MaxConn:  10,
+		Compress: true,
 	}
 
 	assert.Equal(t, fmt.Sprintf(
-		"%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
+		"%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=%s&compress=true&sql_mode=ANSI_QUOTES",
 		c.User,
 		c.Password,
 		c.Host,
@@ -49,10 +50,11 @@ func Test_mysqlConnectionStringSocket(t *testing.T) {
 		Dialect:  "mysql",
 		Charset:  "utf8mb4",
 		MaxConn:  10,
+		Compress: true,
 	}
 
 	assert.Equal(t, fmt.Sprintf(
-		"%s:%s@unix(%s)/%s?charset=utf8mb4&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
+		"%s:%s@unix(%s)/%s?charset=utf8mb4&parseTime=true&loc=%s&compress=true&sql_mode=ANSI_QUOTES",
 		c.User,
 		c.Password,
 		c.Socket,

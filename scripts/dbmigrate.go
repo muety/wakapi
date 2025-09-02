@@ -37,7 +37,8 @@ target:
   user: user
   password: pw
   name: wakapi_db
-  dialect: mysql  # or postgres, sqlite
+  dialect: mysql    # or postgres, sqlite
+  compress: false   # mysql only, enable if your target (or source) database is on a remote server
 
 Troubleshooting:
 ----------------
@@ -91,6 +92,7 @@ type dbConfig struct {
 	Password string
 	Name     string
 	Dialect  string `default:"mysql"`
+	Compress bool   `default:"false"`
 }
 
 const InsertBatchSize = 1_024
@@ -365,7 +367,7 @@ func getDb(cfg *dbConfig) (*gorm.DB, error) {
 	if cfg.Dialect == "mysql" {
 		return gorm.Open(mysql.New(mysql.Config{
 			DriverName: "mysql",
-			DSN: fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=true&loc=%s&sql_mode=ANSI_QUOTES",
+			DSN: fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=true&loc=%s&compress=%v&sql_mode=ANSI_QUOTES",
 				cfg.User,
 				cfg.Password,
 				cfg.Host,
@@ -373,6 +375,7 @@ func getDb(cfg *dbConfig) (*gorm.DB, error) {
 				cfg.Name,
 				"utf8mb4",
 				"Local",
+				cfg.Compress,
 			),
 		}), &gorm.Config{
 			Logger: gormLogger,
