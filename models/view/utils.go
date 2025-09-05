@@ -28,6 +28,7 @@ func GetLanguageIcon(language string) string {
 		"react":      "react",
 		"bash":       "bash",
 		"json":       "code-json",
+		"nix":        "nix",
 	}
 	if match, ok := langs[strings.ToLower(language)]; ok {
 		return "mdi:" + match
