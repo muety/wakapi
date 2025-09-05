@@ -57,7 +57,7 @@ jobs:
       working-directory: ./dist
       shell: bash
       run: |
-        GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} CGO_ENABLED=0 \
+        GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} CGO_ENABLED=0 GOEXPERIMENT=greenteagc,jsonv2 \
             go build -v -ldflags '-w -s' ../
 
     - name: Compress working folder (Windows PowerShell)
