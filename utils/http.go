@@ -7,6 +7,7 @@ import (
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/mileusna/useragent"
+
 	"io"
 	"net/http"
 	"regexp"
@@ -21,12 +22,12 @@ const (
 )
 
 var (
-	userAgent     *regexp.Regexp
+	userAgentRe   *regexp.Regexp
 	cacheMaxAgeRe *regexp.Regexp
 )
 
 func init() {
-	userAgent = regexp.MustCompile(userAgentPattern)
+	userAgentRe = regexp.MustCompile(userAgentPattern)
 	cacheMaxAgeRe = regexp.MustCompile(cacheMaxAgePattern)
 }
 
@@ -94,7 +95,7 @@ func ParseUserAgent(ua string) (string, string, error) { // os, editor, err
 		osAllCaps  bool
 	)
 
-	if groups := userAgent.FindAllStringSubmatch(ua, -1); len(groups) > 0 && len(groups[0]) == 4 {
+	if groups := userAgentRe.FindAllStringSubmatch(ua, -1); len(groups) > 0 && len(groups[0]) == 4 {
 		// extract os
 		os = groups[0][1]
 		if os == "win" {

@@ -2,6 +2,11 @@ package services
 
 import (
 	"fmt"
+	"math"
+	"strings"
+	"sync"
+	"time"
+
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/duke-git/lancet/v2/maputil"
 	"github.com/leandro-lugaresi/hub"
@@ -9,10 +14,6 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
-	"math"
-	"strings"
-	"sync"
-	"time"
 
 	"github.com/muety/wakapi/models"
 )
@@ -264,6 +265,18 @@ func (srv *HeartbeatService) GetUserProjectStats(user *models.User, from, to tim
 	go srv.populateUniqueUserProjects(user.ID)
 
 	return results, err
+}
+
+// GetUserAgentsByUser returns a list of all user agents that have been recorded for the given user.
+func (srv *HeartbeatService) GetUserAgentsByUser(user *models.User) ([]*models.UserAgent, error) {
+	userAgents, err := srv.repository.GetUserAgentsByUser(user)
+	if err != nil {
+		return nil, err
+	}
+	for _, ua := range userAgents {
+		ua.WithId()
+	}
+	return userAgents, nil
 }
 
 func (srv *HeartbeatService) augmented(heartbeats []*models.Heartbeat, userId string) ([]*models.Heartbeat, error) {

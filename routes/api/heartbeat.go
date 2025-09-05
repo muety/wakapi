@@ -6,6 +6,8 @@ import (
 	"github.com/muety/wakapi/helpers"
 	"github.com/rs/cors"
 
+	"net/http"
+
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	customMiddleware "github.com/muety/wakapi/middlewares/custom"
@@ -13,7 +15,6 @@ import (
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-	"net/http"
 
 	"github.com/muety/wakapi/models"
 )

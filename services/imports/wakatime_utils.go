@@ -4,12 +4,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
 	"github.com/muety/wakapi/utils"
-	"net/http"
-	"time"
 )
 
 // https://wakatime.com/api/v1/users/current/machine_names

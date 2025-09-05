@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/duke-git/lancet/v2/condition"
-
 	_ "github.com/glebarez/sqlite"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -229,6 +228,7 @@ func main() {
 	wakatimeV1ProjectsHandler := wtV1Routes.NewProjectsHandler(userService, heartbeatService)
 	wakatimeV1HeartbeatsHandler := wtV1Routes.NewHeartbeatHandler(userService, heartbeatService)
 	wakatimeV1LeadersHandler := wtV1Routes.NewLeadersHandler(userService, leaderboardService)
+	wakatimeV1UserAgentsHandler := wtV1Routes.NewUserAgentsHandler(userService, heartbeatService)
 	shieldV1BadgeHandler := shieldsV1Routes.NewBadgeHandler(summaryService, userService)
 
 	// MVC Handlers
@@ -302,6 +302,7 @@ func main() {
 	wakatimeV1ProjectsHandler.RegisterRoutes(apiRouter)
 	wakatimeV1HeartbeatsHandler.RegisterRoutes(apiRouter)
 	wakatimeV1LeadersHandler.RegisterRoutes(apiRouter)
+	wakatimeV1UserAgentsHandler.RegisterRoutes(apiRouter)
 	shieldV1BadgeHandler.RegisterRoutes(apiRouter)
 	captchaHandler.RegisterRoutes(apiRouter)
 
