@@ -14,7 +14,7 @@
 </script>
 <script type="module" src="assets/js/components/signup.js"></script>
 
-<body class="bg-gray-900 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-lg mx-auto justify-center">
+<body class="bg-background text-muted p-4 pt-10 flex flex-col min-h-screen max-w-screen-lg mx-auto justify-center">
 
 {{ template "header.tpl.html" . }}
 
@@ -26,10 +26,10 @@
             <h1 class="h1">Sign up to Wakapi</h1>
             <p class="h1-subcaption">
                 Welcome to Wakapi! Your first step is to create an account.
-                Afterwards, make sure to set up the <a href="https://wakatime.com" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-gray-400">WakaTime</a> client tools.
+                Afterwards, make sure to set up the <a href="https://wakatime.com" target="_blank" rel="noopener noreferrer" class="text-foreground hover:text-secondary">WakaTime</a> client tools.
                 Instruction can be found in our <a href="https://github.com/muety/wakapi#-client-setup" target="_blank"
                                    rel="noopener noreferrer"
-                                   class="text-gray-300 hover:text-gray-400">README</a>.
+                                   class="text-foreground hover:text-secondary">README</a>.
             </p>
         </div>
         <div>
@@ -43,7 +43,7 @@
 
             <div class="flex space-x-4">
                 <div class="mt-1">
-                    <img v-cloak id="avatar" :src="avatarUrl" width="96px" class="rounded-full border-4 border-green-700 cursor-pointer" alt="User Profile Avatar" title="Your Avatar"/>
+                    <img v-cloak id="avatar" :src="avatarUrl" width="96px" class="rounded-full border-4 border-accent cursor-pointer" alt="User Profile Avatar" title="Your Avatar"/>
                 </div>
 
                 <div>
@@ -60,7 +60,7 @@
                                v-model="email"
                                type="email" id="email"
                                name="email" @keyup="updateAvatar" placeholder="Your e-mail address">
-                        <div class="text-xs text-gray-600 mt-2">E-Mail address is optional, but required for some weekly reports and password reset.</div>
+                        <div class="text-xs text-muted mt-2">E-Mail address is optional, but required for some weekly reports and password reset.</div>
                     </div>
                 </div>
             </div>
@@ -83,13 +83,13 @@
                            type="text" id="captcha"
                            name="captcha" placeholder="Verification"
                            required>
-                    <div class="text-xs text-gray-600 mt-1 ml-1 underline"><a href="https://github.com/muety/wakapi/issues/635" target="_blank" rel="noreferrer noopener">Why am I seeing this?<a></div>
+                    <div class="text-xs text-muted mt-1 ml-1 underline"><a href="https://github.com/muety/wakapi/issues/635" target="_blank" rel="noreferrer noopener">Why am I seeing this?<a></div>
                 </div>
             </div>
             {{ end }}
 
             {{ if eq .TotalUsers 0 }}
-            <p class="text-sm text-gray-300 mt-4 mb-8">
+            <p class="text-sm text-foreground mt-4 mb-8">
                 ⚠️ <strong>Please note: </strong> Since there are no users registered in the system, yet, the first user will have administrative privileges, while additional users won't.
             </p>
             {{ end }}

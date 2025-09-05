@@ -13,7 +13,7 @@
 </script>
 <script type="module" src="assets/js/components/settings.js"></script>
 
-<body class="bg-gray-900 text-gray-700 p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
+<body class="bg-background text-muted p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
 <style>
     .inline-bullet-list li a {
         text-decoration: underline;
@@ -34,27 +34,27 @@
 
 <main class="mt-10 grow flex justify-center w-full" v-scope @vue:mounted="mounted" id="settings-page">
     <div class="flex flex-col grow mt-10 max-w-full">
-        <h1 class="font-semibold text-3xl text-white m-0 mb-4">Settings</h1>
+        <h1 class="font-semibold text-3xl text-primary m-0 mb-4">Settings</h1>
 
-        <ul class="flex gap-x-4 mb-16 text-gray-600 flex-wrap sm:flex-nowrap">
-            <li class="font-semibold text-2xl" v-bind:class="{ 'text-gray-300': isActive('account'), 'hover:text-gray-500': !isActive('account') }">
+        <ul class="flex gap-x-4 mb-16 text-muted flex-wrap sm:flex-nowrap">
+            <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('account'), 'hover:text-secondary': !isActive('account') }">
                 <a href="settings#account" @click="updateTab">Account</a>
             </li>
-            <li class="font-semibold text-2xl" v-bind:class="{ 'text-gray-300': isActive('data'), 'hover:text-gray-500': !isActive('data') }">
+            <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('data'), 'hover:text-secondary': !isActive('data') }">
                 <a href="settings#data" @click="updateTab">Data</a>
             </li>
-            <li class="font-semibold text-2xl" v-bind:class="{ 'text-gray-300': isActive('permissions'), 'hover:text-gray-500': !isActive('permissions') }">
+            <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('permissions'), 'hover:text-secondary': !isActive('permissions') }">
                 <a href="settings#permissions" @click="updateTab">Permissions</a>
             </li>
-            <li class="font-semibold text-2xl" v-bind:class="{ 'text-gray-300': isActive('integrations'), 'hover:text-gray-500': !isActive('integrations') }">
+            <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('integrations'), 'hover:text-secondary': !isActive('integrations') }">
                 <a href="settings#integrations" @click="updateTab">Integrations</a>
             </li>
             {{ if .SubscriptionsEnabled }}
-            <li class="font-semibold text-2xl" v-bind:class="{ 'text-gray-300': isActive('subscription'), 'hover:text-gray-500': !isActive('subscription') }">
+            <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('subscription'), 'hover:text-secondary': !isActive('subscription') }">
                 <a href="settings#subscription" @click="updateTab">Subscription</a>
             </li>
             {{ end }}
-            <li class="font-semibold text-2xl" v-bind:class="{ 'text-gray-300': isActive('danger_zone'), 'hover:text-gray-500': !isActive('danger_zone') }">
+            <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('danger_zone'), 'hover:text-secondary': !isActive('danger_zone') }">
                 <a href="settings#danger_zone" @click="updateTab">Danger Zone</a>
             </li>
         </ul>
@@ -66,8 +66,8 @@
 
                 <div class="flex mb-8">
                     <div class="w-1/2 mr-4 inline-block">
-                        <label class="font-semibold text-gray-300" for="select-timezone">Time Zone</label>
-                        <span class="block text-sm text-gray-600">Time Zone, which you are located in. Relevant for displaying daily statistics.</span>
+                        <label class="font-semibold text-foreground" for="select-timezone">Time Zone</label>
+                        <span class="block text-sm text-muted">Time Zone, which you are located in. Relevant for displaying daily statistics.</span>
                     </div>
                     <div class="w-1/2 ml-4">
                         <select name="location" id="select-timezone" class="select-default" v-model="selectedTimezone">
@@ -78,8 +78,8 @@
 
                 <div class="flex mb-8">
                     <div class="w-1/2 mr-4 inline-block">
-                        <label class="font-semibold text-gray-300" for="select-start-of-week">Start of Week</label>
-                        <span class="block text-sm text-gray-600">Choose which day your week starts on. This affects "This Week" and "Last Week" intervals.</span>
+                        <label class="font-semibold text-foreground" for="select-start-of-week">Start of Week</label>
+                        <span class="block text-sm text-muted">Choose which day your week starts on. This affects "This Week" and "Last Week" intervals.</span>
                     </div>
                     <div class="w-1/2 ml-4">
                         <select name="start_of_week" id="select-start-of-week" class="select-default">
@@ -93,11 +93,10 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="flex mb-8">
                     <div class="w-1/2 mr-4 inline-block">
-                        <label class="font-semibold text-gray-300" for="email">E-Mail Address</label>
-                        <span class="block text-sm text-gray-600">
+                        <label class="font-semibold text-foreground" for="email">E-Mail Address</label>
+                        <span class="block text-sm text-muted">
                             Optional in general, but required for weekly reports and for resetting your password.
                         </span>
                     </div>
@@ -113,8 +112,8 @@
                 {{ if .User.Email }}
                 <div class="flex mb-8">
                     <div class="w-1/2 mr-4 inline-block">
-                        <label class="font-semibold text-gray-300" for="reports_weekly">Weekly E-Mail Reports</label>
-                        <span class="block text-sm text-gray-600">Opt in to receive a summary of your coding activity once a week.</span>
+                        <label class="font-semibold text-foreground" for="reports_weekly">Weekly E-Mail Reports</label>
+                        <span class="block text-sm text-muted">Opt in to receive a summary of your coding activity once a week.</span>
                     </div>
                     <div class="w-1/2 ml-4">
                         <select autocomplete="off" id="reports_weekly" name="reports_weekly"
@@ -134,7 +133,7 @@
             </form>
 
             <div class="w-full md:w-3/4">
-                <hr class="border-t border-gray-800 my-4">
+                <hr class="border-t border-focused my-4">
             </div>
 
             <!-- Password -->
@@ -143,8 +142,8 @@
 
                 <div class="flex mb-8">
                     <div class="w-1/2 mr-4 inline-block">
-                        <label class="font-semibold text-gray-300" for="password_old">Current Password</label>
-                        <span class="block text-sm text-gray-600">Enter your old password for verification.</span>
+                        <label class="font-semibold text-foreground" for="password_old">Current Password</label>
+                        <span class="block text-sm text-muted">Enter your old password for verification.</span>
                     </div>
                     <div class="w-1/2 ml-4">
                         <input class="input-default"
@@ -155,8 +154,8 @@
 
                 <div class="flex mb-8">
                     <div class="w-1/2 mr-4 inline-block">
-                        <label class="font-semibold text-gray-300" for="password_new">New Password</label>
-                        <span class="block text-sm text-gray-600">Choose a new password. Preferably, it is at least 8 characters long and contains letters, digits and special chars.</span>
+                        <label class="font-semibold text-foreground" for="password_new">New Password</label>
+                        <span class="block text-sm text-muted">Choose a new password. Preferably, it is at least 8 characters long and contains letters, digits and special chars.</span>
                     </div>
                     <div class="w-1/2 ml-4">
                         <input class="input-default"
@@ -167,8 +166,8 @@
 
                 <div class="flex mb-8">
                     <div class="w-1/2 mr-4 inline-block">
-                        <label class="font-semibold text-gray-300" for="password_repeat">Repeat Password</label>
-                        <span class="block text-sm text-gray-600">Once again ...</span>
+                        <label class="font-semibold text-foreground" for="password_repeat">Repeat Password</label>
+                        <span class="block text-sm text-muted">Once again ...</span>
                     </div>
                     <div class="w-1/2 ml-4">
                         <input class="input-default"
@@ -186,7 +185,7 @@
 
             {{ if .InvitesEnabled }}
             <div class="w-full md:w-3/4">
-                <hr class="border-t border-gray-800 my-4">
+                <hr class="border-t border-focused my-4">
             </div>
 
             <!-- User Invite -->
@@ -195,16 +194,16 @@
 
                 <div class="flex mb-8">
                     <div class="w-2/3 mr-4 inline-block">
-                        <span class="font-semibold text-gray-300">Invite Friends</span>
-                        <span class="block text-sm text-gray-600">
+                        <span class="font-semibold text-foreground">Invite Friends</span>
+                        <span class="block text-sm text-muted">
                             You can invite new users to Wakapi with an exclusive code. Click to generate one and then send the link to your friend. Thanks for spreading Wakapi to the world!
                         </span>
 
                         {{ if ne .InviteLink "" }}
                         <div class="mt-4">
-                            <label class="text-sm text-gray-300 mb-2" for="invite_code_result">Success! Here's your invite link:</label>
+                            <label class="text-sm text-foreground mb-2" for="invite_code_result">Success! Here's your invite link:</label>
                             <input type="url" name="invite_code" id="invite_code_result"
-                                   class="w-full appearance-none bg-gray-850 text-gray-300 outline-none rounded py-2 px-4 mb-2 cursor-not-allowed font-mono text-sm"
+                                   class="w-full appearance-none bg-card text-foreground outline-none rounded py-2 px-4 mb-2 cursor-not-allowed font-mono text-sm"
                                    readonly value="{{ .InviteLink }}">
                         </div>
                         {{ end }}
@@ -227,8 +226,8 @@
                 <input type="hidden" name="action" value="update_unknown_projects">
                 <div class="flex flex-wrap md:flex-nowrap mb-2 gap-x-4">
                     <div class="w-full md:w-1/3 mb-2 md:mb-0 inline-block">
-                        <span class="font-semibold text-gray-300 text-lg">Unknown Projects</span>
-                        <p class="block text-sm text-gray-600">
+                        <span class="font-semibold text-foreground text-lg">Unknown Projects</span>
+                        <p class="block text-sm text-muted">
                             You can choose to exclude and ignore coding stats from unknown projects. Changing this setting will require to recompute your statistics.
                         </p>
                     </div>
@@ -236,7 +235,7 @@
                     <div class="flex-col w-full md:w-2/3 inline-block space-y-4">
                         <div class="flex justify-between items-center">
                             <div class="flex flex-col gap-y-1">
-                                <label class="font-semibold text-gray-300" for="unknown-projects-toggle">Exclude unknown projects</label>
+                                <label class="font-semibold text-foreground" for="unknown-projects-toggle">Exclude unknown projects</label>
                                 <select autocomplete="off" id="unknown-projects-toggle" name="exclude_unknown_projects" class="select-default wi-min">
                                     <option value="false" class="cursor-pointer" {{ if not .User.ExcludeUnknownProjects }} selected {{ end }}>No
                                     </option>
@@ -251,28 +250,28 @@
             </form>
 
             <div class="w-full">
-                <hr class="border-t border-gray-800 my-4">
+                <hr class="border-t border-focused my-4">
             </div>
 
             <!-- Aliases -->
             <div class="w-full">
                 <div class="flex flex-wrap flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/3 mb-4 md:mb-0 inline-block">
-                        <span class="font-semibold text-gray-300 text-lg">Aliases</span>
-                        <p class="block text-sm text-gray-600">You can specify aliases for any type of entity. For instance, you can define a rule, that both "myapp-frontend" and "myapp-backend" are combined under a project called "myapp".</p>
+                        <span class="font-semibold text-foreground text-lg">Aliases</span>
+                        <p class="block text-sm text-muted">You can specify aliases for any type of entity. For instance, you can define a rule, that both "myapp-frontend" and "myapp-backend" are combined under a project called "myapp".</p>
                     </div>
 
                     <div class="w-full md:w-2/3 inline-block">
                         {{ if .Aliases }}
                         <div class="mb-8">
-                            <h3 class="inline-block font-semibold text-gray-300">Rules</h3>
+                            <h3 class="inline-block font-semibold text-foreground">Rules</h3>
                             {{ range $i, $alias := .Aliases }}
                             <div class="flex items-center">
-                                <div class="text-gray-300 border-1 w-full inline-block my-1 py-1 text-align text-sm"
+                                <div class="text-foreground border-1 w-full inline-block my-1 py-1 text-align text-sm"
                                      style="line-height: 1.8">
                                     &#9656;&nbsp; All <span class="font-semibold">{{ $alias.Type | typeName }}s</span> named
                                     {{ range $j, $value := $alias.Values }}
-                                    <span class="chip text-green-700">{{- $value -}}</span>
+                                    <span class="chip text-accent">{{- $value -}}</span>
                                     {{ if lt $j (add (len $alias.Values) -2) }}
                                     <span class="-ml-1">{{- ", " | capitalize -}}</span>
                                     {{ else if lt $j (add (len $alias.Values) -1) }}
@@ -280,13 +279,13 @@
                                     {{ end }}
                                     {{ end }}
                                     are mapped to <span class="font-semibold">{{ $alias.Type | typeName }}</span> <span
-                                        class="chip text-green-700">{{ $alias.Key }}</span>
+                                        class="chip text-accent">{{ $alias.Key }}</span>
                                 </div>
                                 <form class="float-right" action="" method="post">
                                     <input type="hidden" name="action" value="delete_alias">
                                     <input type="hidden" id="delete_alias_key" name="key" required value="{{ $alias.Key }}">
                                     <input type="hidden" id="delete_alias_type" name="type" required value="{{ $alias.Type }}">
-                                    <button type="submit" class="py-2 px-4 rounded bg-gray-850 hover:bg-gray-800 text-red-600 text-sm" title="Delete rule">✕</button>
+                                    <button type="submit" class="py-2 px-4 rounded bg-card hover:bg-focused text-red-600 text-sm" title="Delete rule">✕</button>
                                 </form>
                             </div>
                             {{end}}
@@ -294,10 +293,10 @@
                         {{end}}
 
                         <form action="" method="post" class="mb-2">
-                            <h3 class="inline-block font-semibold text-gray-300">Add Rule</h3>
+                            <h3 class="inline-block font-semibold text-foreground">Add Rule</h3>
 
                             <input type="hidden" name="action" value="add_alias">
-                            <div class="flex items-center mt-2 w-full text-gray-500 text-sm">
+                            <div class="flex items-center mt-2 w-full text-secondary text-sm">
                                 <span class="mr-2">Map</span>
                                 <select name="type" id="select-type" class="select-default" style="max-width: 256px">
                                     {{ range $i, $t := entityTypes }}
@@ -320,44 +319,44 @@
                             </div>
                         </form>
 
-                        <p class="text-sm text-gray-600">Wildcard patterns are supported, see <a href="https://github.com/becheran/wildmatch-go" target="_blank" rel="noopener noreferrer" class="link">here</a>.</p>
+                        <p class="text-sm text-muted">Wildcard patterns are supported, see <a href="https://github.com/becheran/wildmatch-go" target="_blank" rel="noopener noreferrer" class="link">here</a>.</p>
                     </div>
                 </div>
             </div>
 
             <div class="w-full">
-                <hr class="border-t border-gray-800 my-4">
+                <hr class="border-t border-focused my-4">
             </div>
 
             <!-- Project Labels -->
             <div class="w-full">
                 <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/3 mb-4 md:mb-0 inline-block">
-                        <span class="font-semibold text-gray-300 text-lg">Project Labels</span>
-                        <p class="block text-sm text-gray-600">You can assign labels (aka. tags) to projects to group them together, e.g. by "private" and "work".</p>
+                        <span class="font-semibold text-foreground text-lg">Project Labels</span>
+                        <p class="block text-sm text-muted">You can assign labels (aka. tags) to projects to group them together, e.g. by "private" and "work".</p>
                     </div>
 
                     <div class="w-full md:w-2/3 inline-block">
                         {{ if .Labels }}
                         <div class="mb-8">
-                            <h3 class="inline-block font-semibold text-gray-300">Your labels</h3>
+                            <h3 class="inline-block font-semibold text-foreground">Your labels</h3>
                             {{ range $i, $label := .Labels }}
                             <div class="flex items-center">
-                                <div class="text-gray-500 border-1 w-full border-green-700 inline-block my-1 py-1 text-align text-sm"
+                                <div class="text-secondary border-1 w-full border-accent inline-block my-1 py-1 text-align text-sm"
                                      style="line-height: 1.8">
-                                    &#9656;&nbsp;&nbsp;<span class="font-semibold text-gray-300">{{ $label.Key }}:</span>
+                                    &#9656;&nbsp;&nbsp;<span class="font-semibold text-foreground">{{ $label.Key }}:</span>
                                     {{ range $j, $value := $label.Values }}
-                                    <form action="" method="post" class="chip inline-flex justify-between items-center gap-x-2 text-green-700">
+                                    <form action="" method="post" class="chip inline-flex justify-between items-center gap-x-2 text-accent">
                                         <input type="hidden" name="action" value="delete_label">
                                         <input type="hidden" name="key" value="{{ $label.Key }}">
                                         <input type="hidden" name="value" value="{{ $value }}">
                                         <span>{{- $value -}}</span>
-                                        <button type="submit" class="bg-gray-900 text-center hover:bg-gray-700 rounded-full w-4 h-4 leading-none text-red-600" title="Delete label">x</button>
+                                        <button type="submit" class="bg-background text-center hover:bg-muted rounded-full w-4 h-4 leading-none text-danger" title="Delete label">x</button>
                                     </form>
                                     {{ end }}
                                     <div class="ml-3 inline">
                                         <button @click="showProjectAddButton({{ $i }})" class="top-1 relative" v-show="!labels[{{ $i }}]">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-secondary">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
                                         </button>
@@ -382,12 +381,12 @@
                         {{end}}
 
                         {{ if .Projects }}
-                        <h3 class="inline-block font-semibold text-gray-300">Bulk association</h3>
-                        <p class="text-sm text-gray-600">Associate a label with multiple projects</p>
+                        <h3 class="inline-block font-semibold text-foreground">Bulk association</h3>
+                        <p class="text-sm text-muted">Associate a label with multiple projects</p>
                         <form action="" method="post">
                             <input type="hidden" name="action" value="add_label">
                             <input type="hidden" name="num_projects" value="multiple">
-                            <div class="mt-2 w-1/2 space-y-4 text-gray-500 text-sm flex-col flex">
+                            <div class="mt-2 w-1/2 space-y-4 text-secondary text-sm flex-col flex">
                                 <input class="input-default block" name="value" placeholder="Label" required>
                                 <select name="key" class="block w-full p-2.5 select-default grow" multiple required>
                                     {{ range $i, $p := .Projects }}
@@ -400,40 +399,40 @@
                             </div>
                         </form>
                         {{ else }}
-                        <div class="text-gray-300 text-sm mb-4 mt-6">You don't have any projects, yet. Start out by sending a few heartbeats before you can then assign labels.</div>
+                        <div class="text-foreground text-sm mb-4 mt-6">You don't have any projects, yet. Start out by sending a few heartbeats before you can then assign labels.</div>
                         {{ end }}
                     </div>
                 </div>
             </div>
 
             <div class="w-full">
-                <hr class="border-t border-gray-800 my-4">
+                <hr class="border-t border-focused my-4">
             </div>
 
             <!-- Language Mappings -->
             <div class="w-full">
                 <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/3 mb-4 md:mb-0 inline-block">
-                        <span class="font-semibold text-gray-300 text-lg">Language Mappings</span>
-                        <p class="block text-sm text-gray-600">You can specify custom mapping from file extensions to programming languages, for instance a ".jsx" file could be mapped to the "React" language.</p>
+                        <span class="font-semibold text-foreground text-lg">Language Mappings</span>
+                        <p class="block text-sm text-muted">You can specify custom mapping from file extensions to programming languages, for instance a ".jsx" file could be mapped to the "React" language.</p>
                     </div>
 
                     <div class="w-full md:w-2/3 inline-block">
                         {{ if .LanguageMappings }}
                         <div class="mb-8">
-                            <h3 class="inline-block font-semibold text-gray-300">Rules</h3>
+                            <h3 class="inline-block font-semibold text-foreground">Rules</h3>
                             {{ range $i, $mapping := .LanguageMappings }}
                             <div class="flex items-center mb-2">
-                                <div class="text-gray-300 border-1 w-full inline-block my-1 py-1 text-align text-sm">
+                                <div class="text-foreground border-1 w-full inline-block my-1 py-1 text-align text-sm">
                                         &#9656;&nbsp; When filename ends in <span
-                                        class="text-green-700 chip mr-1">{{ $mapping.Extension }}</span>
+                                        class="text-accent chip mr-1">{{ $mapping.Extension }}</span>
                                     then change the <span class="font-semibold">language</span> to <span
-                                        class="text-green-700 chip mr-1">{{ $mapping.Language }}</span>
+                                        class="text-accent chip mr-1">{{ $mapping.Language }}</span>
                                 </div>
                                 <form class="float-right" action="" method="post">
                                     <input type="hidden" name="action" value="delete_mapping">
                                     <input type="hidden" id="mapping_id" name="mapping_id" required value="{{ $mapping.ID }}">
-                                    <button type="submit" class="py-2 px-4 rounded bg-gray-850 hover:bg-gray-800 text-red-600 text-sm" title="Delete rule">✕</button>
+                                    <button type="submit" class="py-2 px-4 rounded bg-card hover:bg-focused text-danger text-sm" title="Delete rule">✕</button>
                                 </form>
                             </div>
                             {{end}}
@@ -441,10 +440,10 @@
                         {{end}}
 
                         <form action="" method="post">
-                            <h3 class="inline-block font-semibold text-gray-300">Add Rule</h3>
+                            <h3 class="inline-block font-semibold text-foreground">Add Rule</h3>
 
                             <input type="hidden" name="action" value="add_mapping">
-                            <div class="flex items-center w-full text-gray-500 text-sm">
+                            <div class="flex items-center w-full text-secondary text-sm">
                                 <span class="mr-2">When filename ends in</span>
                                 <input class="input-default grow"
                                        type="text" id="extension" style="width: 70px"
@@ -465,7 +464,7 @@
             </div>
 
             <div class="w-full">
-                <hr class="border-t border-gray-800 my-4">
+                <hr class="border-t border-focused my-4">
             </div>
 
             <!-- Heartbeats Timeout -->
@@ -473,8 +472,8 @@
                 <input type="hidden" name="action" value="update_heartbeats_timeout">
                 <div class="flex flex-wrap md:flex-nowrap mb-2 gap-x-4">
                     <div class="w-full md:w-1/3 mb-2 md:mb-0 inline-block">
-                        <span class="font-semibold text-gray-300 text-lg">Heartbeats Timeout</span>
-                        <p class="block text-sm text-gray-600">
+                        <span class="font-semibold text-foreground text-lg">Heartbeats Timeout</span>
+                        <p class="block text-sm text-muted">
                             This parameter affects the heuristic based on which a series of consecutive heartbeats sent by your IDE are aggregated to total coding time. Please see the <i>"How are durations calculated?"</i> section in our <a class="link" href="https://github.com/muety/wakapi?tab=readme-ov-file#-faqs" rel="noreferrer noopener" target="_blank">FAQs</a> as well as the discussion in <a class="link" href="https://github.com/muety/wakapi/issues/156" rel="noreferrer noopener" target="_blank">#156</a>.
                         </p>
                     </div>
@@ -482,10 +481,10 @@
                     <div class="flex-col w-full md:w-2/3 inline-block space-y-4">
                         <div class="flex justify-between items-center">
                             <div class="flex flex-col flex-grow gap-y-1">
-                                <label class="font-semibold text-gray-300" for="heartbeats_timeout">Timeout / offset (minutes)</label>
+                                <label class="font-semibold text-foreground" for="heartbeats_timeout">Timeout / offset (minutes)</label>
                                 <div class="flex gap-x-2 items-center">
                                     <input class="input-default" type="number" id="heartbeats_timeout" name="heartbeats_timeout" style="max-width: 100px;" placeholder="1" min="1" max="60" step="1" required value="{{ .User.HeartbeatsTimeoutMin }}">
-                                    <span class="text-gray-600 text-sm">(min. 1 min, max. 60 min)</span>
+                                    <span class="text-muted text-sm">(min. 1 min, max. 60 min)</span>
                                 </div>
                             </div>
                             <button type="submit" class="btn-primary h-min">Save</button>
@@ -495,19 +494,19 @@
             </form>
 
             <div class="w-full">
-                <hr class="border-t border-gray-800 my-4">
+                <hr class="border-t border-focused my-4">
             </div>
 
             <!-- Colors -->
             <div class="w-full">
                 <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/3 mb-4 md:mb-0 inline-block">
-                        <span class="font-semibold text-gray-300 text-lg">Vibrant Colors</span>
-                        <p class="block text-sm text-gray-600">You can view the entire summary in vibrant colors similar to the "Languages" chart. Note that this setting is saved in your web browser only.</p>
+                        <span class="font-semibold text-foreground text-lg">Vibrant Colors</span>
+                        <p class="block text-sm text-muted">You can view the entire summary in vibrant colors similar to the "Languages" chart. Note that this setting is saved in your web browser only.</p>
                     </div>
 
                     <div class="w-full md:w-2/3 inline-block">
-                        <div class="flex-col items-center w-full text-gray-500 text-sm">
+                        <div class="flex-col items-center w-full text-secondary text-sm">
                             <select autocomplete="off" id="vibrant-color-toggle" class="select-default" style="max-width: 6rem" v-model="vibrantColorsEnabled" @change="onToggleVibrantColors">
                                 <option value="false" class="cursor-pointer">Disabled</option>
                                 <option value="true" class="cursor-pointer">Enabled</option>
@@ -523,8 +522,8 @@
             <form action="" method="post" class="w-full lg:w-3/4">
                 <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
-                        <span class="font-semibold text-gray-300 text-lg">Public Leaderboard</span>
-                        <p class="block text-sm text-gray-600">
+                        <span class="font-semibold text-foreground text-lg">Public Leaderboard</span>
+                        <p class="block text-sm text-muted">
                             Opt in to get listed in the <a class="link" href="leaderboard">public leaderboard</a>. It shows aggregated statistics from the past 7 days of your coding.
                         </p>
                     </div>
@@ -534,7 +533,7 @@
 
                         <div class="flex gap-x-8">
                             <div class="grow">
-                                <label class="font-semibold text-gray-300" for="enable_leaderboard">Participate in leaderboard</label>
+                                <label class="font-semibold text-foreground" for="enable_leaderboard">Participate in leaderboard</label>
                             </div>
                             <div>
                                 <select autocomplete="off" id="enable_leaderboard" name="enable_leaderboard" class="select-default grow">
@@ -556,15 +555,15 @@
             </form>
 
             <div class="w-full md:w-3/4">
-                <hr class="border-t border-gray-800 my-4">
+                <hr class="border-t border-focused my-4">
             </div>
 
             <!-- Public Data -->
             <form action="" method="post" class="w-full lg:w-3/4">
                 <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
-                        <span class="font-semibold text-gray-300 text-lg">Public Data</span>
-                        <p class="block text-sm text-gray-600">
+                        <span class="font-semibold text-foreground text-lg">Public Data</span>
+                        <p class="block text-sm text-muted">
                             Some features require public access to your data without authentication. This mainly includes badges ("shields" endpoint) and the integration with GitHub Readme Stats ("stats" endpoint). You can choose which data to share publicly through these endpoints.
                         </p>
                     </div>
@@ -574,8 +573,8 @@
 
                         <div class="flex gap-x-8">
                             <div class="grow">
-                                <label class="font-semibold text-gray-300" for="max_days">Time Range</label>
-                                <span class="block text-sm text-gray-600">(in days; 0 = not public, -1 = unlimited)</span>
+                                <label class="font-semibold text-foreground" for="max_days">Time Range</label>
+                                <span class="block text-sm text-muted">(in days; 0 = not public, -1 = unlimited)</span>
                             </div>
                             <div>
                                 <input class="input-default"
@@ -586,7 +585,7 @@
 
                         <div class="flex gap-x-8">
                             <div class="grow">
-                                <label class="font-semibold text-gray-300" for="share_projects">Share Projects</label>
+                                <label class="font-semibold text-foreground" for="share_projects">Share Projects</label>
                             </div>
                             <div>
                                 <select autocomplete="off" id="share_projects" name="share_projects" class="select-default grow">
@@ -600,7 +599,7 @@
 
                         <div class="flex gap-x-8">
                             <div class="grow">
-                                <label class="font-semibold text-gray-300" for="share_languages">Share Languages</label>
+                                <label class="font-semibold text-foreground" for="share_languages">Share Languages</label>
                             </div>
                             <div>
                                 <select autocomplete="off" id="share_languages" name="share_languages" class="select-default grow">
@@ -614,7 +613,7 @@
 
                         <div class="flex gap-x-8">
                             <div class="grow">
-                                <label class="font-semibold text-gray-300" for="share_editors">Share Editors</label>
+                                <label class="font-semibold text-foreground" for="share_editors">Share Editors</label>
                             </div>
                             <div>
                                 <select autocomplete="off" id="share_editors" name="share_editors" class="select-default grow">
@@ -628,7 +627,7 @@
 
                         <div class="flex gap-x-8">
                             <div class="grow">
-                                <label class="font-semibold text-gray-300" for="share_oss">Share OS'</label>
+                                <label class="font-semibold text-foreground" for="share_oss">Share OS'</label>
                             </div>
                             <div>
                                 <select autocomplete="off" id="share_oss" name="share_oss" class="select-default grow">
@@ -642,7 +641,7 @@
 
                         <div class="flex gap-x-8">
                             <div class="grow">
-                                <label class="font-semibold text-gray-300" for="share_machines">Share Machines</label>
+                                <label class="font-semibold text-foreground" for="share_machines">Share Machines</label>
                             </div>
                             <div>
                                 <select autocomplete="off" id="share_machines" name="share_machines" class="select-default grow">
@@ -656,7 +655,7 @@
 
                         <div class="flex gap-x-8">
                             <div class="grow">
-                                <label class="font-semibold text-gray-300" for="share_labels">Share Project Labels</label>
+                                <label class="font-semibold text-foreground" for="share_labels">Share Project Labels</label>
                             </div>
                             <div>
                                 <select autocomplete="off" id="share_labels" name="share_labels" class="select-default grow">
@@ -670,7 +669,7 @@
 
                         <div class="flex gap-x-8">
                             <div class="grow">
-                                <label class="font-semibold text-gray-300" for="share_labels">Share Activity Chart</label>
+                                <label class="font-semibold text-foreground" for="share_labels">Share Activity Chart</label>
                             </div>
                             <div>
                                 <select autocomplete="off" id="share_activity_chart" name="share_activity_chart" class="select-default grow">
@@ -703,8 +702,8 @@
 
                 <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
-                        <label class="font-semibold text-gray-300 text-lg" for="select-timezone">WakaTime</label>
-                        <span class="block text-sm text-gray-600">
+                        <label class="font-semibold text-foreground text-lg" for="select-timezone">WakaTime</label>
+                        <span class="block text-sm text-muted">
                             You can connect Wakapi with the official WakaTime (or another Wakapi instance, when optionally specifying a custom API URL) in a way that all heartbeats sent to Wakapi are relayed. This way, you can use both services at the same time. To get started, get <a class="link" href="https://wakatime.com/developers#authentication" rel="noopener noreferrer" target="_blank">your API key</a> and paste it here.<br><br>
                             To forward data to another Wakapi instance, use <span class="text-xs font-mono">https://&lt;your-server&gt;/api/compat/wakatime/v1</span> as a URL.<br><br>
                             Please note: When enabling this feature, the operators of this server will, in theory, have unlimited access to your data stored in WakaTime. If you are concerned about your privacy, please do not enable this integration or wait for OAuth 2 authentication (<a
@@ -713,12 +712,12 @@
                     </div>
                     <div class="w-full md:w-1/2">
                         <input type="url" name="api_url" id="wakatime_api_url"
-                               class="w-full appearance-none bg-gray-850 text-gray-300 outline-none rounded py-2 px-4 mb-2 {{ if not .User.WakatimeApiKey }}focus:bg-gray-800{{ end }} {{ if .User.WakatimeApiKey }}cursor-not-allowed{{ end }}"
+                               class="w-full appearance-none bg-card text-foreground outline-none rounded py-2 px-4 mb-2 {{ if not .User.WakatimeApiKey }}focus:bg-focused{{ end }} {{ if .User.WakatimeApiKey }}cursor-not-allowed{{ end }}"
                                placeholder="{{ defaultWakatimeUrl }}" {{ if .User.WakatimeApiKey }}readonly{{ end }} value="{{ .User.WakaTimeURL "" }}">
                         <input type="password" name="api_key" id="wakatime_api_key"
-                               class="w-full appearance-none bg-gray-850 text-gray-300 outline-none rounded py-2 px-4 mt-2 {{ if not .User.WakatimeApiKey }}focus:bg-gray-800{{ end }} {{ if .User.WakatimeApiKey }}cursor-not-allowed{{ end }}"
+                               class="w-full appearance-none bg-card text-foreground outline-none rounded py-2 px-4 mt-2 {{ if not .User.WakatimeApiKey }}focus:bg-focused{{ end }} {{ if .User.WakatimeApiKey }}cursor-not-allowed{{ end }}"
                                placeholder="{{ $placeholderText }}" {{ if .User.WakatimeApiKey }}readonly{{ end }}>
-                        <div class="mt-2 text-gray-300">
+                        <div class="mt-2 text-foreground">
                             <input type="checkbox" name="use_legacy_importer" id="use_legacy_importer_tmp" class="mr-1 cursor-pointer">
                             <label for="use_legacy_importer_tmp" class="mx-1">Use legacy importer</label>
                             <span class="cursor-help" title="If WakaTime import fails repeatedly, you may want to fall back to an older, less efficient importer mechanism">&#9432;</span>
@@ -730,7 +729,7 @@
                     {{ if not .User.WakatimeApiKey }}
                     <button type="submit" class="btn-primary">Connect</button>
                     {{ else }}
-                    <button id="btn-import-wakatime" type="button" class="py-2 px-4 font-semibold rounded bg-gray-850 hover:bg-gray-800 text-white text-sm mr-1" @click.stop="confirmWakatimeImport">Import Data</button>
+                    <button id="btn-import-wakatime" type="button" class="py-2 px-4 font-semibold rounded bg-card hover:bg-focused text-primary text-sm mr-1" @click.stop="confirmWakatimeImport">Import Data</button>
                     <button type="submit" class="btn-danger ml-1">Disconnect</button>
                     {{ end }}
                 </div>
@@ -742,14 +741,14 @@
             </form>
 
             <div class="w-full lg:w-3/4">
-                <hr class="border-t border-gray-800 mb-4">
+                <hr class="border-t border-focused mb-4">
             </div>
 
             <div class="w-full lg:w-3/4">
                 <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
-                        <label class="font-semibold text-gray-300 text-lg" for="select-timezone">Badges</label>
-                        <span class="block text-sm text-gray-600">
+                        <label class="font-semibold text-foreground text-lg" for="select-timezone">Badges</label>
+                        <span class="block text-sm text-muted">
                             This integration with allows to generate badges for README pages or forums. To enable this feature, you need to grant public, unauthorized access to the respective endpoints. See <a class="link" href="settings#permissions">Permissions</a>. Adapt the URL's <i>label</i> and <i>color</i> parameters for customized badges.<br><br>
                             In addition, there is an endpoint compatible with <a class="link" href="https://shields.io" target="_blank" rel="noreferrer noopener">Shields.IO</a> to allow for even more customization (e.g. different <a class="link" href="https://shields.io/#styles" target="_blank" rel="noreferrer noopener">styles</a>). Only available on public instances, not on localhost.
                         </span>
@@ -764,7 +763,7 @@
                                      alt="Badge"/>
                             </div>
                             <input
-                                    class="with-url-value w-2/3 font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed"
+                                    class="with-url-value w-2/3 font-mono text-xs appearance-none bg-card text-secondary outline-none rounded py-2 px-4 cursor-not-allowed"
                                     value="%s/api/badge/{{ .User.ID }}/interval:today?label=today"
                                     readonly>
                         </div>
@@ -777,7 +776,7 @@
                                 />
                             </div>
                             <input
-                                    class="with-url-value w-2/3 font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed"
+                                    class="with-url-value w-2/3 font-mono text-xs appearance-none bg-card text-secondary outline-none rounded py-2 px-4 cursor-not-allowed"
                                     value="%s/api/badge/{{ .User.ID }}/{{ .User.ID }}/interval:30_days?label=last%2030d"
                                     readonly>
                         </div>
@@ -789,7 +788,7 @@
                                      alt="Shields.io badge"/>
                             </div>
                             <input
-                                    class="with-url-value w-2/3 font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed"
+                                    class="with-url-value w-2/3 font-mono text-xs appearance-none bg-card text-secondary outline-none rounded py-2 px-4 cursor-not-allowed"
                                     value="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:all_time&label=All%20time&color=blue"
                                     readonly>
                         </div>
@@ -799,14 +798,14 @@
             </div>
 
             <div class="w-full lg:w-3/4">
-                <hr class="border-t border-gray-800 mb-4">
+                <hr class="border-t border-focused mb-4">
             </div>
 
             <div class="w-full lg:w-3/4">
                 <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
                     <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
-                        <label class="font-semibold text-gray-300 text-lg" for="select-timezone">GitHub Readme Stats</label>
-                        <span class="block text-sm text-gray-600">
+                        <label class="font-semibold text-foreground text-lg" for="select-timezone">GitHub Readme Stats</label>
+                        <span class="block text-sm text-muted">
                             Wakapi intregrates with <a class="link" href="https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats" target="_blank" rel="noreferrer noopener">GitHub Readme Stats</a> to generate fancy cards for you. To enable this feature, you need to grant public, unauthorized access to the respective endpoints. See <a class="link" href="settings#permissions">Permissions</a>.<br><br>
                             Share data for >= 7 days → weekly summary card<br>
                             Share data for >= 366 days → yearly summary card<br>
@@ -822,7 +821,7 @@
                                  class="with-url-src-no-scheme" alt="Readme Stats Card">
                         </div>
                         <textarea
-                                class="with-url-inner-no-scheme shrink w-full font-mono text-xs appearance-none bg-gray-850 text-gray-500 outline-none rounded py-2 px-4 cursor-not-allowed mt-2"
+                                class="with-url-inner-no-scheme shrink w-full font-mono text-xs appearance-none bg-card text-secondary outline-none rounded py-2 px-4 cursor-not-allowed mt-2"
                                 rows="5" style="resize: none"
                                 readonly>https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=1A202C&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title={{ .ReadmeCardCustomTitle }}&layout=compact</textarea>
                         {{ end }}
@@ -834,8 +833,8 @@
         {{ if .SubscriptionsEnabled }}
         <div v-cloak id="subscription" class="tab flex flex-col space-y-4" v-if="isActive('subscription')">
             <div class="w-full lg:w-1/2">
-                <span class="font-semibold text-gray-300 text-lg">Subscription</span>
-                <span class="block text-sm text-gray-600">
+                <span class="font-semibold text-foreground text-lg">Subscription</span>
+                <span class="block text-sm text-muted">
                         By default, this Wakapi instance will only store historical coding activity for {{ .DataRetentionMonths }} months.
                         However, if you want to support the project, you can opt for a paid subscription for {{ .SubscriptionPrice }} / month to get unlimited history with no restrictions.
                         You can cancel your subscription at any times!<br>
@@ -845,29 +844,29 @@
                 <br>
 
                 {{ if not .User.HasActiveSubscription }}
-                <span class="font-semibold text-gray-300">How it works</span>
-                <span class="block text-sm text-gray-600">
+                <span class="font-semibold text-foreground">How it works</span>
+                <span class="block text-sm text-muted">
                     Without a subscription, your coding activity older than {{ .DataRetentionMonths }} months will get deleted by a routine that is run every day.
                     If you do have an active subscription at the time of checking, your data is kept.<br>
                     In other words, for every point in time <span class="text-xs font-mono">X</span>, where you do not currently have an active subscription, all data older than <span class="text-xs font-mono">X - {{ .DataRetentionMonths }}</span> months gets dropped.
                 </span>
                 <br>
-                <span class="font-semibold text-gray-300">Please note</span>
-                <span class="block text-sm text-gray-600">If you just purchased a subscription, it might take a moment until it's active. Try refresh this page in a minute. Otherwise, please contact us!</span>
-                <span class="block text-sm text-gray-600">By purchasing a subscription, you agree that your e-mail address, plus all information optionally passed as billing details, will be processed by Stripe, according to their <a href="https://stripe.com/privacy" class="link" target="_blank" rel="noopener noreferrer">privacy policy.</a></span>
+                <span class="font-semibold text-foreground">Please note</span>
+                <span class="block text-sm text-muted">If you just purchased a subscription, it might take a moment until it's active. Try refresh this page in a minute. Otherwise, please contact us!</span>
+                <span class="block text-sm text-muted">By purchasing a subscription, you agree that your e-mail address, plus all information optionally passed as billing details, will be processed by Stripe, according to their <a href="https://stripe.com/privacy" class="link" target="_blank" rel="noopener noreferrer">privacy policy.</a></span>
                 <br>
 
                 {{ end }}
 
                 {{ if not .UserFirstData.IsZero }}
-                <span class="block text-sm text-gray-600">
-                    Your currently oldest data point is from <span class="text-gray-300 font-semibold">{{ .UserFirstData | datetime }}</span>.
+                <span class="block text-sm text-muted">
+                    Your currently oldest data point is from <span class="text-foreground font-semibold">{{ .UserFirstData | datetime }}</span>.
                 </span>
                 <br>
                 {{ end }}
 
-                <span class="font-semibold text-gray-300">Subscription status:</span>
-                <span class="text-gray-600 ml-1 text-sm">
+                <span class="font-semibold text-foreground">Subscription status:</span>
+                <span class="text-muted ml-1 text-sm">
                     {{ if .User.HasActiveSubscription }}
                     <span class="font-semibold text-green-500 text-base">Active</span>
                     {{ if .User.SubscriptionRenewal }}
@@ -886,7 +885,7 @@
                     <button type="submit" class="btn-primary mt-4">Subscribe ({{ .SubscriptionPrice }} / mo)</button>
                     {{ else }}
                     <button type="submit" class="btn-disabled cursor-pointer mt-4" disabled title="">Subscribe ({{ .SubscriptionPrice }} / mo)</button><br>
-                    <span class="text-xs text-gray-600">You have to provide an e-mail address to purchase a subscription.</span>
+                    <span class="text-xs text-muted">You have to provide an e-mail address to purchase a subscription.</span>
                     {{ end }}
                 </form>
                 {{ else }}
@@ -904,8 +903,8 @@
                     <input type="hidden" name="action" value="regenerate_summaries">
 
                     <div class="w-1/2 mr-4 inline-block">
-                        <span class="font-semibold text-gray-300">Regenerate Summaries</span>
-                        <span class="block text-sm text-gray-600">
+                        <span class="font-semibold text-foreground">Regenerate Summaries</span>
+                        <span class="block text-sm text-muted">
                             Regenerate all pre-computed summaries from raw heartbeat data. This may be useful if, for some reason, summaries are faulty or preconditions have change (e.g. you modified language mappings retrospectively). This may take some time. Be careful and only run this action if you know, what your are doing, as data loss might occur.
                         </span>
                     </div>
@@ -918,8 +917,8 @@
                     <input type="hidden" name="action" value="reset_apikey">
 
                     <div class="w-1/2 mr-4 inline-block">
-                        <span class="font-semibold text-gray-300">Reset API Key</span>
-                        <span class="block text-sm text-gray-600">
+                        <span class="font-semibold text-foreground">Reset API Key</span>
+                        <span class="block text-sm text-muted">
                             Please note that resetting your API key requires you to update your .wakatime.cfg files on all of your computers to make the WakaTime client send heartbeats again.
                         </span>
                     </div>
@@ -932,8 +931,8 @@
                     <input type="hidden" name="action" value="clear_data">
 
                     <div class="w-1/2 mr-4 inline-block">
-                        <span class="font-semibold text-gray-300">Clear Data</span>
-                        <span class="block text-sm text-gray-600">
+                        <span class="font-semibold text-foreground">Clear Data</span>
+                        <span class="block text-sm text-muted">
                             Clear all your time tracking data from Wakapi. This cannot be undone. Be careful!
                         </span>
                     </div>
@@ -946,8 +945,8 @@
                     <input type="hidden" name="action" value="change_userid">
 
                     <div class="w-1/2 mr-4 inline-block">
-                        <span class="font-semibold text-gray-300">Change Username</span>
-                        <span class="block text-sm text-gray-600">
+                        <span class="font-semibold text-foreground">Change Username</span>
+                        <span class="block text-sm text-muted">
                             You can change your username, even though it is not recommended. Afterwards, you will only be able to log in via the new user name. Also, all externally referenced URLs etc. must be updated. This may take up to a few minutes.
                         </span>
                     </div>
@@ -963,8 +962,8 @@
                     <input type="hidden" name="action" value="delete_account">
 
                     <div class="w-1/2 mr-4 inline-block">
-                        <span class="font-semibold text-gray-300">Delete Account</span>
-                        <span class="block text-sm text-gray-600">
+                        <span class="font-semibold text-foreground">Delete Account</span>
+                        <span class="block text-sm text-muted">
                             Deleting your account will cause all data, including all your heartbeats, to be erased from the server immediately. This action is irreversible. Be careful!
                         </span>
                     </div>

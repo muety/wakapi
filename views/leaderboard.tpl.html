@@ -7,7 +7,7 @@
     const defaultTab = 'total'
 </script>
 
-<body class="relative bg-gray-900 text-gray-700 p-4 pt-10 flex flex-col min-h-screen {{ if .User }} max-w-screen-xl {{ else }} max-w-screen-lg {{end}} mx-auto justify-center">
+<body class="relative bg-background text-muted p-4 pt-10 flex flex-col min-h-screen {{ if .User }} max-w-screen-xl {{ else }} max-w-screen-lg {{end}} mx-auto justify-center">
 
 {{ template "alerts.tpl.html" . }}
 
@@ -23,20 +23,20 @@
         <div class="flex items-center justify-start" style="margin-bottom: 0.5rem">
             <h1 class="h1 inline-block">Leaderboard</h1>
             {{ if .IntervalLabel }}
-            <span class="text-gray-500 text-xl inline-block ml-1">&nbsp;({{ .IntervalLabel }})</span>
+            <span class="text-muted text-xl inline-block ml-1">&nbsp;({{ .IntervalLabel }})</span>
             {{ end }}
         </div>
 
-        <p class="block text-sm text-gray-300 w-full lg:w-3/4 mb-8">
+        <p class="block text-sm text-foreground w-full lg:w-3/4 mb-8">
             Wakapi's leaderboard shows a ranking of the most active users on this server, given they opted in to get listed on the public leaderboard. Statistics are updated at least every 12 hours and are based on the users' total coding time in a pre-defined interval.
             To participate, log in, go to <a class="link" href="settings#permissions">Settings 🠒 Permissions</a> and enable leaderboards.
         </p>
 
-        <ul class="flex space-x-4 mb-4 text-gray-600">
-            <li class="font-semibold text-xl {{ if eq .By "" }} text-gray-300 {{ else }} hover:text-gray-500 {{ end }}">
+        <ul class="flex space-x-4 mb-4 text-muted">
+            <li class="font-semibold text-xl {{ if eq .By "" }} text-foreground {{ else }} hover:text-secondary {{ end }}">
                 <a href="leaderboard">Total</a>
             </li>
-            <li class="font-semibold text-xl {{ if eq .By "language" }} text-gray-300 {{ else }} hover:text-gray-500 {{ end }}">
+            <li class="font-semibold text-xl {{ if eq .By "language" }} text-foreground {{ else }} hover:text-secondary {{ end }}">
                 <a href="leaderboard?by=language">By Language</a>
             </li>
         </ul>
@@ -56,7 +56,7 @@
         </div>
         {{ end }}
 
-        <div class="flex flex-col space-y-4 mt-4 text-gray-300 w-full lg:w-3/4">
+        <div class="flex flex-col space-y-4 mt-4 text-foreground w-full lg:w-3/4">
             {{ if len .Items }}
             <ol>
                 {{ range $i, $item := .Items }}
@@ -64,9 +64,9 @@
                     <div class="w-12"><strong># {{ $item.Rank }}</strong></div>
                     <div class="flex flex-grow w-16 mx-1 justify-start items-center space-x-4 align-middle">
                         {{ if avatarUrlTemplate }}
-                        <img src="{{ $item.User.AvatarURL avatarUrlTemplate }}" width="24px" class="rounded-full border-green-700" alt="User Profile Avatar"/>
+                        <img src="{{ $item.User.AvatarURL avatarUrlTemplate }}" width="24px" class="rounded-full border-accent" alt="User Profile Avatar"/>
                         {{ else }}
-                        <span class="iconify inline cursor-pointer text-gray-500 rounded-full border-green-700" style="width: 24px; height: 24px" data-icon="ic:round-person"></span>
+                        <span class="iconify inline cursor-pointer text-secondary rounded-full border-accent" style="width: 24px; height: 24px" data-icon="ic:round-person"></span>
                         {{ end }}
                         <div>
                             <strong class="text-ellipsis truncate">@{{ $item.UserID }}</strong>
