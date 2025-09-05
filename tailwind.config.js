@@ -6,14 +6,12 @@ module.exports = {
         extend: {
             colors: {
                 green: colors.emerald,
-                background: 'var(--background)',
+                background: 'rgb(var(--background) / <alpha-value>)',
                 card: 'rgb(var(--card) / <alpha-value>)',
-
-                muted: 'var(--muted)',
-
-                secondary: 'var(--secondary)',
-                primary: 'var(--primary)',
-                foreground: 'var(--foreground)',
+                muted: 'rgb(var(--muted) / <alpha-value>)',
+                secondary: 'rgb(var(--secondary) / <alpha-value>)',
+                primary: 'rgb(var(--primary) / <alpha-value>)',
+                foreground: 'rgb(var(--foreground) / <alpha-value>)',
                 focused: 'rgb(var(--focused) / <alpha-value>)',
                 accent: 'rgb(var(--accent) / <alpha-value>)',
                 danger: 'rgb(var(--danger) / <alpha-value>)',
