@@ -335,6 +335,7 @@ func main() {
 		for _, user := range users {
 			if data, err := heartbeatSource.StreamWithinBatched(time.Time{}, time.Now(), user, InsertBatchSize); err == nil {
 				for heartbeats := range data {
+					fixHeartbeatsBatched(heartbeats)
 					if err := heartbeatTarget.InsertBatch(heartbeats); err != nil {
 						log.Printf("warning: failed to insert batch of heartbeats for user (%s)\n", user.ID, err)
 						continue
@@ -431,6 +432,16 @@ func createSchema() error {
 		return err
 	}
 	return nil
+}
+
+func fixHeartbeatsBatched(heartbeats []*models.Heartbeat) {
+	// normally, there shouldn't be any heartbeats without a hash,
+	// however, we observed this case in production, so make sure to fix them to prevent data loss
+	for _, h := range heartbeats {
+		if h.Hash == "" {
+			h.Hashed()
+		}
+	}
 }
 
 func mustConfigPath() string {
