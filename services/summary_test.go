@@ -1,15 +1,16 @@
 package services
 
 import (
+	"math/rand"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"math/rand"
-	"strings"
-	"testing"
-	"time"
 )
 
 const (
@@ -504,20 +505,24 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
 	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything, mock.Anything, false).Return(models.Durations{}, nil)
 	suite.AliasService.On("InitializeUser", TestUserId).Return(nil)
 	suite.AliasService.On("GetByUserAndKeyAndType", TestUserId, TestProject1, models.SummaryProject).Return([]*models.Alias{
-		{
-			Type:  models.SummaryProject,
-			Key:   TestProject1,
-			Value: TestProject2,
-		},
+		// map any project starting with "som" to project 1
 		{
 			Type:  models.SummaryProject,
 			Key:   TestProject1,
 			Value: TestProject4[0:3] + "*", // wildcard alias
 		},
 	}, nil)
+	suite.AliasService.On("GetByUserAndKeyAndType", TestUserId, TestProject3, models.SummaryProject).Return([]*models.Alias{
+		// map project 2 to project 3
+		{
+			Type:  models.SummaryProject,
+			Key:   TestProject3,
+			Value: TestProject2,
+		},
+	}, nil)
 	suite.ProjectLabelService.On("GetByUserGroupedInverted", suite.TestUser.ID).Return(map[string][]*models.ProjectLabel{
-		suite.TestLabels[0].Label: suite.TestLabels[0:1],
-		suite.TestLabels[1].Label: suite.TestLabels[1:2],
+		suite.TestLabels[0].Label: suite.TestLabels[0:1], // "private" -> ["test-project-1"]
+		suite.TestLabels[1].Label: suite.TestLabels[1:2], // "non-existing" -> ["test-project-3"]
 	}, nil).Once()
 
 	result, _ := sut.Aliased(from, to, suite.TestUser, sut.Summarize, filters, nil, false)
@@ -526,9 +531,9 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
 
 	effectiveFilters := suite.DurationService.Calls[0].Arguments[3].(*models.Filters)
 	assert.Contains(suite.T(), effectiveFilters.Project, TestProject1) // because actually requested
-	assert.Contains(suite.T(), effectiveFilters.Project, TestProject2) // because of alias
-	assert.Contains(suite.T(), effectiveFilters.Project, TestProject3) // because of label
-	assert.Contains(suite.T(), effectiveFilters.Project, TestProject4) // because of wildcard alias
+	assert.Contains(suite.T(), effectiveFilters.Project, TestProject2) // because of label via alias (whenever project 3 is requested (here as part of label), anything mapping to it must be included as well, see https://github.com/muety/wakapi/issues/836)
+	assert.Contains(suite.T(), effectiveFilters.Project, TestProject3) // because of label (directly)
+	assert.Contains(suite.T(), effectiveFilters.Project, TestProject4) // because of wildcard alias (whenever project 1 is requested, anything mapping to it must be included as well)
 	assert.Contains(suite.T(), effectiveFilters.Label, TestProjectLabel3)
 }
 

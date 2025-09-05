@@ -2,6 +2,12 @@ package services
 
 import (
 	"errors"
+	"log/slog"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/becheran/wildmatch-go"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/slice"
@@ -11,11 +17,6 @@ import (
 	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/repositories"
 	"github.com/patrickmn/go-cache"
-	"log/slog"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type SummaryService struct {
@@ -72,8 +73,8 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f type
 
 	// Post-process filters
 	if filters != nil {
-		filters = filters.WithAliases(resolveAliasesReverse)
 		filters = filters.WithProjectLabels(resolveProjectLabelsReverse)
+		filters = filters.WithAliases(resolveAliasesReverse)
 	}
 
 	// Initialize alias resolver service
