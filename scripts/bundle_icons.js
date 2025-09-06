@@ -76,6 +76,7 @@ let icons = [
     'mdi:react',
     'mdi:code-json',
     'mdi:bash',
+    'mdi:nix',
     'twemoji:frowning-face',
     'ci:dot-03-m',
     'jam:crown-f',
