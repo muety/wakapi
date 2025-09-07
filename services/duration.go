@@ -2,7 +2,11 @@ package services
 
 import (
 	"errors"
+	"log/slog"
+	"time"
+
 	"github.com/duke-git/lancet/v2/condition"
+	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/maputil"
 	"github.com/duke-git/lancet/v2/slice"
@@ -12,8 +16,6 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
-	"log/slog"
-	"time"
 )
 
 const heartbeatPadding = 0 * time.Second
@@ -28,6 +30,7 @@ type DurationService struct {
 	languageMappingService ILanguageMappingService
 	lastUserJob            map[string]time.Time
 	queue                  *artifex.Dispatcher
+	pending                datastructure.Set[string] // currently running per-user regeneration jobs
 }
 
 func NewDurationService(durationRepository repositories.IDurationRepository, heartbeatService IHeartbeatService, userService IUserService, languageMappingService ILanguageMappingService) *DurationService {
@@ -40,6 +43,7 @@ func NewDurationService(durationRepository repositories.IDurationRepository, hea
 		repository:             durationRepository,
 		lastUserJob:            make(map[string]time.Time),
 		queue:                  config.GetQueue(config.QueueProcessing),
+		pending:                datastructure.New[string](),
 	}
 
 	// TODO: refactor to updating durations on-the-fly as heartbeats flow in, instead of batch-wise
@@ -108,6 +112,13 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 }
 
 func (srv *DurationService) Regenerate(user *models.User, forceAll bool) {
+	if srv.pending.Contain(user.ID) {
+		config.Log().Warn("skipping regeneration of durations for user, because already running", "user", user.ID)
+		return
+	}
+	srv.pending.Add(user.ID)
+	defer srv.pending.Delete(user.ID)
+
 	var from time.Time
 	latest, err := srv.repository.GetLatestByUser(user)
 	if err == nil && latest != nil && !forceAll {
