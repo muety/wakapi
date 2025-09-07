@@ -949,15 +949,20 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 	}
 
 	// user first data
-	var firstData time.Time
-	firstDataKv := h.keyValueSrvc.MustGetString(fmt.Sprintf("%s_%s", conf.KeyFirstHeartbeat, user.ID))
-	if firstDataKv.Value != "" {
-		firstData, _ = time.Parse(time.RFC822Z, firstDataKv.Value)
+	firstData, err := h.heartbeatSrvc.GetFirstByUser(user)
+	if err != nil {
+		conf.Log().Request(r).Error("error while user's heartbeats range", "user", user.ID, "error", err)
+		return &view.SettingsViewModel{
+			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
+				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
+				User:            user,
+			},
+		}
 	}
 
 	// invite link
 	inviteCode := getVal[string](args, valueInviteCode, "")
-	inviteLink := condition.TernaryOperator[bool, string](inviteCode == "", "", fmt.Sprintf("%s/signup?invite=%s", h.config.Server.GetPublicUrl(), inviteCode))
+	inviteLink := condition.Ternary[bool, string](inviteCode == "", "", fmt.Sprintf("%s/signup?invite=%s", h.config.Server.GetPublicUrl(), inviteCode))
 
 	vm := &view.SettingsViewModel{
 		SharedLoggedInViewModel: view.SharedLoggedInViewModel{

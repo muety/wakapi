@@ -168,26 +168,22 @@ func (r *HeartbeatRepository) GetLatestByFilters(user *models.User, filterMap ma
 	return heartbeat, nil
 }
 
-func (r *HeartbeatRepository) GetFirstByUsers() ([]*models.TimeByUser, error) {
+func (r *HeartbeatRepository) GetFirstAll() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
-	r.db.Raw("with agg as (select " + utils.QuoteSql(r.db, "user_id, min(time) as %s", "time") + " from heartbeats group by user_id) " +
-		"select " + utils.QuoteSql(r.db, "id as %s, time ", "user") +
-		"from users " +
-		"left join agg on agg.user_id = id " +
-		"order by users.id").
-		Scan(&result)
-	return result, nil
+	err := r.db.Raw("select user_id as user, first as time from user_heartbeats_range").Scan(&result).Error
+	return result, err
 }
 
-func (r *HeartbeatRepository) GetLastByUsers() ([]*models.TimeByUser, error) {
+func (r *HeartbeatRepository) GetLastAll() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
-	r.db.Raw("with agg as (select " + utils.QuoteSql(r.db, "user_id, max(time) as %s", "time") + " from heartbeats group by user_id) " +
-		"select " + utils.QuoteSql(r.db, "id as %s, time ", "user") +
-		"from users " +
-		"left join agg on agg.user_id = id " +
-		"order by users.id").
-		Scan(&result)
-	return result, nil
+	err := r.db.Raw("select user_id as user, last as time from user_heartbeats_range").Scan(&result).Error
+	return result, err
+}
+
+func (r *HeartbeatRepository) GetRangeByUser(user *models.User) (*models.RangeByUser, error) {
+	var result *models.RangeByUser
+	err := r.db.Raw("select user_id as user, first, last from user_heartbeats_range where user_id = ?", user.ID).Scan(&result).Error
+	return result, err
 }
 
 func (r *HeartbeatRepository) Count(approximate bool) (count int64, err error) {

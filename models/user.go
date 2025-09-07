@@ -96,6 +96,12 @@ type UserDataUpdate struct {
 	PublicLeaderboard bool   `schema:"public_leaderboard"`
 }
 
+type RangeByUser struct {
+	User  string
+	First CustomTime
+	Last  CustomTime
+}
+
 type TimeByUser struct {
 	User string
 	Time CustomTime

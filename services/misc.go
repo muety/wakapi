@@ -2,16 +2,17 @@ package services
 
 import (
 	"fmt"
-	"github.com/duke-git/lancet/v2/slice"
-	"github.com/muety/artifex/v2"
-	"github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/utils"
-	"go.uber.org/atomic"
 	"log/slog"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/duke-git/lancet/v2/slice"
+	"github.com/muety/artifex/v2"
+	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/utils"
+	"go.uber.org/atomic"
 
 	"github.com/muety/wakapi/models"
 )
@@ -61,11 +62,6 @@ func (srv *MiscService) Schedule() {
 		config.Log().Error("failed to schedule user counting jobs", "error", err)
 	}
 
-	slog.Info("scheduling first data computing")
-	if _, err := srv.queueDefault.DispatchEvery(srv.ComputeOldestHeartbeats, computeOldestDataEvery); err != nil {
-		config.Log().Error("failed to schedule first data computing jobs", "error", err)
-	}
-
 	if srv.config.Subscriptions.Enabled && srv.config.Subscriptions.ExpiryNotifications && srv.config.App.DataRetentionMonths > 0 {
 		slog.Info("scheduling subscription notifications")
 		if _, err := srv.queueDefault.DispatchEvery(srv.NotifyExpiringSubscription, notifyExpiringSubscriptionsEvery); err != nil {
@@ -77,11 +73,6 @@ func (srv *MiscService) Schedule() {
 	if !srv.existsUsersTotalTime() {
 		if err := srv.queueDefault.Dispatch(srv.CountTotalTime); err != nil {
 			config.Log().Error("failed to dispatch user counting jobs", "error", err)
-		}
-	}
-	if !srv.existsUsersFirstData() {
-		if err := srv.queueDefault.Dispatch(srv.ComputeOldestHeartbeats); err != nil {
-			config.Log().Error("failed to dispatch first data computing jobs", "error", err)
 		}
 	}
 	if !srv.existsSubscriptionNotifications() && srv.config.Subscriptions.Enabled && srv.config.Subscriptions.ExpiryNotifications && srv.config.App.DataRetentionMonths > 0 {
@@ -139,40 +130,6 @@ func (srv *MiscService) CountTotalTime() {
 			config.Log().Error("waiting for user counting jobs timed out")
 		}
 	}(&pendingJobs)
-}
-
-func (srv *MiscService) ComputeOldestHeartbeats() {
-	slog.Info("computing users' first data")
-
-	if err := srv.queueWorkers.Dispatch(func() {
-		if ok := firstDataLock.TryLock(); !ok {
-			config.Log().Warn("couldn't acquire lock for computing users' first data, job is still pending")
-			return
-		}
-		defer firstDataLock.Unlock()
-
-		results, err := srv.heartbeatService.GetFirstByUsers()
-		if err != nil {
-			config.Log().Error("failed to compute users' first data", "error", err)
-			return
-		}
-
-		for _, entry := range results {
-			if entry.Time.T().IsZero() {
-				continue
-			}
-
-			kvKey := fmt.Sprintf("%s_%s", config.KeyFirstHeartbeat, entry.User)
-			if err := srv.keyValueService.PutString(&models.KeyStringValue{
-				Key:   kvKey,
-				Value: entry.Time.T().Format(time.RFC822Z),
-			}); err != nil {
-				config.Log().Error("failed to save user's first heartbeat time", "error", err)
-			}
-		}
-	}); err != nil {
-		config.Log().Error("failed to enqueue computing first data for user", "error", err)
-	}
 }
 
 // NotifyExpiringSubscription sends a reminder e-mail to all users, notifying them if their subscription has expired or is about to, given these conditions:
@@ -271,14 +228,6 @@ func (srv *MiscService) existsUsersTotalTime() bool {
 	results, err := srv.keyValueService.GetByPrefix(config.KeyLatestTotalTime)
 	if err != nil {
 		config.Log().Error("failed to fetch latest time key-values", "error", err)
-	}
-	return len(results) > 0
-}
-
-func (srv *MiscService) existsUsersFirstData() bool {
-	results, err := srv.keyValueService.GetByPrefix(config.KeyFirstHeartbeat)
-	if err != nil {
-		config.Log().Error("failed to fetch first heartbeats key-values", "error", err)
 	}
 	return len(results) > 0
 }

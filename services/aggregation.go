@@ -79,7 +79,7 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 	}
 
 	// Get a map from user ids to the time of their earliest heartbeats or nil if none exists yet
-	firstUserHeartbeatTimes, err := srv.heartbeatService.GetFirstByUsers() // TODO: build user-specific variant of this query for efficiency
+	firstUserHeartbeatTimes, err := srv.heartbeatService.GetFirstAll() // TODO: build user-specific variant of this query for efficiency
 	if err != nil {
 		config.Log().Error("error occurred", "error", err.Error())
 		return err

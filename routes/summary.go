@@ -22,22 +22,22 @@ const (
 )
 
 type SummaryHandler struct {
-	config       *conf.Config
-	userSrvc     services.IUserService
-	summarySrvc  services.ISummaryService
-	durationSrvc services.IDurationService
-	aliasSrvc    services.IAliasService
-	keyValueSrvc services.IKeyValueService
+	config         *conf.Config
+	userSrvc       services.IUserService
+	summarySrvc    services.ISummaryService
+	durationSrvc   services.IDurationService
+	aliasSrvc      services.IAliasService
+	heartbeatsSrvc services.IHeartbeatService
 }
 
-func NewSummaryHandler(summaryService services.ISummaryService, userService services.IUserService, keyValueService services.IKeyValueService, durationService services.IDurationService, aliasService services.IAliasService) *SummaryHandler {
+func NewSummaryHandler(summaryService services.ISummaryService, userService services.IUserService, heartbeatsService services.IHeartbeatService, durationService services.IDurationService, aliasService services.IAliasService) *SummaryHandler {
 	return &SummaryHandler{
-		summarySrvc:  summaryService,
-		userSrvc:     userService,
-		keyValueSrvc: keyValueService,
-		durationSrvc: durationService,
-		aliasSrvc:    aliasService,
-		config:       conf.Get(),
+		summarySrvc:    summaryService,
+		userSrvc:       userService,
+		heartbeatsSrvc: heartbeatsService,
+		durationSrvc:   durationService,
+		aliasSrvc:      aliasService,
+		config:         conf.Get(),
 	}
 }
 
@@ -77,8 +77,8 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	summaryParams, _ := helpers.ParseSummaryParams(r)
 	summary, err, status := su.LoadUserSummary(h.summarySrvc, r)
 	if err != nil {
-		w.WriteHeader(status)
 		conf.Log().Request(r).Error("failed to load summary", "error", err)
+		w.WriteHeader(status)
 		templates[conf.SummaryTemplate].Execute(w, h.buildViewModel(r, w).WithError(err.Error()))
 		return
 	}
@@ -91,10 +91,12 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// user first data
-	var firstData time.Time
-	firstDataKv := h.keyValueSrvc.MustGetString(fmt.Sprintf("%s_%s", conf.KeyFirstHeartbeat, user.ID))
-	if firstDataKv.Value != "" {
-		firstData, _ = time.Parse(time.RFC822Z, firstDataKv.Value)
+	firstData, err := h.heartbeatsSrvc.GetFirstByUser(user)
+	if err != nil {
+		conf.Log().Request(r).Error("error while user's heartbeats range", "user", user.ID, "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		templates[conf.SummaryTemplate].Execute(w, h.buildViewModel(r, w).WithError(err.Error()))
+		return
 	}
 
 	var timeline []*view.TimelineViewModel

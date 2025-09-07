@@ -57,9 +57,29 @@ func (m *HeartbeatServiceMock) StreamAllWithinByFilters(t time.Time, t2 time.Tim
 	return args.Get(0).(chan *models.Heartbeat), args.Error(1)
 }
 
-func (m *HeartbeatServiceMock) GetFirstByUsers() ([]*models.TimeByUser, error) {
+func (m *HeartbeatServiceMock) GetFirstAll() ([]*models.TimeByUser, error) {
 	args := m.Called()
 	return args.Get(0).([]*models.TimeByUser), args.Error(1)
+}
+
+func (m *HeartbeatServiceMock) GetLastAll() ([]*models.TimeByUser, error) {
+	args := m.Called()
+	return args.Get(0).([]*models.TimeByUser), args.Error(1)
+}
+
+func (m *HeartbeatServiceMock) GetFirstByUser(u *models.User) (time.Time, error) {
+	args := m.Called(u)
+	return args.Get(0).(time.Time), args.Error(1)
+}
+
+func (m *HeartbeatServiceMock) GetLastByUser(u *models.User) (time.Time, error) {
+	args := m.Called(u)
+	return args.Get(0).(time.Time), args.Error(1)
+}
+
+func (m *HeartbeatServiceMock) GetRangeByUser(u *models.User) (*models.RangeByUser, error) {
+	args := m.Called(u)
+	return args.Get(0).(*models.RangeByUser), args.Error(1)
 }
 
 func (m *HeartbeatServiceMock) GetLatestByUser(user *models.User) (*models.Heartbeat, error) {
