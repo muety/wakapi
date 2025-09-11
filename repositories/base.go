@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-const chunkSize = 4096
+const chunkSize = 1024 // 4096 worked fine for mysql, but not for sqlite
 
 type BaseRepository struct {
 	db *gorm.DB
@@ -89,7 +89,7 @@ func (r *BaseRepository) VacuumOrOptimize() {
 }
 
 func InsertBatchChunked[T any](data []T, model T, db *gorm.DB) error {
-	// insert in chunks, because otherwise mysql will complain about too many placeholders in prepared query
+	// insert in chunks, because otherwise sqlite (later also mysql) will complain about too many placeholders in prepared query, see https://github.com/muety/wakapi/issues/840
 	return db.Transaction(func(tx *gorm.DB) error {
 		chunks := slice.Chunk[T](data, chunkSize)
 		for _, chunk := range chunks {
