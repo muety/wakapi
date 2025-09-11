@@ -591,6 +591,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/compat/wakatime/v1/users/{user}/user_agents": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Mimics https://wakatime.com/developers#user_agents",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wakatime"
+                ],
+                "summary": "List of unique user agents for given user.",
+                "operationId": "get-wakatime-useragents",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID to fetch data for (or 'current')",
+                        "name": "user",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.UserAgentsViewModel"
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "produces": [
@@ -1197,9 +1232,6 @@ const docTemplate = `{
         "models.Heartbeat": {
             "type": "object",
             "properties": {
-                "Entity": {
-                    "type": "string"
-                },
                 "branch": {
                     "type": "string"
                 },
@@ -1210,18 +1242,33 @@ const docTemplate = `{
                     "description": "https://gorm.io/docs/conventions.html#CreatedAt",
                     "type": "number"
                 },
+                "cursorpos": {
+                    "type": "integer"
+                },
                 "editor": {
                     "description": "ignored because editor might be parsed differently by wakatime",
                     "type": "string"
                 },
-                "id": {
-                    "type": "integer"
+                "entity": {
+                    "type": "string"
                 },
                 "is_write": {
                     "type": "boolean"
                 },
                 "language": {
                     "type": "string"
+                },
+                "line_additions": {
+                    "type": "integer"
+                },
+                "line_deletions": {
+                    "type": "integer"
+                },
+                "lineno": {
+                    "type": "integer"
+                },
+                "lines": {
+                    "type": "integer"
                 },
                 "machine": {
                     "description": "ignored because wakatime api doesn't return machines currently",
@@ -1233,6 +1280,9 @@ const docTemplate = `{
                 },
                 "project": {
                     "type": "string"
+                },
+                "project_root_count": {
+                    "type": "integer"
                 },
                 "time": {
                     "type": "number"
@@ -1275,6 +1325,7 @@ const docTemplate = `{
                     }
                 },
                 "from": {
+                    "description": "filled by gorm if not set, see https://gorm.io/docs/conventions.html#CreatedAt",
                     "type": "string",
                     "format": "date",
                     "example": "2006-01-02 15:04:05.000"
@@ -1312,6 +1363,7 @@ const docTemplate = `{
                     }
                 },
                 "to": {
+                    "description": "filled by gorm if not set, see https://gorm.io/docs/conventions.html#CreatedAt",
                     "type": "string",
                     "format": "date",
                     "example": "2006-01-02 15:04:05.000"
@@ -1409,6 +1461,9 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
+                "cursorpos": {
+                    "type": "integer"
+                },
                 "entity": {
                     "type": "string"
                 },
@@ -1420,6 +1475,18 @@ const docTemplate = `{
                 },
                 "language": {
                     "type": "string"
+                },
+                "line_additions": {
+                    "type": "integer"
+                },
+                "line_deletions": {
+                    "type": "integer"
+                },
+                "lineno": {
+                    "type": "integer"
+                },
+                "lines": {
+                    "type": "integer"
                 },
                 "machine_name_id": {
                     "type": "string"
@@ -1969,6 +2036,55 @@ const docTemplate = `{
                 },
                 "website": {
                     "type": "string"
+                }
+            }
+        },
+        "v1.UserAgentEntry": {
+            "type": "object",
+            "properties": {
+                "editor": {
+                    "type": "string"
+                },
+                "first_seen": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_browser_extension": {
+                    "description": "currently not implemented",
+                    "type": "boolean"
+                },
+                "is_desktop_app": {
+                    "description": "currently not implemented",
+                    "type": "boolean"
+                },
+                "last_seen": {
+                    "type": "string"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                },
+                "version": {
+                    "description": "currently not implemented",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.UserAgentsViewModel": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.UserAgentEntry"
+                    }
+                },
+                "total_pages": {
+                    "type": "integer"
                 }
             }
         },

@@ -18,8 +18,6 @@ definitions:
     type: object
   models.Heartbeat:
     properties:
-      Entity:
-        type: string
       branch:
         type: string
       category:
@@ -27,15 +25,25 @@ definitions:
       created_at:
         description: https://gorm.io/docs/conventions.html#CreatedAt
         type: number
+      cursorpos:
+        type: integer
       editor:
         description: ignored because editor might be parsed differently by wakatime
         type: string
-      id:
-        type: integer
+      entity:
+        type: string
       is_write:
         type: boolean
       language:
         type: string
+      line_additions:
+        type: integer
+      line_deletions:
+        type: integer
+      lineno:
+        type: integer
+      lines:
+        type: integer
       machine:
         description: ignored because wakatime api doesn't return machines currently
         type: string
@@ -44,6 +52,8 @@ definitions:
         type: string
       project:
         type: string
+      project_root_count:
+        type: integer
       time:
         type: number
       type:
@@ -74,6 +84,7 @@ definitions:
           $ref: '#/definitions/models.SummaryItem'
         type: array
       from:
+        description: filled by gorm if not set, see https://gorm.io/docs/conventions.html#CreatedAt
         example: "2006-01-02 15:04:05.000"
         format: date
         type: string
@@ -107,6 +118,7 @@ definitions:
           $ref: '#/definitions/models.SummaryItem'
         type: array
       to:
+        description: filled by gorm if not set, see https://gorm.io/docs/conventions.html#CreatedAt
         example: "2006-01-02 15:04:05.000"
         format: date
         type: string
@@ -172,6 +184,8 @@ definitions:
         type: string
       created_at:
         type: string
+      cursorpos:
+        type: integer
       entity:
         type: string
       id:
@@ -180,6 +194,14 @@ definitions:
         type: boolean
       language:
         type: string
+      line_additions:
+        type: integer
+      line_deletions:
+        type: integer
+      lineno:
+        type: integer
+      lines:
+        type: integer
       machine_name_id:
         type: string
       project:
@@ -539,6 +561,39 @@ definitions:
         type: string
       website:
         type: string
+    type: object
+  v1.UserAgentEntry:
+    properties:
+      editor:
+        type: string
+      first_seen:
+        type: string
+      id:
+        type: string
+      is_browser_extension:
+        description: currently not implemented
+        type: boolean
+      is_desktop_app:
+        description: currently not implemented
+        type: boolean
+      last_seen:
+        type: string
+      os:
+        type: string
+      value:
+        type: string
+      version:
+        description: currently not implemented
+        type: string
+    type: object
+  v1.UserAgentsViewModel:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/v1.UserAgentEntry'
+        type: array
+      total_pages:
+        type: integer
     type: object
   v1.UserViewModel:
     properties:
@@ -943,6 +998,28 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Retrieve WakaTime-compatible summaries
+      tags:
+      - wakatime
+  /compat/wakatime/v1/users/{user}/user_agents:
+    get:
+      description: Mimics https://wakatime.com/developers#user_agents
+      operationId: get-wakatime-useragents
+      parameters:
+      - description: User ID to fetch data for (or 'current')
+        in: path
+        name: user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.UserAgentsViewModel'
+      security:
+      - ApiKeyAuth: []
+      summary: List of unique user agents for given user.
       tags:
       - wakatime
   /health:
