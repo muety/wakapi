@@ -2,15 +2,16 @@ package utils
 
 import (
 	"context"
-	"github.com/go-chi/chi/v5"
-	"github.com/muety/wakapi/middlewares"
-	"github.com/muety/wakapi/mocks"
-	"github.com/muety/wakapi/models"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/mocks"
+	"github.com/muety/wakapi/models"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCheckEffectiveUser_Current(t *testing.T) {
@@ -65,14 +66,14 @@ func mockUserAwareRequest(requestedUser, authorizedUser string) (*http.Request, 
 		IsAdmin: authorizedUser == "admin",
 	}
 
-	testPrincipal := middlewares.PrincipalContainer{}
+	sharedData := config.NewSharedData()
 	if authorizedUser != "" {
-		testPrincipal.SetPrincipal(&testUser)
+		sharedData.Set(config.MiddlewareKeyPrincipal, &testUser)
 	}
 
 	r := httptest.NewRequest("GET", "http://localhost:3000/api/{user}/data", nil)
 	r = withUrlParam(r, "user", requestedUser)
-	r = r.WithContext(context.WithValue(r.Context(), "principal", &testPrincipal))
+	r = r.WithContext(context.WithValue(r.Context(), config.MiddlewareKeySharedData, sharedData))
 
 	userServiceMock := new(mocks.UserServiceMock)
 	userServiceMock.On("GetUserById", "user1").Return(&models.User{ID: "user1"}, nil)
