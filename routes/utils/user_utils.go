@@ -2,12 +2,12 @@ package utils
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/services"
-	"net/http"
 )
 
 // CheckEffectiveUser extracts the requested user from a URL (like '/users/{user}'), compares it with the currently authorized user and writes an HTTP error if they differ.
@@ -25,7 +25,7 @@ func CheckEffectiveUser(w http.ResponseWriter, r *http.Request, userService serv
 		userParam = fallback
 	}
 
-	authorizedUser := middlewares.GetPrincipal(r)
+	authorizedUser := GetPrincipal(r)
 	if authorizedUser == nil {
 		return respondError(http.StatusUnauthorized, conf.ErrUnauthorized)
 	} else if userParam == "current" {

@@ -33,7 +33,7 @@ func TestHomeHandler_Get_NotLoggedIn(t *testing.T) {
 	}
 
 	router := chi.NewRouter()
-	router.Use(middlewares.NewPrincipalMiddleware())
+	router.Use(middlewares.NewSharedDataMiddleware())
 
 	userServiceMock := new(mocks.UserServiceMock)
 	userServiceMock.On("GetUserById", user1.ID).Return(&user1, nil)
@@ -74,7 +74,7 @@ func TestHomeHandler_Get_LoggedIn(t *testing.T) {
 	config.Set(config.Empty())
 
 	router := chi.NewRouter()
-	router.Use(middlewares.NewPrincipalMiddleware())
+	router.Use(middlewares.NewSharedDataMiddleware())
 
 	userServiceMock := new(mocks.UserServiceMock)
 	userServiceMock.On("GetUserByKey", user1.ApiKey).Return(&user1, nil)

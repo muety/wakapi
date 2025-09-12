@@ -1,15 +1,16 @@
 package config
 
 import (
-	"github.com/getsentry/sentry-go"
-	slogmulti "github.com/samber/slog-multi"
-	slogsentry "github.com/samber/slog-sentry/v2"
 	"log/slog"
 	"net/http"
 	"os"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/getsentry/sentry-go"
+	slogmulti "github.com/samber/slog-multi"
+	slogsentry "github.com/samber/slog-sentry/v2"
 )
 
 // How to: Logging
@@ -110,12 +111,9 @@ func initSentry(config sentryConfig, debug bool, releaseVersion string) {
 
 // returns a user id
 func getPrincipal(r *http.Request) string {
-	type principalIdentityGetter interface {
-		GetPrincipalIdentity() string
+	val := r.Context().Value(MiddlewareKeySharedData).(*SharedData).MustGet(MiddlewareKeyPrincipalId)
+	if val == nil {
+		return ""
 	}
-
-	if p := r.Context().Value("principal"); p != nil {
-		return p.(principalIdentityGetter).GetPrincipalIdentity()
-	}
-	return ""
+	return val.(string)
 }

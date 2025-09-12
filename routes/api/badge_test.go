@@ -44,7 +44,7 @@ func TestBadgeHandler_Get(t *testing.T) {
 
 	router := chi.NewRouter()
 	apiRouter := chi.NewRouter()
-	apiRouter.Use(middlewares.NewPrincipalMiddleware())
+	apiRouter.Use(middlewares.NewSharedDataMiddleware())
 	router.Mount("/api", apiRouter)
 
 	userServiceMock := new(mocks.UserServiceMock)

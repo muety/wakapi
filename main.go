@@ -250,7 +250,7 @@ func main() {
 		middleware.CleanPath,
 		middleware.StripSlashes,
 		middleware.Recoverer,
-		middlewares.NewPrincipalMiddleware(),
+		middlewares.NewSharedDataMiddleware(),
 		middlewares.NewLoggingMiddleware(slog.Info, []string{
 			"/assets",
 			"/favicon",
