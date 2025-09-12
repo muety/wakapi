@@ -113,6 +113,7 @@ func initSentry(config sentryConfig, debug bool, releaseVersion string) {
 func getPrincipal(r *http.Request) string {
 	sharedData := r.Context().Value(MiddlewareKeySharedData)
 	if sharedData == nil {
+		Log().Request(r).Error("request shared data not set while retrieving principal for sentry logging")
 		return ""
 	}
 	val := sharedData.(*SharedData).MustGet(MiddlewareKeyPrincipalId)

@@ -73,7 +73,7 @@ func mockUserAwareRequest(requestedUser, authorizedUser string) (*http.Request, 
 
 	r := httptest.NewRequest("GET", "http://localhost:3000/api/{user}/data", nil)
 	r = withUrlParam(r, "user", requestedUser)
-	r = r.WithContext(context.WithValue(r.Context(), config.MiddlewareKeySharedData, sharedData))
+	r = r.WithContext(context.WithValue(r.Context(), config.KeySharedData, sharedData))
 
 	userServiceMock := new(mocks.UserServiceMock)
 	userServiceMock.On("GetUserById", "user1").Return(&models.User{ID: "user1"}, nil)

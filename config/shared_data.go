@@ -1,11 +1,20 @@
 package config
 
-import "github.com/muety/wakapi/utils"
+import (
+	"github.com/muety/wakapi/lib"
+)
+
+type SharedDataKey string
+
+const (
+	MiddlewareKeyPrincipal   = SharedDataKey("principal")
+	MiddlewareKeyPrincipalId = SharedDataKey("principal_identity")
+)
 
 type SharedData struct {
-	*utils.ConcurrentMap[string, interface{}]
+	*lib.ConcurrentMap[SharedDataKey, interface{}]
 }
 
 func NewSharedData() *SharedData {
-	return &SharedData{utils.NewConcurrentMap[string, interface{}]()}
+	return &SharedData{lib.NewConcurrentMap[SharedDataKey, interface{}]()}
 }

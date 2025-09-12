@@ -7,7 +7,7 @@ import (
 	"github.com/muety/wakapi/config"
 )
 
-const key = config.MiddlewareKeySharedData
+const key = config.KeySharedData
 
 // This middleware is a bit of a dirty workaround to the fact that a http.Request's context
 // does not allow to pass values from an inner to an outer middleware. Calling WithContext() on a

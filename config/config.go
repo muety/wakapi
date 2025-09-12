@@ -38,12 +38,9 @@ const (
 	KeySubscriptionNotificationSent = "sub_reminder"
 	KeyNewsbox                      = "newsbox"
 	KeyInviteCode                   = "invite"
+	KeySharedData                   = "shared_data"
 
 	SessionKeyDefault = "default"
-
-	MiddlewareKeySharedData  = "shared_data"
-	MiddlewareKeyPrincipal   = "principal"
-	MiddlewareKeyPrincipalId = "principal_identity"
 
 	SimpleDateFormat     = "2006-01-02"
 	SimpleDateTimeFormat = "2006-01-02 15:04:05"
