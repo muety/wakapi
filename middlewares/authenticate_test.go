@@ -4,11 +4,12 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/muety/wakapi/config"
-	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/muety/wakapi/config"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"

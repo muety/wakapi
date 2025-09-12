@@ -147,6 +147,7 @@ type IUserService interface {
 	GetUserByEmail(string) (*models.User, error)
 	GetUserByResetToken(string) (*models.User, error)
 	GetUserByStripeCustomerId(string) (*models.User, error)
+	GetUserByOidc(string, string) (*models.User, error)
 	GetAll() ([]*models.User, error)
 	GetAllMapped() (map[string]*models.User, error)
 	GetMany([]string) ([]*models.User, error)

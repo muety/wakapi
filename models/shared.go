@@ -22,7 +22,7 @@ import (
 const (
 	UserKey               = "user"
 	ImprintKey            = "imprint"
-	AuthCookieKey         = "wakapi_auth"
+	AuthCookieKey         = config.CookieKeyAuth
 	PersistentIntervalKey = "wakapi_summary_interval"
 )
 

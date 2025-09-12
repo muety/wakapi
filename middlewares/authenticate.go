@@ -3,12 +3,14 @@ package middlewares
 import (
 	"errors"
 	"fmt"
-	"github.com/duke-git/lancet/v2/slice"
-	"github.com/gofrs/uuid/v5"
-	"github.com/muety/wakapi/helpers"
 	"net"
 	"net/http"
 	"strings"
+
+	"github.com/duke-git/lancet/v2/slice"
+	"github.com/gofrs/uuid/v5"
+	"github.com/muety/wakapi/helpers"
+	routeutils "github.com/muety/wakapi/routes/utils"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -72,6 +74,10 @@ func (m *AuthenticateMiddleware) Handler(h http.Handler) http.Handler {
 func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	var user *models.User
 
+	if m.tryHandleOidc(w, r) {
+		return
+	}
+
 	user, err := m.tryGetUserByCookie(r)
 	if err != nil {
 		user, err = m.tryGetUserByApiKeyHeader(r)
@@ -94,7 +100,7 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			w.Write([]byte(conf.ErrUnauthorized))
 		} else {
 			if m.redirectErrorMessage != "" {
-				session, _ := conf.GetSessionStore().Get(r, conf.SessionKeyDefault)
+				session, _ := conf.GetSessionStore().Get(r, conf.CookieKeySession)
 				session.AddFlash(m.redirectErrorMessage, "error")
 				session.Save(r, w)
 			}
@@ -204,4 +210,31 @@ func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.Us
 	// if cookie is not properly signed
 
 	return user, nil
+}
+
+// redirect if oidc id token was found, but expired
+func (m *AuthenticateMiddleware) tryHandleOidc(w http.ResponseWriter, r *http.Request) bool {
+	idToken := routeutils.GetOidcIdTokenPayload(r)
+	if idToken == nil {
+		return false
+	}
+
+	if !idToken.IsValid() {
+		provider, err := m.config.Security.GetOidcProvider(idToken.ProviderName)
+		if err != nil {
+			conf.Log().Request(r).Error("failed to get provider from id token", "provider", idToken.ProviderName, "sub", idToken.Subject)
+			return false
+		}
+
+		if _, err := m.userSrvc.GetUserByOidc(provider.Name, idToken.Subject); err != nil {
+			conf.Log().Request(r).Error("got expired oidc token for non-oidc user", "provider", idToken.ProviderName, "sub", idToken.Subject)
+			return false
+		}
+
+		state := routeutils.SetNewOidcState(r, w)
+		http.Redirect(w, r, provider.OAuth2.AuthCodeURL(state), http.StatusFound)
+		return true
+	}
+
+	return false
 }

@@ -134,6 +134,16 @@ func (srv *UserService) GetUserByStripeCustomerId(customerId string) (*models.Us
 	return srv.repository.FindOne(models.User{StripeCustomerId: customerId})
 }
 
+func (srv *UserService) GetUserByOidc(provider, sub string) (*models.User, error) {
+	if sub == "" || provider == "" {
+		return nil, errors.New("sub and provider must not be empty")
+	}
+	return srv.repository.FindOne(models.User{
+		Sub:      sub,
+		AuthType: provider,
+	})
+}
+
 func (srv *UserService) GetAll() ([]*models.User, error) {
 	return srv.repository.GetAll()
 }

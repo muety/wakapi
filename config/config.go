@@ -40,7 +40,10 @@ const (
 	KeyInviteCode                   = "invite"
 	KeySharedData                   = "shared_data"
 
-	SessionKeyDefault = "default"
+	CookieKeySession               = "wakapi_session"
+	CookieKeyAuth                  = "wakapi_auth"
+	SessionValueOidcState          = "oidc_state"
+	SessionValueOidcIdTokenPayload = "oidc_state"
 
 	SimpleDateFormat     = "2006-01-02"
 	SimpleDateTimeFormat = "2006-01-02 15:04:05"
@@ -131,6 +134,7 @@ type securityConfig struct {
 	PasswordResetMaxRate         string                     `yaml:"password_reset_max_rate" default:"5/1h" env:"WAKAPI_PASSWORD_RESET_MAX_RATE"`
 	SecureCookie                 *securecookie.SecureCookie `yaml:"-"`
 	SessionKey                   []byte                     `yaml:"-"`
+	OidcProviders                []oidcProviderConfig       `yaml:"oidc"` // TODO(oidc): support to read from env.
 	trustReverseProxyIpsParsed   []net.IPNet
 }
 
@@ -200,6 +204,13 @@ type SMTPMailConfig struct {
 	SkipVerify bool   `env:"WAKAPI_MAIL_SMTP_SKIP_VERIFY"`
 }
 
+type oidcProviderConfig struct {
+	Name         string `yaml:"name" env:"WAKAPI_OIDC_PROVIDERS_0_NAME"`
+	ClientID     string `yaml:"client_id"`
+	ClientSecret string `yaml:"client_secret"`
+	Endpoint     string `yaml:"endpoint"` // base url from which auto-discovery (.well-known/openid-configuration) can be found
+}
+
 type Config struct {
 	Env            string `default:"dev" env:"ENVIRONMENT"`
 	Version        string `yaml:"-"`
@@ -229,6 +240,10 @@ func (c *Config) GetClearCookie(name string) *http.Cookie {
 }
 
 func (c *Config) createCookie(name, value, path string, maxAge int) *http.Cookie {
+	if path == "" {
+		path = "/"
+	}
+
 	return &http.Cookie{
 		Name:     name,
 		Value:    value,
@@ -399,6 +414,10 @@ func (c *securityConfig) GetLoginMaxRate() (int, time.Duration) {
 
 func (c *securityConfig) GetPasswordResetMaxRate() (int, time.Duration) {
 	return c.parseRate(c.PasswordResetMaxRate)
+}
+
+func (c *securityConfig) GetOidcProvider(name string) (*OidcProvider, error) {
+	return GetOidcProvider(name)
 }
 
 func (c *securityConfig) parseRate(rate string) (int, time.Duration) {
@@ -625,6 +644,10 @@ func Load(configFlag string, version string) *Config {
 	}
 
 	Set(config)
+
+	// post config-load tasks
+	initOpenIDConnect(config)
+
 	return Get()
 }
 
@@ -643,4 +666,12 @@ func Empty() *Config {
 func BeginningOfWakatime() time.Time {
 	t, _ := time.Parse(SimpleDateFormat, heartbeatsMinDate)
 	return t
+}
+
+func initOpenIDConnect(config *Config) {
+	// openid connect
+	for _, c := range config.Security.OidcProviders {
+		RegisterOidcProvider(&c)
+		slog.Info("registered openid connection", "provider", c.Name)
+	}
 }
