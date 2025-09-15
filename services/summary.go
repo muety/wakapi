@@ -351,12 +351,15 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 		Categories:       make([]*models.SummaryItem, 0),
 	}
 
-	var processed = map[time.Time]bool{}
+	var processed = map[time.Time]*models.Summary{}
 
 	for i, s := range summaries {
 		hash := s.FromTime.T()
-		if _, found := processed[hash]; found {
-			slog.Warn("summary was attempted to be processed more often than once", "fromTime", s.FromTime.T(), "toTime", s.ToTime.T(), "userID", s.UserID)
+		if s2, found := processed[hash]; found {
+			if !s.ToTime.T().Equal(s2.ToTime.T()) {
+				// TODO: heuristic for which one to use (more recent one? larger interval? more heartbeats included?)
+				slog.Warn("got multiple summaries for same start date but different intervals", "id1", s.ID, "id2", s2.ID, "fromTime1", s.FromTime.T(), "fromTime2", s2.FromTime.T(), "toTime1", s.ToTime.T(), "toTime2", s2.ToTime.T(), "userID", s.UserID)
+			}
 			continue
 		}
 
@@ -390,7 +393,7 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 		finalSummary.Categories = srv.mergeSummaryItems(finalSummary.Categories, s.Categories)
 		finalSummary.NumHeartbeats += s.NumHeartbeats
 
-		processed[hash] = true
+		processed[hash] = s
 	}
 
 	finalSummary.FromTime = models.CustomTime(minTime)
