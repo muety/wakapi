@@ -73,7 +73,7 @@ func ResolveIntervalTZ(interval *models.IntervalKey, tz *time.Location, startOfW
 	case models.IntervalPast12Months:
 		from = now.AddDate(0, -12, 0)
 	case models.IntervalAny:
-		from = time.Time{}
+		from = utils.UnixEra()
 	default:
 		err = errors.New("invalid interval")
 	}

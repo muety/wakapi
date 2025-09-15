@@ -150,6 +150,11 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 	// prevent 0001-01-01T00:00:00 caused by empty "pre" missing interval, see https://github.com/muety/wakapi/issues/843
 	summary.FromTime = models.CustomTime(condition.Ternary(summary.FromTime.T().Before(from), from, summary.FromTime.T()))
 
+	if summary.TotalTime() == 0 {
+		summary.FromTime = models.CustomTime(from)
+		summary.ToTime = models.CustomTime(to)
+	}
+
 	if filters != nil && filters.CountDistinctTypes() == 1 && filters.SelectFilteredOnly {
 		filter := filters.OneOrEmpty()
 		summary.KeepOnly(map[uint8]bool{filter.Entity: true}).ApplyFilter(filter)
@@ -365,11 +370,12 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 			return nil, errors.New("users don't match")
 		}
 
-		if s.FromTime.T().Before(minTime) {
+		totalTime := s.TotalTime()
+
+		if s.FromTime.T().Before(minTime) && totalTime > 0 { // only consider non-empty summaries
 			minTime = s.FromTime.T()
 		}
-
-		if s.ToTime.T().After(maxTime) {
+		if s.ToTime.T().After(maxTime) && totalTime > 0 { // only consider non-empty summaries
 			maxTime = s.ToTime.T()
 		}
 
@@ -388,7 +394,7 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 	}
 
 	finalSummary.FromTime = models.CustomTime(minTime)
-	finalSummary.ToTime = models.CustomTime(maxTime)
+	finalSummary.ToTime = models.CustomTime(condition.Ternary(maxTime.Before(minTime), minTime, maxTime))
 
 	return finalSummary, nil
 }

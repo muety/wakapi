@@ -462,8 +462,8 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve_DateRange() {
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), result)
-	assert.Equal(suite.T(), from, result.FromTime.T()) // requested from date
-	assert.Equal(suite.T(), to, result.ToTime.T())     // requested to date
+	assert.Equal(suite.T(), summaries[0].FromTime.T(), result.FromTime.T()) // actual first data date
+	assert.Equal(suite.T(), summaries[0].ToTime.T(), result.ToTime.T())     // actual last data date
 	suite.DurationService.AssertNumberOfCalls(suite.T(), "Get", 2)
 }
 

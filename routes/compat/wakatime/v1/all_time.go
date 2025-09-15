@@ -10,6 +10,8 @@ import (
 	"github.com/muety/wakapi/models/types"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
+	"github.com/muety/wakapi/utils"
+
 	"net/http"
 	"time"
 )
@@ -63,7 +65,7 @@ func (h *AllTimeHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 func (h *AllTimeHandler) loadUserSummary(user *models.User, filters *models.Filters) (*models.Summary, error, int) {
 	summaryParams := &models.SummaryParams{
-		From:      time.Time{},
+		From:      utils.UnixEra(),
 		To:        time.Now(),
 		User:      user,
 		Recompute: false,
