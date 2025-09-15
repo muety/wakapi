@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/becheran/wildmatch-go"
+	"github.com/duke-git/lancet/v2/condition"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/leandro-lugaresi/hub"
@@ -62,7 +63,7 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f type
 	cacheKey := srv.getHash(from.String(), to.String(), user.ID, filters.Hash(), strconv.Itoa(int(requestedTimeout)), "--aliased")
 	if to.Truncate(time.Second).Equal(to) && from.Truncate(time.Second).Equal(from) {
 		if cacheResult, ok := srv.cache.Get(cacheKey); ok && !skipCache {
-			return cacheResult.(*models.Summary), nil
+			return cacheResult.(*models.Summary).Sorted().InTZ(user.TZ()), nil
 		}
 	}
 
@@ -117,7 +118,7 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 		// Get all already existing, pre-generated summaries that fall into the requested interval
 		result, err := srv.repository.GetByUserWithin(user, from, to)
 		if err == nil {
-			summaries = result
+			summaries = srv.fixZeroDuration(result)
 		} else {
 			return nil, err
 		}
@@ -145,6 +146,9 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 	if err != nil {
 		return nil, err
 	}
+
+	// prevent 0001-01-01T00:00:00 caused by empty "pre" missing interval, see https://github.com/muety/wakapi/issues/843
+	summary.FromTime = models.CustomTime(condition.Ternary(summary.FromTime.T().Before(from), from, summary.FromTime.T()))
 
 	if filters != nil && filters.CountDistinctTypes() == 1 && filters.SelectFilteredOnly {
 		filter := filters.OneOrEmpty()
@@ -468,6 +472,27 @@ func (srv *SummaryService) getMissingIntervals(from, to time.Time, summaries []*
 	}
 
 	return intervals
+}
+
+// Since summary timestamps are only second-level precision, we rarely observe examples where from- and to-time are allegedly equal.
+// We artificially modify those to give them a one second duration and potentially fix the subsequent summary as well to prevent overlaps.
+// Assumes summaries slice to be sorted by from time.
+func (s *SummaryService) fixZeroDuration(summaries []*models.Summary) []*models.Summary {
+	for i, summary := range summaries {
+		if summary.FromTime.T().Equal(summary.ToTime.T()) {
+			summary.ToTime = models.CustomTime(summary.ToTime.T().Add(1 * time.Second))
+
+			if i < len(summaries)-1 {
+				summaryNext := summaries[i+1]
+				if summaryNext.FromTime.T().Before(summary.ToTime.T()) {
+					// intentionally not trying to resolve larger overlaps that were there before (even though they shouldn't happen in theory)
+					summaryNext.FromTime = models.CustomTime(summaryNext.FromTime.T().Add(1 * time.Second))
+				}
+			}
+		}
+	}
+
+	return summaries
 }
 
 func (srv *SummaryService) getHash(args ...string) string {
