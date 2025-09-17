@@ -1,6 +1,8 @@
 package utils
 
 import (
+	crypto_rand "crypto/rand"
+	"encoding/hex"
 	"hash/fnv"
 	"io"
 	"math/rand"
@@ -27,4 +29,13 @@ func UUIDFromSeed(seed string) (string, error) {
 		return "", err
 	}
 	return id.String(), nil
+}
+
+func RandHexString(len int) (string, error) {
+	noBytes := make([]byte, len/2)
+	_, err := crypto_rand.Read(noBytes)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(noBytes), nil
 }

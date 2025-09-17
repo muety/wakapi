@@ -246,6 +246,7 @@ func (h *LoginHandler) PostLogout(w http.ResponseWriter, r *http.Request) {
 		h.userSrvc.FlushUserCache(user.ID)
 	}
 	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey))
+	http.SetCookie(w, h.config.GetClearCookie(models.AuthVerifyCookieKey))
 	http.Redirect(w, r, fmt.Sprintf("%s/", h.config.Server.BasePath), http.StatusFound)
 }
 

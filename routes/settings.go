@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/gofrs/uuid/v5"
 	"github.com/muety/wakapi/helpers"
+	"github.com/pquerna/otp/totp"
 
 	"log/slog"
 
@@ -193,6 +194,12 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 		return h.actionUpdateExcludeUnknownProjects
 	case "update_heartbeats_timeout":
 		return h.actionUpdateHeartbeatsTimeout
+	case "prepare_totp":
+		return h.actionPrepareTOTP
+	case "setup_totp":
+		return h.actionSetupTOTP
+	case "disable_totp":
+		return h.actionDisableTOTP
 	}
 	return nil
 }
@@ -393,6 +400,86 @@ func (h *SettingsHandler) actionUpdateHeartbeatsTimeout(w http.ResponseWriter, r
 	}
 
 	return actionResult{http.StatusOK, "Done. To apply this change to already existing data, please regenerate your summaries.", "", nil}
+}
+
+func (h *SettingsHandler) actionPrepareTOTP(w http.ResponseWriter, r *http.Request) actionResult {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	user := middlewares.GetPrincipal(r)
+
+	key, err := totp.Generate(totp.GenerateOpts{
+		Issuer:      h.config.Server.PublicUrl,
+		AccountName: user.ID,
+	})
+	if err != nil {
+		return actionResult{http.StatusInternalServerError, "", "internal server error", nil}
+	}
+
+	return actionResult{
+		http.StatusOK,
+		"Prepare two factor authentication.",
+		"",
+		&map[string]interface{}{
+			"totpKey": key,
+		},
+	}
+}
+
+func (h *SettingsHandler) actionSetupTOTP(w http.ResponseWriter, r *http.Request) actionResult {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	var err error
+	user := middlewares.GetPrincipal(r)
+	defer h.userSrvc.FlushCache()
+
+	submittedCode, totpSecret := r.PostFormValue("totp_code"), r.PostFormValue("totp_secret")
+	if totp.Validate(submittedCode, totpSecret) == false {
+		return actionResult{http.StatusBadRequest, "", "invalid input", nil}
+	}
+
+	user.TOTPSecret = totpSecret
+
+	backupCodes, err := h.generateTOTPBackupCodes(user)
+	if err != nil {
+		return actionResult{http.StatusInternalServerError, "", "internal server error", nil}
+	}
+
+	user.TOTPBackupCodes = strings.Join(backupCodes, ",")
+
+	if _, err := h.userSrvc.Update(user); err != nil {
+		return actionResult{http.StatusInternalServerError, "", "internal server error", nil}
+	}
+
+	return actionResult{
+		http.StatusOK,
+		"Enabled two factor authentication.",
+		"",
+		&map[string]interface{}{
+			"totpBackupCodes": backupCodes,
+		},
+	}
+}
+
+func (h *SettingsHandler) actionDisableTOTP(w http.ResponseWriter, r *http.Request) actionResult {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	user := middlewares.GetPrincipal(r)
+	defer h.userSrvc.FlushCache()
+
+	user.TOTPSecret = ""
+	user.TOTPBackupCodes = ""
+
+	if _, err := h.userSrvc.Update(user); err != nil {
+		return actionResult{http.StatusInternalServerError, "", "internal server error", nil}
+	}
+
+	return actionResult{http.StatusOK, "Disabled two factor authentication.", "", nil}
 }
 
 func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Request) actionResult {
@@ -861,6 +948,23 @@ func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
 	}
 
 	return nil
+}
+
+func (h *SettingsHandler) generateTOTPBackupCodes(user *models.User) ([]string, error) {
+	slog.Info("genearting TOTP backup codes for user", "userID", user.ID)
+
+	var codes []string
+	for i := 1; i <= 10; i++ {
+		genCode, err := utils.RandHexString(8)
+		if err != nil {
+			conf.Log().Error("error generating a TOTP backup code", "error", err)
+			return nil, err
+		}
+
+		codes = append(codes, genCode)
+	}
+
+	return codes, nil
 }
 
 func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter, args *map[string]interface{}) *view.SettingsViewModel {
