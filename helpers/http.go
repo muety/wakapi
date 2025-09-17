@@ -3,9 +3,10 @@ package helpers
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
+
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
-	"net/http"
 )
 
 func ExtractCookieAuth(r *http.Request, config *config.Config) (username *string, err error) {
@@ -16,6 +17,19 @@ func ExtractCookieAuth(r *http.Request, config *config.Config) (username *string
 
 	if err := config.Security.SecureCookie.Decode(models.AuthCookieKey, cookie.Value, &username); err != nil {
 		return nil, errors.New("cookie is invalid")
+	}
+
+	return username, nil
+}
+
+func ExtractCookieAuthVerify(r *http.Request, config *config.Config) (username *string, err error) {
+	cookie, err := r.Cookie(models.AuthVerifyCookieKey)
+	if err != nil {
+		return nil, errors.New("missing authentication")
+	}
+
+	if err := config.Security.SecureCookie.Decode(models.AuthVerifyCookieKey, cookie.Value, &username); err != nil {
+		return nil, errors.New("verify cookie is invalid")
 	}
 
 	return username, nil

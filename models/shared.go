@@ -23,6 +23,7 @@ const (
 	UserKey               = "user"
 	ImprintKey            = "imprint"
 	AuthCookieKey         = "wakapi_auth"
+	AuthVerifyCookieKey   = "wakapi_verify_auth"
 	PersistentIntervalKey = "wakapi_summary_interval"
 )
 

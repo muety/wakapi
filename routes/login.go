@@ -12,12 +12,14 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httprate"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/view"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
+	"github.com/pquerna/otp/totp"
 )
 
 type LoginHandler struct {
@@ -42,6 +44,7 @@ func (h *LoginHandler) RegisterRoutes(router chi.Router) {
 		With(httprate.LimitByRealIP(h.config.Security.GetLoginMaxRate())).
 		Post("/login", h.PostLogin)
 	router.Get("/two-factor", h.GetTwoFactor)
+	router.Post("/two-factor", h.PostTwoFactor)
 	router.Get("/signup", h.GetSignup)
 	router.
 		With(httprate.LimitByRealIP(h.config.Security.GetSignupMaxRate())).
@@ -71,6 +74,11 @@ func (h *LoginHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 
 	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
 		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
+		return
+	}
+
+	if cookie, err := r.Cookie(models.AuthVerifyCookieKey); err == nil && cookie.Value != "" {
+		http.Redirect(w, r, fmt.Sprintf("%s/two-factor", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
 
@@ -112,6 +120,23 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Proceed with 2FA login if the user has TOTP enabled.
+	if user.TOTPSecret != "" {
+		// TODO: separate form of of signing.
+		encoded, err := h.config.Security.SecureCookie.Encode(models.AuthVerifyCookieKey, login.Username)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			conf.Log().Request(r).Error("failed to encode secure two factor cookie", "error", err)
+			templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
+			return
+		}
+
+		http.SetCookie(w, h.config.CreateCookie(models.AuthVerifyCookieKey, encoded))
+		http.Redirect(w, r, fmt.Sprintf("%s/two-factor", h.config.Server.BasePath), http.StatusFound)
+		return
+	}
+
+	// Issue standard access token
 	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, login.Username)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -132,12 +157,84 @@ func (h *LoginHandler) GetTwoFactor(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
-	// if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
-	// 	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
-	// 	return
-	// }
+	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
+		// User is already succesfully authenticated
+		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
+		return
+	} else if cookie, err := r.Cookie(models.AuthVerifyCookieKey); err != nil || cookie.Value == "" {
+		// User does not have a second stage auth verification cookie
+		http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
+		return
+	}
 
 	templates[conf.TwoFactorTemplate].Execute(w, h.buildViewModel(r, w, false))
+}
+
+func (h *LoginHandler) PostTwoFactor(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
+		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
+		return
+	}
+
+	username, err := helpers.ExtractCookieAuthVerify(r, h.config)
+	if err != nil {
+		http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
+		return
+	}
+
+	user, err := h.userSrvc.GetUserById(*username)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		templates[conf.TwoFactorTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("resource not found"))
+		return
+	}
+
+	if user.TOTPSecret == "" {
+		w.WriteHeader(http.StatusInternalServerError)
+		conf.Log().Request(r).Error("two factor disabled for user", "error", err)
+		templates[conf.TwoFactorTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
+		return
+	}
+
+	var loginTwoFactor models.LoginTwoFactor
+	if err := r.ParseForm(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		templates[conf.TwoFactorTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("missing parameters"))
+		return
+	}
+	if err := loginTOTPDecoder.Decode(&loginTwoFactor, r.PostForm); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		templates[conf.TwoFactorTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("missing parameters"))
+		return
+	}
+
+	// Verify TOTP pin
+	valid := totp.Validate(loginTwoFactor.Code, user.TOTPSecret)
+	if !valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("invalid code"))
+		return
+	}
+
+	// Issue standard access token
+	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, username)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		conf.Log().Request(r).Error("failed to encode secure cookie", "error", err)
+		templates[conf.TwoFactorTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
+		return
+	}
+
+	user.LastLoggedInAt = models.CustomTime(time.Now())
+	h.userSrvc.Update(user)
+
+	http.SetCookie(w, h.config.GetClearCookie(models.AuthVerifyCookieKey))
+	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded))
+	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 }
 
 func (h *LoginHandler) PostLogout(w http.ResponseWriter, r *http.Request) {

@@ -41,6 +41,8 @@ services:
       POSTGRES_USER: "wakapi"
       POSTGRES_PASSWORD_FILE: "/run/secrets/db_password"        # alternatively, set POSTGRES_PASSWORD directly without the use of secrets
       POSTGRES_DB: "wakapi"
+    ports:
+      - 5432:5432
     volumes:
       - wakapi-db-data:/var/lib/postgresql/data
     secrets:

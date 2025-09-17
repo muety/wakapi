@@ -3,6 +3,11 @@ package routes
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/schema"
 	conf "github.com/muety/wakapi/config"
@@ -10,10 +15,6 @@ import (
 	"github.com/muety/wakapi/models/view"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type HomeHandler struct {
@@ -23,6 +24,7 @@ type HomeHandler struct {
 }
 
 var loginDecoder = schema.NewDecoder()
+var loginTOTPDecoder = schema.NewDecoder()
 var signupDecoder = schema.NewDecoder()
 var resetPasswordDecoder = schema.NewDecoder()
 
