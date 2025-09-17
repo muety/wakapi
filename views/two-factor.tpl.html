@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{{ template "head.tpl.html" . }}
+
+<body class="bg-background text-muted p-4 pt-10 flex flex-col min-h-screen max-w-screen-lg mx-auto justify-center">
+
+{{ template "header.tpl.html" . }}
+
+{{ template "alerts.tpl.html" . }}
+
+<main class="mt-10 grow flex justify-center w-full">
+    <div class="grow max-w-lg mt-10">
+        <div class="mb-8">
+            <h1 class="h1">Two Factor Authentication</h1>
+            <span class="h1-subcaption">Please confirm access to your account using your 2FA code.</span>
+        </div>
+        <form action="two-factor" method="post">
+            <div class="mb-4">
+                <input class="input-default"
+                       type="text" id="two-factor-code"
+                       name="two-factor-code" placeholder="Code" minlength="1" required autofocus>
+            </div>
+            <div class="flex justify-between items-center">
+                <a href="#" class="text-muted text-sm">
+                    Use a recovery code
+                </a>
+                <div class="flex space-x-2">
+                    <button type="submit" class="btn-primary">Submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</main>
+
+{{ template "footer.tpl.html" . }}
+
+{{ template "foot.tpl.html" . }}
+</body>
+
+</html>

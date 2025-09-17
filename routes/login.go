@@ -41,6 +41,7 @@ func (h *LoginHandler) RegisterRoutes(router chi.Router) {
 	router.
 		With(httprate.LimitByRealIP(h.config.Security.GetLoginMaxRate())).
 		Post("/login", h.PostLogin)
+	router.Get("/two-factor", h.GetTwoFactor)
 	router.Get("/signup", h.GetSignup)
 	router.
 		With(httprate.LimitByRealIP(h.config.Security.GetSignupMaxRate())).
@@ -124,6 +125,19 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded))
 	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
+}
+
+func (h *LoginHandler) GetTwoFactor(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	// if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
+	// 	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
+	// 	return
+	// }
+
+	templates[conf.TwoFactorTemplate].Execute(w, h.buildViewModel(r, w, false))
 }
 
 func (h *LoginHandler) PostLogout(w http.ResponseWriter, r *http.Request) {
