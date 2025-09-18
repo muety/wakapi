@@ -22,13 +22,13 @@ func ExtractCookieAuth(r *http.Request, config *config.Config) (username *string
 	return username, nil
 }
 
-func ExtractCookieAuthVerify(r *http.Request, config *config.Config) (username *string, err error) {
-	cookie, err := r.Cookie(models.AuthVerifyCookieKey)
+func ExtractCookieAuthVerifyTotp(r *http.Request, config *config.Config) (username *string, err error) {
+	cookie, err := r.Cookie(models.AuthVerifyTotpCookieKey)
 	if err != nil {
 		return nil, errors.New("missing authentication")
 	}
 
-	if err := config.Security.SecureCookie.Decode(models.AuthVerifyCookieKey, cookie.Value, &username); err != nil {
+	if err := config.Security.SecureCookie.Decode(models.AuthVerifyTotpCookieKey, cookie.Value, &username); err != nil {
 		return nil, errors.New("verify cookie is invalid")
 	}
 

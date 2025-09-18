@@ -24,7 +24,7 @@ type HomeHandler struct {
 }
 
 var loginDecoder = schema.NewDecoder()
-var loginTOTPDecoder = schema.NewDecoder()
+var loginTotpDecoder = schema.NewDecoder()
 var signupDecoder = schema.NewDecoder()
 var resetPasswordDecoder = schema.NewDecoder()
 

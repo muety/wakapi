@@ -20,11 +20,11 @@ import (
 )
 
 const (
-	UserKey               = "user"
-	ImprintKey            = "imprint"
-	AuthCookieKey         = "wakapi_auth"
-	AuthVerifyCookieKey   = "wakapi_verify_auth"
-	PersistentIntervalKey = "wakapi_summary_interval"
+	UserKey                 = "user"
+	ImprintKey              = "imprint"
+	AuthCookieKey           = "wakapi_auth"
+	AuthVerifyTotpCookieKey = "wakapi_verify_auth"
+	PersistentIntervalKey   = "wakapi_summary_interval"
 )
 
 var (

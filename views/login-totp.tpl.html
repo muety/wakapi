@@ -22,10 +22,12 @@
                        name="code" placeholder="Code" minlength="1" required autofocus>
             </div>
             <div class="flex justify-between items-center">
-                <a href="#" class="text-muted text-sm">
+                <a href="#recovery" class="text-muted text-sm">
                     Use a recovery code
                 </a>
                 <div class="flex space-x-2">
+                    <button type="submit" class="btn-default" formaction="logout" formmethod="post" formnovalidate>Cancel</button>
+
                     <button type="submit" class="btn-primary">Submit</button>
                 </div>
             </div>

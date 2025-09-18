@@ -77,9 +77,10 @@ func (h *LoginHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if cookie, err := r.Cookie(models.AuthVerifyCookieKey); err == nil && cookie.Value != "" {
-		http.Redirect(w, r, fmt.Sprintf("%s/two-factor", h.config.Server.BasePath), http.StatusFound)
-		return
+	if cookie, err := r.Cookie(models.AuthVerifyTotpCookieKey); err == nil && cookie.Value != "" {
+		// http.Redirect(w, r, fmt.Sprintf("%s/two-factor", h.config.Server.BasePath), http.StatusFound)
+		// return
+
 	}
 
 	templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false))
@@ -121,17 +122,16 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Proceed with 2FA login if the user has TOTP enabled.
-	if user.TOTPSecret != "" {
-		// TODO: separate form of of signing.
-		encoded, err := h.config.Security.SecureCookie.Encode(models.AuthVerifyCookieKey, login.Username)
+	if user.TotpEnabled {
+		encoded, err := h.config.Security.SecureCookie.Encode(models.AuthVerifyTotpCookieKey, login.Username)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			conf.Log().Request(r).Error("failed to encode secure two factor cookie", "error", err)
+			conf.Log().Request(r).Error("failed to encode totp process cookie", "error", err)
 			templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
 			return
 		}
 
-		http.SetCookie(w, h.config.CreateCookie(models.AuthVerifyCookieKey, encoded))
+		http.SetCookie(w, h.config.CreateCookie(models.AuthVerifyTotpCookieKey, encoded))
 		http.Redirect(w, r, fmt.Sprintf("%s/two-factor", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
@@ -161,13 +161,15 @@ func (h *LoginHandler) GetTwoFactor(w http.ResponseWriter, r *http.Request) {
 		// User is already succesfully authenticated
 		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 		return
-	} else if cookie, err := r.Cookie(models.AuthVerifyCookieKey); err != nil || cookie.Value == "" {
-		// User does not have a second stage auth verification cookie
+	}
+
+	_, err := helpers.ExtractCookieAuthVerifyTotp(r, h.config)
+	if err != nil {
 		http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
 
-	templates[conf.TwoFactorTemplate].Execute(w, h.buildViewModel(r, w, false))
+	templates[conf.LoginTotpTemplate].Execute(w, h.buildViewModel(r, w, false))
 }
 
 func (h *LoginHandler) PostTwoFactor(w http.ResponseWriter, r *http.Request) {
@@ -175,45 +177,49 @@ func (h *LoginHandler) PostTwoFactor(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 
+	// Check if user is already authenticated.
 	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
 		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
 
-	username, err := helpers.ExtractCookieAuthVerify(r, h.config)
+	// Validate pending-TOTP token.
+	username, err := helpers.ExtractCookieAuthVerifyTotp(r, h.config)
 	if err != nil {
 		http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
 
+	// Ensure user has TOTP enabled.
 	user, err := h.userSrvc.GetUserById(*username)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		templates[conf.TwoFactorTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("resource not found"))
+		templates[conf.LoginTotpTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("resource not found"))
 		return
 	}
 
-	if user.TOTPSecret == "" {
+	if user.TotpSecret == "" {
 		w.WriteHeader(http.StatusInternalServerError)
 		conf.Log().Request(r).Error("two factor disabled for user", "error", err)
-		templates[conf.TwoFactorTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
+		templates[conf.LoginTotpTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
 		return
 	}
 
-	var loginTwoFactor models.LoginTwoFactor
+	// Process TOTP form.
+	var loginTotp models.LoginTotp
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.TwoFactorTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("missing parameters"))
+		templates[conf.LoginTotpTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("missing parameters"))
 		return
 	}
-	if err := loginTOTPDecoder.Decode(&loginTwoFactor, r.PostForm); err != nil {
+	if err := loginTotpDecoder.Decode(&loginTotp, r.PostForm); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.TwoFactorTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("missing parameters"))
+		templates[conf.LoginTotpTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("missing parameters"))
 		return
 	}
 
-	// Verify TOTP pin
-	valid := totp.Validate(loginTwoFactor.Code, user.TOTPSecret)
+	// Validate TOTP pin
+	valid := totp.Validate(loginTotp.Code, user.TotpSecret)
 	if !valid {
 		w.WriteHeader(http.StatusUnauthorized)
 		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("invalid code"))
@@ -225,14 +231,14 @@ func (h *LoginHandler) PostTwoFactor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		conf.Log().Request(r).Error("failed to encode secure cookie", "error", err)
-		templates[conf.TwoFactorTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
+		templates[conf.LoginTotpTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
 		return
 	}
 
 	user.LastLoggedInAt = models.CustomTime(time.Now())
 	h.userSrvc.Update(user)
 
-	http.SetCookie(w, h.config.GetClearCookie(models.AuthVerifyCookieKey))
+	http.SetCookie(w, h.config.GetClearCookie(models.AuthVerifyTotpCookieKey))
 	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded))
 	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 }
@@ -246,7 +252,7 @@ func (h *LoginHandler) PostLogout(w http.ResponseWriter, r *http.Request) {
 		h.userSrvc.FlushUserCache(user.ID)
 	}
 	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey))
-	http.SetCookie(w, h.config.GetClearCookie(models.AuthVerifyCookieKey))
+	http.SetCookie(w, h.config.GetClearCookie(models.AuthVerifyTotpCookieKey))
 	http.Redirect(w, r, fmt.Sprintf("%s/", h.config.Server.BasePath), http.StatusFound)
 }
 

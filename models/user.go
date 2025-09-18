@@ -53,8 +53,9 @@ type User struct {
 	InvitedBy              string      `json:"-"`
 	ExcludeUnknownProjects bool        `json:"-"`
 	HeartbeatsTimeoutSec   int         `json:"-" gorm:"default:600"` // https://github.com/muety/wakapi/issues/156
-	TOTPSecret             string      `json:"-"`
-	TOTPBackupCodes        string      `json:"-"`
+	TotpEnabled            bool        `json:"-" gorm:"default:false; type:bool"`
+	TotpSecret             string      `json:"-"`
+	TotpBackupCodes        string      `json:"-"`
 }
 
 type Login struct {
@@ -62,8 +63,9 @@ type Login struct {
 	Password string `schema:"password"`
 }
 
-type LoginTwoFactor struct {
-	Code string `schema:"code"`
+type LoginTotp struct {
+	Code         string `schema:"code"`
+	RecoveryCode string `schema:"recovery_code"`
 }
 
 type Signup struct {

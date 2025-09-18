@@ -3,7 +3,7 @@ package config
 const (
 	IndexTemplate         = "index.tpl.html"
 	LoginTemplate         = "login.tpl.html"
-	TwoFactorTemplate     = "two-factor.tpl.html"
+	LoginTotpTemplate     = "login-totp.tpl.html"
 	ImprintTemplate       = "imprint.tpl.html"
 	SignupTemplate        = "signup.tpl.html"
 	SetPasswordTemplate   = "set-password.tpl.html"

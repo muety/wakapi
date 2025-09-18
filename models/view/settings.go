@@ -1,8 +1,9 @@
 package view
 
 import (
-	"github.com/muety/wakapi/models"
 	"time"
+
+	"github.com/muety/wakapi/models"
 )
 
 type SettingsViewModel struct {
@@ -16,7 +17,15 @@ type SettingsViewModel struct {
 	UserFirstData         time.Time
 	SupportContact        string
 	InviteLink            string
+	TotpSetup             *SettingsTotpSetup
 	ReadmeCardCustomTitle string
+}
+
+type SettingsTotpSetup struct {
+	Active bool
+	Url    string
+	Image  string
+	// BackupCodes []string
 }
 
 type SettingsVMCombinedAlias struct {
