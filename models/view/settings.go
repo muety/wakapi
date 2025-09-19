@@ -23,6 +23,7 @@ type SettingsViewModel struct {
 
 type SettingsTotpSetup struct {
 	Active bool
+	Secret string
 	Url    string
 	Image  string
 	// BackupCodes []string

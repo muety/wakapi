@@ -247,32 +247,32 @@
                 </div>
 
                 {{ if .TotpSetup.Active }}
-                <div class="flex mb-4">
+                <div class="flex flex-row mb-4 w-full">
+                    <div class="flex flex-col w-1/2">
+                        {{ if .TotpSetup.Image }}
+                        <img src="data:image/jpeg;base64,{{ .TotpSetup.Image }}" width="200" alt="2FA QR Code" />
+                        {{ end}}
+                    
+                        <p class="text-xs text-muted text-wrap">
+                            {{ if .TotpSetup.Secret }}{{ .TotpSetup.Secret }}{{ else }}{{ .TotpSetup.Url }}{{ end }}
+                        </p>
+                    </div>
+
                    <div class="flex flex-col w-1/2">
-                        <div class="flex flex-col"></div>
+                        <div class="flex flex-col">
                             <div class="w-1/2 mr-4 inline-block">
                                 <label class="font-semibold text-foreground" for="password_old">Code</label>
                                 <span class="block text-sm text-muted">Enter the current 2FA code</span>
                             </div>
-                            <div class="w-1/2 ml-4">
+                            <div class="w-1/2 my-4">
                                 <input class="input-default" type="number" id="totp_code" name="totp_code" placeholder="TOTP Code" minlength="6" required>
                             </div>
                         </div>
-                        <div class="flex">
+                        <div class="w-1/3 ml-4 flex items-center justify-end">
                             <button type="submit" name="action" value="enable_totp" class="btn-primary ml-1">Enable</button>
                                             
                             <button type="submit" name="action" value="disable_totp" class="btn-danger ml-1" formnovalidate>Reset</button>
                         </div>
-                    </div>
-
-                    <div class="flex flex-col w-1/2">
-                        {{ if .TotpSetup.Image }}
-                        <img src="{{ .TotpSetup.Image }}" />
-                        {{ end}}
-                        
-                        <p class="text-sm text-muted text-wrap text-clip">
-                            {{ .TotpSetup.Url }}
-                        </p>
                     </div>
                 </div>
                 {{ end }}

@@ -412,6 +412,7 @@ func (h *SettingsHandler) actionSetupTotp(w http.ResponseWriter, r *http.Request
 	}
 
 	user := middlewares.GetPrincipal(r)
+	defer h.userSrvc.FlushCache()
 
 	if user.TotpEnabled {
 		return actionResult{http.StatusBadRequest, "", "totp is enabled", nil}
@@ -426,13 +427,14 @@ func (h *SettingsHandler) actionSetupTotp(w http.ResponseWriter, r *http.Request
 	}
 
 	user.TotpSecret = key.Secret()
+
 	if _, err := h.userSrvc.Update(user); err != nil {
 		return actionResult{http.StatusInternalServerError, "", "internal server error", nil}
 	}
 
 	return actionResult{
 		http.StatusOK,
-		"Prepared two factor authentication.",
+		"Started 2FA Setup",
 		"",
 		&map[string]interface{}{
 			valueTotpUrl: key.URL(),
@@ -445,7 +447,6 @@ func (h *SettingsHandler) actionEnableTotp(w http.ResponseWriter, r *http.Reques
 		loadTemplates()
 	}
 
-	var err error
 	user := middlewares.GetPrincipal(r)
 	defer h.userSrvc.FlushCache()
 
@@ -474,7 +475,7 @@ func (h *SettingsHandler) actionEnableTotp(w http.ResponseWriter, r *http.Reques
 
 	return actionResult{
 		http.StatusOK,
-		"Enabled two factor authentication.",
+		"Enabled 2FA (TOTP)",
 		"",
 		&map[string]interface{}{
 			valueTotpBackups: backupCodes,
@@ -498,7 +499,7 @@ func (h *SettingsHandler) actionDisableTotp(w http.ResponseWriter, r *http.Reque
 		return actionResult{http.StatusInternalServerError, "", "internal server error", nil}
 	}
 
-	return actionResult{http.StatusOK, "Disabled two factor authentication.", "", nil}
+	return actionResult{http.StatusOK, "Disabled 2FA (TOTP)", "", nil}
 }
 
 func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Request) actionResult {
@@ -1097,12 +1098,15 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 		totpSetup.Url = totpUrl
 
 		totpKey, err := otp.NewKeyFromURL(totpUrl)
-		if err == nil {
+		if err != nil {
 			conf.Log().Request(r).Error("error preparing totp key from url", "user", user.ID, "error", err)
+		} else {
+			totpSetup.Secret = totpKey.Secret()
 
 			totpKeyImg, err := routeutils.TotpKeyToImage(totpKey)
 			if err != nil {
 				conf.Log().Request(r).Error("error generating totp key image", "user", user.ID, "error", err)
+			} else {
 				totpSetup.Image = totpKeyImg
 			}
 		}
