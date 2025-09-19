@@ -255,6 +255,7 @@ func (srv *DurationService) getLive(from, to time.Time, user *models.User, inter
 		durations[0].Duration = heartbeatPadding
 	}
 
+	// note: no need to do language augmentation here, because already done while retrieving heartbeats
 	return models.Durations(durations).Sorted(), nil
 }
 

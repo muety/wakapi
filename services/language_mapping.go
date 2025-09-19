@@ -2,13 +2,21 @@ package services
 
 import (
 	"errors"
+	"time"
+
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
 	"github.com/patrickmn/go-cache"
-	"time"
 )
+
+/*
+ How language mappings work in Wakapi:
+ - Mappings are only applied during data retrieval, never at write time to prevent data loss. That is, incoming heartbeats will remain untouched when saved to the database.
+ - If a heartbeat has no language set (because couldn't be determined by wakatime-cli), it is tried to be resolved from global (see extensions.go) and user-specific mappings instead.
+ - User-defined mappings take precedence over global, server-defined mappings.
+*/
 
 type LanguageMappingService struct {
 	config     *config.Config
