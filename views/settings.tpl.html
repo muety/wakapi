@@ -253,7 +253,7 @@
                         <img src="data:image/jpeg;base64,{{ .TotpSetup.Image }}" width="200" alt="2FA QR Code" />
                         {{ end}}
                     
-                        <p class="text-xs text-muted text-wrap">
+                        <p class="text-xs text-muted text-wrap mt-1">
                             {{ if .TotpSetup.Secret }}{{ .TotpSetup.Secret }}{{ else }}{{ .TotpSetup.Url }}{{ end }}
                         </p>
                     </div>

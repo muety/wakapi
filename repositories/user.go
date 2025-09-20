@@ -154,6 +154,9 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"invited_by":               user.InvitedBy,
 		"exclude_unknown_projects": user.ExcludeUnknownProjects,
 		"heartbeats_timeout_sec":   user.HeartbeatsTimeoutSec,
+		"totp_enabled":             user.TotpEnabled,
+		"totp_secret":              user.TotpSecret,
+		"totp_backup_codes":        user.TotpBackupCodes,
 	}
 
 	result := r.db.Model(user).Updates(updateMap)

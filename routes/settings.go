@@ -427,6 +427,7 @@ func (h *SettingsHandler) actionSetupTotp(w http.ResponseWriter, r *http.Request
 	}
 
 	user.TotpSecret = key.Secret()
+	user.TotpBackupCodes = ""
 
 	if _, err := h.userSrvc.Update(user); err != nil {
 		return actionResult{http.StatusInternalServerError, "", "internal server error", nil}
