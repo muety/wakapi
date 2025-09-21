@@ -238,7 +238,7 @@
             
                     <div class="w-1/3 ml-4 flex items-center justify-end">
                         {{ if .User.TotpEnabled }}
-                        <button type="submit" name="action" value="disable_totp" class="btn-disabled ml-1">Regenerate Codes</button>
+                        <!-- <button type="submit" name="action" value="disable_totp" class="btn-disabled ml-1">Regenerate Codes</button> -->
                         <button type="submit" name="action" value="disable_totp" class="btn-danger ml-1">Disable</button>
                         {{ else if and (eq .User.TotpEnabled false) (eq .TotpSetup.Active false) }}
                         <button type="submit" name="action" value="setup_totp" class="btn-primary ml-1">Enable</button>
@@ -261,7 +261,7 @@
                    <div class="flex flex-col w-1/2">
                         <div class="flex flex-col">
                             <div class="w-1/2 mr-4 inline-block">
-                                <label class="font-semibold text-foreground" for="password_old">Code</label>
+                                <label class="font-semibold text-foreground" for="totp_code">Code</label>
                                 <span class="block text-sm text-muted">Enter the current 2FA code</span>
                             </div>
                             <div class="w-1/2 my-4">
@@ -273,6 +273,20 @@
                                             
                             <button type="submit" name="action" value="disable_totp" class="btn-danger ml-1" formnovalidate>Reset</button>
                         </div>
+                    </div>
+                </div>
+                {{ else if .TotpSetup.Complete }}
+                <div class="flex flex-col w-1/2">
+                    <div class="w-1/2 mr-4 inline-block">
+                        <label class="font-semibold text-foreground" for="password_old">Two Factor Backup Codes</label>
+                        <span class="block text-sm text-muted">Make a copy of your backup codes.</span>
+                    </div>
+                    <div class="w-1/2 my-4">
+                        <ul class="list-disc pl-5 text-sm text-foreground">
+                            {{ range $backupCode := .TotpSetup.BackupCodes }}
+                                <li class="mt-1 text-muted">{{ $backupCode }}</li>
+                            {{ end }}
+                        </ul>
                     </div>
                 </div>
                 {{ end }}

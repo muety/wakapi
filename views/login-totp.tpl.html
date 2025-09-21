@@ -9,7 +9,7 @@
 
 {{ template "alerts.tpl.html" . }}
 
-<main class="mt-10 grow flex justify-center w-full">
+<main class="mt-10 grow flex justify-center w-full" v-scope @vue:mounted="mounted">
     <div class="grow max-w-lg mt-10">
         <div class="mb-8">
             <h1 class="h1">Two Factor Authentication</h1>
@@ -19,12 +19,21 @@
             <div class="mb-4">
                 <input class="input-default"
                        type="text" id="code"
-                       name="code" placeholder="Code" minlength="1" required autofocus>
+                       name="code" placeholder="Code" minlength="1" autofocus>
+
+                <input class="input-default hidden"
+                        type="text" id="recovery_code"
+                        name="recovery_code" placeholder="Recovery Code" minlength="1">
             </div>
             <div class="flex justify-between items-center">
-                <a href="#recovery" class="text-muted text-sm">
-                    Use a recovery code
-                </a>
+                <div>
+                    <a href="two-factor#recovery" class="text-muted text-sm" id="use_recovery">
+                        Use a recovery code
+                    </a>
+                    <a href="two-factor" class="text-muted text-sm hidden" id="use_standard">
+                        Use a standard code
+                    </a>
+                </div>
                 <div class="flex space-x-2">
                     <button type="submit" class="btn-default" formaction="logout" formmethod="post" formnovalidate>Cancel</button>
 
@@ -34,6 +43,22 @@
         </form>
     </div>
 </main>
+
+<script>
+    function checkHash() {
+        if (window.location.hash.substring(1) == 'recovery') {
+            document.getElementById('code').classList.add('hidden');
+            document.getElementById('recovery_code').classList.remove('hidden');
+
+            document.getElementById('use_recovery').classList.add('hidden');
+            document.getElementById('use_standard').classList.remove('hidden');
+        }
+    }
+
+    checkHash();
+
+    addEventListener("hashchange", (event) => { checkHash(); });
+</script>
 
 {{ template "footer.tpl.html" . }}
 

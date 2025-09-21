@@ -972,7 +972,7 @@ func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
 }
 
 func (h *SettingsHandler) generateTOTPBackupCodes(user *models.User) ([]string, error) {
-	slog.Info("genearting TOTP backup codes for user", "userID", user.ID)
+	slog.Info("generating TOTP backup codes for user", "userID", user.ID)
 
 	var codes []string
 	for i := 1; i <= 10; i++ {
@@ -1091,6 +1091,8 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 
 	// totp setup
 	totpUrl := getVal[string](args, valueTotpUrl, "")
+	totpBackupCodes := getVal[[]string](args, valueTotpBackups, []string{})
+
 	totpSetup := &view.SettingsTotpSetup{
 		Active: false,
 	}
@@ -1111,6 +1113,9 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 				totpSetup.Image = totpKeyImg
 			}
 		}
+	} else if len(totpBackupCodes) != 0 {
+		totpSetup.Complete = true
+		totpSetup.BackupCodes = totpBackupCodes
 	}
 
 	vm := &view.SettingsViewModel{

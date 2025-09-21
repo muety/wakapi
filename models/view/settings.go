@@ -26,7 +26,9 @@ type SettingsTotpSetup struct {
 	Secret string
 	Url    string
 	Image  string
-	// BackupCodes []string
+
+	Complete    bool
+	BackupCodes []string
 }
 
 type SettingsVMCombinedAlias struct {

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -78,9 +79,8 @@ func (h *LoginHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if cookie, err := r.Cookie(models.AuthVerifyTotpCookieKey); err == nil && cookie.Value != "" {
-		// http.Redirect(w, r, fmt.Sprintf("%s/two-factor", h.config.Server.BasePath), http.StatusFound)
-		// return
-
+		http.Redirect(w, r, fmt.Sprintf("%s/two-factor", h.config.Server.BasePath), http.StatusFound)
+		return
 	}
 
 	templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false))
@@ -165,6 +165,8 @@ func (h *LoginHandler) GetTwoFactor(w http.ResponseWriter, r *http.Request) {
 
 	_, err := helpers.ExtractCookieAuthVerifyTotp(r, h.config)
 	if err != nil {
+		http.SetCookie(w, h.config.GetClearCookie(models.AuthVerifyTotpCookieKey))
+
 		http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
@@ -183,7 +185,7 @@ func (h *LoginHandler) PostTwoFactor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate pending-TOTP token.
+	// Validate pending TOTP token.
 	username, err := helpers.ExtractCookieAuthVerifyTotp(r, h.config)
 	if err != nil {
 		http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
@@ -198,7 +200,7 @@ func (h *LoginHandler) PostTwoFactor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.TotpSecret == "" {
+	if !user.TotpEnabled {
 		w.WriteHeader(http.StatusInternalServerError)
 		conf.Log().Request(r).Error("two factor disabled for user", "error", err)
 		templates[conf.LoginTotpTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
@@ -218,12 +220,37 @@ func (h *LoginHandler) PostTwoFactor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate TOTP pin
-	valid := totp.Validate(loginTotp.Code, user.TotpSecret)
-	if !valid {
-		w.WriteHeader(http.StatusUnauthorized)
-		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("invalid code"))
-		return
+	if loginTotp.RecoveryCode == "" {
+		// validate TOTP pin
+		valid := totp.Validate(loginTotp.Code, user.TotpSecret)
+		if !valid {
+			// clear verify cookie on failed attempt
+			// TODO: expiry times attached to cookies (auth sessions)
+			http.SetCookie(w, h.config.GetClearCookie(models.AuthVerifyTotpCookieKey))
+
+			w.WriteHeader(http.StatusUnauthorized)
+			templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("invalid code"))
+			return
+		}
+	} else {
+		// recovery code usage
+		userBackupCodes := strings.Split(user.TotpBackupCodes, ",")
+		if slices.Contains(userBackupCodes, loginTotp.RecoveryCode) == false {
+			http.SetCookie(w, h.config.GetClearCookie(models.AuthVerifyTotpCookieKey))
+			w.WriteHeader(http.StatusUnauthorized)
+			templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("invalid recovery code"))
+			return
+		}
+
+		// remove recovery code
+		for i, v := range userBackupCodes {
+			if v == loginTotp.RecoveryCode {
+				userBackupCodes = append(userBackupCodes[:i], userBackupCodes[i+1:]...)
+				break
+			}
+		}
+
+		user.TotpBackupCodes = strings.Join(userBackupCodes, ",")
 	}
 
 	// Issue standard access token
