@@ -16,9 +16,9 @@ import (
 
 const (
 	// HTTP constants
-	contentTypeHeader      = "Content-Type"
-	applicationJSONType    = "application/json"
-	
+	contentTypeHeader   = "Content-Type"
+	applicationJSONType = "application/json"
+
 	// Error message constants
 	invalidJSONMessage     = "invalid JSON"
 	internalServerErrorMsg = "internal server error"
