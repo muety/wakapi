@@ -79,6 +79,54 @@
         passwordInput.required = true;
       }
 
+      // Helper function to get appropriate error message
+      function getWebAuthnErrorMessage(error) {
+        const baseMessage = 'Passkey authentication failed. ';
+        
+        if (error.message.includes('No passkey registered for this username')) {
+          return baseMessage + 'No passkey found for this username. Please enter your password or register a passkey first in your account settings.';
+        }
+        if (error.message.includes('User not found')) {
+          return baseMessage + 'Username not found. Please check your username and try again.';
+        }
+        if (error.message.includes('Too many requests')) {
+          return baseMessage + 'Too many login attempts. Please wait a moment and try again.';
+        }
+        if (error.message.includes('NotAllowedError')) {
+          return baseMessage + 'Operation was cancelled or timed out.';
+        }
+        if (error.message.includes('SecurityError')) {
+          return baseMessage + 'Security error occurred.';
+        }
+        if (error.message.includes('InvalidStateError')) {
+          return baseMessage + 'Security key is already registered.';
+        }
+        if (error.message.includes('NotSupportedError')) {
+          return baseMessage + 'This security key is not supported.';
+        }
+        if (error.message.includes('invalid credentials') || error.message.includes('authentication failed')) {
+          return baseMessage + 'No passkey found for this username. Please enter your password or register a passkey.';
+        }
+        return baseMessage + (error.message || 'Please try again with your password.');
+      }
+
+      // Helper function to handle WebAuthn authentication
+      async function handleWebAuthnLogin(username, loginBtn) {
+        const originalBtnText = loginBtn.innerHTML;
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<svg class="inline w-4 h-4 mr-2 animate-spin" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" stroke-dasharray="31.416" stroke-dashoffset="31.416"><animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite"/><animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite"/></circle></svg>Signing in...';
+
+        try {
+          await authenticateWithWebAuthn(username);
+        } catch (error) {
+          console.error('WebAuthn login failed:', error);
+          WebAuthnUtil.showError(getWebAuthnErrorMessage(error));
+        } finally {
+          loginBtn.disabled = false;
+          loginBtn.innerHTML = originalBtnText;
+        }
+      }
+
       // Handle form submission
       loginForm.addEventListener('submit', async function (e) {
         const username = usernameInput.value.trim();
@@ -93,50 +141,16 @@
         if (password) {
           // Username + password provided - allow normal form submission for traditional authentication
           return; // Let the form submit normally
-        } else if (webauthnSupported) {
+        }
+        
+        if (webauthnSupported) {
           // Username only and WebAuthn supported - prevent default and try WebAuthn authentication
           e.preventDefault();
-
-          const originalBtnText = loginBtn.innerHTML;
-          loginBtn.disabled = true;
-          loginBtn.innerHTML = '<svg class="inline w-4 h-4 mr-2 animate-spin" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" stroke-dasharray="31.416" stroke-dashoffset="31.416"><animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite"/><animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite"/></circle></svg>Signing in...';
-
-          try {
-            await authenticateWithWebAuthn(username);
-          } catch (error) {
-            console.error('WebAuthn login failed:', error);
-            let errorMessage = 'Passkey authentication failed. ';
-
-            if (error.message.includes('No passkey registered for this username')) {
-              errorMessage += 'No passkey found for this username. Please enter your password or register a passkey first in your account settings.';
-            } else if (error.message.includes('User not found')) {
-              errorMessage += 'Username not found. Please check your username and try again.';
-            } else if (error.message.includes('Too many requests')) {
-              errorMessage += 'Too many login attempts. Please wait a moment and try again.';
-            } else if (error.message.includes('NotAllowedError')) {
-              errorMessage += 'Operation was cancelled or timed out.';
-            } else if (error.message.includes('SecurityError')) {
-              errorMessage += 'Security error occurred.';
-            } else if (error.message.includes('InvalidStateError')) {
-              errorMessage += 'Security key is already registered.';
-            } else if (error.message.includes('NotSupportedError')) {
-              errorMessage += 'This security key is not supported.';
-            } else if (error.message.includes('invalid credentials') || error.message.includes('authentication failed')) {
-              errorMessage += 'No passkey found for this username. Please enter your password or register a passkey.';
-            } else {
-              errorMessage += error.message || 'Please try again with your password.';
-            }
-
-            WebAuthnUtil.showError(errorMessage);
-          } finally {
-            loginBtn.disabled = false;
-            loginBtn.innerHTML = originalBtnText;
-          }
+          await handleWebAuthnLogin(username, loginBtn);
         } else {
           // No password and no WebAuthn support
           e.preventDefault();
           WebAuthnUtil.showError('Please enter your password or use a security key');
-          return;
         }
       });
 

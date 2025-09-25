@@ -103,7 +103,7 @@ main {
 }
 
 .chip {
-  @apply text-xs bg-card rounded rounded-full py-1 px-2 font-semibold inline-block mb-1;
+  @apply text-xs bg-card rounded-full py-1 px-2 font-semibold inline-block mb-1;
 }
 
 .link {
@@ -111,7 +111,7 @@ main {
 }
 
 .newsbox {
-  @apply px-4 py-2 border-2 border-danger bg-card rounded-md text-primary border-accent;
+  @apply px-4 py-2 border-2 bg-card rounded-md text-primary border-accent;
 }
 
 .newsbox-default {
@@ -166,11 +166,11 @@ main {
 }
 
 .projects-item a {
-  @apply flex flex-col align-middle bg-focused hover:bg-card py-2 px-4 rounded rounded-md shadow-md hover:shadow-lg;
+  @apply flex flex-col align-middle bg-focused hover:bg-card py-2 px-4 rounded-md shadow-md hover:shadow-lg;
 }
 
 .projects-item .color-fading {
-  @apply absolute w-full h-full rounded rounded-md;
+  @apply absolute w-full h-full rounded-md;
   pointer-events: none;
 }
 
