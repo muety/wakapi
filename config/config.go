@@ -128,6 +128,9 @@ type securityConfig struct {
 	SignupMaxRate                string                     `yaml:"signup_max_rate" default:"5/1h" env:"WAKAPI_SIGNUP_MAX_RATE"`
 	LoginMaxRate                 string                     `yaml:"login_max_rate" default:"10/1m" env:"WAKAPI_LOGIN_MAX_RATE"`
 	PasswordResetMaxRate         string                     `yaml:"password_reset_max_rate" default:"5/1h" env:"WAKAPI_PASSWORD_RESET_MAX_RATE"`
+	WebAuthnEnabled              bool                       `yaml:"webauthn_enabled" default:"false" env:"WAKAPI_WEBAUTHN_ENABLED"`
+	WebAuthnRPID                 string                     `yaml:"webauthn_rp_id" default:"localhost" env:"WAKAPI_WEBAUTHN_RP_ID"`
+	WebAuthnRPOrigin             string                     `yaml:"webauthn_rp_origin" default:"http://localhost:3000" env:"WAKAPI_WEBAUTHN_RP_ORIGIN"`
 	SecureCookie                 *securecookie.SecureCookie `yaml:"-"`
 	SessionKey                   []byte                     `yaml:"-"`
 	trustReverseProxyIpsParsed   []net.IPNet
@@ -228,6 +231,10 @@ func (c *Config) GetClearCookie(name string) *http.Cookie {
 }
 
 func (c *Config) createCookie(name, value, path string, maxAge int) *http.Cookie {
+	// Ensure path is never empty - browsers will use request path if empty
+	if path == "" {
+		path = "/"
+	}
 	return &http.Cookie{
 		Name:     name,
 		Value:    value,

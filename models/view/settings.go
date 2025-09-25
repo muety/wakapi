@@ -17,6 +17,7 @@ type SettingsViewModel struct {
 	SupportContact        string
 	InviteLink            string
 	ReadmeCardCustomTitle string
+	WebAuthnEnabled       bool
 }
 
 type SettingsVMCombinedAlias struct {

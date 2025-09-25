@@ -98,6 +98,9 @@ security:
   signup_max_rate: 5/1h                     # signup endpoint rate limit pattern
   login_max_rate: 10/1m                     # login endpoint rate limit pattern
   password_reset_max_rate: 5/1h             # password reset endpoint rate limit pattern
+  webauthn_enabled: false                    # whether to enable WebAuthn passwordless authentication
+  webauthn_rp_id: localhost                 # WebAuthn relying party ID (should match your domain)
+  webauthn_rp_origin: http://localhost:3000 # WebAuthn relying party origin (should match your full URL)
 
 sentry:
   dsn:                                # leave blank to disable sentry integration

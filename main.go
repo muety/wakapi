@@ -240,6 +240,7 @@ func main() {
 	loginHandler := routes.NewLoginHandler(userService, mailService, keyValueService)
 	imprintHandler := routes.NewImprintHandler(keyValueService)
 	leaderboardHandler := condition.Ternary[bool, routes.Handler](config.App.LeaderboardEnabled, routes.NewLeaderboardHandler(userService, leaderboardService), routes.NewNoopHandler())
+	webAuthnHandler := condition.Ternary[bool, routes.Handler](config.Security.WebAuthnEnabled, routes.NewWebAuthnHandler(userService), routes.NewNoopHandler())
 
 	// Other Handlers
 	relayHandler := relay.NewRelayHandler()
@@ -305,6 +306,7 @@ func main() {
 	wakatimeV1UserAgentsHandler.RegisterRoutes(apiRouter)
 	shieldV1BadgeHandler.RegisterRoutes(apiRouter)
 	captchaHandler.RegisterRoutes(apiRouter)
+	webAuthnHandler.RegisterRoutes(apiRouter)
 
 	// Static Routes
 	// https://github.com/golang/go/issues/43431
