@@ -28,6 +28,7 @@ services:
       WAKAPI_DB_PASSWORD_FILE: "/run/secrets/db_password" # alternatively, set WAKAPI_DB_PASSWORD directly without the use of secrets
       WAKAPI_PASSWORD_SALT_FILE: "/run/secrets/password_salt" # alternatively, set WAKAPI_PASSWORD_SALT directly without the use of secrets
       WAKAPI_MAIL_SMTP_PASS_FILE: "/run/secrets/smtp_pass" # alternatively, set WAKAPI_MAIL_SMTP_PASS directly without the use of secrets
+      # WAKAPI_WEBAUTHN_ENABLED: "true" # set this to true, defaults to false, to enable WEBAUTHN for passkey functionality
     secrets:
       - source: password_salt
         target: password_salt
