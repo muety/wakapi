@@ -14,6 +14,16 @@ import (
 	"github.com/muety/wakapi/services"
 )
 
+const (
+	// HTTP constants
+	contentTypeHeader      = "Content-Type"
+	applicationJSONType    = "application/json"
+	
+	// Error message constants
+	invalidJSONMessage     = "invalid JSON"
+	internalServerErrorMsg = "internal server error"
+)
+
 type WebAuthnHandler struct {
 	config   *conf.Config
 	userSrvc services.IUserService
@@ -70,7 +80,7 @@ func (h *WebAuthnHandler) PostRegisterBegin(w http.ResponseWriter, r *http.Reque
 
 	if len(body) > 0 {
 		if err := json.Unmarshal(body, &req); err != nil {
-			http.Error(w, "invalid JSON", http.StatusBadRequest)
+			http.Error(w, invalidJSONMessage, http.StatusBadRequest)
 			return
 		}
 	}
@@ -88,7 +98,7 @@ func (h *WebAuthnHandler) PostRegisterBegin(w http.ResponseWriter, r *http.Reque
 		"sessionData": sessionData,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(contentTypeHeader, applicationJSONType)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -116,7 +126,7 @@ func (h *WebAuthnHandler) PostRegisterFinish(w http.ResponseWriter, r *http.Requ
 	}
 
 	if err := json.Unmarshal(body, &req); err != nil {
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		http.Error(w, invalidJSONMessage, http.StatusBadRequest)
 		return
 	}
 
@@ -141,7 +151,7 @@ func (h *WebAuthnHandler) PostRegisterFinish(w http.ResponseWriter, r *http.Requ
 
 	conf.Log().Request(r).Info("WebAuthn registration finish - success")
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(contentTypeHeader, applicationJSONType)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 		"message": "WebAuthn credential registered successfully",
@@ -155,7 +165,7 @@ func (h *WebAuthnHandler) PostLoginBegin(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		http.Error(w, invalidJSONMessage, http.StatusBadRequest)
 		return
 	}
 
@@ -183,7 +193,7 @@ func (h *WebAuthnHandler) PostLoginBegin(w http.ResponseWriter, r *http.Request)
 		"sessionData": sessionData,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(contentTypeHeader, applicationJSONType)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -196,7 +206,7 @@ func (h *WebAuthnHandler) PostLoginFinish(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		http.Error(w, invalidJSONMessage, http.StatusBadRequest)
 		return
 	}
 
@@ -226,13 +236,13 @@ func (h *WebAuthnHandler) PostLoginFinish(w http.ResponseWriter, r *http.Request
 	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, user.ID)
 	if err != nil {
 		conf.Log().Request(r).Error("failed to encode secure cookie", "error", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		http.Error(w, internalServerErrorMsg, http.StatusInternalServerError)
 		return
 	}
 
 	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded))
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(contentTypeHeader, applicationJSONType)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success":    true,
 		"redirectTo": h.config.Server.BasePath + "/summary",
@@ -251,13 +261,13 @@ func (h *WebAuthnHandler) GetCredentials(w http.ResponseWriter, r *http.Request)
 	userWithCreds, err := h.userSrvc.GetUserById(user.ID)
 	if err != nil {
 		conf.Log().Request(r).Error("failed to get user", "error", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		http.Error(w, internalServerErrorMsg, http.StatusInternalServerError)
 		return
 	}
 
 	// Access the user's custom WebAuthn credentials
 	if userWithCreds.WebAuthn.CredentialsJSON == "" {
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set(contentTypeHeader, applicationJSONType)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"credentials": []interface{}{},
 		})
@@ -268,7 +278,7 @@ func (h *WebAuthnHandler) GetCredentials(w http.ResponseWriter, r *http.Request)
 	var credentials []models.WebAuthnCredential
 	if err := json.Unmarshal([]byte(userWithCreds.WebAuthn.CredentialsJSON), &credentials); err != nil {
 		conf.Log().Request(r).Error("failed to parse WebAuthn credentials", "error", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		http.Error(w, internalServerErrorMsg, http.StatusInternalServerError)
 		return
 	}
 
@@ -282,7 +292,7 @@ func (h *WebAuthnHandler) GetCredentials(w http.ResponseWriter, r *http.Request)
 		} else {
 			createdAtStr = cred.CreatedAt.T().Format("2006-01-02 15:04:05")
 		}
-		
+
 		credentialsResponse = append(credentialsResponse, map[string]interface{}{
 			"id":        cred.ID,
 			"name":      cred.Name,
@@ -290,7 +300,7 @@ func (h *WebAuthnHandler) GetCredentials(w http.ResponseWriter, r *http.Request)
 		})
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(contentTypeHeader, applicationJSONType)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"credentials": credentialsResponse,
 	})
@@ -313,7 +323,7 @@ func (h *WebAuthnHandler) DeleteCredential(w http.ResponseWriter, r *http.Reques
 	userWithCreds, err := h.userSrvc.GetUserById(user.ID)
 	if err != nil {
 		conf.Log().Request(r).Error("failed to fetch user", "error", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		http.Error(w, internalServerErrorMsg, http.StatusInternalServerError)
 		return
 	}
 
@@ -322,7 +332,7 @@ func (h *WebAuthnHandler) DeleteCredential(w http.ResponseWriter, r *http.Reques
 	if userWithCreds.WebAuthn.CredentialsJSON != "" {
 		if err := json.Unmarshal([]byte(userWithCreds.WebAuthn.CredentialsJSON), &credentials); err != nil {
 			conf.Log().Request(r).Error("failed to parse WebAuthn credentials", "error", err)
-			http.Error(w, "internal server error", http.StatusInternalServerError)
+			http.Error(w, internalServerErrorMsg, http.StatusInternalServerError)
 			return
 		}
 	}
@@ -347,21 +357,21 @@ func (h *WebAuthnHandler) DeleteCredential(w http.ResponseWriter, r *http.Reques
 	newCredentialsJSON, err := json.Marshal(newCredentials)
 	if err != nil {
 		conf.Log().Request(r).Error("failed to marshal credentials", "error", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		http.Error(w, internalServerErrorMsg, http.StatusInternalServerError)
 		return
 	}
 
 	// Use the user service to update the field
 	if err := h.userSrvc.UpdateUserCredentials(userWithCreds, string(newCredentialsJSON)); err != nil {
 		conf.Log().Request(r).Error("failed to update user credentials", "error", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		http.Error(w, internalServerErrorMsg, http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(contentTypeHeader, applicationJSONType)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"message": "Credential deleted successfully",
+		"success":               true,
+		"message":               "Credential deleted successfully",
 		"remaining_credentials": len(newCredentials),
 	})
 }

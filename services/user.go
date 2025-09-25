@@ -766,7 +766,7 @@ func (srv *UserService) parseCredentialAndIdentifyUser(credentialAssertionRespon
 
 func (srv *UserService) reconstructSessionData(sessionData interface{}, userID string) (*webauthn.SessionData, error) {
 	sessionMap := sessionData.(map[string]interface{})
-	
+
 	sessionDataStruct := &webauthn.SessionData{}
 	sessionBytes, err := json.Marshal(sessionMap["session"])
 	if err != nil {
