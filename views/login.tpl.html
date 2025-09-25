@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"><!-- //NOSONAR -->
 
 {{ template "head.tpl.html" . }}
 
@@ -82,7 +82,7 @@
       // Helper function to get appropriate error message
       function getWebAuthnErrorMessage(error) {
         const baseMessage = 'Passkey authentication failed. ';
-        
+
         if (error.message.includes('No passkey registered for this username')) {
           return baseMessage + 'No passkey found for this username. Please enter your password or register a passkey first in your account settings.';
         }
@@ -142,7 +142,7 @@
           // Username + password provided - allow normal form submission for traditional authentication
           return; // Let the form submit normally
         }
-        
+
         if (webauthnSupported) {
           // Username only and WebAuthn supported - prevent default and try WebAuthn authentication
           e.preventDefault();

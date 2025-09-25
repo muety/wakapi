@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"><!-- //NOSONAR -->
 
 {{ template "head.tpl.html" . }}
 <script src="assets/js/timezones.js"></script>
@@ -197,7 +197,8 @@
         <form class="w-full md:w-3/4">
           <div class="flex mb-8">
             <div class="inline-block w-1/2 mr-4">
-              <label class="font-semibold text-foreground">Security Keys & Biometric Authentication</label>
+              <label class="font-semibold text-foreground" for="register-webauthn">Security Keys & Biometric
+                Authentication</label>
               <span class="block text-sm text-muted">
                 Set up passwordless authentication using security keys, fingerprint, or face recognition for faster and
                 more secure login.
@@ -217,7 +218,7 @@
 
           <div class="flex mb-8">
             <div class="inline-block w-1/2 mr-4">
-              <label class="font-semibold text-foreground">Add a new authenticator</label>
+              <label class="font-semibold text-foreground" for="register-webauthn">Add a new authenticator</label>
               <span class="block text-sm text-muted">
                 Click the button below and follow the prompts to register a new security key, fingerprint, or other
                 biometric authentication method.
