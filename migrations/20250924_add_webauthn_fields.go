@@ -10,13 +10,13 @@ import (
 
 func init() {
 	f := migrationFunc{
-		name: "20240924-add_webauthn_fields",
-		f:    migration20240924_add_webauthn_fields,
+		name: "20250924-add_webauthn_fields",
+		f:    migration20250924_add_webauthn_fields,
 	}
 	registerPreMigration(f)
 }
 
-func migration20240924_add_webauthn_fields(db *gorm.DB, cfg *config.Config) error {
+func migration20250924_add_webauthn_fields(db *gorm.DB, cfg *config.Config) error {
 	migrator := db.Migrator()
 	
 	if migrator.HasTable(&models.User{}) {
