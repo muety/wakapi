@@ -3,53 +3,169 @@
 
 {{ template "head.tpl.html" . }}
 
-<body class="bg-background text-muted p-4 pt-10 flex flex-col min-h-screen max-w-screen-lg mx-auto justify-center">
+<body class="flex flex-col justify-center max-w-screen-lg min-h-screen p-4 pt-10 mx-auto bg-background text-muted">
 
-{{ template "header.tpl.html" . }}
+  {{ template "header.tpl.html" . }}
 
-{{ template "alerts.tpl.html" . }}
+  {{ template "alerts.tpl.html" . }}
 
-<main class="mt-10 grow flex justify-center w-full">
-    <div class="grow max-w-lg mt-10">
-        <div class="mb-8">
-            <h1 class="h1">Welcome!</h1>
-            <span class="h1-subcaption">Log in to continue using Wakapi</span>
+  <main class="flex justify-center w-full mt-10 grow">
+    <div class="max-w-lg mt-10 grow">
+      <div class="mb-8">
+        <h1 class="h1">Welcome!</h1>
+        <span class="h1-subcaption">Log in to continue using Wakapi</span>
+      </div>
+
+      <!-- WebAuthn Success/Error Messages -->
+      <div id="webauthn-error" class="mb-4 alert alert-error" style="display: none;"></div>
+      <div id="webauthn-success" class="mb-4 alert alert-success" style="display: none;"></div>
+
+      <!-- Login Form -->
+      <form action="login" method="post" id="login-form">
+        <div class="mb-4">
+          <input class="input-default" type="text" id="username" autocomplete="username" name="username"
+            placeholder="Username" minlength="1" required autofocus>
         </div>
-        <form action="login" method="post">
-            <div class="mb-4">
-                <input class="input-default"
-                       type="text" id="username" autocomplete="username"
-                       name="username" placeholder="Username" minlength="1" required autofocus>
-            </div>
-            <div class="mb-4">
-                <input class="input-default"
-                       type="password" id="password" autocomplete="current-password"
-                       name="password" placeholder="Password" minlength="6" required>
-            </div>
-            <div class="flex justify-between items-center">
-                <a href="reset-password" class="text-muted text-sm">
-                    Forgot password?
-                </a>
-                <div class="flex space-x-2">
-                    {{ if .AllowSignup }}
-                    <a href="signup">
-                        <button type="button" class="btn-default">Sign up</button>
-                    </a>
-                    {{ else }}
-                    <a title="The administrator of this instance has disabled sign up.">
-                        <button type="button" class="btn-disabled" disabled> Sign up </button>
-                    </a>
-                    {{ end }}
-                    <button type="submit" class="btn-primary">Log in</button>
-                </div>
-            </div>
-        </form>
+        <div class="mb-4">
+          <input class="input-default" type="password" id="password" autocomplete="current-password" name="password"
+            placeholder="Password{{ if .WebAuthnEnabled }} (or use passkey){{ end }}" minlength="6">
+        </div>
+        <div class="flex items-center justify-between">
+          <a href="reset-password" class="text-sm text-muted">
+            Forgot password?
+          </a>
+          <div class="flex space-x-2">
+            {{ if .AllowSignup }}
+            <a href="signup">
+              <button type="button" class="btn-default">Sign up</button>
+            </a>
+            {{ else }}
+            <a title="The administrator of this instance has disabled sign up.">
+              <button type="button" class="btn-disabled" disabled> Sign up </button>
+            </a>
+            {{ end }}
+            <button type="submit" class="btn-primary" id="login-btn">
+              <svg class="inline w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                  d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z"
+                  clip-rule="evenodd" />
+              </svg>
+              Log in
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
-</main>
+  </main>
 
-{{ template "footer.tpl.html" . }}
+  {{ template "footer.tpl.html" . }}
 
-{{ template "foot.tpl.html" . }}
+  {{ template "foot.tpl.html" . }}
+
+  {{ if .WebAuthnEnabled }}
+  <script src="assets/js/webauthn.js?v={{ getCacheBuster }}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const loginForm = document.getElementById('login-form');
+      const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+      const loginBtn = document.getElementById('login-btn');
+
+      // Check WebAuthn support
+      const webauthnSupported = WebAuthnUtil.isSupported();
+
+      if (!webauthnSupported) {
+        // If WebAuthn is not supported, make password required and fallback to traditional login
+        passwordInput.required = true;
+        passwordInput.placeholder = "Password";
+      }
+
+      // Handle form submission
+      loginForm.addEventListener('submit', async function (e) {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        if (!username) {
+          e.preventDefault();
+          WebAuthnUtil.showError('Please enter your username');
+          return;
+        }
+
+        if (password) {
+          // Username + password provided - allow normal form submission for traditional authentication
+          return; // Let the form submit normally
+        } else if (webauthnSupported) {
+          // Username only and WebAuthn supported - prevent default and try WebAuthn authentication
+          e.preventDefault();
+
+          const originalBtnText = loginBtn.innerHTML;
+          loginBtn.disabled = true;
+          loginBtn.innerHTML = '<svg class="inline w-4 h-4 mr-2 animate-spin" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" stroke-dasharray="31.416" stroke-dashoffset="31.416"><animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite"/><animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite"/></circle></svg>Signing in...';
+
+          try {
+            await authenticateWithWebAuthn(username);
+          } catch (error) {
+            console.error('WebAuthn login failed:', error);
+            let errorMessage = 'Passkey authentication failed. ';
+
+            if (error.message.includes('No passkey registered for this username')) {
+              errorMessage += 'No passkey found for this username. Please enter your password or register a passkey first in your account settings.';
+            } else if (error.message.includes('User not found')) {
+              errorMessage += 'Username not found. Please check your username and try again.';
+            } else if (error.message.includes('Too many requests')) {
+              errorMessage += 'Too many login attempts. Please wait a moment and try again.';
+            } else if (error.message.includes('NotAllowedError')) {
+              errorMessage += 'Operation was cancelled or timed out.';
+            } else if (error.message.includes('SecurityError')) {
+              errorMessage += 'Security error occurred.';
+            } else if (error.message.includes('InvalidStateError')) {
+              errorMessage += 'Security key is already registered.';
+            } else if (error.message.includes('NotSupportedError')) {
+              errorMessage += 'This security key is not supported.';
+            } else if (error.message.includes('invalid credentials') || error.message.includes('authentication failed')) {
+              errorMessage += 'No passkey found for this username. Please enter your password or register a passkey.';
+            } else {
+              errorMessage += error.message || 'Please try again with your password.';
+            }
+
+            WebAuthnUtil.showError(errorMessage);
+          } finally {
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = originalBtnText;
+          }
+        } else {
+          // No password and no WebAuthn support
+          e.preventDefault();
+          WebAuthnUtil.showError('Please enter your password or use a security key');
+          return;
+        }
+      });
+
+      async function authenticateWithWebAuthn(username) {
+        const result = await WebAuthnUtil.authenticate(username);
+
+        if (result && result.redirectTo) {
+          WebAuthnUtil.showSuccess('Successfully signed in with passkey!');
+          setTimeout(() => {
+            window.location.href = result.redirectTo;
+          }, 1000);
+        } else {
+          window.location.href = '/summary';
+        }
+      }
+    });
+  </script>
+  {{ else }}
+  <script>
+    // WebAuthn is disabled, make password required
+    document.addEventListener('DOMContentLoaded', function () {
+      const passwordInput = document.getElementById('password');
+      passwordInput.required = true;
+      passwordInput.placeholder = "Password";
+    });
+  </script>
+  {{ end }}
+
 </body>
 
 </html>

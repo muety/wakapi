@@ -75,13 +75,27 @@ func (j *CustomTime) MarshalJSON() ([]byte, error) {
 
 func (j *CustomTime) UnmarshalJSON(b []byte) error {
 	s := strings.Trim(string(b), "\"")
-	ts, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		return err
+	
+	// Try to parse as float (Unix timestamp) first
+	if ts, err := strconv.ParseFloat(s, 64); err == nil {
+		t := time.Unix(0, int64(ts*1e9)) // ms to ns
+		*j = CustomTime(t)
+		return nil
 	}
-	t := time.Unix(0, int64(ts*1e9)) // ms to ns
-	*j = CustomTime(t)
-	return nil
+	
+	// Try to parse as ISO timestamp string (RFC3339)
+	if t, err := time.Parse(time.RFC3339, s); err == nil {
+		*j = CustomTime(t)
+		return nil
+	}
+	
+	// Try to parse as zero time (for backwards compatibility)
+	if s == "0001-01-01T00:00:00Z" || s == "" {
+		*j = CustomTime(time.Time{})
+		return nil
+	}
+	
+	return fmt.Errorf("unable to parse time: %s", s)
 }
 
 func (j *CustomTime) Scan(value interface{}) error {

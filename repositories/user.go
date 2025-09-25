@@ -154,6 +154,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"invited_by":               user.InvitedBy,
 		"exclude_unknown_projects": user.ExcludeUnknownProjects,
 		"heartbeats_timeout_sec":   user.HeartbeatsTimeoutSec,
+		"webauthn_credentials":     user.WebAuthnCredentials,
 	}
 
 	result := r.db.Model(user).Updates(updateMap)

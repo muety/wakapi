@@ -4,981 +4,1346 @@
 {{ template "head.tpl.html" . }}
 <script src="assets/js/timezones.js"></script>
 <script>
-    // Constants
-    const defaultTab = 'account'
-    const userTimeZone = {{ .User.Location }}
-    const userTzOffset = {{ localTZOffset.Hours }}
-    const signPrefix = userTzOffset >= 0 ? '+' : ''
-    const defaultTzOption = { value: 'Local', text: `Local server time (UTC${signPrefix}${userTzOffset})` }
+  // Constants
+  const defaultTab = 'account'
+  const userTimeZone = {{ .User.Location }}
+  const userTzOffset = {{ localTZOffset.Hours }}
+  const signPrefix = userTzOffset >= 0 ? '+' : ''
+  const defaultTzOption = { value: 'Local', text: `Local server time (UTC${signPrefix}${userTzOffset})` }
 </script>
 <script type="module" src="assets/js/components/settings.js"></script>
 
-<body class="bg-background text-muted p-4 pt-10 flex flex-col min-h-screen max-w-screen-xl mx-auto justify-center">
-<style>
+<body class="flex flex-col justify-center max-w-screen-xl min-h-screen p-4 pt-10 mx-auto bg-background text-muted">
+  <style>
     .inline-bullet-list li a {
-        text-decoration: underline;
+      text-decoration: underline;
     }
 
     .inline-bullet-list li:after {
-        content: "•";
+      content: "•";
     }
 
     .inline-bullet-list li:last-child:after {
-        content: "";
+      content: "";
     }
-</style>
-
-{{ template "menu-main.tpl.html" . }}
-
-{{ template "alerts.tpl.html" . }}
-
-<main class="mt-10 grow flex justify-center w-full" v-scope @vue:mounted="mounted" id="settings-page">
-    <div class="flex flex-col grow mt-10 max-w-full">
-        <h1 class="font-semibold text-3xl text-primary m-0 mb-4">Settings</h1>
-
-        <ul class="flex gap-x-4 mb-16 text-muted flex-wrap sm:flex-nowrap">
-            <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('account'), 'hover:text-secondary': !isActive('account') }">
-                <a href="settings#account" @click="updateTab">Account</a>
-            </li>
-            <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('data'), 'hover:text-secondary': !isActive('data') }">
-                <a href="settings#data" @click="updateTab">Data</a>
-            </li>
-            <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('permissions'), 'hover:text-secondary': !isActive('permissions') }">
-                <a href="settings#permissions" @click="updateTab">Permissions</a>
-            </li>
-            <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('integrations'), 'hover:text-secondary': !isActive('integrations') }">
-                <a href="settings#integrations" @click="updateTab">Integrations</a>
-            </li>
-            {{ if .SubscriptionsEnabled }}
-            <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('subscription'), 'hover:text-secondary': !isActive('subscription') }">
-                <a href="settings#subscription" @click="updateTab">Subscription</a>
-            </li>
-            {{ end }}
-            <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('danger_zone'), 'hover:text-secondary': !isActive('danger_zone') }">
-                <a href="settings#danger_zone" @click="updateTab">Danger Zone</a>
-            </li>
-        </ul>
-
-        <div v-cloak id="account" class="tab flex flex-col space-y-4" v-if="isActive('account')">
-            <!-- Account Settings -->
-            <form action="" method="post" class="w-full md:w-3/4">
-                <input type="hidden" name="action" value="update_user">
-
-                <div class="flex mb-8">
-                    <div class="w-1/2 mr-4 inline-block">
-                        <label class="font-semibold text-foreground" for="select-timezone">Time Zone</label>
-                        <span class="block text-sm text-muted">Time Zone, which you are located in. Relevant for displaying daily statistics.</span>
-                    </div>
-                    <div class="w-1/2 ml-4">
-                        <select name="location" id="select-timezone" class="select-default" v-model="selectedTimezone">
-                            <option v-for="o in tzOptions" :value="o.value">{{ "{{" }}o.text{{ "}}" }}</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="flex mb-8">
-                    <div class="w-1/2 mr-4 inline-block">
-                        <label class="font-semibold text-foreground" for="select-start-of-week">Start of Week</label>
-                        <span class="block text-sm text-muted">Choose which day your week starts on. This affects "This Week" and "Last Week" intervals.</span>
-                    </div>
-                    <div class="w-1/2 ml-4">
-                        <select name="start_of_week" id="select-start-of-week" class="select-default">
-                            <option value="0" {{ if eq .User.StartOfWeek 0 }}selected{{ end }}>Sunday</option>
-                            <option value="1" {{ if eq .User.StartOfWeek 1 }}selected{{ end }}>Monday</option>
-                            <option value="2" {{ if eq .User.StartOfWeek 2 }}selected{{ end }}>Tuesday</option>
-                            <option value="3" {{ if eq .User.StartOfWeek 3 }}selected{{ end }}>Wednesday</option>
-                            <option value="4" {{ if eq .User.StartOfWeek 4 }}selected{{ end }}>Thursday</option>
-                            <option value="5" {{ if eq .User.StartOfWeek 5 }}selected{{ end }}>Friday</option>
-                            <option value="6" {{ if eq .User.StartOfWeek 6 }}selected{{ end }}>Saturday</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="flex mb-8">
-                    <div class="w-1/2 mr-4 inline-block">
-                        <label class="font-semibold text-foreground" for="email">E-Mail Address</label>
-                        <span class="block text-sm text-muted">
-                            Optional in general, but required for weekly reports and for resetting your password.
-                        </span>
-                    </div>
-                    <div class="w-1/2 ml-4">
-                        <input class="input-default {{ if .User.HasActiveSubscription }}cursor-not-allowed{{ end }}"
-                               type="email" id="email"
-                               name="email" placeholder="Enter your e-mail address"
-                               value="{{ .User.Email }}"
-                        >
-                    </div>
-                </div>
-
-                {{ if .User.Email }}
-                <div class="flex mb-8">
-                    <div class="w-1/2 mr-4 inline-block">
-                        <label class="font-semibold text-foreground" for="reports_weekly">Weekly E-Mail Reports</label>
-                        <span class="block text-sm text-muted">Opt in to receive a summary of your coding activity once a week.</span>
-                    </div>
-                    <div class="w-1/2 ml-4">
-                        <select autocomplete="off" id="reports_weekly" name="reports_weekly"
-                                class="select-default">
-                            <option value="false" class="cursor-pointer" {{ if not .User.ReportsWeekly }} selected{{ end }}>Disabled</option>
-                            <option value="true" class="cursor-pointer" {{ if .User.ReportsWeekly }} selected {{ end }}>Enabled</option>
-                        </select>
-                    </div>
-                </div>
-                {{ end }}
-
-                <div class="flex justify-end mt-4">
-                    <button type="submit" class="btn-primary">
-                        Save
-                    </button>
-                </div>
-            </form>
-
-            <div class="w-full md:w-3/4">
-                <hr class="border-t border-focused my-4">
-            </div>
-
-            <!-- Password -->
-            <form class="w-full md:w-3/4" action="" method="post">
-                <input type="hidden" name="action" value="change_password">
-
-                <div class="flex mb-8">
-                    <div class="w-1/2 mr-4 inline-block">
-                        <label class="font-semibold text-foreground" for="password_old">Current Password</label>
-                        <span class="block text-sm text-muted">Enter your old password for verification.</span>
-                    </div>
-                    <div class="w-1/2 ml-4">
-                        <input class="input-default"
-                               type="password" id="password_old"
-                               name="password_old" placeholder="Old password" minlength="6" required>
-                    </div>
-                </div>
-
-                <div class="flex mb-8">
-                    <div class="w-1/2 mr-4 inline-block">
-                        <label class="font-semibold text-foreground" for="password_new">New Password</label>
-                        <span class="block text-sm text-muted">Choose a new password. Preferably, it is at least 8 characters long and contains letters, digits and special chars.</span>
-                    </div>
-                    <div class="w-1/2 ml-4">
-                        <input class="input-default"
-                               type="password" id="password_new"
-                               name="password_new" placeholder="New password" minlength="6" required>
-                    </div>
-                </div>
-
-                <div class="flex mb-8">
-                    <div class="w-1/2 mr-4 inline-block">
-                        <label class="font-semibold text-foreground" for="password_repeat">Repeat Password</label>
-                        <span class="block text-sm text-muted">Once again ...</span>
-                    </div>
-                    <div class="w-1/2 ml-4">
-                        <input class="input-default"
-                               type="password" id="password_repeat"
-                               name="password_repeat" placeholder="Repeat your password" minlength="6" required>
-                    </div>
-                </div>
-
-                <div class="flex justify-end mt-4">
-                    <button type="submit" class="btn-primary">
-                        Save
-                    </button>
-                </div>
-            </form>
-
-            {{ if .InvitesEnabled }}
-            <div class="w-full md:w-3/4">
-                <hr class="border-t border-focused my-4">
-            </div>
-
-            <!-- User Invite -->
-            <form class="w-full md:w-3/4" action="" method="post">
-                <input type="hidden" name="action" value="generate_invite">
-
-                <div class="flex mb-8">
-                    <div class="w-2/3 mr-4 inline-block">
-                        <span class="font-semibold text-foreground">Invite Friends</span>
-                        <span class="block text-sm text-muted">
-                            You can invite new users to Wakapi with an exclusive code. Click to generate one and then send the link to your friend. Thanks for spreading Wakapi to the world!
-                        </span>
-
-                        {{ if ne .InviteLink "" }}
-                        <div class="mt-4">
-                            <label class="text-sm text-foreground mb-2" for="invite_code_result">Success! Here's your invite link:</label>
-                            <input type="url" name="invite_code" id="invite_code_result"
-                                   class="w-full appearance-none bg-card text-foreground outline-none rounded py-2 px-4 mb-2 cursor-not-allowed font-mono text-sm"
-                                   readonly value="{{ .InviteLink }}">
-                        </div>
-                        {{ end }}
-                    </div>
-                    {{ if eq .InviteLink "" }}
-                    <div class="w-1/3 ml-4 flex items-center justify-end">
-                        <button type="submit" class="btn-primary ml-1">Generate</button>
-                    </div>
-                    {{ end }}
-                </div>
-            </form>
-            {{ end }}
-
-        </div>
-
-        <div v-cloak id="data" class="tab flex flex-col space-y-4" v-if="isActive('data')">
-
-            <!-- Unknown Projects -->
-            <form class="w-full" action="" method="post">
-                <input type="hidden" name="action" value="update_unknown_projects">
-                <div class="flex flex-wrap md:flex-nowrap mb-2 gap-x-4">
-                    <div class="w-full md:w-1/3 mb-2 md:mb-0 inline-block">
-                        <span class="font-semibold text-foreground text-lg">Unknown Projects</span>
-                        <p class="block text-sm text-muted">
-                            You can choose to exclude and ignore coding stats from unknown projects. Changing this setting will require to recompute your statistics.
-                        </p>
-                    </div>
-
-                    <div class="flex-col w-full md:w-2/3 inline-block space-y-4">
-                        <div class="flex justify-between items-center">
-                            <div class="flex flex-col gap-y-1">
-                                <label class="font-semibold text-foreground" for="unknown-projects-toggle">Exclude unknown projects</label>
-                                <select autocomplete="off" id="unknown-projects-toggle" name="exclude_unknown_projects" class="select-default wi-min">
-                                    <option value="false" class="cursor-pointer" {{ if not .User.ExcludeUnknownProjects }} selected {{ end }}>No
-                                    </option>
-                                    <option value="true" class="cursor-pointer" {{ if .User.ExcludeUnknownProjects }} selected {{ end }}>Yes
-                                    </option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn-primary h-min">Save</button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-
-            <div class="w-full">
-                <hr class="border-t border-focused my-4">
-            </div>
-
-            <!-- Aliases -->
-            <div class="w-full">
-                <div class="flex flex-wrap flex-nowrap mb-8 gap-x-4">
-                    <div class="w-full md:w-1/3 mb-4 md:mb-0 inline-block">
-                        <span class="font-semibold text-foreground text-lg">Aliases</span>
-                        <p class="block text-sm text-muted">You can specify aliases for any type of entity. For instance, you can define a rule, that both "myapp-frontend" and "myapp-backend" are combined under a project called "myapp".</p>
-                    </div>
-
-                    <div class="w-full md:w-2/3 inline-block">
-                        {{ if .Aliases }}
-                        <div class="mb-8">
-                            <h3 class="inline-block font-semibold text-foreground">Rules</h3>
-                            {{ range $i, $alias := .Aliases }}
-                            <div class="flex items-center">
-                                <div class="text-foreground border-1 w-full inline-block my-1 py-1 text-align text-sm"
-                                     style="line-height: 1.8">
-                                    &#9656;&nbsp; All <span class="font-semibold">{{ $alias.Type | typeName }}s</span> named
-                                    {{ range $j, $value := $alias.Values }}
-                                    <span class="chip text-accent">{{- $value -}}</span>
-                                    {{ if lt $j (add (len $alias.Values) -2) }}
-                                    <span class="-ml-1">{{- ", " | capitalize -}}</span>
-                                    {{ else if lt $j (add (len $alias.Values) -1) }}
-                                    <span>{{- "or" -}}</span>
-                                    {{ end }}
-                                    {{ end }}
-                                    are mapped to <span class="font-semibold">{{ $alias.Type | typeName }}</span> <span
-                                        class="chip text-accent">{{ $alias.Key }}</span>
-                                </div>
-                                <form class="float-right" action="" method="post">
-                                    <input type="hidden" name="action" value="delete_alias">
-                                    <input type="hidden" id="delete_alias_key" name="key" required value="{{ $alias.Key }}">
-                                    <input type="hidden" id="delete_alias_type" name="type" required value="{{ $alias.Type }}">
-                                    <button type="submit" class="py-2 px-4 rounded bg-card hover:bg-focused text-red-600 text-sm" title="Delete rule">✕</button>
-                                </form>
-                            </div>
-                            {{end}}
-                        </div>
-                        {{end}}
-
-                        <form action="" method="post" class="mb-2">
-                            <h3 class="inline-block font-semibold text-foreground">Add Rule</h3>
-
-                            <input type="hidden" name="action" value="add_alias">
-                            <div class="flex items-center mt-2 w-full text-secondary text-sm">
-                                <span class="mr-2">Map</span>
-                                <select name="type" id="select-type" class="select-default" style="max-width: 256px">
-                                    {{ range $i, $t := entityTypes }}
-                                    <option value="{{ $t }}">{{ $t | typeName | capitalize }}</option>
-                                    {{ end }}
-                                </select>
-                                <span class="mx-2">named</span>
-                                <input class="input-default"
-                                       type="text" id="alias-value" style="width: 130px;"
-                                       name="value" placeholder="Original name" minlength="1" required>
-                                <span class="mx-2">to</span>
-                                <input class="input-default"
-                                       type="text" id="alias-key" style="width: 100px"
-                                       name="key" placeholder="Replacement" minlength="1" required>
-                                <div class="flex justify-end ml-4">
-                                    <button type="submit" class="btn-primary">
-                                        Add
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-
-                        <p class="text-sm text-muted">Wildcard patterns are supported, see <a href="https://github.com/becheran/wildmatch-go" target="_blank" rel="noopener noreferrer" class="link">here</a>.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="w-full">
-                <hr class="border-t border-focused my-4">
-            </div>
-
-            <!-- Project Labels -->
-            <div class="w-full">
-                <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
-                    <div class="w-full md:w-1/3 mb-4 md:mb-0 inline-block">
-                        <span class="font-semibold text-foreground text-lg">Project Labels</span>
-                        <p class="block text-sm text-muted">You can assign labels (aka. tags) to projects to group them together, e.g. by "private" and "work".</p>
-                    </div>
-
-                    <div class="w-full md:w-2/3 inline-block">
-                        {{ if .Labels }}
-                        <div class="mb-8">
-                            <h3 class="inline-block font-semibold text-foreground">Your labels</h3>
-                            {{ range $i, $label := .Labels }}
-                            <div class="flex items-center">
-                                <div class="text-secondary border-1 w-full border-accent inline-block my-1 py-1 text-align text-sm"
-                                     style="line-height: 1.8">
-                                    &#9656;&nbsp;&nbsp;<span class="font-semibold text-foreground">{{ $label.Key }}:</span>
-                                    {{ range $j, $value := $label.Values }}
-                                    <form action="" method="post" class="chip inline-flex justify-between items-center gap-x-2 text-accent">
-                                        <input type="hidden" name="action" value="delete_label">
-                                        <input type="hidden" name="key" value="{{ $label.Key }}">
-                                        <input type="hidden" name="value" value="{{ $value }}">
-                                        <span>{{- $value -}}</span>
-                                        <button type="submit" class="bg-background text-center hover:bg-muted rounded-full w-4 h-4 leading-none text-danger" title="Delete label">x</button>
-                                    </form>
-                                    {{ end }}
-                                    <div class="ml-3 inline">
-                                        <button @click="showProjectAddButton({{ $i }})" class="top-1 relative" v-show="!labels[{{ $i }}]">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-secondary">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                            </svg>
-                                        </button>
-                                        <form action="" method="post" class="inline-flex gap-x-1" v-show="labels[{{ $i }}]">
-                                            <input type="hidden" name="action" class="block" value="add_label">
-                                            <input type="hidden" name="value" value="{{ $label.Key }}">
-                                            <select name="key" class="block text-sm select-default !w-auto">
-                                                {{ range $k, $project := $.Projects }}
-                                                    <option value="{{ $project }}">{{ $project }}</option>
-                                                {{ end }}
-                                            </select>
-                                            <button type="submit" class="btn-primary btn-small">
-                                                &nbsp;+&nbsp;
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                            {{end}}
-                            <div class="mb-8"></div>
-                        </div>
-                        {{end}}
-
-                        {{ if .Projects }}
-                        <h3 class="inline-block font-semibold text-foreground">Bulk association</h3>
-                        <p class="text-sm text-muted">Associate a label with multiple projects</p>
-                        <form action="" method="post">
-                            <input type="hidden" name="action" value="add_label">
-                            <input type="hidden" name="num_projects" value="multiple">
-                            <div class="mt-2 w-1/2 space-y-4 text-secondary text-sm flex-col flex">
-                                <input class="input-default block" name="value" placeholder="Label" required>
-                                <select name="key" class="block w-full p-2.5 select-default grow" multiple required>
-                                    {{ range $i, $p := .Projects }}
-                                        <option value="{{ $p }}" class="bg-transparent checked:text-green-500">{{ $p }}</option>
-                                    {{ end }}
-                                </select>
-                                <button type="submit" class="btn-primary">
-                                    Submit
-                                </button>
-                            </div>
-                        </form>
-                        {{ else }}
-                        <div class="text-foreground text-sm mb-4 mt-6">You don't have any projects, yet. Start out by sending a few heartbeats before you can then assign labels.</div>
-                        {{ end }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="w-full">
-                <hr class="border-t border-focused my-4">
-            </div>
-
-            <!-- Language Mappings -->
-            <div class="w-full">
-                <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
-                    <div class="w-full md:w-1/3 mb-4 md:mb-0 inline-block">
-                        <span class="font-semibold text-foreground text-lg">Language Mappings</span>
-                        <p class="block text-sm text-muted">You can specify custom mapping from file extensions to programming languages, for instance a ".jsx" file could be mapped to the "React" language.</p>
-                    </div>
-
-                    <div class="w-full md:w-2/3 inline-block">
-                        {{ if .LanguageMappings }}
-                        <div class="mb-8">
-                            <h3 class="inline-block font-semibold text-foreground">Rules</h3>
-                            {{ range $i, $mapping := .LanguageMappings }}
-                            <div class="flex items-center mb-2">
-                                <div class="text-foreground border-1 w-full inline-block my-1 py-1 text-align text-sm">
-                                        &#9656;&nbsp; When filename ends in <span
-                                        class="text-accent chip mr-1">{{ $mapping.Extension }}</span>
-                                    then change the <span class="font-semibold">language</span> to <span
-                                        class="text-accent chip mr-1">{{ $mapping.Language }}</span>
-                                </div>
-                                <form class="float-right" action="" method="post">
-                                    <input type="hidden" name="action" value="delete_mapping">
-                                    <input type="hidden" id="mapping_id" name="mapping_id" required value="{{ $mapping.ID }}">
-                                    <button type="submit" class="py-2 px-4 rounded bg-card hover:bg-focused text-danger text-sm" title="Delete rule">✕</button>
-                                </form>
-                            </div>
-                            {{end}}
-                        </div>
-                        {{end}}
-
-                        <form action="" method="post">
-                            <h3 class="inline-block font-semibold text-foreground">Add Rule</h3>
-
-                            <input type="hidden" name="action" value="add_mapping">
-                            <div class="flex items-center w-full text-secondary text-sm">
-                                <span class="mr-2">When filename ends in</span>
-                                <input class="input-default grow"
-                                       type="text" id="extension" style="width: 70px"
-                                       name="extension" placeholder=".py" minlength="1" required>
-                                <span class="mx-2">change language to</span>
-                                <input class="input-default grow"
-                                       type="text" id="language" style="width: 100px"
-                                       name="language" placeholder="Python" minlength="1" required>
-                                <div class="flex justify-end ml-4">
-                                    <button type="submit" class="btn-primary">
-                                        Add
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <div class="w-full">
-                <hr class="border-t border-focused my-4">
-            </div>
-
-            <!-- Heartbeats Timeout -->
-            <form class="w-full" action="" method="post">
-                <input type="hidden" name="action" value="update_heartbeats_timeout">
-                <div class="flex flex-wrap md:flex-nowrap mb-2 gap-x-4">
-                    <div class="w-full md:w-1/3 mb-2 md:mb-0 inline-block">
-                        <span class="font-semibold text-foreground text-lg">Heartbeats Timeout</span>
-                        <p class="block text-sm text-muted">
-                            This parameter affects the heuristic based on which a series of consecutive heartbeats sent by your IDE are aggregated to total coding time. Please see the <i>"How are durations calculated?"</i> section in our <a class="link" href="https://github.com/muety/wakapi?tab=readme-ov-file#-faqs" rel="noreferrer noopener" target="_blank">FAQs</a> as well as the discussion in <a class="link" href="https://github.com/muety/wakapi/issues/156" rel="noreferrer noopener" target="_blank">#156</a>.
-                        </p>
-                    </div>
-
-                    <div class="flex-col w-full md:w-2/3 inline-block space-y-4">
-                        <div class="flex justify-between items-center">
-                            <div class="flex flex-col flex-grow gap-y-1">
-                                <label class="font-semibold text-foreground" for="heartbeats_timeout">Timeout / offset (minutes)</label>
-                                <div class="flex gap-x-2 items-center">
-                                    <input class="input-default" type="number" id="heartbeats_timeout" name="heartbeats_timeout" style="max-width: 100px;" placeholder="1" min="1" max="60" step="1" required value="{{ .User.HeartbeatsTimeoutMin }}">
-                                    <span class="text-muted text-sm">(min. 1 min, max. 60 min)</span>
-                                </div>
-                            </div>
-                            <button type="submit" class="btn-primary h-min">Save</button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-
-            <div class="w-full">
-                <hr class="border-t border-focused my-4">
-            </div>
-
-            <!-- Colors -->
-            <div class="w-full">
-                <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
-                    <div class="w-full md:w-1/3 mb-4 md:mb-0 inline-block">
-                        <span class="font-semibold text-foreground text-lg">Vibrant Colors</span>
-                        <p class="block text-sm text-muted">You can view the entire summary in vibrant colors similar to the "Languages" chart. Note that this setting is saved in your web browser only.</p>
-                    </div>
-
-                    <div class="w-full md:w-2/3 inline-block">
-                        <div class="flex-col items-center w-full text-secondary text-sm">
-                            <select autocomplete="off" id="vibrant-color-toggle" class="select-default" style="max-width: 6rem" v-model="vibrantColorsEnabled" @change="onToggleVibrantColors">
-                                <option value="false" class="cursor-pointer">Disabled</option>
-                                <option value="true" class="cursor-pointer">Enabled</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div v-cloak id="permissions" class="tab flex flex-col space-y-4" v-if="isActive('permissions')">
-            <!-- Public Leaderboard -->
-            <form action="" method="post" class="w-full lg:w-3/4">
-                <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
-                    <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
-                        <span class="font-semibold text-foreground text-lg">Public Leaderboard</span>
-                        <p class="block text-sm text-muted">
-                            Opt in to get listed in the <a class="link" href="leaderboard">public leaderboard</a>. It shows aggregated statistics from the past 7 days of your coding.
-                        </p>
-                    </div>
-
-                    <div class="flex-col w-full md:w-1/2 inline-block space-y-4">
-                        <input type="hidden" name="action" value="update_leaderboard">
-
-                        <div class="flex gap-x-8">
-                            <div class="grow">
-                                <label class="font-semibold text-foreground" for="enable_leaderboard">Participate in leaderboard</label>
-                            </div>
-                            <div>
-                                <select autocomplete="off" id="enable_leaderboard" name="enable_leaderboard" class="select-default grow">
-                                    <option value="false" class="cursor-pointer" {{ if not .User.PublicLeaderboard }} selected {{ end }}>No
-                                    </option>
-                                    <option value="true" class="cursor-pointer" {{ if .User.PublicLeaderboard }} selected {{ end }}>Yes
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end mt-4">
-                    <button type="submit" class="btn-primary">
-                        Save
-                    </button>
-                </div>
-            </form>
-
-            <div class="w-full md:w-3/4">
-                <hr class="border-t border-focused my-4">
-            </div>
-
-            <!-- Public Data -->
-            <form action="" method="post" class="w-full lg:w-3/4">
-                <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
-                    <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
-                        <span class="font-semibold text-foreground text-lg">Public Data</span>
-                        <p class="block text-sm text-muted">
-                            Some features require public access to your data without authentication. This mainly includes badges ("shields" endpoint) and the integration with GitHub Readme Stats ("stats" endpoint). You can choose which data to share publicly through these endpoints.
-                        </p>
-                    </div>
-
-                    <div class="flex-col w-full md:w-1/2 inline-block space-y-4">
-                        <input type="hidden" name="action" value="update_sharing">
-
-                        <div class="flex gap-x-8">
-                            <div class="grow">
-                                <label class="font-semibold text-foreground" for="max_days">Time Range</label>
-                                <span class="block text-sm text-muted">(in days; 0 = not public, -1 = unlimited)</span>
-                            </div>
-                            <div>
-                                <input class="input-default"
-                                       style="max-width: 80px" type="number" id="max_days" name="max_days" min="-1" required
-                                       value="{{ .User.ShareDataMaxDays }}">
-                            </div>
-                        </div>
-
-                        <div class="flex gap-x-8">
-                            <div class="grow">
-                                <label class="font-semibold text-foreground" for="share_projects">Share Projects</label>
-                            </div>
-                            <div>
-                                <select autocomplete="off" id="share_projects" name="share_projects" class="select-default grow">
-                                    <option value="false" class="cursor-pointer" {{ if not .User.ShareProjects }} selected {{ end }}>No
-                                    </option>
-                                    <option value="true" class="cursor-pointer" {{ if .User.ShareProjects }} selected {{ end }}>Yes
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-x-8">
-                            <div class="grow">
-                                <label class="font-semibold text-foreground" for="share_languages">Share Languages</label>
-                            </div>
-                            <div>
-                                <select autocomplete="off" id="share_languages" name="share_languages" class="select-default grow">
-                                    <option value="false" class="cursor-pointer" {{ if not .User.ShareLanguages }} selected {{ end }}>No
-                                    </option>
-                                    <option value="true" class="cursor-pointer" {{ if .User.ShareLanguages }} selected {{ end }}>Yes
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-x-8">
-                            <div class="grow">
-                                <label class="font-semibold text-foreground" for="share_editors">Share Editors</label>
-                            </div>
-                            <div>
-                                <select autocomplete="off" id="share_editors" name="share_editors" class="select-default grow">
-                                    <option value="false" class="cursor-pointer" {{ if not .User.ShareEditors }} selected {{ end }}>No
-                                    </option>
-                                    <option value="true" class="cursor-pointer" {{ if .User.ShareEditors }} selected {{ end }}>Yes
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-x-8">
-                            <div class="grow">
-                                <label class="font-semibold text-foreground" for="share_oss">Share OS'</label>
-                            </div>
-                            <div>
-                                <select autocomplete="off" id="share_oss" name="share_oss" class="select-default grow">
-                                    <option value="false" class="cursor-pointer" {{ if not .User.ShareOSs }} selected {{ end }}>No
-                                    </option>
-                                    <option value="true" class="cursor-pointer" {{ if .User.ShareOSs }} selected {{ end }}>Yes
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-x-8">
-                            <div class="grow">
-                                <label class="font-semibold text-foreground" for="share_machines">Share Machines</label>
-                            </div>
-                            <div>
-                                <select autocomplete="off" id="share_machines" name="share_machines" class="select-default grow">
-                                    <option value="false" class="cursor-pointer" {{ if not .User.ShareMachines }} selected {{ end }}>No
-                                    </option>
-                                    <option value="true" class="cursor-pointer" {{ if .User.ShareMachines }} selected {{ end }}>Yes
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-x-8">
-                            <div class="grow">
-                                <label class="font-semibold text-foreground" for="share_labels">Share Project Labels</label>
-                            </div>
-                            <div>
-                                <select autocomplete="off" id="share_labels" name="share_labels" class="select-default grow">
-                                    <option value="false" class="cursor-pointer" {{ if not .User.ShareLabels }} selected {{ end }}>No
-                                    </option>
-                                    <option value="true" class="cursor-pointer" {{ if .User.ShareLabels }} selected {{ end }}>Yes
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-x-8">
-                            <div class="grow">
-                                <label class="font-semibold text-foreground" for="share_labels">Share Activity Chart</label>
-                            </div>
-                            <div>
-                                <select autocomplete="off" id="share_activity_chart" name="share_activity_chart" class="select-default grow">
-                                    <option value="false" class="cursor-pointer" {{ if not .User.ShareActivityChart }} selected {{ end }}>No
-                                    </option>
-                                    <option value="true" class="cursor-pointer" {{ if .User.ShareActivityChart }} selected {{ end }}>Yes
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end mt-4">
-                    <button type="submit" class="btn-primary">
-                        Save
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <div v-cloak id="integrations" class="tab flex flex-col space-y-4" v-show="isActive('integrations')">
-            <form action="" method="post" class="w-full lg:w-3/4">
-                <input type="hidden" name="action" value="toggle_wakatime">
-
-                {{ $placeholderText := "WakaTime API key" }}
-                {{ if .User.WakatimeApiKey }}
-                {{ $placeholderText = "********" }}
-                {{ end }}
-
-                <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
-                    <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
-                        <label class="font-semibold text-foreground text-lg" for="select-timezone">WakaTime</label>
-                        <span class="block text-sm text-muted">
-                            You can connect Wakapi with the official WakaTime (or another Wakapi instance, when optionally specifying a custom API URL) in a way that all heartbeats sent to Wakapi are relayed. This way, you can use both services at the same time. To get started, get <a class="link" href="https://wakatime.com/developers#authentication" rel="noopener noreferrer" target="_blank">your API key</a> and paste it here.<br><br>
-                            To forward data to another Wakapi instance, use <span class="text-xs font-mono">https://&lt;your-server&gt;/api/compat/wakatime/v1</span> as a URL.<br><br>
-                            Please note: When enabling this feature, the operators of this server will, in theory, have unlimited access to your data stored in WakaTime. If you are concerned about your privacy, please do not enable this integration or wait for OAuth 2 authentication (<a
-                                class="link" target="_blank" href="https://github.com/muety/wakapi/issues/94" rel="noopener noreferrer">#94</a>) to be implemented.
-                        </span>
-                    </div>
-                    <div class="w-full md:w-1/2">
-                        <input type="url" name="api_url" id="wakatime_api_url"
-                               class="w-full appearance-none bg-card text-foreground outline-none rounded py-2 px-4 mb-2 {{ if not .User.WakatimeApiKey }}focus:bg-focused{{ end }} {{ if .User.WakatimeApiKey }}cursor-not-allowed{{ end }}"
-                               placeholder="{{ defaultWakatimeUrl }}" {{ if .User.WakatimeApiKey }}readonly{{ end }} value="{{ .User.WakaTimeURL "" }}">
-                        <input type="password" name="api_key" id="wakatime_api_key"
-                               class="w-full appearance-none bg-card text-foreground outline-none rounded py-2 px-4 mt-2 {{ if not .User.WakatimeApiKey }}focus:bg-focused{{ end }} {{ if .User.WakatimeApiKey }}cursor-not-allowed{{ end }}"
-                               placeholder="{{ $placeholderText }}" {{ if .User.WakatimeApiKey }}readonly{{ end }}>
-                        <div class="mt-2 text-foreground">
-                            <input type="checkbox" name="use_legacy_importer" id="use_legacy_importer_tmp" class="mr-1 cursor-pointer">
-                            <label for="use_legacy_importer_tmp" class="mx-1">Use legacy importer</label>
-                            <span class="cursor-help" title="If WakaTime import fails repeatedly, you may want to fall back to an older, less efficient importer mechanism">&#9432;</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end mt-4">
-                    {{ if not .User.WakatimeApiKey }}
-                    <button type="submit" class="btn-primary">Connect</button>
-                    {{ else }}
-                    <button id="btn-import-wakatime" type="button" class="py-2 px-4 font-semibold rounded bg-card hover:bg-focused text-primary text-sm mr-1" @click.stop="confirmWakatimeImport">Import Data</button>
-                    <button type="submit" class="btn-danger ml-1">Disconnect</button>
-                    {{ end }}
-                </div>
-            </form>
-
-            <form action="" method="post" id="form-import-wakatime">
-                <input type="hidden" name="action" value="import_wakatime">
-                <input type="hidden" name="use_legacy_importer" id="use_legacy_importer">
-            </form>
-
-            <div class="w-full lg:w-3/4">
-                <hr class="border-t border-focused mb-4">
-            </div>
-
-            <div class="w-full lg:w-3/4">
-                <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
-                    <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
-                        <label class="font-semibold text-foreground text-lg" for="select-timezone">Badges</label>
-                        <span class="block text-sm text-muted">
-                            This integration with allows to generate badges for README pages or forums. To enable this feature, you need to grant public, unauthorized access to the respective endpoints. See <a class="link" href="settings#permissions">Permissions</a>. Adapt the URL's <i>label</i> and <i>color</i> parameters for customized badges.<br><br>
-                            In addition, there is an endpoint compatible with <a class="link" href="https://shields.io" target="_blank" rel="noreferrer noopener">Shields.IO</a> to allow for even more customization (e.g. different <a class="link" href="https://shields.io/#styles" target="_blank" rel="noreferrer noopener">styles</a>). Only available on public instances, not on localhost.
-                        </span>
-                    </div>
-
-                    <div class="w-full md:w-1/2 ml-4">
-                        {{ if ne .User.ShareDataMaxDays 0 }}
-                        <div class="flex gap-x-4 mb-4">
-                            <div class="flex items-center w-1/3">
-                                <img class="with-url-src"
-                                     src="api/badge/{{ .User.ID }}/interval:today?label=today"
-                                     alt="Badge"/>
-                            </div>
-                            <input
-                                    class="with-url-value w-2/3 font-mono text-xs appearance-none bg-card text-secondary outline-none rounded py-2 px-4 cursor-not-allowed"
-                                    value="%s/api/badge/{{ .User.ID }}/interval:today?label=today"
-                                    readonly>
-                        </div>
-
-                        <div class="flex gap-x-4 mt-4">
-                            <div class="flex items-center w-1/3">
-                                <img class="with-url-src"
-                                     src="api/badge/{{ .User.ID }}/interval:30_days?label=last%2030d"
-                                     alt="Badge"
-                                />
-                            </div>
-                            <input
-                                    class="with-url-value w-2/3 font-mono text-xs appearance-none bg-card text-secondary outline-none rounded py-2 px-4 cursor-not-allowed"
-                                    value="%s/api/badge/{{ .User.ID }}/{{ .User.ID }}/interval:30_days?label=last%2030d"
-                                    readonly>
-                        </div>
-
-                        <div class="flex gap-x-4 mt-4">
-                            <div class="flex items-center w-1/3">
-                                <img class="with-url-src"
-                                     src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:all_time&label=All%20time&color=blue"
-                                     alt="Shields.io badge"/>
-                            </div>
-                            <input
-                                    class="with-url-value w-2/3 font-mono text-xs appearance-none bg-card text-secondary outline-none rounded py-2 px-4 cursor-not-allowed"
-                                    value="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:all_time&label=All%20time&color=blue"
-                                    readonly>
-                        </div>
-                        {{ end }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="w-full lg:w-3/4">
-                <hr class="border-t border-focused mb-4">
-            </div>
-
-            <div class="w-full lg:w-3/4">
-                <div class="flex flex-wrap md:flex-nowrap mb-8 gap-x-4">
-                    <div class="w-full md:w-1/2 mb-4 md:mb-0 inline-block">
-                        <label class="font-semibold text-foreground text-lg" for="select-timezone">GitHub Readme Stats</label>
-                        <span class="block text-sm text-muted">
-                            Wakapi intregrates with <a class="link" href="https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats" target="_blank" rel="noreferrer noopener">GitHub Readme Stats</a> to generate fancy cards for you. To enable this feature, you need to grant public, unauthorized access to the respective endpoints. See <a class="link" href="settings#permissions">Permissions</a>.<br><br>
-                            Share data for >= 7 days → weekly summary card<br>
-                            Share data for >= 366 days → yearly summary card<br>
-                            Share all data (-1) → all-time summary card<br><br>
-                            Only available on public instances, not on localhost.
-                        </span>
-                    </div>
-
-                    <div class="w-full md:w-1/2">
-                        {{ if ne .User.ShareDataMaxDays 0 }}
-                        <div class="flex items-center mb-2">
-                            <img src="https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=1A202C&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title={{ .ReadmeCardCustomTitle }}&layout=compact"
-                                 class="with-url-src-no-scheme" alt="Readme Stats Card">
-                        </div>
-                        <textarea
-                                class="with-url-inner-no-scheme shrink w-full font-mono text-xs appearance-none bg-card text-secondary outline-none rounded py-2 px-4 cursor-not-allowed mt-2"
-                                rows="5" style="resize: none"
-                                readonly>https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=1A202C&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title={{ .ReadmeCardCustomTitle }}&layout=compact</textarea>
-                        {{ end }}
-                    </div>
-                </div>
-            </div>
-        </div>
-
+  </style>
+
+  {{ template "menu-main.tpl.html" . }}
+
+  {{ template "alerts.tpl.html" . }}
+
+  <main class="flex justify-center w-full mt-10 grow" v-scope @vue:mounted="mounted" id="settings-page">
+    <div class="flex flex-col max-w-full mt-10 grow">
+      <h1 class="m-0 mb-4 text-3xl font-semibold text-primary">Settings</h1>
+
+      <ul class="flex flex-wrap mb-16 gap-x-4 text-muted sm:flex-nowrap">
+        <li class="text-2xl font-semibold"
+          v-bind:class="{ 'text-foreground': isActive('account'), 'hover:text-secondary': !isActive('account') }">
+          <a href="settings#account" @click="updateTab">Account</a>
+        </li>
+        <li class="text-2xl font-semibold"
+          v-bind:class="{ 'text-foreground': isActive('data'), 'hover:text-secondary': !isActive('data') }">
+          <a href="settings#data" @click="updateTab">Data</a>
+        </li>
+        <li class="text-2xl font-semibold"
+          v-bind:class="{ 'text-foreground': isActive('permissions'), 'hover:text-secondary': !isActive('permissions') }">
+          <a href="settings#permissions" @click="updateTab">Permissions</a>
+        </li>
+        <li class="text-2xl font-semibold"
+          v-bind:class="{ 'text-foreground': isActive('integrations'), 'hover:text-secondary': !isActive('integrations') }">
+          <a href="settings#integrations" @click="updateTab">Integrations</a>
+        </li>
         {{ if .SubscriptionsEnabled }}
-        <div v-cloak id="subscription" class="tab flex flex-col space-y-4" v-if="isActive('subscription')">
-            <div class="w-full lg:w-1/2">
-                <span class="font-semibold text-foreground text-lg">Subscription</span>
-                <span class="block text-sm text-muted">
-                        By default, this Wakapi instance will only store historical coding activity for {{ .DataRetentionMonths }} months.
-                        However, if you want to support the project, you can opt for a paid subscription for {{ .SubscriptionPrice }} / month to get unlimited history with no restrictions.
-                        You can cancel your subscription at any times!<br>
-                        Read more about the idea of adding paid subscriptions to Wakapi <a class="link" href="https://github.com/muety/wakapi/discussions/447" target="_blank" rel="noopener noreferrer">here</a>.
-                        If you are having any issues related to subscriptions, please contact us at <a class="link" href="mailto:{{ .SupportContact }}" target="_blank" rel="noopener noreferrer">{{ .SupportContact }}</a>.<br>
-                    </span>
-                <br>
+        <li class="text-2xl font-semibold"
+          v-bind:class="{ 'text-foreground': isActive('subscription'), 'hover:text-secondary': !isActive('subscription') }">
+          <a href="settings#subscription" @click="updateTab">Subscription</a>
+        </li>
+        {{ end }}
+        <li class="text-2xl font-semibold"
+          v-bind:class="{ 'text-foreground': isActive('danger_zone'), 'hover:text-secondary': !isActive('danger_zone') }">
+          <a href="settings#danger_zone" @click="updateTab">Danger Zone</a>
+        </li>
+      </ul>
 
-                {{ if not .User.HasActiveSubscription }}
-                <span class="font-semibold text-foreground">How it works</span>
-                <span class="block text-sm text-muted">
-                    Without a subscription, your coding activity older than {{ .DataRetentionMonths }} months will get deleted by a routine that is run every day.
-                    If you do have an active subscription at the time of checking, your data is kept.<br>
-                    In other words, for every point in time <span class="text-xs font-mono">X</span>, where you do not currently have an active subscription, all data older than <span class="text-xs font-mono">X - {{ .DataRetentionMonths }}</span> months gets dropped.
-                </span>
-                <br>
-                <span class="font-semibold text-foreground">Please note</span>
-                <span class="block text-sm text-muted">If you just purchased a subscription, it might take a moment until it's active. Try refresh this page in a minute. Otherwise, please contact us!</span>
-                <span class="block text-sm text-muted">By purchasing a subscription, you agree that your e-mail address, plus all information optionally passed as billing details, will be processed by Stripe, according to their <a href="https://stripe.com/privacy" class="link" target="_blank" rel="noopener noreferrer">privacy policy.</a></span>
-                <br>
+      <div v-cloak id="account" class="flex flex-col space-y-4 tab" v-if="isActive('account')">
+        <!-- Account Settings -->
+        <form action="" method="post" class="w-full md:w-3/4">
+          <input type="hidden" name="action" value="update_user">
 
-                {{ end }}
-
-                {{ if not .UserFirstData.IsZero }}
-                <span class="block text-sm text-muted">
-                    Your currently oldest data point is from <span class="text-foreground font-semibold">{{ .UserFirstData | datetime }}</span>.
-                </span>
-                <br>
-                {{ end }}
-
-                <span class="font-semibold text-foreground">Subscription status:</span>
-                <span class="text-muted ml-1 text-sm">
-                    {{ if .User.HasActiveSubscription }}
-                    <span class="font-semibold text-green-500 text-base">Active</span>
-                    {{ if .User.SubscriptionRenewal }}
-                    (automatically renews at {{ .User.SubscriptionRenewal.T | date }})
-                    {{ else }}
-                    (until {{ .User.SubscribedUntil.T | date }})
-                    {{ end }}
-                    {{ else }}
-                    <span class="font-semibold text-red-500 text-base">Inactive</span>
-                    {{ end }}
-                </span>
-
-                {{ if not .User.HasActiveSubscription }}
-                <form action="subscription/checkout" method="post" class="mt-8 mb-8" id="form-subscription-checkout">
-                    {{ if ne .User.Email "" }}
-                    <button type="submit" class="btn-primary mt-4">Subscribe ({{ .SubscriptionPrice }} / mo)</button>
-                    {{ else }}
-                    <button type="submit" class="btn-disabled cursor-pointer mt-4" disabled title="">Subscribe ({{ .SubscriptionPrice }} / mo)</button><br>
-                    <span class="text-xs text-muted">You have to provide an e-mail address to purchase a subscription.</span>
-                    {{ end }}
-                </form>
-                {{ else }}
-                <form action="subscription/portal" method="post" class="mt-8 mb-8" id="form-subscription-portal">
-                    <button type="submit" class="btn-primary">Manage subscription</button>
-                </form>
-                {{ end }}
+          <div class="flex mb-8">
+            <div class="inline-block w-1/2 mr-4">
+              <label class="font-semibold text-foreground" for="select-timezone">Time Zone</label>
+              <span class="block text-sm text-muted">Time Zone, which you are located in. Relevant for displaying daily
+                statistics.</span>
             </div>
+            <div class="w-1/2 ml-4">
+              <select name="location" id="select-timezone" class="select-default" v-model="selectedTimezone">
+                <option v-for="o in tzOptions" :value="o.value">{{ "{{" }}o.text{{ "}}" }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex mb-8">
+            <div class="inline-block w-1/2 mr-4">
+              <label class="font-semibold text-foreground" for="select-start-of-week">Start of Week</label>
+              <span class="block text-sm text-muted">Choose which day your week starts on. This affects "This Week" and
+                "Last Week" intervals.</span>
+            </div>
+            <div class="w-1/2 ml-4">
+              <select name="start_of_week" id="select-start-of-week" class="select-default">
+                <option value="0" {{ if eq .User.StartOfWeek 0 }}selected{{ end }}>Sunday</option>
+                <option value="1" {{ if eq .User.StartOfWeek 1 }}selected{{ end }}>Monday</option>
+                <option value="2" {{ if eq .User.StartOfWeek 2 }}selected{{ end }}>Tuesday</option>
+                <option value="3" {{ if eq .User.StartOfWeek 3 }}selected{{ end }}>Wednesday</option>
+                <option value="4" {{ if eq .User.StartOfWeek 4 }}selected{{ end }}>Thursday</option>
+                <option value="5" {{ if eq .User.StartOfWeek 5 }}selected{{ end }}>Friday</option>
+                <option value="6" {{ if eq .User.StartOfWeek 6 }}selected{{ end }}>Saturday</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex mb-8">
+            <div class="inline-block w-1/2 mr-4">
+              <label class="font-semibold text-foreground" for="email">E-Mail Address</label>
+              <span class="block text-sm text-muted">
+                Optional in general, but required for weekly reports and for resetting your password.
+              </span>
+            </div>
+            <div class="w-1/2 ml-4">
+              <input class="input-default {{ if .User.HasActiveSubscription }}cursor-not-allowed{{ end }}" type="email"
+                id="email" name="email" placeholder="Enter your e-mail address" value="{{ .User.Email }}">
+            </div>
+          </div>
+
+          {{ if .User.Email }}
+          <div class="flex mb-8">
+            <div class="inline-block w-1/2 mr-4">
+              <label class="font-semibold text-foreground" for="reports_weekly">Weekly E-Mail Reports</label>
+              <span class="block text-sm text-muted">Opt in to receive a summary of your coding activity once a
+                week.</span>
+            </div>
+            <div class="w-1/2 ml-4">
+              <select autocomplete="off" id="reports_weekly" name="reports_weekly" class="select-default">
+                <option value="false" class="cursor-pointer" {{ if not .User.ReportsWeekly }} selected{{ end }}>Disabled
+                </option>
+                <option value="true" class="cursor-pointer" {{ if .User.ReportsWeekly }} selected {{ end }}>Enabled
+                </option>
+              </select>
+            </div>
+          </div>
+          {{ end }}
+
+          <div class="flex justify-end mt-4">
+            <button type="submit" class="btn-primary">
+              Save
+            </button>
+          </div>
+        </form>
+
+        <div class="w-full md:w-3/4">
+          <hr class="my-4 border-t border-focused">
+        </div>
+
+        <!-- Password -->
+        <form class="w-full md:w-3/4" action="" method="post">
+          <input type="hidden" name="action" value="change_password">
+
+          <div class="flex mb-8">
+            <div class="inline-block w-1/2 mr-4">
+              <label class="font-semibold text-foreground" for="password_old">Current Password</label>
+              <span class="block text-sm text-muted">Enter your old password for verification.</span>
+            </div>
+            <div class="w-1/2 ml-4">
+              <input class="input-default" type="password" id="password_old" name="password_old"
+                placeholder="Old password" minlength="6" required>
+            </div>
+          </div>
+
+          <div class="flex mb-8">
+            <div class="inline-block w-1/2 mr-4">
+              <label class="font-semibold text-foreground" for="password_new">New Password</label>
+              <span class="block text-sm text-muted">Choose a new password. Preferably, it is at least 8 characters long
+                and contains letters, digits and special chars.</span>
+            </div>
+            <div class="w-1/2 ml-4">
+              <input class="input-default" type="password" id="password_new" name="password_new"
+                placeholder="New password" minlength="6" required>
+            </div>
+          </div>
+
+          <div class="flex mb-8">
+            <div class="inline-block w-1/2 mr-4">
+              <label class="font-semibold text-foreground" for="password_repeat">Repeat Password</label>
+              <span class="block text-sm text-muted">Once again ...</span>
+            </div>
+            <div class="w-1/2 ml-4">
+              <input class="input-default" type="password" id="password_repeat" name="password_repeat"
+                placeholder="Repeat your password" minlength="6" required>
+            </div>
+          </div>
+
+          <div class="flex justify-end mt-4">
+            <button type="submit" class="btn-primary">
+              Save
+            </button>
+          </div>
+        </form>
+
+        <!-- WebAuthn Security Keys -->
+        {{ if .WebAuthnEnabled }}
+        <div class="w-full md:w-3/4">
+          <hr class="my-4 border-t border-focused">
+        </div>
+
+        <form class="w-full md:w-3/4">
+          <div class="flex mb-8">
+            <div class="inline-block w-1/2 mr-4">
+              <label class="font-semibold text-foreground">Security Keys & Biometric Authentication</label>
+              <span class="block text-sm text-muted">
+                Set up passwordless authentication using security keys, fingerprint, or face recognition for faster and
+                more secure login.
+              </span>
+            </div>
+            <div class="w-1/2 ml-4">
+              <!-- Existing Credentials List -->
+              <div id="credentials-list" class="mb-4">
+                <h4 class="mb-3 text-sm font-medium text-foreground">Your registered authenticators:</h4>
+                <div id="credentials-container">
+                  <!-- Credentials will be loaded here -->
+                  <div class="text-sm text-muted">Loading...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex mb-8">
+            <div class="inline-block w-1/2 mr-4">
+              <label class="font-semibold text-foreground">Add a new authenticator</label>
+              <span class="block text-sm text-muted">
+                Click the button below and follow the prompts to register a new security key, fingerprint, or other
+                biometric authentication method.
+              </span>
+            </div>
+            <div class="w-1/2 ml-4">
+              <!-- WebAuthn Success/Error Messages -->
+              <div id="webauthn-error" class="mb-4 alert alert-error" style="display: none;"></div>
+              <div id="webauthn-success" class="mb-4 alert alert-success" style="display: none;"></div>
+
+              <div class="mb-4" id="credential-name-input" style="display: none;">
+                <input class="input-default" type="text" id="credential-nickname"
+                  placeholder="Enter a nickname for this authenticator (optional)" maxlength="50">
+                <p class="mt-1 text-xs text-muted">Give your authenticator a memorable name like "YubiKey" or "iPhone"
+                </p>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <button type="button" id="register-webauthn" class="btn-primary" disabled>
+                  <svg class="inline w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                      d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                      clip-rule="evenodd" />
+                  </svg>
+                  Add Authenticator
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <!-- Browser Support Info -->
+        <div class="w-full md:w-3/4">
+          <div id="webauthn-unsupported" class="p-4 border border-yellow-200 rounded-md bg-yellow-50"
+            style="display: none;">
+            <div class="flex items-start">
+              <svg class="w-5 h-5 text-yellow-600 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clip-rule="evenodd" />
+              </svg>
+              <div>
+                <h4 class="mb-1 font-medium text-yellow-800">WebAuthn not supported</h4>
+                <p class="text-sm text-yellow-700">
+                  Your browser doesn't support WebAuthn authentication. Please use a modern browser like Chrome,
+                  Firefox, Safari, or Edge to use this feature.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
         {{ end }}
 
-        <div v-cloak id="danger_zone" class="tab flex flex-col space-y-4" v-if="isActive('danger_zone')">
-            <div class="w-full lg:w-3/4">
-                <form action="" method="post" class="flex mb-8" id="form-regenerate-summaries">
-                    <input type="hidden" name="action" value="regenerate_summaries">
-
-                    <div class="w-1/2 mr-4 inline-block">
-                        <span class="font-semibold text-foreground">Regenerate Summaries</span>
-                        <span class="block text-sm text-muted">
-                            Regenerate all pre-computed summaries from raw heartbeat data. This may be useful if, for some reason, summaries are faulty or preconditions have change (e.g. you modified language mappings retrospectively). This may take some time. Be careful and only run this action if you know, what your are doing, as data loss might occur.
-                        </span>
-                    </div>
-                    <div class="w-1/2 ml-4 flex items-center">
-                        <button type="button" class="btn-danger ml-1" @click.stop="confirmRegenerate">Clear and regenerate</button>
-                    </div>
-                </form>
-
-                <form action="" method="post" class="flex mb-8">
-                    <input type="hidden" name="action" value="reset_apikey">
-
-                    <div class="w-1/2 mr-4 inline-block">
-                        <span class="font-semibold text-foreground">Reset API Key</span>
-                        <span class="block text-sm text-muted">
-                            Please note that resetting your API key requires you to update your .wakatime.cfg files on all of your computers to make the WakaTime client send heartbeats again.
-                        </span>
-                    </div>
-                    <div class="w-1/2 ml-4 flex items-center">
-                        <button type="submit" class="btn-danger ml-1">Reset API key</button>
-                    </div>
-                </form>
-
-                <form action="" method="post" class="flex mb-8" id="form-clear-data">
-                    <input type="hidden" name="action" value="clear_data">
-
-                    <div class="w-1/2 mr-4 inline-block">
-                        <span class="font-semibold text-foreground">Clear Data</span>
-                        <span class="block text-sm text-muted">
-                            Clear all your time tracking data from Wakapi. This cannot be undone. Be careful!
-                        </span>
-                    </div>
-                    <div class="w-1/2 ml-4 flex items-center">
-                        <button type="button" class="btn-danger ml-1" @click.stop="confirmClearData">Clear data</button>
-                    </div>
-                </form>
-
-                <form action="" method="post" class="flex mb-8" id="form-change-username">
-                    <input type="hidden" name="action" value="change_userid">
-
-                    <div class="w-1/2 mr-4 inline-block">
-                        <span class="font-semibold text-foreground">Change Username</span>
-                        <span class="block text-sm text-muted">
-                            You can change your username, even though it is not recommended. Afterwards, you will only be able to log in via the new user name. Also, all externally referenced URLs etc. must be updated. This may take up to a few minutes.
-                        </span>
-                    </div>
-                    <div class="w-1/2 ml-4 gap-x-2 flex items-center">
-                        <input class="input-default {{ if .User.HasActiveSubscription }}cursor-not-allowed{{ end }}"
-                               type="text" id="new_userid"
-                               name="new_userid" placeholder="Choose new username ..." style="width: auto;">
-                        <button type="button" class="btn-danger ml-1" @click.stop="confirmChangeUsername">Apply</button>
-                    </div>
-                </form>
-
-                <form action="" method="post" class="flex mb-8" id="form-delete-user">
-                    <input type="hidden" name="action" value="delete_account">
-
-                    <div class="w-1/2 mr-4 inline-block">
-                        <span class="font-semibold text-foreground">Delete Account</span>
-                        <span class="block text-sm text-muted">
-                            Deleting your account will cause all data, including all your heartbeats, to be erased from the server immediately. This action is irreversible. Be careful!
-                        </span>
-                    </div>
-                    <div class="w-1/2 ml-4 flex items-center">
-                        <button type="button" class="btn-danger ml-1" @click.stop="confirmDeleteAccount">Delete account</button>
-                    </div>
-                </form>
-            </div>
+        {{ if .InvitesEnabled }}
+        <div class="w-full md:w-3/4">
+          <hr class="my-4 border-t border-focused">
         </div>
+
+        <!-- User Invite -->
+        <form class="w-full md:w-3/4" action="" method="post">
+          <input type="hidden" name="action" value="generate_invite">
+
+          <div class="flex mb-8">
+            <div class="inline-block w-2/3 mr-4">
+              <span class="font-semibold text-foreground">Invite Friends</span>
+              <span class="block text-sm text-muted">
+                You can invite new users to Wakapi with an exclusive code. Click to generate one and then send the link
+                to your friend. Thanks for spreading Wakapi to the world!
+              </span>
+
+              {{ if ne .InviteLink "" }}
+              <div class="mt-4">
+                <label class="mb-2 text-sm text-foreground" for="invite_code_result">Success! Here's your invite
+                  link:</label>
+                <input type="url" name="invite_code" id="invite_code_result"
+                  class="w-full px-4 py-2 mb-2 font-mono text-sm rounded outline-none appearance-none cursor-not-allowed bg-card text-foreground"
+                  readonly value="{{ .InviteLink }}">
+              </div>
+              {{ end }}
+            </div>
+            {{ if eq .InviteLink "" }}
+            <div class="flex items-center justify-end w-1/3 ml-4">
+              <button type="submit" class="ml-1 btn-primary">Generate</button>
+            </div>
+            {{ end }}
+          </div>
+        </form>
+        {{ end }}
+
+      </div>
+
+      <div v-cloak id="data" class="flex flex-col space-y-4 tab" v-if="isActive('data')">
+
+        <!-- Unknown Projects -->
+        <form class="w-full" action="" method="post">
+          <input type="hidden" name="action" value="update_unknown_projects">
+          <div class="flex flex-wrap mb-2 md:flex-nowrap gap-x-4">
+            <div class="inline-block w-full mb-2 md:w-1/3 md:mb-0">
+              <span class="text-lg font-semibold text-foreground">Unknown Projects</span>
+              <p class="block text-sm text-muted">
+                You can choose to exclude and ignore coding stats from unknown projects. Changing this setting will
+                require to recompute your statistics.
+              </p>
+            </div>
+
+            <div class="flex-col inline-block w-full space-y-4 md:w-2/3">
+              <div class="flex items-center justify-between">
+                <div class="flex flex-col gap-y-1">
+                  <label class="font-semibold text-foreground" for="unknown-projects-toggle">Exclude unknown
+                    projects</label>
+                  <select autocomplete="off" id="unknown-projects-toggle" name="exclude_unknown_projects"
+                    class="select-default wi-min">
+                    <option value="false" class="cursor-pointer" {{ if not .User.ExcludeUnknownProjects }} selected {{
+                      end }}>No
+                    </option>
+                    <option value="true" class="cursor-pointer" {{ if .User.ExcludeUnknownProjects }} selected {{ end
+                      }}>Yes
+                    </option>
+                  </select>
+                </div>
+                <button type="submit" class="btn-primary h-min">Save</button>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <div class="w-full">
+          <hr class="my-4 border-t border-focused">
+        </div>
+
+        <!-- Aliases -->
+        <div class="w-full">
+          <div class="flex flex-wrap mb-8 flex-nowrap gap-x-4">
+            <div class="inline-block w-full mb-4 md:w-1/3 md:mb-0">
+              <span class="text-lg font-semibold text-foreground">Aliases</span>
+              <p class="block text-sm text-muted">You can specify aliases for any type of entity. For instance, you can
+                define a rule, that both "myapp-frontend" and "myapp-backend" are combined under a project called
+                "myapp".</p>
+            </div>
+
+            <div class="inline-block w-full md:w-2/3">
+              {{ if .Aliases }}
+              <div class="mb-8">
+                <h3 class="inline-block font-semibold text-foreground">Rules</h3>
+                {{ range $i, $alias := .Aliases }}
+                <div class="flex items-center">
+                  <div class="inline-block w-full py-1 my-1 text-sm text-foreground border-1 text-align"
+                    style="line-height: 1.8">
+                    &#9656;&nbsp; All <span class="font-semibold">{{ $alias.Type | typeName }}s</span> named
+                    {{ range $j, $value := $alias.Values }}
+                    <span class="chip text-accent">{{- $value -}}</span>
+                    {{ if lt $j (add (len $alias.Values) -2) }}
+                    <span class="-ml-1">{{- ", " | capitalize -}}</span>
+                    {{ else if lt $j (add (len $alias.Values) -1) }}
+                    <span>{{- "or" -}}</span>
+                    {{ end }}
+                    {{ end }}
+                    are mapped to <span class="font-semibold">{{ $alias.Type | typeName }}</span> <span
+                      class="chip text-accent">{{ $alias.Key }}</span>
+                  </div>
+                  <form class="float-right" action="" method="post">
+                    <input type="hidden" name="action" value="delete_alias">
+                    <input type="hidden" id="delete_alias_key" name="key" required value="{{ $alias.Key }}">
+                    <input type="hidden" id="delete_alias_type" name="type" required value="{{ $alias.Type }}">
+                    <button type="submit" class="px-4 py-2 text-sm text-red-600 rounded bg-card hover:bg-focused"
+                      title="Delete rule">✕</button>
+                  </form>
+                </div>
+                {{end}}
+              </div>
+              {{end}}
+
+              <form action="" method="post" class="mb-2">
+                <h3 class="inline-block font-semibold text-foreground">Add Rule</h3>
+
+                <input type="hidden" name="action" value="add_alias">
+                <div class="flex items-center w-full mt-2 text-sm text-secondary">
+                  <span class="mr-2">Map</span>
+                  <select name="type" id="select-type" class="select-default" style="max-width: 256px">
+                    {{ range $i, $t := entityTypes }}
+                    <option value="{{ $t }}">{{ $t | typeName | capitalize }}</option>
+                    {{ end }}
+                  </select>
+                  <span class="mx-2">named</span>
+                  <input class="input-default" type="text" id="alias-value" style="width: 130px;" name="value"
+                    placeholder="Original name" minlength="1" required>
+                  <span class="mx-2">to</span>
+                  <input class="input-default" type="text" id="alias-key" style="width: 100px" name="key"
+                    placeholder="Replacement" minlength="1" required>
+                  <div class="flex justify-end ml-4">
+                    <button type="submit" class="btn-primary">
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              <p class="text-sm text-muted">Wildcard patterns are supported, see <a
+                  href="https://github.com/becheran/wildmatch-go" target="_blank" rel="noopener noreferrer"
+                  class="link">here</a>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full">
+          <hr class="my-4 border-t border-focused">
+        </div>
+
+        <!-- Project Labels -->
+        <div class="w-full">
+          <div class="flex flex-wrap mb-8 md:flex-nowrap gap-x-4">
+            <div class="inline-block w-full mb-4 md:w-1/3 md:mb-0">
+              <span class="text-lg font-semibold text-foreground">Project Labels</span>
+              <p class="block text-sm text-muted">You can assign labels (aka. tags) to projects to group them together,
+                e.g. by "private" and "work".</p>
+            </div>
+
+            <div class="inline-block w-full md:w-2/3">
+              {{ if .Labels }}
+              <div class="mb-8">
+                <h3 class="inline-block font-semibold text-foreground">Your labels</h3>
+                {{ range $i, $label := .Labels }}
+                <div class="flex items-center">
+                  <div class="inline-block w-full py-1 my-1 text-sm text-secondary border-1 border-accent text-align"
+                    style="line-height: 1.8">
+                    &#9656;&nbsp;&nbsp;<span class="font-semibold text-foreground">{{ $label.Key }}:</span>
+                    {{ range $j, $value := $label.Values }}
+                    <form action="" method="post"
+                      class="inline-flex items-center justify-between chip gap-x-2 text-accent">
+                      <input type="hidden" name="action" value="delete_label">
+                      <input type="hidden" name="key" value="{{ $label.Key }}">
+                      <input type="hidden" name="value" value="{{ $value }}">
+                      <span>{{- $value -}}</span>
+                      <button type="submit"
+                        class="w-4 h-4 leading-none text-center rounded-full bg-background hover:bg-muted text-danger"
+                        title="Delete label">x</button>
+                    </form>
+                    {{ end }}
+                    <div class="inline ml-3">
+                      <button @click="showProjectAddButton({{ $i }})" class="relative top-1" v-show="!labels[{{ $i }}]">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                          stroke="currentColor" class="w-4 h-4 text-secondary">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                      </button>
+                      <form action="" method="post" class="inline-flex gap-x-1" v-show="labels[{{ $i }}]">
+                        <input type="hidden" name="action" class="block" value="add_label">
+                        <input type="hidden" name="value" value="{{ $label.Key }}">
+                        <select name="key" class="block text-sm select-default !w-auto">
+                          {{ range $k, $project := $.Projects }}
+                          <option value="{{ $project }}">{{ $project }}</option>
+                          {{ end }}
+                        </select>
+                        <button type="submit" class="btn-primary btn-small">
+                          &nbsp;+&nbsp;
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                {{end}}
+                <div class="mb-8"></div>
+              </div>
+              {{end}}
+
+              {{ if .Projects }}
+              <h3 class="inline-block font-semibold text-foreground">Bulk association</h3>
+              <p class="text-sm text-muted">Associate a label with multiple projects</p>
+              <form action="" method="post">
+                <input type="hidden" name="action" value="add_label">
+                <input type="hidden" name="num_projects" value="multiple">
+                <div class="flex flex-col w-1/2 mt-2 space-y-4 text-sm text-secondary">
+                  <input class="block input-default" name="value" placeholder="Label" required>
+                  <select name="key" class="block w-full p-2.5 select-default grow" multiple required>
+                    {{ range $i, $p := .Projects }}
+                    <option value="{{ $p }}" class="bg-transparent checked:text-green-500">{{ $p }}</option>
+                    {{ end }}
+                  </select>
+                  <button type="submit" class="btn-primary">
+                    Submit
+                  </button>
+                </div>
+              </form>
+              {{ else }}
+              <div class="mt-6 mb-4 text-sm text-foreground">You don't have any projects, yet. Start out by sending a
+                few heartbeats before you can then assign labels.</div>
+              {{ end }}
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full">
+          <hr class="my-4 border-t border-focused">
+        </div>
+
+        <!-- Language Mappings -->
+        <div class="w-full">
+          <div class="flex flex-wrap mb-8 md:flex-nowrap gap-x-4">
+            <div class="inline-block w-full mb-4 md:w-1/3 md:mb-0">
+              <span class="text-lg font-semibold text-foreground">Language Mappings</span>
+              <p class="block text-sm text-muted">You can specify custom mapping from file extensions to programming
+                languages, for instance a ".jsx" file could be mapped to the "React" language.</p>
+            </div>
+
+            <div class="inline-block w-full md:w-2/3">
+              {{ if .LanguageMappings }}
+              <div class="mb-8">
+                <h3 class="inline-block font-semibold text-foreground">Rules</h3>
+                {{ range $i, $mapping := .LanguageMappings }}
+                <div class="flex items-center mb-2">
+                  <div class="inline-block w-full py-1 my-1 text-sm text-foreground border-1 text-align">
+                    &#9656;&nbsp; When filename ends in <span class="mr-1 text-accent chip">{{ $mapping.Extension
+                      }}</span>
+                    then change the <span class="font-semibold">language</span> to <span
+                      class="mr-1 text-accent chip">{{ $mapping.Language }}</span>
+                  </div>
+                  <form class="float-right" action="" method="post">
+                    <input type="hidden" name="action" value="delete_mapping">
+                    <input type="hidden" id="mapping_id" name="mapping_id" required value="{{ $mapping.ID }}">
+                    <button type="submit" class="px-4 py-2 text-sm rounded bg-card hover:bg-focused text-danger"
+                      title="Delete rule">✕</button>
+                  </form>
+                </div>
+                {{end}}
+              </div>
+              {{end}}
+
+              <form action="" method="post">
+                <h3 class="inline-block font-semibold text-foreground">Add Rule</h3>
+
+                <input type="hidden" name="action" value="add_mapping">
+                <div class="flex items-center w-full text-sm text-secondary">
+                  <span class="mr-2">When filename ends in</span>
+                  <input class="input-default grow" type="text" id="extension" style="width: 70px" name="extension"
+                    placeholder=".py" minlength="1" required>
+                  <span class="mx-2">change language to</span>
+                  <input class="input-default grow" type="text" id="language" style="width: 100px" name="language"
+                    placeholder="Python" minlength="1" required>
+                  <div class="flex justify-end ml-4">
+                    <button type="submit" class="btn-primary">
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full">
+          <hr class="my-4 border-t border-focused">
+        </div>
+
+        <!-- Heartbeats Timeout -->
+        <form class="w-full" action="" method="post">
+          <input type="hidden" name="action" value="update_heartbeats_timeout">
+          <div class="flex flex-wrap mb-2 md:flex-nowrap gap-x-4">
+            <div class="inline-block w-full mb-2 md:w-1/3 md:mb-0">
+              <span class="text-lg font-semibold text-foreground">Heartbeats Timeout</span>
+              <p class="block text-sm text-muted">
+                This parameter affects the heuristic based on which a series of consecutive heartbeats sent by your IDE
+                are aggregated to total coding time. Please see the <i>"How are durations calculated?"</i> section in
+                our <a class="link" href="https://github.com/muety/wakapi?tab=readme-ov-file#-faqs"
+                  rel="noreferrer noopener" target="_blank">FAQs</a> as well as the discussion in <a class="link"
+                  href="https://github.com/muety/wakapi/issues/156" rel="noreferrer noopener" target="_blank">#156</a>.
+              </p>
+            </div>
+
+            <div class="flex-col inline-block w-full space-y-4 md:w-2/3">
+              <div class="flex items-center justify-between">
+                <div class="flex flex-col flex-grow gap-y-1">
+                  <label class="font-semibold text-foreground" for="heartbeats_timeout">Timeout / offset
+                    (minutes)</label>
+                  <div class="flex items-center gap-x-2">
+                    <input class="input-default" type="number" id="heartbeats_timeout" name="heartbeats_timeout"
+                      style="max-width: 100px;" placeholder="1" min="1" max="60" step="1" required
+                      value="{{ .User.HeartbeatsTimeoutMin }}">
+                    <span class="text-sm text-muted">(min. 1 min, max. 60 min)</span>
+                  </div>
+                </div>
+                <button type="submit" class="btn-primary h-min">Save</button>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <div class="w-full">
+          <hr class="my-4 border-t border-focused">
+        </div>
+
+        <!-- Colors -->
+        <div class="w-full">
+          <div class="flex flex-wrap mb-8 md:flex-nowrap gap-x-4">
+            <div class="inline-block w-full mb-4 md:w-1/3 md:mb-0">
+              <span class="text-lg font-semibold text-foreground">Vibrant Colors</span>
+              <p class="block text-sm text-muted">You can view the entire summary in vibrant colors similar to the
+                "Languages" chart. Note that this setting is saved in your web browser only.</p>
+            </div>
+
+            <div class="inline-block w-full md:w-2/3">
+              <div class="flex-col items-center w-full text-sm text-secondary">
+                <select autocomplete="off" id="vibrant-color-toggle" class="select-default" style="max-width: 6rem"
+                  v-model="vibrantColorsEnabled" @change="onToggleVibrantColors">
+                  <option value="false" class="cursor-pointer">Disabled</option>
+                  <option value="true" class="cursor-pointer">Enabled</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-cloak id="permissions" class="flex flex-col space-y-4 tab" v-if="isActive('permissions')">
+        <!-- Public Leaderboard -->
+        <form action="" method="post" class="w-full lg:w-3/4">
+          <div class="flex flex-wrap mb-8 md:flex-nowrap gap-x-4">
+            <div class="inline-block w-full mb-4 md:w-1/2 md:mb-0">
+              <span class="text-lg font-semibold text-foreground">Public Leaderboard</span>
+              <p class="block text-sm text-muted">
+                Opt in to get listed in the <a class="link" href="leaderboard">public leaderboard</a>. It shows
+                aggregated statistics from the past 7 days of your coding.
+              </p>
+            </div>
+
+            <div class="flex-col inline-block w-full space-y-4 md:w-1/2">
+              <input type="hidden" name="action" value="update_leaderboard">
+
+              <div class="flex gap-x-8">
+                <div class="grow">
+                  <label class="font-semibold text-foreground" for="enable_leaderboard">Participate in
+                    leaderboard</label>
+                </div>
+                <div>
+                  <select autocomplete="off" id="enable_leaderboard" name="enable_leaderboard"
+                    class="select-default grow">
+                    <option value="false" class="cursor-pointer" {{ if not .User.PublicLeaderboard }} selected {{ end
+                      }}>No
+                    </option>
+                    <option value="true" class="cursor-pointer" {{ if .User.PublicLeaderboard }} selected {{ end }}>Yes
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end mt-4">
+            <button type="submit" class="btn-primary">
+              Save
+            </button>
+          </div>
+        </form>
+
+        <div class="w-full md:w-3/4">
+          <hr class="my-4 border-t border-focused">
+        </div>
+
+        <!-- Public Data -->
+        <form action="" method="post" class="w-full lg:w-3/4">
+          <div class="flex flex-wrap mb-8 md:flex-nowrap gap-x-4">
+            <div class="inline-block w-full mb-4 md:w-1/2 md:mb-0">
+              <span class="text-lg font-semibold text-foreground">Public Data</span>
+              <p class="block text-sm text-muted">
+                Some features require public access to your data without authentication. This mainly includes badges
+                ("shields" endpoint) and the integration with GitHub Readme Stats ("stats" endpoint). You can choose
+                which data to share publicly through these endpoints.
+              </p>
+            </div>
+
+            <div class="flex-col inline-block w-full space-y-4 md:w-1/2">
+              <input type="hidden" name="action" value="update_sharing">
+
+              <div class="flex gap-x-8">
+                <div class="grow">
+                  <label class="font-semibold text-foreground" for="max_days">Time Range</label>
+                  <span class="block text-sm text-muted">(in days; 0 = not public, -1 = unlimited)</span>
+                </div>
+                <div>
+                  <input class="input-default" style="max-width: 80px" type="number" id="max_days" name="max_days"
+                    min="-1" required value="{{ .User.ShareDataMaxDays }}">
+                </div>
+              </div>
+
+              <div class="flex gap-x-8">
+                <div class="grow">
+                  <label class="font-semibold text-foreground" for="share_projects">Share Projects</label>
+                </div>
+                <div>
+                  <select autocomplete="off" id="share_projects" name="share_projects" class="select-default grow">
+                    <option value="false" class="cursor-pointer" {{ if not .User.ShareProjects }} selected {{ end }}>No
+                    </option>
+                    <option value="true" class="cursor-pointer" {{ if .User.ShareProjects }} selected {{ end }}>Yes
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex gap-x-8">
+                <div class="grow">
+                  <label class="font-semibold text-foreground" for="share_languages">Share Languages</label>
+                </div>
+                <div>
+                  <select autocomplete="off" id="share_languages" name="share_languages" class="select-default grow">
+                    <option value="false" class="cursor-pointer" {{ if not .User.ShareLanguages }} selected {{ end }}>No
+                    </option>
+                    <option value="true" class="cursor-pointer" {{ if .User.ShareLanguages }} selected {{ end }}>Yes
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex gap-x-8">
+                <div class="grow">
+                  <label class="font-semibold text-foreground" for="share_editors">Share Editors</label>
+                </div>
+                <div>
+                  <select autocomplete="off" id="share_editors" name="share_editors" class="select-default grow">
+                    <option value="false" class="cursor-pointer" {{ if not .User.ShareEditors }} selected {{ end }}>No
+                    </option>
+                    <option value="true" class="cursor-pointer" {{ if .User.ShareEditors }} selected {{ end }}>Yes
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex gap-x-8">
+                <div class="grow">
+                  <label class="font-semibold text-foreground" for="share_oss">Share OS'</label>
+                </div>
+                <div>
+                  <select autocomplete="off" id="share_oss" name="share_oss" class="select-default grow">
+                    <option value="false" class="cursor-pointer" {{ if not .User.ShareOSs }} selected {{ end }}>No
+                    </option>
+                    <option value="true" class="cursor-pointer" {{ if .User.ShareOSs }} selected {{ end }}>Yes
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex gap-x-8">
+                <div class="grow">
+                  <label class="font-semibold text-foreground" for="share_machines">Share Machines</label>
+                </div>
+                <div>
+                  <select autocomplete="off" id="share_machines" name="share_machines" class="select-default grow">
+                    <option value="false" class="cursor-pointer" {{ if not .User.ShareMachines }} selected {{ end }}>No
+                    </option>
+                    <option value="true" class="cursor-pointer" {{ if .User.ShareMachines }} selected {{ end }}>Yes
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex gap-x-8">
+                <div class="grow">
+                  <label class="font-semibold text-foreground" for="share_labels">Share Project Labels</label>
+                </div>
+                <div>
+                  <select autocomplete="off" id="share_labels" name="share_labels" class="select-default grow">
+                    <option value="false" class="cursor-pointer" {{ if not .User.ShareLabels }} selected {{ end }}>No
+                    </option>
+                    <option value="true" class="cursor-pointer" {{ if .User.ShareLabels }} selected {{ end }}>Yes
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex gap-x-8">
+                <div class="grow">
+                  <label class="font-semibold text-foreground" for="share_labels">Share Activity Chart</label>
+                </div>
+                <div>
+                  <select autocomplete="off" id="share_activity_chart" name="share_activity_chart"
+                    class="select-default grow">
+                    <option value="false" class="cursor-pointer" {{ if not .User.ShareActivityChart }} selected {{ end
+                      }}>No
+                    </option>
+                    <option value="true" class="cursor-pointer" {{ if .User.ShareActivityChart }} selected {{ end }}>Yes
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end mt-4">
+            <button type="submit" class="btn-primary">
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div v-cloak id="integrations" class="flex flex-col space-y-4 tab" v-show="isActive('integrations')">
+        <form action="" method="post" class="w-full lg:w-3/4">
+          <input type="hidden" name="action" value="toggle_wakatime">
+
+          {{ $placeholderText := "WakaTime API key" }}
+          {{ if .User.WakatimeApiKey }}
+          {{ $placeholderText = "********" }}
+          {{ end }}
+
+          <div class="flex flex-wrap mb-8 md:flex-nowrap gap-x-4">
+            <div class="inline-block w-full mb-4 md:w-1/2 md:mb-0">
+              <label class="text-lg font-semibold text-foreground" for="select-timezone">WakaTime</label>
+              <span class="block text-sm text-muted">
+                You can connect Wakapi with the official WakaTime (or another Wakapi instance, when optionally
+                specifying a custom API URL) in a way that all heartbeats sent to Wakapi are relayed. This way, you can
+                use both services at the same time. To get started, get <a class="link"
+                  href="https://wakatime.com/developers#authentication" rel="noopener noreferrer" target="_blank">your
+                  API key</a> and paste it here.<br><br>
+                To forward data to another Wakapi instance, use <span
+                  class="font-mono text-xs">https://&lt;your-server&gt;/api/compat/wakatime/v1</span> as a URL.<br><br>
+                Please note: When enabling this feature, the operators of this server will, in theory, have unlimited
+                access to your data stored in WakaTime. If you are concerned about your privacy, please do not enable
+                this integration or wait for OAuth 2 authentication (<a class="link" target="_blank"
+                  href="https://github.com/muety/wakapi/issues/94" rel="noopener noreferrer">#94</a>) to be implemented.
+              </span>
+            </div>
+            <div class="w-full md:w-1/2">
+              <input type="url" name="api_url" id="wakatime_api_url"
+                class="w-full appearance-none bg-card text-foreground outline-none rounded py-2 px-4 mb-2 {{ if not .User.WakatimeApiKey }}focus:bg-focused{{ end }} {{ if .User.WakatimeApiKey }}cursor-not-allowed{{ end }}"
+                placeholder="{{ defaultWakatimeUrl }}" {{ if .User.WakatimeApiKey }}readonly{{ end }}
+                value="{{ .User.WakaTimeURL "" }}">
+              <input type="password" name="api_key" id="wakatime_api_key"
+                class="w-full appearance-none bg-card text-foreground outline-none rounded py-2 px-4 mt-2 {{ if not .User.WakatimeApiKey }}focus:bg-focused{{ end }} {{ if .User.WakatimeApiKey }}cursor-not-allowed{{ end }}"
+                placeholder="{{ $placeholderText }}" {{ if .User.WakatimeApiKey }}readonly{{ end }}>
+              <div class="mt-2 text-foreground">
+                <input type="checkbox" name="use_legacy_importer" id="use_legacy_importer_tmp"
+                  class="mr-1 cursor-pointer">
+                <label for="use_legacy_importer_tmp" class="mx-1">Use legacy importer</label>
+                <span class="cursor-help"
+                  title="If WakaTime import fails repeatedly, you may want to fall back to an older, less efficient importer mechanism">&#9432;</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end mt-4">
+            {{ if not .User.WakatimeApiKey }}
+            <button type="submit" class="btn-primary">Connect</button>
+            {{ else }}
+            <button id="btn-import-wakatime" type="button"
+              class="px-4 py-2 mr-1 text-sm font-semibold rounded bg-card hover:bg-focused text-primary"
+              @click.stop="confirmWakatimeImport">Import Data</button>
+            <button type="submit" class="ml-1 btn-danger">Disconnect</button>
+            {{ end }}
+          </div>
+        </form>
+
+        <form action="" method="post" id="form-import-wakatime">
+          <input type="hidden" name="action" value="import_wakatime">
+          <input type="hidden" name="use_legacy_importer" id="use_legacy_importer">
+        </form>
+
+        <div class="w-full lg:w-3/4">
+          <hr class="mb-4 border-t border-focused">
+        </div>
+
+        <div class="w-full lg:w-3/4">
+          <div class="flex flex-wrap mb-8 md:flex-nowrap gap-x-4">
+            <div class="inline-block w-full mb-4 md:w-1/2 md:mb-0">
+              <label class="text-lg font-semibold text-foreground" for="select-timezone">Badges</label>
+              <span class="block text-sm text-muted">
+                This integration with allows to generate badges for README pages or forums. To enable this feature, you
+                need to grant public, unauthorized access to the respective endpoints. See <a class="link"
+                  href="settings#permissions">Permissions</a>. Adapt the URL's <i>label</i> and <i>color</i> parameters
+                for customized badges.<br><br>
+                In addition, there is an endpoint compatible with <a class="link" href="https://shields.io"
+                  target="_blank" rel="noreferrer noopener">Shields.IO</a> to allow for even more customization (e.g.
+                different <a class="link" href="https://shields.io/#styles" target="_blank"
+                  rel="noreferrer noopener">styles</a>). Only available on public instances, not on localhost.
+              </span>
+            </div>
+
+            <div class="w-full ml-4 md:w-1/2">
+              {{ if ne .User.ShareDataMaxDays 0 }}
+              <div class="flex mb-4 gap-x-4">
+                <div class="flex items-center w-1/3">
+                  <img class="with-url-src" src="api/badge/{{ .User.ID }}/interval:today?label=today" alt="Badge" />
+                </div>
+                <input
+                  class="w-2/3 px-4 py-2 font-mono text-xs rounded outline-none appearance-none cursor-not-allowed with-url-value bg-card text-secondary"
+                  value="%s/api/badge/{{ .User.ID }}/interval:today?label=today" readonly>
+              </div>
+
+              <div class="flex mt-4 gap-x-4">
+                <div class="flex items-center w-1/3">
+                  <img class="with-url-src" src="api/badge/{{ .User.ID }}/interval:30_days?label=last%2030d"
+                    alt="Badge" />
+                </div>
+                <input
+                  class="w-2/3 px-4 py-2 font-mono text-xs rounded outline-none appearance-none cursor-not-allowed with-url-value bg-card text-secondary"
+                  value="%s/api/badge/{{ .User.ID }}/{{ .User.ID }}/interval:30_days?label=last%2030d" readonly>
+              </div>
+
+              <div class="flex mt-4 gap-x-4">
+                <div class="flex items-center w-1/3">
+                  <img class="with-url-src"
+                    src="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:all_time&label=All%20time&color=blue"
+                    alt="Shields.io badge" />
+                </div>
+                <input
+                  class="w-2/3 px-4 py-2 font-mono text-xs rounded outline-none appearance-none cursor-not-allowed with-url-value bg-card text-secondary"
+                  value="https://img.shields.io/endpoint?url=%s/api/compat/shields/v1/{{ .User.ID }}/interval:all_time&label=All%20time&color=blue"
+                  readonly>
+              </div>
+              {{ end }}
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full lg:w-3/4">
+          <hr class="mb-4 border-t border-focused">
+        </div>
+
+        <div class="w-full lg:w-3/4">
+          <div class="flex flex-wrap mb-8 md:flex-nowrap gap-x-4">
+            <div class="inline-block w-full mb-4 md:w-1/2 md:mb-0">
+              <label class="text-lg font-semibold text-foreground" for="select-timezone">GitHub Readme Stats</label>
+              <span class="block text-sm text-muted">
+                Wakapi intregrates with <a class="link"
+                  href="https://github.com/anuraghazra/github-readme-stats#wakatime-week-stats" target="_blank"
+                  rel="noreferrer noopener">GitHub Readme Stats</a> to generate fancy cards for you. To enable this
+                feature, you need to grant public, unauthorized access to the respective endpoints. See <a class="link"
+                  href="settings#permissions">Permissions</a>.<br><br>
+                Share data for >= 7 days → weekly summary card<br>
+                Share data for >= 366 days → yearly summary card<br>
+                Share all data (-1) → all-time summary card<br><br>
+                Only available on public instances, not on localhost.
+              </span>
+            </div>
+
+            <div class="w-full md:w-1/2">
+              {{ if ne .User.ShareDataMaxDays 0 }}
+              <div class="flex items-center mb-2">
+                <img
+                  src="https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=1A202C&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title={{ .ReadmeCardCustomTitle }}&layout=compact"
+                  class="with-url-src-no-scheme" alt="Readme Stats Card">
+              </div>
+              <textarea
+                class="w-full px-4 py-2 mt-2 font-mono text-xs rounded outline-none appearance-none cursor-not-allowed with-url-inner-no-scheme shrink bg-card text-secondary"
+                rows="5" style="resize: none"
+                readonly>https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=1A202C&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title={{ .ReadmeCardCustomTitle }}&layout=compact</textarea>
+              {{ end }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{ if .SubscriptionsEnabled }}
+      <div v-cloak id="subscription" class="flex flex-col space-y-4 tab" v-if="isActive('subscription')">
+        <div class="w-full lg:w-1/2">
+          <span class="text-lg font-semibold text-foreground">Subscription</span>
+          <span class="block text-sm text-muted">
+            By default, this Wakapi instance will only store historical coding activity for {{ .DataRetentionMonths }}
+            months.
+            However, if you want to support the project, you can opt for a paid subscription for {{ .SubscriptionPrice
+            }} / month to get unlimited history with no restrictions.
+            You can cancel your subscription at any times!<br>
+            Read more about the idea of adding paid subscriptions to Wakapi <a class="link"
+              href="https://github.com/muety/wakapi/discussions/447" target="_blank" rel="noopener noreferrer">here</a>.
+            If you are having any issues related to subscriptions, please contact us at <a class="link"
+              href="mailto:{{ .SupportContact }}" target="_blank" rel="noopener noreferrer">{{ .SupportContact
+              }}</a>.<br>
+          </span>
+          <br>
+
+          {{ if not .User.HasActiveSubscription }}
+          <span class="font-semibold text-foreground">How it works</span>
+          <span class="block text-sm text-muted">
+            Without a subscription, your coding activity older than {{ .DataRetentionMonths }} months will get deleted
+            by a routine that is run every day.
+            If you do have an active subscription at the time of checking, your data is kept.<br>
+            In other words, for every point in time <span class="font-mono text-xs">X</span>, where you do not currently
+            have an active subscription, all data older than <span class="font-mono text-xs">X - {{ .DataRetentionMonths
+              }}</span> months gets dropped.
+          </span>
+          <br>
+          <span class="font-semibold text-foreground">Please note</span>
+          <span class="block text-sm text-muted">If you just purchased a subscription, it might take a moment until it's
+            active. Try refresh this page in a minute. Otherwise, please contact us!</span>
+          <span class="block text-sm text-muted">By purchasing a subscription, you agree that your e-mail address, plus
+            all information optionally passed as billing details, will be processed by Stripe, according to their <a
+              href="https://stripe.com/privacy" class="link" target="_blank" rel="noopener noreferrer">privacy
+              policy.</a></span>
+          <br>
+
+          {{ end }}
+
+          {{ if not .UserFirstData.IsZero }}
+          <span class="block text-sm text-muted">
+            Your currently oldest data point is from <span class="font-semibold text-foreground">{{ .UserFirstData |
+              datetime }}</span>.
+          </span>
+          <br>
+          {{ end }}
+
+          <span class="font-semibold text-foreground">Subscription status:</span>
+          <span class="ml-1 text-sm text-muted">
+            {{ if .User.HasActiveSubscription }}
+            <span class="text-base font-semibold text-green-500">Active</span>
+            {{ if .User.SubscriptionRenewal }}
+            (automatically renews at {{ .User.SubscriptionRenewal.T | date }})
+            {{ else }}
+            (until {{ .User.SubscribedUntil.T | date }})
+            {{ end }}
+            {{ else }}
+            <span class="text-base font-semibold text-red-500">Inactive</span>
+            {{ end }}
+          </span>
+
+          {{ if not .User.HasActiveSubscription }}
+          <form action="subscription/checkout" method="post" class="mt-8 mb-8" id="form-subscription-checkout">
+            {{ if ne .User.Email "" }}
+            <button type="submit" class="mt-4 btn-primary">Subscribe ({{ .SubscriptionPrice }} / mo)</button>
+            {{ else }}
+            <button type="submit" class="mt-4 cursor-pointer btn-disabled" disabled title="">Subscribe ({{
+              .SubscriptionPrice }} / mo)</button><br>
+            <span class="text-xs text-muted">You have to provide an e-mail address to purchase a subscription.</span>
+            {{ end }}
+          </form>
+          {{ else }}
+          <form action="subscription/portal" method="post" class="mt-8 mb-8" id="form-subscription-portal">
+            <button type="submit" class="btn-primary">Manage subscription</button>
+          </form>
+          {{ end }}
+        </div>
+      </div>
+      {{ end }}
+
+      <div v-cloak id="danger_zone" class="flex flex-col space-y-4 tab" v-if="isActive('danger_zone')">
+        <div class="w-full lg:w-3/4">
+          <form action="" method="post" class="flex mb-8" id="form-regenerate-summaries">
+            <input type="hidden" name="action" value="regenerate_summaries">
+
+            <div class="inline-block w-1/2 mr-4">
+              <span class="font-semibold text-foreground">Regenerate Summaries</span>
+              <span class="block text-sm text-muted">
+                Regenerate all pre-computed summaries from raw heartbeat data. This may be useful if, for some reason,
+                summaries are faulty or preconditions have change (e.g. you modified language mappings retrospectively).
+                This may take some time. Be careful and only run this action if you know, what your are doing, as data
+                loss might occur.
+              </span>
+            </div>
+            <div class="flex items-center w-1/2 ml-4">
+              <button type="button" class="ml-1 btn-danger" @click.stop="confirmRegenerate">Clear and
+                regenerate</button>
+            </div>
+          </form>
+
+          <form action="" method="post" class="flex mb-8">
+            <input type="hidden" name="action" value="reset_apikey">
+
+            <div class="inline-block w-1/2 mr-4">
+              <span class="font-semibold text-foreground">Reset API Key</span>
+              <span class="block text-sm text-muted">
+                Please note that resetting your API key requires you to update your .wakatime.cfg files on all of your
+                computers to make the WakaTime client send heartbeats again.
+              </span>
+            </div>
+            <div class="flex items-center w-1/2 ml-4">
+              <button type="submit" class="ml-1 btn-danger">Reset API key</button>
+            </div>
+          </form>
+
+          <form action="" method="post" class="flex mb-8" id="form-clear-data">
+            <input type="hidden" name="action" value="clear_data">
+
+            <div class="inline-block w-1/2 mr-4">
+              <span class="font-semibold text-foreground">Clear Data</span>
+              <span class="block text-sm text-muted">
+                Clear all your time tracking data from Wakapi. This cannot be undone. Be careful!
+              </span>
+            </div>
+            <div class="flex items-center w-1/2 ml-4">
+              <button type="button" class="ml-1 btn-danger" @click.stop="confirmClearData">Clear data</button>
+            </div>
+          </form>
+
+          <form action="" method="post" class="flex mb-8" id="form-change-username">
+            <input type="hidden" name="action" value="change_userid">
+
+            <div class="inline-block w-1/2 mr-4">
+              <span class="font-semibold text-foreground">Change Username</span>
+              <span class="block text-sm text-muted">
+                You can change your username, even though it is not recommended. Afterwards, you will only be able to
+                log in via the new user name. Also, all externally referenced URLs etc. must be updated. This may take
+                up to a few minutes.
+              </span>
+            </div>
+            <div class="flex items-center w-1/2 ml-4 gap-x-2">
+              <input class="input-default {{ if .User.HasActiveSubscription }}cursor-not-allowed{{ end }}" type="text"
+                id="new_userid" name="new_userid" placeholder="Choose new username ..." style="width: auto;">
+              <button type="button" class="ml-1 btn-danger" @click.stop="confirmChangeUsername">Apply</button>
+            </div>
+          </form>
+
+          <form action="" method="post" class="flex mb-8" id="form-delete-user">
+            <input type="hidden" name="action" value="delete_account">
+
+            <div class="inline-block w-1/2 mr-4">
+              <span class="font-semibold text-foreground">Delete Account</span>
+              <span class="block text-sm text-muted">
+                Deleting your account will cause all data, including all your heartbeats, to be erased from the server
+                immediately. This action is irreversible. Be careful!
+              </span>
+            </div>
+            <div class="flex items-center w-1/2 ml-4">
+              <button type="button" class="ml-1 btn-danger" @click.stop="confirmDeleteAccount">Delete account</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-</main>
+  </main>
 
-{{ template "footer.tpl.html" . }}
+  {{ template "footer.tpl.html" . }}
 
-{{ template "foot.tpl.html" . }}
+  {{ template "foot.tpl.html" . }}
+
+  {{ if .WebAuthnEnabled }}
+  <script src="assets/js/webauthn.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const registerButton = document.getElementById('register-webauthn');
+      const credentialNameInput = document.getElementById('credential-name-input');
+      const credentialNickname = document.getElementById('credential-nickname');
+      const credentialsContainer = document.getElementById('credentials-container');
+      const webauthnUnsupported = document.getElementById('webauthn-unsupported');
+
+      // Check WebAuthn support
+      if (!WebAuthnUtil.isSupported()) {
+        registerButton.style.display = 'none';
+        credentialNameInput.style.display = 'none';
+        webauthnUnsupported.style.display = 'block';
+        return;
+      }
+
+      // Enable register button
+      registerButton.disabled = false;
+
+      // Load existing credentials
+      console.log('DOMContentLoaded: About to call loadCredentials');
+      loadCredentials();
+
+      // Show credential name input when register button is focused
+      registerButton.addEventListener('focus', function () {
+        credentialNameInput.style.display = 'block';
+      });
+
+      // Register new WebAuthn credential
+      registerButton.addEventListener('click', async function () {
+        const button = this;
+        const originalText = button.innerHTML;
+
+        try {
+          button.disabled = true;
+          button.innerHTML = '<svg class="inline w-4 h-4 mr-2 animate-spin" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" stroke-dasharray="31.416" stroke-dashoffset="31.416"><animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite"/><animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite"/></circle></svg>Registering...';
+
+          // Get the current user's username from somewhere in the page
+          const username = '{{ .User.ID }}';
+
+          // Get the credential nickname from the input field
+          const credentialName = credentialNickname.value.trim();
+
+          await WebAuthnUtil.register(username, credentialName);
+
+          WebAuthnUtil.showSuccess('Authenticator registered successfully!');
+
+          // Clear nickname input
+          credentialNickname.value = '';
+          credentialNameInput.style.display = 'none';
+
+          // Reload credentials list
+          loadCredentials();
+
+        } catch (error) {
+          console.error('WebAuthn registration failed:', error);
+          let errorMessage = 'Registration failed. ';
+
+          if (error.message.includes('NotAllowedError')) {
+            errorMessage += 'Operation was cancelled or timed out.';
+          } else if (error.message.includes('SecurityError')) {
+            errorMessage += 'Security error occurred.';
+          } else if (error.message.includes('InvalidStateError')) {
+            errorMessage += 'This authenticator is already registered.';
+          } else if (error.message.includes('NotSupportedError')) {
+            errorMessage += 'This authenticator is not supported.';
+          } else {
+            errorMessage += error.message || 'Please try again.';
+          }
+
+          WebAuthnUtil.showError(errorMessage);
+        } finally {
+          button.disabled = false;
+          button.innerHTML = originalText;
+        }
+      });
+
+      async function loadCredentials() {
+        console.log('loadCredentials: Starting credential fetch...');
+        try {
+          const response = await fetch('/api/auth/webauthn/credentials');
+          console.log('loadCredentials: Response status:', response.status);
+
+          if (!response.ok) {
+            console.error('loadCredentials: Response not OK:', response.status, response.statusText);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          console.log('loadCredentials: Response data:', data);
+          const credentials = data.credentials || [];
+          console.log('loadCredentials: Credentials found:', credentials.length);
+
+          if (credentials.length === 0) {
+            console.log('loadCredentials: No credentials found, showing placeholder');
+            credentialsContainer.innerHTML = `
+                <div class="text-sm text-muted">
+                    <svg class="inline w-4 h-4 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                    You can add authenticators above. Once added, you'll be able to sign in without a password.
+                </div>
+            `;
+          } else {
+            console.log('loadCredentials: Found credentials, rendering list:', credentials);
+            let credentialsHTML = '<div class="space-y-3">';
+            credentials.forEach(cred => {
+              console.log('loadCredentials: Processing credential:', cred);
+              credentialsHTML += `
+                <div class="flex items-center">
+                  <div class="flex items-center">
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8">
+                      <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15.6807 14.5869C19.1708 14.5869 22 11.7692 22 8.29344C22 4.81767 19.1708 2 15.6807 2C12.1907 2 9.3615 4.81767 9.3615 8.29344C9.3615 9.90338 10.0963 11.0743 10.0963 11.0743L2.45441 18.6849C2.1115 19.0264 1.63143 19.9143 2.45441 20.7339L3.33616 21.6121C3.67905 21.9048 4.54119 22.3146 5.2466 21.6121L6.27531 20.5876C7.30403 21.6121 8.4797 21.0267 8.92058 20.4412C9.65538 19.4167 8.77362 18.3922 8.77362 18.3922L9.06754 18.0995C10.4783 19.5045 11.7128 18.6849 12.1537 18.0995C12.8885 17.075 12.1537 16.0505 12.1537 16.0505C11.8598 15.465 11.272 15.465 12.0067 14.7333L12.8885 13.8551C13.5939 14.4405 15.0439 14.5869 15.6807 14.5869Z" stroke="#1C274C" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M17.8853 8.29353C17.8853 9.50601 16.8984 10.4889 15.681 10.4889C14.4635 10.4889 13.4766 9.50601 13.4766 8.29353C13.4766 7.08105 14.4635 6.09814 15.681 6.09814C16.8984 6.09814 17.8853 7.08105 17.8853 8.29353Z" stroke="#1C274C" stroke-width="2"/>
+                      </svg>
+                    </div>
+                    <div class="ml-3">
+                      <div class="text-sm font-medium text-gray-900">${cred.name || 'Unnamed Authenticator'}</div>
+                      <div class="text-xs text-gray-500">Added ${cred.createdAt}</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center ml-3">
+                    <button 
+                      onclick="deleteCredential('${cred.id}', '${(cred.name || 'Unnamed Authenticator').replace(/'/g, "\\'")}')" 
+                      class="px-3 py-1 text-xs text-red-600 rounded bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                      title="Delete this authenticator"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              `;
+            });
+            credentialsHTML += '</div>';
+            credentialsContainer.innerHTML = credentialsHTML;
+            console.log('loadCredentials: Credentials HTML set');
+          }
+        } catch (error) {
+          console.error('Failed to load credentials:', error);
+          credentialsContainer.innerHTML = `
+                <div class="text-sm text-red-600">
+                    <svg class="inline w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    Failed to load authenticators. Please refresh the page.
+                </div>
+            `;
+        }
+      }
+
+      // Function to delete a WebAuthn credential
+      async function deleteCredential(credentialId, credentialName) {
+        if (!confirm(`Are you sure you want to delete the authenticator "${credentialName}"?`)) {
+          return;
+        }
+
+        try {
+          console.log('deleteCredential: Deleting credential:', credentialId);
+          const response = await fetch(`/api/auth/webauthn/credentials/${credentialId}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+
+          if (response.ok) {
+            console.log('deleteCredential: Credential deleted successfully');
+            // Show success message briefly
+            const container = document.getElementById('credentials-container');
+            const successMsg = document.createElement('div');
+            successMsg.className = 'mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700';
+            successMsg.innerHTML = `
+              <svg class="inline w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+              </svg>
+              Authenticator "${credentialName}" has been deleted successfully.
+            `;
+            container.parentNode.insertBefore(successMsg, container);
+
+            // Remove success message after 3 seconds
+            setTimeout(() => successMsg.remove(), 3000);
+
+            // Reload the credentials list
+            loadCredentials();
+          } else {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to delete credential');
+          }
+        } catch (error) {
+          console.error('deleteCredential: Error deleting credential:', error);
+          alert(`Failed to delete authenticator: ${error.message}`);
+        }
+      }
+
+      // Make deleteCredential available globally for onclick handlers
+      window.deleteCredential = deleteCredential;
+    });
+  </script>
+  {{ end }}
+
 </body>
 
 </html>

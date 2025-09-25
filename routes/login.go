@@ -366,6 +366,7 @@ func (h *LoginHandler) buildViewModel(r *http.Request, w http.ResponseWriter, wi
 		TotalUsers:      int(numUsers),
 		AllowSignup:     h.config.IsDev() || h.config.Security.AllowSignup,
 		InviteCode:      r.URL.Query().Get("invite"),
+		WebAuthnEnabled: h.config.Security.WebAuthnEnabled,
 	}
 
 	if withCaptcha {

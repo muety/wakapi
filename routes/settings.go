@@ -978,6 +978,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 		SupportContact:      h.config.App.SupportContact,
 		DataRetentionMonths: h.config.App.DataRetentionMonths,
 		InviteLink:          inviteLink,
+		WebAuthnEnabled:     h.config.Security.WebAuthnEnabled,
 	}
 
 	// readme card params

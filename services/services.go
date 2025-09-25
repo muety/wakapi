@@ -165,4 +165,11 @@ type IUserService interface {
 	GenerateResetToken(*models.User) (*models.User, error)
 	FlushCache()
 	FlushUserCache(string)
+	WebAuthnBeginRegistration(user *models.User, credentialName string) (credentialCreationOptions interface{}, sessionData interface{}, err error)
+	WebAuthnFinishRegistration(user *models.User, sessionData interface{}, credentialCreationResponse interface{}) error
+	WebAuthnBeginLogin(username string) (credentialRequestOptions interface{}, sessionData interface{}, err error)
+	WebAuthnFinishLogin(username string, sessionData interface{}, credentialAssertionResponse interface{}) (*models.User, error)
+	WebAuthnBeginLoginUsernameless() (credentialRequestOptions interface{}, sessionData interface{}, err error)
+	WebAuthnFinishLoginUsernameless(sessionData interface{}, credentialAssertionResponse interface{}) (*models.User, error)
+	UpdateUserCredentials(*models.User, string) error
 }

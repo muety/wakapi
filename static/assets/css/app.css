@@ -5,15 +5,15 @@
 /* Base definition */
 body {
     font-family: 'Source Sans 3', 'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
-    position: relative;
+  position: relative;
 }
 
 main {
-    padding-bottom: 86px;
+  padding-bottom: 86px;
 }
 
 [v-cloak] {
-    display: none;
+  display: none;
 }
 
 :root {
@@ -31,166 +31,166 @@ main {
 /* Additional classes */
 
 .text-xsi {
-    font-size: 0.75rem !important;
-    line-height: 1rem !important;
+  font-size: 0.75rem !important;
+  line-height: 1rem !important;
 }
 
 .text-xxs {
-    font-size: 0.65rem !important;
+  font-size: 0.65rem !important;
 }
 
 .mt-14 {
-    margin-top: 3.5rem;
+  margin-top: 3.5rem;
 }
 
 .text-7xl {
-    font-size: 4.5rem;
-    line-height: 1.1;
+  font-size: 4.5rem;
+  line-height: 1.1;
 }
 
 .text-8xl {
-    font-size: 5rem;
-    line-height: 1.1;
+  font-size: 5rem;
+  line-height: 1.1;
 }
 
 .imp\:cursor-not-allowed {
-    @apply cursor-not-allowed !important;
+  @apply cursor-not-allowed !important;
 }
 
 /* Custom classes */
 .h1 {
-    @apply font-semibold text-3xl text-primary m-0
+  @apply font-semibold text-3xl text-primary m-0;
 }
 
 .h1-subcaption {
-    @apply text-muted text-sm;
+  @apply text-muted text-sm;
 }
 
 .btn-default {
-    @apply py-2 px-4 font-semibold rounded bg-focused hover:bg-card text-primary text-sm;
+  @apply py-2 px-4 font-semibold rounded bg-focused hover:bg-card text-primary text-sm;
 }
 
 .btn-disabled {
-    @apply py-2 px-4 font-semibold rounded bg-focused text-muted text-sm;
+  @apply py-2 px-4 font-semibold rounded bg-focused text-muted text-sm;
 }
 
 .btn-primary {
-    @apply py-2 px-4 font-semibold rounded bg-accent hover:bg-accent/80 text-primary text-sm;
+  @apply py-2 px-4 font-semibold rounded bg-accent hover:bg-accent/80 text-primary text-sm;
 }
 
 .btn-danger {
-    @apply py-2 px-4 font-semibold rounded bg-danger hover:bg-danger/80 text-primary text-sm;
+  @apply py-2 px-4 font-semibold rounded bg-danger hover:bg-danger/80 text-primary text-sm;
 }
 
 .btn-small {
-    @apply py-1 px-2;
+  @apply py-1 px-2;
 }
 
 .input-default {
-    @apply appearance-none bg-card focus:bg-focused text-foreground outline-none rounded w-full py-2 px-4;
+  @apply appearance-none bg-card focus:bg-focused text-foreground outline-none rounded w-full py-2 px-4;
 }
 
 .select-default {
-    @apply input-default cursor-pointer;
+  @apply input-default cursor-pointer;
 }
 
 .menu-item {
-    @apply flex items-center text-sm font-semibold space-x-2 rounded hover:bg-card py-2 px-4 cursor-pointer;
+  @apply flex items-center text-sm font-semibold space-x-2 rounded hover:bg-card py-2 px-4 cursor-pointer;
 }
 
 .submenu-item {
-    @apply hover:bg-focused rounded p-1 text-right;
+  @apply hover:bg-focused rounded p-1 text-right;
 }
 
 .chip {
-    @apply text-xs bg-card rounded rounded-full py-1 px-2 font-semibold inline-block mb-1;
+  @apply text-xs bg-card rounded rounded-full py-1 px-2 font-semibold inline-block mb-1;
 }
 
 .link {
-    @apply font-semibold text-secondary hover:text-foreground;
+  @apply font-semibold text-secondary hover:text-foreground;
 }
 
 .newsbox {
-    @apply px-4 py-2 border-2 border-danger bg-card rounded-md text-primary border-accent;
+  @apply px-4 py-2 border-2 border-danger bg-card rounded-md text-primary border-accent;
 }
 
 .newsbox-default {
-    @apply border-accent;
+  @apply border-accent;
 }
 
 .newsbox-warning {
-    @apply border-yellow-600;
+  @apply border-yellow-600;
 }
 
 .newsbox-danger {
-    @apply border-danger;
+  @apply border-danger;
 }
 
 .leaderboard-default {
-    @apply border-muted;
+  @apply border-muted;
 }
 
 .leaderboard-self {
-    margin-left: -10px;
-    margin-right: -10px;
-    padding-left: calc(1rem + 10px);
-    padding-right: calc(1rem + 10px);
-    @apply border-accent bg-focused;
+  margin-left: -10px;
+  margin-right: -10px;
+  padding-left: calc(1rem + 10px);
+  padding-right: calc(1rem + 10px);
+  @apply border-accent bg-focused;
 }
 
 .text-gold {
-    color: #DAA520;
+  color: #daa520;
 }
 
 .leaderboard-gold {
-    border-color: #DAA520;
+  border-color: #daa520;
 }
 
 .leaderboard-silver {
-    border-color: #c0c0c0;
+  border-color: #c0c0c0;
 }
 
 .leaderboard-bronze {
-    border-color: #cd7f32;
+  border-color: #cd7f32;
 }
 
 ::-webkit-calendar-picker-indicator {
-    filter: invert(1);
-    cursor: pointer;
+  filter: invert(1);
+  cursor: pointer;
 }
 
 .max-available {
-    max-width: -moz-available;
-    max-width: -webkit-fill-available;
-    max-width: fill-available;
+  max-width: -moz-available;
+  max-width: -webkit-fill-available;
+  max-width: fill-available;
 }
 
 .projects-item a {
-    @apply flex flex-col align-middle bg-focused hover:bg-card py-2 px-4 rounded rounded-md shadow-md hover:shadow-lg;
+  @apply flex flex-col align-middle bg-focused hover:bg-card py-2 px-4 rounded rounded-md shadow-md hover:shadow-lg;
 }
 
 .projects-item .color-fading {
-    @apply absolute w-full h-full rounded rounded-md;
-    pointer-events: none;
+  @apply absolute w-full h-full rounded rounded-md;
+  pointer-events: none;
 }
 
 .disabled {
-    pointer-events: none;
-    cursor: default;
-    opacity: 75%;
+  pointer-events: none;
+  cursor: default;
+  opacity: 75%;
 }
 
 .entity-filter-control {
-    width: 180px; 
-    @apply text-foreground text-sm;
+  width: 180px;
+  @apply text-foreground text-sm;
 }
 
 .entity-filter-control label {
-    @apply font-semibold capitalize align-text-bottom;
+  @apply font-semibold capitalize align-text-bottom;
 }
 
 .entity-filter-control select {
-    @apply truncate py-1.5 px-2.5;
+  @apply truncate py-1.5 px-2.5;
 }
 
 /*
@@ -200,48 +200,67 @@ main {
 */
 
 .wi-min {
-    width: min-content !important;
+  width: min-content !important;
 }
 
 #online-indicator {
 }
 
 .live-indicator {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: #047857;
-    display: inline-block;
-    animation: pulse 2s infinite;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #047857;
+  display: inline-block;
+  animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-    0% {
-        opacity: 0.5;
-    }
-    50% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0.5;
-    }
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+/* WebAuthn Alert Styles */
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.alert-error {
+  background-color: rgb(254 242 242);
+  border: 1px solid rgb(252 165 165);
+  color: rgb(127 29 29);
+}
+
+.alert-success {
+  background-color: rgb(240 253 244);
+  border: 1px solid rgb(134 239 172);
+  color: rgb(20 83 45);
 }
 
 @media print {
+  /* Avoid the element from being breaked */
+  .no-break {
+    page-break-inside: avoid;
+  }
 
-    /* Avoid the element from being breaked */
-    .no-break {
-        page-break-inside: avoid;
-    }
+  /* Don't print the element (as they are designed to interact with the user) */
+  .no-print {
+    display: none;
+  }
 
-    /* Don't print the element (as they are designed to interact with the user) */
-    .no-print {
-        display: none;
-    }
-
-    /* Ensure the background */
-    * {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
+  /* Ensure the background */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
