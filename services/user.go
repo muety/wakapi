@@ -23,6 +23,21 @@ import (
 	"github.com/patrickmn/go-cache"
 )
 
+const (
+	// Error messages
+	errWebAuthnNotEnabled      = "WebAuthn is not enabled"
+	errSessionExpiredOrInvalid = "session expired or invalid"
+
+	// Error message formats
+	errFailedMarshalSessionData   = "failed to marshal session data: %w"
+	errFailedUnmarshalSessionData = "failed to unmarshal session data: %w"
+
+	// Cache key formats
+	webAuthnSessionCacheKeyFormat     = "webauthn_session_%s"
+	webAuthnCredentialNameCacheFormat = "webauthn_credential_name_%s"
+	webAuthnUsernamelessSessionFormat = "webauthn_usernameless_session_%d"
+)
+
 type UserService struct {
 	config              *config.Config
 	cache               *cache.Cache
@@ -47,7 +62,13 @@ func NewUserService(keyValueService IKeyValueService, mailService IMailService, 
 		currentOnlineUsers: cache.New(models.DefaultHeartbeatsTimeout, 1*time.Minute),
 	}
 
-	// Initialize WebAuthn if enabled
+	srv.initializeWebAuthn(cfg)
+	srv.setupEventSubscriptions(mailService)
+
+	return srv
+}
+
+func (srv *UserService) initializeWebAuthn(cfg *config.Config) {
 	if cfg.Security.WebAuthnEnabled {
 		wconfig := &webauthn.Config{
 			RPDisplayName: "Wakapi",
@@ -62,8 +83,15 @@ func NewUserService(keyValueService IKeyValueService, mailService IMailService, 
 			srv.webAuthn = webAuthn
 		}
 	}
+}
 
-	sub1 := srv.eventBus.Subscribe(0, config.EventWakatimeFailure)
+func (srv *UserService) setupEventSubscriptions(mailService IMailService) {
+	srv.setupWakatimeFailureSubscription(mailService)
+	srv.setupHeartbeatCreateSubscription()
+}
+
+func (srv *UserService) setupWakatimeFailureSubscription(mailService IMailService) {
+	sub := srv.eventBus.Subscribe(0, config.EventWakatimeFailure)
 	go func(sub *hub.Subscription) {
 		for m := range sub.Receiver {
 			user := m.Fields[config.FieldUser].(*models.User)
@@ -83,20 +111,20 @@ func NewUserService(keyValueService IKeyValueService, mailService IMailService, 
 				}
 			}
 		}
-	}(&sub1)
+	}(&sub)
+}
 
-	sub2 := srv.eventBus.Subscribe(0, config.EventHeartbeatCreate)
+func (srv *UserService) setupHeartbeatCreateSubscription() {
+	sub := srv.eventBus.Subscribe(0, config.EventHeartbeatCreate)
 	go func(sub *hub.Subscription) {
 		for m := range sub.Receiver {
 			heartbeat := m.Fields[config.FieldPayload].(*models.Heartbeat)
-			if time.Now().Sub(heartbeat.Time.T()) > models.DefaultHeartbeatsTimeout {
+			if time.Since(heartbeat.Time.T()) > models.DefaultHeartbeatsTimeout {
 				continue
 			}
 			srv.currentOnlineUsers.SetDefault(heartbeat.UserID, true)
 		}
-	}(&sub2)
-
-	return srv
+	}(&sub)
 }
 
 func (srv *UserService) GetUserById(userId string) (*models.User, error) {
@@ -263,7 +291,7 @@ func (srv *UserService) ChangeUserId(user *models.User, newUserId string) (*mode
 	oldUserId := user.ID
 	defer srv.FlushUserCache(oldUserId)
 
-	// TODO: make this transactional somehow
+	//NOSONAR //TODO: make this transactional somehow
 	userNew, err := srv.repository.UpdateField(user, "id", newUserId)
 	if err != nil {
 		return nil, err
@@ -360,7 +388,7 @@ func (srv *UserService) checkUpdateCascade() bool {
 
 func (srv *UserService) WebAuthnBeginRegistration(user *models.User, credentialName string) (interface{}, interface{}, error) {
 	if srv.webAuthn == nil {
-		return nil, nil, errors.New("WebAuthn is not enabled")
+		return nil, nil, errors.New(errWebAuthnNotEnabled)
 	}
 
 	options, sessionData, err := srv.webAuthn.BeginRegistration(user)
@@ -371,15 +399,15 @@ func (srv *UserService) WebAuthnBeginRegistration(user *models.User, credentialN
 	// Store session data in cache instead of database to avoid serialization issues
 	sessionBytes, err := json.Marshal(sessionData)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal session data: %w", err)
+		return nil, nil, fmt.Errorf(errFailedMarshalSessionData, err)
 	}
 
 	// Use cache with 5 minute expiry for session data
-	cacheKey := fmt.Sprintf("webauthn_session_%s", user.ID)
+	cacheKey := fmt.Sprintf(webAuthnSessionCacheKeyFormat, user.ID)
 	srv.cache.Set(cacheKey, string(sessionBytes), 5*time.Minute)
 
 	// Store credential name separately in cache for use during finish registration
-	credentialNameKey := fmt.Sprintf("webauthn_credential_name_%s", user.ID)
+	credentialNameKey := fmt.Sprintf(webAuthnCredentialNameCacheFormat, user.ID)
 	if credentialName != "" {
 		srv.cache.Set(credentialNameKey, credentialName, 5*time.Minute)
 	} else {
@@ -393,7 +421,7 @@ func (srv *UserService) WebAuthnBeginRegistration(user *models.User, credentialN
 
 func (srv *UserService) WebAuthnFinishRegistration(user *models.User, sessionData interface{}, credentialCreationResponse interface{}) error {
 	if srv.webAuthn == nil {
-		return errors.New("WebAuthn is not enabled")
+		return errors.New(errWebAuthnNotEnabled)
 	}
 
 	// Check if sessionData is nil
@@ -407,15 +435,15 @@ func (srv *UserService) WebAuthnFinishRegistration(user *models.User, sessionDat
 	if !ok {
 		return errors.New("session data must be a string")
 	}
-	
+
 	if err := json.Unmarshal([]byte(sessionDataStr), sessionDataStruct); err != nil {
-		return fmt.Errorf("failed to unmarshal session data: %w", err)
+		return fmt.Errorf(errFailedUnmarshalSessionData, err)
 	}
 
 	// Verify session exists in cache
-	cacheKey := fmt.Sprintf("webauthn_session_%s", user.ID)
+	cacheKey := fmt.Sprintf(webAuthnSessionCacheKeyFormat, user.ID)
 	if _, found := srv.cache.Get(cacheKey); !found {
-		return errors.New("session expired or invalid")
+		return errors.New(errSessionExpiredOrInvalid)
 	}
 
 	// Parse credential creation response
@@ -430,7 +458,7 @@ func (srv *UserService) WebAuthnFinishRegistration(user *models.User, sessionDat
 	}
 
 	// Retrieve credential name from cache
-	credentialNameKey := fmt.Sprintf("webauthn_credential_name_%s", user.ID)
+	credentialNameKey := fmt.Sprintf(webAuthnCredentialNameCacheFormat, user.ID)
 	credentialName := "Security Key"
 	if cachedName, found := srv.cache.Get(credentialNameKey); found {
 		if nameStr, ok := cachedName.(string); ok {
@@ -474,9 +502,9 @@ func (srv *UserService) WebAuthnFinishRegistration(user *models.User, sessionDat
 
 	// Clear session from cache
 	srv.cache.Delete(cacheKey)
-	
+
 	// Clear credential name from cache
-	credentialNameKey = fmt.Sprintf("webauthn_credential_name_%s", user.ID)
+	credentialNameKey = fmt.Sprintf(webAuthnCredentialNameCacheFormat, user.ID)
 	srv.cache.Delete(credentialNameKey)
 
 	// Update credentials directly using UpdateField to avoid WebAuthn interface serialization issues
@@ -493,7 +521,7 @@ func (srv *UserService) WebAuthnFinishRegistration(user *models.User, sessionDat
 
 func (srv *UserService) WebAuthnBeginLogin(username string) (interface{}, interface{}, error) {
 	if srv.webAuthn == nil {
-		return nil, nil, errors.New("WebAuthn is not enabled")
+		return nil, nil, errors.New(errWebAuthnNotEnabled)
 	}
 
 	user, err := srv.GetUserById(username)
@@ -513,11 +541,11 @@ func (srv *UserService) WebAuthnBeginLogin(username string) (interface{}, interf
 	// Store session data in cache instead of database
 	sessionBytes, err := json.Marshal(sessionData)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal session data: %w", err)
+		return nil, nil, fmt.Errorf(errFailedMarshalSessionData, err)
 	}
 
 	// Use cache with 5 minute expiry
-	cacheKey := fmt.Sprintf("webauthn_session_%s", user.ID)
+	cacheKey := fmt.Sprintf(webAuthnSessionCacheKeyFormat, user.ID)
 	srv.cache.Set(cacheKey, string(sessionBytes), 5*time.Minute)
 
 	return options, string(sessionBytes), nil
@@ -525,7 +553,7 @@ func (srv *UserService) WebAuthnBeginLogin(username string) (interface{}, interf
 
 func (srv *UserService) WebAuthnFinishLogin(username string, sessionData interface{}, credentialAssertionResponse interface{}) (*models.User, error) {
 	if srv.webAuthn == nil {
-		return nil, errors.New("WebAuthn is not enabled")
+		return nil, errors.New(errWebAuthnNotEnabled)
 	}
 
 	user, err := srv.GetUserById(username)
@@ -536,13 +564,13 @@ func (srv *UserService) WebAuthnFinishLogin(username string, sessionData interfa
 	// Parse session data
 	sessionDataStruct := &webauthn.SessionData{}
 	if err := json.Unmarshal([]byte(sessionData.(string)), sessionDataStruct); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal session data: %w", err)
+		return nil, fmt.Errorf(errFailedUnmarshalSessionData, err)
 	}
 
 	// Verify session exists in cache
-	cacheKey := fmt.Sprintf("webauthn_session_%s", user.ID)
+	cacheKey := fmt.Sprintf(webAuthnSessionCacheKeyFormat, user.ID)
 	if _, found := srv.cache.Get(cacheKey); !found {
-		return nil, errors.New("session expired or invalid")
+		return nil, errors.New(errSessionExpiredOrInvalid)
 	}
 
 	// Parse credential assertion response
@@ -584,7 +612,7 @@ func (srv *UserService) WebAuthnFinishLogin(username string, sessionData interfa
 
 	// Update last login time and save only specific fields to avoid GORM serialization issues
 	user.LastLoggedInAt = models.CustomTime(time.Now())
-	
+
 	// Update only the specific fields we need to avoid GORM trying to serialize WebAuthn methods
 	_, err = srv.repository.UpdateField(user, "last_logged_in_at", user.LastLoggedInAt)
 	if err != nil {
@@ -612,13 +640,13 @@ func (srv *UserService) UpdateUserCredentials(user *models.User, credentialsJSON
 // WebAuthnBeginLoginUsernameless starts usernameless WebAuthn authentication
 func (srv *UserService) WebAuthnBeginLoginUsernameless() (interface{}, interface{}, error) {
 	if srv.webAuthn == nil {
-		return nil, nil, errors.New("WebAuthn is not enabled")
+		return nil, nil, errors.New(errWebAuthnNotEnabled)
 	}
 
 	// For usernameless flow, we can't use srv.webAuthn.BeginLogin() with a user
 	// because it expects the user to have credentials. Instead, we'll create
 	// the assertion options manually to allow any credential for this domain.
-	
+
 	// Generate a challenge
 	challenge, err := protocol.CreateChallenge()
 	if err != nil {
@@ -634,16 +662,16 @@ func (srv *UserService) WebAuthnBeginLoginUsernameless() (interface{}, interface
 		UserVerification: protocol.VerificationRequired,
 		// AllowCredentials is empty to allow any registered credential
 	}
-	
+
 	// Wrap in the expected structure
 	options := protocol.CredentialAssertion{
 		Response: assertionOptions,
 	}
-	
+
 	// Create session data for validation later
 	sessionData := &webauthn.SessionData{
 		Challenge:            string(challenge),
-		UserID:               []byte{}, // Empty for usernameless
+		UserID:               []byte{},   // Empty for usernameless
 		AllowedCredentialIDs: [][]byte{}, // Empty for usernameless
 		UserVerification:     protocol.VerificationRequired,
 	}
@@ -651,11 +679,11 @@ func (srv *UserService) WebAuthnBeginLoginUsernameless() (interface{}, interface
 	// Store session data in cache with a generic key for usernameless flows
 	sessionBytes, err := json.Marshal(sessionData)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal session data: %w", err)
+		return nil, nil, fmt.Errorf(errFailedMarshalSessionData, err)
 	}
 
 	// Use a temporary session key that will be replaced when we identify the user
-	cacheKey := fmt.Sprintf("webauthn_usernameless_session_%d", time.Now().UnixNano())
+	cacheKey := fmt.Sprintf(webAuthnUsernamelessSessionFormat, time.Now().UnixNano())
 	srv.cache.Set(cacheKey, string(sessionBytes), 5*time.Minute)
 
 	// Store the cache key in the session data so we can retrieve it later
@@ -670,65 +698,90 @@ func (srv *UserService) WebAuthnBeginLoginUsernameless() (interface{}, interface
 // WebAuthnFinishLoginUsernameless completes usernameless WebAuthn authentication
 func (srv *UserService) WebAuthnFinishLoginUsernameless(sessionData interface{}, credentialAssertionResponse interface{}) (*models.User, error) {
 	if srv.webAuthn == nil {
-		return nil, errors.New("WebAuthn is not enabled")
+		return nil, errors.New(errWebAuthnNotEnabled)
 	}
 
-	// Parse the session data to get both the webauthn session and cache key
-	sessionMap, ok := sessionData.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("invalid session data format")
-	}
-
-	cacheKey, ok := sessionMap["cacheKey"].(string)
-	if !ok {
-		return nil, errors.New("missing cache key in session data")
-	}
-
-	// Verify session exists in cache
-	if _, found := srv.cache.Get(cacheKey); !found {
-		return nil, errors.New("session expired or invalid")
-	}
-
-	// Parse credential assertion response first to identify the user
-	car, err := protocol.ParseCredentialRequestResponseBody(bytes.NewReader(credentialAssertionResponse.([]byte)))
+	cacheKey, err := srv.validateUsernamelessSessionData(sessionData)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse credential assertion response: %w", err)
+		return nil, err
 	}
 
-	// For usernameless flow, we need to identify the user from the credential response
-	// The userHandle in the response should contain the user ID
-	if car.Response.UserHandle == nil || len(car.Response.UserHandle) == 0 {
-		return nil, errors.New("usernameless authentication requires a user handle in the credential response")
-	}
-
-	// The user handle should contain the user ID
-	userID := string(car.Response.UserHandle)
-	user, err := srv.GetUserById(userID)
+	car, user, err := srv.parseCredentialAndIdentifyUser(credentialAssertionResponse)
 	if err != nil {
-		return nil, fmt.Errorf("user not found from credential: %w", err)
+		return nil, err
 	}
 
-	// Parse the actual WebAuthn session data and fix the UserID for validation
-	sessionDataStruct := &webauthn.SessionData{}
-	sessionBytes, err := json.Marshal(sessionMap["session"])
+	sessionDataStruct, err := srv.reconstructSessionData(sessionData, user.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal session data: %w", err)
-	}
-	
-	if err := json.Unmarshal(sessionBytes, sessionDataStruct); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal session data: %w", err)
+		return nil, err
 	}
 
-	// Update the session data with the correct user ID for validation
-	sessionDataStruct.UserID = []byte(userID)
-
-	// Now validate the credential using the identified user and updated session
 	credential, err := srv.webAuthn.ValidateLogin(user, *sessionDataStruct, car)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate usernameless login: %w", err)
 	}
 
-	// Update credential sign count
+	srv.updateCredentialSignCount(user, credential)
+	srv.finalizeUsernamelessLogin(user, cacheKey)
+
+	return user, nil
+}
+
+func (srv *UserService) validateUsernamelessSessionData(sessionData interface{}) (string, error) {
+	sessionMap, ok := sessionData.(map[string]interface{})
+	if !ok {
+		return "", errors.New("invalid session data format")
+	}
+
+	cacheKey, ok := sessionMap["cacheKey"].(string)
+	if !ok {
+		return "", errors.New("missing cache key in session data")
+	}
+
+	if _, found := srv.cache.Get(cacheKey); !found {
+		return "", errors.New(errSessionExpiredOrInvalid)
+	}
+
+	return cacheKey, nil
+}
+
+func (srv *UserService) parseCredentialAndIdentifyUser(credentialAssertionResponse interface{}) (*protocol.ParsedCredentialAssertionData, *models.User, error) {
+	car, err := protocol.ParseCredentialRequestResponseBody(bytes.NewReader(credentialAssertionResponse.([]byte)))
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to parse credential assertion response: %w", err)
+	}
+
+	if len(car.Response.UserHandle) == 0 {
+		return nil, nil, errors.New("usernameless authentication requires a user handle in the credential response")
+	}
+
+	userID := string(car.Response.UserHandle)
+	user, err := srv.GetUserById(userID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("user not found from credential: %w", err)
+	}
+
+	return car, user, nil
+}
+
+func (srv *UserService) reconstructSessionData(sessionData interface{}, userID string) (*webauthn.SessionData, error) {
+	sessionMap := sessionData.(map[string]interface{})
+	
+	sessionDataStruct := &webauthn.SessionData{}
+	sessionBytes, err := json.Marshal(sessionMap["session"])
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal session data: %w", err)
+	}
+
+	if err := json.Unmarshal(sessionBytes, sessionDataStruct); err != nil {
+		return nil, fmt.Errorf(errFailedUnmarshalSessionData, err)
+	}
+
+	sessionDataStruct.UserID = []byte(userID)
+	return sessionDataStruct, nil
+}
+
+func (srv *UserService) updateCredentialSignCount(user *models.User, credential *webauthn.Credential) {
 	credentials := user.GetWebAuthnCredentials()
 	credentialsUpdated := false
 	for _, cred := range credentials {
@@ -742,30 +795,20 @@ func (srv *UserService) WebAuthnFinishLoginUsernameless(sessionData interface{},
 		}
 	}
 
-	// Save updated credentials to database if they were changed
 	if credentialsUpdated {
-		err = srv.UpdateUserCredentials(user, user.WebAuthn.CredentialsJSON)
-		if err != nil {
+		if err := srv.UpdateUserCredentials(user, user.WebAuthn.CredentialsJSON); err != nil {
 			config.Log().Error("failed to update WebAuthn credentials after usernameless login", "error", err)
-			// Don't fail login for this
 		}
 	}
+}
 
-	// Clear session from cache
+func (srv *UserService) finalizeUsernamelessLogin(user *models.User, cacheKey string) {
 	srv.cache.Delete(cacheKey)
 
-	// Update last login time and save only specific fields to avoid GORM serialization issues
 	user.LastLoggedInAt = models.CustomTime(time.Now())
-	
-	// Update only the specific fields we need to avoid GORM trying to serialize WebAuthn methods
-	_, err = srv.repository.UpdateField(user, "last_logged_in_at", user.LastLoggedInAt)
-	if err != nil {
+	if _, err := srv.repository.UpdateField(user, "last_logged_in_at", user.LastLoggedInAt); err != nil {
 		config.Log().Error("failed to update user last login time after usernameless WebAuthn login", "error", err)
-		// Don't fail login for this
 	}
 
-	// Clear user cache
 	srv.cache.Delete(user.ID)
-
-	return user, nil
 }
