@@ -2,7 +2,6 @@ package models
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -133,14 +132,10 @@ func (u *User) CredentialExcludeList() []protocol.CredentialDescriptor {
 }
 
 // AddWebAuthnCredential adds a new WebAuthn credential to the user
-func (u *User) AddWebAuthnCredential(credential *WebAuthnCredential) {
-	fmt.Printf("DEBUG: AddWebAuthnCredential - starting, current CredentialsJSON: %s\n", u.WebAuthn.CredentialsJSON)
-	fmt.Printf("DEBUG: AddWebAuthnCredential - current webAuthnCredentials length: %d\n", len(u.webAuthnCredentials))
-	
+func (u *User) AddWebAuthnCredential(credential *WebAuthnCredential) {	
 	// Load existing credentials
 	if len(u.webAuthnCredentials) == 0 && u.WebAuthn.CredentialsJSON != "" {
 		json.Unmarshal([]byte(u.WebAuthn.CredentialsJSON), &u.webAuthnCredentials)
-		fmt.Printf("DEBUG: AddWebAuthnCredential - loaded existing credentials, length: %d\n", len(u.webAuthnCredentials))
 	}
 
 	// Marshal transport
@@ -151,20 +146,14 @@ func (u *User) AddWebAuthnCredential(credential *WebAuthnCredential) {
 		}
 		transportBytes, _ := json.Marshal(transportStrings)
 		credential.TransportJSON = string(transportBytes)
-		fmt.Printf("DEBUG: AddWebAuthnCredential - marshaled transport: %s\n", credential.TransportJSON)
 	}
 
-	fmt.Printf("DEBUG: AddWebAuthnCredential - adding credential ID: %s\n", credential.ID)
-	
 	// Add to slice
 	u.webAuthnCredentials = append(u.webAuthnCredentials, *credential)
 
 	// Marshal back to JSON
 	credentialsBytes, _ := json.Marshal(u.webAuthnCredentials)
 	u.WebAuthn.CredentialsJSON = string(credentialsBytes)
-	
-	fmt.Printf("DEBUG: AddWebAuthnCredential - final CredentialsJSON length: %d\n", len(u.WebAuthn.CredentialsJSON))
-	fmt.Printf("DEBUG: AddWebAuthnCredential - final webAuthnCredentials length: %d\n", len(u.webAuthnCredentials))
 }
 
 // RemoveWebAuthnCredential removes a WebAuthn credential by credential ID

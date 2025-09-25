@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log/slog"
 	"strings"
 	"sync/atomic"
@@ -396,12 +395,8 @@ func (srv *UserService) WebAuthnFinishRegistration(user *models.User, sessionDat
 		return errors.New("WebAuthn is not enabled")
 	}
 
-	fmt.Printf("DEBUG: WebAuthnFinishRegistration - sessionData type: %T, value: %v\n", sessionData, sessionData)
-	fmt.Printf("DEBUG: WebAuthnFinishRegistration - credentialCreationResponse type: %T\n", credentialCreationResponse)
-
 	// Check if sessionData is nil
 	if sessionData == nil {
-		fmt.Printf("DEBUG: WebAuthnFinishRegistration - sessionData is nil\n")
 		return errors.New("session data is missing")
 	}
 
@@ -409,42 +404,29 @@ func (srv *UserService) WebAuthnFinishRegistration(user *models.User, sessionDat
 	sessionDataStruct := &webauthn.SessionData{}
 	sessionDataStr, ok := sessionData.(string)
 	if !ok {
-		fmt.Printf("DEBUG: WebAuthnFinishRegistration - sessionData is not a string: %T\n", sessionData)
 		return errors.New("session data must be a string")
 	}
 	
 	if err := json.Unmarshal([]byte(sessionDataStr), sessionDataStruct); err != nil {
-		fmt.Printf("DEBUG: WebAuthnFinishRegistration - session unmarshal failed: %v\n", err)
 		return fmt.Errorf("failed to unmarshal session data: %w", err)
 	}
-
-	fmt.Printf("DEBUG: WebAuthnFinishRegistration - session data parsed successfully\n")
 
 	// Verify session exists in cache
 	cacheKey := fmt.Sprintf("webauthn_session_%s", user.ID)
 	if _, found := srv.cache.Get(cacheKey); !found {
-		fmt.Printf("DEBUG: WebAuthnFinishRegistration - session not found in cache or expired\n")
 		return errors.New("session expired or invalid")
 	}
-
-	fmt.Printf("DEBUG: WebAuthnFinishRegistration - session valid\n")
 
 	// Parse credential creation response
 	ccr, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(credentialCreationResponse.([]byte)))
 	if err != nil {
-		fmt.Printf("DEBUG: WebAuthnFinishRegistration - parse credential creation response failed: %v\n", err)
 		return fmt.Errorf("failed to parse credential creation response: %w", err)
 	}
 
-	fmt.Printf("DEBUG: WebAuthnFinishRegistration - credential creation response parsed\n")
-
 	credential, err := srv.webAuthn.CreateCredential(user, *sessionDataStruct, ccr)
 	if err != nil {
-		fmt.Printf("DEBUG: WebAuthnFinishRegistration - create credential failed: %v\n", err)
 		return fmt.Errorf("failed to create credential: %w", err)
 	}
-
-	fmt.Printf("DEBUG: WebAuthnFinishRegistration - credential created successfully\n")
 
 	// Retrieve credential name from cache
 	credentialNameKey := fmt.Sprintf("webauthn_credential_name_%s", user.ID)
@@ -497,13 +479,10 @@ func (srv *UserService) WebAuthnFinishRegistration(user *models.User, sessionDat
 	srv.cache.Delete(credentialNameKey)
 
 	// Update credentials directly using UpdateField to avoid WebAuthn interface serialization issues
-	fmt.Printf("DEBUG: WebAuthnFinishRegistration - about to save credentials using UpdateField\n")
 	_, err = srv.repository.UpdateField(user, "webauthn_credentials", user.WebAuthn.CredentialsJSON)
 	if err != nil {
-		fmt.Printf("DEBUG: WebAuthnFinishRegistration - failed to save credentials: %v\n", err)
 		return fmt.Errorf("failed to save credential: %w", err)
 	}
-	fmt.Printf("DEBUG: WebAuthnFinishRegistration - credentials saved successfully\n")
 
 	// Clear cache
 	srv.cache.Delete(user.ID)

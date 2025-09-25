@@ -2,7 +2,6 @@ package routes
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -28,13 +27,10 @@ func NewWebAuthnHandler(userService services.IUserService) *WebAuthnHandler {
 }
 
 func (h *WebAuthnHandler) RegisterRoutes(router chi.Router) {
-	fmt.Printf("DEBUG: WebAuthn RegisterRoutes called, enabled: %v\n", h.config.Security.WebAuthnEnabled)
 	if !h.config.Security.WebAuthnEnabled {
-		fmt.Printf("DEBUG: WebAuthn disabled, returning early\n")
 		return
 	}
 
-	fmt.Printf("DEBUG: WebAuthn enabled, setting up routes\n")
 	webAuthnRouter := chi.NewRouter()
 	webAuthnRouter.Use(httprate.LimitByRealIP(h.config.Security.GetLoginMaxRate()))
 
@@ -113,7 +109,6 @@ func (h *WebAuthnHandler) PostRegisterFinish(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "failed to read request body", http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("DEBUG: Raw request body: %s\n", string(body))
 
 	var req struct {
 		SessionData interface{} `json:"sessionData"`
@@ -124,9 +119,6 @@ func (h *WebAuthnHandler) PostRegisterFinish(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
 		return
 	}
-
-	fmt.Printf("DEBUG: Parsed sessionData: %+v, type: %T\n", req.SessionData, req.SessionData)
-	fmt.Printf("DEBUG: Parsed response: %+v, type: %T\n", req.Response, req.Response)
 
 	conf.Log().Request(r).Info("WebAuthn registration finish - JSON decoded successfully")
 
@@ -263,9 +255,6 @@ func (h *WebAuthnHandler) GetCredentials(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	fmt.Printf("DEBUG: GetCredentials - CredentialsJSON length: %d\n", len(userWithCreds.WebAuthn.CredentialsJSON))
-	fmt.Printf("DEBUG: GetCredentials - CredentialsJSON content: %s\n", userWithCreds.WebAuthn.CredentialsJSON)
-
 	// Access the user's custom WebAuthn credentials
 	if userWithCreds.WebAuthn.CredentialsJSON == "" {
 		w.Header().Set("Content-Type", "application/json")
@@ -282,8 +271,6 @@ func (h *WebAuthnHandler) GetCredentials(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Printf("DEBUG: GetCredentials - parsed %d credentials\n", len(credentials))
 
 	// Format credentials for response
 	var credentialsResponse []map[string]interface{}
@@ -303,8 +290,6 @@ func (h *WebAuthnHandler) GetCredentials(w http.ResponseWriter, r *http.Request)
 		})
 	}
 
-	fmt.Printf("DEBUG: GetCredentials - returning %d credentials in response\n", len(credentialsResponse))
-
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"credentials": credentialsResponse,
@@ -323,8 +308,6 @@ func (h *WebAuthnHandler) DeleteCredential(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "credential ID required", http.StatusBadRequest)
 		return
 	}
-
-	fmt.Printf("DEBUG: DeleteCredential - deleting credential %s for user %s\n", credentialId, user.ID)
 
 	// Get user with WebAuthn data
 	userWithCreds, err := h.userSrvc.GetUserById(user.ID)
@@ -374,9 +357,6 @@ func (h *WebAuthnHandler) DeleteCredential(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Printf("DEBUG: DeleteCredential - successfully deleted credential %s, %d credentials remaining\n", 
-		credentialId, len(newCredentials))
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
