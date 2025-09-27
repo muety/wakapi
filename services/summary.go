@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/becheran/wildmatch-go"
+	"github.com/duke-git/lancet/v2/condition"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/leandro-lugaresi/hub"
@@ -62,7 +63,7 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f type
 	cacheKey := srv.getHash(from.String(), to.String(), user.ID, filters.Hash(), strconv.Itoa(int(requestedTimeout)), "--aliased")
 	if to.Truncate(time.Second).Equal(to) && from.Truncate(time.Second).Equal(from) {
 		if cacheResult, ok := srv.cache.Get(cacheKey); ok && !skipCache {
-			return cacheResult.(*models.Summary), nil
+			return cacheResult.(*models.Summary).Sorted().InTZ(user.TZ()), nil
 		}
 	}
 
@@ -117,7 +118,7 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 		// Get all already existing, pre-generated summaries that fall into the requested interval
 		result, err := srv.repository.GetByUserWithin(user, from, to)
 		if err == nil {
-			summaries = result
+			summaries = srv.fixZeroDuration(result)
 		} else {
 			return nil, err
 		}
@@ -144,6 +145,14 @@ func (srv *SummaryService) Retrieve(from, to time.Time, user *models.User, filte
 	summary, err := srv.mergeSummaries(summaries)
 	if err != nil {
 		return nil, err
+	}
+
+	// prevent 0001-01-01T00:00:00 caused by empty "pre" missing interval, see https://github.com/muety/wakapi/issues/843
+	summary.FromTime = models.CustomTime(condition.Ternary(summary.FromTime.T().Before(from), from, summary.FromTime.T()))
+
+	if summary.TotalTime() == 0 {
+		summary.FromTime = models.CustomTime(from)
+		summary.ToTime = models.CustomTime(to)
 	}
 
 	if filters != nil && filters.CountDistinctTypes() == 1 && filters.SelectFilteredOnly {
@@ -342,12 +351,15 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 		Categories:       make([]*models.SummaryItem, 0),
 	}
 
-	var processed = map[time.Time]bool{}
+	var processed = map[time.Time]*models.Summary{}
 
 	for i, s := range summaries {
 		hash := s.FromTime.T()
-		if _, found := processed[hash]; found {
-			slog.Warn("summary was attempted to be processed more often than once", "fromTime", s.FromTime.T(), "toTime", s.ToTime.T(), "userID", s.UserID)
+		if s2, found := processed[hash]; found {
+			if !s.ToTime.T().Equal(s2.ToTime.T()) {
+				// TODO: heuristic for which one to use (more recent one? larger interval? more heartbeats included?)
+				slog.Warn("got multiple summaries for same start date but different intervals", "id1", s.ID, "id2", s2.ID, "fromTime1", s.FromTime.T(), "fromTime2", s2.FromTime.T(), "toTime1", s.ToTime.T(), "toTime2", s2.ToTime.T(), "userID", s.UserID)
+			}
 			continue
 		}
 
@@ -361,11 +373,12 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 			return nil, errors.New("users don't match")
 		}
 
-		if s.FromTime.T().Before(minTime) {
+		totalTime := s.TotalTime()
+
+		if s.FromTime.T().Before(minTime) && totalTime > 0 { // only consider non-empty summaries
 			minTime = s.FromTime.T()
 		}
-
-		if s.ToTime.T().After(maxTime) {
+		if s.ToTime.T().After(maxTime) && totalTime > 0 { // only consider non-empty summaries
 			maxTime = s.ToTime.T()
 		}
 
@@ -380,11 +393,11 @@ func (srv *SummaryService) mergeSummaries(summaries []*models.Summary) (*models.
 		finalSummary.Categories = srv.mergeSummaryItems(finalSummary.Categories, s.Categories)
 		finalSummary.NumHeartbeats += s.NumHeartbeats
 
-		processed[hash] = true
+		processed[hash] = s
 	}
 
 	finalSummary.FromTime = models.CustomTime(minTime)
-	finalSummary.ToTime = models.CustomTime(maxTime)
+	finalSummary.ToTime = models.CustomTime(condition.Ternary(maxTime.Before(minTime), minTime, maxTime))
 
 	return finalSummary, nil
 }
@@ -468,6 +481,27 @@ func (srv *SummaryService) getMissingIntervals(from, to time.Time, summaries []*
 	}
 
 	return intervals
+}
+
+// Since summary timestamps are only second-level precision, we rarely observe examples where from- and to-time are allegedly equal.
+// We artificially modify those to give them a one second duration and potentially fix the subsequent summary as well to prevent overlaps.
+// Assumes summaries slice to be sorted by from time.
+func (s *SummaryService) fixZeroDuration(summaries []*models.Summary) []*models.Summary {
+	for i, summary := range summaries {
+		if summary.FromTime.T().Equal(summary.ToTime.T()) {
+			summary.ToTime = models.CustomTime(summary.ToTime.T().Add(1 * time.Second))
+
+			if i < len(summaries)-1 {
+				summaryNext := summaries[i+1]
+				if summaryNext.FromTime.T().Before(summary.ToTime.T()) {
+					// intentionally not trying to resolve larger overlaps that were there before (even though they shouldn't happen in theory)
+					summaryNext.FromTime = models.CustomTime(summaryNext.FromTime.T().Add(1 * time.Second))
+				}
+			}
+		}
+	}
+
+	return summaries
 }
 
 func (srv *SummaryService) getHash(args ...string) string {

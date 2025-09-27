@@ -7,6 +7,10 @@ import (
 	"github.com/duke-git/lancet/v2/datetime"
 )
 
+func UnixEra() time.Time {
+	return time.Unix(0, 0)
+}
+
 func MustParseTime(layout, value string) time.Time {
 	t, _ := time.Parse(layout, value)
 	return t

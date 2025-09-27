@@ -381,6 +381,118 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve_DuplicateSumma
 	suite.DurationService.AssertNumberOfCalls(suite.T(), "Get", 2)
 }
 
+func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve_ZeroLengthSummaries() {
+	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+
+	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return([]*models.ProjectLabel{}, nil)
+
+	var (
+		summaries []*models.Summary
+		from      time.Time
+		to        time.Time
+		result    *models.Summary
+		err       error
+	)
+
+	from, to = suite.TestStartTime.Add(-12*time.Hour), suite.TestStartTime.Add(12*time.Hour)
+	summaries = []*models.Summary{
+		{
+			ID:               uint(rand.Uint32()),
+			UserID:           TestUserId,
+			FromTime:         models.CustomTime(from.Add(10 * time.Minute)),
+			ToTime:           models.CustomTime(from.Add(10 * time.Minute)),
+			Projects:         []*models.SummaryItem{},
+			Languages:        []*models.SummaryItem{},
+			Editors:          []*models.SummaryItem{},
+			OperatingSystems: []*models.SummaryItem{},
+			Machines:         []*models.SummaryItem{},
+		},
+	}
+
+	suite.SummaryRepository.On("GetByUserWithin", suite.TestUser, from, to).Return(summaries, nil)
+	suite.DurationService.On("Get", from, summaries[0].FromTime.T(), suite.TestUser, mock.Anything, mock.Anything, false).Return(models.Durations{}, nil)
+	suite.DurationService.On("Get", summaries[0].ToTime.T().Add(1*time.Second), to, suite.TestUser, mock.Anything, mock.Anything, false).Return(models.Durations{}, nil)
+
+	result, err = sut.Retrieve(from, to, suite.TestUser, nil, nil)
+
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), result)
+	suite.DurationService.AssertNumberOfCalls(suite.T(), "Get", 2)
+}
+
+func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve_DateRange() {
+	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+
+	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return([]*models.ProjectLabel{}, nil)
+
+	var (
+		summaries []*models.Summary
+		from      time.Time
+		to        time.Time
+		result    *models.Summary
+		err       error
+	)
+
+	from, to = suite.TestStartTime.Add(-12*time.Hour), suite.TestStartTime.Add(12*time.Hour)
+	summaries = []*models.Summary{
+		{
+			ID:       uint(rand.Uint32()),
+			UserID:   TestUserId,
+			FromTime: models.CustomTime(from.Add(10 * time.Minute)),
+			ToTime:   models.CustomTime(to.Add(-10 * time.Minute)),
+			Projects: []*models.SummaryItem{
+				{
+					Type:  models.SummaryProject,
+					Key:   TestProject1,
+					Total: 45 * time.Minute / time.Second, // hack
+				},
+			},
+			Languages:        []*models.SummaryItem{},
+			Editors:          []*models.SummaryItem{},
+			OperatingSystems: []*models.SummaryItem{},
+			Machines:         []*models.SummaryItem{},
+		},
+	}
+
+	suite.SummaryRepository.On("GetByUserWithin", suite.TestUser, from, to).Return(summaries, nil)
+	suite.DurationService.On("Get", from, summaries[0].FromTime.T(), suite.TestUser, mock.Anything, mock.Anything, false).Return(models.Durations{}, nil)
+	suite.DurationService.On("Get", summaries[0].ToTime.T(), to, suite.TestUser, mock.Anything, mock.Anything, false).Return(models.Durations{}, nil)
+
+	result, err = sut.Retrieve(from, to, suite.TestUser, nil, nil)
+
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), result)
+	assert.Equal(suite.T(), summaries[0].FromTime.T(), result.FromTime.T()) // actual first data date
+	assert.Equal(suite.T(), summaries[0].ToTime.T(), result.ToTime.T())     // actual last data date
+	suite.DurationService.AssertNumberOfCalls(suite.T(), "Get", 2)
+}
+
+func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve_DateRange_NoData() {
+	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+
+	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return([]*models.ProjectLabel{}, nil)
+
+	var (
+		from   time.Time
+		to     time.Time
+		result *models.Summary
+		err    error
+	)
+
+	from, to = suite.TestStartTime.Add(-12*time.Hour), suite.TestStartTime.Add(12*time.Hour)
+
+	suite.SummaryRepository.On("GetByUserWithin", suite.TestUser, from, to).Return([]*models.Summary{}, nil)
+	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything, mock.Anything, false).Return(models.Durations{}, nil)
+
+	result, err = sut.Retrieve(from, to, suite.TestUser, nil, nil)
+
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), result)
+	assert.Equal(suite.T(), from, result.FromTime.T())
+	assert.Equal(suite.T(), to, result.ToTime.T())
+	suite.DurationService.AssertNumberOfCalls(suite.T(), "Get", 1)
+}
+
 func (suite *SummaryServiceTestSuite) TestSummaryService_Aliased() {
 	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
 

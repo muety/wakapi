@@ -29,6 +29,7 @@ tests {
   test("Correct time zone", function () {
       const targetDateTz = moment(`2021-05-28T00:00:00${bru.getCollectionVar('TZ_OFFSET')}`)
       expect(moment(res.body.from).isSame(targetDateTz)).to.eql(true)
+      expect(moment(res.body.to).isSame(targetDateTz)).to.eql(true)
   });
   
 }
