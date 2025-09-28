@@ -3,11 +3,13 @@ package utils
 import (
 	"encoding/base64"
 	"errors"
-	"github.com/alexedwards/argon2id"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
+
+	"github.com/alexedwards/argon2id"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var md5Regex = regexp.MustCompile(`^[a-f0-9]{32}$`)
@@ -84,4 +86,21 @@ func HashArgon2Id(plain, pepper string) (string, error) {
 		return hash, nil
 	}
 	return "", err
+}
+
+// totp validation
+func ValidateRecoveryCode(recoveryCodes []string, recoveryCode string) (bool, []string) {
+	if !slices.Contains(recoveryCodes, recoveryCode) {
+		return false, recoveryCodes
+	}
+
+	// invalidate recovery code on usage
+	for i, v := range recoveryCodes {
+		if v == recoveryCode {
+			recoveryCodes = append(recoveryCodes[:i], recoveryCodes[i+1:]...)
+			break
+		}
+	}
+
+	return true, recoveryCodes
 }

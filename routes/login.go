@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"slices"
 	"strings"
 	"time"
 
@@ -237,19 +236,13 @@ func (h *LoginHandler) PostTwoFactor(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// recovery code usage
 		userBackupCodes := strings.Split(user.TotpBackupCodes, ",")
-		if slices.Contains(userBackupCodes, loginTotp.RecoveryCode) == false {
+
+		valid, userBackupCodes := utils.ValidateRecoveryCode(userBackupCodes, loginTotp.RecoveryCode)
+		if !valid {
 			http.SetCookie(w, h.config.GetClearCookie(models.AuthVerifyTotpCookieKey))
 			w.WriteHeader(http.StatusUnauthorized)
 			templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("invalid recovery code"))
 			return
-		}
-
-		// remove recovery code
-		for i, v := range userBackupCodes {
-			if v == loginTotp.RecoveryCode {
-				userBackupCodes = append(userBackupCodes[:i], userBackupCodes[i+1:]...)
-				break
-			}
 		}
 
 		user.TotpBackupCodes = strings.Join(userBackupCodes, ",")
