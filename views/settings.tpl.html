@@ -238,7 +238,6 @@
             
                     <div class="w-1/3 ml-4 flex items-center justify-end">
                         {{ if .User.TotpEnabled }}
-                        <!-- <button type="submit" name="action" value="disable_totp" class="btn-disabled ml-1">Regenerate Codes</button> -->
                         <button type="submit" name="action" value="disable_totp" class="btn-danger ml-1">Disable</button>
                         {{ else if and (eq .User.TotpEnabled false) (eq .TotpSetup.Active false) }}
                         <button type="submit" name="action" value="setup_totp" class="btn-primary ml-1">Enable</button>

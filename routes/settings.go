@@ -32,6 +32,7 @@ import (
 )
 
 const criticalError = "a critical error has occurred, sorry"
+const internalServerError = "internal server error"
 
 type SettingsHandler struct {
 	config              *conf.Config
@@ -423,14 +424,14 @@ func (h *SettingsHandler) actionSetupTotp(w http.ResponseWriter, r *http.Request
 		AccountName: user.ID,
 	})
 	if err != nil {
-		return actionResult{http.StatusInternalServerError, "", "internal server error", nil}
+		return actionResult{http.StatusInternalServerError, "", internalServerError, nil}
 	}
 
 	user.TotpSecret = key.Secret()
 	user.TotpBackupCodes = ""
 
 	if _, err := h.userSrvc.Update(user); err != nil {
-		return actionResult{http.StatusInternalServerError, "", "internal server error", nil}
+		return actionResult{http.StatusInternalServerError, "", internalServerError, nil}
 	}
 
 	return actionResult{
@@ -464,14 +465,14 @@ func (h *SettingsHandler) actionEnableTotp(w http.ResponseWriter, r *http.Reques
 
 	backupCodes, err := h.generateTOTPBackupCodes(user)
 	if err != nil {
-		return actionResult{http.StatusInternalServerError, "", "internal server error", nil}
+		return actionResult{http.StatusInternalServerError, "", internalServerError, nil}
 	}
 
 	user.TotpEnabled = true
 	user.TotpBackupCodes = strings.Join(backupCodes, ",")
 
 	if _, err := h.userSrvc.Update(user); err != nil {
-		return actionResult{http.StatusInternalServerError, "", "internal server error", nil}
+		return actionResult{http.StatusInternalServerError, "", internalServerError, nil}
 	}
 
 	return actionResult{
@@ -497,7 +498,7 @@ func (h *SettingsHandler) actionDisableTotp(w http.ResponseWriter, r *http.Reque
 	user.TotpBackupCodes = ""
 
 	if _, err := h.userSrvc.Update(user); err != nil {
-		return actionResult{http.StatusInternalServerError, "", "internal server error", nil}
+		return actionResult{http.StatusInternalServerError, "", internalServerError, nil}
 	}
 
 	return actionResult{http.StatusOK, "Disabled 2FA (TOTP)", "", nil}

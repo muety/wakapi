@@ -23,6 +23,8 @@ import (
 	"github.com/pquerna/otp/totp"
 )
 
+const loginRouteTemplate = "%s/login"
+
 type LoginHandler struct {
 	config       *conf.Config
 	userSrvc     services.IUserService
@@ -127,7 +129,7 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			conf.Log().Request(r).Error("failed to encode totp process cookie", "error", err)
-			templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
+			templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError(internalServerError))
 			return
 		}
 
@@ -141,7 +143,7 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		conf.Log().Request(r).Error("failed to encode secure cookie", "error", err)
-		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError(internalServerError))
 		return
 	}
 
@@ -167,7 +169,7 @@ func (h *LoginHandler) GetTwoFactor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.SetCookie(w, h.config.GetClearCookie(models.AuthVerifyTotpCookieKey))
 
-		http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf(loginRouteTemplate, h.config.Server.BasePath), http.StatusFound)
 		return
 	}
 
@@ -188,7 +190,7 @@ func (h *LoginHandler) PostTwoFactor(w http.ResponseWriter, r *http.Request) {
 	// Validate pending TOTP token.
 	username, err := helpers.ExtractCookieAuthVerifyTotp(r, h.config)
 	if err != nil {
-		http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf(loginRouteTemplate, h.config.Server.BasePath), http.StatusFound)
 		return
 	}
 
@@ -203,7 +205,7 @@ func (h *LoginHandler) PostTwoFactor(w http.ResponseWriter, r *http.Request) {
 	if !user.TotpEnabled {
 		w.WriteHeader(http.StatusInternalServerError)
 		conf.Log().Request(r).Error("two factor disabled for user", "error", err)
-		templates[conf.LoginTotpTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
+		templates[conf.LoginTotpTemplate].Execute(w, h.buildViewModel(r, w, false).WithError(internalServerError))
 		return
 	}
 
@@ -258,7 +260,7 @@ func (h *LoginHandler) PostTwoFactor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		conf.Log().Request(r).Error("failed to encode secure cookie", "error", err)
-		templates[conf.LoginTotpTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
+		templates[conf.LoginTotpTemplate].Execute(w, h.buildViewModel(r, w, false).WithError(internalServerError))
 		return
 	}
 
@@ -453,7 +455,7 @@ func (h *LoginHandler) PostSetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	routeutils.SetSuccess(r, w, "password updated successfully")
-	http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf(loginRouteTemplate, h.config.Server.BasePath), http.StatusFound)
 }
 
 func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request) {
