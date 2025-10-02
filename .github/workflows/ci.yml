@@ -12,10 +12,10 @@ jobs:
       contents: read
     steps:
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Set up Go 1.x
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: ^1.25
       id: go
@@ -47,14 +47,14 @@ jobs:
 
     steps:
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Set up Go 1.x
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: ^1.25
       id: go
 
     - run: npm install -g @usebruno/cli
-    
+
     - run: ./testing/run_api_tests.sh ${{ matrix.db }} --migration
