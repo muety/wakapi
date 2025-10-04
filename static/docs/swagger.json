@@ -1348,7 +1348,7 @@
                     }
                 },
                 "projects": {
-                    "description": "Previously, all the following properties created a cascade foreign key constraint on the summary_items table\nback to this summary table resulting in 5 identical foreign key constraints on the summary_items table.\nThis is not a problem for PostgreSQL, MySQL and SQLite, but for MSSQL, which complains about circular cascades on\nupdate/delete between these two tables. All of these created foreign key constraints are identical, so only one constraint is enough.\nMySQL will create a foreign key constraint for every property referencing other structs, even no constraint is specified in tags.\nSo explicitly set gorm:\"-\" in all other properties to avoid creating duplicate foreign key constraints",
+                    "description": "Previously, all the following properties created a cascade foreign key constraint on the summary_items table\nback to this summary table resulting in 5 identical foreign key constraints on the summary_items table.\nThis is not a problem for PostgreSQL, MySQL and SQLite, but for MSSQL (not supported anymore though), which complains about circular cascades on\nupdate/delete between these two tables. All of these created foreign key constraints are identical, so only one constraint is enough.\nMySQL will create a foreign key constraint for every property referencing other structs, even no constraint is specified in tags.\nSo explicitly set gorm:\"-\" in all other properties to avoid creating duplicate foreign key constraints",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.SummaryItem"

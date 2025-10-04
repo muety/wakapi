@@ -192,9 +192,8 @@ func (srv *DurationService) getLive(from, to time.Time, user *models.User, inter
 	// Aggregation
 	// The below logic is approximately (no filtering, no "same day"-check) equivalent to the SQL query at scripts/aggregate_durations_mysql.sql.
 	// A Postgres-compatible script was contributed by @cwilby and is available at scripts/aggregate_durations_postgres.sql
-	// I'm hesitant to replicate that logic for sqlite and mssql too (because probably painful to impossible), but we could
-	// think about adding a distinction here to use pure-sql aggregation for MySQL and Postgres, and traditional, programmatic
-	// aggregation for all other databases.
+	// I'm hesitant to replicate that logic for sqlite (because probably painful to impossible), but we could think about
+	// adding a distinction here to use pure-sql aggregation for MySQL and Postgres, and traditional, programmatic aggregation for all other databases.
 	var count int
 	var latest *models.Duration
 

@@ -92,19 +92,3 @@ func Test_sqliteConnectionString(t *testing.T) {
 	assert.True(t, strings.HasPrefix(sqliteConnectionString(c), c.Name))
 	assert.Contains(t, strings.ToLower(sqliteConnectionString(c)), "journal_mode=wal")
 }
-
-func Test_mssqlConnectionString(t *testing.T) {
-	c := &dbConfig{
-		Name:     "dbinstance",
-		Host:     "test_host",
-		Port:     1433,
-		User:     "test_user",
-		Password: "test_password",
-		Dialect:  "mssql",
-		Ssl:      true,
-	}
-
-	assert.Equal(t,
-		"sqlserver://test_user:test_password@test_host:1433?database=dbinstance&encrypt=true",
-		mssqlConnectionString(c))
-}

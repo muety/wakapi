@@ -43,7 +43,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        db: [sqlite, postgres, mysql, mariadb, mssql]
+        db: [sqlite, postgres, mysql, mariadb]
 
     steps:
     - name: Check out code into the Go module directory

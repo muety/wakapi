@@ -525,6 +525,10 @@ func Load(configFlag string, version string) *Config {
 	if config.Db.Type == "cockroach" {
 		slog.Warn("cockroach is not officially supported, it is strongly recommended to migrate to postgres instead")
 	}
+	if config.Db.IsMssql() {
+		slog.Error("mssql is not supported anymore, sorry")
+		os.Exit(1)
+	}
 
 	hashKey := securecookie.GenerateRandomKey(64)
 	blockKey := securecookie.GenerateRandomKey(32)

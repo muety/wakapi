@@ -296,11 +296,6 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 		sql.Named("offset", offset),
 	}
 
-	limitOffsetClause := "limit @limit offset @offset"
-	if r.config.Db.IsMssql() {
-		limitOffsetClause = "offset @offset ROWS fetch next @limit rows only"
-	}
-
 	query := `
 			with project_stats as (
 				select
@@ -340,7 +335,7 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 			order by ps.last desc
 	`
 
-	query += limitOffsetClause
+	query += "limit @limit offset @offset"
 
 	if err := r.db.
 		Raw(query, args...).

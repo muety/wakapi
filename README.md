@@ -206,7 +206,7 @@ You can specify configuration options either via a config file (default: `config
 | `db.user` /<br> `WAKAPI_DB_USER`                                                            | -                                                | Database user                                                                                                                                                                   |
 | `db.password` /<br> `WAKAPI_DB_PASSWORD`                                                    | -                                                | Database password                                                                                                                                                               |
 | `db.name` /<br> `WAKAPI_DB_NAME`                                                            | `wakapi_db.db`                                   | Database name                                                                                                                                                                   |
-| `db.dialect` /<br> `WAKAPI_DB_TYPE`                                                         | `sqlite3`                                        | Database type (one of `sqlite3`, `mysql`, `postgres`, `mssql`)                                                                                                                  |
+| `db.dialect` /<br> `WAKAPI_DB_TYPE`                                                         | `sqlite3`                                        | Database type (one of `sqlite3`, `mysql`, `postgres`)                                                                                                                  |
 | `db.charset` /<br> `WAKAPI_DB_CHARSET`                                                      | `utf8mb4`                                        | Database connection charset (for MySQL only)                                                                                                                                    |
 | `db.max_conn` /<br> `WAKAPI_DB_MAX_CONNECTIONS`                                             | `2`                                              | Maximum number of database connections                                                                                                                                          |
 | `db.ssl` /<br> `WAKAPI_DB_SSL`                                                              | `false`                                          | Whether to use TLS encryption for database connection (Postgres only)                                                                                                           |
@@ -238,7 +238,6 @@ Wakapi uses [GORM](https://gorm.io) as an ORM. As a consequence, a set of differ
 * [MySQL](https://hub.docker.com/_/mysql) (_recommended, because most extensively tested_)
 * [MariaDB](https://hub.docker.com/_/mariadb) (_open-source MySQL alternative_)
 * [Postgres](https://hub.docker.com/_/postgres) (_open-source as well_)
-* [Microsoft SQL Server](https://hub.docker.com/_/microsoft-mssql-server) (_Microsoft SQL Server_)
 
 ## 🔐 Authentication
 

@@ -2,12 +2,10 @@ package config
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 )
 
@@ -65,8 +63,6 @@ func (c *dbConfig) GetDialector() gorm.Dialector {
 		})
 	case SQLDialectSqlite:
 		return sqlite.Open(sqliteConnectionString(c))
-	case SQLDialectMssql:
-		return sqlserver.Open(mssqlConnectionString(c))
 	}
 
 	return nil
@@ -119,22 +115,4 @@ func postgresConnectionString(config *dbConfig) string {
 
 func sqliteConnectionString(config *dbConfig) string {
 	return fmt.Sprintf("%s?busy_timeout=10000&journal_mode=wal", config.Name)
-}
-
-func mssqlConnectionString(config *dbConfig) string {
-	query := url.Values{}
-	query.Add("database", config.Name)
-
-	if config.Ssl {
-		query.Add("encrypt", "true")
-	}
-
-	u := &url.URL{
-		Scheme:   "sqlserver",
-		User:     url.UserPassword(config.User, config.Password),
-		Host:     fmt.Sprintf("%s:%d", config.Host, config.Port),
-		RawQuery: query.Encode(),
-	}
-
-	return u.String()
 }
