@@ -15,7 +15,11 @@ func SetPrincipal(r *http.Request, user *models.User) {
 }
 
 func GetPrincipal(r *http.Request) *models.User {
-	if p := r.Context().Value(config.MiddlewareKeySharedData).(*config.SharedData); p != nil {
+	sharedData := r.Context().Value(config.MiddlewareKeySharedData)
+	if sharedData == nil {
+		return nil
+	}
+	if p := sharedData.(*config.SharedData); p != nil {
 		val := p.MustGet(config.MiddlewareKeyPrincipal)
 		if val == nil {
 			return nil

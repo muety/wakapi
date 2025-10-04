@@ -111,7 +111,11 @@ func initSentry(config sentryConfig, debug bool, releaseVersion string) {
 
 // returns a user id
 func getPrincipal(r *http.Request) string {
-	val := r.Context().Value(MiddlewareKeySharedData).(*SharedData).MustGet(MiddlewareKeyPrincipalId)
+	sharedData := r.Context().Value(MiddlewareKeySharedData)
+	if sharedData == nil {
+		return ""
+	}
+	val := sharedData.(*SharedData).MustGet(MiddlewareKeyPrincipalId)
 	if val == nil {
 		return ""
 	}
