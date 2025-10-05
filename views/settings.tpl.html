@@ -132,11 +132,12 @@
                 </div>
             </form>
 
+            <!-- Password -->
+            {{ if eq .User.AuthType "local" }}
             <div class="w-full md:w-3/4">
                 <hr class="border-t border-focused my-4">
             </div>
 
-            <!-- Password -->
             <form class="w-full md:w-3/4" action="" method="post">
                 <input type="hidden" name="action" value="change_password">
 
@@ -182,6 +183,7 @@
                     </button>
                 </div>
             </form>
+            {{ end }}
 
             {{ if .InvitesEnabled }}
             <div class="w-full md:w-3/4">

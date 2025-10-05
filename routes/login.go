@@ -330,6 +330,13 @@ func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request)
 	}
 
 	if user, err := h.userSrvc.GetUserByEmail(resetRequest.Email); user != nil && err == nil {
+		if user.AuthType != "local" {
+			conf.Log().Request(r).Warn("non-local user tried to reset password", "user", user.ID)
+			w.WriteHeader(http.StatusInternalServerError)
+			templates[conf.ResetPasswordTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("failed to proceed with password reset"))
+			return
+		}
+
 		if u, err := h.userSrvc.GenerateResetToken(user); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			conf.Log().Request(r).Error("failed to generate password reset token", "error", err)

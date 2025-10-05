@@ -243,6 +243,10 @@ func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Re
 
 	user := middlewares.GetPrincipal(r)
 
+	if user.AuthType != "local" {
+		return actionResult{http.StatusBadRequest, "", "cannot reset password for non-local user", nil}
+	}
+
 	var credentials models.CredentialsReset
 	if err := r.ParseForm(); err != nil {
 		return actionResult{http.StatusBadRequest, "", "missing parameters", nil}
