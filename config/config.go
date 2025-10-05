@@ -134,7 +134,7 @@ type securityConfig struct {
 	PasswordResetMaxRate         string                     `yaml:"password_reset_max_rate" default:"5/1h" env:"WAKAPI_PASSWORD_RESET_MAX_RATE"`
 	SecureCookie                 *securecookie.SecureCookie `yaml:"-"`
 	SessionKey                   []byte                     `yaml:"-"`
-	OidcProviders                []oidcProviderConfig       `yaml:"oidc"` // TODO(oidc): support to read from env.
+	OidcProviders                []oidcProviderConfig       `yaml:"oidc"` // TODO: support to read from env.
 	trustReverseProxyIpsParsed   []net.IPNet
 }
 

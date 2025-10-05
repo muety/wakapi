@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/dchest/captcha"
+	"github.com/duke-git/lancet/v2/random"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httprate"
 	conf "github.com/muety/wakapi/config"
@@ -408,18 +409,40 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.userSrvc.GetUserByOidc(provider.Name, idTokenPayload.Subject)
 	if err != nil {
-		// TODO(oidc): implement user creation
-		// simply use random (thus impossible) password to prevent user from logging in with password
-		// prompt new username, prefilled with preferred_username
+		// create new user account
+		if !h.config.IsDev() && !h.config.Security.AllowSignup {
+			routeutils.SetError(r, w, "registration is disabled on this server")
+			http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
+			return
+		}
+
+		signup := models.SignupFromOidcIdToken(idTokenPayload)
+		if !signup.IsValid() {
+			routeutils.SetError(r, w, "invalid parameters (invalid username?)")
+			http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
+			return
+		}
+
+		if newUsername := h.coalesceExistingUser(signup.Username); newUsername != signup.Username {
+			conf.Log().Request(r).Warn("username from id token already exist, using suffixed one instead", "username", newUsername)
+			signup.Username = newUsername
+		}
+
 		conf.Log().Request(r).Info("creating new user from successful oidc authentication",
-			"provider", provider.Name,
-			"preferred_username", idTokenPayload.PreferredUsername,
-			"email", idTokenPayload.Email, "sub",
-			idTokenPayload.Subject,
+			"provider", signup.OidcProvider,
+			"username", signup.Username,
+			"email", signup.Email,
+			"sub", signup.OidcSubject,
 		)
-		routeutils.SetError(r, w, "user login failed")
-		http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
-		return
+
+		newUser, created, err := h.userSrvc.CreateOrGet(signup, false)
+		if err != nil || !created {
+			conf.Log().Request(r).Error("failed to create new user", "error", err)
+			routeutils.SetError(r, w, "failed to create new user")
+			http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
+			return
+		}
+		user = newUser
 	}
 
 	h.finishUserLogin(user, r, w)
@@ -468,4 +491,11 @@ func (h *LoginHandler) finishUserLogin(user *models.User, r *http.Request, w htt
 	h.userSrvc.Update(user)
 
 	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded))
+}
+
+func (h *LoginHandler) coalesceExistingUser(username string) string {
+	if u, _ := h.userSrvc.GetUserById(username); u != nil {
+		return fmt.Sprintf("%s-%s", username, strings.ToLower(random.RandString(6)))
+	}
+	return username
 }

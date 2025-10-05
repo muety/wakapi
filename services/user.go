@@ -225,6 +225,8 @@ func (srv *UserService) CreateOrGet(signup *models.Signup, isAdmin bool) (*model
 		Password:  signup.Password,
 		IsAdmin:   isAdmin,
 		InvitedBy: signup.InvitedBy,
+		AuthType:  signup.OidcProvider, // empty for local auth, will fallback to column default value
+		Sub:       signup.OidcSubject,
 	}
 
 	if hash, err := utils.HashPassword(u.Password, srv.config.Security.PasswordSalt); err != nil {

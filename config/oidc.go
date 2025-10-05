@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -20,6 +21,7 @@ type IdTokenPayload struct {
 	Subject           string `json:"sub"`
 	Expiry            int64  `json:"exp"`
 	Name              string `json:"name"`
+	Nickname          string `json:"nickname"`
 	PreferredUsername string `json:"preferred_username"`
 	Email             string `json:"email"`
 	EmailVerified     bool   `json:"email_verified"`
@@ -34,6 +36,20 @@ func (token *IdTokenPayload) IsValid() bool {
 	return token.Exp().After(time.Now())
 }
 
+func (token *IdTokenPayload) Username() string {
+	// https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+	if s := strings.TrimSpace(token.PreferredUsername); s != "" {
+		return s
+	}
+	if s := strings.TrimSpace(token.Nickname); s != "" {
+		return s
+	}
+	if s := strings.TrimSpace(token.Subject); s != "" {
+		return s
+	}
+	return ""
+}
+
 var oidcProviders = make(map[string]*OidcProvider)
 
 func RegisterOidcProvider(providerCfg *oidcProviderConfig) {
@@ -41,7 +57,7 @@ func RegisterOidcProvider(providerCfg *oidcProviderConfig) {
 
 	provider, err := oidc.NewProvider(context.Background(), providerCfg.Endpoint)
 	if err != nil {
-		Log().Fatal(fmt.Sprintf("failed to initialize oidc provider at %s", providerCfg.Endpoint), err)
+		Log().Fatal(fmt.Sprintf("failed to initialize oidc provider at %s", providerCfg.Endpoint), "error", err)
 		return
 	}
 

@@ -251,6 +251,9 @@ Wakapi supports different types of user authentication.
     * Must be enabled via `trusted_header_auth` and configuring `trust_reverse_proxy_ip` in the config
     * Warning: This type of authentication is quite prone to misconfiguration. Make sure that your reverse proxy properly strips relevant headers from client requests.
 
+### Single Sign-On / OpenID Connect
+Wakapi supports login via external identity providers via OpenID Connect. See [our wiki](https://github.com/muety/wakapi/wiki/OpenID-Connect-login-(SSO)) for details. 
+
 ## 🔧 API endpoints
 
 See our [Swagger API Documentation](https://wakapi.dev/swagger-ui).

@@ -98,6 +98,7 @@ security:
   signup_max_rate: 5/1h                     # signup endpoint rate limit pattern
   login_max_rate: 10/1m                     # login endpoint rate limit pattern
   password_reset_max_rate: 5/1h             # password reset endpoint rate limit pattern
+  oidc:                                     # list of openid connect providers available for user signup and login, see https://github.com/muety/wakapi/wiki/OpenID-Connect-login-(SSO)
 
 sentry:
   dsn:                                # leave blank to disable sentry integration
