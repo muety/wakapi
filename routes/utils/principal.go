@@ -8,14 +8,14 @@ import (
 )
 
 func SetPrincipal(r *http.Request, user *models.User) {
-	if p := r.Context().Value(config.MiddlewareKeySharedData).(*config.SharedData); p != nil {
+	if p := r.Context().Value(config.KeySharedData).(*config.SharedData); p != nil {
 		p.Set(config.MiddlewareKeyPrincipal, user)
 		p.Set(config.MiddlewareKeyPrincipalId, user.Identity())
 	}
 }
 
 func GetPrincipal(r *http.Request) *models.User {
-	sharedData := r.Context().Value(config.MiddlewareKeySharedData)
+	sharedData := r.Context().Value(config.KeySharedData)
 	if sharedData == nil {
 		return nil
 	}

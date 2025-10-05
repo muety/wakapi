@@ -530,7 +530,7 @@ func Load(configFlag string, version string) *Config {
 	InitLogger(config.IsDev())
 
 	config.Version = strings.TrimSpace(version)
-	tagVersionMatch, _ := regexp.MatchString(`\d+\.\d+\.\d+`, version)
+	tagVersionMatch, _ := regexp.MatchString(`\d+\.\d+\.\d+`, config.Version)
 	if tagVersionMatch {
 		config.Version = "v" + config.Version
 	}

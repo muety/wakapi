@@ -8,6 +8,7 @@ require (
 	github.com/alexedwards/argon2id v1.0.0
 	github.com/alitto/pond/v2 v2.5.0
 	github.com/cespare/xxhash/v2 v2.3.0
+	github.com/coreos/go-oidc/v3 v3.16.0
 	github.com/dchest/captcha v1.1.0
 	github.com/duke-git/lancet/v2 v2.3.7
 	github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6
@@ -36,6 +37,7 @@ require (
 	github.com/swaggo/swag v1.16.6
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.42.0
+	golang.org/x/oauth2 v0.31.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/driver/sqlserver v1.6.1
@@ -43,6 +45,7 @@ require (
 )
 
 require (
+	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
 	github.com/go-openapi/swag/conv v0.25.1 // indirect
 	github.com/go-openapi/swag/jsonname v0.25.1 // indirect
 	github.com/go-openapi/swag/jsonutils v0.25.1 // indirect

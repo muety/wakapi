@@ -111,9 +111,9 @@ func initSentry(config sentryConfig, debug bool, releaseVersion string) {
 
 // returns a user id
 func getPrincipal(r *http.Request) string {
-	sharedData := r.Context().Value(MiddlewareKeySharedData)
+	sharedData := r.Context().Value(KeySharedData)
 	if sharedData == nil {
-		Log().Request(r).Error("request shared data not set while retrieving principal for sentry logging")
+		Log().Error("request shared data not set while retrieving principal for sentry logging")
 		return ""
 	}
 	val := sharedData.(*SharedData).MustGet(MiddlewareKeyPrincipalId)

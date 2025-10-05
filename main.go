@@ -124,7 +124,7 @@ func main() {
 	// Configure Swagger docs
 	docs.SwaggerInfo.BasePath = config.Server.BasePath + "/api"
 
-	slog.Info("Wakapi", "version", version)
+	slog.Info("Wakapi", "version", config.Version)
 
 	// Set up GORM
 	gormLogger := logger.New(
