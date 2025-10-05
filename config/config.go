@@ -43,7 +43,7 @@ const (
 	CookieKeySession               = "wakapi_session"
 	CookieKeyAuth                  = "wakapi_auth"
 	SessionValueOidcState          = "oidc_state"
-	SessionValueOidcIdTokenPayload = "oidc_state"
+	SessionValueOidcIdTokenPayload = "oidc_id_token"
 
 	SimpleDateFormat     = "2006-01-02"
 	SimpleDateTimeFormat = "2006-01-02 15:04:05"
@@ -420,6 +420,12 @@ func (c *securityConfig) GetOidcProvider(name string) (*OidcProvider, error) {
 	return GetOidcProvider(name)
 }
 
+func (c *securityConfig) ListOidcProviders() []string {
+	return slice.Map[oidcProviderConfig, string](c.OidcProviders, func(i int, provider oidcProviderConfig) string {
+		return provider.Name
+	})
+}
+
 func (c *securityConfig) parseRate(rate string) (int, time.Duration) {
 	pattern := regexp.MustCompile("(\\d+)/(\\d+)([smh])")
 	matches := pattern.FindStringSubmatch(rate)
@@ -672,6 +678,6 @@ func initOpenIDConnect(config *Config) {
 	// openid connect
 	for _, c := range config.Security.OidcProviders {
 		RegisterOidcProvider(&c)
-		slog.Info("registered openid connection", "provider", c.Name)
+		slog.Info("registered openid connect provider", "provider", c.Name)
 	}
 }

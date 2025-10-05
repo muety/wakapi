@@ -77,8 +77,6 @@ func (h *LoginHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO(oidc): render configured login provider options
-
 	templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false))
 }
 
@@ -436,6 +434,7 @@ func (h *LoginHandler) buildViewModel(r *http.Request, w http.ResponseWriter, wi
 		TotalUsers:      int(numUsers),
 		AllowSignup:     h.config.IsDev() || h.config.Security.AllowSignup,
 		InviteCode:      r.URL.Query().Get("invite"),
+		OidcProviders:   h.config.Security.ListOidcProviders(),
 	}
 
 	if withCaptcha {

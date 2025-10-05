@@ -85,6 +85,12 @@ let icons = [
     'mdi:filter',
     'mdi:invite',
     'octicon:info-16',
+    'devicon-plain:codeberg',
+    'devicon-plain:google',
+    'devicon-plain:gitlab',
+    'devicon-plain:okta',
+    'devicon-plain:facebook',
+    'mdi:microsoft',
 ]
 
 const output = path.normalize(path.join(__dirname, '../static/assets/js/icons.dist.js'))

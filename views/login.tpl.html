@@ -44,6 +44,22 @@
                 </div>
             </div>
         </form>
+
+        {{ if len .OidcProviders }}
+        <div class="mt-10">
+            <div class="font-semibold mb-2">Single Sign-On</div>
+            {{ range $provider := .OidcProviders }}
+            <a href="oidc/{{ $provider | lower }}/login" class="block">
+                <button type="button" class="btn-default w-full flex items-center gap-2 justify-center">
+                    {{ if $.OidcProviderIcon $provider }}
+                    <span class="iconify inline text-white text-base" data-icon="{{ ($.OidcProviderIcon $provider) | urlSafe }}"></span>
+                    {{ end }}
+                    Sign up with {{ $provider | capitalize }}
+                </button>
+            </a>
+            {{ end }}
+        </div>
+        {{ end }}
     </div>
 </main>
 
