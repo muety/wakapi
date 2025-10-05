@@ -227,6 +227,9 @@ func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Reques
 	user.PublicLeaderboard = payload.PublicLeaderboard
 
 	if _, err := h.userSrvc.Update(user); err != nil {
+		if strings.Contains(err.Error(), "email address already in use") {
+			return actionResult{http.StatusBadRequest, "", "got invalid user data (email already taken?)", nil}
+		}
 		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
 	}
 
