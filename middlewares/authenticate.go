@@ -75,6 +75,8 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	var user *models.User
 
 	if m.tryHandleOidc(w, r) {
+		// user has expired oidc token, thus is redirected to provider and will come back to callback endpoint
+		// notably, if user does have a valid, non-expired id token, they will also have a valid auth cookie, so proceed as usual
 		return
 	}
 
@@ -219,7 +221,7 @@ func (m *AuthenticateMiddleware) tryHandleOidc(w http.ResponseWriter, r *http.Re
 		return false
 	}
 
-	if !idToken.IsValid() {
+	if !idToken.IsValid() { // expired
 		provider, err := m.config.Security.GetOidcProvider(idToken.ProviderName)
 		if err != nil {
 			conf.Log().Request(r).Error("failed to get provider from id token", "provider", idToken.ProviderName, "sub", idToken.Subject)

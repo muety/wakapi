@@ -128,8 +128,8 @@ func (h *LoginHandler) PostLogout(w http.ResponseWriter, r *http.Request) {
 	if user := middlewares.GetPrincipal(r); user != nil {
 		h.userSrvc.FlushUserCache(user.ID)
 	}
-	routeutils.ClearSession(r, w)
-	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey))
+	routeutils.ClearSession(r, w)                                    // clear all session data
+	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey)) // clear auth token
 	http.Redirect(w, r, fmt.Sprintf("%s/", h.config.Server.BasePath), http.StatusFound)
 }
 
@@ -213,7 +213,7 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		conf.Log().Request(r).Error("failed to create new user", "error", err)
-		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("failed to create new user"))
+		templates[conf.SignupTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("failed to create new user (username or e-mail already existing?)"))
 		return
 	}
 	if !created {
@@ -361,7 +361,7 @@ func (h *LoginHandler) PostResetPassword(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *LoginHandler) GetOidcLogin(w http.ResponseWriter, r *http.Request) {
-	provider := h.getOpenIdConnect(w, r)
+	provider := h.getOidcProvider(w, r)
 	if provider == nil {
 		return // redirect done in previous method
 	}
@@ -370,13 +370,16 @@ func (h *LoginHandler) GetOidcLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
-	provider := h.getOpenIdConnect(w, r)
+	provider := h.getOidcProvider(w, r)
 	if provider == nil {
 		return // redirect done in previous method
 	}
 
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
+
+	// clear any existing id token on the session, just because
+	routeutils.ClearOidcIdTokenPayload(r, w)
 
 	// validate oauth state param
 	savedState := routeutils.GetOidcState(r)
@@ -412,7 +415,6 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
-	routeutils.SetOidcIdTokenPayload(idTokenPayload, r, w) // save to session, only used by middleware for automatic redirection upon expiry
 
 	user, err := h.userSrvc.GetUserByOidc(provider.Name, idTokenPayload.Subject)
 	if err != nil {
@@ -445,13 +447,14 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 		newUser, created, err := h.userSrvc.CreateOrGet(signup, false)
 		if err != nil || !created {
 			conf.Log().Request(r).Error("failed to create new user", "error", err)
-			routeutils.SetError(r, w, "failed to create new user")
+			routeutils.SetError(r, w, "failed to create new user (username or e-mail already existing?)")
 			http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
 			return
 		}
 		user = newUser
 	}
 
+	routeutils.SetOidcIdTokenPayload(idTokenPayload, r, w) // save to session, only used by middleware for automatic redirection upon expiry
 	h.finishUserLogin(user, r, w)
 	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 }
@@ -474,7 +477,7 @@ func (h *LoginHandler) buildViewModel(r *http.Request, w http.ResponseWriter, wi
 	return routeutils.WithSessionMessages(vm, r, w)
 }
 
-func (h *LoginHandler) getOpenIdConnect(w http.ResponseWriter, r *http.Request) *conf.OidcProvider {
+func (h *LoginHandler) getOidcProvider(w http.ResponseWriter, r *http.Request) *conf.OidcProvider {
 	providerName := chi.URLParam(r, "provider")
 	provider, err := conf.GetOidcProvider(providerName)
 	if err != nil {

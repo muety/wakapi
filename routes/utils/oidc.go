@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/duke-git/lancet/v2/random"
@@ -65,6 +66,12 @@ func GetOidcIdTokenPayload(r *http.Request) *conf.IdTokenPayload {
 	return &payload
 }
 
+func ClearOidcIdTokenPayload(r *http.Request, w http.ResponseWriter) {
+	session, _ := conf.GetSessionStore().Get(r, conf.CookieKeySession)
+	delete(session.Values, conf.SessionValueOidcIdTokenPayload)
+	session.Save(r, w)
+}
+
 func DecodeOidcIdToken(token string, provider *conf.OidcProvider, ctx context.Context) (*conf.IdTokenPayload, error) {
 	idToken, err := provider.Verifier.Verify(ctx, token)
 	if err != nil {
@@ -72,8 +79,10 @@ func DecodeOidcIdToken(token string, provider *conf.OidcProvider, ctx context.Co
 	}
 
 	var payload conf.IdTokenPayload
-	if err := idToken.Claims(&payload); err != nil || !payload.IsValid() {
+	if err := idToken.Claims(&payload); err != nil {
 		return nil, err
+	} else if !payload.IsValid() {
+		return nil, errors.New("invalid oidc id token payload")
 	}
 	payload.ProviderName = provider.Name
 
