@@ -205,10 +205,10 @@ type SMTPMailConfig struct {
 }
 
 type oidcProviderConfig struct {
-	Name         string `yaml:"name" env:"WAKAPI_OIDC_PROVIDERS_0_NAME"`
-	ClientID     string `yaml:"client_id"`
-	ClientSecret string `yaml:"client_secret"`
-	Endpoint     string `yaml:"endpoint"` // base url from which auto-discovery (.well-known/openid-configuration) can be found
+	Name         string `yaml:"name" env:"WAKAPI_OIDC_PROVIDER_NAME"`
+	ClientID     string `yaml:"client_id" env:"WAKAPI_OIDC_PROVIDER_CLIENT_ID"`
+	ClientSecret string `yaml:"client_secret" env:"WAKAPI_OIDC_PROVIDER_CLIENT_SECRET"`
+	Endpoint     string `yaml:"endpoint" env:"WAKAPI_OIDC_PROVIDER_ENDPOINT"` // base url from which auto-discovery (.well-known/openid-configuration) can be found
 }
 
 type Config struct {

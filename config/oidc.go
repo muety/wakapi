@@ -25,7 +25,7 @@ type IdTokenPayload struct {
 	PreferredUsername string `json:"preferred_username"`
 	Email             string `json:"email"`
 	EmailVerified     bool   `json:"email_verified"`
-	ProviderName      string `json:"-"`
+	ProviderName      string `json:"provider_name"` // custom field, not part of actual id token response
 }
 
 func (token *IdTokenPayload) Exp() time.Time {

@@ -34,6 +34,9 @@ func (m *UserServiceMock) GetUserByResetToken(s string) (*models.User, error) {
 
 func (m *UserServiceMock) GetUserByOidc(s1, s2 string) (*models.User, error) {
 	args := m.Called(s1, s2)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*models.User), args.Error(1)
 }
 

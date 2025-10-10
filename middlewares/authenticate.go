@@ -215,6 +215,7 @@ func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.Us
 }
 
 // redirect if oidc id token was found, but expired
+// returns true if further authentication can be skipped
 func (m *AuthenticateMiddleware) tryHandleOidc(w http.ResponseWriter, r *http.Request) bool {
 	idToken := routeutils.GetOidcIdTokenPayload(r)
 	if idToken == nil {
