@@ -97,7 +97,7 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("missing parameters"))
 		return
 	}
-	if err := loginDecoder.Decode(&login, r.PostForm); err != nil {
+	if err := loginDecoder.Decode(&login, r.PostForm); err != nil || login.Username == "" || login.Password == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("missing parameters"))
 		return
@@ -178,14 +178,16 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 	var invitedDate time.Time
 	var inviteCodeKey = fmt.Sprintf("%s_%s", conf.KeyInviteCode, signup.InviteCode)
 
-	if kv, _ := h.keyValueSrvc.GetString(inviteCodeKey); kv != nil && kv.Value != "" {
-		if parts := strings.Split(kv.Value, ","); len(parts) == 2 {
-			invitedBy = parts[0]
-			invitedDate, _ = time.Parse(time.RFC3339, parts[1])
-		}
+	if signup.InviteCode != "" {
+		if kv, _ := h.keyValueSrvc.GetString(inviteCodeKey); kv != nil && kv.Value != "" {
+			if parts := strings.Split(kv.Value, ","); len(parts) == 2 {
+				invitedBy = parts[0]
+				invitedDate, _ = time.Parse(time.RFC3339, parts[1])
+			}
 
-		if err := h.keyValueSrvc.DeleteString(inviteCodeKey); err != nil {
-			conf.Log().Error("failed to revoke invite code", "inviteCodeKey", inviteCodeKey, "error", err)
+			if err := h.keyValueSrvc.DeleteString(inviteCodeKey); err != nil {
+				conf.Log().Error("failed to revoke invite code", "inviteCodeKey", inviteCodeKey, "error", err)
+			}
 		}
 	}
 
@@ -383,7 +385,7 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 
 	// validate oauth state param
 	savedState := routeutils.GetOidcState(r)
-	if savedState != state {
+	if state == "" || savedState != state {
 		errMsg := "suspicious operation, got invalid state in oidc callback"
 		conf.Log().Request(r).Error(errMsg, "saved_state", savedState, "state", state, "provider", provider.Name)
 		routeutils.SetError(r, w, errMsg)

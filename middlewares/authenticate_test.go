@@ -278,6 +278,7 @@ func TestAuthenticateMiddleware_tryHandleOidc_InvalidToken_ExistingUser(t *testi
 	var testUser = &models.User{ID: "testuser"}
 
 	oidcMock, _ := mockoidc.Run()
+	defer oidcMock.Shutdown()
 
 	cfg := config.Empty()
 	config.Set(cfg)
@@ -312,6 +313,7 @@ func TestAuthenticateMiddleware_tryHandleOidc_InvalidToken_NonExistingUser(t *te
 	)
 
 	oidcMock, _ := mockoidc.Run()
+	defer oidcMock.Shutdown()
 
 	cfg := config.Empty()
 	config.Set(cfg)

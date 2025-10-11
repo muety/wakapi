@@ -242,7 +242,7 @@ func (c *SetPasswordRequest) IsValid() bool {
 func (s *Signup) IsValid() bool {
 	config := conf.Get()
 
-	captchaValid := s.OidcProvider != ""
+	captchaValid := s.OidcProvider != "" || !config.Security.SignupCaptcha
 	if !captchaValid && config.Security.SignupCaptcha {
 		captchaValid = ValidateCaptcha(s.CaptchaId, s.Captcha)
 	}

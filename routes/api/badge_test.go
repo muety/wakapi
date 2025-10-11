@@ -1,13 +1,6 @@
 package api
 
 import (
-	"github.com/go-chi/chi/v5"
-	"github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/middlewares"
-	"github.com/muety/wakapi/mocks"
-	"github.com/muety/wakapi/models"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -15,6 +8,15 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/middlewares"
+	"github.com/muety/wakapi/mocks"
+	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/routes"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -61,7 +63,7 @@ func TestBadgeHandler_Get(t *testing.T) {
 			rec := httptest.NewRecorder()
 
 			req := httptest.NewRequest(http.MethodGet, "/api/badge/{user}/interval:week/language:go", nil)
-			req = withUrlParam(req, "user", "user1")
+			req = routes.WithUrlParam(req, "user", "user1")
 
 			router.ServeHTTP(rec, req)
 			res := rec.Result()
@@ -82,7 +84,7 @@ func TestBadgeHandler_Get(t *testing.T) {
 			rec := httptest.NewRecorder()
 
 			req := httptest.NewRequest(http.MethodGet, "/api/badge/{user}/interval:last_year/language:go", nil)
-			req = withUrlParam(req, "user", "user1")
+			req = routes.WithUrlParam(req, "user", "user1")
 
 			router.ServeHTTP(rec, req)
 			res := rec.Result()
@@ -102,7 +104,7 @@ func TestBadgeHandler_Get(t *testing.T) {
 			rec := httptest.NewRecorder()
 
 			req := httptest.NewRequest(http.MethodGet, "/api/badge/{user}/interval:year/project:foo", nil)
-			req = withUrlParam(req, "user", "user1")
+			req = routes.WithUrlParam(req, "user", "user1")
 
 			router.ServeHTTP(rec, req)
 			res := rec.Result()
