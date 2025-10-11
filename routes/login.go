@@ -397,7 +397,9 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 	// exchange auth code for access token and id token
 	authToken, err := provider.OAuth2.Exchange(r.Context(), code)
 	if err != nil {
-		routeutils.SetError(r, w, "failed to exchange authorization code for access token")
+		errMsg := "failed to exchange authorization code for access token"
+		conf.Log().Request(r).Error(errMsg, "provider", provider.Name)
+		routeutils.SetError(r, w, errMsg)
 		http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
@@ -405,7 +407,9 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 	// extract id token
 	rawIdToken, ok := authToken.Extra("id_token").(string)
 	if !ok {
-		routeutils.SetError(r, w, "failed to extract id_token")
+		errMsg := "failed to extract id_token"
+		conf.Log().Request(r).Error(errMsg, "provider", provider.Name)
+		routeutils.SetError(r, w, errMsg)
 		http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
@@ -413,7 +417,9 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 	// verify id token
 	idTokenPayload, err := routeutils.DecodeOidcIdToken(rawIdToken, provider, r.Context())
 	if err != nil || idTokenPayload == nil {
-		routeutils.SetError(r, w, "failed to verify and decode id_token")
+		errMsg := "failed to verify and decode id_token"
+		conf.Log().Request(r).Error(errMsg, "provider", provider.Name, "id_token", rawIdToken) // save to log, because does not grant any access
+		routeutils.SetError(r, w, errMsg)
 		http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
 		return
 	}
@@ -435,11 +441,11 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if newUsername := h.coalesceExistingUser(signup.Username); newUsername != signup.Username {
-			conf.Log().Request(r).Warn("username from id token already exist, using suffixed one instead", "username", newUsername)
+			slog.Warn("username from id token already exist, using suffixed one instead", "username", newUsername)
 			signup.Username = newUsername
 		}
 
-		conf.Log().Request(r).Info("creating new user from successful oidc authentication",
+		slog.Info("creating new user from successful oidc authentication",
 			"provider", signup.OidcProvider,
 			"username", signup.Username,
 			"email", signup.Email,
@@ -448,7 +454,7 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 
 		newUser, created, err := h.userSrvc.CreateOrGet(signup, false)
 		if err != nil || !created {
-			conf.Log().Request(r).Error("failed to create new user", "error", err)
+			conf.Log().Request(r).Error("failed to create new user", "error", err, "provider", signup.OidcProvider, "username", signup.Username, "email", signup.Email)
 			routeutils.SetError(r, w, "failed to create new user (username or e-mail already existing?)")
 			http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
 			return
