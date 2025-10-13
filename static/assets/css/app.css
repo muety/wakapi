@@ -181,7 +181,7 @@ main {
 }
 
 .entity-filter-control {
-    width: 180px; 
+    width: 180px;
     @apply text-foreground text-sm;
 }
 
@@ -227,8 +227,16 @@ main {
     }
 }
 
-@media print {
+#time-picker-dropdown kbd {
+    border: rgb(var(--muted)) 1px solid;
+    border-radius: .25rem;
+    padding: 0 8px;
+    font-weight: normal;
+    font-size: x-small;
+    margin-left: 8px;
+}
 
+@media print {
     /* Avoid the element from being breaked */
     .no-break {
         page-break-inside: avoid;

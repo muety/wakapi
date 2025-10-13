@@ -66,7 +66,7 @@
         <div class="flex-shrink-1 sm:flex-shrink-0" v-scope="TimePicker({
             fromDate: '{{ .From | simpledate }}',
             toDate: '{{ .To | ceildate | simpledate }}',
-            timeSelection: '{{ .From | datetime }} - {{ .To | ceildate | datetime }}'
+            timeSelection: '{{ .From | date }} - {{ .To | ceildate | date }}'
         })" @vue:mounted="mounted"></div>
     </div>
 

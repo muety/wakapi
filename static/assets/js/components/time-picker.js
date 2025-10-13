@@ -25,8 +25,15 @@ function TimePicker({ fromDate, toDate, timeSelection }) {
             const query = new URLSearchParams(window.location.search)
             if (query.has('interval')) {
                 const refEl = document.getElementById(`time-option-${query.get('interval')}`)
-                this.timeSelection = refEl ? refEl.innerText : 'Unknown'
+                this.timeSelection = refEl ? refEl.childNodes[0].textContent : 'Unknown'
             }
+
+            // Time picker keyboard shortcuts
+            document.addEventListener('keyup', e => {
+                if (e.target !== document.body) return
+                const optionEl = document.querySelector(`a[data-hotkey="${e.key}"]`)
+                if (optionEl) optionEl.click()
+            })
         }
     }
 }
