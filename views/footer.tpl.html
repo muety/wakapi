@@ -3,9 +3,13 @@
         {{ getVersion }} @ {{ getDbType }}
     </div>
     <div class="font-semibold text-sm">
-        Made with &nbsp; <span class="iconify inline" data-icon="bi:heart-fill"></span>&nbsp; by
-        <a href="https://muetsch.io" class="text-secondary hover:text-foreground">Ferdinand Mütsch</a> as
-        <a href="https://github.com/muety/wakapi" class="text-secondary hover:text-foreground">open-source</a> software
+        Made with &nbsp; <span class="iconify inline" data-icon="bi:heart-fill"></span>&nbsp; by <a href="https://muetsch.io" target="_blank" class="text-secondary hover:text-foreground">Ferdi</a>
+        <span>&nbsp;|&nbsp;</span>
+        Open source on &nbsp; <a href="https://github.com/muety/wakapi" target="_blank" rel="noreferrer noopener"><span class="iconify inline text-secondary hover:text-foreground" data-icon="codicon:github-inverted"></span></a>
+        {{ if eq getPublicUrl "https://wakapi.dev" }}
+        <span>&nbsp;|&nbsp;</span>
+        Hosted securely in &nbsp; <span class="iconify inline" data-icon="twemoji:flag-germany"></span>
+        {{ end }}
     </div>
     <div class="text-sm">
         <a href="imprint" class="font-semibold hover:text-secondary">Imprint, Cookies & Data Privacy</a>
