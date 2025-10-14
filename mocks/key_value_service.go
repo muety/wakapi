@@ -3,6 +3,7 @@ package mocks
 import (
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 )
 
 type KeyValueServiceMock struct {
@@ -31,6 +32,21 @@ func (m *KeyValueServiceMock) PutString(v *models.KeyStringValue) error {
 
 func (m *KeyValueServiceMock) DeleteString(s string) error {
 	args := m.Called(s)
+	return args.Error(0)
+}
+
+func (m *KeyValueServiceMock) DeleteStringTx(s string, d *gorm.DB) error {
+	args := m.Called(s, d)
+	return args.Error(0)
+}
+
+func (m *KeyValueServiceMock) DeleteWildcard(s string) error {
+	args := m.Called(s)
+	return args.Error(0)
+}
+
+func (m *KeyValueServiceMock) DeleteWildcardTx(s string, d *gorm.DB) error {
+	args := m.Called(s, d)
 	return args.Error(0)
 }
 

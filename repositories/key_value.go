@@ -3,6 +3,7 @@ package repositories
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
@@ -65,18 +66,30 @@ func (r *KeyValueRepository) PutString(kv *models.KeyStringValue) error {
 }
 
 func (r *KeyValueRepository) DeleteString(key string) error {
-	result := r.db.
-		Delete(&models.KeyStringValue{}, &models.KeyStringValue{Key: key})
+	return r.DeleteStringTx(key, r.db)
+}
+
+func (r *KeyValueRepository) DeleteStringTx(key string, tx *gorm.DB) error {
+	result := tx.Delete(&models.KeyStringValue{}, &models.KeyStringValue{Key: key})
 
 	if err := result.Error; err != nil {
 		return err
 	}
-
 	if result.RowsAffected != 1 {
 		return errors.New("nothing deleted")
 	}
 
 	return nil
+}
+
+func (r *KeyValueRepository) DeleteWildcard(pattern string) error {
+	return r.DeleteWildcardTx(pattern, r.db)
+}
+
+func (r *KeyValueRepository) DeleteWildcardTx(pattern string, tx *gorm.DB) error {
+	return tx.
+		Where(utils.QuoteSql(r.db, "%s like ?", "key"), strings.ReplaceAll(pattern, "*", "%")).
+		Delete(&models.KeyStringValue{}).Error
 }
 
 // ReplaceKeySuffix will search for key-value pairs whose key ends with suffixOld and replace it with suffixNew instead.

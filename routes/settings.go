@@ -785,7 +785,7 @@ func (h *SettingsHandler) actionDeleteUser(w http.ResponseWriter, r *http.Reques
 	user := middlewares.GetPrincipal(r)
 	go func(user *models.User, r *http.Request) {
 		slog.Info("deleting user shortly", "userID", user.ID)
-		time.Sleep(5 * time.Minute)
+		//time.Sleep(5 * time.Minute)
 		if err := h.userSrvc.Delete(user); err != nil {
 			conf.Log().Request(r).Error("failed to delete user", "userID", user.ID, "error", err)
 		} else {

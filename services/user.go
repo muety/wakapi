@@ -17,6 +17,7 @@ import (
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
+	"gorm.io/gorm"
 )
 
 type UserService struct {
@@ -305,9 +306,18 @@ func (srv *UserService) Delete(user *models.User) error {
 
 	user.ReportsWeekly = false
 	srv.notifyUpdate(user)
-	srv.notifyDelete(user)
 
-	return srv.repository.Delete(user)
+	return srv.repository.RunInTx(func(tx *gorm.DB) error {
+		if err := srv.repository.DeleteTx(user, tx); err != nil {
+			return err
+		}
+		if err := srv.keyValueService.DeleteWildcardTx(fmt.Sprintf("*_%s", user.ID), tx); err != nil {
+			return err
+		}
+
+		srv.notifyDelete(user)
+		return nil
+	})
 }
 
 func (srv *UserService) MapUsersById(users []*models.User) map[string]*models.User {

@@ -190,7 +190,11 @@ func (r *UserRepository) UpdateField(user *models.User, key string, value interf
 }
 
 func (r *UserRepository) Delete(user *models.User) error {
-	return r.db.Delete(user).Error
+	return r.DeleteTx(user, r.db)
+}
+
+func (r *UserRepository) DeleteTx(user *models.User, tx *gorm.DB) error {
+	return tx.Delete(user).Error
 }
 
 func (r *UserRepository) getByLoggedIn(t time.Time, after bool) ([]*models.User, error) {

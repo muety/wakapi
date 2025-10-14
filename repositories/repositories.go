@@ -4,12 +4,14 @@ import (
 	"time"
 
 	"github.com/muety/wakapi/models"
+	"gorm.io/gorm"
 )
 
 type IBaseRepository interface {
 	GetDialector() string
 	GetTableDDLMysql(string) (string, error)
 	GetTableDDLSqlite(string) (string, error)
+	RunInTx(func(*gorm.DB) error) error
 	VacuumOrOptimize()
 }
 
@@ -75,6 +77,9 @@ type IKeyValueRepository interface {
 	GetString(string) (*models.KeyStringValue, error)
 	PutString(*models.KeyStringValue) error
 	DeleteString(string) error
+	DeleteStringTx(string, *gorm.DB) error
+	DeleteWildcard(string) error
+	DeleteWildcardTx(string, *gorm.DB) error
 	Search(string) ([]*models.KeyStringValue, error)
 	ReplaceKeySuffix(string, string) error
 }
@@ -123,6 +128,7 @@ type IUserRepository interface {
 	Update(*models.User) (*models.User, error)
 	UpdateField(*models.User, string, interface{}) (*models.User, error)
 	Delete(*models.User) error
+	DeleteTx(*models.User, *gorm.DB) error
 }
 
 type ILeaderboardRepository interface {

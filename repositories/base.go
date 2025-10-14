@@ -49,6 +49,10 @@ func (r *BaseRepository) GetTableDDLSqlite(tableName string) (result string, err
 	return result, err
 }
 
+func (r *BaseRepository) RunInTx(f func(tx *gorm.DB) error) error {
+	return r.db.Transaction(f)
+}
+
 func (r *BaseRepository) VacuumOrOptimize() {
 	// sqlite and postgres require manual vacuuming regularly to reclaim free storage from deleted records
 	// see https://www.postgresql.org/docs/current/sql-vacuum.html and https://www.sqlite.org/lang_vacuum.html

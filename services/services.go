@@ -7,6 +7,7 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/utils"
+	"gorm.io/gorm"
 )
 
 type IAggregationService interface {
@@ -68,6 +69,9 @@ type IKeyValueService interface {
 	GetByPrefix(string) ([]*models.KeyStringValue, error)
 	PutString(*models.KeyStringValue) error
 	DeleteString(string) error
+	DeleteStringTx(string, *gorm.DB) error
+	DeleteWildcard(string) error
+	DeleteWildcardTx(string, *gorm.DB) error
 	ReplaceKeySuffix(string, string) error
 }
 
