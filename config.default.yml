@@ -116,9 +116,9 @@ subscriptions:
   standard_price_id:
 
 mail:
-  enabled: true                         # whether to enable mails (used for password resets, reports, etc.)
+  enabled: false                         # whether to enable mails (used for password resets, reports, etc.)
   provider: smtp                        # method for sending mails, currently one of ['smtp']
-  sender: Wakapi <noreply@wakapi.dev>
+  sender: Wakapi <wakapi@example.org>   # email sender -> replace with valid email address!
   skip_verify_mx_record: false          # whether to skip validating mx dns record for user email addresses
 
   # smtp settings when sending mails via smtp

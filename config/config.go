@@ -188,7 +188,7 @@ type sentryConfig struct {
 }
 
 type mailConfig struct {
-	Enabled            bool           `env:"WAKAPI_MAIL_ENABLED" default:"true"`
+	Enabled            bool           `env:"WAKAPI_MAIL_ENABLED" default:"false"`
 	Provider           string         `env:"WAKAPI_MAIL_PROVIDER" default:"smtp"`
 	Smtp               SMTPMailConfig `yaml:"smtp"`
 	Sender             string         `env:"WAKAPI_MAIL_SENDER" yaml:"sender"`
@@ -605,6 +605,9 @@ func Load(configFlag string, version string) *Config {
 	}
 	if config.Mail.Provider != "" && utils.FindString(config.Mail.Provider, emailProviders, "") == "" {
 		Log().Fatal("unknown mail provider", "provider", config.Mail.Provider)
+	}
+	if config.Mail.Enabled && config.Mail.Sender == "" {
+		Log().Fatal("mail sender is required")
 	}
 	if _, err := time.ParseDuration(config.App.HeartbeatMaxAge); err != nil {
 		Log().Fatal("invalid duration set for heartbeat_max_age")
