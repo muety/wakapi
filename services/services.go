@@ -150,6 +150,7 @@ type IUserService interface {
 	GetUserByKey(string) (*models.User, error)
 	GetUserByEmail(string) (*models.User, error)
 	GetUserByResetToken(string) (*models.User, error)
+	GetUserByUnsubscribeToken(string) (*models.User, error)
 	GetUserByStripeCustomerId(string) (*models.User, error)
 	GetUserByOidc(string, string) (*models.User, error)
 	GetAll() ([]*models.User, error)
@@ -168,6 +169,7 @@ type IUserService interface {
 	ResetApiKey(*models.User) (*models.User, error)
 	SetWakatimeApiCredentials(*models.User, string, string) (*models.User, error)
 	GenerateResetToken(*models.User) (*models.User, error)
+	GenerateUnsubscribeToken(*models.User) (*models.User, error)
 	FlushCache()
 	FlushUserCache(string)
 }

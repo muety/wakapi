@@ -128,6 +128,13 @@ func (srv *UserService) GetUserByResetToken(resetToken string) (*models.User, er
 	return srv.repository.FindOne(models.User{ResetToken: resetToken})
 }
 
+func (srv *UserService) GetUserByUnsubscribeToken(unsubscribeToken string) (*models.User, error) {
+	if unsubscribeToken == "" {
+		return nil, errors.New("unsubscribe token must not be empty")
+	}
+	return srv.repository.FindOne(models.User{UnsubscribeToken: unsubscribeToken})
+}
+
 func (srv *UserService) GetUserByStripeCustomerId(customerId string) (*models.User, error) {
 	if customerId == "" {
 		return nil, errors.New("customer id must not be empty")
@@ -299,6 +306,10 @@ func (srv *UserService) SetWakatimeApiCredentials(user *models.User, apiKey stri
 
 func (srv *UserService) GenerateResetToken(user *models.User) (*models.User, error) {
 	return srv.repository.UpdateField(user, "reset_token", uuid.Must(uuid.NewV4()))
+}
+
+func (srv *UserService) GenerateUnsubscribeToken(user *models.User) (*models.User, error) {
+	return srv.repository.UpdateField(user, "unsubscribe_token", uuid.Must(uuid.NewV4()))
 }
 
 func (srv *UserService) Delete(user *models.User) error {

@@ -46,6 +46,7 @@ type User struct {
 	WakatimeApiKey         string      `json:"-"` // for relay middleware and imports
 	WakatimeApiUrl         string      `json:"-"` // for relay middleware and imports
 	ResetToken             string      `json:"-"`
+	UnsubscribeToken       string      `json:"-"`
 	ReportsWeekly          bool        `json:"-" gorm:"default:false; type:bool"`
 	PublicLeaderboard      bool        `json:"-" gorm:"default:false; type:bool"`
 	SubscribedUntil        *CustomTime `json:"-" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
@@ -227,6 +228,10 @@ func (u *User) MinDataAge() time.Time {
 
 func (u *User) AnyDataShared() bool {
 	return u.ShareDataMaxDays != 0 && (u.ShareEditors || u.ShareLanguages || u.ShareProjects || u.ShareOSs || u.ShareMachines || u.ShareLabels)
+}
+
+func (u *User) UnsubscribeLink() string {
+	return fmt.Sprintf("%s/unsubscribe?token=%s", conf.Get().Server.GetPublicUrl(), u.UnsubscribeToken)
 }
 
 func (c *CredentialsReset) IsValid() bool {

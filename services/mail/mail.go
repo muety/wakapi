@@ -3,13 +3,14 @@ package mail
 import (
 	"bytes"
 	"fmt"
+	"time"
+
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/routes"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"github.com/muety/wakapi/views/mail"
-	"time"
 
 	conf "github.com/muety/wakapi/config"
 )
@@ -114,9 +115,10 @@ func (m *MailService) SendReport(recipient *models.User, report *models.Report) 
 		return err
 	}
 	mail := &models.Mail{
-		From:    models.MailAddress(m.config.Mail.Sender),
-		To:      models.MailAddresses([]models.MailAddress{models.MailAddress(recipient.Email)}),
-		Subject: fmt.Sprintf(subjectReport, helpers.FormatDateHuman(time.Now().In(recipient.TZ()))),
+		From:            models.MailAddress(m.config.Mail.Sender),
+		To:              models.MailAddresses([]models.MailAddress{models.MailAddress(recipient.Email)}),
+		Subject:         fmt.Sprintf(subjectReport, helpers.FormatDateHuman(time.Now().In(recipient.TZ()))),
+		LinkUnsubscribe: recipient.UnsubscribeLink(),
 	}
 	mail.WithHTML(tpl.String())
 	return m.sendingService.Send(mail)

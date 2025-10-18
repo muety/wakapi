@@ -152,6 +152,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"wakatime_api_url":         user.WakatimeApiUrl,
 		"has_data":                 user.HasData,
 		"reset_token":              user.ResetToken,
+		"unsubscribe_token":        user.UnsubscribeToken,
 		"location":                 user.Location,
 		"start_of_week":            user.StartOfWeek,
 		"reports_weekly":           user.ReportsWeekly,

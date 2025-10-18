@@ -32,6 +32,11 @@ func (m *UserServiceMock) GetUserByResetToken(s string) (*models.User, error) {
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
+func (m *UserServiceMock) GetUserByUnsubscribeToken(s string) (*models.User, error) {
+	args := m.Called(s)
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
 func (m *UserServiceMock) GetUserByOidc(s1, s2 string) (*models.User, error) {
 	args := m.Called(s1, s2)
 	if args.Get(0) == nil {
@@ -116,6 +121,11 @@ func (m *UserServiceMock) SetWakatimeApiCredentials(user *models.User, s1, s2 st
 }
 
 func (m *UserServiceMock) GenerateResetToken(user *models.User) (*models.User, error) {
+	args := m.Called(user)
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
+func (m *UserServiceMock) GenerateUnsubscribeToken(user *models.User) (*models.User, error) {
 	args := m.Called(user)
 	return args.Get(0).(*models.User), args.Error(1)
 }

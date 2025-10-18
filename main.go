@@ -240,6 +240,7 @@ func main() {
 	loginHandler := routes.NewLoginHandler(userService, mailService, keyValueService)
 	imprintHandler := routes.NewImprintHandler(keyValueService)
 	leaderboardHandler := condition.Ternary[bool, routes.Handler](config.App.LeaderboardEnabled, routes.NewLeaderboardHandler(userService, leaderboardService), routes.NewNoopHandler())
+	miscHandler := routes.NewMiscHandler(userService)
 
 	// Other Handlers
 	relayHandler := relay.NewRelayHandler()
@@ -283,6 +284,7 @@ func main() {
 	settingsHandler.RegisterRoutes(rootRouter)
 	subscriptionHandler.RegisterRoutes(rootRouter)
 	relayHandler.RegisterRoutes(rootRouter)
+	miscHandler.RegisterRoutes(rootRouter)
 
 	// API route registrations
 	rootApiHandler.RegisterRoutes(apiRouter)

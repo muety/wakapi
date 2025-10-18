@@ -1,6 +1,10 @@
 package services
 
 import (
+	"log/slog"
+	"math/rand"
+	"time"
+
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/leandro-lugaresi/hub"
@@ -8,9 +12,6 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
-	"log/slog"
-	"math/rand"
-	"time"
 )
 
 // delay between evey report generation task (to throttle email sending frequency)
@@ -122,6 +123,15 @@ func (srv *ReportService) SendReport(user *models.User, duration time.Duration) 
 		summary.FromTime = models.CustomTime(from)
 		summary.ToTime = models.CustomTime(to.Add(-1 * time.Second))
 		dailySummaries[i] = summary
+	}
+
+	if user.UnsubscribeToken == "" {
+		if _, err := srv.userService.GenerateUnsubscribeToken(user); err != nil {
+			config.Log().Error("failed to unsubscribe reset token for user", "user", user.ID, "error", err)
+			return err
+		} else {
+			slog.Info("generated new report unsubscribe token for user", "user", user.ID)
+		}
 	}
 
 	report := &models.Report{
