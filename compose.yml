@@ -1,10 +1,16 @@
 services:
   wakapi:
-    build: .
+    build:
+      context: .
+      target: build-env
     init: true
     ports:
       - 3000:3000
+      - 4000:4000
+      - 4001:4001
     restart: unless-stopped
+    volumes:
+      - .:/src/
     environment:
       # See README.md and config.default.yml for all config options
       WAKAPI_DB_TYPE: "postgres"
@@ -12,49 +18,51 @@ services:
       WAKAPI_DB_USER: "wakapi"
       WAKAPI_DB_HOST: "db"
       WAKAPI_DB_PORT: "5432"
-      WAKAPI_DB_PASSWORD_FILE: "/run/secrets/db_password"       # alternatively, set WAKAPI_DB_PASSWORD directly without the use of secrets
-      WAKAPI_PASSWORD_SALT_FILE: "/run/secrets/password_salt"   # alternatively, set WAKAPI_PASSWORD_SALT directly without the use of secrets
-      WAKAPI_MAIL_SMTP_PASS_FILE: "/run/secrets/smtp_pass"      # alternatively, set WAKAPI_MAIL_SMTP_PASS directly without the use of secrets
-    secrets:
-      - source: password_salt
-        target: password_salt
-        uid: '1000'
-        gid: '1000'
-        mode: '0400'
+      WAKAPI_DB_PASSWORD: "wakapi"       # alternatively, set WAKAPI_DB_PASSWORD directly without the use of secrets
+      WAKAPI_PASSWORD_SALT: "wakapi"   # alternatively, set WAKAPI_PASSWORD_SALT directly without the use of secrets
+      WAKAPI_MAIL_SMTP_PASS: "wakapi"      # alternatively, set WAKAPI_MAIL_SMTP_PASS directly without the use of secrets
+    # secrets:
+    #   - source: password_salt
+    #     target: password_salt
+    #     uid: '1000'
+    #     gid: '1000'
+    #     mode: '0400'
 
-      - source: smtp_pass
-        target: smtp_pass
-        uid: '1000'
-        gid: '1000'
-        mode: '0400'
+    #   - source: smtp_pass
+    #     target: smtp_pass
+    #     uid: '1000'
+    #     gid: '1000'
+    #     mode: '0400'
 
-      - source: db_password
-        target: db_password
-        uid: '1000'
-        gid: '1000'
-        mode: '0400'
+    #   - source: db_password
+    #     target: db_password
+    #     uid: '1000'
+    #     gid: '1000'
+    #     mode: '0400'
 
   db:
     image: postgres:17
     restart: unless-stopped
+    ports:
+      - 5432:5432
     environment:
       POSTGRES_USER: "wakapi"
-      POSTGRES_PASSWORD_FILE: "/run/secrets/db_password"        # alternatively, set POSTGRES_PASSWORD directly without the use of secrets
+      POSTGRES_PASSWORD: "wakapi"        # alternatively, set POSTGRES_PASSWORD directly without the use of secrets
       POSTGRES_DB: "wakapi"
     volumes:
       - wakapi-db-data:/var/lib/postgresql/data
-    secrets:
-      - db_password
+    # secrets:
+    #   - db_password
 
 # secrets can be defined either from a local file or from an environment variable defined on the client host (the one that runs `docker compose` command)
 # see https://docs.docker.com/compose/how-tos/use-secrets/ for details
-secrets:
-  password_salt:
-    environment: WAKAPI_PASSWORD_SALT
-  smtp_pass:
-    environment: WAKAPI_MAIL_SMTP_PASS
-  db_password:
-    environment: WAKAPI_DB_PASSWORD
+# secrets:
+#   password_salt:
+#     environment: WAKAPI_PASSWORD_SALT
+#   smtp_pass:
+#     environment: WAKAPI_MAIL_SMTP_PASS
+#   db_password:
+#     environment: WAKAPI_DB_PASSWORD
 
 volumes:
   wakapi-db-data: {}

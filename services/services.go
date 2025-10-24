@@ -4,10 +4,11 @@ import (
 	"time"
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
+	"gorm.io/gorm"
+
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/utils"
-	"gorm.io/gorm"
 )
 
 type IAggregationService interface {
@@ -148,6 +149,7 @@ type ILeaderboardService interface {
 type IUserService interface {
 	GetUserById(string) (*models.User, error)
 	GetUserByKey(string) (*models.User, error)
+	GetUserByRWKey(string) (*models.User, error)
 	GetUserByEmail(string) (*models.User, error)
 	GetUserByResetToken(string) (*models.User, error)
 	GetUserByUnsubscribeToken(string) (*models.User, error)
@@ -172,4 +174,13 @@ type IUserService interface {
 	GenerateUnsubscribeToken(*models.User) (*models.User, error)
 	FlushCache()
 	FlushUserCache(string)
+}
+
+type IApiKeyService interface {
+	GetById(uint) (*models.ApiKey, error)
+	GetByApiKey(string) (*models.ApiKey, error)
+	GetByRWApiKey(string) (*models.ApiKey, error)
+	GetByUser(string) ([]*models.ApiKey, error)
+	Create(*models.ApiKey) (*models.ApiKey, error)
+	Delete(*models.ApiKey) error
 }

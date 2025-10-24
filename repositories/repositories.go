@@ -3,8 +3,9 @@ package repositories
 import (
 	"time"
 
-	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
+
+	"github.com/muety/wakapi/models"
 )
 
 type IBaseRepository interface {
@@ -141,4 +142,15 @@ type ILeaderboardRepository interface {
 	GetAll() ([]*models.LeaderboardItem, error)
 	GetAllAggregatedByInterval(*models.IntervalKey, *uint8, int, int) ([]*models.LeaderboardItemRanked, error)
 	GetAggregatedByUserAndInterval(string, *models.IntervalKey, *uint8, int, int) ([]*models.LeaderboardItemRanked, error)
+}
+
+type IApiKeyRepository interface {
+	IBaseRepository
+	GetAll() ([]*models.ApiKey, error)
+	GetById(uint) (*models.ApiKey, error)
+	GetByUser(string) ([]*models.ApiKey, error)
+	GetByApiKey(string) (*models.ApiKey, error)
+	GetByRWApiKey(string) (*models.ApiKey, error)
+	Insert(*models.ApiKey) (*models.ApiKey, error)
+	Delete(uint) error
 }

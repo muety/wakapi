@@ -2,13 +2,15 @@ package services
 
 import (
 	"errors"
+	"time"
+
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/leandro-lugaresi/hub"
+	"github.com/patrickmn/go-cache"
+
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
-	"github.com/patrickmn/go-cache"
-	"time"
 )
 
 type ProjectLabelService struct {

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"strconv"
 	"time"
@@ -37,8 +38,6 @@ import (
 	"github.com/muety/wakapi/services/mail"
 	"github.com/muety/wakapi/static/docs"
 	fsutils "github.com/muety/wakapi/utils/fs"
-
-	_ "net/http/pprof"
 )
 
 // Embed version.txt
@@ -68,6 +67,7 @@ var (
 	diagnosticsRepository     repositories.IDiagnosticsRepository
 	metricsRepository         *repositories.MetricsRepository
 	durationRepository        *repositories.DurationRepository
+	apiKeyRepository          repositories.IApiKeyRepository
 )
 
 var (
@@ -87,6 +87,7 @@ var (
 	diagnosticsService     services.IDiagnosticsService
 	housekeepingService    services.IHousekeepingService
 	miscService            services.IMiscService
+	apiKeyService          services.IApiKeyService
 )
 
 // TODO: Refactor entire project to be structured after business domains
@@ -108,7 +109,7 @@ var (
 
 // @securitydefinitions.apikey ApiKeyAuth
 // @in header
-// @name Authorization
+// @name Authorizatio
 
 func main() {
 	var versionFlag = flag.Bool("version", false, "print version")
@@ -120,6 +121,7 @@ func main() {
 		os.Exit(0)
 	}
 	config = conf.Load(*configFlag, version)
+	slog.Info("loaded configuration", "configFile", *configFlag)
 
 	// Configure Swagger docs
 	docs.SwaggerInfo.BasePath = config.Server.BasePath + "/api"
@@ -172,12 +174,14 @@ func main() {
 	diagnosticsRepository = repositories.NewDiagnosticsRepository(db)
 	metricsRepository = repositories.NewMetricsRepository(db)
 	durationRepository = repositories.NewDurationRepository(db)
+	apiKeyRepository = repositories.NewApiKeyRepository(db)
 
 	// Services
 	mailService = mail.NewMailService()
 	aliasService = services.NewAliasService(aliasRepository)
 	keyValueService = services.NewKeyValueService(keyValueRepository)
-	userService = services.NewUserService(keyValueService, mailService, userRepository)
+	apiKeyService = services.NewApiKeyService(apiKeyRepository)
+	userService = services.NewUserService(keyValueService, mailService, apiKeyService, userRepository)
 	languageMappingService = services.NewLanguageMappingService(languageMappingRepository)
 	projectLabelService = services.NewProjectLabelService(projectLabelRepository)
 	heartbeatService = services.NewHeartbeatService(heartbeatRepository, languageMappingService)
@@ -233,7 +237,7 @@ func main() {
 
 	// MVC Handlers
 	summaryHandler := routes.NewSummaryHandler(summaryService, userService, heartbeatService, durationService, aliasService)
-	settingsHandler := routes.NewSettingsHandler(userService, heartbeatService, durationService, summaryService, aliasService, aggregationService, languageMappingService, projectLabelService, keyValueService, mailService)
+	settingsHandler := routes.NewSettingsHandler(userService, heartbeatService, durationService, summaryService, aliasService, aggregationService, languageMappingService, projectLabelService, keyValueService, mailService, apiKeyService)
 	subscriptionHandler := routes.NewSubscriptionHandler(userService, mailService, keyValueService)
 	projectsHandler := routes.NewProjectsHandler(userService, heartbeatService)
 	homeHandler := routes.NewHomeHandler(userService, keyValueService)

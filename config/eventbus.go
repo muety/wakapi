@@ -18,6 +18,8 @@ const (
 	EventProjectLabelDelete      = "project_label.delete"
 	EventWakatimeFailure         = "wakatime.failure"
 	EventLanguageMappingsChanged = "language_mappings.changed"
+	EventApiKeyCreate            = "api_key.create"
+	EventApiKeyDelete            = "api_key.delete"
 	FieldPayload                 = "payload"
 	FieldUser                    = "user"
 	FieldUserId                  = "user.id"
