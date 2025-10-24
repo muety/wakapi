@@ -1,6 +1,8 @@
 package config
 
 import (
+	"net/http"
+
 	"github.com/gorilla/sessions"
 )
 
@@ -9,10 +11,17 @@ import (
 var sessionStore *sessions.CookieStore
 
 func NewSessionStore() *sessions.CookieStore {
-	return sessions.NewCookieStore(
+	store := sessions.NewCookieStore(
 		Get().Security.SessionKey,
 		Get().Security.SessionKey,
 	)
+
+	if Get().Security.InsecureCookies {
+		store.Options.SameSite = http.SameSiteStrictMode
+		store.Options.Secure = false
+	}
+
+	return store
 }
 
 func GetSessionStore() *sessions.CookieStore {

@@ -557,9 +557,12 @@ func Load(configFlag string, version string) *Config {
 	sessionKey := securecookie.GenerateRandomKey(32)
 
 	if IsDev(env) {
-		slog.Warn("using temporary keys to sign and encrypt cookies in dev mode, make sure to set env to production for real-world use")
+		slog.Warn("⚠️ using temporary keys to sign and encrypt cookies in dev mode, make sure to set env to production for real-world use")
 		hashKey, blockKey = getTemporarySecureKeys()
 		blockKey = hashKey
+	}
+	if config.Security.InsecureCookies {
+		slog.Warn("⚠️ it is strongly advised NOT to use insecure cookies, are you sure about this setting?")
 	}
 
 	config.Security.SecureCookie = securecookie.New(hashKey, blockKey)
