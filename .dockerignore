@@ -1,5 +1,5 @@
 .env
-config*.yml
+!config*.yml
 !config.default.yml
 *.db
 *.exe

@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -12,15 +13,13 @@ import (
 	"time"
 
 	"github.com/duke-git/lancet/v2/slice"
-
-	"log/slog"
-
 	"github.com/gofrs/uuid/v5"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
+	"github.com/robfig/cron/v3"
+
 	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/utils"
-	"github.com/robfig/cron/v3"
 )
 
 const (
@@ -544,6 +543,7 @@ func Load(configFlag string, version string) *Config {
 	config.InstanceId = uuid.Must(uuid.NewV4()).String()
 	config.App.Colors = readColors()
 	config.Db.Dialect = resolveDbDialect(config.Db.Type)
+	slog.Info("loaded configuration", "environment", config.Env, "version", config.Version, "db_dialect", config.Db.Type)
 	if config.Db.Type == "cockroach" {
 		slog.Warn("cockroach is not officially supported, it is strongly recommended to migrate to postgres instead")
 	}
