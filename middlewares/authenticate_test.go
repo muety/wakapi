@@ -11,14 +11,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muety/wakapi/config"
-	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/oauth2-proxy/mockoidc"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
-	"github.com/stretchr/testify/assert"
+	routeutils "github.com/muety/wakapi/routes/utils"
 )
 
 func TestAuthenticateMiddleware_tryGetUserByApiKeyHeader_Success(t *testing.T) {

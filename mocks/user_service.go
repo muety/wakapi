@@ -1,8 +1,9 @@
 package mocks
 
 import (
-	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/muety/wakapi/models"
 )
 
 type UserServiceMock struct {
@@ -39,6 +40,14 @@ func (m *UserServiceMock) GetUserByUnsubscribeToken(s string) (*models.User, err
 
 func (m *UserServiceMock) GetUserByOidc(s1, s2 string) (*models.User, error) {
 	args := m.Called(s1, s2)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
+func (m *UserServiceMock) GetUserByRWKey(s string) (*models.User, error) {
+	args := m.Called(s)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

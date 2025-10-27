@@ -9,11 +9,11 @@ import (
 
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/gofrs/uuid/v5"
-	"github.com/muety/wakapi/helpers"
-	routeutils "github.com/muety/wakapi/routes/utils"
 
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 )
@@ -34,6 +34,7 @@ type AuthenticateMiddleware struct {
 	optionalForMethods   []string
 	redirectTarget       string // optional
 	redirectErrorMessage string // optional
+	onlyRWApiKeys        bool
 }
 
 func NewAuthenticateMiddleware(userService services.IUserService) *AuthenticateMiddleware {
@@ -42,6 +43,7 @@ func NewAuthenticateMiddleware(userService services.IUserService) *AuthenticateM
 		userSrvc:           userService,
 		optionalForPaths:   []string{},
 		optionalForMethods: []string{},
+		onlyRWApiKeys:      false,
 	}
 }
 
@@ -62,6 +64,11 @@ func (m *AuthenticateMiddleware) WithRedirectTarget(path string) *AuthenticateMi
 
 func (m *AuthenticateMiddleware) WithRedirectErrorMessage(message string) *AuthenticateMiddleware {
 	m.redirectErrorMessage = message
+	return m
+}
+
+func (m *AuthenticateMiddleware) WithOnlyRWApiKeys(onlyRW bool) *AuthenticateMiddleware {
+	m.onlyRWApiKeys = onlyRW
 	return m
 }
 

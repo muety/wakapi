@@ -54,6 +54,9 @@
                 <a href="settings#subscription" @click="updateTab">Subscription</a>
             </li>
             {{ end }}
+            <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('api_keys'), 'hover:text-secondary': !isActive('api_keys') }">
+                <a href="settings#api_keys" @click="updateTab">API Keys</a>
+            </li>
             <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('danger_zone'), 'hover:text-secondary': !isActive('danger_zone') }">
                 <a href="settings#danger_zone" @click="updateTab">Danger Zone</a>
             </li>
@@ -899,6 +902,97 @@
         </div>
         {{ end }}
 
+        <div v-cloak id="api_keys" class="tab flex flex-col space-y-4" v-if="isActive('api_keys')">
+            <div class="w-full lg:w-3/4">
+                <form action="" method="post" class="flex mb-8">
+                    <input type="hidden" name="action" value="reset_apikey">
+
+                    <div class="w-1/2 mr-4">
+                        <span class="font-semibold text-foreground text-lg">Reset Main API Key</span>
+                        <span class="block text-sm text-muted">
+                            Please note that resetting your API key requires you to update your .wakatime.cfg files on all of your computers to make the WakaTime client send heartbeats again.
+                        </span>
+                    </div>
+                    <div class="w-1/2 ml-4 flex items-center justify-end">
+                        <button type="submit" class="btn-danger ml-1">Reset API key</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="flex w-full lg:w-3/4" id="form-generate-api-key">
+                <div class="w-1/2 mr-4">
+                    <span class="font-semibold text-foreground text-lg">Generate API Key</span>
+                    <span class="block text-sm text-muted">
+                        Add a new API key to access the Wakapi API. You can have multiple API keys active at the same time.
+                    </span>
+                </div>
+
+                <form action="" method="post" class="flex w-full ml-4 justify-end">
+                    <input type="hidden" name="action" value="add_api_key">
+
+                    <div class="flex flex-col gap-2 items-end">
+                        <input class="appearance-none bg-card text-foreground outline-none rounded py-2 px-4 focus:bg-focused"
+                                type="text" id="api-name" name="api-name" placeholder="Key Name" minlength="1"
+                                maxlength="64" required>
+
+                        <div class="flex gap-2 items-center justify-end mt-4 float-left">
+                            <label class="font-semibold text-foreground" for="api-readonly">Read Only</label>
+                            <div>
+                                <select autocomplete="off" id="api-readonly" name="api-readonly" class="select-default grow">
+                                    <option value="false" class="cursor-pointer">No</option>
+                                    <option value="true" class="cursor-pointer">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-end">
+                            <button type="submit" class="w-1/2 btn-primary justify-end float-right mt-4">Generate</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="w-full lg:w-3/4">
+                <span class="flex font-semibold text-foreground text-lg mb-4">API Keys</span>
+
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th class="text-left py-2 text-muted w-1/4">Name</th>
+                            <th class="text-left py-2 text-muted w-1/2">Key</th>
+                            <th class="text-center py-2 text-muted w-1/6">Type</th>
+                            <th class="text-center py-2 text-muted w-1/6">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ range $i, $ApiKey := .ApiKeys }}
+                        <tr>
+                            <td class="py-2 text-foreground">{{ $ApiKey.Name }}</td>
+                            <td class="py-2 text-muted font-mono text-sm">{{ $ApiKey.Value }}</td>
+                            <td class="py-2 text-center">
+                                {{ if $ApiKey.ReadOnly }}
+                                    <span class=" rounded-full text-xs">
+                                        Read Only
+                                    </span>
+                                {{ else }}
+                                    <span class="rounded-full text-xs text-accent">
+                                        Full Access
+                                    </span>
+                                {{ end }}
+                            </td>
+                            <td class="py-2 text-center">
+                                <form action="" method="post" class="inline">
+                                    <input type="hidden" name="action" value="delete_api_key">
+                                    <input type="hidden" name="api_key_value" value="{{ $ApiKey.Value }}">
+                                    <button type="submit" class="py-2 px-4 rounded bg-card hover:bg-focused text-danger text-sm" title="Delete API Key">✕</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div v-cloak id="danger_zone" class="tab flex flex-col space-y-4" v-if="isActive('danger_zone')">
             <div class="w-full lg:w-3/4">
                 <form action="" method="post" class="flex mb-8" id="form-regenerate-summaries">
@@ -912,20 +1006,6 @@
                     </div>
                     <div class="w-1/2 ml-4 flex items-center">
                         <button type="button" class="btn-danger ml-1" @click.stop="confirmRegenerate">Clear and regenerate</button>
-                    </div>
-                </form>
-
-                <form action="" method="post" class="flex mb-8">
-                    <input type="hidden" name="action" value="reset_apikey">
-
-                    <div class="w-1/2 mr-4 inline-block">
-                        <span class="font-semibold text-foreground">Reset API Key</span>
-                        <span class="block text-sm text-muted">
-                            Please note that resetting your API key requires you to update your .wakatime.cfg files on all of your computers to make the WakaTime client send heartbeats again.
-                        </span>
-                    </div>
-                    <div class="w-1/2 ml-4 flex items-center">
-                        <button type="submit" class="btn-danger ml-1">Reset API key</button>
                     </div>
                 </form>
 
