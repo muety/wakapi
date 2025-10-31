@@ -2,11 +2,50 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
+	"github.com/oauth2-proxy/mockoidc"
 	"github.com/stretchr/testify/assert"
 )
+
+// TODO: add more tests, including yaml- and env. parsing, validation, etc.
+
+func Test_Load_OidcProviders(t *testing.T) {
+	oidcMock1, _ := mockoidc.Run()
+	defer oidcMock1.Shutdown()
+	oidcMock2, _ := mockoidc.Run()
+	defer oidcMock2.Shutdown()
+
+	os.Setenv("WAKAPI_OIDC_PROVIDERS_0_NAME", "testprovider1")
+	os.Setenv("WAKAPI_OIDC_PROVIDERS_0_CLIENT_ID", oidcMock1.ClientID)
+	os.Setenv("WAKAPI_OIDC_PROVIDERS_0_CLIENT_SECRET", oidcMock1.ClientSecret)
+	os.Setenv("WAKAPI_OIDC_PROVIDERS_0_ENDPOINT", oidcMock1.Addr()+"/oidc")
+	os.Setenv("WAKAPI_OIDC_PROVIDERS_1_NAME", "testprovider2")
+	os.Setenv("WAKAPI_OIDC_PROVIDERS_1_CLIENT_ID", oidcMock2.ClientID)
+	os.Setenv("WAKAPI_OIDC_PROVIDERS_1_CLIENT_SECRET", oidcMock2.ClientSecret)
+	os.Setenv("WAKAPI_OIDC_PROVIDERS_1_ENDPOINT", oidcMock2.Addr()+"/oidc")
+
+	cfg := Load("", "")
+	oidcCfg := cfg.Security.OidcProviders
+
+	assert.Len(t, oidcCfg, 2)
+	assert.Equal(t, "testprovider1", oidcCfg[0].Name)
+	assert.Equal(t, oidcMock1.ClientID, oidcCfg[0].ClientID)
+	assert.Equal(t, oidcMock1.ClientSecret, oidcCfg[0].ClientSecret)
+	assert.Equal(t, oidcMock1.Addr()+"/oidc", oidcCfg[0].Endpoint)
+	assert.Equal(t, "testprovider2", oidcCfg[1].Name)
+	assert.Equal(t, oidcMock2.ClientID, oidcCfg[1].ClientID)
+	assert.Equal(t, oidcMock2.ClientSecret, oidcCfg[1].ClientSecret)
+	assert.Equal(t, oidcMock2.Addr()+"/oidc", oidcCfg[1].Endpoint)
+
+	_, err1 := GetOidcProvider("testprovider1")
+	_, err2 := GetOidcProvider("testprovider2")
+
+	assert.Nil(t, err1)
+	assert.Nil(t, err2)
+}
 
 func TestConfig_IsDev(t *testing.T) {
 	assert.True(t, IsDev("dev"))
