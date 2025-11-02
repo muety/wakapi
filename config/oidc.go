@@ -11,9 +11,10 @@ import (
 )
 
 type OidcProvider struct {
-	Name     string
-	OAuth2   *oauth2.Config
-	Verifier *oidc.IDTokenVerifier
+	Name        string
+	DisplayName string
+	OAuth2      *oauth2.Config
+	Verifier    *oidc.IDTokenVerifier
 }
 
 type IdTokenPayload struct {
@@ -70,9 +71,10 @@ func RegisterOidcProvider(providerCfg *oidcProviderConfig) {
 	}
 
 	oidcProviders[providerCfg.Name] = &OidcProvider{
-		Name:     providerCfg.Name,
-		OAuth2:   &oauth2Conf,
-		Verifier: provider.Verifier(&oidc.Config{ClientID: providerCfg.ClientID}),
+		Name:        providerCfg.Name,
+		DisplayName: providerCfg.String(),
+		OAuth2:      &oauth2Conf,
+		Verifier:    provider.Verifier(&oidc.Config{ClientID: providerCfg.ClientID}),
 	}
 }
 

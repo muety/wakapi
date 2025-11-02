@@ -18,6 +18,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/lpar/gzipped/v2"
+	"github.com/muety/wakapi/utils"
 	httpSwagger "github.com/swaggo/http-swagger"
 	_ "gorm.io/driver/mysql"
 	_ "gorm.io/driver/postgres"
@@ -382,11 +383,15 @@ func listen(handler http.Handler) {
 	}
 
 	if config.UseTLS() {
-		if s4 != nil {
+		if s4 != nil && !utils.IPv4HandledByDualStackHttp(s4, s6) { // https://github.com/muety/wakapi/issues/860
 			slog.Info("👉 Listening for HTTPS... ✅", "address", s4.Addr)
 			go func() {
 				if err := s4.ListenAndServeTLS(config.Server.TlsCertPath, config.Server.TlsKeyPath); err != nil {
-					conf.Log().Fatal(err.Error())
+					err := err.Error()
+					if s6 != nil {
+						err += " - possibly a dual-stack problem (https://github.com/muety/wakapi/issues/860)?"
+					}
+					conf.Log().Fatal(err)
 				}
 			}()
 		}
@@ -414,11 +419,15 @@ func listen(handler http.Handler) {
 			}()
 		}
 	} else {
-		if s4 != nil {
+		if s4 != nil && !utils.IPv4HandledByDualStackHttp(s4, s6) { // https://github.com/muety/wakapi/issues/860
 			slog.Info("👉 Listening for HTTP... ✅", "address", s4.Addr)
 			go func() {
 				if err := s4.ListenAndServe(); err != nil {
-					conf.Log().Fatal(err.Error())
+					err := err.Error()
+					if s6 != nil {
+						err += " - possibly a dual-stack problem (https://github.com/muety/wakapi/issues/860)?"
+					}
+					conf.Log().Fatal(err)
 				}
 			}()
 		}

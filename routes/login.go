@@ -10,6 +10,7 @@ import (
 
 	"github.com/dchest/captcha"
 	"github.com/duke-git/lancet/v2/random"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httprate"
 
@@ -476,7 +477,13 @@ func (h *LoginHandler) buildViewModel(r *http.Request, w http.ResponseWriter, wi
 		TotalUsers:      int(numUsers),
 		AllowSignup:     h.config.IsDev() || h.config.Security.AllowSignup,
 		InviteCode:      r.URL.Query().Get("invite"),
-		OidcProviders:   h.config.Security.ListOidcProviders(),
+		OidcProviders: slice.Map(h.config.Security.ListOidcProviders(), func(i int, providerName string) view.LoginViewModelOidcProvider {
+			provider, _ := conf.GetOidcProvider(providerName) // no error, because only using registered provider names
+			return view.LoginViewModelOidcProvider{
+				Name:        provider.Name,
+				DisplayName: provider.DisplayName,
+			}
+		}),
 	}
 
 	if withCaptcha {

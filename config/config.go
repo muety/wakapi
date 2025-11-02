@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -13,13 +12,16 @@ import (
 	"time"
 
 	"github.com/duke-git/lancet/v2/slice"
+	"github.com/duke-git/lancet/v2/strutil"
+
+	"log/slog"
+
 	"github.com/gofrs/uuid/v5"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
-	"github.com/robfig/cron/v3"
-
 	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/utils"
+	"github.com/robfig/cron/v3"
 )
 
 const (
@@ -133,7 +135,7 @@ type securityConfig struct {
 	PasswordResetMaxRate         string                     `yaml:"password_reset_max_rate" default:"5/1h" env:"WAKAPI_PASSWORD_RESET_MAX_RATE"`
 	SecureCookie                 *securecookie.SecureCookie `yaml:"-"`
 	SessionKey                   []byte                     `yaml:"-"`
-	OidcProviders                []oidcProviderConfig       `yaml:"oidc"` // TODO: support to read from env.
+	OidcProviders                []oidcProviderConfig       `yaml:"oidc"`
 	trustReverseProxyIpsParsed   []net.IPNet
 }
 
@@ -204,10 +206,12 @@ type SMTPMailConfig struct {
 }
 
 type oidcProviderConfig struct {
-	Name         string `yaml:"name" env:"WAKAPI_OIDC_PROVIDER_NAME"`
-	ClientID     string `yaml:"client_id" env:"WAKAPI_OIDC_PROVIDER_CLIENT_ID"`
-	ClientSecret string `yaml:"client_secret" env:"WAKAPI_OIDC_PROVIDER_CLIENT_SECRET"`
-	Endpoint     string `yaml:"endpoint" env:"WAKAPI_OIDC_PROVIDER_ENDPOINT"` // base url from which auto-discovery (.well-known/openid-configuration) can be found
+	// for environment variables format, see renameEnvVars() down below
+	Name         string `yaml:"name"`
+	DisplayName  string `yaml:"display_name"` // optional
+	ClientID     string `yaml:"client_id"`
+	ClientSecret string `yaml:"client_secret"`
+	Endpoint     string `yaml:"endpoint"` // base url from which auto-discovery (.well-known/openid-configuration) can be found
 }
 
 type Config struct {
@@ -224,6 +228,32 @@ type Config struct {
 	Subscriptions  subscriptionsConfig
 	Sentry         sentryConfig
 	Mail           mailConfig
+}
+
+func (c *oidcProviderConfig) String() string {
+	if c.DisplayName != "" {
+		return c.DisplayName
+	}
+	return strutil.Capitalize(c.Name)
+}
+
+func (c *oidcProviderConfig) Validate() error {
+	var namePattern = regexp.MustCompile("^[a-zA-Z0-9-]+$")
+	var endpointPattern = regexp.MustCompile("^https?://")
+
+	if !namePattern.MatchString(c.Name) {
+		return fmt.Errorf("invalid provider name '%s', must only contain alphanumeric characters or '-'", c.Name)
+	}
+	if c.ClientID == "" {
+		return fmt.Errorf("provider '%s' is missing client id", c.Name)
+	}
+	if c.ClientSecret == "" {
+		return fmt.Errorf("provider '%s' is missing client secret", c.Name)
+	}
+	if !endpointPattern.MatchString(c.Endpoint) {
+		return fmt.Errorf("provider '%s' is missing endpoint", c.Name)
+	}
+	return nil
 }
 
 func (c *Config) AppStartTimestamp() string {
@@ -525,8 +555,10 @@ func Get() *Config {
 }
 
 func Load(configFlag string, version string) *Config {
+	renameEnvVars()
+
 	config := &Config{}
-	if err := configor.New(&configor.Config{}).Load(config, configFlag); err != nil {
+	if err := configor.New(&configor.Config{ENVPrefix: "WAKAPI"}).Load(config, configFlag); err != nil {
 		Log().Fatal("failed to read config", err)
 	}
 
@@ -556,9 +588,12 @@ func Load(configFlag string, version string) *Config {
 	sessionKey := securecookie.GenerateRandomKey(32)
 
 	if IsDev(env) {
-		slog.Warn("using temporary keys to sign and encrypt cookies in dev mode, make sure to set env to production for real-world use")
+		slog.Warn("⚠️ using temporary keys to sign and encrypt cookies in dev mode, make sure to set env to production for real-world use")
 		hashKey, blockKey = getTemporarySecureKeys()
 		blockKey = hashKey
+	}
+	if config.Security.InsecureCookies {
+		slog.Warn("⚠️ it is strongly advised NOT to use insecure cookies, are you sure about this setting?")
 	}
 
 	config.Security.SecureCookie = securecookie.New(hashKey, blockKey)
@@ -619,6 +654,11 @@ func Load(configFlag string, version string) *Config {
 	}
 	if d, err := time.Parse(config.App.DateTimeFormat, config.App.DateTimeFormat); err != nil || !d.Equal(time.Date(2006, time.January, 2, 15, 4, 0, 0, d.Location())) {
 		Log().Fatal("invalid datetime format", "format", config.App.DateTimeFormat)
+	}
+	for _, provider := range config.Security.OidcProviders {
+		if err := provider.Validate(); err != nil {
+			Log().Fatal("invalid oidc provider config", "provider", provider.Name, "error", err)
+		}
 	}
 
 	cronParser := cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
@@ -681,5 +721,35 @@ func initOpenIDConnect(config *Config) {
 	for _, c := range config.Security.OidcProviders {
 		RegisterOidcProvider(&c)
 		slog.Info("registered openid connect provider", "provider", c.Name)
+	}
+}
+
+func renameEnvVars() {
+	// Hacky way to get configor to read a slice of structs from environment variables using custom keys.
+	// Specifically, for the OpenID Connect providers config, configor would expect variables in this format:
+	// > WAKAPI_SECURITY_OIDCPROVIDERS_0_CLIENTID=<client id here>
+	// What we want instead (for consistency and beauty), rather is:
+	// > WAKAPI_OIDC_0_CLIENT_ID=<client id here>
+	// Since configor cannot parse slices with custom keys (see https://github.com/jinzhu/configor/issues/93)
+	// and neither allows to specify prefixes via tags (only the entire variable name as "env:"), we simply rename variables from the "Wakapi-style" format to what configor expects.
+	// In the long run, we might want to migrate to a different config parser (e.g. https://github.com/knadh/koanf), since configor seems to be dead.
+	// Also see https://github.com/muety/wakapi/issues/856.
+	var envOidcPrefix = regexp.MustCompile("WAKAPI_OIDC_PROVIDERS_(\\d+)_([A-Z_]+)")
+
+	for _, e := range os.Environ() {
+		parts := strings.Split(e, "=")
+		k, v := parts[0], parts[1]
+
+		// oidc providers config
+		if matches := envOidcPrefix.FindStringSubmatch(k); matches != nil {
+			index, _ := strconv.Atoi(matches[1]) // regex already made sure this is a proper integer
+			subkey := matches[2]
+
+			if err := os.Setenv(fmt.Sprintf("WAKAPI_SECURITY_OIDCPROVIDERS_%d_%s", index, strings.ReplaceAll(subkey, "_", "")), v); err != nil {
+				slog.Error("failed to rename env. variable", "key", k, "value", v, "error", err)
+				os.Exit(1)
+			}
+			os.Unsetenv(k)
+		}
 	}
 }
