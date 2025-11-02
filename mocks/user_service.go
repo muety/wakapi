@@ -18,8 +18,8 @@ func (m *UserServiceMock) GetUserById(s string) (*models.User, error) {
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
-func (m *UserServiceMock) GetUserByKey(s string) (*models.User, error) {
-	args := m.Called(s)
+func (m *UserServiceMock) GetUserByKey(s string, r bool) (*models.User, error) {
+	args := m.Called(s, r)
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
