@@ -26,25 +26,9 @@ func (r *ApiKeyRepository) GetAll() ([]*models.ApiKey, error) {
 	return keys, nil
 }
 
-func (r *ApiKeyRepository) GetById(id uint) (*models.ApiKey, error) {
+func (r *ApiKeyRepository) GetByApiKey(apiKey string, readOnly bool) (*models.ApiKey, error) {
 	key := &models.ApiKey{}
-	if err := r.db.Where(&models.ApiKey{ID: id}).First(key).Error; err != nil {
-		return key, err
-	}
-	return key, nil
-}
-
-func (r *ApiKeyRepository) GetByApiKey(apiKey string) (*models.ApiKey, error) {
-	key := &models.ApiKey{}
-	if err := r.db.Where(&models.ApiKey{ApiKey: apiKey}).First(key).Error; err != nil {
-		return key, err
-	}
-	return key, nil
-}
-
-func (r *ApiKeyRepository) GetByRWApiKey(apiKey string) (*models.ApiKey, error) {
-	key := &models.ApiKey{}
-	if err := r.db.Where(&models.ApiKey{ApiKey: apiKey, ReadOnly: false}).First(key).Error; err != nil {
+	if err := r.db.Where(&models.ApiKey{ApiKey: apiKey, ReadOnly: readOnly}).First(key).Error; err != nil {
 		return key, err
 	}
 	return key, nil
@@ -74,8 +58,8 @@ func (r *ApiKeyRepository) Insert(key *models.ApiKey) (*models.ApiKey, error) {
 	return key, nil
 }
 
-func (r *ApiKeyRepository) Delete(id uint) error {
+func (r *ApiKeyRepository) Delete(apiKey string) error {
 	return r.db.
-		Where("id = ?", id).
+		Where("api_key = ?", apiKey).
 		Delete(models.ApiKey{}).Error
 }

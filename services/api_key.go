@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/leandro-lugaresi/hub"
@@ -20,67 +21,83 @@ type ApiKeyService struct {
 }
 
 func NewApiKeyService(apiKeyRepository repositories.IApiKeyRepository) *ApiKeyService {
-	return &ApiKeyService{
+	srv := &ApiKeyService{
 		config:     config.Get(),
 		eventBus:   config.EventBus(),
 		repository: apiKeyRepository,
 		cache:      cache.New(24*time.Hour, 24*time.Hour),
 	}
+
+	onApiKeyCreate := srv.eventBus.Subscribe(0, config.EventApiKeyCreate)
+	go func(sub *hub.Subscription) {
+		for m := range sub.Receiver {
+			srv.invalidateUserCache(m.Fields[config.FieldUserId].(string))
+		}
+	}(&onApiKeyCreate)
+
+	onApiKeyDelete := srv.eventBus.Subscribe(0, config.EventApiKeyDelete)
+	go func(sub *hub.Subscription) {
+		for m := range sub.Receiver {
+			srv.invalidateUserCache(m.Fields[config.FieldUserId].(string))
+		}
+	}(&onApiKeyDelete)
+
+	return srv
 }
 
-func (srv *ApiKeyService) GetById(id uint) (*models.ApiKey, error) {
-	return srv.repository.GetById(id)
-}
-
-func (srv *ApiKeyService) GetByApiKey(apiKey string) (*models.ApiKey, error) {
-	return srv.repository.GetByApiKey(apiKey)
-}
-
-func (srv *ApiKeyService) GetByRWApiKey(apiKey string) (*models.ApiKey, error) {
-	return srv.repository.GetByRWApiKey(apiKey)
+func (srv *ApiKeyService) GetByApiKey(apiKey string, readOnly bool) (*models.ApiKey, error) {
+	return srv.repository.GetByApiKey(apiKey, readOnly)
 }
 
 func (srv *ApiKeyService) GetByUser(userId string) ([]*models.ApiKey, error) {
-	if labels, found := srv.cache.Get(userId); found {
-		return labels.([]*models.ApiKey), nil
+	if userApiKeys, found := srv.cache.Get(userId); found {
+		return userApiKeys.([]*models.ApiKey), nil
 	}
 
-	labels, err := srv.repository.GetByUser(userId)
+	userApiKeys, err := srv.repository.GetByUser(userId)
 	if err != nil {
 		return nil, err
 	}
-	srv.cache.Set(userId, labels, cache.DefaultExpiration)
-	return labels, nil
+	srv.cache.Set(userId, userApiKeys, cache.DefaultExpiration)
+	return userApiKeys, nil
 }
 
-func (srv *ApiKeyService) Create(label *models.ApiKey) (*models.ApiKey, error) {
-	result, err := srv.repository.Insert(label)
+func (srv *ApiKeyService) Create(apiKey *models.ApiKey) (*models.ApiKey, error) {
+	result, err := srv.repository.Insert(apiKey)
 	if err != nil {
 		return nil, err
 	}
 
 	srv.cache.Delete(result.UserID)
-	srv.notifyUpdate(label, false)
+	srv.notifyUpdate(apiKey, false)
 	return result, nil
 }
 
-func (srv *ApiKeyService) Delete(label *models.ApiKey) error {
-	if label.UserID == "" {
+func (srv *ApiKeyService) Delete(apiKey *models.ApiKey) error {
+	if apiKey.UserID == "" {
 		return errors.New("no user id specified")
 	}
-	err := srv.repository.Delete(label.ID)
-	srv.cache.Delete(label.UserID)
-	srv.notifyUpdate(label, true)
+	err := srv.repository.Delete(apiKey.ApiKey)
+	srv.cache.Delete(apiKey.UserID)
+	srv.notifyUpdate(apiKey, true)
 	return err
 }
 
-func (srv *ApiKeyService) notifyUpdate(label *models.ApiKey, isDelete bool) {
+func (srv *ApiKeyService) notifyUpdate(apiKey *models.ApiKey, isDelete bool) {
 	name := config.EventApiKeyCreate
 	if isDelete {
 		name = config.EventApiKeyDelete
 	}
 	srv.eventBus.Publish(hub.Message{
 		Name:   name,
-		Fields: map[string]interface{}{config.FieldPayload: label, config.FieldUserId: label.UserID},
+		Fields: map[string]interface{}{config.FieldPayload: apiKey, config.FieldUserId: apiKey.UserID},
 	})
+}
+
+func (srv *ApiKeyService) invalidateUserCache(userId string) {
+	for key := range srv.cache.Items() {
+		if strings.Contains(key, userId) {
+			srv.cache.Delete(key)
+		}
+	}
 }

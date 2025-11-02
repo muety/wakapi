@@ -147,10 +147,8 @@ type ILeaderboardRepository interface {
 type IApiKeyRepository interface {
 	IBaseRepository
 	GetAll() ([]*models.ApiKey, error)
-	GetById(uint) (*models.ApiKey, error)
 	GetByUser(string) ([]*models.ApiKey, error)
-	GetByApiKey(string) (*models.ApiKey, error)
-	GetByRWApiKey(string) (*models.ApiKey, error)
+	GetByApiKey(string, bool) (*models.ApiKey, error)
 	Insert(*models.ApiKey) (*models.ApiKey, error)
-	Delete(uint) error
+	Delete(string) error
 }

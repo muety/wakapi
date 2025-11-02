@@ -932,13 +932,13 @@
 
                     <div class="flex flex-col gap-2 items-end">
                         <input class="appearance-none bg-card text-foreground outline-none rounded py-2 px-4 focus:bg-focused"
-                                type="text" id="api-name" name="api-name" placeholder="Key Name" minlength="1"
+                                type="text" id="api-name" name="api_name" placeholder="Key Name" minlength="1"
                                 maxlength="64" required>
 
                         <div class="flex gap-2 items-center justify-end mt-4 float-left">
                             <label class="font-semibold text-foreground" for="api-readonly">Read Only</label>
                             <div>
-                                <select autocomplete="off" id="api-readonly" name="api-readonly" class="select-default grow">
+                                <select autocomplete="off" id="api-readonly" name="api_readonly" class="select-default grow">
                                     <option value="false" class="cursor-pointer">No</option>
                                     <option value="true" class="cursor-pointer">Yes</option>
                                 </select>
@@ -971,7 +971,7 @@
                             <td class="py-2 text-center">
                                 {{ if $ApiKey.ReadOnly }}
                                     <span class=" rounded-full text-xs">
-                                        Read Only
+                                        Read-Only
                                     </span>
                                 {{ else }}
                                     <span class="rounded-full text-xs text-accent">

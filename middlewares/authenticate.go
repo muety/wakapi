@@ -34,7 +34,7 @@ type AuthenticateMiddleware struct {
 	optionalForMethods   []string
 	redirectTarget       string // optional
 	redirectErrorMessage string // optional
-	onlyRWApiKeys        bool
+	onlyRWApiKey         bool
 }
 
 func NewAuthenticateMiddleware(userService services.IUserService) *AuthenticateMiddleware {
@@ -43,7 +43,7 @@ func NewAuthenticateMiddleware(userService services.IUserService) *AuthenticateM
 		userSrvc:           userService,
 		optionalForPaths:   []string{},
 		optionalForMethods: []string{},
-		onlyRWApiKeys:      false,
+		onlyRWApiKey:       false,
 	}
 }
 
@@ -67,8 +67,8 @@ func (m *AuthenticateMiddleware) WithRedirectErrorMessage(message string) *Authe
 	return m
 }
 
-func (m *AuthenticateMiddleware) WithOnlyRWApiKeys(onlyRW bool) *AuthenticateMiddleware {
-	m.onlyRWApiKeys = onlyRW
+func (m *AuthenticateMiddleware) WithOnlyRWApiKey(onlyRW bool) *AuthenticateMiddleware {
+	m.onlyRWApiKey = onlyRW
 	return m
 }
 
@@ -145,7 +145,7 @@ func (m *AuthenticateMiddleware) tryGetUserByApiKeyHeader(r *http.Request) (*mod
 
 	var user *models.User
 	userKey := strings.TrimSpace(key)
-	user, err = m.userSrvc.GetUserByKey(userKey)
+	user, err = m.userSrvc.GetUserByKey(userKey, m.onlyRWApiKey)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func (m *AuthenticateMiddleware) tryGetUserByApiKeyQuery(r *http.Request) (*mode
 	if userKey == "" {
 		return nil, errEmptyKey
 	}
-	user, err := m.userSrvc.GetUserByKey(userKey)
+	user, err := m.userSrvc.GetUserByKey(userKey, m.onlyRWApiKey)
 	if err != nil {
 		return nil, err
 	}

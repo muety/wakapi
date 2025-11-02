@@ -33,7 +33,6 @@ type SettingsVMCombinedLabel struct {
 }
 
 type SettingsApiKeys struct {
-	ID       uint
 	Name     string
 	Value    string
 	ReadOnly bool

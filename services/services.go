@@ -148,8 +148,7 @@ type ILeaderboardService interface {
 
 type IUserService interface {
 	GetUserById(string) (*models.User, error)
-	GetUserByKey(string) (*models.User, error)
-	GetUserByRWKey(string) (*models.User, error)
+	GetUserByKey(string, bool) (*models.User, error)
 	GetUserByEmail(string) (*models.User, error)
 	GetUserByResetToken(string) (*models.User, error)
 	GetUserByUnsubscribeToken(string) (*models.User, error)
@@ -177,9 +176,7 @@ type IUserService interface {
 }
 
 type IApiKeyService interface {
-	GetById(uint) (*models.ApiKey, error)
-	GetByApiKey(string) (*models.ApiKey, error)
-	GetByRWApiKey(string) (*models.ApiKey, error)
+	GetByApiKey(string, bool) (*models.ApiKey, error)
 	GetByUser(string) ([]*models.ApiKey, error)
 	Create(*models.ApiKey) (*models.ApiKey, error)
 	Delete(*models.ApiKey) error

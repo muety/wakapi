@@ -99,7 +99,7 @@ func (srv *UserService) GetUserById(userId string) (*models.User, error) {
 	return u, nil
 }
 
-func (srv *UserService) GetUserByKey(key string) (*models.User, error) {
+func (srv *UserService) GetUserByKey(key string, onlyRWApiKey bool) (*models.User, error) {
 	if key == "" {
 		return nil, errors.New("key must not be empty")
 	}
@@ -114,31 +114,7 @@ func (srv *UserService) GetUserByKey(key string) (*models.User, error) {
 		return u, nil
 	}
 
-	apiKey, err := srv.apiKeyService.GetByApiKey(key)
-	if err == nil {
-		srv.cache.SetDefault(apiKey.User.ID, apiKey.User)
-		return apiKey.User, nil
-	}
-
-	return nil, err
-}
-
-func (srv *UserService) GetUserByRWKey(key string) (*models.User, error) {
-	if key == "" {
-		return nil, errors.New("key must not be empty")
-	}
-
-	if u, ok := srv.cache.Get(key); ok {
-		return u.(*models.User), nil
-	}
-
-	u, err := srv.repository.FindOne(models.User{ApiKey: key})
-	if err == nil {
-		srv.cache.SetDefault(u.ID, u)
-		return u, nil
-	}
-
-	apiKey, err := srv.apiKeyService.GetByApiKey(key)
+	apiKey, err := srv.apiKeyService.GetByApiKey(key, !onlyRWApiKey)
 	if err == nil {
 		srv.cache.SetDefault(apiKey.User.ID, apiKey.User)
 		return apiKey.User, nil

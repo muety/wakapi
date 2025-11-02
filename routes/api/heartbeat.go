@@ -37,7 +37,7 @@ func NewHeartbeatApiHandler(userService services.IUserService, heartbeatService 
 func (h *HeartbeatApiHandler) RegisterRoutes(router chi.Router) {
 	router.Group(func(r chi.Router) {
 		r.Use(
-			middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalForMethods(http.MethodOptions).WithOnlyRWApiKeys(true).Handler,
+			middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalForMethods(http.MethodOptions).WithOnlyRWApiKey(true).Handler,
 			customMiddleware.NewWakatimeRelayMiddleware().Handler,
 		)
 		// see https://github.com/muety/wakapi/issues/203

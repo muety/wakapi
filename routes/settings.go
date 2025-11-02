@@ -891,9 +891,9 @@ func (h *SettingsHandler) actionAddApiKey(w http.ResponseWriter, r *http.Request
 
 	if _, err := h.apiKeySrvc.Create(&models.ApiKey{
 		User:     middlewares.GetPrincipal(r),
-		Label:    r.PostFormValue("api-name"),
+		Label:    r.PostFormValue("api_name"),
 		ApiKey:   apiKey,
-		ReadOnly: r.PostFormValue("api-readonly") == "true",
+		ReadOnly: r.PostFormValue("api_readonly") == "true",
 	}); err != nil {
 		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
 	}
@@ -1034,7 +1034,6 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 	// API keys
 	combinedApiKeys := []*view.SettingsApiKeys{
 		{
-			ID:       0,
 			Name:     "Main API Key",
 			Value:    user.ApiKey,
 			ReadOnly: false,
@@ -1053,7 +1052,6 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 	}
 	for _, apiKey := range apiKeys {
 		combinedApiKeys = append(combinedApiKeys, &view.SettingsApiKeys{
-			ID:       apiKey.ID,
 			Name:     apiKey.Label,
 			Value:    apiKey.ApiKey,
 			ReadOnly: apiKey.ReadOnly,
