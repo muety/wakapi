@@ -11,18 +11,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/muety/wakapi/config"
-	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/oauth2-proxy/mockoidc"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
-	"github.com/stretchr/testify/assert"
+	routeutils "github.com/muety/wakapi/routes/utils"
 )
 
 func TestAuthenticateMiddleware_tryGetUserByApiKeyHeader_Success(t *testing.T) {
 	testApiKey := "z5uig69cn9ut93n"
+	readOnlyApiKey := false
 	testToken := base64.StdEncoding.EncodeToString([]byte(testApiKey))
 	testUser := &models.User{ApiKey: testApiKey}
 
@@ -33,7 +34,7 @@ func TestAuthenticateMiddleware_tryGetUserByApiKeyHeader_Success(t *testing.T) {
 	}
 
 	userServiceMock := new(mocks.UserServiceMock)
-	userServiceMock.On("GetUserByKey", testApiKey).Return(testUser, nil)
+	userServiceMock.On("GetUserByKey", testApiKey, readOnlyApiKey).Return(testUser, nil)
 
 	sut := NewAuthenticateMiddleware(userServiceMock)
 
@@ -66,6 +67,7 @@ func TestAuthenticateMiddleware_tryGetUserByApiKeyHeader_Invalid(t *testing.T) {
 
 func TestAuthenticateMiddleware_tryGetUserByApiKeyQuery_Success(t *testing.T) {
 	testApiKey := "z5uig69cn9ut93n"
+	readOnlyApiKey := false
 	testUser := &models.User{ApiKey: testApiKey}
 
 	params := url.Values{}
@@ -77,7 +79,7 @@ func TestAuthenticateMiddleware_tryGetUserByApiKeyQuery_Success(t *testing.T) {
 	}
 
 	userServiceMock := new(mocks.UserServiceMock)
-	userServiceMock.On("GetUserByKey", testApiKey).Return(testUser, nil)
+	userServiceMock.On("GetUserByKey", testApiKey, readOnlyApiKey).Return(testUser, nil)
 
 	sut := NewAuthenticateMiddleware(userServiceMock)
 

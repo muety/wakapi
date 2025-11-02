@@ -1,8 +1,9 @@
 package view
 
 import (
-	"github.com/muety/wakapi/models"
 	"time"
+
+	"github.com/muety/wakapi/models"
 )
 
 type SettingsViewModel struct {
@@ -17,6 +18,7 @@ type SettingsViewModel struct {
 	SupportContact        string
 	InviteLink            string
 	ReadmeCardCustomTitle string
+	ApiKeys               []*SettingsApiKeys
 }
 
 type SettingsVMCombinedAlias struct {
@@ -28,6 +30,12 @@ type SettingsVMCombinedAlias struct {
 type SettingsVMCombinedLabel struct {
 	Key    string
 	Values []string
+}
+
+type SettingsApiKeys struct {
+	Name     string
+	Value    string
+	ReadOnly bool
 }
 
 func (s *SettingsViewModel) SubscriptionsEnabled() bool {
