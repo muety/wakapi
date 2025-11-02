@@ -6,7 +6,12 @@ type LoginViewModel struct {
 	AllowSignup   bool
 	CaptchaId     string
 	InviteCode    string
-	OidcProviders []string
+	OidcProviders []LoginViewModelOidcProvider
+}
+
+type LoginViewModelOidcProvider struct {
+	Name        string
+	DisplayName string
 }
 
 type SetPasswordViewModel struct {

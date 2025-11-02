@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/duke-git/lancet/v2/slice"
+	"github.com/duke-git/lancet/v2/strutil"
 
 	"log/slog"
 
@@ -207,6 +208,7 @@ type SMTPMailConfig struct {
 type oidcProviderConfig struct {
 	// for environment variables format, see renameEnvVars() down below
 	Name         string `yaml:"name"`
+	DisplayName  string `yaml:"display_name"` // optional
 	ClientID     string `yaml:"client_id"`
 	ClientSecret string `yaml:"client_secret"`
 	Endpoint     string `yaml:"endpoint"` // base url from which auto-discovery (.well-known/openid-configuration) can be found
@@ -226,6 +228,32 @@ type Config struct {
 	Subscriptions  subscriptionsConfig
 	Sentry         sentryConfig
 	Mail           mailConfig
+}
+
+func (c *oidcProviderConfig) String() string {
+	if c.DisplayName != "" {
+		return c.DisplayName
+	}
+	return strutil.Capitalize(c.Name)
+}
+
+func (c *oidcProviderConfig) Validate() error {
+	var namePattern = regexp.MustCompile("^[a-zA-Z0-9-]+$")
+	var endpointPattern = regexp.MustCompile("^https?://")
+
+	if !namePattern.MatchString(c.Name) {
+		return fmt.Errorf("invalid provider name '%s', must only contain alphanumeric characters or '-'", c.Name)
+	}
+	if c.ClientID == "" {
+		return fmt.Errorf("provider '%s' is missing client id", c.Name)
+	}
+	if c.ClientSecret == "" {
+		return fmt.Errorf("provider '%s' is missing client secret", c.Name)
+	}
+	if !endpointPattern.MatchString(c.Endpoint) {
+		return fmt.Errorf("provider '%s' is missing endpoint", c.Name)
+	}
+	return nil
 }
 
 func (c *Config) AppStartTimestamp() string {
@@ -626,6 +654,11 @@ func Load(configFlag string, version string) *Config {
 	}
 	if d, err := time.Parse(config.App.DateTimeFormat, config.App.DateTimeFormat); err != nil || !d.Equal(time.Date(2006, time.January, 2, 15, 4, 0, 0, d.Location())) {
 		Log().Fatal("invalid datetime format", "format", config.App.DateTimeFormat)
+	}
+	for _, provider := range config.Security.OidcProviders {
+		if err := provider.Validate(); err != nil {
+			Log().Fatal("invalid oidc provider config", "provider", provider.Name, "error", err)
+		}
 	}
 
 	cronParser := cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
