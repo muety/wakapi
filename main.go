@@ -109,7 +109,7 @@ var (
 
 // @securitydefinitions.apikey ApiKeyAuth
 // @in header
-// @name Authorizatio
+// @name Authorization
 
 func main() {
 	var versionFlag = flag.Bool("version", false, "print version")

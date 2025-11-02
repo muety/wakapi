@@ -35,7 +35,7 @@ if [ "${MIGRATION-0}" -eq 1 ]; then
 fi
 
 cleanup() {
-    if [ -n "$pid" ] && ps "$pid" > /dev/null; then
+    if [ -n "$pid" ] && ps -p "$pid" > /dev/null; then
         kill -TERM "$pid"
     fi
     if [ "${docker_down-0}" -eq 1 ]; then
@@ -101,14 +101,14 @@ start_wakapi_background() {
     path=$1
     config=$2
 
-    "$path" -config "$config"
+    "$path" -config "$config" &
     pid=$!
     wait_for_wakapi
 }
 
 kill_wakapi() {
     echo "Shutting down Wakapi ..."
-    kill -TERM $pid || true
+    kill -TERM $pid
 }
 
 # Run original wakapi
@@ -126,8 +126,9 @@ kill_wakapi
 # Only sqlite has data
 if [ "$DB_TYPE" == "sqlite" ]; then
     echo "Creating database and schema ..."
-    sqlite3 testing/wakapi_testing.db < testing/schema.sql
-    sqlite3 testing/wakapi_testing.db < testing/data.sql
+    sqlite3 wakapi_testing.db < schema.sql
+    echo "Importing seed data ..."
+    sqlite3 wakapi_testing.db < data.sql
 
     start_wakapi_background "../wakapi" "$config"
     echo "Running test collection ..."
@@ -138,13 +139,3 @@ if [ "$DB_TYPE" == "sqlite" ]; then
 
     kill_wakapi
 fi
-
-
-
-apk add curl nodejs npm sqlite
-npm install -g @usebruno/cli
-sqlite3 testing/wakapi_testing.db < testing/schema.sql
-sqlite3 testing/wakapi_testing.db < testing/data.sql
-rm testing/wakapi_testing.db && sqlite3 testing/wakapi_testing.db < testing/schema.sql && sqlite3 testing/wakapi_testing.db < testing/data.sql
-
-WAKAPI_PASSWORD_SALT="" WAKAPI_DB_TYPE=sqlite WAKAPI_DB_NAME=testing/wakapi_testing.db dlv debug --listen=:4001 --headless=true --log=true --accept-multiclient --api-version=2 --continue /src/main.go -- -config testing/config.sqlite.yml

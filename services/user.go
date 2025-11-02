@@ -104,7 +104,6 @@ func (srv *UserService) GetUserByKey(key string) (*models.User, error) {
 		return nil, errors.New("key must not be empty")
 	}
 
-	// TODO: does it make sense to use cache by api key if it's not being used?
 	if u, ok := srv.cache.Get(key); ok {
 		return u.(*models.User), nil
 	}

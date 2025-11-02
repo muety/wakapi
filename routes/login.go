@@ -12,6 +12,7 @@ import (
 	"github.com/duke-git/lancet/v2/random"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httprate"
+
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"

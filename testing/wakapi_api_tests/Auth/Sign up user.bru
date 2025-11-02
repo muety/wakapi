@@ -1,24 +1,24 @@
-// meta {
-//   name: Sign up user
-//   type: http
-//   seq: 1
-// }
+meta {
+  name: Sign up user
+  type: http
+  seq: 1
+}
 
-// post {
-//   url: {{BASE_URL}}/signup
-//   body: formUrlEncoded
-//   auth: none
-// }
+post {
+  url: {{BASE_URL}}/signup
+  body: formUrlEncoded
+  auth: none
+}
 
-// body:form-urlencoded {
-//   location: {{TZ}}
-//   username: testuser1
-//   email: testuser1@wakapi.dev
-//   password: testpassword
-//   password_repeat: testpassword
-// }
+body:form-urlencoded {
+  location: {{TZ}}
+  username: testuser
+  email: testuser@wakapi.dev
+  password: testpassword
+  password_repeat: testpassword
+}
 
-// assert {
-//   res.status: eq 200
-//   res.body: contains Account created successfully
-// }
+assert {
+  res.status: eq 200
+  res.body: contains Account created successfully
+}
