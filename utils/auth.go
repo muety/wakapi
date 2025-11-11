@@ -79,7 +79,13 @@ func CompareArgon2Id(hashed, plain, pepper string) bool {
 
 func HashArgon2Id(plain, pepper string) (string, error) {
 	plainPepperedPassword := strings.TrimSpace(plain) + pepper
-	hash, err := argon2id.CreateHash(plainPepperedPassword, argon2id.DefaultParams)
+	params := *argon2id.DefaultParams
+	// Check for the uint8 overflow bug on high-core-count CPUs.
+	if params.Parallelism == 0 {
+		// If the overflow is detected, set parallelism to a safe default.
+		params.Parallelism = 2
+	}
+	hash, err := argon2id.CreateHash(plainPepperedPassword, &params)
 	if err == nil {
 		return hash, nil
 	}
