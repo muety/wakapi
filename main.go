@@ -122,7 +122,6 @@ func main() {
 		os.Exit(0)
 	}
 	config = conf.Load(*configFlag, version)
-	slog.Info("loaded configuration", "configFile", *configFlag)
 
 	// Configure Swagger docs
 	docs.SwaggerInfo.BasePath = config.Server.BasePath + "/api"

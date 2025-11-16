@@ -26,10 +26,16 @@ func (r *ApiKeyRepository) GetAll() ([]*models.ApiKey, error) {
 	return keys, nil
 }
 
-func (r *ApiKeyRepository) GetByApiKey(apiKey string, readOnly bool) (*models.ApiKey, error) {
+func (r *ApiKeyRepository) GetByApiKey(apiKey string, requireFullAccessKey bool) (*models.ApiKey, error) {
 	key := &models.ApiKey{}
-	if err := r.db.Where(&models.ApiKey{ApiKey: apiKey, ReadOnly: readOnly}).First(key).Error; err != nil {
-		return key, err
+
+	query := r.db.Preload("User").Where("api_key = ?", apiKey)
+	if requireFullAccessKey {
+		query = query.Where("read_only = ?", false)
+	}
+
+	if err := query.First(key).Error; err != nil {
+		return nil, err
 	}
 	return key, nil
 }

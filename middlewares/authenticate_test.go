@@ -23,9 +23,10 @@ import (
 
 func TestAuthenticateMiddleware_tryGetUserByApiKeyHeader_Success(t *testing.T) {
 	testApiKey := "z5uig69cn9ut93n"
-	readOnlyApiKey := false
 	testToken := base64.StdEncoding.EncodeToString([]byte(testApiKey))
 	testUser := &models.User{ApiKey: testApiKey}
+	// In the case of the API Key from User Model - it's always full access
+	testApiKeyRequireFullAccess := false
 
 	mockRequest := &http.Request{
 		Header: http.Header{
@@ -34,7 +35,7 @@ func TestAuthenticateMiddleware_tryGetUserByApiKeyHeader_Success(t *testing.T) {
 	}
 
 	userServiceMock := new(mocks.UserServiceMock)
-	userServiceMock.On("GetUserByKey", testApiKey, readOnlyApiKey).Return(testUser, nil)
+	userServiceMock.On("GetUserByKey", testApiKey, testApiKeyRequireFullAccess).Return(testUser, nil)
 
 	sut := NewAuthenticateMiddleware(userServiceMock)
 
@@ -58,6 +59,29 @@ func TestAuthenticateMiddleware_tryGetUserByApiKeyHeader_Invalid(t *testing.T) {
 	userServiceMock := new(mocks.UserServiceMock)
 
 	sut := NewAuthenticateMiddleware(userServiceMock)
+	sut.WithFullAccessOnly(false)
+
+	result, err := sut.tryGetUserByApiKeyHeader(mockRequest)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+}
+
+func TestAuthenticateMiddleware_tryGetUserByApiKeyHeaderWithReadOnlyKey_Invalid(t *testing.T) {
+	testApiKey := "read-only-additional-key"
+	testToken := base64.StdEncoding.EncodeToString([]byte(testApiKey))
+
+	mockRequest := &http.Request{
+		Header: http.Header{
+			"Authorization": []string{fmt.Sprintf("Basic %s", testToken)},
+		},
+	}
+
+	userServiceMock := new(mocks.UserServiceMock)
+	userServiceMock.On("GetUserByKey", testApiKey, true).Return(nil, errors.New("forbidden: requires full access"))
+
+	sut := NewAuthenticateMiddleware(userServiceMock)
+	sut.WithFullAccessOnly(true)
 
 	result, err := sut.tryGetUserByApiKeyHeader(mockRequest)
 
@@ -67,8 +91,9 @@ func TestAuthenticateMiddleware_tryGetUserByApiKeyHeader_Invalid(t *testing.T) {
 
 func TestAuthenticateMiddleware_tryGetUserByApiKeyQuery_Success(t *testing.T) {
 	testApiKey := "z5uig69cn9ut93n"
-	readOnlyApiKey := false
 	testUser := &models.User{ApiKey: testApiKey}
+	// In the case of the API Key from User Model - it's always full access
+	testApiKeyRequireFullAccess := true
 
 	params := url.Values{}
 	params.Add("api_key", testApiKey)
@@ -79,9 +104,10 @@ func TestAuthenticateMiddleware_tryGetUserByApiKeyQuery_Success(t *testing.T) {
 	}
 
 	userServiceMock := new(mocks.UserServiceMock)
-	userServiceMock.On("GetUserByKey", testApiKey, readOnlyApiKey).Return(testUser, nil)
+	userServiceMock.On("GetUserByKey", testApiKey, testApiKeyRequireFullAccess).Return(testUser, nil)
 
 	sut := NewAuthenticateMiddleware(userServiceMock)
+	sut.WithFullAccessOnly(true)
 
 	result, err := sut.tryGetUserByApiKeyQuery(mockRequest)
 

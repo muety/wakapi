@@ -45,8 +45,8 @@ func NewApiKeyService(apiKeyRepository repositories.IApiKeyRepository) *ApiKeySe
 	return srv
 }
 
-func (srv *ApiKeyService) GetByApiKey(apiKey string, readOnly bool) (*models.ApiKey, error) {
-	return srv.repository.GetByApiKey(apiKey, readOnly)
+func (srv *ApiKeyService) GetByApiKey(apiKey string, requireFullAccessKey bool) (*models.ApiKey, error) {
+	return srv.repository.GetByApiKey(apiKey, requireFullAccessKey)
 }
 
 func (srv *ApiKeyService) GetByUser(userId string) ([]*models.ApiKey, error) {
