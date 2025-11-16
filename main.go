@@ -243,6 +243,7 @@ func main() {
 	homeHandler := routes.NewHomeHandler(userService, keyValueService)
 	loginHandler := routes.NewLoginHandler(userService, mailService, keyValueService)
 	imprintHandler := routes.NewImprintHandler(keyValueService)
+	setupHandler := routes.NewSetupHandler(userService)
 	leaderboardHandler := condition.Ternary[bool, routes.Handler](config.App.LeaderboardEnabled, routes.NewLeaderboardHandler(userService, leaderboardService), routes.NewNoopHandler())
 	miscHandler := routes.NewMiscHandler(userService)
 
@@ -282,6 +283,7 @@ func main() {
 	homeHandler.RegisterRoutes(rootRouter)
 	loginHandler.RegisterRoutes(rootRouter)
 	imprintHandler.RegisterRoutes(rootRouter)
+	setupHandler.RegisterRoutes(rootRouter)
 	summaryHandler.RegisterRoutes(rootRouter)
 	leaderboardHandler.RegisterRoutes(rootRouter)
 	projectsHandler.RegisterRoutes(rootRouter)

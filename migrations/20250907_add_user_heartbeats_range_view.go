@@ -10,7 +10,7 @@ func init() {
 	const name = "20250907-add_user_heartbeats_range_view"
 	f := migrationFunc{
 		name:       name,
-		background: true,
+		background: false,
 		f: func(db *gorm.DB, cfg *config.Config) error {
 			if hasRun(name, db) {
 				return nil

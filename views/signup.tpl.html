@@ -24,10 +24,10 @@
     <div class="grow max-w-lg mt-10">
         <div class="mb-8">
             <h1 class="h1">Sign up to Wakapi</h1>
-            <p class="h1-subcaption">
+            <p class="text-secondary">
                 Welcome to Wakapi! Your first step is to create an account.
                 Afterwards, make sure to set up the <a href="https://wakatime.com" target="_blank" rel="noopener noreferrer" class="text-foreground hover:text-secondary">WakaTime</a> client tools.
-                Instruction can be found in our <a href="https://github.com/muety/wakapi#-client-setup" target="_blank"
+                Instruction can be found in our <a href="setup" class="text-foreground hover:text-secondary">setup instructions</a> and the <a href="https://github.com/muety/wakapi#-client-setup" target="_blank"
                                    rel="noopener noreferrer"
                                    class="text-foreground hover:text-secondary">README</a>.
             </p>
@@ -112,7 +112,7 @@
 
         {{ if len .OidcProviders }}
         <div class="mt-10">
-            <div class="font-semibold mb-2">Single Sign-On</div>
+            <div class="font-semibold mb-2 text-secondary">Single Sign-On</div>
             {{ range $provider := .OidcProviders }}
             <a href="oidc/{{ $provider.Name | lower }}/login" class="block mb-2">
                 <button type="button" class="btn-default w-full flex items-center gap-2 justify-center">

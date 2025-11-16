@@ -17,7 +17,7 @@ func NewSessionStore() *sessions.CookieStore {
 	)
 
 	if Get().Security.InsecureCookies {
-		store.Options.SameSite = http.SameSiteStrictMode
+		store.Options.SameSite = http.SameSiteLaxMode
 		store.Options.Secure = false
 	}
 

@@ -92,6 +92,8 @@ let icons = [
     'devicon-plain:facebook',
     'mdi:microsoft',
     'twemoji:flag-germany',
+    'ic:round-download',
+    'ic:outline-integration-instructions',
 ]
 
 const output = path.normalize(path.join(__dirname, '../static/assets/js/icons.dist.js'))

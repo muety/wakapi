@@ -45,6 +45,12 @@
                     </a>
                 </div>
                 <div class="submenu-item">
+                    <a class="flex justify-between w-full text-foreground items-center px-2 font-semibold" href="setup" @click="state.showDropdownResources = !state.showDropdownResources"  data-trigger-for="showDropdownResources">
+                        <span class="text-sm">Initial setup</span>
+                        <span class="iconify inline" data-icon="ic:outline-integration-instructions"></span>
+                    </a>
+                </div>
+                <div class="submenu-item">
                     <a class="flex justify-between w-full text-foreground items-center px-2 font-semibold" href="swagger-ui" @click="state.showDropdownResources = !state.showDropdownResources"  data-trigger-for="showDropdownResources">
                         <span class="text-sm">API Docs</span>
                         <span class="iconify inline" data-icon="bx:bx-code-curly"></span>

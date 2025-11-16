@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{{ template "head.tpl.html" . }}
+
+<body class="relative bg-background text-muted p-4 pt-10 flex flex-col min-h-screen {{ if .User }} max-w-screen-xl {{ else }} max-w-screen-lg {{end}} mx-auto justify-center">
+
+{{ template "alerts.tpl.html" . }}
+
+{{ if .User }}
+{{ template "menu-main.tpl.html" . }}
+{{ else }}
+{{ template "header.tpl.html" . }}
+{{ template "login-btn.tpl.html" . }}
+{{ end }}
+
+<main class="mt-10 grow flex justify-center w-full lg:w-3/4 self-center" id="setup-instructions-page">
+    <div class="flex flex-col grow mt-10 max-available text-secondary">
+        <h1 class="h1 inline-block text-center">Setup Instructions</h1>
+        <h2 class="h2 inline-block text-center text-xl mt-2">
+            Get started tracking your coding time with Wakapi in just a few steps<br>– simple and easy!
+            <span class="iconify inline ml-1" data-icon="fxemoji:rocket"></span>
+        </h2>
+
+        <div class="flex flex-col mt-12 gap-y-12">
+            <div class="flex gap-x-8">
+                <div>
+                    <h3 class="flex justify-center items-center text-white text-xl font-semibold bg-accent rounded-full w-[50px] h-[50px]">1</h3>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-white">Install the WakaTime plugin</h4>
+                    <p class="mb-3">First step is to download and install the WakaTime plugin into your editor or IDE. Available for Visual Studio Code, PyCharm, IntelliJ, Neovim and many more – even Chrome or Firefox are supported.</p>
+                    <a href="https://wakatime.com/plugins" target="_blank" rel="noreferrer noopener" class="btn btn-primary">Download Plugin <span class="iconify inline ml-1" data-icon="ic:round-download"></span></a>
+                </div>
+            </div>
+
+            <div class="flex gap-x-8">
+                <div>
+                    <h3 class="flex justify-center items-center text-white text-xl font-semibold bg-accent rounded-full w-[50px] h-[50px]">2</h3>
+                </div>
+                <div class="flex flex-col gap-y-2">
+                    <h4 class="text-lg font-semibold text-white">Update your config</h4>
+                    <p class="">After having installed one or more IDE plugins, you will have to adapt the WakaTime config file in your home directory.</p>
+                    <p class="my-1">
+                        <span class="font-semibold">On Linux / macOS: <span class="font-mono text-sm font-normal ml-1">~/.wakatime.cfg</span></span><br>
+                        <span class="font-semibold">On Windows: <span class="font-mono text-sm font-normal ml-1">%USERPROFILE\.wakatime.cfg</span></span>
+                    </p>
+                    <p>Open the file with your favorite editor and adapt the API URL and -key like this:</p>
+                    <div class="bg-card text-left rounded-md py-4 px-8 text-xs font-mono shadow-md">
+                        [settings]<br>
+                        {{ if .User }}
+                        api_url = <span class="with-url-inner">%s/api</span><br>
+                        api_key = <span id="api-key-instruction">{{ .ApiKey }}</span><br>
+                        {{ else }}
+                        api_url = <span>https://wakapi.dev/api</span><br>
+                        api_key = <span>&lt;put your api key here&gt;</span><br>
+                        {{ end }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-x-8">
+                <div>
+                    <h3 class="flex justify-center items-center text-white text-xl font-semibold bg-accent rounded-full w-[50px] h-[50px]">3</h3>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-white">Start coding!</h4>
+                    <p class="mb-3">You're done! Restart your editor or IDE and jump straight into coding. After a short while, you will see your coding activity appear on the dashboard, providing detailed project insights and statistics about your favorite editor, operating system, programming language and more.</p>
+                    <a href="summary" class="btn btn-primary">Go to Dashboard <span class="iconify inline ml-1" data-icon="ic:round-dashboard"></span></a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+{{ template "footer.tpl.html" . }}
+
+{{ template "foot.tpl.html" . }}
+</body>
+
+</html>

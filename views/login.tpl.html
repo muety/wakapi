@@ -13,7 +13,7 @@
     <div class="grow max-w-lg mt-10">
         <div class="mb-8">
             <h1 class="h1">Welcome!</h1>
-            <span class="h1-subcaption">Log in to continue using Wakapi</span>
+            <span class="text-secondary">Log in to continue using Wakapi. First time? Check out the <a href="setup" class="text-foreground hover:text-secondary">setup instructions</a>.</span>
         </div>
         <form action="login" method="post">
             <div class="mb-4">
@@ -47,7 +47,7 @@
 
         {{ if len .OidcProviders }}
         <div class="mt-10">
-            <div class="font-semibold mb-2">Single Sign-On</div>
+            <div class="font-semibold mb-2 text-secondary">Single Sign-On</div>
             {{ range $provider := .OidcProviders }}
             <a href="oidc/{{ $provider.Name | lower }}/login" class="block mb-2">
                 <button type="button" class="btn-default w-full flex items-center gap-2 justify-center">
