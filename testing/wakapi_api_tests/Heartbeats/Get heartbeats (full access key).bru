@@ -1,7 +1,7 @@
 meta {
-  name: Get heartbeats
+  name: Get heartbeats (full access key)
   type: http
-  seq: 14
+  seq: 15
 }
 
 get {
@@ -15,7 +15,7 @@ params:query {
 }
 
 auth:bearer {
-  token: {{WRITEUSER_TOKEN}}
+  token: {{ADDITIONAL_FULL_ACCESS_TOKEN}}
 }
 
 assert {
