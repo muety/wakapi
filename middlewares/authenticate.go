@@ -67,8 +67,8 @@ func (m *AuthenticateMiddleware) WithRedirectErrorMessage(message string) *Authe
 	return m
 }
 
-func (m *AuthenticateMiddleware) WithFullAccessOnly(readOnly bool) *AuthenticateMiddleware {
-	m.requireFullAccessKey = readOnly
+func (m *AuthenticateMiddleware) WithFullAccessOnly(requireFullAccess bool) *AuthenticateMiddleware {
+	m.requireFullAccessKey = requireFullAccess
 	return m
 }
 
