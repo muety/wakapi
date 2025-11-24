@@ -1,0 +1,23 @@
+meta {
+  name: Authenticate (header, readonly key)
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=today
+  body: none
+  auth: bearer
+}
+
+params:query {
+  interval: today
+}
+
+auth:bearer {
+  token: {{ADDITIONAL_READ_ONLY_TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+}

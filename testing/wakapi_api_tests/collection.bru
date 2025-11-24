@@ -11,6 +11,8 @@ vars:pre-request {
   BASE_URL: http://localhost:3000
   READUSER_API_KEY: 33e7f538-0dce-4eba-8ffe-53db6814ed42
   WRITEUSER_API_KEY: f7aa255c-8647-4d0b-b90f-621c58fd580f
+  ADDITIONAL_FULL_ACCESS_KEY: 1c91f670-2309-45fb-9d7e-738c766e85a6
+  ADDITIONAL_READ_ONLY_KEY: 774f7e16-b9a3-433e-ac68-7e28a82a50ca
   TZ: Europe/Berlin
   TZ_OFFSET: +02:00
   READUSER_PASSWORD: testpw
@@ -19,10 +21,10 @@ vars:pre-request {
 
 script:pre-request {
   const moment = require('moment')
-  
+
   // pretend we're in Berlin, as this is also the time zone configured for the user
   const userZone = 'Europe/Berlin'
-  
+
   // https://stackoverflow.com/a/63199512
   // return UTC offset of timezone in minutes
   function getTimezoneOffset(timeZone, date = new Date()) {
@@ -31,32 +33,36 @@ script:pre-request {
     const offset = Date.parse(`${dateString} UTC`) - Date.parse(`${dateString} ${tz}`);
     return offset / 1000 / 60;
   }
-  
+
   const utcOffset = getTimezoneOffset(userZone)
   bru.setVar('utcOffset', utcOffset)
-  
+
   const now = moment().utcOffset(utcOffset)
   const startOfDay = now.clone().startOf('day')
   const endOfDay = now.clone().endOf('day')
   const endOfTomorrow = now.clone().add(1, 'd').endOf('day')
   const startOfYesterday = now.clone().add(-1, 'day').startOf('day')
   const endOfYesterday = now.clone().add(-1, 'day').endOf('day')
-  
+
   // Auth stuff
   const readApiKey = bru.getCollectionVar('READUSER_API_KEY')
   const writeApiKey = bru.getCollectionVar('WRITEUSER_API_KEY')
-  
+  const additionalFullAccessApiKey = bru.getCollectionVar('ADDITIONAL_FULL_ACCESS_KEY')
+  const additionalReadOnlyApiKey = bru.getCollectionVar('ADDITIONAL_READ_ONLY_KEY')
+
   if (!readApiKey || !writeApiKey) {
       throw new Error('no api key given')
   }
-  
+
   bru.setVar('READUSER_TOKEN', base64encode(readApiKey))
   bru.setVar('WRITEUSER_TOKEN', base64encode(writeApiKey))
-  
+  bru.setVar('ADDITIONAL_FULL_ACCESS_TOKEN', base64encode(additionalFullAccessApiKey))
+  bru.setVar('ADDITIONAL_READ_ONLY_TOKEN', base64encode(additionalReadOnlyApiKey))
+
   function base64encode(str) {
       return Buffer.from(str, 'utf-8').toString('base64')
   }
-  
+
   // Heartbeat stuff
   bru.setVar('tsNow', now.clone().format('x') / 1000)
   bru.setVar('tsNowMinus1Min', now.clone().add(-1, 'm').format('x') / 1000)

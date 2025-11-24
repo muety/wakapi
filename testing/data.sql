@@ -24,4 +24,9 @@ INSERT INTO "users" ("id", "api_key", "email", "location", "password", "created_
 VALUES ('writeuser', 'f7aa255c-8647-4d0b-b90f-621c58fd580f', '', 'Europe/Berlin',
         '$2a$10$93CAptdjLGRtc1D3xrZJcu8B/YBAPSjCZOHZRId.xpyrsLAeHOoA.', '2021-05-28 12:34:56',
         '2021-05-28 14:35:05.118+02:00', 7, 0, 0, 1, 0, 0, 0, 1, '', '', 0);
+
+INSERT INTO "api_keys" ("api_key", "user_id", "label", "read_only")
+VALUES
+    ('1c91f670-2309-45fb-9d7e-738c766e85a6', 'writeuser', 'Full Access Key', false),
+    ('774f7e16-b9a3-433e-ac68-7e28a82a50ca', 'writeuser', 'Read Only Key', true);
 COMMIT;

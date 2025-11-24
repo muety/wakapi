@@ -54,6 +54,9 @@
                 <a href="settings#subscription" @click="updateTab">Subscription</a>
             </li>
             {{ end }}
+            <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('api_keys'), 'hover:text-secondary': !isActive('api_keys') }">
+                <a href="settings#api_keys" @click="updateTab">API Keys</a>
+            </li>
             <li class="font-semibold text-2xl" v-bind:class="{ 'text-foreground': isActive('danger_zone'), 'hover:text-secondary': !isActive('danger_zone') }">
                 <a href="settings#danger_zone" @click="updateTab">Danger Zone</a>
             </li>
@@ -359,7 +362,7 @@
                                     <div class="ml-3 inline">
                                         <button @click="showProjectAddButton({{ $i }})" class="top-1 relative" v-show="!labels[{{ $i }}]">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-secondary">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                                             </svg>
                                         </button>
                                         <form action="" method="post" class="inline-flex gap-x-1" v-show="labels[{{ $i }}]">
@@ -367,7 +370,7 @@
                                             <input type="hidden" name="value" value="{{ $label.Key }}">
                                             <select name="key" class="block text-sm select-default !w-auto">
                                                 {{ range $k, $project := $.Projects }}
-                                                    <option value="{{ $project }}">{{ $project }}</option>
+                                                <option value="{{ $project }}">{{ $project }}</option>
                                                 {{ end }}
                                             </select>
                                             <button type="submit" class="btn-primary btn-small">
@@ -392,7 +395,7 @@
                                 <input class="input-default block" name="value" placeholder="Label" required>
                                 <select name="key" class="block w-full p-2.5 select-default grow" multiple required>
                                     {{ range $i, $p := .Projects }}
-                                        <option value="{{ $p }}" class="bg-transparent checked:text-green-500">{{ $p }}</option>
+                                    <option value="{{ $p }}" class="bg-transparent checked:text-green-500">{{ $p }}</option>
                                     {{ end }}
                                 </select>
                                 <button type="submit" class="btn-primary">
@@ -426,7 +429,7 @@
                             {{ range $i, $mapping := .LanguageMappings }}
                             <div class="flex items-center mb-2">
                                 <div class="text-foreground border-1 w-full inline-block my-1 py-1 text-align text-sm">
-                                        &#9656;&nbsp; When filename ends in <span
+                                    &#9656;&nbsp; When filename ends in <span
                                         class="text-accent chip mr-1">{{ $mapping.Extension }}</span>
                                     then change the <span class="font-semibold">language</span> to <span
                                         class="text-accent chip mr-1">{{ $mapping.Language }}</span>
@@ -886,7 +889,8 @@
                     {{ if ne .User.Email "" }}
                     <button type="submit" class="btn-primary mt-4">Subscribe ({{ .SubscriptionPrice }} / mo)</button>
                     {{ else }}
-                    <button type="submit" class="btn-disabled cursor-pointer mt-4" disabled title="">Subscribe ({{ .SubscriptionPrice }} / mo)</button><br>
+                    <button type="submit" class="btn-disabled cursor-pointer mt-4" disabled title="">Subscribe ({{ .SubscriptionPrice }} / mo)</button>
+                    <br>
                     <span class="text-xs text-muted">You have to provide an e-mail address to purchase a subscription.</span>
                     {{ end }}
                 </form>
@@ -898,6 +902,89 @@
             </div>
         </div>
         {{ end }}
+
+        <div v-cloak id="api_keys" class="tab flex flex-col space-y-4" v-if="isActive('api_keys')">
+            <div class="w-full lg:w-3/4">
+                <form action="" method="post" class="flex mb-8">
+                    <input type="hidden" name="action" value="reset_apikey">
+
+                    <div class="w-1/2 mr-4">
+                        <span class="font-semibold text-foreground text-lg">Reset primary API key</span>
+                        <span class="block text-sm text-muted">
+                            Please note that resetting your API key requires you to update your <code>.wakatime.cfg</code> files on all of your computers to make the WakaTime client send heartbeats again.
+                        </span>
+                    </div>
+                    <div class="w-1/2 ml-4 flex items-center justify-end">
+                        <button type="submit" class="btn-danger ml-1">Reset API key</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="flex w-full lg:w-3/4 justify-between items-center" id="form-generate-api-key">
+                <div class="w-1/2 mb-8">
+                    <span class="font-semibold text-foreground text-lg">Add API keys</span>
+                    <span class="block text-sm text-muted">
+                        Besides the primary (aka. <i>main</i>) API key, which always exists, you can create additional API keys for different applications to access Wakapi. You can either grant read-only access or read-write access, which additionally allows to ingest heartbeats.
+                    </span>
+                </div>
+
+                <form action="" method="post" class="flex justify-end shrink-0">
+                    <input type="hidden" name="action" value="add_api_key">
+
+                    <div class="flex gap-2 items-center justify-end">
+                        <input class="appearance-none bg-card text-foreground outline-none rounded py-2 px-4 focus:bg-focused"
+                               type="text" id="api-name" name="api_name" placeholder="Key Name" minlength="1"
+                               maxlength="64" required>
+                        <select autocomplete="off" id="api-readonly" name="api_readonly" class="select-default grow">
+                            <option value="false" class="cursor-pointer">Read / write</option>
+                            <option value="true" class="cursor-pointer">Read only</option>
+                        </select>
+                        <button type="submit" class="btn-primary">Add</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="w-full lg:w-3/4">
+                <span class="flex font-semibold text-foreground text-lg mb-2">API Keys</span>
+
+                <table class="w-full">
+                    <thead>
+                    <tr>
+                        <th class="text-left py-2 text-muted w-1/4">Name</th>
+                        <th class="text-left py-2 text-muted w-1/2">Key</th>
+                        <th class="text-center py-2 text-muted w-1/6">Type</th>
+                        <th class="text-center py-2 text-muted w-1/6">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{ range $i, $ApiKey := .ApiKeys }}
+                    <tr>
+                        <td class="py-2 text-foreground">{{ $ApiKey.Name }}</td>
+                        <td class="py-2 text-muted font-mono text-sm">{{ $ApiKey.Value }}</td>
+                        <td class="py-2 text-center">
+                            {{ if $ApiKey.ReadOnly }}
+                            <span class=" rounded-full text-xs">
+                                        Read-Only
+                                    </span>
+                            {{ else }}
+                            <span class="rounded-full text-xs text-accent">
+                                        Full Access
+                                    </span>
+                            {{ end }}
+                        </td>
+                        <td class="py-2 text-center">
+                            <form action="" method="post" class="inline">
+                                <input type="hidden" name="action" value="delete_api_key">
+                                <input type="hidden" name="api_key_value" value="{{ $ApiKey.Value }}">
+                                <button type="submit" class="py-2 px-4 rounded bg-card hover:bg-focused text-danger text-sm" title="Delete API Key">✕</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {{ end }}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
         <div v-cloak id="danger_zone" class="tab flex flex-col space-y-4" v-if="isActive('danger_zone')">
             <div class="w-full lg:w-3/4">
@@ -912,20 +999,6 @@
                     </div>
                     <div class="w-1/2 ml-4 flex items-center">
                         <button type="button" class="btn-danger ml-1" @click.stop="confirmRegenerate">Clear and regenerate</button>
-                    </div>
-                </form>
-
-                <form action="" method="post" class="flex mb-8">
-                    <input type="hidden" name="action" value="reset_apikey">
-
-                    <div class="w-1/2 mr-4 inline-block">
-                        <span class="font-semibold text-foreground">Reset API Key</span>
-                        <span class="block text-sm text-muted">
-                            Please note that resetting your API key requires you to update your .wakatime.cfg files on all of your computers to make the WakaTime client send heartbeats again.
-                        </span>
-                    </div>
-                    <div class="w-1/2 ml-4 flex items-center">
-                        <button type="submit" class="btn-danger ml-1">Reset API key</button>
                     </div>
                 </form>
 

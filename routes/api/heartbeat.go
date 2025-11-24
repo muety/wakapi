@@ -1,22 +1,21 @@
 package api
 
 import (
-	"github.com/duke-git/lancet/v2/condition"
-	"github.com/go-chi/chi/v5"
-	"github.com/muety/wakapi/helpers"
-	"github.com/rs/cors"
-
 	"net/http"
 
+	"github.com/duke-git/lancet/v2/condition"
+	"github.com/go-chi/chi/v5"
+	"github.com/rs/cors"
+
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
 	customMiddleware "github.com/muety/wakapi/middlewares/custom"
+	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
-
-	"github.com/muety/wakapi/models"
 )
 
 type HeartbeatApiHandler struct {
@@ -38,7 +37,7 @@ func NewHeartbeatApiHandler(userService services.IUserService, heartbeatService 
 func (h *HeartbeatApiHandler) RegisterRoutes(router chi.Router) {
 	router.Group(func(r chi.Router) {
 		r.Use(
-			middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalForMethods(http.MethodOptions).Handler,
+			middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalForMethods(http.MethodOptions).WithFullAccessOnly(true).Handler,
 			customMiddleware.NewWakatimeRelayMiddleware().Handler,
 		)
 		// see https://github.com/muety/wakapi/issues/203
