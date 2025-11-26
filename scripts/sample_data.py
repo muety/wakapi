@@ -1,16 +1,18 @@
 #!/usr/bin/python3
 
+# Setup:
+# pip install httpx tqdm pyqt6
+
 import argparse
 import base64
 import random
 import signal
 import string
-import sys
 from datetime import datetime, timedelta
 from typing import List, Union, Callable
 
-import requests
-from requests.exceptions import RequestException
+import httpx
+from httpx import RequestError
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow to be closed with sigint, see https://stackoverflow.com/a/6072360/3112139
 
@@ -93,18 +95,19 @@ def generate_data(n: int, n_projects: int = 5, n_past_hours: int = 24) -> List[H
 def post_data_sync(data: List[Heartbeat], url: str, api_key: str):
     encoded_key: str = str(base64.b64encode(api_key.encode('utf-8')), 'utf-8')
 
-    r = requests.post(url, json=[h.__dict__ for h in data], headers={
+    client = httpx.Client()
+    response = client.post(url, json=[h.__dict__ for h in data], headers={
         'User-Agent': UA,
         'Authorization': f'Basic {encoded_key}',
         'X-Machine-Name': MACHINE,
     })
-    r.raise_for_status()
+    response.raise_for_status()
 
 
 def make_gui(callback: Callable[[ConfigParams, Callable[[int], None]], None]) -> ('QApplication', 'QWidget'):
-    # https://doc.qt.io/qt-5/qtwidgets-module.html
-    from PyQt5.QtCore import Qt
-    from PyQt5.QtWidgets import QApplication, QWidget, QFormLayout, QHBoxLayout, QVBoxLayout, QGroupBox, QLabel, \
+    # https://doc.qt.io/qt-6/qtwidgets-module.html
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtWidgets import QApplication, QWidget, QFormLayout, QHBoxLayout, QVBoxLayout, QGroupBox, QLabel, \
         QLineEdit, QSpinBox, QProgressBar, QPushButton, QCheckBox, QMessageBox
 
     # Main app
@@ -278,7 +281,7 @@ def run(params: ConfigParams, update_progress: Callable[[int], None], on_error: 
             for d in data:
                 post_data_sync([d], f'{params.api_url}/heartbeats', params.api_key)
                 update_progress(1)
-    except RequestException as e:
+    except RequestError as e:
         on_error(str(e))
 
 
