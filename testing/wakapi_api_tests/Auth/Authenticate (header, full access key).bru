@@ -1,0 +1,23 @@
+meta {
+  name: Authenticate (header, full access key)
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=today
+  body: none
+  auth: bearer
+}
+
+params:query {
+  interval: today
+}
+
+auth:bearer {
+  token: {{ADDITIONAL_FULL_ACCESS_TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+}

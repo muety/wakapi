@@ -46,9 +46,9 @@ func TestUsersHandler_Get(t *testing.T) {
 
 	userServiceMock := new(mocks.UserServiceMock)
 	userServiceMock.On("GetUserById", "AdminUser").Return(adminUser, nil)
-	userServiceMock.On("GetUserByKey", "admin-user-api-key").Return(adminUser, nil)
+	userServiceMock.On("GetUserByKey", "admin-user-api-key", false).Return(adminUser, nil)
 	userServiceMock.On("GetUserById", "BasicUser").Return(basicUser, nil)
-	userServiceMock.On("GetUserByKey", "basic-user-api-key").Return(basicUser, nil)
+	userServiceMock.On("GetUserByKey", "basic-user-api-key", false).Return(basicUser, nil)
 
 	heartbeatServiceMock := new(mocks.HeartbeatServiceMock)
 	heartbeatServiceMock.On("GetLatestByUser", adminUser).Return(&models.Heartbeat{

@@ -575,9 +575,12 @@ Coding in open source is my passion, and I would love to do it on a full-time ba
 
 I highly appreciate the efforts of **[@alanhamlett](https://github.com/alanhamlett)** and the WakaTime team and am thankful for their software being open source.
 
-Moreover, thanks to **[server.camp](https://server.camp)** for sponsoring server infrastructure for Wakapi.dev.
+Moreover, thanks to **[server.camp](https://server.camp)** for donating server infrastructure for Wakapi.dev and [Tuta](https://tuta.com) to support us with their open-source sponsorship program.
 
-<img src=".github/assets/servercamp_logo.png" width="220px" />
+<div>
+  <img src=".github/assets/servercamp_logo.png" width="200px" />
+  <img src=".github/assets/tuta_logo.svg" width="200px"/>
+</div>
 
 ## 📓 License
 

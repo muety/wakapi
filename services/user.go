@@ -12,12 +12,13 @@ import (
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/gofrs/uuid/v5"
 	"github.com/leandro-lugaresi/hub"
+	"github.com/patrickmn/go-cache"
+	"gorm.io/gorm"
+
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
-	"github.com/patrickmn/go-cache"
-	"gorm.io/gorm"
 )
 
 type UserService struct {
@@ -26,17 +27,19 @@ type UserService struct {
 	eventBus            *hub.Hub
 	keyValueService     IKeyValueService
 	mailService         IMailService
+	apiKeyService       IApiKeyService
 	repository          repositories.IUserRepository
 	currentOnlineUsers  *cache.Cache
 	countersInitialized atomic.Bool
 }
 
-func NewUserService(keyValueService IKeyValueService, mailService IMailService, userRepo repositories.IUserRepository) *UserService {
+func NewUserService(keyValueService IKeyValueService, mailService IMailService, apiKeyService IApiKeyService, userRepo repositories.IUserRepository) *UserService {
 	srv := &UserService{
 		config:             config.Get(),
 		eventBus:           config.EventBus(),
 		cache:              cache.New(1*time.Hour, 2*time.Hour),
 		keyValueService:    keyValueService,
+		apiKeyService:      apiKeyService,
 		mailService:        mailService,
 		repository:         userRepo,
 		currentOnlineUsers: cache.New(models.DefaultHeartbeatsTimeout, 1*time.Minute),
@@ -96,7 +99,7 @@ func (srv *UserService) GetUserById(userId string) (*models.User, error) {
 	return u, nil
 }
 
-func (srv *UserService) GetUserByKey(key string) (*models.User, error) {
+func (srv *UserService) GetUserByKey(key string, requireFullAccessKey bool) (*models.User, error) {
 	if key == "" {
 		return nil, errors.New("key must not be empty")
 	}
@@ -106,12 +109,18 @@ func (srv *UserService) GetUserByKey(key string) (*models.User, error) {
 	}
 
 	u, err := srv.repository.FindOne(models.User{ApiKey: key})
-	if err != nil {
-		return nil, err
+	if err == nil {
+		srv.cache.SetDefault(u.ID, u)
+		return u, nil
 	}
 
-	srv.cache.SetDefault(u.ID, u)
-	return u, nil
+	apiKey, err := srv.apiKeyService.GetByApiKey(key, requireFullAccessKey)
+	if err == nil {
+		srv.cache.SetDefault(apiKey.User.ID, apiKey.User)
+		return apiKey.User, nil
+	}
+
+	return nil, err
 }
 
 func (srv *UserService) GetUserByEmail(email string) (*models.User, error) {

@@ -1,13 +1,17 @@
 meta {
-  name: Create heartbeats (unauthorized)
+  name: Create heartbeats (unauthorized, readonly key)
   type: http
-  seq: 11
+  seq: 13
 }
 
 post {
   url: {{BASE_URL}}/api/heartbeat
   body: json
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ADDITIONAL_READ_ONLY_TOKEN}}
 }
 
 body:json {

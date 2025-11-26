@@ -1,0 +1,40 @@
+meta {
+  name: Create heartbeats (alt 8, single, additional full access key)
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{BASE_URL}}/api/users/current/heartbeats
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ADDITIONAL_FULL_ACCESS_TOKEN}}
+}
+
+body:json {
+  {
+      "entity": "/home/user1/dev/project1/main.go",
+      "project": "wakapi",
+      "language": "Go",
+      "is_write": true,
+      "type": "file",
+      "category": null,
+      "branch": null,
+      "time": {{ts1}}
+  }
+}
+
+assert {
+  res.status: eq 201
+}
+
+tests {
+  test("Response body is correct", function () {
+      expect(res.body.responses.length).to.eql(1);
+      expect(res.body.responses[0].length).to.eql(2);
+      expect(res.body.responses[0][1]).to.eql(201);
+  });
+}
