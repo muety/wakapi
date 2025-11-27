@@ -162,6 +162,7 @@ func (suite *LoginHandlerTestSuite) TestPostLogin_NonExistingUser() {
 	w := httptest.NewRecorder()
 
 	suite.UserService.On("GetUserById", "nonexisting").Return(nil, errors.New(""))
+	suite.UserService.On("GetUserByEmail", "nonexisting").Return(nil, errors.New(""))
 	suite.UserService.On("Count").Return(1, nil)
 
 	suite.Sut.PostLogin(w, r)

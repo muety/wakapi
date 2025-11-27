@@ -39,6 +39,38 @@ func TestUserServiceTestSuite(t *testing.T) {
 	suite.Run(t, new(UserServiceTestSuite))
 }
 
+func (suite *UserServiceTestSuite) TestUserService_GetByEmail_Empty() {
+	sut := NewUserService(suite.KeyValueService, suite.MailService, suite.ApiKeyService, suite.UserRepo)
+
+	result, err := sut.GetUserByEmail("")
+
+	suite.Nil(result)
+	suite.NotNil(err)
+	suite.Equal(err, errors.New("email must not be empty"))
+}
+
+func (suite *UserServiceTestSuite) TestUserService_GetByEmail_Invalid() {
+	sut := NewUserService(suite.KeyValueService, suite.MailService, suite.ApiKeyService, suite.UserRepo)
+
+	result, err := sut.GetUserByEmail("notanemailaddress")
+
+	suite.Nil(result)
+	suite.NotNil(err)
+	suite.Equal(err, errors.New("not a valid email"))
+}
+
+func (suite *UserServiceTestSuite) TestUserService_GetByEmail_Valid() {
+	const testEmail = "foo@bar.com"
+
+	suite.UserRepo.On("FindOne", models.User{Email: testEmail}).Return(suite.TestUser, nil)
+
+	sut := NewUserService(suite.KeyValueService, suite.MailService, suite.ApiKeyService, suite.UserRepo)
+	result, err := sut.GetUserByEmail(testEmail)
+
+	suite.Equal(suite.TestUser, result)
+	suite.Nil(err)
+}
+
 func (suite *UserServiceTestSuite) TestUserService_GetByEmptyKey_Failed() {
 	sut := NewUserService(suite.KeyValueService, suite.MailService, suite.ApiKeyService, suite.UserRepo)
 

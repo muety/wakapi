@@ -1,0 +1,32 @@
+meta {
+  name: Login (by email)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{BASE_URL}}/login
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  username: testuser@wakapi.dev
+  password: testpassword
+}
+
+assert {
+  res.status: eq 302
+  res.headers['location']: eq /summary
+}
+
+script:pre-request {
+  // Do not follow 3xx redirects
+  req.setMaxRedirects(0)
+}
+
+tests {
+  test("Sets cookie", function () {
+      expect(res.headers["set-cookie"].some(str => str.includes("wakapi_auth="))).to.be.true
+  });
+}

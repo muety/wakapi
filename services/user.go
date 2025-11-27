@@ -10,6 +10,7 @@ import (
 
 	"github.com/duke-git/lancet/v2/convertor"
 	"github.com/duke-git/lancet/v2/datetime"
+	"github.com/duke-git/lancet/v2/validator"
 	"github.com/gofrs/uuid/v5"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/patrickmn/go-cache"
@@ -126,6 +127,9 @@ func (srv *UserService) GetUserByKey(key string, requireFullAccessKey bool) (*mo
 func (srv *UserService) GetUserByEmail(email string) (*models.User, error) {
 	if email == "" {
 		return nil, errors.New("email must not be empty")
+	}
+	if !validator.IsEmail(email) {
+		return nil, errors.New("not a valid email")
 	}
 	return srv.repository.FindOne(models.User{Email: email})
 }
