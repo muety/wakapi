@@ -431,7 +431,7 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 	user, err := h.userSrvc.GetUserByOidc(provider.Name, idTokenPayload.Subject)
 	if err != nil {
 		// create new user account
-		if !h.config.IsDev() && !h.config.Security.AllowSignup {
+		if !h.config.IsDev() && !h.config.Security.OidcAllowSignup {
 			routeutils.SetError(r, w, "registration is disabled on this server")
 			http.Redirect(w, r, fmt.Sprintf("%s/login", h.config.Server.BasePath), http.StatusFound)
 			return

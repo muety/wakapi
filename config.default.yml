@@ -86,6 +86,7 @@ security:
   insecure_cookies: true                # should be set to 'false', except when not running with HTTPS (e.g. on localhost)
   cookie_max_age: 172800
   allow_signup: true
+  oidc_allow_signup: true
   signup_captcha: false
   invite_codes: true                    # whether to enable invite codes for overriding disabled signups
   disable_frontpage: false

@@ -209,6 +209,7 @@ func (suite *LoginHandlerTestSuite) TestPostSignup_Success() {
 	suite.UserService.On("Count", mock.Anything).Return(1, nil)
 	suite.UserService.On("CreateOrGet", mock.Anything, mock.Anything).Return(&models.User{}, true, nil)
 	suite.Cfg.Security.AllowSignup = true
+	suite.Cfg.Security.OidcAllowSignup = false
 
 	suite.Sut.PostSignup(w, r)
 
@@ -236,6 +237,7 @@ func (suite *LoginHandlerTestSuite) TestPostSignup_InvalidForm() {
 
 	suite.UserService.On("Count", mock.Anything).Return(1, nil)
 	suite.Cfg.Security.AllowSignup = true
+	suite.Cfg.Security.OidcAllowSignup = false
 
 	suite.Sut.PostSignup(w, r)
 	body, _ := io.ReadAll(w.Body)
@@ -258,6 +260,7 @@ func (suite *LoginHandlerTestSuite) TestPostSignup_ExistingUser() {
 	suite.UserService.On("Count", mock.Anything).Return(1, nil)
 	suite.UserService.On("CreateOrGet", mock.Anything, mock.Anything).Return(suite.TestUser, false, nil)
 	suite.Cfg.Security.AllowSignup = true
+	suite.Cfg.Security.OidcAllowSignup = false
 
 	suite.Sut.PostSignup(w, r)
 	body, _ := io.ReadAll(w.Body)
@@ -268,6 +271,9 @@ func (suite *LoginHandlerTestSuite) TestPostSignup_ExistingUser() {
 }
 
 func (suite *LoginHandlerTestSuite) TestPostSignup_SignupDisabled() {
+	suite.Cfg.Security.AllowSignup = false
+	suite.Cfg.Security.OidcAllowSignup = true
+
 	form := url.Values{}
 	form.Add("username", testUserNewId)
 	form.Add("password", testUserNewPassword)
@@ -331,7 +337,8 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success() {
 }
 
 func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success_CreateUser() {
-	suite.Cfg.Security.AllowSignup = true
+	suite.Cfg.Security.AllowSignup = false
+	suite.Cfg.Security.OidcAllowSignup = true
 
 	url := suite.authorizeUser(suite.OidcUserNew)
 	r := httptest.NewRequest(http.MethodGet, url, nil)
@@ -363,6 +370,9 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success_CreateUser(
 }
 
 func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_SignupDisabled() {
+	suite.Cfg.Security.AllowSignup = true
+	suite.Cfg.Security.OidcAllowSignup = false
+
 	url := suite.authorizeUser(suite.OidcUserNew)
 	r := httptest.NewRequest(http.MethodGet, url, nil)
 	r = WithUrlParam(r, "provider", testProvider)
