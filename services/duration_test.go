@@ -1,14 +1,15 @@
 package services
 
 import (
+	"math/rand"
+	"testing"
+	"time"
+
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"math/rand"
-	"testing"
-	"time"
 )
 
 const (
@@ -28,7 +29,8 @@ const (
 	TestMachine1         = "muety-desktop"
 	TestMachine2         = "muety-work"
 	TestEntity1          = "/home/bob/dev/wakapi.go"
-	TestEntity2          = "/home/bob/dev/SomethingElse.java"
+	TestEntity2          = "/home/bob/dev/config.go"
+	TestEntity3          = "/home/bob/dev/SomethingElse.java"
 	TestBranchMaster     = "master"
 	TestBranchDev        = "dev"
 	TestCategoryCoding   = "coding"
@@ -62,6 +64,7 @@ func (suite *DurationServiceTestSuite) SetupSuite() {
 			Editor:          TestEditorGoland,
 			OperatingSystem: TestOsLinux,
 			Machine:         TestMachine1,
+			Entity:          TestEntity1,
 			Time:            models.CustomTime(suite.TestStartTime), // 0:00
 		},
 		{
@@ -72,6 +75,7 @@ func (suite *DurationServiceTestSuite) SetupSuite() {
 			Editor:          TestEditorGoland,
 			OperatingSystem: TestOsLinux,
 			Machine:         TestMachine1,
+			Entity:          TestEntity2,
 			Time:            models.CustomTime(suite.TestStartTime.Add(30 * time.Second)), // 0:30
 		},
 		// duplicate of previous one
@@ -83,6 +87,7 @@ func (suite *DurationServiceTestSuite) SetupSuite() {
 			Editor:          TestEditorGoland,
 			OperatingSystem: TestOsLinux,
 			Machine:         TestMachine1,
+			Entity:          TestEntity2,
 			Time:            models.CustomTime(suite.TestStartTime.Add(30 * time.Second)), // 0:30
 		},
 		{
@@ -93,6 +98,7 @@ func (suite *DurationServiceTestSuite) SetupSuite() {
 			Editor:          TestEditorGoland,
 			OperatingSystem: TestOsLinux,
 			Machine:         TestMachine1,
+			Entity:          TestEntity2,
 			Time:            models.CustomTime(suite.TestStartTime.Add((30 + 130) * time.Second)), // 2:40
 		},
 		{
@@ -103,6 +109,7 @@ func (suite *DurationServiceTestSuite) SetupSuite() {
 			Editor:          TestEditorVscode,
 			OperatingSystem: TestOsLinux,
 			Machine:         TestMachine1,
+			Entity:          TestEntity2,
 			Time:            models.CustomTime(suite.TestStartTime.Add(3 * time.Minute)), // 3:00
 		},
 		{
@@ -113,6 +120,7 @@ func (suite *DurationServiceTestSuite) SetupSuite() {
 			Editor:          TestEditorVscode,
 			OperatingSystem: TestOsLinux,
 			Machine:         TestMachine1,
+			Entity:          TestEntity2,
 			Time:            models.CustomTime(suite.TestStartTime.Add(3*time.Minute + 10*time.Second)), // 3:10
 		},
 		{
@@ -123,6 +131,7 @@ func (suite *DurationServiceTestSuite) SetupSuite() {
 			Editor:          TestEditorVscode,
 			OperatingSystem: TestOsLinux,
 			Machine:         TestMachine1,
+			Entity:          TestEntity2,
 			Time:            models.CustomTime(suite.TestStartTime.Add(3*time.Minute + 15*time.Second)), // 3:15
 		},
 	}
@@ -212,6 +221,29 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered() {
 	for _, d := range durations {
 		assert.Equal(suite.T(), TestEditorGoland, d.Editor)
 	}
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_Get_ProjectDetails() {
+	// https://github.com/muety/wakapi/issues/876
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
+
+	var (
+		from      time.Time
+		to        time.Time
+		durations models.Durations
+		err       error
+	)
+
+	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Hour)
+	suite.HeartbeatService.On("StreamAllWithin", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
+
+	testFilters := models.NewFiltersWith(models.SummaryEditor, TestEditorGoland).With(models.SummaryProject, TestProject1)
+	durations, err = sut.Get(from, to, suite.TestUser, testFilters, nil, true)
+	assert.Nil(suite.T(), err)
+	assert.Len(suite.T(), durations, 3)
+	assert.Equal(suite.T(), TestEntity1, durations[0].Entity) // first duration is split up into two parts, because of different filenames when requesting project details
+	assert.Equal(suite.T(), TestEntity2, durations[1].Entity)
+	assert.Equal(suite.T(), TestEntity2, durations[2].Entity)
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {

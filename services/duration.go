@@ -70,11 +70,11 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 	// while durations themselves store the interval (aka. heartbeats timeout) they were computed for, we currently don't support actually storing durations at different intervals
 	// if an interval different from the user's preference is requested, recompute durations live from heartbeats and skip cache
 	effectiveTimeout := getEffectiveTimeout(user, customTimeout)
-	skipCache = skipCache || effectiveTimeout != user.HeartbeatsTimeout()
+	skipCache = skipCache || effectiveTimeout != user.HeartbeatsTimeout() || filters.IsProjectDetails() // related: https://github.com/muety/wakapi/issues/876
 
 	// recompute live
 	if skipCache {
-		durations, err = srv.getLive(from, to, user, effectiveTimeout)
+		durations, err = srv.getLive(from, to, user, effectiveTimeout, filters.IsProjectDetails())
 		if err != nil {
 			return nil, err
 		}
@@ -96,7 +96,7 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 			from = cached.Last().TimeEnd().Add(time.Second)
 		}
 
-		missing, err := srv.getLive(from, to, user, effectiveTimeout)
+		missing, err := srv.getLive(from, to, user, effectiveTimeout, filters.IsProjectDetails())
 		if err != nil {
 			return nil, err
 		}
@@ -181,7 +181,7 @@ func (srv *DurationService) getCached(from, to time.Time, user *models.User, fil
 	return models.Durations(durations).Augmented(languageMappings).Sorted(), nil
 }
 
-func (srv *DurationService) getLive(from, to time.Time, user *models.User, interval time.Duration) (models.Durations, error) {
+func (srv *DurationService) getLive(from, to time.Time, user *models.User, interval time.Duration, includeEntities bool) (models.Durations, error) {
 	heartbeatsTimeout := interval
 
 	heartbeats, err := srv.heartbeatService.StreamAllWithin(from, to, user)
@@ -205,7 +205,11 @@ func (srv *DurationService) getLive(from, to time.Time, user *models.User, inter
 			h.User = user
 		}
 
-		d1 := models.NewDurationFromHeartbeat(h).WithEntityIgnored().WithTimeout(interval).Hashed()
+		d1 := models.NewDurationFromHeartbeat(h).WithTimeout(interval)
+		if !includeEntities { // related to https://github.com/muety/wakapi/issues/876
+			d1 = d1.WithEntityIgnored()
+		}
+		d1 = d1.Hashed()
 
 		// initialize map entry
 		if list, ok := mapping[d1.GroupHash]; !ok || len(list) < 1 {
