@@ -74,9 +74,12 @@ function draw(subselection) {
         return {
             callbacks: {
                 label: (item) => {
+                    const raw = item.chart.data.datasets[item.datasetIndex].data[item.dataIndex]
+                    const val = (typeof raw === 'object' && raw !== null) ? raw.x : raw
+                    const lbl = (typeof raw === 'object' && raw !== null && raw.details) ? raw.details : item.chart.data.labels[item.dataIndex]
                     const d = stacked
-                        ? [item.chart.data.datasets[item.datasetIndex].data[item.dataIndex], item.chart.data.datasets[item.datasetIndex].label]
-                        : [item.chart.data.datasets[item.datasetIndex].data[item.dataIndex], item.chart.data.labels[item.dataIndex]]
+                        ? [val, item.chart.data.datasets[item.datasetIndex].label]
+                        : [val, lbl]
                     return ` ${d[1]}: ${d[0].toString().toHHMMSS()}`
                 },
                 title: () => 'Total Time',
@@ -391,7 +394,11 @@ function draw(subselection) {
                 datasets: [{
                     data: wakapiData.entities
                         .slice(0, Math.min(showTopN[7], wakapiData.entities.length))
-                        .map(p => parseInt(p.total)),
+                        .map(p => ({
+                            x: parseInt(p.total),
+                            y: extractFile(p.key),
+                            details: p.key
+                        })),
                     backgroundColor: wakapiData.entities.map((p, i) => {
                         const c = hexToRgb(vibrantColors ? getRandomColor(p.key) : getColor(p.key, i % baseColors.length))
                         return `rgba(${c.r}, ${c.g}, ${c.b}, 1)`
