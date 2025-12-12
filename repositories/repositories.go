@@ -106,6 +106,7 @@ type IProjectLabelRepository interface {
 type ISummaryRepository interface {
 	IBaseRepository
 	Insert(*models.Summary) error
+	InsertWithRetry(*models.Summary) error
 	GetAll() ([]*models.Summary, error)
 	GetByUserWithin(*models.User, time.Time, time.Time) ([]*models.Summary, error)
 	GetLastByUser() ([]*models.TimeByUser, error)

@@ -141,7 +141,11 @@ func main() {
 	// Connect to database
 	var err error
 	slog.Info("starting with database", "dialect", config.Db.Dialect)
-	db, err = gorm.Open(config.Db.GetDialector(), &gorm.Config{Logger: gormLogger}, conf.GetWakapiDBOpts(&config.Db))
+	db, err = gorm.Open(
+		config.Db.GetDialector(),
+		&gorm.Config{Logger: gormLogger, TranslateError: true},
+		conf.GetWakapiDBOpts(&config.Db),
+	)
 	if err != nil {
 		conf.Log().Fatal("could not connect to database", "error", err)
 	}

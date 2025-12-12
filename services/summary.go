@@ -255,7 +255,7 @@ func (srv *SummaryService) DeleteByUserBefore(userId string, t time.Time) error 
 
 func (srv *SummaryService) Insert(summary *models.Summary) error {
 	srv.invalidateUserCache(summary.UserID)
-	return srv.repository.Insert(summary)
+	return srv.repository.InsertWithRetry(summary)
 }
 
 // Private summary generation and utility methods

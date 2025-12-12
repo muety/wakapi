@@ -1,9 +1,10 @@
 package mocks
 
 import (
+	"time"
+
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/mock"
-	"time"
 )
 
 type SummaryRepositoryMock struct {
@@ -12,6 +13,11 @@ type SummaryRepositoryMock struct {
 }
 
 func (m *SummaryRepositoryMock) Insert(s *models.Summary) error {
+	args := m.Called(s)
+	return args.Error(0)
+}
+
+func (m *SummaryRepositoryMock) InsertWithRetry(s *models.Summary) error {
 	args := m.Called(s)
 	return args.Error(0)
 }

@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/duke-git/lancet/v2/slice"
@@ -34,8 +36,21 @@ func (r *SummaryRepository) GetAll() ([]*models.Summary, error) {
 	return summaries, nil
 }
 
-func (r *SummaryRepository) Insert(summary *models.Summary) error {
+func (r *SummaryRepository) InsertWithRetry(summary *models.Summary) (err error) {
+	// in case of duplicate key error, retry inserting up to three times
+	// https://github.com/muety/wakapi/issues/877
+	for i := 0; i < 3; i++ {
+		err = r.Insert(summary)
+		if err == nil || !errors.Is(err, gorm.ErrDuplicatedKey) {
+			return err
+		}
+		slog.Warn("retrying to insert summary", "userId", summary.UserID, "fromTime", summary.FromTime.T(), "toTime", summary.ToTime.T(), "error", err)
+		time.Sleep(1 * time.Second)
+	}
+	return err
+}
 
+func (r *SummaryRepository) Insert(summary *models.Summary) error {
 	if err := r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(summary).Error; err != nil {
 			return err

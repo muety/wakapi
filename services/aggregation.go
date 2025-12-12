@@ -2,12 +2,13 @@ package services
 
 import (
 	"errors"
-	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
-	"github.com/muety/artifex/v2"
-	"github.com/muety/wakapi/config"
 	"log/slog"
 	"sync"
 	"time"
+
+	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
+	"github.com/muety/artifex/v2"
+	"github.com/muety/wakapi/config"
 
 	"github.com/muety/wakapi/models"
 )
@@ -192,7 +193,7 @@ func (srv *AggregationService) process(job AggregationJob) {
 	} else {
 		slog.Info("successfully generated summary", "from", job.From, "to", job.To, "userID", job.User.ID)
 		if err := srv.summaryService.Insert(summary); err != nil {
-			config.Log().Error("failed to save summary", "userID", summary.UserID, "fromTime", summary.FromTime, "toTime", summary.ToTime, "error", err)
+			config.Log().Error("failed to save summary", "userID", summary.UserID, "fromTime", summary.FromTime.T(), "toTime", summary.ToTime.T(), "error", err)
 		}
 	}
 }
