@@ -74,7 +74,9 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f type
 
 	// Post-process filters
 	if filters != nil {
-		filters = filters.WithProjectLabels(resolveProjectLabelsReverse)
+		if !filters.Project.Exists() {
+			filters = filters.WithProjectLabels(resolveProjectLabelsReverse)
+		}
 		filters = filters.WithAliases(resolveAliasesReverse)
 	}
 
