@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
@@ -75,13 +76,22 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	summaryParams, _ := helpers.ParseSummaryParams(r)
-	summary, err, status := su.LoadUserSummary(h.summarySrvc, r)
+	summary, err, status := su.LoadUserSummaryByParams(h.summarySrvc, summaryParams)
 	if err != nil {
 		conf.Log().Request(r).Error("failed to load summary", "error", err)
 		w.WriteHeader(status)
 		templates[conf.SummaryTemplate].Execute(w, h.buildViewModel(r, w).WithError(err.Error()))
 		return
 	}
+	// retrieved for showing all available filters
+	summaryWithoutFilter, err, status := su.LoadUserSummaryWithoutFilter(h.summarySrvc, summaryParams)
+	if err != nil {
+		conf.Log().Request(r).Error("failed to load summary", "error", err)
+		w.WriteHeader(status)
+		templates[conf.SummaryTemplate].Execute(w, h.buildViewModel(r, w).WithError(err.Error()))
+		return
+	}
+	availableFilters := h.extractAvailableFilters(summaryWithoutFilter)
 
 	user := middlewares.GetPrincipal(r)
 	if user == nil {
@@ -99,6 +109,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// timeline data (daily stats)
 	var timeline []*view.TimelineViewModel
 	if rangeDays := summaryParams.RangeDays(); rangeDays >= dailyStatsMinRangeDays && rangeDays <= dailyStatsMaxRangeDays {
 		dailyStatsSummaries, err := h.fetchSplitSummaries(summaryParams)
@@ -109,6 +120,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// hourly breakdown data
 	var hourlyBreakdown view.HourlyBreakdownsViewModel
 	hourlyBreakdownFrom := summaryParams.From
 	if summaryParams.RangeDays() > 1 { // get at most 24 hours of hourly breakdown
@@ -128,6 +140,7 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 			SharedViewModel: view.NewSharedViewModel(h.config, nil),
 			User:            user,
 		},
+		AvailableFilters:    availableFilters,
 		Summary:             summary,
 		SummaryParams:       summaryParams,
 		EditorColors:        su.FilterColors(h.config.App.GetEditorColors(), summary.Editors),
@@ -165,4 +178,15 @@ func (h *SummaryHandler) fetchSplitSummaries(params *models.SummaryParams) ([]*m
 		summaries = append(summaries, curSummary)
 	}
 	return summaries, nil
+}
+
+// extractAvailableFilters extracts available filter names from a summary's various item collections.
+func (h *SummaryHandler) extractAvailableFilters(summary *models.Summary) view.AvailableFilters {
+	return view.AvailableFilters{
+		ProjectNames:  slice.Map(summary.Projects, func(_ int, item *models.SummaryItem) string { return item.Key }),
+		LanguageNames: slice.Map(summary.Languages, func(_ int, item *models.SummaryItem) string { return item.Key }),
+		MachineNames:  slice.Map(summary.Machines, func(_ int, item *models.SummaryItem) string { return item.Key }),
+		LabelNames:    slice.Map(summary.Labels, func(_ int, item *models.SummaryItem) string { return item.Key }),
+		CategoryNames: slice.Map(summary.Categories, func(_ int, item *models.SummaryItem) string { return item.Key }),
+	}
 }

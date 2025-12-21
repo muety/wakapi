@@ -12,6 +12,7 @@ type SummaryViewModel struct {
 	SharedLoggedInViewModel
 	*models.Summary
 	*models.SummaryParams
+	AvailableFilters    AvailableFilters
 	AvatarURL           string
 	EditorColors        map[string]string
 	LanguageColors      map[string]string
@@ -22,6 +23,14 @@ type SummaryViewModel struct {
 	RawQuery            string
 	UserFirstData       time.Time
 	DataRetentionMonths int
+}
+
+type AvailableFilters struct {
+	ProjectNames  []string
+	LanguageNames []string
+	MachineNames  []string
+	LabelNames    []string
+	CategoryNames []string
 }
 
 type TimelineViewModel struct {
