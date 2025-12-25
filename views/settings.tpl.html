@@ -822,13 +822,24 @@
                     <div class="w-full md:w-1/2">
                         {{ if ne .User.ShareDataMaxDays 0 }}
                         <div class="flex items-center mb-2">
-                            <img src="https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=1A202C&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title={{ .ReadmeCardCustomTitle }}&layout=compact"
+                            <img src="{{ if .User.ReadmeStatsBaseUrl }}{{ .User.ReadmeStatsBaseUrl }}{{ else }}https://github-readme-stats.vercel.app{{ end }}/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=1A202C&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title={{ .ReadmeCardCustomTitle }}&layout=compact"
                                  class="with-url-src-no-scheme" alt="Readme Stats Card">
                         </div>
                         <textarea
                                 class="with-url-inner-no-scheme shrink w-full font-mono text-xs appearance-none bg-card text-secondary outline-none rounded py-2 px-4 cursor-not-allowed mt-2"
                                 rows="5" style="resize: none"
-                                readonly>https://github-readme-stats.vercel.app/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=1A202C&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title={{ .ReadmeCardCustomTitle }}&layout=compact</textarea>
+                                readonly>{{ if .User.ReadmeStatsBaseUrl }}{{ .User.ReadmeStatsBaseUrl }}{{ else }}https://github-readme-stats.vercel.app{{ end }}/api/wakatime?username={{ .User.ID }}&api_domain=%s&bg_color=1A202C&title_color=2F855A&icon_color=2F855A&text_color=ffffff&custom_title={{ .ReadmeCardCustomTitle | urlquery }}&layout=compact</textarea>
+
+                        <form class="w-full mt-4" action="" method="post">
+                            <input type="hidden" name="action" value="update_readme_stats_base_url">
+                            <div class="flex flex-col flex-grow gap-y-1">
+                                <label class="font-semibold text-foreground text-sm" for="readme_stats_base_url">Custom Readme Stats Base URL</label>
+                                <input class="input-default w-full text-sm" type="url" id="readme_stats_base_url" name="readme_stats_base_url" placeholder="https://github-readme-stats.vercel.app" value="{{ .User.ReadmeStatsBaseUrl }}">
+                            </div>
+                            <div class="flex justify-end mt-4">
+                                <button type="submit" class="btn-primary h-min py-2">Save</button>
+                            </div>
+                        </form>
                         {{ end }}
                     </div>
                 </div>
