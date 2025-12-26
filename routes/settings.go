@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -201,6 +200,8 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 		return h.actionUpdateExcludeUnknownProjects
 	case "update_heartbeats_timeout":
 		return h.actionUpdateHeartbeatsTimeout
+	case "update_readme_stats_base_url":
+		return h.actionUpdateReadmeStatsBaseUrl
 	case "add_api_key":
 		return h.actionAddApiKey
 	case "delete_api_key":
@@ -412,6 +413,23 @@ func (h *SettingsHandler) actionUpdateHeartbeatsTimeout(w http.ResponseWriter, r
 	}
 
 	return actionResult{http.StatusOK, "Done. To apply this change to already existing data, please regenerate your summaries.", "", nil}
+}
+
+func (h *SettingsHandler) actionUpdateReadmeStatsBaseUrl(w http.ResponseWriter, r *http.Request) actionResult {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+
+	user := middlewares.GetPrincipal(r)
+	defer h.userSrvc.FlushUserCache(user.ID)
+
+	user.ReadmeStatsBaseUrl = r.PostFormValue("readme_stats_base_url")
+
+	if _, err := h.userSrvc.Update(user); err != nil {
+		return actionResult{http.StatusInternalServerError, "", "internal sever error", nil}
+	}
+
+	return actionResult{http.StatusOK, "settings updated", "", nil}
 }
 
 func (h *SettingsHandler) actionUpdateSharing(w http.ResponseWriter, r *http.Request) actionResult {
@@ -1080,7 +1098,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 	if err, maxRange := helpers.ResolveMaximumRange(user.ShareDataMaxDays); err == nil {
 		readmeCardTitle += fmt.Sprintf(" (%v)", maxRange.GetHumanReadable())
 	}
-	vm.ReadmeCardCustomTitle = url.QueryEscape(readmeCardTitle)
+	vm.ReadmeCardCustomTitle = readmeCardTitle
 
 	return routeutils.WithSessionMessages(vm, r, w)
 }

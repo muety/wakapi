@@ -34,31 +34,31 @@
         <div class="flex-grow flex-shrink hidden md:flex justify-start gap-x-4 flex-wrap">
             <div v-scope="EntityFilter({
                 type: 'project',
-                options: wakapiData.projects.map(p => p.key).toSorted(),
+                options: wakapiData.availableProjectNames.toSorted(),
                 selection: null,
             })" @vue:mounted="mounted"></div>
 
             <div v-scope="EntityFilter({
                 type: 'language',
-                options: wakapiData.languages.map(p => p.key).toSorted(),
+                options: wakapiData.availableLanguageNames.toSorted(),
                 selection: null,
             })" @vue:mounted="mounted"></div>
 
             <div v-scope="EntityFilter({
                 type: 'machine',
-                options: wakapiData.machines.map(p => p.key).toSorted(),
+                options: wakapiData.availableMachineNames.toSorted(),
                 selection: null,
             })" @vue:mounted="mounted"></div>
 
             <div v-scope="EntityFilter({
                 type: 'label',
-                options: wakapiData.labels.map(p => p.key).toSorted(),
+                options: wakapiData.availableLabelNames.toSorted(),
                 selection: null,
             })" @vue:mounted="mounted"></div>
 
             <div v-scope="EntityFilter({
                 type: 'category',
-                options: wakapiData.categories.map(p => p.key).toSorted(),
+                options: wakapiData.availableCategoryNames.toSorted(),
                 selection: null,
             })" @vue:mounted="mounted"></div>
         </div>
@@ -399,6 +399,11 @@
     wakapiData.hourlyBreakdown = {{ .HourlyBreakdown | json }}
     wakapiData.hourlyBreakdownFromTime = {{ .HourlyBreakdownFrom | json }}
     wakapiData.hourlyBreakdownToTime = {{ .SummaryParams.To | json }}
+    wakapiData.availableProjectNames = {{ .AvailableFilters.ProjectNames | json }}
+    wakapiData.availableLanguageNames = {{ .AvailableFilters.LanguageNames | json }}
+    wakapiData.availableMachineNames = {{ .AvailableFilters.MachineNames | json }}
+    wakapiData.availableLabelNames = {{ .AvailableFilters.LabelNames | json }}
+    wakapiData.availableCategoryNames = {{ .AvailableFilters.CategoryNames | json }}
     {{ if .IsProjectDetails }}
     wakapiData.branches = {{ .Branches | json }}
     wakapiData.entities = {{ .Entities | json }}

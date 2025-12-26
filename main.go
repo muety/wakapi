@@ -260,6 +260,7 @@ func main() {
 		middleware.CleanPath,
 		middleware.StripSlashes,
 		middleware.Recoverer,
+		middleware.GetHead,
 		middlewares.NewSharedDataMiddleware(),
 		middlewares.NewLoggingMiddleware(slog.Info, []string{
 			"/assets",
