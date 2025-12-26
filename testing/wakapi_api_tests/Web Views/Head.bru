@@ -1,0 +1,27 @@
+meta {
+  name: Head
+  type: http
+  seq: 1
+}
+
+head {
+  url: {{BASE_URL}}
+  body: none
+  auth: inherit
+}
+
+assert {
+  res.status: eq 200
+  res.headers['content-type']: startsWith text/html
+}
+
+script:pre-request {
+  bru.cookies.jar().clear()
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+}
