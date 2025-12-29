@@ -90,6 +90,12 @@ func (suite *SummaryServiceTestSuite) SetupSuite() {
 		{
 			ID:         uint(rand.Uint32()),
 			UserID:     TestUserId,
+			ProjectKey: TestProject2,
+			Label:      TestProjectLabel1,
+		},
+		{
+			ID:         uint(rand.Uint32()),
+			UserID:     TestUserId,
 			ProjectKey: TestProject3,
 			Label:      TestProjectLabel3,
 		},
@@ -612,10 +618,10 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
 	suite.ProjectLabelService.On("GetByUser", suite.TestUser.ID).Return([]*models.ProjectLabel{}, nil)
 
 	from, to := suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
-	filters := models.NewFiltersWith(models.SummaryProject, TestProject1).With(models.SummaryLabel, TestProjectLabel3)
+	filtersWithProject := models.NewFiltersWith(models.SummaryProject, TestProject1).With(models.SummaryLabel, TestProjectLabel1)
+	filtersWithoutProject := models.NewFiltersWith(models.SummaryLabel, TestProjectLabel1)
 
 	suite.DurationService.On("Get", from, to, suite.TestUser, mock.Anything, mock.Anything, false).Return(models.Durations{}, nil)
-	suite.AliasService.On("InitializeUser", TestUserId).Return(nil)
 	suite.AliasService.On("GetByUserAndKeyAndType", TestUserId, TestProject1, models.SummaryProject).Return([]*models.Alias{
 		// map any project starting with "som" to project 1
 		{
@@ -632,21 +638,33 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_Filters() {
 			Value: TestProject2,
 		},
 	}, nil)
+	suite.AliasService.On("GetByUserAndKeyAndType", TestUserId, TestProject2, models.SummaryProject).Return([]*models.Alias{}, nil)
 	suite.ProjectLabelService.On("GetByUserGroupedInverted", suite.TestUser.ID).Return(map[string][]*models.ProjectLabel{
-		suite.TestLabels[0].Label: suite.TestLabels[0:1], // "private" -> ["test-project-1"]
-		suite.TestLabels[1].Label: suite.TestLabels[1:2], // "non-existing" -> ["test-project-3"]
+		suite.TestLabels[0].Label: suite.TestLabels[0:2], // "private" -> ["test-project-1", "test-project-2"]
+		suite.TestLabels[2].Label: suite.TestLabels[2:3], // "non-existing" -> ["test-project-3"]
 	}, nil).Once()
 
-	result, _ := sut.Aliased(from, to, suite.TestUser, sut.Summarize, filters, nil, false)
-	assert.NotNil(suite.T(), result.Branches) // project filters were applied -> include branches
-	assert.NotNil(suite.T(), result.Entities) // project filters were applied -> include entities
+	// first request: project details with filtering by project and label
+	// when requesting project details, don't ignore data from other projects even though they'd match the filter's label (see https://github.com/muety/wakapi/issues/883)
+	result1, _ := sut.Aliased(from, to, suite.TestUser, sut.Summarize, filtersWithProject, nil, false)
+	effectiveFilters1 := suite.DurationService.Calls[0].Arguments[3].(*models.Filters)
+	assert.NotNil(suite.T(), result1.Branches) // project filters were applied -> include branches
+	assert.NotNil(suite.T(), result1.Entities) // project filters were applied -> include entities
+	assert.Len(suite.T(), effectiveFilters1.Project, 2)
+	assert.Contains(suite.T(), effectiveFilters1.Project, TestProject1) // because actually requested
+	assert.Contains(suite.T(), effectiveFilters1.Project, TestProject4) // because of wildcard alias (whenever project 1 is requested, anything mapping to it must be included as well)
+	assert.Contains(suite.T(), effectiveFilters1.Label, TestProjectLabel1)
 
-	effectiveFilters := suite.DurationService.Calls[0].Arguments[3].(*models.Filters)
-	assert.Contains(suite.T(), effectiveFilters.Project, TestProject1) // because actually requested
-	assert.Contains(suite.T(), effectiveFilters.Project, TestProject2) // because of label via alias (whenever project 3 is requested (here as part of label), anything mapping to it must be included as well, see https://github.com/muety/wakapi/issues/836)
-	assert.Contains(suite.T(), effectiveFilters.Project, TestProject3) // because of label (directly)
-	assert.Contains(suite.T(), effectiveFilters.Project, TestProject4) // because of wildcard alias (whenever project 1 is requested, anything mapping to it must be included as well)
-	assert.Contains(suite.T(), effectiveFilters.Label, TestProjectLabel3)
+	// second request: summary with filtering by label
+	result2, _ := sut.Aliased(from, to, suite.TestUser, sut.Summarize, filtersWithoutProject, nil, false)
+	effectiveFilters2 := suite.DurationService.Calls[1].Arguments[3].(*models.Filters)
+	assert.NotNil(suite.T(), result2.Branches) // project filters were applied -> include branches
+	assert.NotNil(suite.T(), result2.Entities) // project filters were applied -> include entities
+	assert.Len(suite.T(), effectiveFilters2.Project, 3)
+	assert.Contains(suite.T(), effectiveFilters2.Project, TestProject1) // because actually requested
+	assert.Contains(suite.T(), effectiveFilters2.Project, TestProject2) // because covered by label
+	assert.Contains(suite.T(), effectiveFilters2.Project, TestProject4) // because of wildcard alias (whenever project 1 is requested, anything mapping to it must be included as well)
+	assert.Contains(suite.T(), effectiveFilters2.Label, TestProjectLabel1)
 }
 
 func (suite *SummaryServiceTestSuite) TestSummaryService_getMissingIntervals() {
