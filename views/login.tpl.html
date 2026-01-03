@@ -3,6 +3,8 @@
 
 {{ template "head.tpl.html" . }}
 
+<script type="module" src="assets/vendor/simplewebauthn.umd.min.js"></script>
+<script src="assets/js/login.js"></script>
 <body class="bg-background text-muted p-4 pt-10 flex flex-col min-h-screen max-w-screen-lg mx-auto justify-center">
 
 {{ template "header.tpl.html" . }}
@@ -41,6 +43,7 @@
                     </a>
                     {{ end }}
                     <button type="submit" class="btn-primary">Log in</button>
+                    <button type="button" class="btn-primary" id="webauthn_login">Usernamelessly log in By authenticator</button>
                 </div>
             </div>
         </form>

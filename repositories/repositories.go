@@ -153,3 +153,12 @@ type IApiKeyRepository interface {
 	Insert(*models.ApiKey) (*models.ApiKey, error)
 	Delete(string) error
 }
+
+type IWebAuthnRepository interface {
+	IBaseRepository
+	Insert(*models.Credential) (*models.Credential, error)
+	GetByUser(string) ([]*models.Credential, error)
+	GetByUserAndName(string, string) (*models.Credential, error)
+	Update(*models.Credential) error
+	Delete(*models.Credential) error
+}
