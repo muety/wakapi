@@ -92,6 +92,12 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.config.Security.DisableLocalAuth {
+		w.WriteHeader(http.StatusForbidden)
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("local authentication is disabled on this server"))
+		return
+	}
+
 	var login models.Login
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
