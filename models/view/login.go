@@ -2,11 +2,12 @@ package view
 
 type LoginViewModel struct {
 	SharedViewModel
-	TotalUsers    int
-	AllowSignup   bool
-	CaptchaId     string
-	InviteCode    string
-	OidcProviders []LoginViewModelOidcProvider
+	TotalUsers       int
+	AllowSignup      bool
+	DisableLocalAuth bool
+	CaptchaId        string
+	InviteCode       string
+	OidcProviders    []LoginViewModelOidcProvider
 }
 
 type LoginViewModelOidcProvider struct {

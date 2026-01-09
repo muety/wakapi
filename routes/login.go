@@ -475,10 +475,11 @@ func (h *LoginHandler) buildViewModel(r *http.Request, w http.ResponseWriter, wi
 	numUsers, _ := h.userSrvc.Count()
 
 	vm := &view.LoginViewModel{
-		SharedViewModel: view.NewSharedViewModel(h.config, nil),
-		TotalUsers:      int(numUsers),
-		AllowSignup:     h.config.IsDev() || h.config.Security.AllowSignup,
-		InviteCode:      r.URL.Query().Get("invite"),
+		SharedViewModel:  view.NewSharedViewModel(h.config, nil),
+		TotalUsers:       int(numUsers),
+		AllowSignup:      h.config.IsDev() || h.config.Security.AllowSignup,
+		InviteCode:       r.URL.Query().Get("invite"),
+		DisableLocalAuth: h.config.Security.DisableLocalAuth,
 		OidcProviders: slice.Map(h.config.Security.ListOidcProviders(), func(i int, providerName string) view.LoginViewModelOidcProvider {
 			provider, _ := conf.GetOidcProvider(providerName) // no error, because only using registered provider names
 			return view.LoginViewModelOidcProvider{
