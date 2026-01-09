@@ -1,0 +1,9 @@
+services:
+  dex:
+    image: ghcr.io/dexidp/dex:latest
+    restart: no
+    command: dex serve /etc/dex/config.docker.yaml
+    ports:
+      - "5556:5556"
+    volumes:
+      - ./dex-config.yaml:/etc/dex/config.docker.yaml

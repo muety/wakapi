@@ -1,0 +1,19 @@
+# config.yaml
+issuer: http://localhost:5556/dex/
+storage:
+  type: memory
+web:
+  http: 0.0.0.0:5556
+staticClients:
+  - id: wakapi
+    redirectURIs:
+      - 'http://localhost:3000/oidc/oidc/callback'
+    name: 'Wakapi'
+    secret: wakapi
+enablePasswordDB: true
+
+staticPasswords:
+  - email: "admin@wakapi.test" # admin@wakapi.test:password
+    hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W" # password
+    username: "admin"
+    userID: "1234"
