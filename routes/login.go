@@ -79,6 +79,22 @@ func (h *LoginHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !routeutils.HasErrorMessages(r) && h.config.Security.DisableLocalAuth && len(h.config.Security.OidcProviders) == 1 {
+		http.Redirect(w, r,
+			fmt.Sprintf(
+				"%s/oidc/%s/login",
+				h.config.Server.BasePath,
+				strings.ToLower(h.config.Security.OidcProviders[0].Name),
+			),
+			http.StatusFound,
+		)
+		return
+	}
+
+	if h.config.Security.DisableLocalAuth && len(h.config.Security.OidcProviders) == 0 {
+		routeutils.SetError(r, w, "No authentication method is enabled or configured on this server.")
+	}
+
 	templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false))
 }
 
