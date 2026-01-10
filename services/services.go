@@ -4,6 +4,7 @@ import (
 	"time"
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"gorm.io/gorm"
 
 	"github.com/muety/wakapi/models"
@@ -154,6 +155,7 @@ type IUserService interface {
 	GetUserByUnsubscribeToken(string) (*models.User, error)
 	GetUserByStripeCustomerId(string) (*models.User, error)
 	GetUserByOidc(string, string) (*models.User, error)
+	GetUserByWebAuthnID(string) (*models.User, error)
 	GetAll() ([]*models.User, error)
 	GetAllMapped() (map[string]*models.User, error)
 	GetMany([]string) ([]*models.User, error)
@@ -180,4 +182,13 @@ type IApiKeyService interface {
 	GetByUser(string) ([]*models.ApiKey, error)
 	Create(*models.ApiKey) (*models.ApiKey, error)
 	Delete(*models.ApiKey) error
+}
+
+type IWebAuthnService interface {
+	CreateCredential(*webauthn.Credential, *models.User, string) (*models.Credential, error)
+	GetCredentialsByUser(*models.User) ([]*models.Credential, error)
+	GetCredentialByUserAndName(*models.User, string) (*models.Credential, error)
+	LoadCredentialIntoUser(*models.User) error
+	DeleteCredential(*models.Credential) error
+	UpdateCredential(*webauthn.Credential) error
 }

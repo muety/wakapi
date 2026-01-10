@@ -3,6 +3,7 @@
 
 {{ template "head.tpl.html" . }}
 <script src="assets/js/timezones.js"></script>
+<script type="module" src="assets/vendor/simplewebauthn.umd.min.js"></script>
 <script>
     // Constants
     const defaultTab = 'account'
@@ -186,6 +187,66 @@
                     </button>
                 </div>
             </form>
+
+            <!-- WebAuthn -->
+            <script type="application/json" id="webauthn-options">
+                {{ .WebAuthnOptions | json }}
+            </script>
+            <div class="w-full md:w-3/4">
+                <hr class="border-t border-focused my-4">
+            </div>
+
+            <div class="w-full md:w-3/4">
+                <div class="mb-8">
+                    <span class="font-semibold text-foreground text-lg">Current authenticators</span>
+                    <span class="block text-sm text-muted">Sign in passwordlessly</span>
+                    {{ if .WebAuthnCredentials }}
+                    <table class="w-full mt-4">
+                        <thead>
+                        <tr>
+                            <th class="text-left py-2 text-muted w-1/4">Name</th>
+                            <th class="text-left py-2 text-muted w-1/4">Created</th>
+                            <th class="text-left py-2 text-muted w-1/4">Last Used</th>
+                            <th class="text-center py-2 text-muted w-1/4">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{ range $i, $credential := .WebAuthnCredentials }}
+                        <tr>
+                            <td class="py-2 text-foreground">{{ $credential.Name }}</td>
+                            <td class="py-2 text-muted text-sm">{{ $credential.CreatedAt.T | datetime }}</td>
+                            <td class="py-2 text-muted text-sm">{{ if gt $credential.LastUsedAt.T.Year 2025 }}{{ $credential.LastUsedAt.T | datetime }}{{ else }}Never used{{ end }}</td>
+                            <td class="py-2 text-center">
+                                <form action="" method="post" class="inline">
+                                    <input type="hidden" name="action" value="webauthn_delete">
+                                    <input type="hidden" name="credential_name" value="{{ $credential.Name }}">
+                                    <button type="submit" class="py-2 px-4 rounded bg-card hover:bg-focused text-danger text-sm" title="Delete authenticator">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {{ end }}
+                        </tbody>
+                    </table>
+                    {{ else }}
+                    <div class="mt-4 text-muted">None yet</div>
+                    {{ end }}
+                </div>
+                
+                <form class="flex mb-8 justify-between" action="" id="form-webauthn-add" method="post">
+                    <input type="hidden" name="action" value="webauthn_add">
+                    <div class="w-1/2 mr-4 inline-block">
+                        <label class="font-semibold text-foreground" for="authenticator_name">Add Authenticator</label>
+                    </div>
+                    <div class="flex gap-2 items-center justify-end">
+                        <input class="input-default" id="authenticator_name"
+                               name="authenticator_name" placeholder="Authenticator Name" required>
+                        <input type="hidden" id="credential_json" name="credential_json">
+                        <button type="button" class="btn-primary" @click="webAuthnAdd">
+                            Next
+                        </button>
+                    </div>
+                </form>
+            </div>
             {{ end }}
 
             {{ if .InvitesEnabled }}
