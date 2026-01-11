@@ -143,9 +143,6 @@ func (r *HeartbeatRepository) GetLatestByFilters(user *models.User, filterMap ma
 	return heartbeat, nil
 }
 
-// TODO(882): migrate user_heartbeats_range view to utilize datetime()
-// TODO(882): add stored datetime column and index for datetime(time) on heartbeats and durations table
-
 func (r *HeartbeatRepository) GetFirstAll() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
 	err := r.db.Raw("select user_id as user, first as time from user_heartbeats_range").Scan(&result).Error
@@ -278,13 +275,13 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 				select
 					project,
 					user_id,
-					min(datetime(time)) as first,
-					max(datetime(time)) as last,
+					concat(datetime(min(time_real)), '+00:00') as first,
+					concat(datetime(max(time_real)), '+00:00') as last,
 					count(*) as cnt
 				from heartbeats
 				where user_id = @userid
 				  and project != ''
-				  and datetime(time) between datetime(@from) and datetime(@to)
+				  and time_real between julianday(@from) and julianday(@to)
 				  and language is not null and language != ''
 				group by project, user_id
 			),
@@ -297,7 +294,7 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 					 from heartbeats
 					 where user_id = @userid
 					   and project != ''
-					   and datetime(time) between datetime(@from) and datetime(@to)
+					   and time_real between julianday(@from) and julianday(@to)
 					   and language is not null and language != ''
 					 group by project, language
 				 )
@@ -391,8 +388,8 @@ func (r *HeartbeatRepository) buildTimeFilteredQuery(userId string, from, to tim
 func (r *HeartbeatRepository) queryAddTimeFilterBetween(q *gorm.DB, from, to time.Time) *gorm.DB {
 	if r.config.Db.IsSQLite() {
 		q = q.
-			Where("datetime(time) >= datetime(?)", from.Local()).
-			Where("datetime(time) < datetime(?)", to.Local())
+			Where("time_real >= julianday(?)", from.Local()).
+			Where("time_real < julianday(?)", to.Local())
 	} else {
 		q = q.
 			Where("time >= ?", from.Local()).
@@ -403,7 +400,7 @@ func (r *HeartbeatRepository) queryAddTimeFilterBetween(q *gorm.DB, from, to tim
 
 func (r *HeartbeatRepository) queryAddTimeFilterLessEqual(q *gorm.DB, t time.Time) *gorm.DB {
 	if r.config.Db.IsSQLite() {
-		return q.Where("datetime(time) <= datetime(?)", t.Local())
+		return q.Where("time_real <= julianday(?)", t.Local())
 	}
 	return q.Where("time <= ?", t.Local())
 }
@@ -411,7 +408,7 @@ func (r *HeartbeatRepository) queryAddTimeFilterLessEqual(q *gorm.DB, t time.Tim
 func (r *HeartbeatRepository) queryAddTimeSorting(q *gorm.DB, desc bool) *gorm.DB {
 	order := condition.Ternary(desc, "desc", "asc")
 	if r.config.Db.IsSQLite() {
-		return q.Order("datetime(time) " + order)
+		return q.Order("time_real " + order)
 	}
 	return q.Order("time " + order)
 }
