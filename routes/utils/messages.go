@@ -32,3 +32,14 @@ func setMessage(r *http.Request, w http.ResponseWriter, message, key string) {
 	session.AddFlash(message, key)
 	session.Save(r, w)
 }
+
+func HasErrorMessages(r *http.Request) bool {
+	session, _ := conf.GetSessionStore().Get(r, conf.CookieKeySession)
+
+	// Flashes disappear after reading, so we need to set them again
+	if errors := session.Flashes("error"); len(errors) > 0 {
+		session.AddFlash(errors[0].(string), "error")
+		return true
+	}
+	return false
+}

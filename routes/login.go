@@ -79,6 +79,22 @@ func (h *LoginHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !routeutils.HasErrorMessages(r) && h.config.Security.DisableLocalAuth && len(h.config.Security.OidcProviders) == 1 {
+		http.Redirect(w, r,
+			fmt.Sprintf(
+				"%s/oidc/%s/login",
+				h.config.Server.BasePath,
+				strings.ToLower(h.config.Security.OidcProviders[0].Name),
+			),
+			http.StatusFound,
+		)
+		return
+	}
+
+	if h.config.Security.DisableLocalAuth && len(h.config.Security.OidcProviders) == 0 {
+		routeutils.SetError(r, w, "No authentication method is enabled or configured on this server.")
+	}
+
 	templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false))
 }
 
@@ -89,6 +105,12 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 
 	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
 		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
+		return
+	}
+
+	if h.config.Security.DisableLocalAuth {
+		w.WriteHeader(http.StatusForbidden)
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("local authentication is disabled on this server"))
 		return
 	}
 
@@ -475,10 +497,11 @@ func (h *LoginHandler) buildViewModel(r *http.Request, w http.ResponseWriter, wi
 	numUsers, _ := h.userSrvc.Count()
 
 	vm := &view.LoginViewModel{
-		SharedViewModel: view.NewSharedViewModel(h.config, nil),
-		TotalUsers:      int(numUsers),
-		AllowSignup:     h.config.IsDev() || h.config.Security.AllowSignup,
-		InviteCode:      r.URL.Query().Get("invite"),
+		SharedViewModel:  view.NewSharedViewModel(h.config, nil),
+		TotalUsers:       int(numUsers),
+		AllowSignup:      h.config.IsDev() || h.config.Security.AllowSignup,
+		InviteCode:       r.URL.Query().Get("invite"),
+		DisableLocalAuth: h.config.Security.DisableLocalAuth,
 		OidcProviders: slice.Map(h.config.Security.ListOidcProviders(), func(i int, providerName string) view.LoginViewModelOidcProvider {
 			provider, _ := conf.GetOidcProvider(providerName) // no error, because only using registered provider names
 			return view.LoginViewModelOidcProvider{

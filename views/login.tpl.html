@@ -15,7 +15,9 @@
             <h1 class="h1">Welcome!</h1>
             <span class="text-secondary">Log in to continue using Wakapi. First time? Check out the <a href="setup" class="text-foreground hover:text-secondary">setup instructions</a>.</span>
         </div>
-        <form action="login" method="post">
+        {{ if not .DisableLocalAuth }}
+        <form action="login" method="post" class="mb-8">
+            <div class="font-semibold mb-2 text-secondary">Local Sign-On</div>
             <div class="mb-4">
                 <input class="input-default"
                        type="text" id="username" autocomplete="username"
@@ -44,9 +46,10 @@
                 </div>
             </div>
         </form>
+        {{ end }}
 
         {{ if len .OidcProviders }}
-        <div class="mt-10">
+        <div>
             <div class="font-semibold mb-2 text-secondary">Single Sign-On</div>
             {{ range $provider := .OidcProviders }}
             <a href="oidc/{{ $provider.Name | lower }}/login" class="block mb-2">
