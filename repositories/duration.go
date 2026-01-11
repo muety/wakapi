@@ -20,7 +20,7 @@ func NewDurationRepository(db *gorm.DB) *DurationRepository {
 
 func (r *DurationRepository) GetAll() ([]*models.Duration, error) {
 	var durations []*models.Duration
-	q := r.db.Where(&models.Duration{})
+	q := r.db.Model(&models.Duration{})
 	q = r.queryAddTimeSorting(q, false)
 	if err := q.Find(&durations).Error; err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (r *DurationRepository) StreamAllBatched(batchSize int) (chan []*models.Dur
 func (r *DurationRepository) StreamByUserBatched(user *models.User, batchSize int) (chan []*models.Duration, error) {
 	out := make(chan []*models.Duration)
 
-	q := r.db.Model(&models.Duration{UserID: user.ID})
+	q := r.db.Model(&models.Duration{}).Where(&models.Duration{UserID: user.ID})
 	q = r.queryAddTimeSorting(q, false)
 	rows, err := q.Rows()
 	if err != nil {
@@ -67,7 +67,7 @@ func (r *DurationRepository) GetAllWithin(from, to time.Time, user *models.User)
 func (r *DurationRepository) GetAllWithinByFilters(from, to time.Time, user *models.User, filterMap map[string][]string) ([]*models.Duration, error) {
 	var durations []*models.Duration
 
-	q := r.db.Model(&models.Duration{UserID: user.ID})
+	q := r.db.Model(&models.Duration{}).Where(&models.Duration{UserID: user.ID})
 	q = r.queryAddTimeFilterBetween(q, from.Local(), to.Local())
 	q = r.queryAddTimeSorting(q, false)
 
@@ -83,7 +83,7 @@ func (r *DurationRepository) GetAllWithinByFilters(from, to time.Time, user *mod
 
 func (r *DurationRepository) GetLatestByUser(user *models.User) (*models.Duration, error) {
 	var duration *models.Duration
-	q := r.db.Where(&models.Duration{UserID: user.ID})
+	q := r.db.Model(&models.Duration{}).Where(&models.Duration{UserID: user.ID})
 	q = r.queryAddTimeSorting(q, true)
 	err := q.First(&duration).Error
 	return duration, err
@@ -103,7 +103,7 @@ func (r *DurationRepository) DeleteByUser(user *models.User) error {
 }
 
 func (r *DurationRepository) DeleteByUserBefore(user *models.User, t time.Time) error {
-	q := r.db.Where("user_id = ?", user.ID)
+	q := r.db.Model(models.Duration{}).Where("user_id = ?", user.ID)
 	q = r.queryAddTimeFilterLessEqual(q, t.Local())
 	if err := q.Delete(models.Duration{}).Error; err != nil {
 		return err

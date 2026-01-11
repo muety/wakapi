@@ -65,7 +65,7 @@ func (r *HeartbeatRepository) GetLatestByOriginAndUser(origin string, user *mode
 func (r *HeartbeatRepository) GetWithin(from, to time.Time, user *models.User) ([]*models.Heartbeat, error) {
 	// https://stackoverflow.com/a/20765152/3112139
 	var heartbeats []*models.Heartbeat
-	if err := r.buildTimeFilteredQuery(user.ID, from, to).Find(&heartbeats).Error; err != nil {
+	if err := r.buildTimeFilteredQuery(user.ID, from.Local(), to.Local()).Find(&heartbeats).Error; err != nil {
 		return nil, err
 	}
 	return heartbeats, nil
@@ -74,7 +74,7 @@ func (r *HeartbeatRepository) GetWithin(from, to time.Time, user *models.User) (
 func (r *HeartbeatRepository) StreamWithin(from, to time.Time, user *models.User) (chan *models.Heartbeat, error) {
 	out := make(chan *models.Heartbeat)
 
-	rows, err := r.buildTimeFilteredQuery(user.ID, from, to).Rows()
+	rows, err := r.buildTimeFilteredQuery(user.ID, from.Local(), to.Local()).Rows()
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (r *HeartbeatRepository) StreamWithin(from, to time.Time, user *models.User
 func (r *HeartbeatRepository) StreamWithinBatched(from, to time.Time, user *models.User, batchSize int) (chan []*models.Heartbeat, error) {
 	out := make(chan []*models.Heartbeat)
 
-	rows, err := r.buildTimeFilteredQuery(user.ID, from, to).Rows()
+	rows, err := r.buildTimeFilteredQuery(user.ID, from.Local(), to.Local()).Rows()
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (r *HeartbeatRepository) GetAllWithinByFilters(from, to time.Time, user *mo
 	// https://stackoverflow.com/a/20765152/3112139
 	var heartbeats []*models.Heartbeat
 
-	q := r.buildTimeFilteredQuery(user.ID, from, to)
+	q := r.buildTimeFilteredQuery(user.ID, from.Local(), to.Local())
 	q = filteredQuery(q, filterMap)
 
 	if err := q.Find(&heartbeats).Error; err != nil {
@@ -115,7 +115,7 @@ func (r *HeartbeatRepository) GetAllWithinByFilters(from, to time.Time, user *mo
 func (r *HeartbeatRepository) StreamWithinByFilters(from, to time.Time, user *models.User, filterMap map[string][]string) (chan *models.Heartbeat, error) {
 	out := make(chan *models.Heartbeat)
 
-	q := r.buildTimeFilteredQuery(user.ID, from, to)
+	q := r.buildTimeFilteredQuery(user.ID, from.Local(), to.Local())
 	q = filteredQuery(q, filterMap)
 
 	rows, err := q.Rows()
@@ -133,7 +133,7 @@ func (r *HeartbeatRepository) StreamWithinByFilters(from, to time.Time, user *mo
 func (r *HeartbeatRepository) GetLatestByFilters(user *models.User, filterMap map[string][]string) (*models.Heartbeat, error) {
 	var heartbeat *models.Heartbeat
 
-	q := r.db.Where(&models.Heartbeat{UserID: user.ID})
+	q := r.db.Model(&models.Heartbeat{}).Where(&models.Heartbeat{UserID: user.ID})
 	q = r.queryAddTimeSorting(q, true)
 	q = filteredQuery(q, filterMap)
 
@@ -377,9 +377,7 @@ func (r *HeartbeatRepository) GetUserAgentsByUser(user *models.User) ([]*models.
 // this is problematic in case of heartbeats in mixed zones, see https://github.com/muety/wakapi/issues/882
 
 func (r *HeartbeatRepository) buildTimeFilteredQuery(userId string, from, to time.Time) *gorm.DB {
-	query := r.db.
-		Model(&models.Heartbeat{}).
-		Where(&models.Heartbeat{UserID: userId})
+	query := r.db.Model(&models.Heartbeat{}).Where(&models.Heartbeat{UserID: userId})
 	query = r.queryAddTimeFilterBetween(query, from, to)
 	query = r.queryAddTimeSorting(query, false)
 	return query
