@@ -80,7 +80,10 @@ func init() {
 				}
 
 				// add new indexes for real-valued time column
-				if err := tx.Exec("create index idx_time_real_duration_user on durations(user_id, time_real)").Error; err != nil {
+				if err := tx.Exec("create index idx_time_real_duration on durations(time_real)").Error; err != nil {
+					return err
+				}
+				if err := tx.Exec("create index idx_time_real_user_duration on durations(user_id, time_real)").Error; err != nil {
 					return err
 				}
 
