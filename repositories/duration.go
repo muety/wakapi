@@ -44,7 +44,7 @@ func (r *DurationRepository) StreamAllBatched(batchSize int) (chan []*models.Dur
 func (r *DurationRepository) StreamByUserBatched(user *models.User, batchSize int) (chan []*models.Duration, error) {
 	out := make(chan []*models.Duration)
 
-	rows, err := r.db.Model(&models.Duration{UserID: user.ID}).Rows()
+	rows, err := r.db.Model(&models.Duration{}).Where(&models.Duration{UserID: user.ID}).Rows()
 	if err != nil {
 		return nil, err
 	}
