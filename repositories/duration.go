@@ -59,6 +59,8 @@ func (r *DurationRepository) GetAllWithin(from, to time.Time, user *models.User)
 	return r.GetAllWithinByFilters(from, to, user, map[string][]string{})
 }
 
+// TODO(882): sqlite-specific queries utilizing datetime() analogously to heartbeats repo
+
 func (r *DurationRepository) GetAllWithinByFilters(from, to time.Time, user *models.User, filterMap map[string][]string) ([]*models.Duration, error) {
 	var durations []*models.Duration
 
