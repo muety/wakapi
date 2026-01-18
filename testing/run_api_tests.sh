@@ -122,6 +122,7 @@ fi
 echo "Running current build ..."
 start_wakapi_background "../wakapi" "$config"
 kill_wakapi
+rm -f wakapi_testing.db
 
 # Only sqlite has data
 if [ "$DB_TYPE" == "sqlite" ]; then

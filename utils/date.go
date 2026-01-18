@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"os"
 	"strings"
 	"time"
 
@@ -71,6 +72,18 @@ func LocalTZOffset() time.Duration {
 // SetZone overwrites a date's timezone without reinterpreting at
 func SetZone(t time.Time, loc *time.Location) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), loc)
+}
+
+func ResolveIANAZone(tz *time.Location) string {
+	if tz.String() == "Local" {
+		link, err := os.Readlink("/etc/localtime") // only on Linux / Unix
+		if err == nil {
+			if parts := strings.Split(link, "zoneinfo/"); len(parts) > 1 {
+				return parts[1]
+			}
+		}
+	}
+	return tz.String()
 }
 
 func ParseWeekday(s string) time.Weekday {

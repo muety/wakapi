@@ -126,11 +126,15 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if summaryParams.RangeDays() > 1 { // get at most 24 hours of hourly breakdown
 		hourlyBreakdownFrom = summaryParams.To.Add(-24 * time.Hour)
 	}
-	if summaries, err := h.durationSrvc.Get(hourlyBreakdownFrom, summaryParams.To, summaryParams.User, summaryParams.Filters, nil, false); err == nil {
-		hourlyBreakdown = view.NewHourlyBreakdownViewModel(view.NewHourlyBreakdownItems(summaries, func(t uint8, k string) string {
-			s, _ := h.aliasSrvc.GetAliasOrDefault(user.ID, t, k)
-			return s
-		}))
+	if durations, err := h.durationSrvc.Get(hourlyBreakdownFrom, summaryParams.To, summaryParams.User, summaryParams.Filters, nil, false); err == nil {
+		// for excessively many small segments, plotting is too performance-heavy and will freeze the browser (see https://github.com/muety/wakapi/issues/871)
+		// and the chart would be unreadable anyway, so we simply disable it
+		if len(durations) <= 200 {
+			hourlyBreakdown = view.NewHourlyBreakdownViewModel(view.NewHourlyBreakdownItems(durations, func(t uint8, k string) string {
+				s, _ := h.aliasSrvc.GetAliasOrDefault(user.ID, t, k)
+				return s
+			}))
+		}
 	} else {
 		conf.Log().Request(r).Error("failed to load hourly breakdown stats", "error", err)
 	}

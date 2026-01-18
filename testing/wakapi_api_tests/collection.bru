@@ -21,48 +21,65 @@ vars:pre-request {
 
 script:pre-request {
   const moment = require('moment')
-
+  
   // pretend we're in Berlin, as this is also the time zone configured for the user
   const userZone = 'Europe/Berlin'
-
-  // https://stackoverflow.com/a/63199512
+  
   // return UTC offset of timezone in minutes
+  // function code partially written by AI
   function getTimezoneOffset(timeZone, date = new Date()) {
-    const tz = date.toLocaleString("en", {timeZone, timeStyle: "long"}).split(" ").slice(-1)[0];
-    const dateString = date.toString();
-    const offset = Date.parse(`${dateString} UTC`) - Date.parse(`${dateString} ${tz}`);
-    return offset / 1000 / 60;
+    const isoString = date.toLocaleString('en-US', {
+        timeZone: timeZone,
+        hour12: false,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    });
+  
+    const [datePart, timePart] = isoString.split(', ');
+    const [month, day, year] = datePart.split('/');
+    const targetTimeIso = `${year}-${month}-${day}T${timePart}`;
+    const targetTimeAsUtc = new Date(targetTimeIso + "Z");
+  
+    const diffInMs = targetTimeAsUtc.getTime() - date.getTime();
+    
+    return Math.round(diffInMs / 60000);
   }
-
+  
   const utcOffset = getTimezoneOffset(userZone)
   bru.setVar('utcOffset', utcOffset)
-
+  
   const now = moment().utcOffset(utcOffset)
   const startOfDay = now.clone().startOf('day')
   const endOfDay = now.clone().endOf('day')
   const endOfTomorrow = now.clone().add(1, 'd').endOf('day')
   const startOfYesterday = now.clone().add(-1, 'day').startOf('day')
   const endOfYesterday = now.clone().add(-1, 'day').endOf('day')
-
+  
+  console.log(now.toISOString(true))
+  
   // Auth stuff
   const readApiKey = bru.getCollectionVar('READUSER_API_KEY')
   const writeApiKey = bru.getCollectionVar('WRITEUSER_API_KEY')
   const additionalFullAccessApiKey = bru.getCollectionVar('ADDITIONAL_FULL_ACCESS_KEY')
   const additionalReadOnlyApiKey = bru.getCollectionVar('ADDITIONAL_READ_ONLY_KEY')
-
+  
   if (!readApiKey || !writeApiKey) {
       throw new Error('no api key given')
   }
-
+  
   bru.setVar('READUSER_TOKEN', base64encode(readApiKey))
   bru.setVar('WRITEUSER_TOKEN', base64encode(writeApiKey))
   bru.setVar('ADDITIONAL_FULL_ACCESS_TOKEN', base64encode(additionalFullAccessApiKey))
   bru.setVar('ADDITIONAL_READ_ONLY_TOKEN', base64encode(additionalReadOnlyApiKey))
-
+  
   function base64encode(str) {
       return Buffer.from(str, 'utf-8').toString('base64')
   }
-
+  
   // Heartbeat stuff
   bru.setVar('tsNow', now.clone().format('x') / 1000)
   bru.setVar('tsNowMinus1Min', now.clone().add(-1, 'm').format('x') / 1000)

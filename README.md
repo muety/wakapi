@@ -241,7 +241,7 @@ You can specify configuration options either via a config file (default: `config
 
 Wakapi uses [GORM](https://gorm.io) as an ORM. As a consequence, a set of different relational databases is supported.
 
-* [SQLite](https://sqlite.org/) (_default, easy setup_)
+* [SQLite](https://sqlite.org/) (>= 3.31) (_default, easy setup_)
 * [MySQL](https://hub.docker.com/_/mysql) (_recommended, because most extensively tested_)
 * [MariaDB](https://hub.docker.com/_/mariadb) (_open-source MySQL alternative_)
 * [Postgres](https://hub.docker.com/_/postgres) (_open-source as well_)
