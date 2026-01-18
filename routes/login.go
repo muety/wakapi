@@ -195,6 +195,14 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.config.Security.DisableLocalAuth {
+		w.WriteHeader(http.StatusForbidden)
+		templates[conf.LoginTemplate].
+			Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).
+				WithError("local authentication is disabled on this server. Registration is not available"))
+		return
+	}
+
 	if cookie, err := r.Cookie(models.AuthCookieKey); err == nil && cookie.Value != "" {
 		http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 		return

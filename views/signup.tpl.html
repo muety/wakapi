@@ -98,7 +98,7 @@
                 <a href="login">
                     <button type="button" class="btn-default">Log in</button>
                 </a>
-                {{ if or (.AllowSignup) (ne .InviteCode "") }}
+                {{ if and (not .DisableLocalAuth) (or .AllowSignup (ne .InviteCode "")) }}
                 <button type="submit" class="btn-primary">
                     Create Account
                 </button>
