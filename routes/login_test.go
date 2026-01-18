@@ -109,6 +109,35 @@ func TestLoginHandlerTestSuite(t *testing.T) {
 }
 
 // Test cases
+func (suite *LoginHandlerTestSuite) TestGetLogin_RedirectToOidc() {
+	suite.Cfg.Security.DisableLocalAuth = true
+
+	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	w := httptest.NewRecorder()
+
+	suite.Sut.GetIndex(w, r)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusFound, w.Code)
+	assert.Contains(suite.T(), w.Header().Get("Location"), "/oidc/"+testProvider+"/login")
+}
+
+func (suite *LoginHandlerTestSuite) TestGetLogin_NoAuthenticationMethod() {
+	suite.Cfg.Security.DisableLocalAuth = true
+	suite.Cfg.Security.OidcProviders = nil
+
+	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	w := httptest.NewRecorder()
+
+	suite.UserService.On("Count").Return(1, nil)
+
+	suite.Sut.GetIndex(w, r)
+	body, _ := io.ReadAll(w.Body)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusOK, w.Code)
+	assert.Contains(suite.T(), string(body), "No authentication method is enabled or configured on this server")
+}
 
 func (suite *LoginHandlerTestSuite) TestPostLogin_Success() {
 	form := url.Values{}
