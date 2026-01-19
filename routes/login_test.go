@@ -344,6 +344,29 @@ func (suite *LoginHandlerTestSuite) TestPostSignup_SignupDisabled() {
 	assert.Contains(suite.T(), string(body), "Registration is disabled on this server")
 }
 
+func (suite *LoginHandlerTestSuite) TestPostSignup_LocalAuthenticationDisabled() {
+	suite.Cfg.Security.DisableLocalAuth = true
+	suite.Cfg.Security.AllowSignup = true
+
+	form := url.Values{}
+	form.Add("username", testUserNewId)
+	form.Add("password", testUserNewPassword)
+	form.Add("password_repeat", testUserNewPassword)
+
+	r := httptest.NewRequest(http.MethodPost, "/signup", strings.NewReader(form.Encode()))
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	suite.UserService.On("Count", mock.Anything).Return(1, nil)
+
+	suite.Sut.PostSignup(w, r)
+	body, _ := io.ReadAll(w.Body)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusForbidden, w.Code)
+	assert.Contains(suite.T(), string(body), "Local authentication is disabled on this server.")
+}
+
 func (suite *LoginHandlerTestSuite) TestGetOidcLogin_Redirect() {
 	r := httptest.NewRequest(http.MethodGet, "/oidc/{provider}/login", nil)
 	r = WithUrlParam(r, "provider", testProvider)
