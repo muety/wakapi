@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/gorilla/securecookie"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
@@ -109,7 +110,48 @@ func TestLoginHandlerTestSuite(t *testing.T) {
 }
 
 // Test cases
-func (suite *LoginHandlerTestSuite) TestGetLogin_RedirectToOidc() {
+func (suite *LoginHandlerTestSuite) TestGetLogin_OnlyLocalAuth() {
+	suite.Cfg.Security.DisableLocalAuth = false
+	suite.Cfg.Security.OidcProviders = nil
+
+	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	w := httptest.NewRecorder()
+
+	suite.UserService.On("Count").Return(1, nil)
+
+	suite.Sut.GetIndex(w, r)
+	body, _ := io.ReadAll(w.Body)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusOK, w.Code)
+	// Test if the local login form exists
+	assert.Contains(suite.T(), string(body), "Local Sign-On")
+	assert.Contains(suite.T(), string(body), "id=\"username\"")
+	assert.Contains(suite.T(), string(body), "id=\"password\"")
+}
+
+func (suite *LoginHandlerTestSuite) TestGetLogin_LocalAuthAndOIDC() {
+	suite.Cfg.Security.DisableLocalAuth = false
+
+	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	w := httptest.NewRecorder()
+
+	suite.UserService.On("Count").Return(1, nil)
+
+	suite.Sut.GetIndex(w, r)
+	body, _ := io.ReadAll(w.Body)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusOK, w.Code)
+	// Test if the local login form and the oidc button exists
+	assert.Contains(suite.T(), string(body), "Local Sign-On")
+	assert.Contains(suite.T(), string(body), "id=\"username\"")
+	assert.Contains(suite.T(), string(body), "id=\"password\"")
+	assert.Contains(suite.T(), string(body), "Single Sign-On")
+	assert.Contains(suite.T(), string(body), "Login with "+strutil.Capitalize(testProvider))
+}
+
+func (suite *LoginHandlerTestSuite) TestGetLogin_DirectRedirectToOidc() {
 	suite.Cfg.Security.DisableLocalAuth = true
 
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
