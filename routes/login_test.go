@@ -224,6 +224,28 @@ func (suite *LoginHandlerTestSuite) TestPostLogin_WrongPassword() {
 	assert.Empty(suite.T(), w.Header().Get("Set-Cookie"))
 }
 
+func (suite *LoginHandlerTestSuite) TestPostLogin_LocalAuthenticationDisabled_NonExistingUser() {
+	suite.Cfg.Security.DisableLocalAuth = true
+
+	form := url.Values{}
+	form.Add("username", "nonexisting")
+	form.Add("password", testUserExistingPassword)
+
+	r := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(form.Encode()))
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	suite.UserService.On("Count").Return(1, nil)
+
+	suite.Sut.PostLogin(w, r)
+	body, _ := io.ReadAll(w.Body)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusForbidden, w.Code)
+	assert.Contains(suite.T(), string(body), "Local authentication is disabled on this server")
+	assert.Empty(suite.T(), w.Header().Get("Set-Cookie"))
+}
+
 func (suite *LoginHandlerTestSuite) TestPostSignup_Success() {
 	form := url.Values{}
 	form.Add("username", testUserNewId)
