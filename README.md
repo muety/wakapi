@@ -146,6 +146,19 @@ api_key = 406fe41f-6d69-4183-a4cc-121e0c524c2b
 
 Optionally, you can set up a [client-side proxy](https://github.com/muety/wakapi/wiki/Advanced-Setup:-Client-side-proxy) in addition.
 
+#### WakaTime integration
+You can use WakaTime and Wakapi in parallel, that is, have your coding activity tracked in both systems. 
+This can be configured either on the **client-side (preferred)** on a system-wide- or per-project basis or using Wakapi's **relay** functionality (__Settings → Integrations__) to forward heartbeats to WakaTime.
+
+**Example:**
+```ini
+[api_urls]
+.* = https://wakapi.dev/api|wakapi-api-key
+.* = https://api.wakatime.com/api/v1|waka-api-key
+```
+
+See [wakatime-cli usage](https://github.com/wakatime/wakatime-cli/blob/develop/USAGE.md#api-urls-section) for details.
+
 ## 🔧 Configuration options
 
 You can specify configuration options either via a config file (default: `config.yml`, customizable through the `-c` argument) or via environment variables. Here is an overview of all options.
