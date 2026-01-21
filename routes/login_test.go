@@ -165,7 +165,7 @@ func (suite *LoginHandlerTestSuite) TestGetLogin_DirectRedirectToOidc() {
 	assert.Contains(suite.T(), w.Header().Get("Location"), "/oidc/"+testProvider+"/login")
 }
 
-func (suite *LoginHandlerTestSuite) TestGetLogin_LocalAuthAndTwoOIDC() {
+func (suite *LoginHandlerTestSuite) TestGetLogin_TwoOidc() {
 	suite.Cfg.Security.DisableLocalAuth = true
 	suite.setupOidcProvider(testProvider2)
 
