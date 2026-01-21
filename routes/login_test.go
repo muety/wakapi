@@ -39,6 +39,7 @@ type LoginHandlerTestSuite struct {
 
 const (
 	testProvider             = "mock"
+	testProvider2            = "otherProviderMock"
 	testOauthCode            = "some-code"
 	testOauthState           = "some-state"
 	testUserExistingId       = "user1"
@@ -162,6 +163,27 @@ func (suite *LoginHandlerTestSuite) TestGetLogin_DirectRedirectToOidc() {
 	suite.UserService.AssertExpectations(suite.T())
 	assert.Equal(suite.T(), http.StatusFound, w.Code)
 	assert.Contains(suite.T(), w.Header().Get("Location"), "/oidc/"+testProvider+"/login")
+}
+
+func (suite *LoginHandlerTestSuite) TestGetLogin_LocalAuthAndTwoOIDC() {
+	suite.Cfg.Security.DisableLocalAuth = true
+	suite.setupOidcProvider(testProvider2)
+
+	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	w := httptest.NewRecorder()
+
+	suite.UserService.On("Count").Return(1, nil)
+
+	suite.Sut.GetIndex(w, r)
+	body, _ := io.ReadAll(w.Body)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusOK, w.Code)
+	// Test if the two oidc buttons exist, no redirect expected
+	assert.NotContains(suite.T(), string(body), "Local Sign-On")
+	assert.Contains(suite.T(), string(body), "Single Sign-On")
+	assert.Contains(suite.T(), string(body), "Login with "+strutil.Capitalize(testProvider))
+	assert.Contains(suite.T(), string(body), "Login with "+strutil.Capitalize(testProvider2))
 }
 
 func (suite *LoginHandlerTestSuite) TestGetLogin_NoAuthenticationMethod() {
