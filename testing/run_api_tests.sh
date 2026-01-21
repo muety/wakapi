@@ -108,7 +108,7 @@ start_wakapi_background() {
 
 kill_wakapi() {
     echo "Shutting down Wakapi ..."
-    kill -TERM $pid
+    kill -TERM $pid || true
 }
 
 # Run original wakapi

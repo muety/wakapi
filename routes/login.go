@@ -80,14 +80,7 @@ func (h *LoginHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !routeutils.HasErrorMessages(r) && h.config.Security.DisableLocalAuth && len(h.config.Security.OidcProviders) == 1 {
-		http.Redirect(w, r,
-			fmt.Sprintf(
-				"%s/oidc/%s/login",
-				h.config.Server.BasePath,
-				strings.ToLower(h.config.Security.OidcProviders[0].Name),
-			),
-			http.StatusFound,
-		)
+		http.Redirect(w, r, fmt.Sprintf("%s/oidc/%s/login", h.config.Server.BasePath, strings.ToLower(h.config.Security.OidcProviders[0].Name)), http.StatusFound)
 		return
 	}
 
@@ -197,9 +190,7 @@ func (h *LoginHandler) PostSignup(w http.ResponseWriter, r *http.Request) {
 
 	if h.config.Security.DisableLocalAuth {
 		w.WriteHeader(http.StatusForbidden)
-		templates[conf.LoginTemplate].
-			Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).
-				WithError("local authentication is disabled on this server. Registration is not available"))
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, h.config.Security.SignupCaptcha).WithError("local authentication is disabled on this server. Registration is not available"))
 		return
 	}
 
