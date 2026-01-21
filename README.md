@@ -198,6 +198,7 @@ You can specify configuration options either via a config file (default: `config
 | `server.tls_key_path` /<br> `WAKAPI_TLS_KEY_PATH`                                           | -                                                | Path of SSL server private key (leave blank to not use HTTPS)                                                                                                                   |
 | `server.base_path` /<br> `WAKAPI_BASE_PATH`                                                 | `/`                                              | Web base path (change when running behind a proxy under a sub-path)                                                                                                             |
 | `server.public_url` /<br> `WAKAPI_PUBLIC_URL`                                               | `http://localhost:3000`                          | URL at which your Wakapi instance can be found publicly                                                                                                                         |
+| `security.disable_local_auth` /<br> `WAKAPI_DISABLE_LOCAL_AUTH`                             | `false`                                          | Disables login via local credentials (username and password) to enforce OIDC provider login                                                                                     |
 | `security.password_salt` /<br> `WAKAPI_PASSWORD_SALT`                                       | -                                                | Pepper to use for password hashing                                                                                                                                              |
 | `security.insecure_cookies` /<br> `WAKAPI_INSECURE_COOKIES`                                 | `true`                                           | Whether or not to allow cookies over HTTP. For production, it is **highly recommended** to serve Wakapi via HTTPS and set this to `false`.                                      |
 | `security.cookie_max_age` /<br> `WAKAPI_COOKIE_MAX_AGE`                                     | `172800`                                         | Lifetime of authentication cookies in seconds or `0` to use [Session](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Define_the_lifetime_of_a_cookie) cookies        |
@@ -274,6 +275,9 @@ Wakapi supports different types of user authentication.
 ### Single Sign-On / OpenID Connect
 
 Wakapi supports login via external identity providers via OpenID Connect. See [our wiki](https://github.com/muety/wakapi/wiki/OpenID-Connect-login-(SSO)) for details.
+
+You can also disable local authentication (username and password) entirely by setting `security.disable_local_auth` to `true`.
+This enforces login exclusively via your configured OIDC providers.
 
 ## 🔧 API endpoints
 

@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/gorilla/securecookie"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
@@ -38,6 +39,7 @@ type LoginHandlerTestSuite struct {
 
 const (
 	testProvider             = "mock"
+	testProvider2            = "otherProviderMock"
 	testOauthCode            = "some-code"
 	testOauthState           = "some-state"
 	testUserExistingId       = "user1"
@@ -109,6 +111,97 @@ func TestLoginHandlerTestSuite(t *testing.T) {
 }
 
 // Test cases
+func (suite *LoginHandlerTestSuite) TestGetLogin_OnlyLocalAuth() {
+	suite.Cfg.Security.DisableLocalAuth = false
+	suite.Cfg.Security.OidcProviders = nil
+
+	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	w := httptest.NewRecorder()
+
+	suite.UserService.On("Count").Return(1, nil)
+
+	suite.Sut.GetIndex(w, r)
+	body, _ := io.ReadAll(w.Body)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusOK, w.Code)
+	// Test if the local login form exists
+	assert.Contains(suite.T(), string(body), "Local Sign-On")
+	assert.Contains(suite.T(), string(body), "id=\"username\"")
+	assert.Contains(suite.T(), string(body), "id=\"password\"")
+}
+
+func (suite *LoginHandlerTestSuite) TestGetLogin_LocalAuthAndOIDC() {
+	suite.Cfg.Security.DisableLocalAuth = false
+
+	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	w := httptest.NewRecorder()
+
+	suite.UserService.On("Count").Return(1, nil)
+
+	suite.Sut.GetIndex(w, r)
+	body, _ := io.ReadAll(w.Body)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusOK, w.Code)
+	// Test if the local login form and the oidc button exists
+	assert.Contains(suite.T(), string(body), "Local Sign-On")
+	assert.Contains(suite.T(), string(body), "id=\"username\"")
+	assert.Contains(suite.T(), string(body), "id=\"password\"")
+	assert.Contains(suite.T(), string(body), "Single Sign-On")
+	assert.Contains(suite.T(), string(body), "Login with "+strutil.Capitalize(testProvider))
+}
+
+func (suite *LoginHandlerTestSuite) TestGetLogin_DirectRedirectToOidc() {
+	suite.Cfg.Security.DisableLocalAuth = true
+
+	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	w := httptest.NewRecorder()
+
+	suite.Sut.GetIndex(w, r)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusFound, w.Code)
+	assert.Contains(suite.T(), w.Header().Get("Location"), "/oidc/"+testProvider+"/login")
+}
+
+func (suite *LoginHandlerTestSuite) TestGetLogin_TwoOidc() {
+	suite.Cfg.Security.DisableLocalAuth = true
+	suite.setupOidcProvider(testProvider2)
+
+	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	w := httptest.NewRecorder()
+
+	suite.UserService.On("Count").Return(1, nil)
+
+	suite.Sut.GetIndex(w, r)
+	body, _ := io.ReadAll(w.Body)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusOK, w.Code)
+	// Test if the two oidc buttons exist, no redirect expected
+	assert.NotContains(suite.T(), string(body), "Local Sign-On")
+	assert.Contains(suite.T(), string(body), "Single Sign-On")
+	assert.Contains(suite.T(), string(body), "Login with "+strutil.Capitalize(testProvider))
+	assert.Contains(suite.T(), string(body), "Login with "+strutil.Capitalize(testProvider2))
+}
+
+func (suite *LoginHandlerTestSuite) TestGetLogin_NoAuthenticationMethod() {
+	suite.Cfg.Security.DisableLocalAuth = true
+	suite.Cfg.Security.OidcProviders = nil
+
+	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	w := httptest.NewRecorder()
+
+	suite.UserService.On("Count").Return(1, nil)
+
+	suite.Sut.GetIndex(w, r)
+	body, _ := io.ReadAll(w.Body)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusOK, w.Code)
+	assert.Contains(suite.T(), string(body), "No authentication method is enabled or configured on this server")
+}
 
 func (suite *LoginHandlerTestSuite) TestPostLogin_Success() {
 	form := url.Values{}
@@ -192,6 +285,28 @@ func (suite *LoginHandlerTestSuite) TestPostLogin_WrongPassword() {
 	suite.UserService.AssertExpectations(suite.T())
 	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
 	assert.Contains(suite.T(), string(body), "Invalid credentials")
+	assert.Empty(suite.T(), w.Header().Get("Set-Cookie"))
+}
+
+func (suite *LoginHandlerTestSuite) TestPostLogin_LocalAuthenticationDisabled_NonExistingUser() {
+	suite.Cfg.Security.DisableLocalAuth = true
+
+	form := url.Values{}
+	form.Add("username", "nonexisting")
+	form.Add("password", testUserExistingPassword)
+
+	r := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(form.Encode()))
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	suite.UserService.On("Count").Return(1, nil)
+
+	suite.Sut.PostLogin(w, r)
+	body, _ := io.ReadAll(w.Body)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusForbidden, w.Code)
+	assert.Contains(suite.T(), string(body), "Local authentication is disabled on this server")
 	assert.Empty(suite.T(), w.Header().Get("Set-Cookie"))
 }
 
@@ -291,6 +406,29 @@ func (suite *LoginHandlerTestSuite) TestPostSignup_SignupDisabled() {
 	suite.UserService.AssertExpectations(suite.T())
 	assert.Equal(suite.T(), http.StatusForbidden, w.Code)
 	assert.Contains(suite.T(), string(body), "Registration is disabled on this server")
+}
+
+func (suite *LoginHandlerTestSuite) TestPostSignup_LocalAuthenticationDisabled() {
+	suite.Cfg.Security.DisableLocalAuth = true
+	suite.Cfg.Security.AllowSignup = true
+
+	form := url.Values{}
+	form.Add("username", testUserNewId)
+	form.Add("password", testUserNewPassword)
+	form.Add("password_repeat", testUserNewPassword)
+
+	r := httptest.NewRequest(http.MethodPost, "/signup", strings.NewReader(form.Encode()))
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	suite.UserService.On("Count", mock.Anything).Return(1, nil)
+
+	suite.Sut.PostSignup(w, r)
+	body, _ := io.ReadAll(w.Body)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusForbidden, w.Code)
+	assert.Contains(suite.T(), string(body), "Local authentication is disabled on this server.")
 }
 
 func (suite *LoginHandlerTestSuite) TestGetOidcLogin_Redirect() {
