@@ -3,7 +3,6 @@ package view
 import (
 	"time"
 
-	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/muety/wakapi/models"
 )
 
@@ -20,7 +19,6 @@ type SettingsViewModel struct {
 	InviteLink            string
 	ReadmeCardCustomTitle string
 	ApiKeys               []*SettingsApiKeys
-	WebAuthnOptions       protocol.CredentialCreation
 	WebAuthnCredentials   []*models.WebAuthnCredential
 }
 

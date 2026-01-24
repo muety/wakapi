@@ -1,8 +1,10 @@
 package models
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -62,13 +64,13 @@ func (f *CredentialFlags) Scan(value interface{}) error {
 }
 
 type WebAuthnCredential struct {
-	UserID          string                            `gorm:"index"`
-	ID              []byte                            `gorm:"primaryKey;not null"`
-	CreatedAt       CustomTime                        // filled by gorm, see https://gorm.io/docs/conventions.html#CreatedAt
-	LastUsedAt      CustomTime                        ` gorm:"default:null"` // NOT filled by gorm
-	Name            string                            `gorm:"not null"`
-	PublicKey       []byte                            `gorm:"not null"`
-	AttestationType string                            `gorm:"not null"`
+	UserID          string       `gorm:"index"`
+	ID              []byte       `gorm:"type:varbinary(255), index, notnull"` // it shouldn't be the primary key, as credential IDs are not guaranteed to be unique across authenticators
+	CreatedAt       time.Time    // filled by gorm, see https://gorm.io/docs/conventions.html#CreatedAt
+	LastUsedAt      sql.NullTime `gorm:"default:null"` // NOT filled by gorm
+	Name            string       `gorm:"not null"`
+	PublicKey       []byte       `gorm:"not null"`
+	AttestationType string
 	Transport       []protocol.AuthenticatorTransport `gorm:"serializer:json"`
 	Flags           CredentialFlags
 	Authenticator   webauthn.Authenticator         `gorm:"serializer:json"`

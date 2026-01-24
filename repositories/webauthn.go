@@ -46,7 +46,18 @@ func (r *WebAuthnRepository) Delete(credential *models.WebAuthnCredential) error
 }
 
 func (r *WebAuthnRepository) Update(credential *models.WebAuthnCredential) error {
-	credential.LastUsedAt = models.CustomTime(time.Now())
-	result := r.db.Model(&credential).Updates(credential)
+	updateMap := map[string]interface{}{
+		// no need to update user_id or created_at
+		"id":               credential.ID,
+		"public_key":       credential.PublicKey,
+		"name":             credential.Name,
+		"attestation_type": credential.AttestationType,
+		"transport":        credential.Transport,
+		"flags":            credential.Flags,
+		"authenticator":    credential.Authenticator,
+		"attestation":      credential.Attestation,
+		"last_used_at":     time.Now(),
+	}
+	result := r.db.Model(credential).Updates(updateMap)
 	return result.Error
 }

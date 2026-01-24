@@ -51,10 +51,8 @@ PetiteVue.createApp({
     showProjectAddButton(index) {
         this.labels[index] = true;
     },
-    webAuthnAdd() {
-        const options = JSON.parse(
-            document.getElementById("webauthn-options").textContent,
-        );
+    async webAuthnAdd() {
+        const options = await fetch("/settings/webauthn/options/").then(res => res.json());
         console.log("Starting WebAuthn registration with options:", options);
         SimpleWebAuthnBrowser.startRegistration({ optionsJSON: options.publicKey })
             .then((credential) => {

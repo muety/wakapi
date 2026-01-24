@@ -104,6 +104,7 @@ func (h *SettingsHandler) RegisterRoutes(router chi.Router) {
 			WithRedirectErrorMessage("unauthorized").Handler,
 	)
 	r.Get("/", h.GetIndex)
+	r.Get("/webauthn/options", h.GetWebAuthnOptions)
 	r.Post("/", h.PostIndex)
 
 	router.Mount("/settings", r)
@@ -220,6 +221,35 @@ func (h *SettingsHandler) dispatchAction(action string) action {
 		return h.actionWebAuthnDelete
 	}
 	return nil
+}
+
+func (h *SettingsHandler) GetWebAuthnOptions(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+	user := middlewares.GetPrincipal(r)
+
+	if err := h.WebAuthnSrvc.LoadCredentialIntoUser(user); err != nil {
+		conf.Log().Request(r).Error("error while loading webauthn credentials", "error", err)
+		routeutils.RespondJSONError(w, http.StatusInternalServerError, "error while loading webauthn credentials")
+		return
+	}
+
+	webAuthnOptions, session, err := config.WebAuthn.BeginRegistration(user, webauthn.WithAuthenticatorSelection(protocol.AuthenticatorSelection{
+		RequireResidentKey: protocol.ResidentKeyRequired(), // for usernameless login
+	}))
+	if err != nil {
+		conf.Log().Request(r).Error("error while getting webauthn registration options", "error", err)
+		routeutils.RespondJSONError(w, http.StatusInternalServerError, "error while getting webauthn registration options")
+		return
+	}
+
+	if err = routeutils.SetWebAuthnSession(session, r, w); err != nil {
+		conf.Log().Request(r).Error("error while setting webauthn session", "error", err)
+		routeutils.RespondJSONError(w, http.StatusInternalServerError, "error while getting webauthn registration options")
+		return
+	}
+	routeutils.RespondJSON(w, http.StatusOK, webAuthnOptions)
 }
 
 func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Request) actionResult {
@@ -1160,28 +1190,6 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 			},
 		}
 	}
-	webAuthnOptions, session, err := config.WebAuthn.BeginRegistration(user, webauthn.WithAuthenticatorSelection(protocol.AuthenticatorSelection{
-		RequireResidentKey: protocol.ResidentKeyRequired(),
-	}))
-	if err != nil {
-		conf.Log().Request(r).Error("error while getting webauthn registration options", "user", user.ID, "error", err)
-		return &view.SettingsViewModel{
-			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
-				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
-				User:            user,
-			},
-		}
-	}
-	err = routeutils.SetWebAuthnSession(session, r, w)
-	if err != nil {
-		conf.Log().Request(r).Error("error while setting webauthn session", "user", user.ID, "error", err)
-		return &view.SettingsViewModel{
-			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
-				SharedViewModel: view.NewSharedViewModel(h.config, &view.Messages{Error: criticalError}),
-				User:            user,
-			},
-		}
-	}
 
 	// readme card params
 	readmeCardTitle := "Wakapi.dev Stats"
@@ -1204,7 +1212,6 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 		DataRetentionMonths:   h.config.App.DataRetentionMonths,
 		InviteLink:            inviteLink,
 		ApiKeys:               combinedApiKeys,
-		WebAuthnOptions:       *webAuthnOptions,
 		WebAuthnCredentials:   user.Credentials,
 		ReadmeCardCustomTitle: readmeCardTitle,
 	}
