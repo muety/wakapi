@@ -20,19 +20,12 @@ func (f CredentialFlags) toLib() webauthn.CredentialFlags {
 	return webauthn.CredentialFlags(f)
 }
 
-// credentialFlagsFromLib converts the library type back to the local wrapper type.
-func credentialFlagsFromLib(flags webauthn.CredentialFlags) CredentialFlags {
-	return CredentialFlags(flags)
-}
-
 // Value implements driver.Valuer.
 //
 // It stores only the raw protocol.AuthenticatorFlags value (Protocol Value),
 // which is stable against future changes in how individual flags are interpreted.
 func (f CredentialFlags) Value() (driver.Value, error) {
-	lib := f.toLib()
-	raw := lib.ProtocolValue()
-	return int64(raw), nil
+	return int64(f.toLib().ProtocolValue()), nil
 }
 
 // Scan implements sql.Scanner.
@@ -64,11 +57,11 @@ func (f *CredentialFlags) Scan(value interface{}) error {
 	}
 
 	lib := webauthn.NewCredentialFlags(protocol.AuthenticatorFlags(v))
-	*f = credentialFlagsFromLib(lib)
+	*f = CredentialFlags(lib)
 	return nil
 }
 
-type Credential struct {
+type WebAuthnCredential struct {
 	UserID          string                            `gorm:"index"`
 	ID              []byte                            `gorm:"primaryKey;not null"`
 	CreatedAt       CustomTime                        // filled by gorm, see https://gorm.io/docs/conventions.html#CreatedAt
@@ -82,7 +75,7 @@ type Credential struct {
 	Attestation     webauthn.CredentialAttestation `gorm:"serializer:json"`
 }
 
-func (c Credential) toLib() *webauthn.Credential {
+func (c WebAuthnCredential) toLib() *webauthn.Credential {
 	return &webauthn.Credential{
 		ID:              c.ID,
 		PublicKey:       c.PublicKey,
@@ -94,27 +87,27 @@ func (c Credential) toLib() *webauthn.Credential {
 	}
 }
 
-func CredentialFromLib(lib *webauthn.Credential, userID string, name string) *Credential {
-	return &Credential{
+func CredentialFromLib(lib *webauthn.Credential, userID string, name string) *WebAuthnCredential {
+	return &WebAuthnCredential{
 		Name:            name,
 		UserID:          userID,
 		ID:              lib.ID,
 		PublicKey:       lib.PublicKey,
 		AttestationType: lib.AttestationType,
 		Transport:       lib.Transport,
-		Flags:           credentialFlagsFromLib(lib.Flags),
+		Flags:           CredentialFlags(lib.Flags),
 		Authenticator:   lib.Authenticator,
 		Attestation:     lib.Attestation,
 	}
 }
 
-func CredentialFromLibWithNoUserData(lib *webauthn.Credential) *Credential {
-	return &Credential{
+func CredentialFromLibWithNoUserData(lib *webauthn.Credential) *WebAuthnCredential {
+	return &WebAuthnCredential{
 		ID:              lib.ID,
 		PublicKey:       lib.PublicKey,
 		AttestationType: lib.AttestationType,
 		Transport:       lib.Transport,
-		Flags:           credentialFlagsFromLib(lib.Flags),
+		Flags:           CredentialFlags(lib.Flags),
 		Authenticator:   lib.Authenticator,
 		Attestation:     lib.Attestation,
 	}

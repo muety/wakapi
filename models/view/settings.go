@@ -21,7 +21,7 @@ type SettingsViewModel struct {
 	ReadmeCardCustomTitle string
 	ApiKeys               []*SettingsApiKeys
 	WebAuthnOptions       protocol.CredentialCreation
-	WebAuthnCredentials   []*models.Credential
+	WebAuthnCredentials   []*models.WebAuthnCredential
 }
 
 type SettingsVMCombinedAlias struct {

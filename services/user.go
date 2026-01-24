@@ -131,12 +131,7 @@ func (srv *UserService) GetUserByWebAuthnID(webauthnID string) (*models.User, er
 
 	// no cache here since webauthn id is not commonly used for lookups
 
-	u, err := srv.repository.FindOne(models.User{WebauthnID: webauthnID})
-	if err != nil {
-		return nil, err
-	}
-
-	return u, nil
+	return srv.repository.FindOne(models.User{WebauthnID: webauthnID})
 }
 
 func (srv *UserService) GetUserByEmail(email string) (*models.User, error) {

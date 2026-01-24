@@ -21,7 +21,7 @@ func GetWebAuthnSession(r *http.Request) (*webauthn.SessionData, error) {
 	}
 	session, ok := val.(*webauthn.SessionData)
 	if !ok {
-		config.Log().Warn("webauthn session data has invalid type")
+		config.Log().Error("webauthn session data has invalid type")
 		return &webauthn.SessionData{}, nil
 	}
 	return session, nil

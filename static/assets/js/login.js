@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const webAuthnButton = document.getElementById("webauthn_login");
   webAuthnButton.onclick = () => {
-    fetch("/webauthn_options/", {
+    fetch("/webauthn/options/", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

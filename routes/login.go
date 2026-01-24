@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -62,8 +61,8 @@ func (h *LoginHandler) RegisterRoutes(router chi.Router) {
 		Post("/reset-password", h.PostResetPassword)
 	router.Get("/oidc/{provider}/login", h.GetOidcLogin)
 	router.Get("/oidc/{provider}/callback", h.GetOidcCallback)
-	router.Get("/webauthn_options", h.GetWebAuthnOptions)
-	router.Post("/login_webauthn", h.PostLoginWebAuthn)
+	router.Get("/webauthn/options", h.GetWebAuthnOptions)
+	router.Post("/webauthn/login", h.PostLoginWebAuthn)
 
 	authMiddleware := middlewares.NewAuthenticateMiddleware(h.userSrvc).
 		WithRedirectTarget(defaultErrorRedirectTarget()).
@@ -481,15 +480,15 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 func (h *LoginHandler) GetWebAuthnOptions(w http.ResponseWriter, r *http.Request) {
 	options, sessionData, err := conf.WebAuthn.BeginDiscoverableLogin()
 	if err != nil {
-		respondJSONError(w, http.StatusInternalServerError, "failed to begin login")
+		conf.Log().Request(r).Error("failed to begin webauthn login", "error", err)
+		routeutils.RespondJSONError(w, http.StatusInternalServerError, "failed to begin login")
 		return
 	}
-	err = routeutils.SetWebAuthnSession(sessionData, r, w)
-	if err != nil {
-		respondJSONError(w, http.StatusInternalServerError, "failed to set session")
+	if routeutils.SetWebAuthnSession(sessionData, r, w) != nil {
+		routeutils.RespondJSONError(w, http.StatusInternalServerError, "failed to set session")
 		return
 	}
-	respondJSON(w, http.StatusOK, options)
+	routeutils.RespondJSON(w, http.StatusOK, options)
 }
 
 func (h *LoginHandler) PostLoginWebAuthn(w http.ResponseWriter, r *http.Request) {
@@ -549,6 +548,7 @@ func (h *LoginHandler) PostLoginWebAuthn(w http.ResponseWriter, r *http.Request)
 	err = h.webAuthnSrvc.UpdateCredential(credential)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		conf.Log().Request(r).Error("failed to update webauthn credential after login", "userID", user.ID, "error", err)
 		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
 		return
 	}
@@ -612,16 +612,4 @@ func (h *LoginHandler) coalesceExistingUser(username string) string {
 		return fmt.Sprintf("%s-%s", username, strings.ToLower(random.RandString(6)))
 	}
 	return username
-}
-
-// respondJSON sends a JSON response with the given status code and data
-func respondJSON(w http.ResponseWriter, status int, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(data)
-}
-
-// respondJSONError sends a JSON error response
-func respondJSONError(w http.ResponseWriter, status int, message string) {
-	respondJSON(w, status, map[string]string{"error": message})
 }

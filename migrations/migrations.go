@@ -34,7 +34,7 @@ func GetMigrationFunc(cfg *config.Config) GormMigrationFunc {
 			if err := db.AutoMigrate(&models.User{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
 				return err
 			}
-			if err := db.AutoMigrate(&models.Credential{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
+			if err := db.AutoMigrate(&models.WebAuthnCredential{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
 				return err
 			}
 			if err := db.AutoMigrate(&models.KeyStringValue{}); err != nil && !cfg.Db.AutoMigrateFailSilently {

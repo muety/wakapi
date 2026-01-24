@@ -19,21 +19,21 @@ func NewWebAuthnService(webAuthnRepository repositories.IWebAuthnRepository) *We
 	return srv
 }
 
-func (srv *WebAuthnService) CreateCredential(credential *webauthn.Credential, user *models.User, name string) (*models.Credential, error) {
+func (srv *WebAuthnService) CreateCredential(credential *webauthn.Credential, user *models.User, name string) (*models.WebAuthnCredential, error) {
 	createdCredential, err := srv.repository.Insert(models.CredentialFromLib(credential, user.ID, name))
 	return createdCredential, err
 }
-func (srv *WebAuthnService) GetCredentialsByUser(user *models.User) ([]*models.Credential, error) {
+func (srv *WebAuthnService) GetCredentialsByUser(user *models.User) ([]*models.WebAuthnCredential, error) {
 	credentials, err := srv.repository.GetByUser(user.ID)
 	return credentials, err
 }
 
-func (srv *WebAuthnService) GetCredentialByUserAndName(user *models.User, name string) (*models.Credential, error) {
+func (srv *WebAuthnService) GetCredentialByUserAndName(user *models.User, name string) (*models.WebAuthnCredential, error) {
 	credentials, err := srv.repository.GetByUserAndName(user.ID, name)
 	return credentials, err
 }
 
-func (srv *WebAuthnService) DeleteCredential(credential *models.Credential) error {
+func (srv *WebAuthnService) DeleteCredential(credential *models.WebAuthnCredential) error {
 	return srv.repository.Delete(credential)
 }
 

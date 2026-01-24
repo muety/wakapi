@@ -185,10 +185,10 @@ type IApiKeyService interface {
 }
 
 type IWebAuthnService interface {
-	CreateCredential(*webauthn.Credential, *models.User, string) (*models.Credential, error)
-	GetCredentialsByUser(*models.User) ([]*models.Credential, error)
-	GetCredentialByUserAndName(*models.User, string) (*models.Credential, error)
+	CreateCredential(*webauthn.Credential, *models.User, string) (*models.WebAuthnCredential, error)
+	GetCredentialsByUser(*models.User) ([]*models.WebAuthnCredential, error)
+	GetCredentialByUserAndName(*models.User, string) (*models.WebAuthnCredential, error)
 	LoadCredentialIntoUser(*models.User) error
-	DeleteCredential(*models.Credential) error
+	DeleteCredential(*models.WebAuthnCredential) error
 	UpdateCredential(*webauthn.Credential) error
 }

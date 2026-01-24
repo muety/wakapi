@@ -26,6 +26,6 @@ func initWebAuthn(config *Config) {
 
 	WebAuthn, err = webauthn.New(webauthnConfig)
 	if err != nil {
-		slog.Error("webauthn init error", "error", err)
+		Log().Fatal("webauthn init error", "error", err)
 	}
 }

@@ -8,19 +8,13 @@ import (
 )
 
 func init() {
-	const name = "20260103_add_webauthn_fields"
+	const name = "20260103-add_webauthn_fields"
 	f := migrationFunc{
 		name:       name,
 		background: false,
 		f: func(db *gorm.DB, cfg *config.Config) error {
 			if hasRun(name, db) {
 				return nil
-			}
-
-			if !db.Migrator().HasColumn(&models.User{}, "webauthn_id") {
-				if err := db.Exec("ALTER TABLE users ADD COLUMN webauthn_id TEXT").Error; err != nil {
-					return err
-				}
 			}
 
 			var users []*models.User

@@ -966,7 +966,10 @@ func (h *SettingsHandler) actionWebAuthnAdd(w http.ResponseWriter, r *http.Reque
 	}
 
 	user := middlewares.GetPrincipal(r)
-	h.WebAuthnSrvc.LoadCredentialIntoUser(user)
+	if err := h.WebAuthnSrvc.LoadCredentialIntoUser(user); err != nil {
+		conf.Log().Request(r).Error("could not load webauthn credentials for user", "error", err)
+		return actionResult{http.StatusInternalServerError, "", "could not load webauthn credentials for user", nil}
+	}
 	authenticatorName := strings.TrimSpace(r.PostFormValue("authenticator_name"))
 	if authenticatorName == "" {
 		return actionResult{http.StatusBadRequest, "", "authenticator name must not be empty", nil}
@@ -987,12 +990,12 @@ func (h *SettingsHandler) actionWebAuthnAdd(w http.ResponseWriter, r *http.Reque
 	// that's because the credentialJSON is not all the request data, but only part of it
 	pcc, err := protocol.ParseCredentialCreationResponseBytes([]byte(credentialJSON))
 	if err != nil {
-		config.Log().Debug("error while parsing webauthn register response: ", "error", err.Error())
+		config.Log().Request(r).Error("error while parsing webauthn register response", "error", err.Error())
 		return actionResult{http.StatusBadRequest, "", "could not parse credential creation response", nil}
 	}
 	credential, err := config.WebAuthn.CreateCredential(user, *sessionData, pcc)
 	if err != nil {
-		config.Log().Debug("error while processing webauthn register: ", "error", err.Error())
+		config.Log().Request(r).Error("error while processing webauthn register", "error", err.Error())
 		return actionResult{http.StatusBadRequest, "", "could not create webauthn credential", nil}
 	}
 	_, err = h.WebAuthnSrvc.CreateCredential(credential, user, authenticatorName)
@@ -1148,10 +1151,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 		})
 	}
 
-	// webAuthn
-	err = h.WebAuthnSrvc.LoadCredentialIntoUser(user)
-	conf.Log().Debug("webauthn credentials loaded into user", "userID", user.ID, "credentialCount", len(user.WebAuthnCredentials()))
-	if err != nil {
+	if h.WebAuthnSrvc.LoadCredentialIntoUser(user) != nil {
 		conf.Log().Request(r).Error("error while loading webauthn credentials into user", "user", user.ID, "error", err)
 		return &view.SettingsViewModel{
 			SharedLoggedInViewModel: view.SharedLoggedInViewModel{
