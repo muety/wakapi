@@ -2,21 +2,24 @@ package models
 
 import (
 	"fmt"
-	"github.com/cespare/xxhash/v2"
-	"github.com/gohugoio/hashstructure"
-	"github.com/muety/wakapi/models/lib"
 	"log/slog"
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/cespare/xxhash/v2"
+	"github.com/gohugoio/hashstructure"
+	"github.com/muety/wakapi/models/lib"
 )
 
 // TODO: support multiple durations per time per user for different heartbeat timeouts
 // see discussion at https://github.com/muety/wakapi/issues/675
 type Duration struct {
-	ID              int64         `json:"-" gorm:"primaryKey; autoIncrement"` // https://github.com/muety/wakapi/issues/777
-	UserID          string        `json:"user_id" gorm:"not null; index:idx_time_duration_user"`
-	Time            CustomTime    `json:"time" hash:"ignore" gorm:"not null; index:idx_time_duration_user"` // time of first heartbeat of this duration
+	ID     int64  `json:"-" gorm:"primaryKey; autoIncrement"` // https://github.com/muety/wakapi/issues/777
+	UserID string `json:"user_id" gorm:"not null; index:idx_time_duration_user"`
+	// note: on sqlite, table will have an additional column `time_real`, introduced "manually" by migration 20260111
+	// see https://github.com/muety/wakapi/issues/882 for details
+	Time            CustomTime    `json:"time" hash:"ignore" gorm:"not null; index:idx_time_duration; index:idx_time_duration_user"` // time of first heartbeat of this duration
 	Duration        time.Duration `json:"duration" hash:"ignore" gorm:"not null"`
 	Project         string        `json:"project"`
 	Language        string        `json:"language"`

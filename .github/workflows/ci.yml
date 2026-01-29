@@ -27,8 +27,9 @@ jobs:
       run: CGO_ENABLED=0 go test `go list ./... | grep -v 'github.com/muety/wakapi/scripts'` -run ./...  # skip scripts package, because not actually a package
 
     - name: API Tests
+      # bruno pinned to version 2.15.0 because of https://github.com/usebruno/bruno/issues/6837
       run: |
-        npm install -g @usebruno/cli
+        npm install -g @usebruno/cli@2.15.0
         ./testing/run_api_tests.sh
 
     - name: Mail Tests
@@ -55,6 +56,6 @@ jobs:
         go-version: ^1.25
       id: go
 
-    - run: npm install -g @usebruno/cli
+    - run: npm install -g @usebruno/cli@2.15.0
 
     - run: ./testing/run_api_tests.sh ${{ matrix.db }} --migration

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/duke-git/lancet/v2/condition"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
@@ -34,12 +35,12 @@ func (r *HeartbeatRepository) InsertBatch(heartbeats []*models.Heartbeat) error 
 
 func (r *HeartbeatRepository) GetLatestByUser(user *models.User) (*models.Heartbeat, error) {
 	var heartbeat models.Heartbeat
-	if err := r.db.
+	q := r.db.
 		Model(&models.Heartbeat{}).
 		Where(&models.Heartbeat{UserID: user.ID}).
-		Order("time desc").
-		Limit(1).
-		Scan(&heartbeat).Error; err != nil {
+		Limit(1)
+	q = r.queryAddTimeSorting(q, true)
+	if err := q.Scan(&heartbeat).Error; err != nil {
 		return nil, err
 	}
 	return &heartbeat, nil
@@ -47,15 +48,15 @@ func (r *HeartbeatRepository) GetLatestByUser(user *models.User) (*models.Heartb
 
 func (r *HeartbeatRepository) GetLatestByOriginAndUser(origin string, user *models.User) (*models.Heartbeat, error) {
 	var heartbeat models.Heartbeat
-	if err := r.db.
+	q := r.db.
 		Model(&models.Heartbeat{}).
 		Where(&models.Heartbeat{
 			UserID: user.ID,
 			Origin: origin,
 		}).
-		Order("time desc").
-		Limit(1).
-		Scan(&heartbeat).Error; err != nil {
+		Limit(1)
+	q = r.queryAddTimeSorting(q, true)
+	if err := q.Scan(&heartbeat).Error; err != nil {
 		return nil, err
 	}
 	return &heartbeat, nil
@@ -64,12 +65,7 @@ func (r *HeartbeatRepository) GetLatestByOriginAndUser(origin string, user *mode
 func (r *HeartbeatRepository) GetWithin(from, to time.Time, user *models.User) ([]*models.Heartbeat, error) {
 	// https://stackoverflow.com/a/20765152/3112139
 	var heartbeats []*models.Heartbeat
-	if err := r.db.
-		Where(&models.Heartbeat{UserID: user.ID}).
-		Where("time >= ?", from.Local()).
-		Where("time < ?", to.Local()).
-		Order("time asc").
-		Find(&heartbeats).Error; err != nil {
+	if err := r.buildTimeFilteredQuery(user.ID, from.Local(), to.Local()).Find(&heartbeats).Error; err != nil {
 		return nil, err
 	}
 	return heartbeats, nil
@@ -78,13 +74,7 @@ func (r *HeartbeatRepository) GetWithin(from, to time.Time, user *models.User) (
 func (r *HeartbeatRepository) StreamWithin(from, to time.Time, user *models.User) (chan *models.Heartbeat, error) {
 	out := make(chan *models.Heartbeat)
 
-	rows, err := r.db.
-		Model(&models.Heartbeat{}).
-		Where(&models.Heartbeat{UserID: user.ID}).
-		Where("time >= ?", from.Local()).
-		Where("time < ?", to.Local()).
-		Order("time asc").
-		Rows()
+	rows, err := r.buildTimeFilteredQuery(user.ID, from.Local(), to.Local()).Rows()
 	if err != nil {
 		return nil, err
 	}
@@ -98,13 +88,7 @@ func (r *HeartbeatRepository) StreamWithin(from, to time.Time, user *models.User
 func (r *HeartbeatRepository) StreamWithinBatched(from, to time.Time, user *models.User, batchSize int) (chan []*models.Heartbeat, error) {
 	out := make(chan []*models.Heartbeat)
 
-	rows, err := r.db.
-		Model(&models.Heartbeat{}).
-		Where(&models.Heartbeat{UserID: user.ID}).
-		Where("time >= ?", from.Local()).
-		Where("time < ?", to.Local()).
-		Order("time asc").
-		Rows()
+	rows, err := r.buildTimeFilteredQuery(user.ID, from.Local(), to.Local()).Rows()
 	if err != nil {
 		return nil, err
 	}
@@ -119,11 +103,7 @@ func (r *HeartbeatRepository) GetAllWithinByFilters(from, to time.Time, user *mo
 	// https://stackoverflow.com/a/20765152/3112139
 	var heartbeats []*models.Heartbeat
 
-	q := r.db.
-		Where(&models.Heartbeat{UserID: user.ID}).
-		Where("time >= ?", from.Local()).
-		Where("time < ?", to.Local()).
-		Order("time asc")
+	q := r.buildTimeFilteredQuery(user.ID, from.Local(), to.Local())
 	q = filteredQuery(q, filterMap)
 
 	if err := q.Find(&heartbeats).Error; err != nil {
@@ -135,11 +115,7 @@ func (r *HeartbeatRepository) GetAllWithinByFilters(from, to time.Time, user *mo
 func (r *HeartbeatRepository) StreamWithinByFilters(from, to time.Time, user *models.User, filterMap map[string][]string) (chan *models.Heartbeat, error) {
 	out := make(chan *models.Heartbeat)
 
-	q := r.db.
-		Where(&models.Heartbeat{UserID: user.ID}).
-		Where("time >= ?", from.Local()).
-		Where("time < ?", to.Local()).
-		Order("time asc")
+	q := r.buildTimeFilteredQuery(user.ID, from.Local(), to.Local())
 	q = filteredQuery(q, filterMap)
 
 	rows, err := q.Rows()
@@ -157,9 +133,8 @@ func (r *HeartbeatRepository) StreamWithinByFilters(from, to time.Time, user *mo
 func (r *HeartbeatRepository) GetLatestByFilters(user *models.User, filterMap map[string][]string) (*models.Heartbeat, error) {
 	var heartbeat *models.Heartbeat
 
-	q := r.db.
-		Where(&models.Heartbeat{UserID: user.ID}).
-		Order("time desc")
+	q := r.db.Model(&models.Heartbeat{}).Where(&models.Heartbeat{UserID: user.ID})
+	q = r.queryAddTimeSorting(q, true)
 	q = filteredQuery(q, filterMap)
 
 	if err := q.Limit(1).Scan(&heartbeat).Error; err != nil {
@@ -251,9 +226,8 @@ func (r *HeartbeatRepository) GetEntitySetByUser(entityType uint8, userId string
 }
 
 func (r *HeartbeatRepository) DeleteBefore(t time.Time) error {
-	if err := r.db.
-		Where("time <= ?", t.Local()).
-		Delete(models.Heartbeat{}).Error; err != nil {
+	q := r.queryAddTimeFilterLessEqual(r.db.Model(models.Heartbeat{}), t.Local())
+	if err := q.Delete(models.Heartbeat{}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -269,9 +243,9 @@ func (r *HeartbeatRepository) DeleteByUser(user *models.User) error {
 }
 
 func (r *HeartbeatRepository) DeleteByUserBefore(user *models.User, t time.Time) error {
-	if err := r.db.
+	q := r.queryAddTimeFilterLessEqual(r.db.Model(models.Heartbeat{}), t.Local())
+	if err := q.
 		Where("user_id = ?", user.ID).
-		Where("time <= ?", t.Local()).
 		Delete(models.Heartbeat{}).Error; err != nil {
 		return err
 	}
@@ -296,7 +270,46 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 		sql.Named("offset", offset),
 	}
 
-	query := `
+	querySqlite := `
+			with project_stats as (
+				select
+					project,
+					user_id,
+					concat(datetime(min(time_real)), '+00:00') as first,
+					concat(datetime(max(time_real)), '+00:00') as last,
+					count(*) as cnt
+				from heartbeats
+				where user_id = @userid
+				  and project != ''
+				  and time_real between julianday(@from) and julianday(@to)
+				  and language is not null and language != ''
+				group by project, user_id
+			),
+				 language_stats as (
+					 select
+						 project,
+						 language,
+						 count(*) as language_count,
+						 row_number() over (partition by project order by count(*) desc) as rn
+					 from heartbeats
+					 where user_id = @userid
+					   and project != ''
+					   and time_real between julianday(@from) and julianday(@to)
+					   and language is not null and language != ''
+					 group by project, language
+				 )
+			select
+				ps.project,
+				ps.first,
+				ps.last,
+				ps.cnt as count,
+				ls.language as top_language
+			from project_stats ps
+					 left join language_stats ls on ps.project = ls.project and ls.rn = 1
+			order by ps.last desc
+	`
+
+	queryDefault := `
 			with project_stats as (
 				select
 					project,
@@ -334,7 +347,7 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 					 left join language_stats ls on ps.project = ls.project and ls.rn = 1
 			order by ps.last desc
 	`
-
+	query := condition.Ternary(r.config.Db.IsSQLite(), querySqlite, queryDefault)
 	query += "limit @limit offset @offset"
 
 	if err := r.db.
@@ -358,4 +371,42 @@ func (r *HeartbeatRepository) GetUserAgentsByUser(user *models.User) ([]*models.
 		return nil, err
 	}
 	return results, nil
+}
+
+// since sqlite doesn't datetime column type, naive string comparison / sorting won't properly respect timezones
+// this is problematic in case of heartbeats in mixed zones, see https://github.com/muety/wakapi/issues/882
+
+func (r *HeartbeatRepository) buildTimeFilteredQuery(userId string, from, to time.Time) *gorm.DB {
+	query := r.db.Model(&models.Heartbeat{}).Where(&models.Heartbeat{UserID: userId})
+	query = r.queryAddTimeFilterBetween(query, from, to)
+	query = r.queryAddTimeSorting(query, false)
+	return query
+}
+
+func (r *HeartbeatRepository) queryAddTimeFilterBetween(q *gorm.DB, from, to time.Time) *gorm.DB {
+	if r.config.Db.IsSQLite() {
+		q = q.
+			Where("time_real >= julianday(?)", from.Local()).
+			Where("time_real < julianday(?)", to.Local())
+	} else {
+		q = q.
+			Where("time >= ?", from.Local()).
+			Where("time < ?", to.Local())
+	}
+	return q
+}
+
+func (r *HeartbeatRepository) queryAddTimeFilterLessEqual(q *gorm.DB, t time.Time) *gorm.DB {
+	if r.config.Db.IsSQLite() {
+		return q.Where("time_real <= julianday(?)", t.Local())
+	}
+	return q.Where("time <= ?", t.Local())
+}
+
+func (r *HeartbeatRepository) queryAddTimeSorting(q *gorm.DB, desc bool) *gorm.DB {
+	order := condition.Ternary(desc, "desc", "asc")
+	if r.config.Db.IsSQLite() {
+		return q.Order("time_real " + order)
+	}
+	return q.Order("time " + order)
 }

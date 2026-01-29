@@ -146,6 +146,19 @@ api_key = 406fe41f-6d69-4183-a4cc-121e0c524c2b
 
 Optionally, you can set up a [client-side proxy](https://github.com/muety/wakapi/wiki/Advanced-Setup:-Client-side-proxy) in addition.
 
+#### WakaTime integration
+You can use WakaTime and Wakapi in parallel, that is, have your coding activity tracked in both systems. 
+This can be configured either on the **client-side (preferred)** on a system-wide- or per-project basis or using Wakapi's **relay** functionality (__Settings → Integrations__) to forward heartbeats to WakaTime.
+
+**Example:**
+```ini
+[api_urls]
+.* = https://wakapi.dev/api|wakapi-api-key
+.* = https://api.wakatime.com/api/v1|waka-api-key
+```
+
+See [wakatime-cli usage](https://github.com/wakatime/wakatime-cli/blob/develop/USAGE.md#api-urls-section) for details.
+
 ## 🔧 Configuration options
 
 You can specify configuration options either via a config file (default: `config.yml`, customizable through the `-c` argument) or via environment variables. Here is an overview of all options.
@@ -185,6 +198,7 @@ You can specify configuration options either via a config file (default: `config
 | `server.tls_key_path` /<br> `WAKAPI_TLS_KEY_PATH`                                           | -                                                | Path of SSL server private key (leave blank to not use HTTPS)                                                                                                                   |
 | `server.base_path` /<br> `WAKAPI_BASE_PATH`                                                 | `/`                                              | Web base path (change when running behind a proxy under a sub-path)                                                                                                             |
 | `server.public_url` /<br> `WAKAPI_PUBLIC_URL`                                               | `http://localhost:3000`                          | URL at which your Wakapi instance can be found publicly                                                                                                                         |
+| `security.disable_local_auth` /<br> `WAKAPI_DISABLE_LOCAL_AUTH`                             | `false`                                          | Disables login via local credentials (username and password) to enforce OIDC provider login                                                                                     |
 | `security.password_salt` /<br> `WAKAPI_PASSWORD_SALT`                                       | -                                                | Pepper to use for password hashing                                                                                                                                              |
 | `security.insecure_cookies` /<br> `WAKAPI_INSECURE_COOKIES`                                 | `true`                                           | Whether or not to allow cookies over HTTP. For production, it is **highly recommended** to serve Wakapi via HTTPS and set this to `false`.                                      |
 | `security.cookie_max_age` /<br> `WAKAPI_COOKIE_MAX_AGE`                                     | `172800`                                         | Lifetime of authentication cookies in seconds or `0` to use [Session](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Define_the_lifetime_of_a_cookie) cookies        |
@@ -241,7 +255,7 @@ You can specify configuration options either via a config file (default: `config
 
 Wakapi uses [GORM](https://gorm.io) as an ORM. As a consequence, a set of different relational databases is supported.
 
-* [SQLite](https://sqlite.org/) (_default, easy setup_)
+* [SQLite](https://sqlite.org/) (>= 3.31) (_default, easy setup_)
 * [MySQL](https://hub.docker.com/_/mysql) (_recommended, because most extensively tested_)
 * [MariaDB](https://hub.docker.com/_/mariadb) (_open-source MySQL alternative_)
 * [Postgres](https://hub.docker.com/_/postgres) (_open-source as well_)
@@ -261,6 +275,9 @@ Wakapi supports different types of user authentication.
 ### Single Sign-On / OpenID Connect
 
 Wakapi supports login via external identity providers via OpenID Connect. See [our wiki](https://github.com/muety/wakapi/wiki/OpenID-Connect-login-(SSO)) for details.
+
+You can also disable local authentication (username and password) entirely by setting `security.disable_local_auth` to `true`.
+This enforces login exclusively via your configured OIDC providers.
 
 ## 🔧 API endpoints
 

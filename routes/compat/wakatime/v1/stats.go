@@ -109,6 +109,14 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if requestedUser.ID != summary.UserID {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("mismatch between requested user and summary owner")) // should never happen
+		conf.Log().Request(r).Error("mismatch between requested user and summary owner", "requested_user", requestedUser.ID, "summary_user", summary.UserID, "summary_id", summary.ID)
+		return
+	}
+	summary.User = requestedUser
+
 	stats := v1.NewStatsFrom(summary, &models.Filters{})
 	stats.Data.Range = rangeParam
 	stats.Data.HumanReadableRange = helpers.MustParseInterval(rangeParam).GetHumanReadable()

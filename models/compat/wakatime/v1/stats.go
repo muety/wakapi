@@ -1,14 +1,16 @@
 package v1
 
 import (
-	"github.com/muety/wakapi/helpers"
-	"github.com/muety/wakapi/models"
 	"math"
 	"time"
+
+	"github.com/muety/wakapi/helpers"
+	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
 )
 
 // https://wakatime.com/api/v1/users/current/stats/last_7_days
-// https://pastr.de/p/f2fxg6ragj7z5e7fhsow9rb6
+// https://pastr.de/p/vovw1912mlpf9wwycclrfezx
 
 type StatsViewModel struct {
 	Data *StatsData `json:"data"`
@@ -20,6 +22,7 @@ type StatsData struct {
 	Start                     string            `json:"start"`
 	End                       string            `json:"end"`
 	Status                    string            `json:"status"`
+	Timezone                  string            `json:"timezone"`
 	TotalSeconds              float64           `json:"total_seconds"`
 	DailyAverage              float64           `json:"daily_average"`
 	DaysIncludingHolidays     int               `json:"days_including_holidays"`
@@ -48,6 +51,7 @@ func NewStatsFrom(summary *models.Summary, filters *models.Filters) *StatsViewMo
 		Start:                 summary.FromTime.T().Format(time.RFC3339),
 		End:                   summary.ToTime.T().Format(time.RFC3339),
 		Status:                "ok",
+		Timezone:              utils.ResolveIANAZone(summary.User.TZ()),
 		TotalSeconds:          totalTime.Seconds(),
 		DaysIncludingHolidays: numDays,
 		HumanReadableTotal:    helpers.FmtWakatimeDuration(totalTime),
