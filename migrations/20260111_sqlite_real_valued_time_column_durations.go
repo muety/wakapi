@@ -2,8 +2,10 @@ package migrations
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
+	"github.com/duke-git/lancet/v2/condition"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"gorm.io/gorm"
@@ -38,25 +40,7 @@ func init() {
 					}
 				}
 
-				// create identical copy of the durations table
-				var createDdl string
-				if err := tx.Raw("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'durations'").Scan(&createDdl).Error; err != nil {
-					return err
-				}
-				createDdl = strings.ToLower(createDdl)
-				createDdl = strings.Replace(createDdl, "create table \"durations\"", "create table \"durations_new\"", 1)
-				createDdl = strings.Replace(createDdl, "create table durations", "create table \"durations_new\"", 1)
-				createDdl = strings.Replace(createDdl, "create table `durations`", "create table \"durations_new\"", 1)
-				if idx := strings.LastIndex(createDdl, ")"); idx != -1 { // inject new column definition
-					createDdl = createDdl[:idx] + ", time_real real as (julianday(time)) stored" + createDdl[idx:]
-				} else {
-					return fmt.Errorf("could not modify ddl for durations table")
-				}
-				if err := tx.Exec(createDdl).Error; err != nil {
-					return err
-				}
-
-				// copy data dynamically
+				// get table columns
 				var columns []string
 				type colInfo struct{ Name string }
 				var info []colInfo
@@ -66,6 +50,29 @@ func init() {
 				for _, c := range info {
 					columns = append(columns, c.Name)
 				}
+
+				// create identical copy of the durations table
+				var createDdl string
+				if err := tx.Raw("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'durations'").Scan(&createDdl).Error; err != nil {
+					return err
+				}
+				createDdl = strings.ToLower(createDdl)
+
+				lastColIsLastStmt := strings.LastIndex(createDdl, ",") < strings.LastIndex(createDdl, columns[len(columns)-1])
+				patternTblName := `create table ([\x60"]?)durations([\x60"]?)` // quoted with double quote, backtick or none
+				patternLastCol := `(([\x60"]?)` + columns[len(columns)-1] + `[\x60"]?\s+.*),`
+				if lastColIsLastStmt {
+					patternLastCol = `(([\x60"]?)` + columns[len(columns)-1] + `[\x60"]?\s+.*)\)`
+				}
+
+				createDdl = regexp.MustCompile(patternTblName).ReplaceAllString(createDdl, "create table ${1}durations_new${1}")
+				createDdl = regexp.MustCompile(patternLastCol).ReplaceAllString(createDdl, "${1},${2}time_real${2} real as (julianday(time)) stored"+condition.Ternary(lastColIsLastStmt, ")", ", "))
+
+				if err := tx.Exec(createDdl).Error; err != nil {
+					return err
+				}
+
+				// copy data dynamically
 				quotedCols := "\"" + strings.Join(columns, "\", \"") + "\""
 				if err := tx.Exec(fmt.Sprintf("insert into durations_new (%s) select %s from durations", quotedCols, quotedCols)).Error; err != nil {
 					return err
