@@ -187,7 +187,9 @@
                     </button>
                 </div>
             </form>
+        {{ end }}
 
+        {{ if not .DisableWebAuthn }}
             <!-- WebAuthn -->
             <div class="w-full md:w-3/4">
                 <hr class="border-t border-focused my-4">
@@ -201,7 +203,7 @@
                     <tr>
                         <th class="text-left py-2 text-muted w-1/4">Name</th>
                         <th class="text-left py-2 text-muted w-1/3">Created</th>
-                        <th class="text-center py-2 text-muted w-1/4">Last Used</th>
+                        <th class="text-left py-2 text-muted w-1/4">Last Used</th>
                         <th class="text-center py-2 text-muted w-1/6">Actions</th>
                     </tr>
                     </thead>
@@ -210,7 +212,7 @@
                     <tr>
                         <td class="py-2 text-foreground">{{ $credential.Name }}</td>
                         <td class="py-2 text-muted text-sm">{{ $credential.CreatedAt | datetime }}</td>
-                        <td class="py-2 text-muted text-sm text-center">{{ if $credential.LastUsedAt.Valid }}{{ $credential.LastUsedAt.Time | datetime }}{{ else }}Never used{{ end }}</td>
+                        <td class="py-2 text-muted text-sm">{{ if $credential.LastUsedAt.Valid }}{{ $credential.LastUsedAt.Time | datetime }}{{ else }}Never used{{ end }}</td>
                         <td class="py-2 text-center">
                             <form action="" method="post" class="inline">
                                 <input type="hidden" name="action" value="webauthn_delete">
@@ -231,13 +233,13 @@
                     <span class="block text-sm text-muted">Register a new security key or biometric passkey to your account.</span>
                 </div>
 
-                <form class="flex justify-end shrink-0" action="" id="form-webauthn-add" method="post">
+                <form class="flex justify-end shrink-0" action="" id="form-webauthn-add" method="post" @submit.prevent="webAuthnAdd">
                     <input type="hidden" name="action" value="webauthn_add">
                     <div class="flex gap-2 items-center justify-end">
                         <input class="appearance-none bg-card text-foreground outline-none rounded py-2 px-4 focus:bg-focused" id="authenticator_name"
                                name="authenticator_name" placeholder="Authenticator Name" required>
                         <input type="hidden" id="credential_json" name="credential_json">
-                        <button type="button" class="btn-primary" @click="webAuthnAdd">
+                        <button type="submit" class="btn-primary">
                             Next
                         </button>
                     </div>

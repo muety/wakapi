@@ -499,6 +499,12 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *LoginHandler) GetWebAuthnOptions(w http.ResponseWriter, r *http.Request) {
+	if h.config.Security.DisableWebAuthn {
+		w.WriteHeader(http.StatusForbidden)
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("webauthn is disabled on this server"))
+		return
+	}
+
 	options, sessionData, err := conf.WebAuthn.BeginDiscoverableLogin()
 	if err != nil {
 		conf.Log().Request(r).Error("failed to begin webauthn login", "error", err)
@@ -515,6 +521,11 @@ func (h *LoginHandler) GetWebAuthnOptions(w http.ResponseWriter, r *http.Request
 func (h *LoginHandler) PostLoginWebAuthn(w http.ResponseWriter, r *http.Request) {
 	if h.config.IsDev() {
 		loadTemplates()
+	}
+	if h.config.Security.DisableWebAuthn {
+		w.WriteHeader(http.StatusForbidden)
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("webauthn authentication is disabled on this server"))
+		return
 	}
 
 	assertionJson := r.FormValue("assertion_json")
@@ -587,6 +598,7 @@ func (h *LoginHandler) buildViewModel(r *http.Request, w http.ResponseWriter, wi
 		AllowSignup:      h.config.IsDev() || h.config.Security.AllowSignup,
 		InviteCode:       r.URL.Query().Get("invite"),
 		DisableLocalAuth: h.config.Security.DisableLocalAuth,
+		DisableWebAuthn:  h.config.Security.DisableWebAuthn,
 		OidcProviders: slice.Map(h.config.Security.ListOidcProviders(), func(i int, providerName string) view.LoginViewModelOidcProvider {
 			provider, _ := conf.GetOidcProvider(providerName) // no error, because only using registered provider names
 			return view.LoginViewModelOidcProvider{

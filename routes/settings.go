@@ -994,6 +994,9 @@ func (h *SettingsHandler) actionWebAuthnAdd(w http.ResponseWriter, r *http.Reque
 	if h.config.IsDev() {
 		loadTemplates()
 	}
+	if h.config.Security.DisableWebAuthn {
+		return actionResult{http.StatusForbidden, "", "webauthn is disabled on this server", nil}
+	}
 
 	user := middlewares.GetPrincipal(r)
 	if err := h.WebAuthnSrvc.LoadCredentialIntoUser(user); err != nil {
@@ -1039,6 +1042,9 @@ func (h *SettingsHandler) actionWebAuthnAdd(w http.ResponseWriter, r *http.Reque
 func (h *SettingsHandler) actionWebAuthnDelete(w http.ResponseWriter, r *http.Request) actionResult {
 	if h.config.IsDev() {
 		loadTemplates()
+	}
+	if h.config.Security.DisableWebAuthn {
+		return actionResult{http.StatusForbidden, "", "webauthn is disabled on this server", nil}
 	}
 
 	user := middlewares.GetPrincipal(r)
@@ -1214,6 +1220,7 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 		ApiKeys:               combinedApiKeys,
 		WebAuthnCredentials:   user.Credentials,
 		ReadmeCardCustomTitle: readmeCardTitle,
+		DisableWebAuthn:       h.config.Security.DisableWebAuthn,
 	}
 
 	return routeutils.WithSessionMessages(vm, r, w)

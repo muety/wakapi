@@ -50,11 +50,13 @@
         </form>
         {{ end }}
 
+        {{ if not .DisableWebAuthn }}
         <form action="webauthn/login" method="post" class="mt-10">
             <input type="hidden" name="assertion_json" id="webauthn_assertion_json">
             <button type="button" class="btn-default w-full flex items-center justify-center" id="webauthn_login">Login with passkey</button>
         </form>
-        
+        {{ end }}
+
 
         {{ if len .OidcProviders }}
         <div>

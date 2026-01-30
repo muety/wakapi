@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/muety/wakapi/models"
@@ -46,18 +47,7 @@ func (r *WebAuthnRepository) Delete(credential *models.WebAuthnCredential) error
 }
 
 func (r *WebAuthnRepository) Update(credential *models.WebAuthnCredential) error {
-	updateMap := map[string]interface{}{
-		// no need to update user_id or created_at
-		"id":               credential.ID,
-		"public_key":       credential.PublicKey,
-		"name":             credential.Name,
-		"attestation_type": credential.AttestationType,
-		"transport":        credential.Transport,
-		"flags":            credential.Flags,
-		"authenticator":    credential.Authenticator,
-		"attestation":      credential.Attestation,
-		"last_used_at":     time.Now(),
-	}
-	result := r.db.Model(credential).Updates(updateMap)
+	credential.LastUsedAt = sql.NullTime{Time: time.Now(), Valid: true}
+	result := r.db.Model(credential).Updates(credential) // gorm updates only non-zero fields, it's expected here, since when it's called after login, not all fields are set (e.g. Name isn't set by go-webauthn as it's our custom field)
 	return result.Error
 }

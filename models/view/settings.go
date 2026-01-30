@@ -20,6 +20,7 @@ type SettingsViewModel struct {
 	ReadmeCardCustomTitle string
 	ApiKeys               []*SettingsApiKeys
 	WebAuthnCredentials   []*models.WebAuthnCredential
+	DisableWebAuthn       bool
 }
 
 type SettingsVMCombinedAlias struct {
