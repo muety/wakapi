@@ -72,13 +72,13 @@ func init() {
 
 				lastColIsLastStmt := strings.LastIndex(createDdl, ",") < strings.LastIndex(createDdl, columns[len(columns)-1])
 				patternTblName := `create table ([\x60"]?)heartbeats([\x60"]?)` // quoted with double quote, backtick or none
-				patternLastCol := `(([\x60"]?)` + columns[len(columns)-1] + `[\x60"]?\s+.*),`
+				patternLastCol := `(([\x60"]?)` + columns[len(columns)-1] + `[\x60"]?\s+[^,]*),`
 				if lastColIsLastStmt {
-					patternLastCol = `(([\x60"]?)` + columns[len(columns)-1] + `[\x60"]?\s+.*)\)`
+					patternLastCol = `(([\x60"]?)` + columns[len(columns)-1] + `[\x60"]?\s+[^,]*)\)`
 				}
 
 				createDdl = regexp.MustCompile(patternTblName).ReplaceAllString(createDdl, "create table ${1}heartbeats_new${1}")
-				createDdl = regexp.MustCompile(patternLastCol).ReplaceAllString(createDdl, "${1},${2}time_real${2} real as (julianday(time)) stored"+condition.Ternary(lastColIsLastStmt, ")", ", "))
+				createDdl = regexp.MustCompile(patternLastCol).ReplaceAllString(createDdl, "${1}, ${2}time_real${2} real as (julianday(time)) stored"+condition.Ternary(lastColIsLastStmt, ")", ", "))
 
 				if err := tx.Exec(createDdl).Error; err != nil {
 					return err
