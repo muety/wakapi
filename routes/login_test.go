@@ -30,6 +30,7 @@ type LoginHandlerTestSuite struct {
 	OidcMock              *mockoidc.MockOIDC
 	UserService           *mocks.UserServiceMock
 	KeyValueService       *mocks.KeyValueServiceMock
+	WebAuthnService       *mocks.WebAuthnServiceMock
 	Cfg                   *config.Config
 	Sut                   *LoginHandler
 	OidcUserNew           *mockoidc.MockUser
@@ -89,6 +90,7 @@ func (suite *LoginHandlerTestSuite) TearDownSuite() {
 func (suite *LoginHandlerTestSuite) BeforeTest(suiteName, testName string) {
 	suite.UserService = new(mocks.UserServiceMock)
 	suite.KeyValueService = new(mocks.KeyValueServiceMock)
+	suite.WebAuthnService = new(mocks.WebAuthnServiceMock)
 
 	cfg := config.Empty()
 	cfg.Security.SecureCookie = securecookie.New(
@@ -102,7 +104,7 @@ func (suite *LoginHandlerTestSuite) BeforeTest(suiteName, testName string) {
 	suite.resetOidcMockTtl()
 	suite.setupOidcProvider(testProvider)
 
-	suite.Sut = NewLoginHandler(suite.UserService, nil, suite.KeyValueService)
+	suite.Sut = NewLoginHandler(suite.UserService, nil, suite.KeyValueService, suite.WebAuthnService)
 	Init() // load templates
 }
 

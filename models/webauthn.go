@@ -65,7 +65,7 @@ func (f *CredentialFlags) Scan(value interface{}) error {
 
 type WebAuthnCredential struct {
 	UserID          string       `gorm:"index"`
-	ID              []byte       `gorm:"type:varbinary(255), index, notnull"` // it shouldn't be the primary key, as credential IDs are not guaranteed to be unique across authenticators
+	ID              []byte       `gorm:"notnull;serializer:json"` // by using json serializer, gorm will base64-encode it for storage in databases complain about binary data
 	CreatedAt       time.Time    // filled by gorm, see https://gorm.io/docs/conventions.html#CreatedAt
 	LastUsedAt      sql.NullTime `gorm:"default:null"` // NOT filled by gorm
 	Name            string       `gorm:"not null"`
@@ -75,6 +75,10 @@ type WebAuthnCredential struct {
 	Flags           CredentialFlags
 	Authenticator   webauthn.Authenticator         `gorm:"serializer:json"`
 	Attestation     webauthn.CredentialAttestation `gorm:"serializer:json"`
+}
+
+func (c WebAuthnCredential) TableName() string {
+	return "webauthn_credentials"
 }
 
 func (c WebAuthnCredential) toLib() *webauthn.Credential {
