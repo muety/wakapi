@@ -557,6 +557,7 @@ func Get() *Config {
 }
 
 func Load(configFlag string, version string) *Config {
+	loadSecretFiles()
 	renameEnvVars()
 
 	config := &Config{}
@@ -751,6 +752,39 @@ func renameEnvVars() {
 				slog.Error("failed to rename env. variable", "key", k, "value", v, "error", err)
 				os.Exit(1)
 			}
+			os.Unsetenv(k)
+		}
+	}
+}
+
+// Support for reading Docker secrets from mounted files, whose filenames are provided as environment variables like WAKAPI_PASSWORD_SALT_FILE
+// https://github.com/muety/wakapi?tab=readme-ov-file#docker-compose
+// https://hub.docker.com/_/mysql#docker-secrets
+// https://github.com/muety/wakapi/pull/679/changes
+// We used to source those variables using bash (see https://github.com/muety/wakapi/blob/7fa0a6f78ce56957f4f5a5c5abd68fc08cde12de/entrypoint.sh#L7),
+// but then switched to do this programmatically from within Wakapi itself so we don't need bash (or any other shell) and thus are free to use distroless Docker images.
+func loadSecretFiles() {
+	for _, e := range os.Environ() {
+		parts := strings.SplitN(e, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		k, v := parts[0], parts[1]
+
+		if strings.HasSuffix(k, "_FILE") {
+			key := strings.TrimSuffix(k, "_FILE")
+			if os.Getenv(key) != "" {
+				slog.Error("both environment variables are set (but are exclusive)", "var", key, "fileVar", k)
+				os.Exit(1)
+			}
+
+			val, err := os.ReadFile(v)
+			if err != nil {
+				slog.Error("failed to read secret file", "file", v, "error", err)
+				os.Exit(1)
+			}
+
+			os.Setenv(key, strings.TrimSpace(string(val)))
 			os.Unsetenv(k)
 		}
 	}
