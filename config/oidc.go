@@ -27,8 +27,8 @@ type IdTokenPayload struct {
 	PreferredUsername string                 `json:"preferred_username"`
 	Email             string                 `json:"email"`
 	EmailVerified     bool                   `json:"email_verified"`
-	ProviderName      string                 `json:"provider_name"`  // custom field, not part of actual id token response
-	CustomClaims      map[string]interface{} `json:"-"`
+	ProviderName      string                 `json:"provider_name"` // custom field, not part of actual id token response
+	AllClaims         map[string]interface{} `json:"-"`
 	UsernameClaim     string                 `json:"-"`
 }
 
@@ -62,20 +62,8 @@ func (token *IdTokenPayload) Username() string {
 }
 
 func (token *IdTokenPayload) getClaimValue(claimName string) string {
-	switch claimName {
-	case "preferred_username":
-		return strings.TrimSpace(token.PreferredUsername)
-	case "nickname":
-		return strings.TrimSpace(token.Nickname)
-	case "sub":
-		return strings.TrimSpace(token.Subject)
-	case "email":
-		return strings.TrimSpace(token.Email)
-	case "name":
-		return strings.TrimSpace(token.Name)
-	}
-	if token.CustomClaims != nil {
-		if val, ok := token.CustomClaims[claimName]; ok {
+	if token.AllClaims != nil {
+		if val, ok := token.AllClaims[claimName]; ok {
 			if strVal, ok := val.(string); ok {
 				return strings.TrimSpace(strVal)
 			}
