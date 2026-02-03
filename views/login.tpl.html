@@ -3,6 +3,8 @@
 
 {{ template "head.tpl.html" . }}
 
+<script type="module" src="assets/vendor/simplewebauthn.umd.min.js"></script>
+<script src="assets/js/login.js"></script>
 <body class="bg-background text-muted p-4 pt-10 flex flex-col min-h-screen max-w-screen-lg mx-auto justify-center">
 
 {{ template "header.tpl.html" . }}
@@ -47,6 +49,14 @@
             </div>
         </form>
         {{ end }}
+
+        {{ if not .DisableWebAuthn }}
+        <form action="webauthn/login" method="post" class="mt-10">
+            <input type="hidden" name="assertion_json" id="webauthn_assertion_json">
+            <button type="button" class="btn-default w-full flex items-center justify-center" id="webauthn_login">Login with passkey</button>
+        </form>
+        {{ end }}
+
 
         {{ if len .OidcProviders }}
         <div>

@@ -1,0 +1,53 @@
+package repositories
+
+import (
+	"database/sql"
+	"time"
+
+	"github.com/muety/wakapi/models"
+	"gorm.io/gorm"
+)
+
+type WebAuthnRepository struct {
+	BaseRepository
+}
+
+func NewWebAuthnRepository(db *gorm.DB) *WebAuthnRepository {
+	return &WebAuthnRepository{BaseRepository: NewBaseRepository(db)}
+}
+
+func (r *WebAuthnRepository) Insert(credential *models.WebAuthnCredential) (*models.WebAuthnCredential, error) {
+	result := r.db.Create(credential)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return credential, nil
+}
+
+func (r *WebAuthnRepository) GetByUser(userID string) ([]*models.WebAuthnCredential, error) {
+	var credentials []*models.WebAuthnCredential
+	result := r.db.Where("user_id = ?", userID).Find(&credentials)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return credentials, nil
+}
+
+func (r *WebAuthnRepository) GetByUserAndName(userID string, name string) (*models.WebAuthnCredential, error) {
+	var credential models.WebAuthnCredential
+	result := r.db.Where("user_id = ? AND name = ?", userID, name).First(&credential)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &credential, nil
+}
+
+func (r *WebAuthnRepository) Delete(credential *models.WebAuthnCredential) error {
+	return r.db.Delete(credential).Error
+}
+
+func (r *WebAuthnRepository) Update(credential *models.WebAuthnCredential) error {
+	credential.LastUsedAt = sql.NullTime{Time: time.Now(), Valid: true}
+	result := r.db.Model(credential).Updates(credential) // gorm updates only non-zero fields, it's expected here, since when it's called after login, not all fields are set (e.g. Name isn't set by go-webauthn as it's our custom field)
+	return result.Error
+}

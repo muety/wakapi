@@ -124,6 +124,16 @@ func (srv *UserService) GetUserByKey(key string, requireFullAccessKey bool) (*mo
 	return nil, err
 }
 
+func (srv *UserService) GetUserByWebAuthnID(webauthnID string) (*models.User, error) {
+	if webauthnID == "" {
+		return nil, errors.New("webauthn id must not be empty")
+	}
+
+	// no cache here since webauthn id is not commonly used for lookups
+
+	return srv.repository.FindOne(models.User{WebauthnID: webauthnID})
+}
+
 func (srv *UserService) GetUserByEmail(email string) (*models.User, error) {
 	if email == "" {
 		return nil, errors.New("email must not be empty")
@@ -239,15 +249,16 @@ func (srv *UserService) CountCurrentlyOnline() (int, error) {
 
 func (srv *UserService) CreateOrGet(signup *models.Signup, isAdmin bool) (*models.User, bool, error) {
 	u := &models.User{
-		ID:        signup.Username,
-		ApiKey:    uuid.Must(uuid.NewV4()).String(),
-		Email:     signup.Email,
-		Location:  signup.Location,
-		Password:  signup.Password,
-		IsAdmin:   isAdmin,
-		InvitedBy: signup.InvitedBy,
-		AuthType:  signup.OidcProvider, // empty for local auth, will fallback to column default value
-		Sub:       signup.OidcSubject,
+		ID:         signup.Username,
+		WebauthnID: uuid.Must(uuid.NewV4()).String(),
+		ApiKey:     uuid.Must(uuid.NewV4()).String(),
+		Email:      signup.Email,
+		Location:   signup.Location,
+		Password:   signup.Password,
+		IsAdmin:    isAdmin,
+		InvitedBy:  signup.InvitedBy,
+		AuthType:   signup.OidcProvider, // empty for local auth, will fallback to column default value
+		Sub:        signup.OidcSubject,
 	}
 
 	if hash, err := utils.HashPassword(u.Password, srv.config.Security.PasswordSalt); err != nil {

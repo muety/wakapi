@@ -164,6 +164,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"exclude_unknown_projects": user.ExcludeUnknownProjects,
 		"heartbeats_timeout_sec":   user.HeartbeatsTimeoutSec,
 		"readme_stats_base_url":    user.ReadmeStatsBaseUrl,
+		"webauthn_id":              user.WebauthnID,
 	}
 
 	result := r.db.Model(user).Updates(updateMap)
