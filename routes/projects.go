@@ -56,14 +56,12 @@ func (h *ProjectsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 	}
 
 	pageParams := utils.ParsePageParamsWithDefault(r, 1, 24)
-	// note: pagination is not fully implemented, yet
-	// count function to get total item / total pages is missing
-	// and according ui (+ optionally search bar) is missing, too
+	query := r.URL.Query().Get("q")
 
 	var err error
 	var projects []*models.ProjectStats
 
-	projects, err = h.heartbeatService.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), pageParams, false)
+	projects, err = h.heartbeatService.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), pageParams, false, query)
 	if err != nil {
 		conf.Log().Request(r).Error("error while fetching project stats", "userID", user.ID, "error", err)
 		return &view.ProjectsViewModel{
@@ -81,6 +79,7 @@ func (h *ProjectsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 		},
 		Projects:   projects,
 		PageParams: pageParams,
+		Query:      query,
 	}
 	return routeutils.WithSessionMessages(vm, r, w)
 }

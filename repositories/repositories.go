@@ -50,7 +50,7 @@ type IHeartbeatRepository interface {
 	DeleteBefore(time.Time) error
 	DeleteByUser(*models.User) error
 	DeleteByUserBefore(*models.User, time.Time) error
-	GetUserProjectStats(*models.User, time.Time, time.Time, int, int) ([]*models.ProjectStats, error)
+	GetUserProjectStats(*models.User, time.Time, time.Time, int, int, string) ([]*models.ProjectStats, error)
 	GetUserAgentsByUser(user *models.User) ([]*models.UserAgent, error)
 }
 

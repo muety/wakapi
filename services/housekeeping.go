@@ -92,7 +92,7 @@ func (s *HousekeepingService) CleanInactiveUsers(before time.Time) error {
 
 func (s *HousekeepingService) WarmUserProjectStatsCache(user *models.User) error {
 	slog.Info("pre-warming project stats cache for user", "userID", user.ID)
-	if _, err := s.heartbeatSrvc.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), nil, true); err != nil {
+	if _, err := s.heartbeatSrvc.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), nil, true, ""); err != nil {
 		config.Log().Error("failed to pre-warm project stats cache", "userID", user.ID, "error", err)
 	}
 	return nil
