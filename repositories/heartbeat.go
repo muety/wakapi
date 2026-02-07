@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/duke-git/lancet/v2/condition"
@@ -280,59 +281,60 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 		}
 	}
 
-	querySqlite := "with project_stats as (" +
-		"select project, user_id," +
-		"concat(datetime(min(time_real)), '+00:00') as first," +
-		"concat(datetime(max(time_real)), '+00:00') as last," +
-		"count(*) as cnt " +
-		"from heartbeats " +
-		"where user_id = @userid" +
-		" and project != ''" +
-		" and time_real between julianday(@from) and julianday(@to)" +
-		" and language is not null and language != '' " +
-		searchClause +
-		" group by project, user_id" +
-		"), language_stats as (" +
-		"select project, language, count(*) as language_count," +
-		"row_number() over (partition by project order by count(*) desc) as rn " +
-		"from heartbeats " +
-		"where user_id = @userid" +
-		" and project != ''" +
-		" and time_real between julianday(@from) and julianday(@to)" +
-		" and language is not null and language != '' " +
-		searchClause +
-		" group by project, language" +
-		") select ps.project, ps.first, ps.last, ps.cnt as count, ls.language as top_language " +
-		"from project_stats ps" +
-		" left join language_stats ls on ps.project = ls.project and ls.rn = 1 " +
-		"order by ps.last desc "
+	// note: backticks cause issues with the glebarez/sqlite driver, so we use fmt.Sprintf with quoted strings
+	querySqlite := fmt.Sprintf(
+		"with project_stats as ("+
+			"select project, user_id,"+
+			"concat(datetime(min(time_real)), '+00:00') as first,"+
+			"concat(datetime(max(time_real)), '+00:00') as last,"+
+			"count(*) as cnt "+
+			"from heartbeats "+
+			"where user_id = @userid"+
+			" and project != ''"+
+			" and time_real between julianday(@from) and julianday(@to)"+
+			" and language is not null and language != '' %s"+
+			" group by project, user_id"+
+			"), language_stats as ("+
+			"select project, language, count(*) as language_count,"+
+			"row_number() over (partition by project order by count(*) desc) as rn "+
+			"from heartbeats "+
+			"where user_id = @userid"+
+			" and project != ''"+
+			" and time_real between julianday(@from) and julianday(@to)"+
+			" and language is not null and language != '' %s"+
+			" group by project, language"+
+			") select ps.project, ps.first, ps.last, ps.cnt as count, ls.language as top_language "+
+			"from project_stats ps"+
+			" left join language_stats ls on ps.project = ls.project and ls.rn = 1 "+
+			"order by ps.last desc ",
+		searchClause, searchClause)
 
-	queryDefault := "with project_stats as (" +
-		"select project, user_id," +
-		"min(time) as first," +
-		"max(time) as last," +
-		"count(*) as cnt " +
-		"from heartbeats " +
-		"where user_id = @userid" +
-		" and project != ''" +
-		" and time between @from and @to" +
-		" and language is not null and language != '' " +
-		searchClause +
-		" group by project, user_id" +
-		"), language_stats as (" +
-		"select project, language, count(*) as language_count," +
-		"row_number() over (partition by project order by count(*) desc) as rn " +
-		"from heartbeats " +
-		"where user_id = @userid" +
-		" and project != ''" +
-		" and time between @from and @to" +
-		" and language is not null and language != '' " +
-		searchClause +
-		" group by project, language" +
-		") select ps.project, ps.first, ps.last, ps.cnt as count, ls.language as top_language " +
-		"from project_stats ps" +
-		" left join language_stats ls on ps.project = ls.project and ls.rn = 1 " +
-		"order by ps.last desc "
+	queryDefault := fmt.Sprintf(
+		"with project_stats as ("+
+			"select project, user_id,"+
+			"min(time) as first,"+
+			"max(time) as last,"+
+			"count(*) as cnt "+
+			"from heartbeats "+
+			"where user_id = @userid"+
+			" and project != ''"+
+			" and time between @from and @to"+
+			" and language is not null and language != '' %s"+
+			" group by project, user_id"+
+			"), language_stats as ("+
+			"select project, language, count(*) as language_count,"+
+			"row_number() over (partition by project order by count(*) desc) as rn "+
+			"from heartbeats "+
+			"where user_id = @userid"+
+			" and project != ''"+
+			" and time between @from and @to"+
+			" and language is not null and language != '' %s"+
+			" group by project, language"+
+			") select ps.project, ps.first, ps.last, ps.cnt as count, ls.language as top_language "+
+			"from project_stats ps"+
+			" left join language_stats ls on ps.project = ls.project and ls.rn = 1 "+
+			"order by ps.last desc ",
+		searchClause, searchClause)
 	query := condition.Ternary(r.config.Db.IsSQLite(), querySqlite, queryDefault)
 	query += "limit @limit offset @offset"
 
