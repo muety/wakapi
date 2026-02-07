@@ -1,6 +1,7 @@
 package services
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"math"
 	"strings"
@@ -285,7 +286,12 @@ func (srv *HeartbeatService) GetUserProjectStats(user *models.User, from, to tim
 		offset = pageParams.Offset()
 	}
 
-	cacheKey := fmt.Sprintf("project_stats_%s_%d_%d_%d_%d_%s", user.ID, from.Unix(), to.Unix(), limit, offset, search)
+	searchHash := ""
+	if search != "" {
+		h := sha256.Sum256([]byte(strings.ToLower(strings.TrimSpace(search))))
+		searchHash = fmt.Sprintf("%x", h[:4])
+	}
+	cacheKey := fmt.Sprintf("project_stats_%s_%d_%d_%d_%d_%s", user.ID, from.Unix(), to.Unix(), limit, offset, searchHash)
 	if results, found := srv.cache.Get(cacheKey); found && !skipCache {
 		return results.([]*models.ProjectStats), nil
 	} else if search == "" {
