@@ -10,6 +10,7 @@ import (
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -56,7 +57,7 @@ func (h *ProjectsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 	}
 
 	pageParams := utils.ParsePageParamsWithDefault(r, 1, 24)
-	query := r.URL.Query().Get("q")
+	query := strings.TrimSpace(r.URL.Query().Get("q"))
 
 	var err error
 	var projects []*models.ProjectStats
