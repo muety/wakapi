@@ -56,8 +56,8 @@ type User struct {
 	ExcludeUnknownProjects bool        `json:"-"`
 	HeartbeatsTimeoutSec   int         `json:"-" gorm:"default:600"` // https://github.com/muety/wakapi/issues/156
 	ReadmeStatsBaseUrl     string      `json:"-" gorm:"default:''"`
-	AuthType               string      `json:"auth_type" gorm:"default:local; size:255"`
-	Sub                    string      `json:"sub" gorm:"size:255"` // openid connect subject
+	AuthType               string      `json:"auth_type" gorm:"default:local;index:idx_oidc,unique; size:255"`
+	Sub                    string      `json:"sub" gorm:"index:idx_oidc,unique; size:255"` // openid connect subject
 }
 
 type Login struct {
