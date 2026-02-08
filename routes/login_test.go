@@ -556,6 +556,30 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success_CreateUser_
 	assert.Contains(suite.T(), w.Header().Get("Set-Cookie"), "wakapi_auth=")
 }
 
+func (suite *LoginHandlerTestSuite) TestGetOidcLogin_CustomScopesRequested() {
+	customScopes := []string{"groups", "roles", "offline_access"}
+	config.WithOidcProviderAndScopes(suite.Cfg, "custom-scopes-provider", suite.OidcMock.ClientID, suite.OidcMock.ClientSecret, suite.OidcMock.Addr()+"/oidc", "", customScopes)
+
+	r := httptest.NewRequest(http.MethodGet, "/oidc/{provider}/login", nil)
+	r = WithUrlParam(r, "provider", "custom-scopes-provider")
+	w := httptest.NewRecorder()
+
+	suite.Sut.GetOidcLogin(w, r)
+
+	assert.Equal(suite.T(), http.StatusFound, w.Code)
+	location := w.Header().Get("Location")
+	assert.True(suite.T(), strings.HasPrefix(location, suite.OidcMock.AuthorizationEndpoint()))
+
+	// verify that custom (and default) scopes are included in the auth url
+	for _, scope := range customScopes {
+		assert.Contains(suite.T(), location, "scope=")
+		assert.Contains(suite.T(), location, scope)
+	}
+	assert.Contains(suite.T(), location, "openid")
+	assert.Contains(suite.T(), location, "profile")
+	assert.Contains(suite.T(), location, "email")
+}
+
 func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_SignupDisabled() {
 	suite.Cfg.Security.AllowSignup = true
 	suite.Cfg.Security.OidcAllowSignup = false
@@ -645,7 +669,7 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_NoMatchingProvider(
 
 // Private utility methods
 func (suite *LoginHandlerTestSuite) setupOidcProvider(name string) {
-	config.WithOidcProvider(suite.Cfg, name, suite.OidcMock.ClientID, suite.OidcMock.ClientSecret, suite.OidcMock.Addr()+"/oidc")
+	config.WithOidcProvider(suite.Cfg, name, suite.OidcMock.ClientID, suite.OidcMock.ClientSecret, suite.OidcMock.Addr()+"/oidc", "")
 }
 
 func (suite *LoginHandlerTestSuite) getSessionError(r *http.Request) string {
