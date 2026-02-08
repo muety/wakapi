@@ -86,5 +86,11 @@ func DecodeOidcIdToken(token string, provider *conf.OidcProvider, ctx context.Co
 	}
 	payload.ProviderName = provider.Name
 
+	var allClaims map[string]interface{}
+	if err := idToken.Claims(&allClaims); err == nil {
+		payload.AllClaims = allClaims
+	}
+
+	payload.UsernameClaim = provider.UsernameClaim
 	return &payload, nil
 }

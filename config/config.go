@@ -209,11 +209,13 @@ type SMTPMailConfig struct {
 
 type oidcProviderConfig struct {
 	// for environment variables format, see renameEnvVars() down below
-	Name         string `yaml:"name"`
-	DisplayName  string `yaml:"display_name"` // optional
-	ClientID     string `yaml:"client_id"`
-	ClientSecret string `yaml:"client_secret"`
-	Endpoint     string `yaml:"endpoint"` // base url from which auto-discovery (.well-known/openid-configuration) can be found
+	Name          string   `yaml:"name"`
+	DisplayName   string   `yaml:"display_name"` // optional
+	ClientID      string   `yaml:"client_id"`
+	ClientSecret  string   `yaml:"client_secret"`
+	Endpoint      string   `yaml:"endpoint"`       // base url from which auto-discovery (.well-known/openid-configuration) can be found
+	UsernameClaim string   `yaml:"username_claim"` // optional: claim to use as username (default: preferred_username -> nickname -> sub)
+	Scopes        []string `yaml:"scopes"`         // optional: additional scopes beyond openid, profile, email
 }
 
 type Config struct {

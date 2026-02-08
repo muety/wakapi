@@ -310,7 +310,7 @@ func TestAuthenticateMiddleware_tryHandleOidc_InvalidToken_ExistingUser(t *testi
 
 	cfg := config.Empty()
 	config.Set(cfg)
-	config.WithOidcProvider(cfg, testProvider, oidcMock.ClientID, oidcMock.ClientSecret, oidcMock.Addr()+"/oidc")
+	config.WithOidcProvider(cfg, testProvider, oidcMock.ClientID, oidcMock.ClientSecret, oidcMock.Addr()+"/oidc", "")
 
 	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
 	w := httptest.NewRecorder()
@@ -345,7 +345,7 @@ func TestAuthenticateMiddleware_tryHandleOidc_InvalidToken_NonExistingUser(t *te
 
 	cfg := config.Empty()
 	config.Set(cfg)
-	config.WithOidcProvider(cfg, testProvider, oidcMock.ClientID, oidcMock.ClientSecret, oidcMock.Addr()+"/oidc")
+	config.WithOidcProvider(cfg, testProvider, oidcMock.ClientID, oidcMock.ClientSecret, oidcMock.Addr()+"/oidc", "")
 
 	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
 	w := httptest.NewRecorder()
