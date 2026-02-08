@@ -92,6 +92,5 @@ func DecodeOidcIdToken(token string, provider *conf.OidcProvider, ctx context.Co
 	}
 
 	payload.UsernameClaim = provider.UsernameClaim
-
 	return &payload, nil
 }

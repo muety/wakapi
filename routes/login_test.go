@@ -456,7 +456,7 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLogin_NoMatchingProvider() {
 }
 
 func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success() {
-	url := suite.authorizeUser(suite.OidcUserExisting)
+	url := suite.authorizeUser(suite.OidcUserExisting, testProvider)
 	r := httptest.NewRequest(http.MethodGet, url, nil)
 	r = WithUrlParam(r, "provider", testProvider)
 	w := httptest.NewRecorder()
@@ -478,7 +478,7 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success_CreateUser(
 	suite.Cfg.Security.AllowSignup = false
 	suite.Cfg.Security.OidcAllowSignup = true
 
-	url := suite.authorizeUser(suite.OidcUserNew)
+	url := suite.authorizeUser(suite.OidcUserNew, testProvider)
 	r := httptest.NewRequest(http.MethodGet, url, nil)
 	r = WithUrlParam(r, "provider", testProvider)
 	w := httptest.NewRecorder()
@@ -507,11 +507,60 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success_CreateUser(
 	assert.Contains(suite.T(), w.Header().Get("Set-Cookie"), "wakapi_auth=")
 }
 
+func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success_CreateUser_CustomUsernameClaim() {
+	suite.Cfg.Security.AllowSignup = false
+	suite.Cfg.Security.OidcAllowSignup = true
+
+	const customClaimName = "custom_username"
+	const customUsername = "custom_user_from_claim"
+
+	config.WithOidcProvider(suite.Cfg, "custom-claim-provider", suite.OidcMock.ClientID, suite.OidcMock.ClientSecret, suite.OidcMock.Addr()+"/oidc", customClaimName)
+
+	customUser := &WakapiMockOIDCUser{
+		MockUser: mockoidc.MockUser{
+			Subject:           "custom-sub-123",
+			Email:             "custom@example.org",
+			PreferredUsername: "preferred_user",
+		},
+		CustomClaimName:  customClaimName,
+		CustomClaimValue: customUsername,
+	}
+
+	url := suite.authorizeUser(customUser, "custom-claim-provider")
+	r := httptest.NewRequest(http.MethodGet, url, nil)
+	r = WithUrlParam(r, "provider", "custom-claim-provider")
+	w := httptest.NewRecorder()
+
+	routeutils.SetOidcState(testOauthState, r, w)
+	suite.UserService.On("GetUserByOidc", "custom-claim-provider", customUser.Subject).Return(nil, errors.New(""))
+	suite.UserService.On("GetUserById", customUsername).Return(nil, errors.New(""))
+	suite.UserService.On("CreateOrGet", mock.Anything, mock.Anything).Return(suite.TestUser, true, nil)
+	suite.UserService.On("Update", mock.Anything).Return(suite.TestUser, nil)
+
+	suite.Sut.GetOidcCallback(w, r)
+
+	argSignup := suite.UserService.Calls[2].Arguments[0].(*models.Signup)
+	argIsAdmin := suite.UserService.Calls[2].Arguments[1].(bool)
+
+	suite.UserService.AssertExpectations(suite.T())
+	// verify that the username comes from the custom claim, not preferred_username
+	assert.Equal(suite.T(), customUsername, argSignup.Username)
+	assert.Equal(suite.T(), customUser.Email, argSignup.Email)
+	assert.Equal(suite.T(), customUser.Subject, argSignup.OidcSubject)
+	assert.Equal(suite.T(), "custom-claim-provider", argSignup.OidcProvider)
+	assert.NotEmpty(suite.T(), argSignup.Password)
+	assert.False(suite.T(), argIsAdmin)
+	assert.Equal(suite.T(), http.StatusFound, w.Code)
+	assert.Empty(suite.T(), suite.getSessionError(r))
+	assert.Equal(suite.T(), "/summary", w.Header().Get("Location"))
+	assert.Contains(suite.T(), w.Header().Get("Set-Cookie"), "wakapi_auth=")
+}
+
 func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_SignupDisabled() {
 	suite.Cfg.Security.AllowSignup = true
 	suite.Cfg.Security.OidcAllowSignup = false
 
-	url := suite.authorizeUser(suite.OidcUserNew)
+	url := suite.authorizeUser(suite.OidcUserNew, testProvider)
 	r := httptest.NewRequest(http.MethodGet, url, nil)
 	r = WithUrlParam(r, "provider", testProvider)
 	w := httptest.NewRecorder()
@@ -529,7 +578,7 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_SignupDisabled() {
 }
 
 func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_InvalidState() {
-	url := suite.authorizeUser(suite.OidcUserNew)
+	url := suite.authorizeUser(suite.OidcUserNew, testProvider)
 	r := httptest.NewRequest(http.MethodGet, url, nil)
 	r = WithUrlParam(r, "provider", testProvider)
 	w := httptest.NewRecorder()
@@ -545,7 +594,7 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_InvalidState() {
 }
 
 func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_AuthExchangeFailure() {
-	url := suite.authorizeUser(suite.OidcUserNew)
+	url := suite.authorizeUser(suite.OidcUserNew, testProvider)
 	r := httptest.NewRequest(http.MethodGet, url, nil)
 	r = WithUrlParam(r, "provider", testProvider)
 	w := httptest.NewRecorder()
@@ -565,7 +614,7 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_AuthExchangeFailure
 }
 
 func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_IdTokenExpired() {
-	url := suite.authorizeUser(suite.OidcUserNew)
+	url := suite.authorizeUser(suite.OidcUserNew, testProvider)
 	r := httptest.NewRequest(http.MethodGet, url, nil)
 	r = WithUrlParam(r, "provider", testProvider)
 	w := httptest.NewRecorder()
@@ -607,7 +656,7 @@ func (suite *LoginHandlerTestSuite) getSessionError(r *http.Request) string {
 	return ""
 }
 
-func (suite *LoginHandlerTestSuite) authorizeUser(user *mockoidc.MockUser) string { // returns the location header's redirect url
+func (suite *LoginHandlerTestSuite) authorizeUser(user mockoidc.User, provider string) string {
 	r := httptest.NewRequest(http.MethodGet, suite.OidcMock.AuthorizationEndpoint(), nil)
 	q := r.URL.Query()
 	q.Set("code", testOauthCode)
@@ -615,7 +664,7 @@ func (suite *LoginHandlerTestSuite) authorizeUser(user *mockoidc.MockUser) strin
 	q.Set("response_type", "code")
 	q.Set("scope", "openid profile email")
 	q.Set("state", testOauthState)
-	q.Set("redirect_uri", fmt.Sprintf("/oidc/%s/callback", testProvider))
+	q.Set("redirect_uri", fmt.Sprintf("/oidc/%s/callback", provider))
 	r.URL.RawQuery = q.Encode()
 	w := httptest.NewRecorder()
 
