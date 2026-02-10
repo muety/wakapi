@@ -577,6 +577,12 @@ func (h *LoginHandler) PostLoginWebAuthn(w http.ResponseWriter, r *http.Request)
 		conf.Log().Request(r).Warn("possible cloned authenticator detected during webauthn login", "userID", user.ID, "credentialID", credential.ID)
 	}
 
+	if user.AuthType != "local" {
+		w.WriteHeader(http.StatusUnauthorized)
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("non-local user cannot be authenticated with webauthn"))
+		return
+	}
+
 	err = h.webAuthnSrvc.UpdateCredential(credential)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

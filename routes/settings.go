@@ -18,7 +18,6 @@ import (
 	"github.com/gofrs/uuid/v5"
 	"github.com/gorilla/schema"
 
-	"github.com/muety/wakapi/config"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
@@ -126,9 +125,8 @@ func (h *SettingsHandler) PostIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseForm(); err != nil {
-		vm := h.buildViewModel(r, w, nil).WithError("missing form values")
 		w.WriteHeader(http.StatusBadRequest)
-		err = templates[conf.SettingsTemplate].Execute(w, vm)
+		err = templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w, nil).WithError("missing form values"))
 		if err != nil {
 			panic(err)
 		}
@@ -141,9 +139,8 @@ func (h *SettingsHandler) PostIndex(w http.ResponseWriter, r *http.Request) {
 	actionFunc := h.dispatchAction(action)
 	if actionFunc == nil {
 		slog.Warn("failed to dispatch action", "action", action)
-		vm := h.buildViewModel(r, w, nil).WithError("unknown action requests")
 		w.WriteHeader(http.StatusBadRequest)
-		templates[conf.SettingsTemplate].Execute(w, vm)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w, nil).WithError("unknown action requests"))
 		return
 	}
 
@@ -154,17 +151,17 @@ func (h *SettingsHandler) PostIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vm := h.buildViewModel(r, w, result.values)
 	if result.error != "" {
-		vm.WithError(result.error)
-	} else if result.success != "" {
-		vm.WithSuccess(result.success)
-	}
-
-	if result.code > 0 {
 		w.WriteHeader(result.code)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w, result.values).WithError(result.error))
+		return
 	}
-	templates[conf.SettingsTemplate].Execute(w, vm)
+	if result.success != "" {
+		w.WriteHeader(result.code)
+		templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w, result.values).WithSuccess(result.success))
+		return
+	}
+	templates[conf.SettingsTemplate].Execute(w, h.buildViewModel(r, w, result.values))
 }
 
 func (h *SettingsHandler) dispatchAction(action string) action {
@@ -228,6 +225,10 @@ func (h *SettingsHandler) GetWebAuthnOptions(w http.ResponseWriter, r *http.Requ
 		loadTemplates()
 	}
 	user := middlewares.GetPrincipal(r)
+	if user.AuthType != "local" {
+		routeutils.RespondJSONError(w, http.StatusBadRequest, "webauthn is only available for local users")
+		return
+	}
 
 	if err := h.WebAuthnSrvc.LoadCredentialIntoUser(user); err != nil {
 		conf.Log().Request(r).Error("error while loading webauthn credentials", "error", err)
@@ -235,7 +236,7 @@ func (h *SettingsHandler) GetWebAuthnOptions(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	webAuthnOptions, session, err := config.WebAuthn.BeginRegistration(user, webauthn.WithAuthenticatorSelection(protocol.AuthenticatorSelection{
+	webAuthnOptions, session, err := conf.WebAuthn.BeginRegistration(user, webauthn.WithAuthenticatorSelection(protocol.AuthenticatorSelection{
 		RequireResidentKey: protocol.ResidentKeyRequired(), // for usernameless login
 	}))
 	if err != nil {
@@ -999,6 +1000,10 @@ func (h *SettingsHandler) actionWebAuthnAdd(w http.ResponseWriter, r *http.Reque
 	}
 
 	user := middlewares.GetPrincipal(r)
+	if user.AuthType != "local" {
+		return actionResult{http.StatusBadRequest, "", "cannot add webauthn authenticator for non-local user", nil}
+	}
+
 	if err := h.WebAuthnSrvc.LoadCredentialIntoUser(user); err != nil {
 		conf.Log().Request(r).Error("could not load webauthn credentials for user", "error", err)
 		return actionResult{http.StatusInternalServerError, "", "could not load webauthn credentials for user", nil}
@@ -1023,12 +1028,12 @@ func (h *SettingsHandler) actionWebAuthnAdd(w http.ResponseWriter, r *http.Reque
 	// that's because the credentialJSON is not all the request data, but only part of it
 	pcc, err := protocol.ParseCredentialCreationResponseBytes([]byte(credentialJSON))
 	if err != nil {
-		config.Log().Request(r).Error("error while parsing webauthn register response", "error", err.Error())
+		conf.Log().Request(r).Error("error while parsing webauthn register response", "error", err.Error())
 		return actionResult{http.StatusBadRequest, "", "could not parse credential creation response", nil}
 	}
-	credential, err := config.WebAuthn.CreateCredential(user, *sessionData, pcc)
+	credential, err := conf.WebAuthn.CreateCredential(user, *sessionData, pcc)
 	if err != nil {
-		config.Log().Request(r).Error("error while processing webauthn register", "error", err.Error())
+		conf.Log().Request(r).Error("error while processing webauthn register", "error", err.Error())
 		return actionResult{http.StatusBadRequest, "", "could not create webauthn credential", nil}
 	}
 	_, err = h.WebAuthnSrvc.CreateCredential(credential, user, authenticatorName)
@@ -1048,6 +1053,10 @@ func (h *SettingsHandler) actionWebAuthnDelete(w http.ResponseWriter, r *http.Re
 	}
 
 	user := middlewares.GetPrincipal(r)
+	if user.AuthType != "local" {
+		return actionResult{http.StatusBadRequest, "", "cannot delete webauthn authenticator for non-local user", nil}
+	}
+
 	credentialName := r.PostFormValue("credential_name")
 	credential, err := h.WebAuthnSrvc.GetCredentialByUserAndName(user, credentialName)
 	if err != nil || credential == nil {
