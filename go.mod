@@ -10,6 +10,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/dchest/captcha v1.1.0
+	github.com/descope/virtualwebauthn v1.0.3
 	github.com/duke-git/lancet/v2 v2.3.8
 	github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6
 	github.com/emersion/go-smtp v0.24.0

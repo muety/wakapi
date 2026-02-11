@@ -14,7 +14,9 @@ import (
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/duke-git/lancet/v2/strutil"
 
+	"encoding/gob"
 	"log/slog"
+	"net/url"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/gorilla/securecookie"
@@ -22,6 +24,8 @@ import (
 	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/utils"
 	"github.com/robfig/cron/v3"
+
+	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 const (
@@ -74,6 +78,7 @@ const (
 var emailProviders = []string{
 	MailProviderSmtp,
 }
+var WebAuthn *webauthn.WebAuthn
 
 // first wakatime commit was on this day ;-) so no real heartbeats should exist before
 // https://github.com/wakatime/legacy-python-cli/commit/3da94756aa1903c1cca5035803e3f704e818c086
@@ -699,7 +704,7 @@ func Load(configFlag string, version string) *Config {
 
 	// post config-load tasks
 	initOpenIDConnect(config)
-	initWebAuthn(config)
+	InitWebAuthn(config)
 
 	return Get()
 }
@@ -726,6 +731,26 @@ func initOpenIDConnect(config *Config) {
 	for _, c := range config.Security.OidcProviders {
 		RegisterOidcProvider(&c)
 		slog.Info("registered openid connect provider", "provider", c.Name)
+	}
+}
+
+func InitWebAuthn(config *Config) {
+	gob.Register(&webauthn.SessionData{})
+
+	parsedURL, err := url.Parse(config.Server.PublicUrl)
+	if err != nil {
+		slog.Error("webauthn init error", "error", err)
+	}
+
+	webauthnConfig := &webauthn.Config{
+		RPDisplayName: "Wakapi",
+		RPID:          parsedURL.Hostname(),              // without "https://"
+		RPOrigins:     []string{config.Server.PublicUrl}, // with "https://"
+	}
+
+	WebAuthn, err = webauthn.New(webauthnConfig)
+	if err != nil {
+		Log().Fatal("webauthn init error", "error", err)
 	}
 }
 

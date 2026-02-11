@@ -52,6 +52,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dchest/captcha v1.1.0 h1:2kt47EoYUUkaISobUdTbqwx55xvKOJxyScVfw25xzhQ=
 github.com/dchest/captcha v1.1.0/go.mod h1:7zoElIawLp7GUMLcj54K9kbw+jEyvz2K0FDdRRYhvWo=
+github.com/descope/virtualwebauthn v1.0.3 h1:rXm60q6D/GHiNyPzVifV9XSRQ8UhIR3wkel6HMlNvXE=
+github.com/descope/virtualwebauthn v1.0.3/go.mod h1:xdLpAreAuRj5YEj/toVygZ2YX1S7d0l6AyKt3TJordg=
 github.com/dnaeon/go-vcr v1.1.0/go.mod h1:M7tiix8f0r6mKKJ3Yq/kqU1OYf3MnfmBWVbPx/yU9ko=
 github.com/dnaeon/go-vcr v1.2.0/go.mod h1:R4UdLID7HZT3taECzJs4YgbbH6PIGXB6W/sc5OLb6RQ=
 github.com/duke-git/lancet/v2 v2.3.8 h1:dlkqn6Nj2LRWFuObNxttkMHxrFeaV6T26JR8jbEVbPg=
