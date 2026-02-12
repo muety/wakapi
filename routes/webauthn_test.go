@@ -2,7 +2,6 @@ package routes
 
 import (
 	"context"
-	"html/template"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -244,8 +243,5 @@ func createAndLoadConfig() {
 	config.Set(cfg)
 	config.InitWebAuthn(cfg)
 	config.ResetSessionStore()
-
-	// Initialize templates to avoid panic during failed logins
-	templates = make(map[string]*template.Template)
-	templates[config.LoginTemplate] = template.Must(template.New("login").Parse("{{.}}"))
+	Init()
 }
