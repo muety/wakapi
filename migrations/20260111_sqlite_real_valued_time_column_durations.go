@@ -66,7 +66,7 @@ func init() {
 				}
 
 				createDdl = regexp.MustCompile(patternTblName).ReplaceAllString(createDdl, "create table ${1}durations_new${1}")
-				createDdl = regexp.MustCompile(patternLastCol).ReplaceAllString(createDdl, "${1}, ${2}time_real${2} real as (julianday(time)) stored"+condition.Ternary(lastColIsLastStmt, ")", ", "))
+				createDdl = regexp.MustCompile(patternLastCol).ReplaceAllString(createDdl, "${1}, ${2}time_real${2} real generated always as (julianday(time)) stored"+condition.Ternary(lastColIsLastStmt, ")", ", "))
 
 				if err := tx.Exec(createDdl).Error; err != nil {
 					return err

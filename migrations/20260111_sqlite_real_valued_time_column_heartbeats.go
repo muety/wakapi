@@ -78,7 +78,7 @@ func init() {
 				}
 
 				createDdl = regexp.MustCompile(patternTblName).ReplaceAllString(createDdl, "create table ${1}heartbeats_new${1}")
-				createDdl = regexp.MustCompile(patternLastCol).ReplaceAllString(createDdl, "${1}, ${2}time_real${2} real as (julianday(time)) stored"+condition.Ternary(lastColIsLastStmt, ")", ", "))
+				createDdl = regexp.MustCompile(patternLastCol).ReplaceAllString(createDdl, "${1}, ${2}time_real${2} real generated always as (julianday(time)) stored"+condition.Ternary(lastColIsLastStmt, ")", ", "))
 
 				if err := tx.Exec(createDdl).Error; err != nil {
 					return err
@@ -103,7 +103,7 @@ func init() {
 					"from users u left join heartbeats h on u.id = h.user_id " +
 					"group by u.id"
 				if err := tx.Migrator().CreateView("user_heartbeats_range", gorm.ViewOption{
-					Query:   db.Raw(viewDdl),
+					Query:   tx.Raw(viewDdl),
 					Replace: !cfg.Db.IsSQLite(),
 				}); err != nil {
 					return err
@@ -118,7 +118,7 @@ func init() {
 				}
 
 				// auto-migrate to recreate all other indexes and constraints
-				if err := tx.Migrator().AutoMigrate(&models.Heartbeat{}); err != nil {
+				if err := tx.Migrator().AutoMigrate(&models.Heartbeat{}); err != nil && !cfg.Db.AutoMigrateFailSilently {
 					return err
 				}
 
