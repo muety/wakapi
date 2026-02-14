@@ -28,7 +28,7 @@ func init() {
 type User struct {
 	ID                     string      `json:"id" gorm:"primary_key"`
 	ApiKey                 string      `json:"api_key" gorm:"unique; default:NULL"`
-	Email                  string      `json:"email" gorm:"index:idx_user_email; size:255"`
+	Email                  string      `json:"email" gorm:"uniqueIndex:idx_user_email;size:255;default:null"`
 	Location               string      `json:"location"`
 	StartOfWeek            int         `json:"start_of_week" gorm:"default:1"`
 	Password               string      `json:"-"`
@@ -294,11 +294,11 @@ func ValidateStartOfWeek(startOfWeek int) bool {
 }
 
 func (u *User) BeforeSave(tx *gorm.DB) error {
-	// ensure `sub` field is always null, not empty string, to make the unique index on (auth_type, sub) work
-	// alternatively, we could have used partial indexes (https://sqlite.org/partialindex.html, https://www.postgresql.org/docs/current/indexes-partial.html),
-	// but unfortunately, mysql doesn't support those
 	if u.Sub == "" {
 		tx.Statement.SetColumn("Sub", nil)
+	}
+	if u.Email == "" {
+		tx.Statement.SetColumn("Email", nil)
 	}
 	return nil
 }

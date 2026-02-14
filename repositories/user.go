@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/duke-git/lancet/v2/condition"
-	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
 	"gorm.io/gorm"
@@ -118,10 +117,6 @@ func (r *UserRepository) InsertOrGet(user *models.User) (*models.User, bool, err
 		return u, false, nil
 	}
 
-	if err := r.ensureUniqueEmail(user); err != nil {
-		return nil, false, err
-	}
-
 	result := r.db.Create(user)
 	if err := result.Error; err != nil {
 		return nil, false, err
@@ -131,10 +126,6 @@ func (r *UserRepository) InsertOrGet(user *models.User) (*models.User, bool, err
 }
 
 func (r *UserRepository) Update(user *models.User) (*models.User, error) {
-	if err := r.ensureUniqueEmail(user); err != nil {
-		return nil, err
-	}
-
 	updateMap := map[string]interface{}{
 		"api_key":                  user.ApiKey,
 		"password":                 user.Password,
@@ -175,10 +166,6 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 }
 
 func (r *UserRepository) UpdateField(user *models.User, key string, value interface{}) (*models.User, error) {
-	if err := r.ensureUniqueEmail(user); err != nil {
-		return nil, err
-	}
-
 	result := r.db.Model(user).Update(key, value)
 	if err := result.Error; err != nil {
 		return nil, err
@@ -208,28 +195,4 @@ func (r *UserRepository) getByLoggedIn(t time.Time, after bool) ([]*models.User,
 		return nil, err
 	}
 	return users, nil
-}
-
-func (r *UserRepository) ensureUniqueEmail(user *models.User) error {
-	// Dirty workaround: emails must be unique if set, but optional to be defined in the first place.
-	// Proper way to implement this is to simply make the idx_user_email index unique.
-	// However, given the current user schema, "email" is a string field, whose empty value is an empty string and while duplicate NULL values are allowed by a unique index, "" values aren't.
-	// As a workaround, we implement application-side checking of this constraint, which is not ideal.
-	// In the future, we might instead refactor the user model to use *string or sql.NullString as a type and then make the index unique.
-
-	var matches []*models.User
-	if user.Email == "" {
-		return nil
-	}
-	if err := r.db.Where(&models.User{Email: user.Email}).Find(&matches).Error; err != nil {
-		return err
-	}
-	if len(matches) > 1 {
-		conf.Log().Error("illegal state: more than 1 users exist with same email address", "email", user.Email)
-		return errors.New("email address already in use")
-	}
-	if len(matches) > 0 && matches[0].ID != user.ID {
-		return errors.New("email address already in use")
-	}
-	return nil
 }
