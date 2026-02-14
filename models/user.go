@@ -11,6 +11,7 @@ import (
 	"github.com/duke-git/lancet/v2/random"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
+	"gorm.io/gorm"
 )
 
 const (
@@ -56,8 +57,8 @@ type User struct {
 	ExcludeUnknownProjects bool        `json:"-"`
 	HeartbeatsTimeoutSec   int         `json:"-" gorm:"default:600"` // https://github.com/muety/wakapi/issues/156
 	ReadmeStatsBaseUrl     string      `json:"-" gorm:"default:''"`
-	AuthType               string      `json:"auth_type" gorm:"default:local;index:idx_oidc,unique; size:255"`
-	Sub                    string      `json:"sub" gorm:"index:idx_oidc,unique; size:255"` // openid connect subject
+	AuthType               string      `json:"auth_type" gorm:"default:local;uniqueIndex:idx_oidc;size:255"`
+	Sub                    string      `json:"sub" gorm:"uniqueIndex:idx_oidc;size:255;default:null"` // openid connect subject
 }
 
 type Login struct {
@@ -290,4 +291,14 @@ func ValidateTimezone(tz string) bool {
 
 func ValidateStartOfWeek(startOfWeek int) bool {
 	return startOfWeek >= 0 && startOfWeek <= 6
+}
+
+func (u *User) BeforeSave(tx *gorm.DB) error {
+	// ensure `sub` field is always null, not empty string, to make the unique index on (auth_type, sub) work
+	// alternatively, we could have used partial indexes (https://sqlite.org/partialindex.html, https://www.postgresql.org/docs/current/indexes-partial.html),
+	// but unfortunately, mysql doesn't support those
+	if u.Sub == "" {
+		tx.Statement.SetColumn("Sub", nil)
+	}
+	return nil
 }
