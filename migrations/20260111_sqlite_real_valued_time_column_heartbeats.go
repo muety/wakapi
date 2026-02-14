@@ -117,11 +117,6 @@ func init() {
 					return err
 				}
 
-				// auto-migrate to recreate all other indexes and constraints
-				if err := tx.Migrator().AutoMigrate(&models.Heartbeat{}); err != nil {
-					return err
-				}
-
 				return nil
 			}); err != nil {
 				return err
