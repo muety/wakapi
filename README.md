@@ -147,6 +147,8 @@ This can be configured either on the **client-side (preferred)** on a system-wid
 
 **Example:**
 ```ini
+[settings]
+api_key = defaults-to-this-api-key-when-not-defined-below
 [api_urls]
 .* = https://wakapi.dev/api|wakapi-api-key
 .* = https://api.wakatime.com/api/v1|waka-api-key
