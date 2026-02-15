@@ -294,10 +294,10 @@ func ValidateStartOfWeek(startOfWeek int) bool {
 }
 
 func (u *User) BeforeSave(tx *gorm.DB) error {
-	if u.Sub == "" {
+	if _, ok := tx.Statement.Schema.FieldsByName["Sub"]; u.Sub == "" && !tx.Statement.Changed("Sub") && ok {
 		tx.Statement.SetColumn("Sub", nil)
 	}
-	if u.Email == "" {
+	if _, ok := tx.Statement.Schema.FieldsByName["Email"]; u.Email == "" && !tx.Statement.Changed("Email") && ok {
 		tx.Statement.SetColumn("Email", nil)
 	}
 	return nil
