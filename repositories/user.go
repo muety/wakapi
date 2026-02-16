@@ -113,6 +113,9 @@ func (r *UserRepository) Count() (int64, error) {
 }
 
 func (r *UserRepository) InsertOrGet(user *models.User) (*models.User, bool, error) {
+	// no need to replace "" with nil for nullable string columns, because they'll have "default:null" set
+	// this hacky replacement is only needed for updates
+
 	if u, err := r.FindOne(models.User{ID: user.ID}); err == nil && u != nil && u.ID != "" {
 		return u, false, nil
 	}
@@ -126,10 +129,14 @@ func (r *UserRepository) InsertOrGet(user *models.User) (*models.User, bool, err
 }
 
 func (r *UserRepository) Update(user *models.User) (*models.User, error) {
+	// for string columns with a unique index we must ensure null is used instead of empty string
+	// proper way would be to use *string or sql.NullString member type, we're doing it the hacky way though
+	// see https://stackoverflow.com/a/54699204/3112139
+
 	updateMap := map[string]interface{}{
 		"api_key":                  user.ApiKey,
 		"password":                 user.Password,
-		"email":                    user.Email,
+		"email":                    condition.Ternary[bool, interface{}](user.Email == "", nil, user.Email),
 		"last_logged_in_at":        user.LastLoggedInAt,
 		"share_data_max_days":      user.ShareDataMaxDays,
 		"share_editors":            user.ShareEditors,
@@ -155,6 +162,8 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"exclude_unknown_projects": user.ExcludeUnknownProjects,
 		"heartbeats_timeout_sec":   user.HeartbeatsTimeoutSec,
 		"readme_stats_base_url":    user.ReadmeStatsBaseUrl,
+		"auth_type":                user.AuthType,
+		"sub":                      condition.Ternary[bool, interface{}](user.Sub == "", nil, user.Sub),
 	}
 
 	result := r.db.Model(user).Updates(updateMap)
@@ -166,6 +175,17 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 }
 
 func (r *UserRepository) UpdateField(user *models.User, key string, value interface{}) (*models.User, error) {
+	// for string columns with a unique index we must ensure null is used instead of empty string
+	// proper way would be to use *string or sql.NullString member type, we're doing it the hacky way though
+	// see https://stackoverflow.com/a/54699204/3112139
+
+	if strVal, ok := value.(string); ok && key == "email" && strVal == "" {
+		value = nil
+	}
+	if strVal, ok := value.(string); ok && key == "sub" && strVal == "" {
+		value = nil
+	}
+
 	result := r.db.Model(user).Update(key, value)
 	if err := result.Error; err != nil {
 		return nil, err
@@ -188,7 +208,7 @@ func (r *UserRepository) DeleteTx(user *models.User, tx *gorm.DB) error {
 
 func (r *UserRepository) getByLoggedIn(t time.Time, after bool) ([]*models.User, error) {
 	var users []*models.User
-	comparator := condition.TernaryOperator[bool, string](after, ">=", "<=")
+	comparator := condition.Ternary[bool, string](after, ">=", "<=")
 	if err := r.db.
 		Where(fmt.Sprintf("last_logged_in_at %s ?", comparator), t.Local()).
 		Find(&users).Error; err != nil {

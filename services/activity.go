@@ -108,9 +108,9 @@ func (s *ActivityService) getChartPastYear(user *models.User, darkTheme, hideAtt
 	maxTotal := models.Summaries(summaries).MaxTotalTime()
 
 	var (
-		colorRGBAMin         = utils.HexToRGBA(condition.TernaryOperator[bool, string](darkTheme, colorMinDark, colorMinLight))
-		colorRGBAMax         = utils.HexToRGBA(condition.TernaryOperator[bool, string](darkTheme, colorMaxDark, colorMaxLight))
-		colorText            = condition.TernaryOperator[bool, string](darkTheme, textDark, textLight)
+		colorRGBAMin         = utils.HexToRGBA(condition.Ternary[bool, string](darkTheme, colorMinDark, colorMinLight))
+		colorRGBAMax         = utils.HexToRGBA(condition.Ternary[bool, string](darkTheme, colorMaxDark, colorMaxLight))
+		colorText            = condition.Ternary[bool, string](darkTheme, textDark, textLight)
 		gridCols             = math.Ceil(float64(len(summaries)) / float64(gridRows))
 		w            float64 = gridCols*cellWidth + gridCols*cellSpacing
 		h            float64 = gridRows*cellHeight + 25 + 24 + 5 + 5 + gridRows*cellSpacing

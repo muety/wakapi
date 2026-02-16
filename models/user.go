@@ -11,7 +11,6 @@ import (
 	"github.com/duke-git/lancet/v2/random"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
-	"gorm.io/gorm"
 )
 
 const (
@@ -291,14 +290,4 @@ func ValidateTimezone(tz string) bool {
 
 func ValidateStartOfWeek(startOfWeek int) bool {
 	return startOfWeek >= 0 && startOfWeek <= 6
-}
-
-func (u *User) BeforeSave(tx *gorm.DB) error {
-	if _, ok := tx.Statement.Schema.FieldsByName["Sub"]; u.Sub == "" && !tx.Statement.Changed("Sub") && ok {
-		tx.Statement.SetColumn("Sub", nil)
-	}
-	if _, ok := tx.Statement.Schema.FieldsByName["Email"]; u.Email == "" && !tx.Statement.Changed("Email") && ok {
-		tx.Statement.SetColumn("Email", nil)
-	}
-	return nil
 }
