@@ -20,9 +20,9 @@
         <form method="GET" action="projects" class="mb-4">
             <div class="flex items-center space-x-2">
                 <input type="text" name="q" value="{{ .Query }}" placeholder="Search projects..." aria-label="Search projects" class="input-default text-sm max-w-sm">
-                <button type="submit" class="btn-primary btn-small">Search</button>
+                <button type="submit" class="btn-primary">Search</button>
                 {{ if .Query }}
-                <a href="projects" class="btn-default btn-small">Clear</a>
+                <a href="projects" class="btn-default">Clear</a>
                 {{ end }}
             </div>
         </form>
