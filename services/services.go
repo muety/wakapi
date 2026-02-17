@@ -56,7 +56,7 @@ type IHeartbeatService interface {
 	DeleteBefore(time.Time) error
 	DeleteByUser(*models.User) error
 	DeleteByUserBefore(*models.User, time.Time) error
-	GetUserProjectStats(*models.User, time.Time, time.Time, *utils.PageParams, bool, string) ([]*models.ProjectStats, error)
+	GetUserProjectStats(*models.User, time.Time, time.Time, string, *utils.PageParams, bool) ([]*models.ProjectStats, error)
 	GetUserAgentsByUser(*models.User) ([]*models.UserAgent, error)
 }
 

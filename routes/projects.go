@@ -62,7 +62,7 @@ func (h *ProjectsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 	var err error
 	var projects []*models.ProjectStats
 
-	projects, err = h.heartbeatService.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), pageParams, false, query)
+	projects, err = h.heartbeatService.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), query, pageParams, false)
 	if err != nil {
 		conf.Log().Request(r).Error("error while fetching project stats", "userID", user.ID, "error", err)
 		return &view.ProjectsViewModel{
