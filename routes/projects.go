@@ -57,6 +57,9 @@ func (h *ProjectsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 	}
 
 	pageParams := utils.ParsePageParamsWithDefault(r, 1, 24)
+	// note: pagination is not fully implemented, yet
+	// count function to get total item / total pages is missing
+	// and according ui (+ optionally search bar) is missing, too
 	query := strings.TrimSpace(r.URL.Query().Get("q"))
 
 	var err error
