@@ -273,11 +273,7 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 	searchClause := ""
 	if search != "" {
 		args = append(args, sql.Named("search", "%"+search+"%"))
-		if r.config.Db.IsPostgres() {
-			searchClause = "and project ILIKE @search"
-		} else {
-			searchClause = "and LOWER(project) LIKE LOWER(@search)"
-		}
+		searchClause = condition.Ternary(r.config.Db.IsPostgres(), "and project ILIKE @search", "and LOWER(project) LIKE LOWER(@search)")
 	}
 
 	querySqlite := "with project_stats as (" +
