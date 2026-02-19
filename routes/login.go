@@ -596,11 +596,9 @@ func (h *LoginHandler) PostLoginWebAuthn(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *LoginHandler) buildViewModel(r *http.Request, w http.ResponseWriter, withCaptcha bool) *view.LoginViewModel {
-	numUsers, _ := h.userSrvc.Count()
 
 	vm := &view.LoginViewModel{
 		SharedViewModel:  view.NewSharedViewModel(h.config, nil),
-		TotalUsers:       int(numUsers),
 		AllowSignup:      h.config.IsDev() || h.config.Security.AllowSignup,
 		InviteCode:       r.URL.Query().Get("invite"),
 		DisableLocalAuth: h.config.Security.DisableLocalAuth,

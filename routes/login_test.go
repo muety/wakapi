@@ -120,8 +120,6 @@ func (suite *LoginHandlerTestSuite) TestGetLogin_OnlyLocalAuth() {
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
 	w := httptest.NewRecorder()
 
-	suite.UserService.On("Count").Return(1, nil)
-
 	suite.Sut.GetIndex(w, r)
 	body, _ := io.ReadAll(w.Body)
 
@@ -138,8 +136,6 @@ func (suite *LoginHandlerTestSuite) TestGetLogin_LocalAuthAndOIDC() {
 
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
 	w := httptest.NewRecorder()
-
-	suite.UserService.On("Count").Return(1, nil)
 
 	suite.Sut.GetIndex(w, r)
 	body, _ := io.ReadAll(w.Body)
@@ -174,8 +170,6 @@ func (suite *LoginHandlerTestSuite) TestGetLogin_TwoOidc() {
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
 	w := httptest.NewRecorder()
 
-	suite.UserService.On("Count").Return(1, nil)
-
 	suite.Sut.GetIndex(w, r)
 	body, _ := io.ReadAll(w.Body)
 
@@ -194,8 +188,6 @@ func (suite *LoginHandlerTestSuite) TestGetLogin_NoAuthenticationMethod() {
 
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
 	w := httptest.NewRecorder()
-
-	suite.UserService.On("Count").Return(1, nil)
 
 	suite.Sut.GetIndex(w, r)
 	body, _ := io.ReadAll(w.Body)
@@ -236,8 +228,6 @@ func (suite *LoginHandlerTestSuite) TestPostLogin_EmptyLoginForm() {
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	w := httptest.NewRecorder()
 
-	suite.UserService.On("Count").Return(1, nil)
-
 	suite.Sut.PostLogin(w, r)
 	body, _ := io.ReadAll(w.Body)
 
@@ -258,7 +248,6 @@ func (suite *LoginHandlerTestSuite) TestPostLogin_NonExistingUser() {
 
 	suite.UserService.On("GetUserById", "nonexisting").Return(nil, errors.New(""))
 	suite.UserService.On("GetUserByEmail", "nonexisting").Return(nil, errors.New(""))
-	suite.UserService.On("Count").Return(1, nil)
 
 	suite.Sut.PostLogin(w, r)
 	body, _ := io.ReadAll(w.Body)
@@ -279,7 +268,6 @@ func (suite *LoginHandlerTestSuite) TestPostLogin_WrongPassword() {
 	w := httptest.NewRecorder()
 
 	suite.UserService.On("GetUserById", testUserExistingId).Return(suite.TestUser, nil)
-	suite.UserService.On("Count").Return(1, nil)
 
 	suite.Sut.PostLogin(w, r)
 	body, _ := io.ReadAll(w.Body)
@@ -300,8 +288,6 @@ func (suite *LoginHandlerTestSuite) TestPostLogin_LocalAuthenticationDisabled_No
 	r := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(form.Encode()))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	w := httptest.NewRecorder()
-
-	suite.UserService.On("Count").Return(1, nil)
 
 	suite.Sut.PostLogin(w, r)
 	body, _ := io.ReadAll(w.Body)
@@ -352,14 +338,12 @@ func (suite *LoginHandlerTestSuite) TestPostSignup_InvalidForm() {
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	w := httptest.NewRecorder()
 
-	suite.UserService.On("Count", mock.Anything).Return(1, nil)
 	suite.Cfg.Security.AllowSignup = true
 	suite.Cfg.Security.OidcAllowSignup = false
 
 	suite.Sut.PostSignup(w, r)
 	body, _ := io.ReadAll(w.Body)
 
-	suite.UserService.AssertExpectations(suite.T())
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
 	assert.Contains(suite.T(), string(body), "User name is invalid")
 }
@@ -400,12 +384,9 @@ func (suite *LoginHandlerTestSuite) TestPostSignup_SignupDisabled() {
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	w := httptest.NewRecorder()
 
-	suite.UserService.On("Count", mock.Anything).Return(1, nil)
-
 	suite.Sut.PostSignup(w, r)
 	body, _ := io.ReadAll(w.Body)
 
-	suite.UserService.AssertExpectations(suite.T())
 	assert.Equal(suite.T(), http.StatusForbidden, w.Code)
 	assert.Contains(suite.T(), string(body), "Registration is disabled on this server")
 }
@@ -423,12 +404,9 @@ func (suite *LoginHandlerTestSuite) TestPostSignup_LocalAuthenticationDisabled()
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	w := httptest.NewRecorder()
 
-	suite.UserService.On("Count", mock.Anything).Return(1, nil)
-
 	suite.Sut.PostSignup(w, r)
 	body, _ := io.ReadAll(w.Body)
 
-	suite.UserService.AssertExpectations(suite.T())
 	assert.Equal(suite.T(), http.StatusForbidden, w.Code)
 	assert.Contains(suite.T(), string(body), "Local authentication is disabled on this server.")
 }

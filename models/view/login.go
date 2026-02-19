@@ -2,7 +2,6 @@ package view
 
 type LoginViewModel struct {
 	SharedViewModel
-	TotalUsers       int
 	AllowSignup      bool
 	DisableLocalAuth bool
 	DisableWebAuthn  bool

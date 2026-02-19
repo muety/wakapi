@@ -50,6 +50,7 @@ const (
 	SessionValueOidcState          = "oidc_state"
 	SessionValueOidcIdTokenPayload = "oidc_id_token"
 	SessionValueWebAuthn           = "webauthn_session"
+	SessionValueWebAuthnExpiresAt  = "webauthn_session_expires_at"
 
 	SimpleDateFormat     = "2006-01-02"
 	SimpleDateTimeFormat = "2006-01-02 15:04:05"
