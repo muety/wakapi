@@ -8,7 +8,7 @@ import (
 // https://shields.io/endpoint
 
 const (
-	defaultLabel = "wakapi.dev"
+	defaultLabel = "wakapi.arorms.cn"
 	defaultColor = "2F855A"
 )
 
