@@ -117,8 +117,8 @@ func (m *HeartbeatServiceMock) DeleteByUserBefore(u *models.User, t time.Time) e
 	return args.Error(0)
 }
 
-func (m *HeartbeatServiceMock) GetUserProjectStats(u *models.User, t, t2 time.Time, p *utils.PageParams, b bool) ([]*models.ProjectStats, error) {
-	args := m.Called(u, t, t2, p, b)
+func (m *HeartbeatServiceMock) GetUserProjectStats(u *models.User, t, t2 time.Time, s string, p *utils.PageParams, b bool) ([]*models.ProjectStats, error) {
+	args := m.Called(u, t, t2, s, p, b)
 	return args.Get(0).([]*models.ProjectStats), args.Error(1)
 }
 
