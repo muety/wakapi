@@ -88,6 +88,7 @@ security:
   allow_signup: true                    # whether to allow new user creation at all
   oidc_allow_signup: true               # allow registration of new users from oidc
   disable_local_auth: false             # disable login via local credentials (username and password) to enforce OIDC provider login
+  disable_webauthn: false                # disable login via webauthn (security keys, biometrics, etc.)
   signup_captcha: false
   invite_codes: true                    # whether to enable invite codes for overriding disabled signups
   disable_frontpage: false

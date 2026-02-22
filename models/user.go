@@ -9,6 +9,8 @@ import (
 
 	"github.com/dchest/captcha"
 	"github.com/duke-git/lancet/v2/random"
+	"github.com/duke-git/lancet/v2/slice"
+	"github.com/go-webauthn/webauthn/webauthn"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
 )
@@ -25,39 +27,41 @@ func init() {
 }
 
 type User struct {
-	ID                     string      `json:"id" gorm:"primary_key"`
-	ApiKey                 string      `json:"api_key" gorm:"unique; default:NULL"`
-	Email                  string      `json:"email" gorm:"uniqueIndex:idx_user_email;size:255;default:null"`
-	Location               string      `json:"location"`
-	StartOfWeek            int         `json:"start_of_week" gorm:"default:1"`
-	Password               string      `json:"-"`
-	CreatedAt              CustomTime  `swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"` // filled by gorm, see https://gorm.io/docs/conventions.html#CreatedAt
-	LastLoggedInAt         CustomTime  `swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"` // filled by gorm, see https://gorm.io/docs/conventions.html#CreatedAt
-	ShareDataMaxDays       int         `json:"-"`
-	ShareEditors           bool        `json:"-" gorm:"default:false; type:bool"`
-	ShareLanguages         bool        `json:"-" gorm:"default:false; type:bool"`
-	ShareProjects          bool        `json:"-" gorm:"default:false; type:bool"`
-	ShareOSs               bool        `json:"-" gorm:"default:false; type:bool; column:share_oss"`
-	ShareMachines          bool        `json:"-" gorm:"default:false; type:bool"`
-	ShareLabels            bool        `json:"-" gorm:"default:false; type:bool"`
-	ShareActivityChart     bool        `json:"-" gorm:"default:false; type:bool"`
-	IsAdmin                bool        `json:"-" gorm:"default:false; type:bool"`
-	HasData                bool        `json:"-" gorm:"default:false; type:bool"`
-	WakatimeApiKey         string      `json:"-"` // for relay middleware and imports
-	WakatimeApiUrl         string      `json:"-"` // for relay middleware and imports
-	ResetToken             string      `json:"-"`
-	UnsubscribeToken       string      `json:"-"`
-	ReportsWeekly          bool        `json:"-" gorm:"default:false; type:bool"`
-	PublicLeaderboard      bool        `json:"-" gorm:"default:false; type:bool"`
-	SubscribedUntil        *CustomTime `json:"-" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
-	SubscriptionRenewal    *CustomTime `json:"-" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
-	StripeCustomerId       string      `json:"-"`
-	InvitedBy              string      `json:"-"`
-	ExcludeUnknownProjects bool        `json:"-"`
-	HeartbeatsTimeoutSec   int         `json:"-" gorm:"default:600"` // https://github.com/muety/wakapi/issues/156
-	ReadmeStatsBaseUrl     string      `json:"-" gorm:"default:''"`
-	AuthType               string      `json:"auth_type" gorm:"default:local;uniqueIndex:idx_oidc;size:255"`
-	Sub                    string      `json:"sub" gorm:"uniqueIndex:idx_oidc;size:255;default:null"` // openid connect subject
+	ID                     string                `json:"id" gorm:"primary_key"`
+	ApiKey                 string                `json:"api_key" gorm:"unique; default:NULL"`
+	Email                  string                `json:"email" gorm:"uniqueIndex:idx_user_email;size:255;default:null"`
+	Location               string                `json:"location"`
+	StartOfWeek            int                   `json:"start_of_week" gorm:"default:1"`
+	Password               string                `json:"-"`
+	CreatedAt              CustomTime            `swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"` // filled by gorm, see https://gorm.io/docs/conventions.html#CreatedAt
+	LastLoggedInAt         CustomTime            `swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"` // not filled by gorm
+	ShareDataMaxDays       int                   `json:"-"`
+	ShareEditors           bool                  `json:"-" gorm:"default:false; type:bool"`
+	ShareLanguages         bool                  `json:"-" gorm:"default:false; type:bool"`
+	ShareProjects          bool                  `json:"-" gorm:"default:false; type:bool"`
+	ShareOSs               bool                  `json:"-" gorm:"default:false; type:bool; column:share_oss"`
+	ShareMachines          bool                  `json:"-" gorm:"default:false; type:bool"`
+	ShareLabels            bool                  `json:"-" gorm:"default:false; type:bool"`
+	ShareActivityChart     bool                  `json:"-" gorm:"default:false; type:bool"`
+	IsAdmin                bool                  `json:"-" gorm:"default:false; type:bool"`
+	HasData                bool                  `json:"-" gorm:"default:false; type:bool"`
+	WakatimeApiKey         string                `json:"-"` // for relay middleware and imports
+	WakatimeApiUrl         string                `json:"-"` // for relay middleware and imports
+	ResetToken             string                `json:"-"`
+	UnsubscribeToken       string                `json:"-"`
+	ReportsWeekly          bool                  `json:"-" gorm:"default:false; type:bool"`
+	PublicLeaderboard      bool                  `json:"-" gorm:"default:false; type:bool"`
+	SubscribedUntil        *CustomTime           `json:"-" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	SubscriptionRenewal    *CustomTime           `json:"-" swaggertype:"string" format:"date" example:"2006-01-02 15:04:05.000"`
+	StripeCustomerId       string                `json:"-"`
+	InvitedBy              string                `json:"-"`
+	ExcludeUnknownProjects bool                  `json:"-"`
+	HeartbeatsTimeoutSec   int                   `json:"-" gorm:"default:600"` // https://github.com/muety/wakapi/issues/156
+	ReadmeStatsBaseUrl     string                `json:"-" gorm:"default:''"`
+	AuthType               string                `json:"auth_type" gorm:"default:local;uniqueIndex:idx_oidc;size:255"`
+	Sub                    string                `json:"sub" gorm:"uniqueIndex:idx_oidc;size:255;default:null"` // openid connect subject
+	WebauthnID             string                `json:"webauthn_id" gorm:"column:webauthn_id;size:255"`
+	Credentials            []*WebAuthnCredential `json:"-"`
 }
 
 type Login struct {
@@ -290,4 +294,26 @@ func ValidateTimezone(tz string) bool {
 
 func ValidateStartOfWeek(startOfWeek int) bool {
 	return startOfWeek >= 0 && startOfWeek <= 6
+}
+
+// WebAuthnID provides the user handle of the user account.
+func (u *User) WebAuthnID() []byte {
+	return []byte(u.WebauthnID)
+}
+
+// WebAuthnName provides the name attribute of the user account during registration.
+func (u *User) WebAuthnName() string {
+	return u.ID
+}
+
+// WebAuthnDisplayName provides the display name attribute of the user account during registration.
+func (u *User) WebAuthnDisplayName() string {
+	return u.ID
+}
+
+// WebAuthnCredentials provides the list of Credential objects owned by the user.
+func (u *User) WebAuthnCredentials() []webauthn.Credential {
+	return slice.Map(u.Credentials, func(_ int, c *WebAuthnCredential) webauthn.Credential {
+		return *c.toLib()
+	})
 }

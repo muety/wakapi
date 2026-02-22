@@ -9,7 +9,7 @@ PetiteVue.createApp({
     get tzOptions() {
         return [
             defaultTzOption,
-            ...tzs.sort().map((tz) => ({value: tz, text: tz})),
+            ...tzs.sort().map((tz) => ({ value: tz, text: tz })),
         ];
     },
     updateTab() {
@@ -50,6 +50,22 @@ PetiteVue.createApp({
     },
     showProjectAddButton(index) {
         this.labels[index] = true;
+    },
+    async webAuthnAdd() {
+        const options = await fetch("settings/webauthn/options/").then(res => res.json());
+        console.log("Starting WebAuthn registration with options:", options);
+        SimpleWebAuthnBrowser.startRegistration({ optionsJSON: options.publicKey })
+            .then((credential) => {
+                console.log("WebAuthn registration successful:", credential);
+                document.getElementById(
+                    "credential_json",
+                ).value = JSON.stringify(credential);
+                document.getElementById("form-webauthn-add").submit();
+            })
+            .catch((error) => {
+                console.error(error);
+                alert(`Error: ${error.message}`);
+            });
     },
     mounted() {
         this.updateTab();

@@ -30,3 +30,7 @@ func GetSessionStore() *sessions.CookieStore {
 	}
 	return sessionStore
 }
+
+func ResetSessionStore() {
+	sessionStore = nil
+}

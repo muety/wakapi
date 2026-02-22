@@ -401,6 +401,9 @@ func createSchema() error {
 	if err := dbTarget.AutoMigrate(&models.User{}); err != nil {
 		return err
 	}
+	if err := dbTarget.AutoMigrate(&models.Credential{}); err != nil {
+		return err
+	}
 	if err := dbTarget.AutoMigrate(&models.KeyStringValue{}); err != nil {
 		return err
 	}

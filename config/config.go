@@ -14,7 +14,9 @@ import (
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/duke-git/lancet/v2/strutil"
 
+	"encoding/gob"
 	"log/slog"
+	"net/url"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/gorilla/securecookie"
@@ -22,6 +24,8 @@ import (
 	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/utils"
 	"github.com/robfig/cron/v3"
+
+	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 const (
@@ -45,6 +49,8 @@ const (
 	CookieKeyAuth                  = "wakapi_auth"
 	SessionValueOidcState          = "oidc_state"
 	SessionValueOidcIdTokenPayload = "oidc_id_token"
+	SessionValueWebAuthn           = "webauthn_session"
+	SessionValueWebAuthnExpiresAt  = "webauthn_session_expires_at"
 
 	SimpleDateFormat     = "2006-01-02"
 	SimpleDateTimeFormat = "2006-01-02 15:04:05"
@@ -73,6 +79,7 @@ const (
 var emailProviders = []string{
 	MailProviderSmtp,
 }
+var WebAuthn *webauthn.WebAuthn
 
 // first wakatime commit was on this day ;-) so no real heartbeats should exist before
 // https://github.com/wakatime/legacy-python-cli/commit/3da94756aa1903c1cca5035803e3f704e818c086
@@ -119,6 +126,7 @@ type securityConfig struct {
 	AllowSignup      bool `yaml:"allow_signup" default:"true" env:"WAKAPI_ALLOW_SIGNUP"`
 	OidcAllowSignup  bool `yaml:"oidc_allow_signup" default:"true" env:"WAKAPI_OIDC_ALLOW_SIGNUP"`
 	DisableLocalAuth bool `yaml:"disable_local_auth" default:"false" env:"WAKAPI_DISABLE_LOCAL_AUTH"`
+	DisableWebAuthn  bool `yaml:"disable_webauthn" default:"false" env:"WAKAPI_DISABLE_WEBAUTHN"`
 	SignupCaptcha    bool `yaml:"signup_captcha" default:"false" env:"WAKAPI_SIGNUP_CAPTCHA"`
 	InviteCodes      bool `yaml:"invite_codes" default:"true" env:"WAKAPI_INVITE_CODES"`
 	ExposeMetrics    bool `yaml:"expose_metrics" default:"false" env:"WAKAPI_EXPOSE_METRICS"`
@@ -700,6 +708,7 @@ func Load(configFlag string, version string) *Config {
 
 	// post config-load tasks
 	initOpenIDConnect(config)
+	InitWebAuthn(config)
 
 	return Get()
 }
@@ -726,6 +735,26 @@ func initOpenIDConnect(config *Config) {
 	for _, c := range config.Security.OidcProviders {
 		RegisterOidcProvider(&c)
 		slog.Info("registered openid connect provider", "provider", c.Name)
+	}
+}
+
+func InitWebAuthn(config *Config) {
+	gob.Register(&webauthn.SessionData{})
+
+	parsedURL, err := url.Parse(config.Server.PublicUrl)
+	if err != nil {
+		slog.Error("webauthn init error", "error", err)
+	}
+
+	webauthnConfig := &webauthn.Config{
+		RPDisplayName: "Wakapi",
+		RPID:          parsedURL.Hostname(),              // without "https://"
+		RPOrigins:     []string{config.Server.PublicUrl}, // with "https://"
+	}
+
+	WebAuthn, err = webauthn.New(webauthnConfig)
+	if err != nil {
+		Log().Fatal("webauthn init error", "error", err)
 	}
 }
 

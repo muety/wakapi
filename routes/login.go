@@ -13,6 +13,8 @@ import (
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httprate"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/webauthn"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -29,14 +31,16 @@ type LoginHandler struct {
 	userSrvc     services.IUserService
 	mailSrvc     services.IMailService
 	keyValueSrvc services.IKeyValueService
+	webAuthnSrvc services.IWebAuthnService
 }
 
-func NewLoginHandler(userService services.IUserService, mailService services.IMailService, keyValueService services.IKeyValueService) *LoginHandler {
+func NewLoginHandler(userService services.IUserService, mailService services.IMailService, keyValueService services.IKeyValueService, webAuthnService services.IWebAuthnService) *LoginHandler {
 	return &LoginHandler{
 		config:       conf.Get(),
 		userSrvc:     userService,
 		mailSrvc:     mailService,
 		keyValueSrvc: keyValueService,
+		webAuthnSrvc: webAuthnService,
 	}
 }
 
@@ -57,6 +61,8 @@ func (h *LoginHandler) RegisterRoutes(router chi.Router) {
 		Post("/reset-password", h.PostResetPassword)
 	router.Get("/oidc/{provider}/login", h.GetOidcLogin)
 	router.Get("/oidc/{provider}/callback", h.GetOidcCallback)
+	router.Get("/webauthn/options", h.GetWebAuthnOptions)
+	router.Post("/webauthn/login", h.PostLoginWebAuthn)
 
 	authMiddleware := middlewares.NewAuthenticateMiddleware(h.userSrvc).
 		WithRedirectTarget(defaultErrorRedirectTarget()).
@@ -492,15 +498,111 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 }
 
+func (h *LoginHandler) GetWebAuthnOptions(w http.ResponseWriter, r *http.Request) {
+	if h.config.Security.DisableWebAuthn {
+		w.WriteHeader(http.StatusForbidden)
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("webauthn is disabled on this server"))
+		return
+	}
+
+	options, sessionData, err := conf.WebAuthn.BeginDiscoverableLogin()
+	if err != nil {
+		conf.Log().Request(r).Error("failed to begin webauthn login", "error", err)
+		routeutils.RespondJSONError(w, http.StatusInternalServerError, "failed to begin login")
+		return
+	}
+	if routeutils.SetWebAuthnSession(sessionData, r, w) != nil {
+		routeutils.RespondJSONError(w, http.StatusInternalServerError, "failed to set session")
+		return
+	}
+	routeutils.RespondJSON(w, http.StatusOK, options)
+}
+
+func (h *LoginHandler) PostLoginWebAuthn(w http.ResponseWriter, r *http.Request) {
+	if h.config.IsDev() {
+		loadTemplates()
+	}
+	if h.config.Security.DisableWebAuthn {
+		w.WriteHeader(http.StatusForbidden)
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("webauthn authentication is disabled on this server"))
+		return
+	}
+
+	assertionJson := r.FormValue("assertion_json")
+	if assertionJson == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("missing assertion"))
+		return
+	}
+
+	sessionData, err := routeutils.GetWebAuthnSession(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("session expired"))
+		return
+	}
+
+	par, err := protocol.ParseCredentialRequestResponseBytes([]byte(assertionJson))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("invalid assertion format"))
+		return
+	}
+	userHandler := func(rawID, userHandle []byte) (webauthn.User, error) {
+		userHandleStr := string(userHandle)
+		user, err := h.userSrvc.GetUserByWebAuthnID(userHandleStr)
+		if err != nil || user == nil {
+			return nil, fmt.Errorf("no user found for webauthn id: %s", userHandleStr)
+		}
+
+		if err := h.webAuthnSrvc.LoadCredentialIntoUser(user); err != nil {
+			return nil, fmt.Errorf("failed to load credential for webauthn id %s: %w", userHandleStr, err)
+		}
+
+		return user, nil
+	}
+	userInterface, credential, err := conf.WebAuthn.ValidatePasskeyLogin(userHandler, *sessionData, par)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		conf.Log().Request(r).Error("webauthn login validation failed", "error", err)
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("authentication failed"))
+		return
+	}
+
+	user := userInterface.(*models.User)
+
+	if credential.Authenticator.CloneWarning {
+		// TODO: may block login?
+		// log clone warning, but allow login
+		conf.Log().Request(r).Warn("possible cloned authenticator detected during webauthn login", "userID", user.ID, "credentialID", credential.ID)
+	}
+
+	if user.AuthType != "local" {
+		w.WriteHeader(http.StatusUnauthorized)
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("non-local user cannot be authenticated with webauthn"))
+		return
+	}
+
+	err = h.webAuthnSrvc.UpdateCredential(credential)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		conf.Log().Request(r).Error("failed to update webauthn credential after login", "userID", user.ID, "error", err)
+		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
+		return
+	}
+
+	h.finishUserLogin(user, r, w)
+	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
+}
+
 func (h *LoginHandler) buildViewModel(r *http.Request, w http.ResponseWriter, withCaptcha bool) *view.LoginViewModel {
-	numUsers, _ := h.userSrvc.Count()
 
 	vm := &view.LoginViewModel{
 		SharedViewModel:  view.NewSharedViewModel(h.config, nil),
-		TotalUsers:       int(numUsers),
 		AllowSignup:      h.config.IsDev() || h.config.Security.AllowSignup,
 		InviteCode:       r.URL.Query().Get("invite"),
 		DisableLocalAuth: h.config.Security.DisableLocalAuth,
+		DisableWebAuthn:  h.config.Security.DisableWebAuthn,
 		OidcProviders: slice.Map(h.config.Security.ListOidcProviders(), func(i int, providerName string) view.LoginViewModelOidcProvider {
 			provider, _ := conf.GetOidcProvider(providerName) // no error, because only using registered provider names
 			return view.LoginViewModelOidcProvider{
