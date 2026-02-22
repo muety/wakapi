@@ -61,8 +61,11 @@ func (h *LoginHandler) RegisterRoutes(router chi.Router) {
 		Post("/reset-password", h.PostResetPassword)
 	router.Get("/oidc/{provider}/login", h.GetOidcLogin)
 	router.Get("/oidc/{provider}/callback", h.GetOidcCallback)
-	router.Get("/webauthn/options", h.GetWebAuthnOptions)
-	router.Post("/webauthn/login", h.PostLoginWebAuthn)
+
+	if !h.config.Security.DisableWebAuthn {
+		router.Get("/webauthn/options", h.GetWebAuthnOptions)
+		router.Post("/webauthn/login", h.PostLoginWebAuthn)
+	}
 
 	authMiddleware := middlewares.NewAuthenticateMiddleware(h.userSrvc).
 		WithRedirectTarget(defaultErrorRedirectTarget()).
@@ -522,6 +525,7 @@ func (h *LoginHandler) PostLoginWebAuthn(w http.ResponseWriter, r *http.Request)
 	if h.config.IsDev() {
 		loadTemplates()
 	}
+
 	if h.config.Security.DisableWebAuthn {
 		w.WriteHeader(http.StatusForbidden)
 		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("webauthn authentication is disabled on this server"))

@@ -995,6 +995,7 @@ func (h *SettingsHandler) actionWebAuthnAdd(w http.ResponseWriter, r *http.Reque
 	if h.config.IsDev() {
 		loadTemplates()
 	}
+
 	if h.config.Security.DisableWebAuthn {
 		return actionResult{http.StatusForbidden, "", "webauthn is disabled on this server", nil}
 	}
@@ -1048,6 +1049,7 @@ func (h *SettingsHandler) actionWebAuthnDelete(w http.ResponseWriter, r *http.Re
 	if h.config.IsDev() {
 		loadTemplates()
 	}
+
 	if h.config.Security.DisableWebAuthn {
 		return actionResult{http.StatusForbidden, "", "webauthn is disabled on this server", nil}
 	}
