@@ -1,7 +1,6 @@
 package services
 
 import (
-	"crypto/sha256"
 	"fmt"
 	"math"
 	"strings"
@@ -273,7 +272,7 @@ func (srv *HeartbeatService) DeleteByUserBefore(user *models.User, t time.Time) 
 	return srv.repository.DeleteByUserBefore(user, t)
 }
 
-func (srv *HeartbeatService) GetUserProjectStats(user *models.User, from, to time.Time, pageParams *utils.PageParams, skipCache bool, search string) ([]*models.ProjectStats, error) {
+func (srv *HeartbeatService) GetUserProjectStats(user *models.User, from, to time.Time, search string, pageParams *utils.PageParams, skipCache bool) ([]*models.ProjectStats, error) {
 	// for projects page, call this like: GetUserProjectStats(&models.User{ID: "n1try"}, time.Time{}, utils.BeginOfToday(time.Local), false)
 
 	var (
@@ -286,12 +285,7 @@ func (srv *HeartbeatService) GetUserProjectStats(user *models.User, from, to tim
 		offset = pageParams.Offset()
 	}
 
-	searchHash := ""
-	if search != "" {
-		h := sha256.Sum256([]byte(strings.ToLower(strings.TrimSpace(search))))
-		searchHash = fmt.Sprintf("%x", h[:4])
-	}
-	cacheKey := fmt.Sprintf("project_stats_%s_%d_%d_%d_%d_%s", user.ID, from.Unix(), to.Unix(), limit, offset, searchHash)
+	cacheKey := fmt.Sprintf("project_stats_%s_%d_%d_%d_%d_%s", user.ID, from.Unix(), to.Unix(), limit, offset, search)
 	if results, found := srv.cache.Get(cacheKey); found && !skipCache {
 		return results.([]*models.ProjectStats), nil
 	} else if search == "" {
@@ -304,7 +298,7 @@ func (srv *HeartbeatService) GetUserProjectStats(user *models.User, from, to tim
 		to = time.Now()
 	}
 
-	results, err := srv.repository.GetUserProjectStats(user, from, to, limit, offset, search)
+	results, err := srv.repository.GetUserProjectStats(user, from, to, search, limit, offset)
 	if err == nil {
 		srv.cache.Set(cacheKey, results, 12*time.Hour)
 	}

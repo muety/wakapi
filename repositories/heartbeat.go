@@ -252,7 +252,7 @@ func (r *HeartbeatRepository) DeleteByUserBefore(user *models.User, t time.Time)
 	return nil
 }
 
-func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to time.Time, limit, offset int, search string) ([]*models.ProjectStats, error) {
+func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to time.Time, search string, limit, offset int) ([]*models.ProjectStats, error) {
 	var projectStats []*models.ProjectStats
 
 	// note: limit / offset doesn't really improve query performance
