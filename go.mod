@@ -1,6 +1,6 @@
 module github.com/muety/wakapi
 
-go 1.25
+go 1.26
 
 require (
 	codeberg.org/Codeberg/avatars v1.0.0
@@ -21,6 +21,7 @@ require (
 	github.com/go-webauthn/webauthn v0.15.0
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/gohugoio/hashstructure v0.6.0
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/gorilla/schema v1.4.1
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.4.0
@@ -60,7 +61,6 @@ require (
 	github.com/go-openapi/swag/yamlutils v0.25.4 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/go-webauthn/x v0.1.26 // indirect
-	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
 	github.com/google/go-tpm v0.9.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
