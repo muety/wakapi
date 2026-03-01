@@ -91,6 +91,7 @@ func (suite *LoginHandlerTestSuite) BeforeTest(suiteName, testName string) {
 	suite.UserService = new(mocks.UserServiceMock)
 	suite.KeyValueService = new(mocks.KeyValueServiceMock)
 	suite.WebAuthnService = new(mocks.WebAuthnServiceMock)
+	suite.UserService.On("Count").Return(1, nil).Maybe()
 
 	cfg := config.Empty()
 	cfg.Security.SecureCookie = securecookie.New(
@@ -309,7 +310,7 @@ func (suite *LoginHandlerTestSuite) TestPostSignup_Success() {
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	w := httptest.NewRecorder()
 
-	suite.UserService.On("Count", mock.Anything).Return(1, nil)
+	suite.UserService.On("Count").Return(1, nil)
 	suite.UserService.On("CreateOrGet", mock.Anything, mock.Anything).Return(&models.User{}, true, nil)
 	suite.Cfg.Security.AllowSignup = true
 	suite.Cfg.Security.OidcAllowSignup = false
@@ -326,6 +327,30 @@ func (suite *LoginHandlerTestSuite) TestPostSignup_Success() {
 	assert.Equal(suite.T(), testUserNewPassword, argSignup.Password)
 	assert.False(suite.T(), argIsAdmin)
 	assert.Equal(suite.T(), "/", w.Header().Get("Location"))
+}
+
+func (suite *LoginHandlerTestSuite) TestPostSignup_Success_FirstUserIsAdmin() {
+	form := url.Values{}
+	form.Add("username", testUserNewId)
+	form.Add("email", testUserNewEmail)
+	form.Add("password", testUserNewPassword)
+	form.Add("password_repeat", testUserNewPassword)
+
+	r := httptest.NewRequest(http.MethodPost, "/signup", strings.NewReader(form.Encode()))
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	suite.UserService.On("Count").Unset()
+	suite.UserService.On("Count").Return(0, nil)
+	suite.UserService.On("CreateOrGet", mock.Anything, mock.Anything).Return(&models.User{}, true, nil)
+	suite.Cfg.Security.AllowSignup = true
+	suite.Cfg.Security.OidcAllowSignup = false
+
+	suite.Sut.PostSignup(w, r)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusFound, w.Code)
+	assert.True(suite.T(), suite.UserService.Calls[1].Arguments[1].(bool))
 }
 
 func (suite *LoginHandlerTestSuite) TestPostSignup_InvalidForm() {
@@ -358,7 +383,7 @@ func (suite *LoginHandlerTestSuite) TestPostSignup_ExistingUser() {
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	w := httptest.NewRecorder()
 
-	suite.UserService.On("Count", mock.Anything).Return(1, nil)
+	suite.UserService.On("Count").Return(1, nil)
 	suite.UserService.On("CreateOrGet", mock.Anything, mock.Anything).Return(suite.TestUser, false, nil)
 	suite.Cfg.Security.AllowSignup = true
 	suite.Cfg.Security.OidcAllowSignup = false

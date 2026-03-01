@@ -97,6 +97,7 @@ func (suite *WebAuthnTestSuite) mockSettingsViewDefaults() {
 	suite.HeartbeatService.On("GetFirstByUser", mock.Anything).Return(time.Time{}, nil).Maybe()
 	suite.ApiKeyService.On("GetByUser", mock.Anything).Return([]*models.ApiKey{}, nil).Maybe()
 	suite.WebauthnService.On("LoadCredentialIntoUser", mock.Anything).Return(nil).Maybe()
+	suite.UserService.On("Count").Return(1, nil).Maybe()
 }
 
 func (suite *WebAuthnTestSuite) loginAsUser(user *models.User) []*http.Cookie {
