@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/mileusna/useragent"
@@ -20,6 +21,11 @@ const (
 	userAgentPattern   = `(?iU)^(?:(?:wakatime|chrome|firefox|edge)\/(?:v?[\d+.]+|unset)?\s)(?:\(?(\w+)[-_].*\)?.+\s)?(?:([^\/\s]+)\/[\w\d\.]+\s)?([^\/\s]+)-wakatime\/.+$`
 	cacheMaxAgePattern = `max-age=(\d+)`
 )
+
+var editorMiddlewares = map[string]bool{
+	"wakatime-ls":  true,
+	"wakatime-cli": true,
+}
 
 var (
 	userAgentRe   *regexp.Regexp
@@ -112,7 +118,7 @@ func ParseUserAgent(ua string) (string, string, error) { // os, editor, err
 
 		// parse editor
 		editor = groups[0][2] // for user agents sent by desktop-wakatime plugin and some others, see https://github.com/muety/wakapi/issues/686, https://github.com/muety/wakapi/issues/712
-		if editor == "" {
+		if editor == "" || editorMiddlewares[strings.ToLower(editor)] {
 			editor = groups[0][3] // for most user agents
 		}
 		// special treatment for neovim
