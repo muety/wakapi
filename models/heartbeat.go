@@ -40,6 +40,8 @@ type Heartbeat struct {
 	LineDeletions    int        `json:"line_deletions,omitempty" hash:"ignore"`
 	LineAdditions    int        `json:"line_additions,omitempty" hash:"ignore"`
 	ProjectRootCount int        `json:"project_root_count,omitempty" hash:"ignore"`
+	AILineChanges    int        `json:"ai_line_changes,omitempty" hash:"ignore"`
+	HumanLineChanges int        `json:"human_line_changes,omitempty" hash:"ignore"`
 }
 
 func (h *Heartbeat) Valid() bool {

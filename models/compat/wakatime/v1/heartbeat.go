@@ -1,10 +1,11 @@
 package v1
 
 import (
-	"github.com/duke-git/lancet/v2/stream"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/duke-git/lancet/v2/stream"
 
 	"github.com/muety/wakapi/models"
 )
@@ -59,24 +60,26 @@ type HeartbeatResponseData struct {
 // that is actually required for the import
 
 type HeartbeatEntry struct {
-	Id            string    `json:"id"`
-	Branch        string    `json:"branch"`
-	Category      string    `json:"category"`
-	Entity        string    `json:"entity"`
-	IsWrite       bool      `json:"is_write"`
-	Language      string    `json:"language"`
-	Project       string    `json:"project"`
-	Time          float64   `json:"time"`
-	Type          string    `json:"type"`
-	UserId        string    `json:"user_id"`
-	MachineNameId string    `json:"machine_name_id"`
-	UserAgentId   string    `json:"user_agent_id"`
-	Lines         int       `json:"lines"`
-	LineNo        int       `json:"lineno"`
-	CursorPos     int       `json:"cursorpos"`
-	LineDeletions int       `json:"line_deletions"`
-	LineAdditions int       `json:"line_additions"`
-	CreatedAt     time.Time `json:"created_at"`
+	Id               string    `json:"id"`
+	Branch           string    `json:"branch"`
+	Category         string    `json:"category"`
+	Entity           string    `json:"entity"`
+	IsWrite          bool      `json:"is_write"`
+	Language         string    `json:"language"`
+	Project          string    `json:"project"`
+	Time             float64   `json:"time"`
+	Type             string    `json:"type"`
+	UserId           string    `json:"user_id"`
+	MachineNameId    string    `json:"machine_name_id"`
+	UserAgentId      string    `json:"user_agent_id"`
+	Lines            int       `json:"lines"`
+	LineNo           int       `json:"lineno"`
+	CursorPos        int       `json:"cursorpos"`
+	LineDeletions    int       `json:"line_deletions"`
+	LineAdditions    int       `json:"line_additions"`
+	CreatedAt        time.Time `json:"created_at"`
+	AILineChanges    int       `json:"ai_line_changes,omitempty" hash:"ignore"`
+	HumanLineChanges int       `json:"human_line_changes,omitempty" hash:"ignore"`
 }
 
 func HeartbeatsToCompat(entries []*models.Heartbeat) []*HeartbeatEntry {
@@ -84,24 +87,26 @@ func HeartbeatsToCompat(entries []*models.Heartbeat) []*HeartbeatEntry {
 	for i := 0; i < len(entries); i++ {
 		entry := entries[i]
 		out[i] = &HeartbeatEntry{
-			Id:            strconv.FormatUint(entry.ID, 10),
-			Branch:        entry.Branch,
-			Category:      entry.Category,
-			Entity:        entry.Entity,
-			IsWrite:       entry.IsWrite,
-			Language:      entry.Language,
-			Project:       entry.Project,
-			Time:          float64(entry.Time.T().Unix()),
-			Type:          entry.Type,
-			UserId:        entry.UserID,
-			MachineNameId: entry.Machine,
-			UserAgentId:   entry.UserAgent,
-			Lines:         entry.Lines,
-			LineNo:        entry.LineNo,
-			LineAdditions: entry.LineAdditions,
-			LineDeletions: entry.LineDeletions,
-			CursorPos:     entry.CursorPos,
-			CreatedAt:     entry.CreatedAt.T(),
+			Id:               strconv.FormatUint(entry.ID, 10),
+			Branch:           entry.Branch,
+			Category:         entry.Category,
+			Entity:           entry.Entity,
+			IsWrite:          entry.IsWrite,
+			Language:         entry.Language,
+			Project:          entry.Project,
+			Time:             float64(entry.Time.T().Unix()),
+			Type:             entry.Type,
+			UserId:           entry.UserID,
+			MachineNameId:    entry.Machine,
+			UserAgentId:      entry.UserAgent,
+			Lines:            entry.Lines,
+			LineNo:           entry.LineNo,
+			LineAdditions:    entry.LineAdditions,
+			LineDeletions:    entry.LineDeletions,
+			CursorPos:        entry.CursorPos,
+			CreatedAt:        entry.CreatedAt.T(),
+			AILineChanges:    entry.AILineChanges,
+			HumanLineChanges: entry.HumanLineChanges,
 		}
 	}
 	return out
