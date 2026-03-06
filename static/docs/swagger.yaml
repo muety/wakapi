@@ -18,6 +18,8 @@ definitions:
     type: object
   models.Heartbeat:
     properties:
+      ai_line_changes:
+        type: integer
       branch:
         type: string
       category:
@@ -32,6 +34,8 @@ definitions:
         type: string
       entity:
         type: string
+      human_line_changes:
+        type: integer
       is_write:
         type: boolean
       language:
@@ -39,10 +43,6 @@ definitions:
       line_additions:
         type: integer
       line_deletions:
-        type: integer
-      ai_line_changes:
-        type: integer
-      human_line_changes:
         type: integer
       lineno:
         type: integer
@@ -59,6 +59,9 @@ definitions:
       project_root_count:
         type: integer
       time:
+        description: |-
+          note: on sqlite, table will have an additional column `time_real`, introduced "manually" by migration 20260111
+          see https://github.com/muety/wakapi/issues/882 for details
         type: number
       type:
         type: string
@@ -182,6 +185,8 @@ definitions:
     type: object
   v1.HeartbeatEntry:
     properties:
+      ai_line_changes:
+        type: integer
       branch:
         type: string
       category:
@@ -192,6 +197,8 @@ definitions:
         type: integer
       entity:
         type: string
+      human_line_changes:
+        type: integer
       id:
         type: string
       is_write:
@@ -201,10 +208,6 @@ definitions:
       line_additions:
         type: integer
       line_deletions:
-        type: integer
-      ai_line_changes:
-        type: integer
-      human_line_changes:
         type: integer
       lineno:
         type: integer
@@ -386,6 +389,8 @@ definitions:
       start:
         type: string
       status:
+        type: string
+      timezone:
         type: string
       total_seconds:
         type: number

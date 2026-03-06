@@ -1232,6 +1232,9 @@ const docTemplate = `{
         "models.Heartbeat": {
             "type": "object",
             "properties": {
+                "ai_line_changes": {
+                    "type": "integer"
+                },
                 "branch": {
                     "type": "string"
                 },
@@ -1251,6 +1254,9 @@ const docTemplate = `{
                 },
                 "entity": {
                     "type": "string"
+                },
+                "human_line_changes": {
+                    "type": "integer"
                 },
                 "is_write": {
                     "type": "boolean"
@@ -1285,6 +1291,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "time": {
+                    "description": "note: on sqlite, table will have an additional column ` + "`" + `time_real` + "`" + `, introduced \"manually\" by migration 20260111\nsee https://github.com/muety/wakapi/issues/882 for details",
                     "type": "number"
                 },
                 "type": {
@@ -1452,6 +1459,9 @@ const docTemplate = `{
         "v1.HeartbeatEntry": {
             "type": "object",
             "properties": {
+                "ai_line_changes": {
+                    "type": "integer"
+                },
                 "branch": {
                     "type": "string"
                 },
@@ -1466,6 +1476,9 @@ const docTemplate = `{
                 },
                 "entity": {
                     "type": "string"
+                },
+                "human_line_changes": {
+                    "type": "integer"
                 },
                 "id": {
                     "type": "string"
@@ -1757,6 +1770,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
+                    "type": "string"
+                },
+                "timezone": {
                     "type": "string"
                 },
                 "total_seconds": {
