@@ -22,6 +22,7 @@ const (
 	cacheMaxAgePattern = `max-age=(\d+)`
 )
 
+// https://github.com/muety/wakapi/issues/914
 var editorMiddlewares = map[string]bool{
 	"wakatime-ls":  true,
 	"wakatime-cli": true,
