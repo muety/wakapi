@@ -40,6 +40,10 @@ definitions:
         type: integer
       line_deletions:
         type: integer
+      ai_line_changes:
+        type: integer
+      human_line_changes:
+        type: integer
       lineno:
         type: integer
       lines:
@@ -197,6 +201,10 @@ definitions:
       line_additions:
         type: integer
       line_deletions:
+        type: integer
+      ai_line_changes:
+        type: integer
+      human_line_changes:
         type: integer
       lineno:
         type: integer
