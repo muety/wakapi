@@ -437,11 +437,11 @@ func (s *SummaryParams) HasFilters() bool {
 }
 
 func (s *SummaryParams) IsProjectDetails() bool {
-	if !s.HasFilters() {
+	if !s.HasFilters() || s.Filters.EntityCount() > 1 {
 		return false
 	}
 	_, entity, filters := s.Filters.One()
-	return entity == SummaryProject && len(filters) == 1 // exactly one
+	return entity == SummaryProject && len(filters)-s.Filters.CountAliasesByType(SummaryProject) == 1 // exactly one
 }
 
 func (s *SummaryParams) GetProjectFilter() string {
@@ -449,7 +449,7 @@ func (s *SummaryParams) GetProjectFilter() string {
 		return ""
 	}
 	_, _, filters := s.Filters.One()
-	return filters[0]
+	return filters[0] // first entry is "original" filter, but there might be additional ones for each alias
 }
 
 func (s *SummaryParams) RangeDays() int {

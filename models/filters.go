@@ -21,6 +21,7 @@ type Filters struct {
 	SelectFilteredOnly       bool // flag indicating to drop all Entity types from a summary except the single one filtered by
 	hasResolvedProjectLabels bool
 	hasResolvedAliases       bool
+	aliasCount               map[uint8]int
 }
 
 type OrFilter []string
@@ -146,6 +147,13 @@ func (f *Filters) CountByType(entity uint8) int {
 	return len(*f.ResolveType(entity))
 }
 
+func (f *Filters) CountAliasesByType(entity uint8) int {
+	if f.aliasCount == nil {
+		return 0
+	}
+	return f.aliasCount[entity]
+}
+
 func (f *Filters) EntityCount() int {
 	var count int
 	for i := SummaryProject; i <= SummaryEntity; i++ {
@@ -213,12 +221,17 @@ func (f *Filters) WithAliases(resolve AliasReverseResolver) *Filters {
 		return f
 	}
 
+	if f.aliasCount == nil {
+		f.aliasCount = make(map[uint8]int)
+	}
+
 	if f.Project != nil {
 		updated := OrFilter(make([]string, 0, len(f.Project)))
 		for _, e := range f.Project {
 			updated = append(updated, e)
 			updated = append(updated, resolve(SummaryProject, e)...)
 		}
+		f.aliasCount[SummaryProject] = len(updated) - len(f.Project)
 		f.Project = updated
 	}
 	if f.OS != nil {
@@ -227,6 +240,7 @@ func (f *Filters) WithAliases(resolve AliasReverseResolver) *Filters {
 			updated = append(updated, e)
 			updated = append(updated, resolve(SummaryOS, e)...)
 		}
+		f.aliasCount[SummaryOS] = len(updated) - len(f.OS)
 		f.OS = updated
 	}
 	if f.Language != nil {
@@ -235,6 +249,7 @@ func (f *Filters) WithAliases(resolve AliasReverseResolver) *Filters {
 			updated = append(updated, e)
 			updated = append(updated, resolve(SummaryLanguage, e)...)
 		}
+		f.aliasCount[SummaryLanguage] = len(updated) - len(f.Language)
 		f.Language = updated
 	}
 	if f.Editor != nil {
@@ -243,6 +258,7 @@ func (f *Filters) WithAliases(resolve AliasReverseResolver) *Filters {
 			updated = append(updated, e)
 			updated = append(updated, resolve(SummaryEditor, e)...)
 		}
+		f.aliasCount[SummaryEditor] = len(updated) - len(f.Editor)
 		f.Editor = updated
 	}
 	if f.Machine != nil {
@@ -251,6 +267,7 @@ func (f *Filters) WithAliases(resolve AliasReverseResolver) *Filters {
 			updated = append(updated, e)
 			updated = append(updated, resolve(SummaryMachine, e)...)
 		}
+		f.aliasCount[SummaryMachine] = len(updated) - len(f.Machine)
 		f.Machine = updated
 	}
 	if f.Branch != nil {
@@ -259,6 +276,7 @@ func (f *Filters) WithAliases(resolve AliasReverseResolver) *Filters {
 			updated = append(updated, e)
 			updated = append(updated, resolve(SummaryBranch, e)...)
 		}
+		f.aliasCount[SummaryBranch] = len(updated) - len(f.Branch)
 		f.Branch = updated
 	}
 	if f.Category != nil {
@@ -267,6 +285,7 @@ func (f *Filters) WithAliases(resolve AliasReverseResolver) *Filters {
 			updated = append(updated, e)
 			updated = append(updated, resolve(SummaryCategory, e)...)
 		}
+		f.aliasCount[SummaryCategory] = len(updated) - len(f.Category)
 		f.Category = updated
 	}
 	// no aliases for entities / files
