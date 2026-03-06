@@ -2,22 +2,25 @@ package models
 
 import (
 	"fmt"
+	"log/slog"
+
 	"github.com/cespare/xxhash/v2"
 	"github.com/gohugoio/hashstructure"
-	"log/slog"
 )
 
 type Filters struct {
-	Project            OrFilter
-	OS                 OrFilter
-	Language           OrFilter
-	Editor             OrFilter
-	Machine            OrFilter
-	Label              OrFilter
-	Branch             OrFilter
-	Entity             OrFilter
-	Category           OrFilter
-	SelectFilteredOnly bool // flag indicating to drop all Entity types from a summary except the single one filtered by
+	Project                  OrFilter
+	OS                       OrFilter
+	Language                 OrFilter
+	Editor                   OrFilter
+	Machine                  OrFilter
+	Label                    OrFilter
+	Branch                   OrFilter
+	Entity                   OrFilter
+	Category                 OrFilter
+	SelectFilteredOnly       bool // flag indicating to drop all Entity types from a summary except the single one filtered by
+	hasResolvedProjectLabels bool
+	hasResolvedAliases       bool
 }
 
 type OrFilter []string
@@ -206,6 +209,10 @@ func (f *Filters) MatchDuration(d *Duration) bool {
 
 // WithAliases adds OR-conditions for every alias of a Filter key as additional Filter keys
 func (f *Filters) WithAliases(resolve AliasReverseResolver) *Filters {
+	if f.hasResolvedAliases {
+		return f
+	}
+
 	if f.Project != nil {
 		updated := OrFilter(make([]string, 0, len(f.Project)))
 		for _, e := range f.Project {
@@ -263,16 +270,19 @@ func (f *Filters) WithAliases(resolve AliasReverseResolver) *Filters {
 		f.Category = updated
 	}
 	// no aliases for entities / files
+
+	f.hasResolvedAliases = true
 	return f
 }
 
 func (f *Filters) WithProjectLabels(resolve ProjectLabelReverseResolver) *Filters {
-	if f.Label == nil || !f.Label.Exists() {
+	if f.Label == nil || !f.Label.Exists() || f.hasResolvedProjectLabels {
 		return f
 	}
 	for _, l := range f.Label {
 		f.WithMultiple(SummaryProject, resolve(l))
 	}
+	f.hasResolvedProjectLabels = true
 	return f
 }
 
