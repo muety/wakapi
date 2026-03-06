@@ -1,6 +1,8 @@
 launch.json
 .vscode
 wakapi
+healthcheck
+dbmigrate
 .idea
 build
 *.exe
