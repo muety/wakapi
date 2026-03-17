@@ -46,7 +46,7 @@ ENV ENVIRONMENT=prod \
     WAKAPI_ALLOW_SIGNUP='true'
 
 COPY --from=build-env --chown=nonroot:nonroot --chmod=0444 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY --from=build-env --chown=nonroot:nonroot --chmod=0444 /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=build-env --chown=nonroot:nonroot --chmod=0555 /usr/share/zoneinfo /usr/share/zoneinfo
 
 COPY --from=build-env --chown=nonroot:nonroot /staging/app /app
 COPY --from=build-env --chown=nonroot:nonroot /staging/data /data
