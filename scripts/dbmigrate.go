@@ -176,6 +176,9 @@ func main() {
 	projectLabelsSource := repositories.NewProjectLabelRepository(dbSource)
 	projectLabelsTarget := repositories.NewProjectLabelRepository(dbTarget)
 
+	webauthnSource := repositories.NewWebAuthnRepository(dbSource)
+	webauthnTarget := repositories.NewWebAuthnRepository(dbTarget)
+
 	var bar *progressbar.ProgressBar
 
 	getUsers := userSource.GetAll
@@ -213,6 +216,17 @@ func main() {
 				log.Printf("warning: failed to insert user %s (%s)\n", e.ID, err)
 				continue
 			}
+
+			if data, err := webauthnSource.GetByUser(e.ID); err == nil {
+				for _, cred := range data {
+					if _, err := webauthnTarget.Insert(cred); err != nil {
+						log.Printf("warning: failed to insert webauthn credential %s for user %s (%s)\n", cred.ID, e.ID, err)
+					}
+				}
+			} else {
+				log.Printf("warning: failed to fetch webauthn credentials for user %s (%s)\n", e.ID, err)
+			}
+
 			bar.Add(1)
 		}
 	}
@@ -401,7 +415,7 @@ func createSchema() error {
 	if err := dbTarget.AutoMigrate(&models.User{}); err != nil {
 		return err
 	}
-	if err := dbTarget.AutoMigrate(&models.Credential{}); err != nil {
+	if err := dbTarget.AutoMigrate(&models.WebAuthnCredential{}); err != nil {
 		return err
 	}
 	if err := dbTarget.AutoMigrate(&models.KeyStringValue{}); err != nil {
