@@ -99,12 +99,21 @@ func (d *Duration) Hashed() *Duration {
 }
 
 func (d *Duration) Augmented(languageMappings map[string]string) *Duration {
+	// Since durations don't have file extensions available anymore, we optimistically try to perform a reverse lookup.
+	// For each custom mapping's extension, we try to resolve the according language from our static lookup table.
+	// If it matches the duration's language, we apply the custom mapping.
+	// That is, instead of directly applying custom mappings by their extension, we first try to resolve the extension to a language as an intermediate step and then override that language.
+	// This is very much error-prone though, because the "extension -> language -> extension" lookup chain isn't unambiguous.
+	// Limitations:
+	// - If the static lookup table can't resolve the extension, custom mappings won't be applied.
+	// - If the lookup table resolves a custom mapping's extension to a legitimate language, all existing durations of that language will falsely be assigned the custom language (see https://github.com/muety/wakapi/issues/928).
+	// TODO: fundamentally refactor this
 	for ext, targetLang := range languageMappings {
 		langs, ok := lib.LanguagesByExtension["."+ext]
 		if !ok {
 			continue
 		}
-		if lang := langs[0]; strings.ToLower(d.Language) == strings.ToLower(lang) {
+		if lang := langs[0]; strings.EqualFold(d.Language, lang) {
 			d.Language = targetLang
 		}
 	}
