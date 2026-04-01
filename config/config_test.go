@@ -269,3 +269,68 @@ func (suite *ConfigTestSuite) TestPublicNetUrl() {
 	suite.Equal("wakapi.dev", cfg.Server.PublicNetUrl.Hostname())
 	suite.Equal("https", cfg.Server.PublicNetUrl.Scheme)
 }
+
+func (suite *ConfigTestSuite) TestIsImportHostWhitelisted() {
+	testCases := []struct {
+		name      string
+		whitelist []string
+		host      string
+		expected  bool
+	}{
+		{
+			name:      "empty whitelist",
+			whitelist: []string{},
+			host:      "google.com",
+			expected:  true,
+		},
+		{
+			name:      "exact match",
+			whitelist: []string{"google.com"},
+			host:      "google.com",
+			expected:  true,
+		},
+		{
+			name:      "no match",
+			whitelist: []string{"google.com"},
+			host:      "bing.com",
+			expected:  false,
+		},
+		{
+			name:      "wildcard prefix",
+			whitelist: []string{"*.google.com"},
+			host:      "api.google.com",
+			expected:  true,
+		},
+		{
+			name:      "wildcard suffix",
+			whitelist: []string{"google.*"},
+			host:      "google.de",
+			expected:  true,
+		},
+		{
+			name:      "wildcard both sides",
+			whitelist: []string{"*google*"},
+			host:      "my-google-app.com",
+			expected:  true,
+		},
+		{
+			name:      "multiple entries",
+			whitelist: []string{"bing.com", "*.google.com"},
+			host:      "api.google.com",
+			expected:  true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.T().Run(tc.name, func(t *testing.T) {
+			if len(tc.whitelist) > 0 {
+				suite.T().Setenv("WAKAPI_IMPORT_HOSTS_WHITELIST", strings.Join(tc.whitelist, ","))
+			} else {
+				os.Unsetenv("WAKAPI_IMPORT_HOSTS_WHITELIST")
+			}
+
+			cfg := Load("", "")
+			suite.Equal(tc.expected, cfg.App.IsImportHostWhitelisted(tc.host))
+		})
+	}
+}
