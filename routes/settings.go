@@ -671,7 +671,7 @@ func (h *SettingsHandler) actionSetWakatimeApiKey(w http.ResponseWriter, r *http
 	}
 
 	// Healthcheck, if a new API key is set, i.e. the feature is activated
-	if (user.WakatimeApiKey == "" && apiKey != "") && !h.validateWakatimeKey(apiKey, apiUrl) {
+	if (user.WakatimeApiKey == "" && apiKey != "") && (!h.validateWakatimeUrl(apiUrl) || !h.validateWakatimeKey(apiKey, apiUrl)) {
 		return actionResult{http.StatusBadRequest, "", "failed to connect to WakaTime, API key or endpoint URL invalid?", nil}
 	}
 
@@ -895,6 +895,10 @@ func (h *SettingsHandler) actionGenerateInvite(w http.ResponseWriter, r *http.Re
 			valueInviteCode: inviteCode,
 		},
 	}
+}
+
+func (h *SettingsHandler) validateWakatimeUrl(baseUrl string) bool {
+	return routeutils.ValidateWakatimeUrl(baseUrl) == nil
 }
 
 func (h *SettingsHandler) validateWakatimeKey(apiKey string, baseUrl string) bool {

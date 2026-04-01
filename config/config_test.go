@@ -240,3 +240,12 @@ func Test_sqliteConnectionString(t *testing.T) {
 	assert.True(t, strings.HasPrefix(sqliteConnectionString(c), c.Name))
 	assert.Contains(t, strings.ToLower(sqliteConnectionString(c)), "journal_mode=wal")
 }
+
+func TestConfig_PublicNetUrl(t *testing.T) {
+	t.Setenv("WAKAPI_PUBLIC_URL", "https://wakapi.dev")
+	cfg := Load("", "")
+
+	assert.NotNil(t, cfg.Server.PublicNetUrl)
+	assert.Equal(t, "wakapi.dev", cfg.Server.PublicNetUrl.Hostname())
+	assert.Equal(t, "https", cfg.Server.PublicNetUrl.Scheme)
+}
