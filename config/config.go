@@ -25,6 +25,7 @@ import (
 	"github.com/muety/wakapi/utils"
 	"github.com/robfig/cron/v3"
 
+	"github.com/becheran/wildmatch-go"
 	"github.com/go-webauthn/webauthn/webauthn"
 )
 
@@ -106,6 +107,7 @@ type appConfig struct {
 	ImportBackoffMin          int                          `yaml:"import_backoff_min" default:"5" env:"WAKAPI_IMPORT_BACKOFF_MIN"`
 	ImportMaxRate             int                          `yaml:"import_max_rate" default:"24" env:"WAKAPI_IMPORT_MAX_RATE"` // at max one successful import every x hours
 	ImportBatchSize           int                          `yaml:"import_batch_size" default:"50" env:"WAKAPI_IMPORT_BATCH_SIZE"`
+	ImportHostsWhitelist      []string                     `yaml:"import_hosts_whitelist"` // or WAKAPI_IMPORT_HOSTS_WHITELIST (read manually during load)
 	InactiveDays              int                          `yaml:"inactive_days" default:"7" env:"WAKAPI_INACTIVE_DAYS"`
 	HeartbeatMaxAge           string                       `yaml:"heartbeat_max_age" default:"168h" env:"WAKAPI_HEARTBEAT_MAX_AGE"`
 	CountCacheTTLMin          int                          `yaml:"count_cache_ttl_min" default:"30" env:"WAKAPI_COUNT_CACHE_TTL_MIN"`
@@ -168,16 +170,17 @@ type dbConfig struct {
 }
 
 type serverConfig struct {
-	Port             int    `default:"3000" env:"WAKAPI_PORT"`
-	ListenIpV4       string `yaml:"listen_ipv4" default:"127.0.0.1" env:"WAKAPI_LISTEN_IPV4"`
-	ListenIpV6       string `yaml:"listen_ipv6" default:"::1" env:"WAKAPI_LISTEN_IPV6"`
-	ListenSocket     string `yaml:"listen_socket" default:"" env:"WAKAPI_LISTEN_SOCKET"`
-	ListenSocketMode uint32 `yaml:"listen_socket_mode" default:"0666" env:"WAKAPI_LISTEN_SOCKET_MODE"`
-	TimeoutSec       int    `yaml:"timeout_sec" default:"30" env:"WAKAPI_TIMEOUT_SEC"`
-	BasePath         string `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
-	PublicUrl        string `yaml:"public_url" default:"http://localhost:3000" env:"WAKAPI_PUBLIC_URL"`
-	TlsCertPath      string `yaml:"tls_cert_path" default:"" env:"WAKAPI_TLS_CERT_PATH"`
-	TlsKeyPath       string `yaml:"tls_key_path" default:"" env:"WAKAPI_TLS_KEY_PATH"`
+	Port             int      `default:"3000" env:"WAKAPI_PORT"`
+	ListenIpV4       string   `yaml:"listen_ipv4" default:"127.0.0.1" env:"WAKAPI_LISTEN_IPV4"`
+	ListenIpV6       string   `yaml:"listen_ipv6" default:"::1" env:"WAKAPI_LISTEN_IPV6"`
+	ListenSocket     string   `yaml:"listen_socket" default:"" env:"WAKAPI_LISTEN_SOCKET"`
+	ListenSocketMode uint32   `yaml:"listen_socket_mode" default:"0666" env:"WAKAPI_LISTEN_SOCKET_MODE"`
+	TimeoutSec       int      `yaml:"timeout_sec" default:"30" env:"WAKAPI_TIMEOUT_SEC"`
+	BasePath         string   `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
+	PublicUrl        string   `yaml:"public_url" default:"http://localhost:3000" env:"WAKAPI_PUBLIC_URL"`
+	PublicNetUrl     *url.URL `yaml:"-"`
+	TlsCertPath      string   `yaml:"tls_cert_path" default:"" env:"WAKAPI_TLS_CERT_PATH"`
+	TlsKeyPath       string   `yaml:"tls_key_path" default:"" env:"WAKAPI_TLS_KEY_PATH"`
 }
 
 type subscriptionsConfig struct {
@@ -409,6 +412,18 @@ func (c *appConfig) HeartbeatsMaxAge() time.Duration {
 	return d
 }
 
+func (c *appConfig) IsImportHostWhitelisted(host string) bool {
+	if len(c.ImportHostsWhitelist) == 0 {
+		return true
+	}
+	for _, p := range c.ImportHostsWhitelist {
+		if wildmatch.NewWildMatch(p).IsMatch(host) {
+			return true
+		}
+	}
+	return false
+}
+
 func (c *securityConfig) ParseTrustReverseProxyIPs() {
 	c.trustReverseProxyIpsParsed = make([]net.IPNet, 0)
 
@@ -614,6 +629,11 @@ func Load(configFlag string, version string) *Config {
 	config.Security.ParseTrustReverseProxyIPs()
 
 	config.Server.BasePath = strings.TrimSuffix(config.Server.BasePath, "/")
+	if publicUrlParsed, err := url.Parse(config.Server.GetPublicUrl()); err == nil {
+		config.Server.PublicNetUrl = publicUrlParsed
+	} else {
+		Log().Fatal("failed to parse public url")
+	}
 
 	for k, v := range config.App.CustomLanguages {
 		if v == "" {
@@ -627,6 +647,13 @@ func Load(configFlag string, version string) *Config {
 		}
 		slog.Info("enabling sentry integration", "environment", config.Sentry.Environment)
 		initSentry(config.Sentry, config.IsDev(), config.Version)
+	}
+
+	if hosts := os.Getenv("WAKAPI_IMPORT_HOSTS_WHITELIST"); hosts != "" {
+		config.App.ImportHostsWhitelist = strings.Split(hosts, ",")
+		for i := range config.App.ImportHostsWhitelist {
+			config.App.ImportHostsWhitelist[i] = strings.TrimSpace(config.App.ImportHostsWhitelist[i])
+		}
 	}
 
 	if config.App.DataRetentionMonths <= 0 {

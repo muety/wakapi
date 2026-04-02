@@ -671,7 +671,7 @@ func (h *SettingsHandler) actionSetWakatimeApiKey(w http.ResponseWriter, r *http
 	}
 
 	// Healthcheck, if a new API key is set, i.e. the feature is activated
-	if (user.WakatimeApiKey == "" && apiKey != "") && !h.validateWakatimeKey(apiKey, apiUrl) {
+	if (user.WakatimeApiKey == "" && apiKey != "") && (!h.validateWakatimeUrl(apiUrl) || !h.validateWakatimeKey(apiKey, apiUrl)) {
 		return actionResult{http.StatusBadRequest, "", "failed to connect to WakaTime, API key or endpoint URL invalid?", nil}
 	}
 
@@ -700,6 +700,11 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 	kvKeyLastImport := fmt.Sprintf("%s_%s", conf.KeyLastImport, user.ID)
 	kvKeyLastImportSuccess := fmt.Sprintf("%s_%s", conf.KeyLastImportSuccess, user.ID)
 
+	importer := imports.NewWakatimeImporter(user.WakatimeApiKey, useLegacyImporter)
+	if err := importer.Validate(user); err != nil {
+		return actionResult{http.StatusForbidden, "", fmt.Sprintf("Failed to import – %v", err), nil}
+	}
+
 	if !h.config.IsDev() {
 		lastImport, _ := time.Parse(time.RFC822, h.keyValueSrvc.MustGetString(kvKeyLastImport).Value)
 		if time.Now().Sub(lastImport) < time.Duration(h.config.App.ImportBackoffMin)*time.Minute {
@@ -722,9 +727,8 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 		}
 	}
 
-	go func(user *models.User, r *http.Request) {
+	go func(user *models.User, importer *imports.WakatimeImporter, r *http.Request) {
 		start := time.Now()
-		importer := imports.NewWakatimeImporter(user.WakatimeApiKey, useLegacyImporter)
 
 		countBefore, _ := h.heartbeatSrvc.CountByUser(user)
 
@@ -790,7 +794,7 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 				slog.Info("sent import notification mail", "userID", user.ID)
 			}
 		}
-	}(user, r)
+	}(user, importer, r)
 
 	h.keyValueSrvc.PutString(&models.KeyStringValue{
 		Key:   kvKeyLastImport,
@@ -895,6 +899,10 @@ func (h *SettingsHandler) actionGenerateInvite(w http.ResponseWriter, r *http.Re
 			valueInviteCode: inviteCode,
 		},
 	}
+}
+
+func (h *SettingsHandler) validateWakatimeUrl(baseUrl string) bool {
+	return routeutils.ValidateWakatimeUrl(baseUrl) == nil
 }
 
 func (h *SettingsHandler) validateWakatimeKey(apiKey string, baseUrl string) bool {
