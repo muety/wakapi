@@ -78,7 +78,9 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 		if err != nil {
 			return nil, err
 		}
-		return srv.filter(durations, user, filters), nil
+
+		languageMappings, _ := srv.languageMappingService.ResolveByUser(user.ID)
+		return srv.filter(durations.Augmented(languageMappings), user, filters), nil
 	}
 
 	// get cached
@@ -100,7 +102,9 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 		if err != nil {
 			return nil, err
 		}
-		durations, err = srv.merge(cached, missing, user)
+
+		languageMappings, _ := srv.languageMappingService.ResolveByUser(user.ID)
+		durations, err = srv.merge(cached, missing.Augmented(languageMappings), user)
 		if err != nil {
 			return nil, err
 		}
@@ -184,7 +188,7 @@ func (srv *DurationService) getCached(from, to time.Time, user *models.User, fil
 func (srv *DurationService) getLive(from, to time.Time, user *models.User, interval time.Duration, includeEntities bool) (models.Durations, error) {
 	heartbeatsTimeout := interval
 
-	heartbeats, err := srv.heartbeatService.StreamAllWithin(from, to, user)
+	heartbeats, err := srv.heartbeatService.StreamAllWithinRaw(from, to, user)
 	if err != nil {
 		return nil, err
 	}

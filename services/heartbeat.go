@@ -158,6 +158,10 @@ func (srv *HeartbeatService) StreamAllWithin(from, to time.Time, user *models.Us
 	return srv.augmentedAsync(c, languageMapping)
 }
 
+func (srv *HeartbeatService) StreamAllWithinRaw(from, to time.Time, user *models.User) (chan *models.Heartbeat, error) {
+	return srv.repository.StreamWithin(from, to, user) // no augmentation
+}
+
 func (srv *HeartbeatService) GetAllWithinByFilters(from, to time.Time, user *models.User, filters *models.Filters) ([]*models.Heartbeat, error) {
 	heartbeats, err := srv.repository.GetAllWithinByFilters(from, to, user, srv.filtersToColumnMap(filters))
 	if err != nil {

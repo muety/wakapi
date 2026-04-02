@@ -53,6 +53,7 @@ type IHeartbeatService interface {
 	GetLatestByFilters(*models.User, *models.Filters) (*models.Heartbeat, error)
 	GetEntitySetByUser(uint8, string) ([]string, error)
 	StreamAllWithin(time.Time, time.Time, *models.User) (chan *models.Heartbeat, error)
+	StreamAllWithinRaw(time.Time, time.Time, *models.User) (chan *models.Heartbeat, error)
 	StreamAllWithinByFilters(time.Time, time.Time, *models.User, *models.Filters) (chan *models.Heartbeat, error)
 	DeleteBefore(time.Time) error
 	DeleteByUser(*models.User) error
