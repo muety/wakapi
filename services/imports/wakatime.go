@@ -8,6 +8,7 @@ import (
 
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	routeutils "github.com/muety/wakapi/routes/utils"
 )
 
 type WakatimeImporter struct {
@@ -44,12 +45,19 @@ func (w *WakatimeImporter) Validate(user *models.User) error {
 }
 
 func (w *WakatimeImporter) checkUrl(user *models.User) error {
-	u, err := url.Parse(user.WakaTimeURL(config.WakatimeApiUrl))
+	wakatimeUrl := user.WakaTimeURL(config.WakatimeApiUrl)
+
+	wakatimeUrlParsed, err := url.Parse(wakatimeUrl)
 	if err != nil {
 		return err
 	}
-	if !config.Get().App.IsImportHostWhitelisted(u.Hostname()) {
-		return fmt.Errorf("import from host '%s' is not allowed", u.Hostname())
+
+	if err := routeutils.ValidateWakatimeUrl(wakatimeUrl); err != nil {
+		return err
+	}
+
+	if !config.Get().App.IsImportHostWhitelisted(wakatimeUrlParsed.Hostname()) {
+		return fmt.Errorf("import from host '%s' is not allowed", wakatimeUrlParsed.Hostname())
 	}
 	return nil
 }
