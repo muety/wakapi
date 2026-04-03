@@ -8,7 +8,6 @@ import (
 
 	"github.com/duke-git/lancet/v2/slice"
 	conf "github.com/muety/wakapi/config"
-	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -106,22 +105,6 @@ func InsertBatchChunked[T any](data []T, model T, db *gorm.DB) error {
 }
 
 func insertBatch[T any](data []T, model T, db *gorm.DB) error {
-	// sqlserver on conflict has bug https://github.com/go-gorm/sqlserver/issues/100
-	// As a workaround, insert one by one, and ignore duplicate key error
-	if db.Dialector.Name() == (sqlserver.Dialector{}).Name() {
-		for _, h := range data {
-			err := db.Create(h).Error
-			if err != nil {
-				if strings.Contains(err.Error(), "Cannot insert duplicate key row in object") {
-					// ignored
-				} else {
-					return err
-				}
-			}
-		}
-		return nil
-	}
-
 	if err := db.
 		Clauses(clause.OnConflict{
 			DoNothing: true,

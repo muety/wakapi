@@ -22,7 +22,6 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 	_ "gorm.io/driver/mysql"
 	_ "gorm.io/driver/postgres"
-	_ "gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
