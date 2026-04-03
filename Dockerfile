@@ -1,8 +1,6 @@
 FROM --platform=$BUILDPLATFORM golang:alpine AS build-env
 WORKDIR /src
 
-RUN apk add --no-cache ca-certificates tzdata && update-ca-certificates
-
 COPY ./go.mod ./go.sum ./
 RUN go mod download
 COPY . .
@@ -45,10 +43,7 @@ ENV ENVIRONMENT=prod \
     WAKAPI_INSECURE_COOKIES='true' \
     WAKAPI_ALLOW_SIGNUP='true'
 
-COPY --from=build-env --chown=nonroot:nonroot --chmod=0444 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY --from=build-env --chown=nonroot:nonroot --chmod=0555 /usr/share/zoneinfo /usr/share/zoneinfo
-
-COPY --from=build-env --chown=nonroot:nonroot /staging/app /app
+COPY --from=build-env --chown=root:root /staging/app /app
 COPY --from=build-env --chown=nonroot:nonroot /staging/data /data
 
 LABEL org.opencontainers.image.url="https://github.com/muety/wakapi" \
