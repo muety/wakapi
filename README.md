@@ -32,7 +32,7 @@
 </p>
 
 > [!IMPORTANT]
-> Upvote Wakapi on [AlternativeTo](https://alternativeto.net/software/wakapi/about/) and [ProductHunt](https://www.producthunt.com/posts/wakapi-coding-statistics) to support the project 🌈.
+> Due to limited time available on the maintainers' part, we temporarily do not accept pull requests. Please refrain from submitting contributions for the time being.
 
 ## 🚀 Features
 
@@ -594,11 +594,10 @@ Coding in open source is my passion, and I would love to do it on a full-time ba
 
 I highly appreciate the efforts of **[@alanhamlett](https://github.com/alanhamlett)** and the WakaTime team and am thankful for their software being open source.
 
-Moreover, thanks to **[server.camp](https://server.camp)** for donating server infrastructure for Wakapi.dev and [Tuta](https://tuta.com) to support us with their open-source sponsorship program.
+Moreover, thanks to **[server.camp](https://server.camp)** for donating server infrastructure for Wakapi.dev.
 
 <div>
   <img src=".github/assets/servercamp_logo.png" width="200px" />
-  <img src=".github/assets/tuta_logo.svg" width="200px"/>
 </div>
 
 ## 📓 License

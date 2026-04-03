@@ -54,7 +54,7 @@ type DurationServiceTestSuite struct {
 func (suite *DurationServiceTestSuite) SetupSuite() {
 	suite.TestUser = &models.User{ID: TestUserId, HeartbeatsTimeoutSec: int(models.DefaultHeartbeatsTimeoutLegacy / time.Second)}
 
-	// https://anchr.io/i/F0HEK.jpg
+	// https:// anchr.io/i/F0HEK.jpg
 	suite.TestStartTime = time.Unix(0, MinUnixTime1)
 	suite.TestHeartbeats = []*models.Heartbeat{
 		{
@@ -152,7 +152,7 @@ func TestDurationServiceTestSuite(t *testing.T) {
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get() {
-	// https://anchr.io/i/F0HEK.jpg
+	// https:// anchr.io/i/F0HEK.jpg
 	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
 
 	var (
@@ -225,7 +225,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered() {
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_ProjectDetails() {
-	// https://github.com/muety/wakapi/issues/876
+	// https:// github.com/muety/wakapi/issues/876
 	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
 
 	var (
@@ -395,7 +395,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_WithLanguageMappi
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_WithLanguageMappingsForExistingLanguages() {
-	// https://github.com/muety/wakapi/issues/928
+	// https:// github.com/muety/wakapi/issues/928
 	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
 
 	// Setup heartbeats
@@ -457,6 +457,102 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_WithLanguageMappi
 	assert.Equal(suite.T(), "Svelte", d1.Language)     // exact match for .ts
 	assert.Equal(suite.T(), "TypeScript", d2.Language) // no "collateral damage" (did not match .ts)
 	assert.Equal(suite.T(), "Jest", d3.Language)       // more precise match (.test.js over .js)
+}
+
+func (suite *DurationServiceTestSuite) TestDuration_Hashed() {
+	now := time.Unix(1600000000, 0)
+	d1 := &models.Duration{
+		UserID:          "user1",
+		Project:         "project1",
+		Language:        "lang1",
+		Editor:          "editor1",
+		OperatingSystem: "os1",
+		Machine:         "machine1",
+		Category:        "cat1",
+		Branch:          "branch1",
+		Entity:          "entity1",
+		Extension:       "ext1",
+		Time:            models.CustomTime(now),
+		Duration:        10 * time.Second,
+		NumHeartbeats:   1,
+		Timeout:         2 * time.Minute,
+	}
+	d1.Hashed()
+
+	// same values -> same hash
+	d2 := *d1
+	d2.Hashed()
+	assert.Equal(suite.T(), d1.GroupHash, d2.GroupHash)
+
+	// different project -> different hash
+	d3 := *d1
+	d3.Project = "project2"
+	d3.Hashed()
+	assert.NotEqual(suite.T(), d1.GroupHash, d3.GroupHash)
+
+	// ...
+
+	// different branch -> different hash
+	d9 := *d1
+	d9.Branch = "branch2"
+	d9.Hashed()
+	assert.NotEqual(suite.T(), d1.GroupHash, d9.GroupHash)
+
+	// different user ID -> different hash
+	d10 := *d1
+	d10.UserID = "user2"
+	d10.Hashed()
+	assert.NotEqual(suite.T(), d1.GroupHash, d10.GroupHash)
+
+	// different extension -> different hash
+	d11 := *d1
+	d11.Extension = "ext2"
+	d11.Hashed()
+	assert.NotEqual(suite.T(), d1.GroupHash, d11.GroupHash)
+
+	// different entity -> different hash (when not excluded)
+	d12 := *d1
+	d12.Entity = "entity2"
+	d12.Hashed()
+	assert.NotEqual(suite.T(), d1.GroupHash, d12.GroupHash)
+
+	// different entity but entity ignored -> same hash
+	d13 := *d1
+	d13.WithEntityIgnored().Hashed()
+	d14 := *d1
+	d14.Entity = "entity2"
+	d14.WithEntityIgnored().Hashed()
+	assert.Equal(suite.T(), d13.GroupHash, d14.GroupHash)
+
+	// different time -> same hash
+	d15 := *d1
+	d15.Time = models.CustomTime(now.Add(1 * time.Hour))
+	d15.Hashed()
+	assert.Equal(suite.T(), d1.GroupHash, d15.GroupHash)
+
+	// different duration -> same hash
+	d16 := *d1
+	d16.Duration = 20 * time.Second
+	d16.Hashed()
+	assert.Equal(suite.T(), d1.GroupHash, d16.GroupHash)
+
+	// different num heartbeats -> same hash
+	d17 := *d1
+	d17.NumHeartbeats = 5
+	d17.Hashed()
+	assert.Equal(suite.T(), d1.GroupHash, d17.GroupHash)
+
+	// different ID -> same hash
+	d18 := *d1
+	d18.ID = 123
+	d18.Hashed()
+	assert.Equal(suite.T(), d1.GroupHash, d18.GroupHash)
+
+	// different timeout -> same hash
+	d19 := *d1
+	d19.Timeout = 10 * time.Minute
+	d19.Hashed()
+	assert.Equal(suite.T(), d1.GroupHash, d19.GroupHash)
 }
 
 func filterHeartbeats(from, to time.Time, heartbeats []*models.Heartbeat) []*models.Heartbeat {

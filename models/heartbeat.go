@@ -30,7 +30,7 @@ type Heartbeat struct {
 	// note: on sqlite, table will have an additional column `time_real`, introduced "manually" by migration 20260111
 	// see https://github.com/muety/wakapi/issues/882 for details
 	Time             CustomTime `json:"time" gorm:"timeScale:3; index:idx_time; index:idx_time_user; not null" swaggertype:"primitive,number"`
-	Hash             string     `json:"-" gorm:"type:varchar(17); uniqueIndex"`
+	Hash             string     `json:"-" hash:"ignore" gorm:"type:varchar(17); uniqueIndex"`
 	Origin           string     `json:"-" hash:"ignore" gorm:"type:varchar(255)"`
 	OriginId         string     `json:"-" hash:"ignore" gorm:"type:varchar(255)"`
 	CreatedAt        CustomTime `json:"created_at" gorm:"timeScale:3; not null" swaggertype:"primitive,number" hash:"ignore"` // https://gorm.io/docs/conventions.html#CreatedAt
