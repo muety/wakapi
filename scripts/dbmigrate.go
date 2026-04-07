@@ -56,6 +56,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/glebarez/sqlite"
@@ -197,6 +198,9 @@ func main() {
 		if data, err := keyValueSource.GetAll(); err == nil {
 			bar = progressbar.Default(int64(len(data)))
 			for _, e := range data {
+				if isMigrationMarker(e) {
+					continue
+				}
 				if err := keyValueTarget.PutString(e); err != nil {
 					log.Printf("warning: failed to insert key-value pair %s (%s)\n", e.Key, err)
 					continue
@@ -466,4 +470,10 @@ func mustConfigPath() string {
 		log.Fatalln("failed to find config file at", *cFlag)
 	}
 	return *cFlag
+}
+
+var migrationMarkerRe = regexp.MustCompile(`^\d{8,9}-\w+$`)
+
+func isMigrationMarker(kv *models.KeyStringValue) bool {
+	return migrationMarkerRe.MatchString(kv.Key) && kv.Value == "done"
 }
