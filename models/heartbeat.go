@@ -41,6 +41,10 @@ type Heartbeat struct {
 	LineAdditions    int        `json:"line_additions,omitempty" hash:"ignore"`
 	ProjectRootCount int        `json:"project_root_count,omitempty" hash:"ignore"`
 	AILineChanges    int        `json:"ai_line_changes,omitempty" hash:"ignore"`
+	AISession        string     `json:"ai_session,omitempty" hash:"ignore"`
+	AIInputTokens    int        `json:"ai_input_tokens,omitempty" hash:"ignore"`
+	AIOutputTokens   int        `json:"ai_output_tokens,omitempty" hash:"ignore"`
+	AIPromptLength   int        `json:"ai_prompt_length,omitempty" hash:"ignore"`
 	HumanLineChanges int        `json:"human_line_changes,omitempty" hash:"ignore"`
 }
 

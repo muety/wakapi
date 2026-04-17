@@ -1080,8 +1080,20 @@ const docTemplate = `{
         "models.Heartbeat": {
             "type": "object",
             "properties": {
+                "ai_input_tokens": {
+                    "type": "integer"
+                },
                 "ai_line_changes": {
                     "type": "integer"
+                },
+                "ai_output_tokens": {
+                    "type": "integer"
+                },
+                "ai_prompt_length": {
+                    "type": "integer"
+                },
+                "ai_session": {
+                    "type": "string"
                 },
                 "branch": {
                     "type": "string"
@@ -1307,8 +1319,20 @@ const docTemplate = `{
         "v1.HeartbeatEntry": {
             "type": "object",
             "properties": {
+                "ai_input_tokens": {
+                    "type": "integer"
+                },
                 "ai_line_changes": {
                     "type": "integer"
+                },
+                "ai_output_tokens": {
+                    "type": "integer"
+                },
+                "ai_prompt_length": {
+                    "type": "integer"
+                },
+                "ai_session": {
+                    "type": "string"
                 },
                 "branch": {
                     "type": "string"
