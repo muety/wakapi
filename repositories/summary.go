@@ -3,6 +3,7 @@ package repositories
 import (
 	"errors"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/duke-git/lancet/v2/slice"
@@ -144,6 +145,9 @@ func (r *SummaryRepository) GetLastBySingleUser(userId string) (time.Time, error
 		Select("max(to_time)").
 		Where("user_id = ?", userId).
 		Scan(&result).Error; err != nil {
+		if strings.Contains(err.Error(), "unsupported type: <nil>") {
+			err = nil // raised when query returns null in case no summaries exist for user
+		}
 		return time.Time{}, err
 	}
 	if result == nil {
