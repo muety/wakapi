@@ -110,8 +110,10 @@ type ISummaryRepository interface {
 	GetAll() ([]*models.Summary, error)
 	GetByUserWithin(*models.User, time.Time, time.Time) ([]*models.Summary, error)
 	GetLastByUser() ([]*models.TimeByUser, error)
+	GetLastBySingleUser(string) (time.Time, error)
 	DeleteByUser(string) error
 	DeleteByUserBefore(string, time.Time) error
+	DeleteByUserAfter(string, time.Time) error
 }
 
 type IUserRepository interface {

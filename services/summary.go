@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"sort"
 	"strconv"
@@ -23,6 +24,7 @@ import (
 type SummaryService struct {
 	config              *config.Config
 	cache               *cache.Cache
+	heartbeatCache      *cache.Cache
 	eventBus            *hub.Hub
 	repository          repositories.ISummaryRepository
 	heartbeatService    IHeartbeatService
@@ -35,6 +37,7 @@ func NewSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatSer
 	srv := &SummaryService{
 		config:              config.Get(),
 		cache:               cache.New(24*time.Hour, 24*time.Hour),
+		heartbeatCache:      cache.New(24*time.Hour, 24*time.Hour),
 		eventBus:            config.EventBus(),
 		repository:          summaryRepo,
 		heartbeatService:    heartbeatService,
@@ -43,12 +46,33 @@ func NewSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatSer
 		projectLabelService: projectLabelService,
 	}
 
-	sub1 := srv.eventBus.Subscribe(0, config.TopicProjectLabel)
+	sub1 := srv.eventBus.Subscribe(0, config.TopicProjectLabel) // published from project label service
 	go func(sub *hub.Subscription) {
 		for m := range sub.Receiver {
 			srv.invalidateUserCache(m.Fields[config.FieldUserId].(string))
 		}
 	}(&sub1)
+
+	sub2 := srv.eventBus.Subscribe(0, config.EventHeartbeatCreate)
+	go func(sub *hub.Subscription) {
+		for m := range sub.Receiver {
+			heartbeat := m.Fields[config.FieldPayload].(*models.Heartbeat)
+			cacheKey := fmt.Sprintf("latest_heartbeat_%s", heartbeat.UserID)
+
+			if latestHeartbeatTime, ok := srv.heartbeatCache.Get(cacheKey); !ok || heartbeat.Time.T().Before(latestHeartbeatTime.(time.Time)) {
+				if latestSummaryTime, err := srv.GetLatestBySingleUser(heartbeat.UserID); err != nil {
+					config.Log().Error("failed to retrieve latest summary time for user", "user", heartbeat.UserID, "error", err)
+				} else if latestSummaryTime.After(heartbeat.Time.T()) {
+					slog.Info("got heartbeat older than the user's latest summary, clearing newer summaries", "user", heartbeat.UserID, "heartbeat_time", heartbeat.Time.T(), "latest_summary_time", latestSummaryTime)
+					if err := srv.DeleteByUserAfter(heartbeat.UserID, heartbeat.Time.T()); err != nil {
+						config.Log().Error("failed to delete user summaries after receiving historical heartbeat", "user", heartbeat.UserID, "error", err)
+					}
+				}
+			}
+
+			srv.heartbeatCache.SetDefault(cacheKey, heartbeat.Time.T())
+		}
+	}(&sub2)
 
 	return srv
 }
@@ -245,6 +269,10 @@ func (srv *SummaryService) GetLatestByUser() ([]*models.TimeByUser, error) {
 	return srv.repository.GetLastByUser()
 }
 
+func (srv *SummaryService) GetLatestBySingleUser(userId string) (time.Time, error) {
+	return srv.repository.GetLastBySingleUser(userId)
+}
+
 func (srv *SummaryService) DeleteByUser(userId string) error {
 	srv.invalidateUserCache(userId)
 	return srv.repository.DeleteByUser(userId)
@@ -253,6 +281,11 @@ func (srv *SummaryService) DeleteByUser(userId string) error {
 func (srv *SummaryService) DeleteByUserBefore(userId string, t time.Time) error {
 	srv.invalidateUserCache(userId)
 	return srv.repository.DeleteByUserBefore(userId, t)
+}
+
+func (srv *SummaryService) DeleteByUserAfter(userId string, t time.Time) error {
+	srv.invalidateUserCache(userId)
+	return srv.repository.DeleteByUserAfter(userId, t)
 }
 
 func (srv *SummaryService) Insert(summary *models.Summary) error {

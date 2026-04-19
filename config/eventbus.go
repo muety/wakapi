@@ -34,3 +34,7 @@ func init() {
 func EventBus() *hub.Hub {
 	return eventHub
 }
+
+func SetEventBus(eventBus *hub.Hub) { // only for testing purposes!
+	eventHub = eventBus
+}

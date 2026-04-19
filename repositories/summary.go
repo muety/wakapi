@@ -131,11 +131,25 @@ func (r *SummaryRepository) GetByUserWithin(user *models.User, from, to time.Tim
 func (r *SummaryRepository) GetLastByUser() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
 	r.db.Model(&models.User{}).
-		Select(utils.QuoteSql(r.db, "users.id as %s, max(to_time) as time", "user")).
+		Select(utils.QuoteSql(r.db, "users.id as %s, max(to_time) as time", "user")). // TODO: check timezone
 		Joins("left join summaries on users.id = summaries.user_id").
 		Group("users.id").
 		Scan(&result)
 	return result, nil
+}
+
+func (r *SummaryRepository) GetLastBySingleUser(userId string) (time.Time, error) {
+	var result *models.CustomTime
+	if err := r.db.Model(&models.Summary{}).
+		Select("max(to_time)").
+		Where("user_id = ?", userId).
+		Scan(&result).Error; err != nil {
+		return time.Time{}, err
+	}
+	if result == nil {
+		return time.Time{}, nil
+	}
+	return result.T(), nil
 }
 
 func (r *SummaryRepository) DeleteByUser(userId string) error {
@@ -151,6 +165,16 @@ func (r *SummaryRepository) DeleteByUserBefore(userId string, t time.Time) error
 	if err := r.db.
 		Where("user_id = ?", userId).
 		Where("to_time <= ?", t.Local()).
+		Delete(models.Summary{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *SummaryRepository) DeleteByUserAfter(userId string, t time.Time) error {
+	if err := r.db.
+		Where("user_id = ?", userId).
+		Where("to_time >= ?", t.Local()).
 		Delete(models.Summary{}).Error; err != nil {
 		return err
 	}

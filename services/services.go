@@ -115,8 +115,10 @@ type ISummaryService interface {
 	Retrieve(time.Time, time.Time, *models.User, *models.Filters, *time.Duration) (*models.Summary, error)
 	Summarize(time.Time, time.Time, *models.User, *models.Filters, *time.Duration) (*models.Summary, error)
 	GetLatestByUser() ([]*models.TimeByUser, error)
+	GetLatestBySingleUser(string) (time.Time, error)
 	DeleteByUser(string) error
 	DeleteByUserBefore(string, time.Time) error
+	DeleteByUserAfter(string, time.Time) error
 	Insert(*models.Summary) error
 }
 
