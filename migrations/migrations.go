@@ -90,6 +90,7 @@ func Run(db *gorm.DB, cfg *config.Config) {
 }
 
 func RunSchemaMigrations(db *gorm.DB, cfg *config.Config) {
+	slog.Info("running schema migrations")
 	if err := GetMigrationFunc(cfg)(db); err != nil {
 		config.Log().Fatal("migration failed", "error", err)
 	}
