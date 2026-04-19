@@ -85,6 +85,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	machineName := r.Header.Get("X-Machine-Name")
 
 	creationResults := make(v1.HeartbeatCreationResults, len(heartbeats))
+	validHeartbeats := make([]*models.Heartbeat, 0, len(heartbeats))
 
 	for i, hb := range heartbeats {
 		if hb == nil {
@@ -125,22 +126,25 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 
 		hb.Hashed()
 		creationResults[i] = v1.HeartbeatSuccess
+		validHeartbeats = append(validHeartbeats, hb)
 	}
 
-	if err := h.heartbeatSrvc.InsertBatch(heartbeats); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(conf.ErrInternalServerError))
-		conf.Log().Request(r).Error("failed to batch-insert heartbeats", "error", err)
-		return
-	}
-
-	if !user.HasData {
-		user.HasData = true
-		if _, err := h.userSrvc.Update(user); err != nil {
+	if len(validHeartbeats) > 0 {
+		if err := h.heartbeatSrvc.InsertBatch(validHeartbeats); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(conf.ErrInternalServerError))
-			conf.Log().Request(r).Error("failed to update user", "userID", user.ID, "error", err)
+			conf.Log().Request(r).Error("failed to batch-insert heartbeats", "error", err)
 			return
+		}
+
+		if !user.HasData {
+			user.HasData = true
+			if _, err := h.userSrvc.Update(user); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(conf.ErrInternalServerError))
+				conf.Log().Request(r).Error("failed to update user", "userID", user.ID, "error", err)
+				return
+			}
 		}
 	}
 

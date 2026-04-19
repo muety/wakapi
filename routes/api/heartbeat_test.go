@@ -1,16 +1,25 @@
 package api
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
+	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
+	routeutils "github.com/muety/wakapi/routes/utils"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestHeartbeatHandler_Options(t *testing.T) {
@@ -43,6 +52,58 @@ func TestHeartbeatHandler_Options(t *testing.T) {
 			assert.Equal(t, "*", res.Header.Get("Access-Control-Allow-Origin"))
 			assert.Equal(t, "POST", res.Header.Get("Access-Control-Allow-Methods"))
 		})
+	})
+}
+
+func TestHeartbeatHandler_Post_Timeliness(t *testing.T) {
+	cfg := config.Empty()
+	cfg.App.HeartbeatMaxAge = "168h" // 7 days
+	config.Set(cfg)
+
+	userServiceMock := new(mocks.UserServiceMock)
+	heartbeatServiceMock := new(mocks.HeartbeatServiceMock)
+	handler := NewHeartbeatApiHandler(userServiceMock, heartbeatServiceMock, nil)
+
+	user := &models.User{ID: "testuser", HasData: true}
+
+	t.Run("should only insert timely heartbeats", func(t *testing.T) {
+		now := time.Now()
+		timelyTime := now.Unix()
+		untimelyTime := now.Add(-200 * time.Hour).Unix()
+
+		body := fmt.Sprintf(`[{"entity": "timely.go", "time": %d}, {"entity": "untimely.go", "time": %d}]`, timelyTime, untimelyTime)
+		req := httptest.NewRequest(http.MethodPost, "/heartbeats", bytes.NewBufferString(body))
+
+		sharedData := config.NewSharedData()
+		ctx := context.WithValue(req.Context(), config.KeySharedData, sharedData)
+		req = req.WithContext(ctx)
+		routeutils.SetPrincipal(req, user)
+
+		rec := httptest.NewRecorder()
+
+		// Expectation: only 1 heartbeat should be passed to InsertBatch
+		heartbeatServiceMock.On("InsertBatch", mock.MatchedBy(func(hbs []*models.Heartbeat) bool {
+			return len(hbs) == 1 && hbs[0].Entity == "timely.go"
+		})).Return(nil)
+
+		handler.Post(rec, req)
+
+		assert.Equal(t, http.StatusCreated, rec.Code)
+
+		var response v1.HeartbeatResponseViewModel
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(response.Responses))
+
+		// Check first heartbeat (timely) - should be 201
+		assert.Equal(t, float64(http.StatusCreated), response.Responses[0][1])
+		assert.Nil(t, response.Responses[0][0].(map[string]interface{})["error"])
+
+		// Check second heartbeat (untimely) - should be 400
+		assert.Equal(t, float64(http.StatusBadRequest), response.Responses[1][1])
+		assert.Equal(t, "invalid heartbeat object", response.Responses[1][0].(map[string]interface{})["error"])
+
+		heartbeatServiceMock.AssertExpectations(t)
 	})
 }
 
