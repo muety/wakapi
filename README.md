@@ -3,10 +3,10 @@
 </p>
 
 <p align="center">
-  <img src="https://badges.fw-web.space/github/license/muety/wakapi">
-  <a href="https://liberapay.com/muety/"><img src="https://badges.fw-web.space/liberapay/receives/muety.svg?logo=liberapay"></a>
+  <img src="https://img.shields.io/github/license/muety/wakapi">
+  <a href="https://liberapay.com/muety/"><img src="https://img.shields.io/liberapay/receives/muety.svg?logo=liberapay"></a>
   <img src="https://wakapi.dev/api/badge/n1try/interval:any/project:wakapi?label=wakapi">
-  <img src="https://badges.fw-web.space/github/languages/code-size/muety/wakapi">
+  <img src="https://img.shields.io/github/languages/code-size/muety/wakapi">
   <a href="https://goreportcard.com/report/github.com/muety/wakapi"><img src="https://goreportcard.com/badge/github.com/muety/wakapi"></a>
   <a href="https://sonarcloud.io/dashboard?id=muety_wakapi"><img src="https://sonarcloud.io/api/project_badges/measure?project=muety_wakapi&metric=ncloc"></a>
 </p>
