@@ -80,9 +80,9 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userAgent := r.Header.Get("User-Agent")
-	opSys, editor, _ := utils.ParseUserAgent(userAgent)
-	machineName := r.Header.Get("X-Machine-Name")
+	userAgentHeader := r.Header.Get("User-Agent")
+	opSysHeader, editorHeader, _ := utils.ParseUserAgent(userAgentHeader)
+	machineNameHeader := r.Header.Get("X-Machine-Name")
 
 	creationResults := make(v1.HeartbeatCreationResults, len(heartbeats))
 	validHeartbeats := make([]*models.Heartbeat, 0, len(heartbeats))
@@ -96,7 +96,11 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		// TODO: unit test this
+		userAgent := userAgentHeader
+		opSys := opSysHeader
+		editor := editorHeader
+		machineName := machineNameHeader
+
 		if hb.UserAgent != "" {
 			userAgent = hb.UserAgent
 			localOpSys, localEditor, _ := utils.ParseUserAgent(userAgent)

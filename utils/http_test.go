@@ -135,6 +135,54 @@ var userAgents = []struct {
 		"vscode",
 		nil,
 	},
+	{
+		"wakatime/v2.7.0 (linux-6.19.12-200.fc43.x86_64-unknown) go1.25.9 Claude/2.1.118",
+		"Linux",
+		"Claude",
+		nil,
+	},
+	{
+		"wakatime/v1.107.0 (linux-6.11.8) go1.23.3 Claude/2.1.118 jetbrains/PyCharm/2023.1",
+		"Linux",
+		"Claude",
+		nil,
+	},
+	{
+		"wakatime/v1.115.2 (windows-10.0.22631.5335-x86_64) go1.24.2 Claude/unknown windows-wakatime/2.1.6",
+		"Windows",
+		"Claude",
+		nil,
+	},
+	{
+		"wakatime/v1.130.1 (linux-6.6.87.2-microsoft-standard-WSL2-x86_64) go1.24.4 claude-code-wakatime/2.1.0",
+		"WSL",
+		"Claude",
+		nil,
+	},
+	{
+		"wakatime/v1.131.0 (darwin-25.0.0-arm64) go1.24.4 Claude/0.11.3-0.11.3 macos-wakatime/5.27.2",
+		"Macos",
+		"Claude",
+		nil,
+	},
+	{
+		"wakatime/v1.139.1 (darwin-25.2.0-arm64) go1.25.5 claude-code",
+		"Macos",
+		"", // not a properly formatted user-agent string in our understanding
+		nil,
+	},
+	{
+		"wakatime/v1.123.0 (darwin-23.4.0-arm64) go1.24.4 windsurf/1.99.3 vscode-wakatime/25.1.1",
+		"Macos",
+		"windsurf",
+		nil,
+	},
+	{
+		"wakatime/v1.124.1 (windows-10.0.26100.4652-x86_64) go1.24.4 kiro/1.94.0 vscode-wakatime/25.2.0",
+		"Windows",
+		"kiro",
+		nil,
+	},
 }
 
 func BenchmarkCommon_ParseUserAgent(b *testing.B) {
