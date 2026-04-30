@@ -4,6 +4,7 @@ go 1.26
 
 require (
 	codeberg.org/Codeberg/avatars v1.0.0
+	github.com/Marlliton/slogpretty v0.1.3
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
 	github.com/alexedwards/argon2id v1.0.0
 	github.com/alitto/pond/v2 v2.7.0
