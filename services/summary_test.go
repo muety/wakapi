@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/leandro-lugaresi/hub"
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
@@ -704,6 +706,121 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_getMissingIntervals() {
 	assert.Equal(suite.T(), from2, r5[1].End)
 	assert.Equal(suite.T(), to2, r5[2].Start)
 	assert.Equal(suite.T(), to2.Add(time.Hour), r5[2].End)
+}
+
+func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_ClearsNewerSummaries() {
+	sut, eventBus := suite.createSut()
+
+	now := time.Now()
+	latestSummaryTime := now.Add(-10 * time.Minute)
+	historicalHeartbeatTime := now.Add(-1 * time.Hour) // older than latest summary
+
+	heartbeat := &models.Heartbeat{
+		UserID: TestUserId,
+		Time:   models.CustomTime(historicalHeartbeatTime),
+	}
+
+	suite.SummaryRepository.On("GetLastBySingleUser", TestUserId).Return(latestSummaryTime, nil).Once()
+	suite.SummaryRepository.On("DeleteByUserAfter", TestUserId, historicalHeartbeatTime).Return(nil).Once()
+
+	eventBus.Publish(hub.Message{
+		Name: config.EventHeartbeatCreate,
+		Fields: map[string]interface{}{
+			config.FieldPayload: heartbeat,
+		},
+	})
+
+	assert.Eventually(suite.T(), func() bool {
+		return suite.SummaryRepository.AssertCalled(suite.T(), "DeleteByUserAfter", TestUserId, historicalHeartbeatTime)
+	}, 2*time.Second, 20*time.Millisecond)
+
+	suite.SummaryRepository.AssertExpectations(suite.T())
+	_ = sut
+}
+
+func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_KeepsSummariesForRecentHeartbeat() {
+	sut, eventBus := suite.createSut()
+
+	now := time.Now()
+	latestSummaryTime := now.Add(-1 * time.Hour)
+	recentHeartbeatTime := now // newer than latest summary
+
+	heartbeat := &models.Heartbeat{
+		UserID: TestUserId,
+		Time:   models.CustomTime(recentHeartbeatTime),
+	}
+
+	// On the first heartbeat (no cache entry yet), the handler still calls GetLatestBySingleUser
+	suite.SummaryRepository.On("GetLastBySingleUser", TestUserId).Return(latestSummaryTime, nil).Once()
+
+	eventBus.Publish(hub.Message{
+		Name: config.EventHeartbeatCreate,
+		Fields: map[string]interface{}{
+			config.FieldPayload: heartbeat,
+		},
+	})
+
+	assert.Eventually(suite.T(), func() bool {
+		return suite.SummaryRepository.AssertCalled(suite.T(), "GetLastBySingleUser", TestUserId)
+	}, 2*time.Second, 20*time.Millisecond)
+
+	suite.SummaryRepository.AssertNotCalled(suite.T(), "DeleteByUserAfter", mock.Anything, mock.Anything)
+	_ = sut
+}
+
+func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_SkipsCheckWhenCacheHasNewer() {
+	sut, eventBus := suite.createSut()
+
+	now := time.Now()
+	latestSummaryTime := now.Add(-2 * time.Hour)
+
+	firstHeartbeat := &models.Heartbeat{
+		UserID: TestUserId,
+		Time:   models.CustomTime(now),
+	}
+	// Second heartbeat is also "recent" (not older than the cached one) -> check should be skipped and GetLastBySingleUser should NOT be called for it
+	secondHeartbeat := &models.Heartbeat{
+		UserID: TestUserId,
+		Time:   models.CustomTime(now.Add(1 * time.Minute)),
+	}
+
+	suite.SummaryRepository.On("GetLastBySingleUser", TestUserId).Return(latestSummaryTime, nil).Once() // Only the first heartbeat should trigger the DB lookup
+
+	eventBus.Publish(hub.Message{
+		Name: config.EventHeartbeatCreate,
+		Fields: map[string]interface{}{
+			config.FieldPayload: firstHeartbeat,
+		},
+	})
+
+	assert.Eventually(suite.T(), func() bool {
+		return suite.SummaryRepository.AssertCalled(suite.T(), "GetLastBySingleUser", TestUserId)
+	}, 2*time.Second, 20*time.Millisecond)
+
+	eventBus.Publish(hub.Message{
+		Name: config.EventHeartbeatCreate,
+		Fields: map[string]interface{}{
+			config.FieldPayload: secondHeartbeat,
+		},
+	})
+
+	time.Sleep(100 * time.Millisecond) // give the subscriber a moment to potentially process the second message
+
+	suite.SummaryRepository.AssertNumberOfCalls(suite.T(), "GetLastBySingleUser", 1)
+	suite.SummaryRepository.AssertNotCalled(suite.T(), "DeleteByUserAfter", mock.Anything, mock.Anything)
+	_ = sut
+}
+
+func (suite *SummaryServiceTestSuite) createSut() (*SummaryService, *hub.Hub) {
+	// This is a dirty, dirty hack and not thread-safe at all, but should do most of the time.
+	// Rationale: all services use a shared event hub for subscriptions to listen for events.
+	// When running tests that publish an event, it might be received by the subscriber goroutine of some other services, leading to "cross-talk".
+	// We create a custom, isolated event bus here, "very quickly" put it in place right before instantiating the service and restore the original "global" one right after.
+	originalEventBus := config.EventBus()
+	defer config.SetEventBus(originalEventBus)
+	eventBus := hub.New()
+	config.SetEventBus(eventBus)
+	return NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService), eventBus
 }
 
 func filterDurations(from, to time.Time, durations models.Durations) models.Durations {

@@ -3,10 +3,10 @@
 </p>
 
 <p align="center">
-  <img src="https://badges.fw-web.space/github/license/muety/wakapi">
-  <a href="https://liberapay.com/muety/"><img src="https://badges.fw-web.space/liberapay/receives/muety.svg?logo=liberapay"></a>
+  <img src="https://img.shields.io/github/license/muety/wakapi">
+  <a href="https://liberapay.com/muety/"><img src="https://img.shields.io/liberapay/receives/muety.svg?logo=liberapay"></a>
   <img src="https://wakapi.dev/api/badge/n1try/interval:any/project:wakapi?label=wakapi">
-  <img src="https://badges.fw-web.space/github/languages/code-size/muety/wakapi">
+  <img src="https://img.shields.io/github/languages/code-size/muety/wakapi">
   <a href="https://goreportcard.com/report/github.com/muety/wakapi"><img src="https://goreportcard.com/badge/github.com/muety/wakapi"></a>
   <a href="https://sonarcloud.io/dashboard?id=muety_wakapi"><img src="https://sonarcloud.io/api/project_badges/measure?project=muety_wakapi&metric=ncloc"></a>
 </p>
@@ -32,7 +32,7 @@
 </p>
 
 > [!IMPORTANT]
-> Upvote Wakapi on [AlternativeTo](https://alternativeto.net/software/wakapi/about/) and [ProductHunt](https://www.producthunt.com/posts/wakapi-coding-statistics) to support the project 🌈.
+> Due to limited time available on the maintainers' part, we temporarily do not accept pull requests. Please refrain from submitting contributions for the time being.
 
 ## 🚀 Features
 
@@ -175,6 +175,7 @@ You can specify configuration options either via a config file (default: `config
 | `app.import_batch_size` /<br>`WAKAPI_IMPORT_BATCH_SIZE`                                     | `50`                                             | Size of batches of heartbeats to insert to the database during importing from external services                                                                                 |
 | `app.import_backoff_min` /<br>`WAKAPI_IMPORT_BACKOFF_MIN`                                   | `5`                                              | "Cooldown" period in minutes before user may attempt another data import                                                                                                        |
 | `app.import_max_rate` /<br>`WAKAPI_IMPORT_MAX_RATE`                                         | `24`                                             | Minimum number of hours to wait after a successful data import before user may attempt another one                                                                              |
+| `app.import_hosts_whitelist` /<br>`WAKAPI_IMPORT_HOSTS_WHITELIST`                           | -                                                | List of whitelisted hostnames for data import (wildcards allowed, empty list means allow all)                                                                                   |
 | `app.inactive_days` /<br>`WAKAPI_INACTIVE_DAYS`                                             | `7`                                              | Number of days after which to consider a user inactive (only for metrics)                                                                                                       |
 | `app.heartbeat_max_age /`<br>`WAKAPI_HEARTBEAT_MAX_AGE`                                     | `4320h`                                          | Maximum acceptable age of a heartbeat (see [`ParseDuration`](https://pkg.go.dev/time#ParseDuration))                                                                            |
 | `app.warm_caches /`<br>`WAKAPI_WARM_CACHES`                                                 | `true`                                           | Whether to perform some initial cache warming upon startup                                                                                                                      |
@@ -196,6 +197,7 @@ You can specify configuration options either via a config file (default: `config
 | `server.base_path` /<br> `WAKAPI_BASE_PATH`                                                 | `/`                                              | Web base path (change when running behind a proxy under a sub-path)                                                                                                             |
 | `server.public_url` /<br> `WAKAPI_PUBLIC_URL`                                               | `http://localhost:3000`                          | URL at which your Wakapi instance can be found publicly                                                                                                                         |
 | `security.disable_local_auth` /<br> `WAKAPI_DISABLE_LOCAL_AUTH`                             | `false`                                          | Disables login via local credentials (username and password) to enforce OIDC provider login                                                                                     |
+| `security.disable_webauthn` /<br> `WAKAPI_DISABLE_WEBAUTHN`                                 | `true`                                           | Disables login via WebAuthn (security keys, biometrics, etc.)                                                                                                                   |
 | `security.password_salt` /<br> `WAKAPI_PASSWORD_SALT`                                       | -                                                | Pepper to use for password hashing                                                                                                                                              |
 | `security.insecure_cookies` /<br> `WAKAPI_INSECURE_COOKIES`                                 | `true`                                           | Whether or not to allow cookies over HTTP. For production, it is **highly recommended** to serve Wakapi via HTTPS and set this to `false`.                                      |
 | `security.cookie_max_age` /<br> `WAKAPI_COOKIE_MAX_AGE`                                     | `172800`                                         | Lifetime of authentication cookies in seconds or `0` to use [Session](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#Define_the_lifetime_of_a_cookie) cookies        |
@@ -592,11 +594,10 @@ Coding in open source is my passion, and I would love to do it on a full-time ba
 
 I highly appreciate the efforts of **[@alanhamlett](https://github.com/alanhamlett)** and the WakaTime team and am thankful for their software being open source.
 
-Moreover, thanks to **[server.camp](https://server.camp)** for donating server infrastructure for Wakapi.dev and [Tuta](https://tuta.com) to support us with their open-source sponsorship program.
+Moreover, thanks to **[server.camp](https://server.camp)** for donating server infrastructure for Wakapi.dev.
 
 <div>
   <img src=".github/assets/servercamp_logo.png" width="200px" />
-  <img src=".github/assets/tuta_logo.svg" width="200px"/>
 </div>
 
 ## 📓 License

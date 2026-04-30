@@ -6,16 +6,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log/slog"
+	"net/http"
+	"time"
+
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/patrickmn/go-cache"
-	"io"
-	"log/slog"
-	"net/http"
-	"time"
 )
 
 const maxFailuresPerDay = 100
@@ -32,6 +33,9 @@ func NewWakatimeRelayMiddleware() *WakatimeRelayMiddleware {
 	return &WakatimeRelayMiddleware{
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse // forbid following redirects
+			},
 		},
 		hashCache:    cache.New(10*time.Minute, 10*time.Minute),
 		failureCache: cache.New(24*time.Hour, 1*time.Hour),
@@ -57,6 +61,11 @@ func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	user := middlewares.GetPrincipal(r)
 	if user == nil || user.WakatimeApiKey == "" {
+		return
+	}
+
+	if err := routeutils.ValidateWakatimeUrl(user.WakatimeApiUrl); err != nil {
+		config.Log().Request(r).Error("failed to validate wakatime url while relaying", "url", user.WakatimeApiUrl, "error", err)
 		return
 	}
 

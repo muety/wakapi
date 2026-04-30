@@ -164,6 +164,7 @@ func (r *UserRepository) Update(user *models.User) (*models.User, error) {
 		"readme_stats_base_url":    user.ReadmeStatsBaseUrl,
 		"auth_type":                user.AuthType,
 		"sub":                      condition.Ternary[bool, interface{}](user.Sub == "", nil, user.Sub),
+		"webauthn_id":              user.WebauthnID,
 	}
 
 	result := r.db.Model(user).Updates(updateMap)

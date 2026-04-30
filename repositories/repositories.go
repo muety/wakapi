@@ -50,7 +50,7 @@ type IHeartbeatRepository interface {
 	DeleteBefore(time.Time) error
 	DeleteByUser(*models.User) error
 	DeleteByUserBefore(*models.User, time.Time) error
-	GetUserProjectStats(*models.User, time.Time, time.Time, int, int) ([]*models.ProjectStats, error)
+	GetUserProjectStats(*models.User, time.Time, time.Time, string, int, int) ([]*models.ProjectStats, error)
 	GetUserAgentsByUser(user *models.User) ([]*models.UserAgent, error)
 }
 
@@ -110,8 +110,10 @@ type ISummaryRepository interface {
 	GetAll() ([]*models.Summary, error)
 	GetByUserWithin(*models.User, time.Time, time.Time) ([]*models.Summary, error)
 	GetLastByUser() ([]*models.TimeByUser, error)
+	GetLastBySingleUser(string) (time.Time, error)
 	DeleteByUser(string) error
 	DeleteByUserBefore(string, time.Time) error
+	DeleteByUserAfter(string, time.Time) error
 }
 
 type IUserRepository interface {
@@ -152,4 +154,13 @@ type IApiKeyRepository interface {
 	GetByApiKey(string, bool) (*models.ApiKey, error)
 	Insert(*models.ApiKey) (*models.ApiKey, error)
 	Delete(string) error
+}
+
+type IWebAuthnRepository interface {
+	IBaseRepository
+	Insert(*models.WebAuthnCredential) (*models.WebAuthnCredential, error)
+	GetByUser(string) ([]*models.WebAuthnCredential, error)
+	GetByUserAndName(string, string) (*models.WebAuthnCredential, error)
+	Update(*models.WebAuthnCredential) error
+	Delete(*models.WebAuthnCredential) error
 }

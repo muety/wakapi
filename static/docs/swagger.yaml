@@ -18,6 +18,16 @@ definitions:
     type: object
   models.Heartbeat:
     properties:
+      ai_input_tokens:
+        type: integer
+      ai_line_changes:
+        type: integer
+      ai_output_tokens:
+        type: integer
+      ai_prompt_length:
+        type: integer
+      ai_session:
+        type: string
       branch:
         type: string
       category:
@@ -32,6 +42,8 @@ definitions:
         type: string
       entity:
         type: string
+      human_line_changes:
+        type: integer
       is_write:
         type: boolean
       language:
@@ -55,6 +67,9 @@ definitions:
       project_root_count:
         type: integer
       time:
+        description: |-
+          note: on sqlite, table will have an additional column `time_real`, introduced "manually" by migration 20260111
+          see https://github.com/muety/wakapi/issues/882 for details
         type: number
       type:
         type: string
@@ -178,6 +193,16 @@ definitions:
     type: object
   v1.HeartbeatEntry:
     properties:
+      ai_input_tokens:
+        type: integer
+      ai_line_changes:
+        type: integer
+      ai_output_tokens:
+        type: integer
+      ai_prompt_length:
+        type: integer
+      ai_session:
+        type: string
       branch:
         type: string
       category:
@@ -188,6 +213,8 @@ definitions:
         type: integer
       entity:
         type: string
+      human_line_changes:
+        type: integer
       id:
         type: string
       is_write:
@@ -378,6 +405,8 @@ definitions:
       start:
         type: string
       status:
+        type: string
+      timezone:
         type: string
       total_seconds:
         type: number
@@ -1095,107 +1124,6 @@ paths:
       summary: Push a new diagnostics object
       tags:
       - diagnostics
-  /relay:
-    delete:
-      operationId: relay-delete
-      parameters:
-      - description: Original URL to perform the request to
-        in: header
-        name: X-Target-URL
-        required: true
-        type: string
-      responses:
-        "403":
-          description: Returned if request path is not whitelisted
-          schema:
-            type: string
-        "502":
-          description: Returned if upstream host is down
-          schema:
-            type: string
-      summary: Proxy an DELETE API request to another Wakapi instance
-      tags:
-      - relay
-    get:
-      operationId: relay-get
-      parameters:
-      - description: Original URL to perform the request to
-        in: header
-        name: X-Target-URL
-        required: true
-        type: string
-      responses:
-        "403":
-          description: Returned if request path is not whitelisted
-          schema:
-            type: string
-        "502":
-          description: Returned if upstream host is down
-          schema:
-            type: string
-      summary: Proxy an GET API request to another Wakapi instance
-      tags:
-      - relay
-    patch:
-      operationId: relay-patch
-      parameters:
-      - description: Original URL to perform the request to
-        in: header
-        name: X-Target-URL
-        required: true
-        type: string
-      responses:
-        "403":
-          description: Returned if request path is not whitelisted
-          schema:
-            type: string
-        "502":
-          description: Returned if upstream host is down
-          schema:
-            type: string
-      summary: Proxy an PATCH API request to another Wakapi instance
-      tags:
-      - relay
-    post:
-      operationId: relay-post
-      parameters:
-      - description: Original URL to perform the request to
-        in: header
-        name: X-Target-URL
-        required: true
-        type: string
-      responses:
-        "403":
-          description: Returned if request path is not whitelisted
-          schema:
-            type: string
-        "502":
-          description: Returned if upstream host is down
-          schema:
-            type: string
-      summary: Proxy an POST API request to another Wakapi instance
-      tags:
-      - relay
-    put:
-      operationId: relay-put
-      parameters:
-      - description: Original URL to perform the request to
-        in: header
-        name: X-Target-URL
-        required: true
-        type: string
-      responses:
-        "403":
-          description: Returned if request path is not whitelisted
-          schema:
-            type: string
-        "502":
-          description: Returned if upstream host is down
-          schema:
-            type: string
-      summary: Proxy an PUT API request to another Wakapi instance
-      tags:
-      - relay
   /summary:
     get:
       operationId: get-summary

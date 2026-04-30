@@ -4,6 +4,7 @@ import (
 	"time"
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"gorm.io/gorm"
 
 	"github.com/muety/wakapi/models"
@@ -52,11 +53,12 @@ type IHeartbeatService interface {
 	GetLatestByFilters(*models.User, *models.Filters) (*models.Heartbeat, error)
 	GetEntitySetByUser(uint8, string) ([]string, error)
 	StreamAllWithin(time.Time, time.Time, *models.User) (chan *models.Heartbeat, error)
+	StreamAllWithinRaw(time.Time, time.Time, *models.User) (chan *models.Heartbeat, error)
 	StreamAllWithinByFilters(time.Time, time.Time, *models.User, *models.Filters) (chan *models.Heartbeat, error)
 	DeleteBefore(time.Time) error
 	DeleteByUser(*models.User) error
 	DeleteByUserBefore(*models.User, time.Time) error
-	GetUserProjectStats(*models.User, time.Time, time.Time, *utils.PageParams, bool) ([]*models.ProjectStats, error)
+	GetUserProjectStats(*models.User, time.Time, time.Time, string, *utils.PageParams, bool) ([]*models.ProjectStats, error)
 	GetUserAgentsByUser(*models.User) ([]*models.UserAgent, error)
 }
 
@@ -113,8 +115,10 @@ type ISummaryService interface {
 	Retrieve(time.Time, time.Time, *models.User, *models.Filters, *time.Duration) (*models.Summary, error)
 	Summarize(time.Time, time.Time, *models.User, *models.Filters, *time.Duration) (*models.Summary, error)
 	GetLatestByUser() ([]*models.TimeByUser, error)
+	GetLatestBySingleUser(string) (time.Time, error)
 	DeleteByUser(string) error
 	DeleteByUserBefore(string, time.Time) error
+	DeleteByUserAfter(string, time.Time) error
 	Insert(*models.Summary) error
 }
 
@@ -154,6 +158,7 @@ type IUserService interface {
 	GetUserByUnsubscribeToken(string) (*models.User, error)
 	GetUserByStripeCustomerId(string) (*models.User, error)
 	GetUserByOidc(string, string) (*models.User, error)
+	GetUserByWebAuthnID(string) (*models.User, error)
 	GetAll() ([]*models.User, error)
 	GetAllMapped() (map[string]*models.User, error)
 	GetMany([]string) ([]*models.User, error)
@@ -180,4 +185,13 @@ type IApiKeyService interface {
 	GetByUser(string) ([]*models.ApiKey, error)
 	Create(*models.ApiKey) (*models.ApiKey, error)
 	Delete(*models.ApiKey) error
+}
+
+type IWebAuthnService interface {
+	CreateCredential(*webauthn.Credential, *models.User, string) (*models.WebAuthnCredential, error)
+	GetCredentialsByUser(*models.User) ([]*models.WebAuthnCredential, error)
+	GetCredentialByUserAndName(*models.User, string) (*models.WebAuthnCredential, error)
+	LoadCredentialIntoUser(*models.User) error
+	DeleteCredential(*models.WebAuthnCredential) error
+	UpdateCredential(*webauthn.Credential) error
 }

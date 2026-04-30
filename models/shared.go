@@ -14,7 +14,6 @@ import (
 	"github.com/muety/wakapi/utils"
 	"gorm.io/driver/postgres"
 
-	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
@@ -52,11 +51,7 @@ type CustomTime time.Time
 func (j CustomTime) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 	t := "timestamp"
 
-	// sql server doesn't allow multiple columns with timestamp type in a column
-	// So we need to change the type to datetimeoffset
-	if db.Config.Dialector.Name() == (sqlserver.Dialector{}).Name() {
-		t = "datetimeoffset"
-	} else if db.Config.Dialector.Name() == (postgres.Dialector{}).Name() {
+	if db.Config.Dialector.Name() == (postgres.Dialector{}).Name() {
 		// TODO: migrate to timestamptz, see https://github.com/muety/wakapi/issues/771
 	}
 

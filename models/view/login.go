@@ -5,6 +5,7 @@ type LoginViewModel struct {
 	TotalUsers       int
 	AllowSignup      bool
 	DisableLocalAuth bool
+	DisableWebAuthn  bool
 	CaptchaId        string
 	InviteCode       string
 	OidcProviders    []LoginViewModelOidcProvider

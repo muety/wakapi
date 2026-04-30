@@ -1,19 +1,20 @@
 FROM --platform=$BUILDPLATFORM golang:alpine AS build-env
 WORKDIR /src
 
-RUN apk add --no-cache ca-certificates tzdata && update-ca-certificates
-
 COPY ./go.mod ./go.sum ./
 RUN go mod download
 COPY . .
 
 ARG TARGETOS
 ARG TARGETARCH
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 GOEXPERIMENT=greenteagc,jsonv2 go build -ldflags "-s -w" -v -o wakapi main.go
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 GOEXPERIMENT=jsonv2 go build -ldflags "-s -w" -v -o wakapi main.go
+# Need a statically linked healthcheck binary because we can't use curl in a distroless image in a straightforward way
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 go build -ldflags "-s -w" -v -o healthcheck scripts/healthcheck.go
 
 WORKDIR /staging
 RUN mkdir ./data ./app && \
     cp /src/wakapi app/ && \
+    cp /src/healthcheck app/ && \
     cp /src/config.default.yml app/config.yml && \
     sed -i 's/listen_ipv6: ::1/listen_ipv6: "-"/g' app/config.yml
 
@@ -42,10 +43,7 @@ ENV ENVIRONMENT=prod \
     WAKAPI_INSECURE_COOKIES='true' \
     WAKAPI_ALLOW_SIGNUP='true'
 
-COPY --from=build-env --chown=nonroot:nonroot --chmod=0444 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY --from=build-env --chown=nonroot:nonroot --chmod=0444 /usr/share/zoneinfo /usr/share/zoneinfo
-
-COPY --from=build-env --chown=nonroot:nonroot /staging/app /app
+COPY --from=build-env --chown=root:root /staging/app /app
 COPY --from=build-env --chown=nonroot:nonroot /staging/data /data
 
 LABEL org.opencontainers.image.url="https://github.com/muety/wakapi" \
@@ -58,5 +56,8 @@ LABEL org.opencontainers.image.url="https://github.com/muety/wakapi" \
 USER nonroot
 
 EXPOSE 3000
+
+# For long-running migrations, you might want to override `---health-start-period` as part of `docker run` or disable healthchecks entirely with `--no-healtcheck`
+HEALTHCHECK --interval=60s --timeout=3s --start-period=120s --retries=3 CMD ["/app/healthcheck"]
 
 ENTRYPOINT ["/app/wakapi"]

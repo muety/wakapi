@@ -30,6 +30,10 @@ func (m *SummaryServiceMock) GetLatestByUser() ([]*models.TimeByUser, error) {
 	args := m.Called()
 	return args.Get(0).([]*models.TimeByUser), args.Error(1)
 }
+func (m *SummaryServiceMock) GetLatestBySingleUser(s string) (time.Time, error) {
+	args := m.Called(s)
+	return args.Get(0).(time.Time), args.Error(1)
+}
 
 func (m *SummaryServiceMock) DeleteByUser(s string) error {
 	args := m.Called(s)
@@ -37,6 +41,11 @@ func (m *SummaryServiceMock) DeleteByUser(s string) error {
 }
 
 func (m *SummaryServiceMock) DeleteByUserBefore(s string, t time.Time) error {
+	args := m.Called(s, t)
+	return args.Error(0)
+}
+
+func (m *SummaryServiceMock) DeleteByUserAfter(s string, t time.Time) error {
 	args := m.Called(s, t)
 	return args.Error(0)
 }

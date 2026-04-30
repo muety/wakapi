@@ -2,8 +2,9 @@ package utils
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var userAgents = []struct {
@@ -120,6 +121,66 @@ var userAgents = []struct {
 		"HBuilder X/4.56 (Windows_NT 10.0.26100)", // https://github.com/muety/wakapi/issues/765
 		"Windows",
 		"HBuilder X",
+		nil,
+	},
+	{
+		"wakatime/1.139.1 (linux-6.18.8-unknown) go1.25.5 helix/25.07.1 (74075bb5) wakatime-ls/0.2.2 helix-wakatime/0.2.2", // https://github.com/muety/wakapi/issues/914
+		"Linux",
+		"helix",
+		nil,
+	},
+	{
+		"wakatime/v1.105.0 (linux-6.11.9-zen1-1-zen-unknown) go1.23.3 vscode/1.95.3 vscode-wakatime/24.8.0",
+		"Linux",
+		"vscode",
+		nil,
+	},
+	{
+		"wakatime/v2.7.0 (linux-6.19.12-200.fc43.x86_64-unknown) go1.25.9 Claude/2.1.118",
+		"Linux",
+		"Claude",
+		nil,
+	},
+	{
+		"wakatime/v1.107.0 (linux-6.11.8) go1.23.3 Claude/2.1.118 jetbrains/PyCharm/2023.1",
+		"Linux",
+		"Claude",
+		nil,
+	},
+	{
+		"wakatime/v1.115.2 (windows-10.0.22631.5335-x86_64) go1.24.2 Claude/unknown windows-wakatime/2.1.6",
+		"Windows",
+		"Claude",
+		nil,
+	},
+	{
+		"wakatime/v1.130.1 (linux-6.6.87.2-microsoft-standard-WSL2-x86_64) go1.24.4 claude-code-wakatime/2.1.0",
+		"WSL",
+		"Claude",
+		nil,
+	},
+	{
+		"wakatime/v1.131.0 (darwin-25.0.0-arm64) go1.24.4 Claude/0.11.3-0.11.3 macos-wakatime/5.27.2",
+		"Macos",
+		"Claude",
+		nil,
+	},
+	{
+		"wakatime/v1.139.1 (darwin-25.2.0-arm64) go1.25.5 claude-code",
+		"Macos",
+		"", // not a properly formatted user-agent string in our understanding
+		nil,
+	},
+	{
+		"wakatime/v1.123.0 (darwin-23.4.0-arm64) go1.24.4 windsurf/1.99.3 vscode-wakatime/25.1.1",
+		"Macos",
+		"windsurf",
+		nil,
+	},
+	{
+		"wakatime/v1.124.1 (windows-10.0.26100.4652-x86_64) go1.24.4 kiro/1.94.0 vscode-wakatime/25.2.0",
+		"Windows",
+		"kiro",
 		nil,
 	},
 }

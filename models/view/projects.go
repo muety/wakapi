@@ -13,6 +13,7 @@ type ProjectsViewModel struct {
 	SharedLoggedInViewModel
 	Projects   []*models.ProjectStats
 	PageParams *utils.PageParams
+	Query      string
 	maxCount   int64
 }
 

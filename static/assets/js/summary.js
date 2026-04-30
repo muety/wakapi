@@ -551,6 +551,13 @@ function draw(subselection) {
                         // "The values for the first bar of a stack are absolute values, all following values of the same stack must be relative to the end of the previous bar"
                         data[i] = [+fromTime - pre, +toTime - pre, `${fromTime.toLocaleTimeString()} - ${toTime.toLocaleTimeString()} (${(cur.duration / 1e9).toString().toHHMMSS()})`]
                         pre = +toTime
+
+                        if (data[i] < 0) {
+                            // this shouldn't happen since backend should be merging overlapping intervals, but since golang's duration is in nanosecond (1s=1e9) while javascript's date is in millisecond (1s=1e3), there might be some edge cases where due to rounding errors, the duration are overlapping, which causes the from_time to be before the previous to_time, thus resulting in negative duration for the current bar. In that case, we just set the duration to 0 to avoid showing negative bar.
+                            console.warn(`Negative duration for project ${project} at index ${i}, likely due to rounding errors. Setting duration to 0.`)
+                            data[i][0] = 0
+                        }
+
                         return {
                             data,
                             backgroundColor: vibrantColors ? getRandomColor(project) : getColor(project, i % baseColors.length),
@@ -571,7 +578,7 @@ function draw(subselection) {
                         min: +new Date(wakapiData.hourlyBreakdownFromTime),
                         max: +new Date(wakapiData.hourlyBreakdownToTime),
                         ticks: {
-                            stepSize: 1000 * 60 * 60, // pre hour
+                            stepSize: 1000 * 60 * 60, // per hour
                             callback: (value) => {
                                 return new Date(value).toLocaleString([], {
                                     dateStyle: 'short',

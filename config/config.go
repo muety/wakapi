@@ -14,7 +14,9 @@ import (
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/duke-git/lancet/v2/strutil"
 
+	"encoding/gob"
 	"log/slog"
+	"net/url"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/gorilla/securecookie"
@@ -22,6 +24,9 @@ import (
 	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/utils"
 	"github.com/robfig/cron/v3"
+
+	"github.com/becheran/wildmatch-go"
+	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 const (
@@ -45,6 +50,8 @@ const (
 	CookieKeyAuth                  = "wakapi_auth"
 	SessionValueOidcState          = "oidc_state"
 	SessionValueOidcIdTokenPayload = "oidc_id_token"
+	SessionValueWebAuthn           = "webauthn_session"
+	SessionValueWebAuthnExpiresAt  = "webauthn_session_expires_at"
 
 	SimpleDateFormat     = "2006-01-02"
 	SimpleDateTimeFormat = "2006-01-02 15:04:05"
@@ -73,6 +80,7 @@ const (
 var emailProviders = []string{
 	MailProviderSmtp,
 }
+var WebAuthn *webauthn.WebAuthn
 
 // first wakatime commit was on this day ;-) so no real heartbeats should exist before
 // https://github.com/wakatime/legacy-python-cli/commit/3da94756aa1903c1cca5035803e3f704e818c086
@@ -99,6 +107,7 @@ type appConfig struct {
 	ImportBackoffMin          int                          `yaml:"import_backoff_min" default:"5" env:"WAKAPI_IMPORT_BACKOFF_MIN"`
 	ImportMaxRate             int                          `yaml:"import_max_rate" default:"24" env:"WAKAPI_IMPORT_MAX_RATE"` // at max one successful import every x hours
 	ImportBatchSize           int                          `yaml:"import_batch_size" default:"50" env:"WAKAPI_IMPORT_BATCH_SIZE"`
+	ImportHostsWhitelist      []string                     `yaml:"import_hosts_whitelist"` // or WAKAPI_IMPORT_HOSTS_WHITELIST (read manually during load)
 	InactiveDays              int                          `yaml:"inactive_days" default:"7" env:"WAKAPI_INACTIVE_DAYS"`
 	HeartbeatMaxAge           string                       `yaml:"heartbeat_max_age" default:"168h" env:"WAKAPI_HEARTBEAT_MAX_AGE"`
 	CountCacheTTLMin          int                          `yaml:"count_cache_ttl_min" default:"30" env:"WAKAPI_COUNT_CACHE_TTL_MIN"`
@@ -119,6 +128,7 @@ type securityConfig struct {
 	AllowSignup      bool `yaml:"allow_signup" default:"true" env:"WAKAPI_ALLOW_SIGNUP"`
 	OidcAllowSignup  bool `yaml:"oidc_allow_signup" default:"true" env:"WAKAPI_OIDC_ALLOW_SIGNUP"`
 	DisableLocalAuth bool `yaml:"disable_local_auth" default:"false" env:"WAKAPI_DISABLE_LOCAL_AUTH"`
+	DisableWebAuthn  bool `yaml:"disable_webauthn" default:"true" env:"WAKAPI_DISABLE_WEBAUTHN"`
 	SignupCaptcha    bool `yaml:"signup_captcha" default:"false" env:"WAKAPI_SIGNUP_CAPTCHA"`
 	InviteCodes      bool `yaml:"invite_codes" default:"true" env:"WAKAPI_INVITE_CODES"`
 	ExposeMetrics    bool `yaml:"expose_metrics" default:"false" env:"WAKAPI_EXPOSE_METRICS"`
@@ -160,16 +170,17 @@ type dbConfig struct {
 }
 
 type serverConfig struct {
-	Port             int    `default:"3000" env:"WAKAPI_PORT"`
-	ListenIpV4       string `yaml:"listen_ipv4" default:"127.0.0.1" env:"WAKAPI_LISTEN_IPV4"`
-	ListenIpV6       string `yaml:"listen_ipv6" default:"::1" env:"WAKAPI_LISTEN_IPV6"`
-	ListenSocket     string `yaml:"listen_socket" default:"" env:"WAKAPI_LISTEN_SOCKET"`
-	ListenSocketMode uint32 `yaml:"listen_socket_mode" default:"0666" env:"WAKAPI_LISTEN_SOCKET_MODE"`
-	TimeoutSec       int    `yaml:"timeout_sec" default:"30" env:"WAKAPI_TIMEOUT_SEC"`
-	BasePath         string `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
-	PublicUrl        string `yaml:"public_url" default:"http://localhost:3000" env:"WAKAPI_PUBLIC_URL"`
-	TlsCertPath      string `yaml:"tls_cert_path" default:"" env:"WAKAPI_TLS_CERT_PATH"`
-	TlsKeyPath       string `yaml:"tls_key_path" default:"" env:"WAKAPI_TLS_KEY_PATH"`
+	Port             int      `default:"3000" env:"WAKAPI_PORT"`
+	ListenIpV4       string   `yaml:"listen_ipv4" default:"127.0.0.1" env:"WAKAPI_LISTEN_IPV4"`
+	ListenIpV6       string   `yaml:"listen_ipv6" default:"::1" env:"WAKAPI_LISTEN_IPV6"`
+	ListenSocket     string   `yaml:"listen_socket" default:"" env:"WAKAPI_LISTEN_SOCKET"`
+	ListenSocketMode uint32   `yaml:"listen_socket_mode" default:"0666" env:"WAKAPI_LISTEN_SOCKET_MODE"`
+	TimeoutSec       int      `yaml:"timeout_sec" default:"30" env:"WAKAPI_TIMEOUT_SEC"`
+	BasePath         string   `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
+	PublicUrl        string   `yaml:"public_url" default:"http://localhost:3000" env:"WAKAPI_PUBLIC_URL"`
+	PublicNetUrl     *url.URL `yaml:"-"`
+	TlsCertPath      string   `yaml:"tls_cert_path" default:"" env:"WAKAPI_TLS_CERT_PATH"`
+	TlsKeyPath       string   `yaml:"tls_key_path" default:"" env:"WAKAPI_TLS_KEY_PATH"`
 }
 
 type subscriptionsConfig struct {
@@ -401,6 +412,18 @@ func (c *appConfig) HeartbeatsMaxAge() time.Duration {
 	return d
 }
 
+func (c *appConfig) IsImportHostWhitelisted(host string) bool {
+	if len(c.ImportHostsWhitelist) == 0 {
+		return true
+	}
+	for _, p := range c.ImportHostsWhitelist {
+		if wildmatch.NewWildMatch(p).IsMatch(host) {
+			return true
+		}
+	}
+	return false
+}
+
 func (c *securityConfig) ParseTrustReverseProxyIPs() {
 	c.trustReverseProxyIpsParsed = make([]net.IPNet, 0)
 
@@ -606,6 +629,11 @@ func Load(configFlag string, version string) *Config {
 	config.Security.ParseTrustReverseProxyIPs()
 
 	config.Server.BasePath = strings.TrimSuffix(config.Server.BasePath, "/")
+	if publicUrlParsed, err := url.Parse(config.Server.GetPublicUrl()); err == nil {
+		config.Server.PublicNetUrl = publicUrlParsed
+	} else {
+		Log().Fatal("failed to parse public url")
+	}
 
 	for k, v := range config.App.CustomLanguages {
 		if v == "" {
@@ -619,6 +647,13 @@ func Load(configFlag string, version string) *Config {
 		}
 		slog.Info("enabling sentry integration", "environment", config.Sentry.Environment)
 		initSentry(config.Sentry, config.IsDev(), config.Version)
+	}
+
+	if hosts := os.Getenv("WAKAPI_IMPORT_HOSTS_WHITELIST"); hosts != "" {
+		config.App.ImportHostsWhitelist = strings.Split(hosts, ",")
+		for i := range config.App.ImportHostsWhitelist {
+			config.App.ImportHostsWhitelist[i] = strings.TrimSpace(config.App.ImportHostsWhitelist[i])
+		}
 	}
 
 	if config.App.DataRetentionMonths <= 0 {
@@ -700,6 +735,7 @@ func Load(configFlag string, version string) *Config {
 
 	// post config-load tasks
 	initOpenIDConnect(config)
+	InitWebAuthn(config)
 
 	return Get()
 }
@@ -726,6 +762,26 @@ func initOpenIDConnect(config *Config) {
 	for _, c := range config.Security.OidcProviders {
 		RegisterOidcProvider(&c)
 		slog.Info("registered openid connect provider", "provider", c.Name)
+	}
+}
+
+func InitWebAuthn(config *Config) {
+	gob.Register(&webauthn.SessionData{})
+
+	parsedURL, err := url.Parse(config.Server.PublicUrl)
+	if err != nil {
+		slog.Error("webauthn init error", "error", err)
+	}
+
+	webauthnConfig := &webauthn.Config{
+		RPDisplayName: "Wakapi",
+		RPID:          parsedURL.Hostname(),              // without "https://"
+		RPOrigins:     []string{config.Server.PublicUrl}, // with "https://"
+	}
+
+	WebAuthn, err = webauthn.New(webauthnConfig)
+	if err != nil {
+		Log().Fatal("webauthn init error", "error", err)
 	}
 }
 

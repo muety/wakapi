@@ -9,7 +9,6 @@ import (
 
 	"github.com/cespare/xxhash/v2"
 	"github.com/gohugoio/hashstructure"
-	"github.com/muety/wakapi/models/lib"
 )
 
 // TODO: support multiple durations per time per user for different heartbeat timeouts
@@ -29,6 +28,7 @@ type Duration struct {
 	Category        string        `json:"category"`
 	Branch          string        `json:"branch"`
 	Entity          string        `json:"Entity"`
+	Extension       string        `json:"-"`
 	NumHeartbeats   int           `json:"-" hash:"ignore"`
 	GroupHash       string        `json:"-" hash:"ignore" gorm:"type:varchar(17)"`
 	Timeout         time.Duration `json:"-" gorm:"not null; default:600000000000"` // heartbeat timeout preference, see DefaultHeartbeatsTimeout
@@ -61,6 +61,20 @@ func NewDurationFromHeartbeat(h *Heartbeat) *Duration {
 		interval = h.User.HeartbeatsTimeout()
 	}
 
+	filename := h.Entity
+	if i := strings.LastIndexAny(filename, "/\\"); i != -1 {
+		filename = filename[i+1:]
+	}
+
+	var extension string
+	entityParts := strings.Split(filename, ".")
+	if len(entityParts) > 1 {
+		// up to two parts at max (e.g. "blade.php", "sql.gz", ...)
+		// we exclude the first part (the actual filename) unless it's the only part after the dot
+		start := max(len(entityParts)-2, 1)
+		extension = strings.Join(entityParts[start:], ".")
+	}
+
 	d := &Duration{
 		UserID:          h.UserID,
 		Time:            h.Time,
@@ -73,6 +87,7 @@ func NewDurationFromHeartbeat(h *Heartbeat) *Duration {
 		Category:        h.Category,
 		Branch:          h.Branch,
 		Entity:          h.Entity,
+		Extension:       extension,
 		NumHeartbeats:   1,
 		Timeout:         interval,
 	}
@@ -99,13 +114,14 @@ func (d *Duration) Hashed() *Duration {
 }
 
 func (d *Duration) Augmented(languageMappings map[string]string) *Duration {
+	maxPrec := -1
 	for ext, targetLang := range languageMappings {
-		langs, ok := lib.LanguagesByExtension["."+ext]
-		if !ok {
-			continue
-		}
-		if lang := langs[0]; strings.ToLower(d.Language) == strings.ToLower(lang) {
+		// Using HasSuffix with leading dots to ensure we match the full extension and not just a partial string.
+		// e.g., a mapping for 'js' should match 'app.js' (extension 'js') but also 'app.test.js' (extension 'test.js').
+		// By checking against "." + d.Extension, we ensure we are comparing against the start of an extension segment.
+		if ok, prec := strings.HasSuffix("."+d.Extension, "."+ext), strings.Count(ext, "."); ok && prec > maxPrec {
 			d.Language = targetLang
+			maxPrec = prec
 		}
 	}
 	return d

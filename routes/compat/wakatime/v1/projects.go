@@ -103,7 +103,7 @@ func (h *ProjectsHandler) GetOne(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProjectsHandler) loadProjects(user *models.User, q string, exact bool) ([]*v1.Project, error) {
-	results, err := h.heartbeatSrvc.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), nil, false)
+	results, err := h.heartbeatSrvc.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), "", nil, false)
 	if err != nil {
 		return nil, err
 	}

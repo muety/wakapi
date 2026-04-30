@@ -10,6 +10,7 @@ import (
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -59,11 +60,12 @@ func (h *ProjectsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 	// note: pagination is not fully implemented, yet
 	// count function to get total item / total pages is missing
 	// and according ui (+ optionally search bar) is missing, too
+	query := strings.TrimSpace(r.URL.Query().Get("q"))
 
 	var err error
 	var projects []*models.ProjectStats
 
-	projects, err = h.heartbeatService.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), pageParams, false)
+	projects, err = h.heartbeatService.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), query, pageParams, false)
 	if err != nil {
 		conf.Log().Request(r).Error("error while fetching project stats", "userID", user.ID, "error", err)
 		return &view.ProjectsViewModel{
@@ -81,6 +83,7 @@ func (h *ProjectsHandler) buildViewModel(r *http.Request, w http.ResponseWriter)
 		},
 		Projects:   projects,
 		PageParams: pageParams,
+		Query:      query,
 	}
 	return routeutils.WithSessionMessages(vm, r, w)
 }

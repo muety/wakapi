@@ -2,9 +2,10 @@ package models
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHeartbeat_Valid_Success(t *testing.T) {
@@ -68,22 +69,117 @@ func TestHeartbeat_GetKey(t *testing.T) {
 }
 
 func TestHeartbeat_Hashed(t *testing.T) {
-	var sut1, sut2 *Heartbeat
+	now := time.Unix(1600000000, 0)
+	h1 := &Heartbeat{
+		UserID:          "user1",
+		Entity:          "entity1",
+		Type:            "file",
+		Category:        "coding",
+		Project:         "project1",
+		Branch:          "branch1",
+		Language:        "lang1",
+		IsWrite:         true,
+		Time:            CustomTime(now),
+		Editor:          "editor1",
+		OperatingSystem: "os1",
+		Machine:         "machine1",
+		UserAgent:       "ua1",
+		Origin:          "origin1",
+		OriginId:        "originid1",
+		Lines:           10,
+		LineNo:          5,
+		CursorPos:       100,
+	}
+	h1.Hashed()
 
-	// same hash if only non-hashed fields are different
-	sut1 = &Heartbeat{Entity: "file1", Editor: "vscode", Time: CustomTime(time.Unix(1673810732, 0))}
-	sut2 = &Heartbeat{Entity: "file1", Editor: "goland", Time: CustomTime(time.Unix(1673810732, 0))}
-	assert.Equal(t, sut1.Hashed().Hash, sut2.Hashed().Hash)
+	// same values -> same hash
+	h2 := *h1
+	h2.Hashed()
+	assert.Equal(t, h1.Hash, h2.Hash)
 
-	// different hash if time is different
-	sut1 = &Heartbeat{Entity: "file1", Editor: "vscode", Time: CustomTime(time.Unix(1673810732, 0))}
-	sut2 = &Heartbeat{Entity: "file1", Editor: "goland", Time: CustomTime(time.Unix(1673810733, 0))}
-	assert.NotEqual(t, sut1.Hashed().Hash, sut2.Hashed().Hash)
+	// different UserID -> different hash
+	h3 := *h1
+	h3.UserID = "user2"
+	h3.Hashed()
+	assert.NotEqual(t, h1.Hash, h3.Hash)
 
-	// different hash if any other hashed field is different
-	sut1 = &Heartbeat{Entity: "file1", Editor: "vscode", Time: CustomTime(time.Unix(1673810732, 0))}
-	sut2 = &Heartbeat{Entity: "file2", Editor: "goland", Time: CustomTime(time.Unix(1673810732, 0))}
-	assert.NotEqual(t, sut1.Hashed().Hash, sut2.Hashed().Hash)
+	// different entity -> different hash
+	h4 := *h1
+	h4.Entity = "entity2"
+	h4.Hashed()
+	assert.NotEqual(t, h1.Hash, h4.Hash)
+
+	// different type -> different hash
+	h5 := *h1
+	h5.Type = "domain"
+	h5.Hashed()
+	assert.NotEqual(t, h1.Hash, h5.Hash)
+
+	// ...
+	h6 := *h1
+	h6.Category = "browsing"
+	h6.Hashed()
+	assert.NotEqual(t, h1.Hash, h6.Hash)
+
+	// different time -> different hash
+	h11 := *h1
+	h11.Time = CustomTime(now.Add(1 * time.Second))
+	h11.Hashed()
+	assert.NotEqual(t, h1.Hash, h11.Hash)
+
+	// different editor -> same hash
+	h12 := *h1
+	h12.Editor = "editor2"
+	h12.Hashed()
+	assert.Equal(t, h1.Hash, h12.Hash)
+
+	// different OS -> same hash
+	h13 := *h1
+	h13.OperatingSystem = "os2"
+	h13.Hashed()
+	assert.Equal(t, h1.Hash, h13.Hash)
+
+	// different machine -> same hash
+	h14 := *h1
+	h14.Machine = "machine2"
+	h14.Hashed()
+	assert.Equal(t, h1.Hash, h14.Hash)
+
+	// different user agent -> same hash
+	h15 := *h1
+	h15.UserAgent = "ua2"
+	h15.Hashed()
+	assert.Equal(t, h1.Hash, h15.Hash)
+
+	// different lines -> same hash
+	h16 := *h1
+	h16.Lines = 20
+	h16.Hashed()
+	assert.Equal(t, h1.Hash, h16.Hash)
+
+	// different ID -> same hash
+	h17 := *h1
+	h17.ID = 123
+	h17.Hashed()
+	assert.Equal(t, h1.Hash, h17.Hash)
+
+	// different origin -> same hash
+	h18 := *h1
+	h18.Origin = "origin2"
+	h18.Hashed()
+	assert.Equal(t, h1.Hash, h18.Hash)
+
+	// different created date -> same hash
+	h20 := *h1
+	h20.CreatedAt = CustomTime(now.Add(1 * time.Hour))
+	h20.Hashed()
+	assert.Equal(t, h1.Hash, h20.Hash)
+
+	// different origin -> same hash
+	h21 := *h1
+	h21.OriginId = "originid2"
+	h21.Hashed()
+	assert.Equal(t, h1.Hash, h21.Hash)
 }
 
 func TestHeartbeat_Hashed_NoCollision(t *testing.T) {

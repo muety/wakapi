@@ -127,6 +127,7 @@ func (suite *FiltersTestSuite) TestFilters_WithAliases() {
 	assert.Contains(suite.T(), sut1.Project, "wakapi")
 	assert.Contains(suite.T(), sut1.Project, "wakapi-desktop")
 	assert.Contains(suite.T(), sut1.Project, "wakapi-mobile")
+	assert.Equal(suite.T(), 2, sut1.CountAliasesByType(SummaryProject))
 
 	sut2 := NewFiltersWith(SummaryProject, "wakapi").With(SummaryLanguage, "Python")
 	sut2 = sut2.WithAliases(suite.GetAliasReverseResolver([]int{0, 1, 2}))
@@ -134,12 +135,15 @@ func (suite *FiltersTestSuite) TestFilters_WithAliases() {
 	assert.Len(suite.T(), sut2.Language, 2)
 	assert.Contains(suite.T(), sut2.Language, "Python")
 	assert.Contains(suite.T(), sut2.Language, "Python 3")
+	assert.Equal(suite.T(), 2, sut2.CountAliasesByType(SummaryProject))
+	assert.Equal(suite.T(), 1, sut2.CountAliasesByType(SummaryLanguage))
 
 	sut3 := NewFiltersWith(SummaryProject, "foo")
 	sut3 = sut3.WithAliases(suite.GetAliasReverseResolver([]int{0, 1, 2}))
 	assert.Len(suite.T(), sut3.Project, 1)
 	assert.Len(suite.T(), sut3.Language, 0)
 	assert.Contains(suite.T(), sut3.Project, "foo")
+	assert.Equal(suite.T(), 0, sut3.CountAliasesByType(SummaryProject))
 }
 
 func (suite *FiltersTestSuite) TestFilters_WithProjectLabels() {

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/Marlliton/slogpretty"
 	"log/slog"
 	"os"
 	"time"
@@ -9,7 +10,10 @@ import (
 func InitLogger(isDev bool) {
 	var handler slog.Handler
 	if isDev {
-		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
+		handler = slogpretty.New(os.Stdout, &slogpretty.Options{
+			Level:    slog.LevelDebug,
+			Colorful: true,
+		})
 	} else {
 		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 			Level: slog.LevelInfo,

@@ -743,158 +743,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/relay": {
-            "get": {
-                "tags": [
-                    "relay"
-                ],
-                "summary": "Proxy an GET API request to another Wakapi instance",
-                "operationId": "relay-get",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Original URL to perform the request to",
-                        "name": "X-Target-URL",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "403": {
-                        "description": "Returned if request path is not whitelisted",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "502": {
-                        "description": "Returned if upstream host is down",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "tags": [
-                    "relay"
-                ],
-                "summary": "Proxy an PUT API request to another Wakapi instance",
-                "operationId": "relay-put",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Original URL to perform the request to",
-                        "name": "X-Target-URL",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "403": {
-                        "description": "Returned if request path is not whitelisted",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "502": {
-                        "description": "Returned if upstream host is down",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "tags": [
-                    "relay"
-                ],
-                "summary": "Proxy an POST API request to another Wakapi instance",
-                "operationId": "relay-post",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Original URL to perform the request to",
-                        "name": "X-Target-URL",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "403": {
-                        "description": "Returned if request path is not whitelisted",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "502": {
-                        "description": "Returned if upstream host is down",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "relay"
-                ],
-                "summary": "Proxy an DELETE API request to another Wakapi instance",
-                "operationId": "relay-delete",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Original URL to perform the request to",
-                        "name": "X-Target-URL",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "403": {
-                        "description": "Returned if request path is not whitelisted",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "502": {
-                        "description": "Returned if upstream host is down",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "tags": [
-                    "relay"
-                ],
-                "summary": "Proxy an PATCH API request to another Wakapi instance",
-                "operationId": "relay-patch",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Original URL to perform the request to",
-                        "name": "X-Target-URL",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "403": {
-                        "description": "Returned if request path is not whitelisted",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "502": {
-                        "description": "Returned if upstream host is down",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/summary": {
             "get": {
                 "security": [
@@ -1232,6 +1080,21 @@ const docTemplate = `{
         "models.Heartbeat": {
             "type": "object",
             "properties": {
+                "ai_input_tokens": {
+                    "type": "integer"
+                },
+                "ai_line_changes": {
+                    "type": "integer"
+                },
+                "ai_output_tokens": {
+                    "type": "integer"
+                },
+                "ai_prompt_length": {
+                    "type": "integer"
+                },
+                "ai_session": {
+                    "type": "string"
+                },
                 "branch": {
                     "type": "string"
                 },
@@ -1251,6 +1114,9 @@ const docTemplate = `{
                 },
                 "entity": {
                     "type": "string"
+                },
+                "human_line_changes": {
+                    "type": "integer"
                 },
                 "is_write": {
                     "type": "boolean"
@@ -1285,6 +1151,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "time": {
+                    "description": "note: on sqlite, table will have an additional column ` + "`" + `time_real` + "`" + `, introduced \"manually\" by migration 20260111\nsee https://github.com/muety/wakapi/issues/882 for details",
                     "type": "number"
                 },
                 "type": {
@@ -1452,6 +1319,21 @@ const docTemplate = `{
         "v1.HeartbeatEntry": {
             "type": "object",
             "properties": {
+                "ai_input_tokens": {
+                    "type": "integer"
+                },
+                "ai_line_changes": {
+                    "type": "integer"
+                },
+                "ai_output_tokens": {
+                    "type": "integer"
+                },
+                "ai_prompt_length": {
+                    "type": "integer"
+                },
+                "ai_session": {
+                    "type": "string"
+                },
                 "branch": {
                     "type": "string"
                 },
@@ -1466,6 +1348,9 @@ const docTemplate = `{
                 },
                 "entity": {
                     "type": "string"
+                },
+                "human_line_changes": {
+                    "type": "integer"
                 },
                 "id": {
                     "type": "string"
@@ -1757,6 +1642,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
+                    "type": "string"
+                },
+                "timezone": {
                     "type": "string"
                 },
                 "total_seconds": {

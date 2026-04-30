@@ -22,7 +22,6 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 	_ "gorm.io/driver/mysql"
 	_ "gorm.io/driver/postgres"
-	_ "gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
@@ -34,7 +33,6 @@ import (
 	"github.com/muety/wakapi/routes/api"
 	shieldsV1Routes "github.com/muety/wakapi/routes/compat/shields/v1"
 	wtV1Routes "github.com/muety/wakapi/routes/compat/wakatime/v1"
-	"github.com/muety/wakapi/routes/relay"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/services/mail"
 	"github.com/muety/wakapi/static/docs"
@@ -69,6 +67,7 @@ var (
 	metricsRepository         *repositories.MetricsRepository
 	durationRepository        *repositories.DurationRepository
 	apiKeyRepository          repositories.IApiKeyRepository
+	webAuthnRepository        repositories.IWebAuthnRepository
 )
 
 var (
@@ -89,6 +88,7 @@ var (
 	housekeepingService    services.IHousekeepingService
 	miscService            services.IMiscService
 	apiKeyService          services.IApiKeyService
+	webAuthnService        services.IWebAuthnService
 )
 
 // TODO: Refactor entire project to be structured after business domains
@@ -179,6 +179,7 @@ func main() {
 	metricsRepository = repositories.NewMetricsRepository(db)
 	durationRepository = repositories.NewDurationRepository(db)
 	apiKeyRepository = repositories.NewApiKeyRepository(db)
+	webAuthnRepository = repositories.NewWebAuthnRepository(db)
 
 	// Services
 	mailService = mail.NewMailService()
@@ -197,6 +198,7 @@ func main() {
 	diagnosticsService = services.NewDiagnosticsService(diagnosticsRepository)
 	housekeepingService = services.NewHousekeepingService(userService, heartbeatService, summaryService, aliasRepository) // can pass any repo here
 	miscService = services.NewMiscService(userService, heartbeatService, summaryService, keyValueService, mailService)
+	webAuthnService = services.NewWebAuthnService(webAuthnRepository)
 
 	if config.App.LeaderboardEnabled {
 		leaderboardService = services.NewLeaderboardService(leaderboardRepository, summaryService, userService)
@@ -241,18 +243,15 @@ func main() {
 
 	// MVC Handlers
 	summaryHandler := routes.NewSummaryHandler(summaryService, userService, heartbeatService, durationService, aliasService)
-	settingsHandler := routes.NewSettingsHandler(userService, heartbeatService, durationService, summaryService, aliasService, aggregationService, languageMappingService, projectLabelService, keyValueService, mailService, apiKeyService)
+	settingsHandler := routes.NewSettingsHandler(userService, heartbeatService, durationService, summaryService, aliasService, aggregationService, languageMappingService, projectLabelService, keyValueService, mailService, apiKeyService, webAuthnService)
 	subscriptionHandler := routes.NewSubscriptionHandler(userService, mailService, keyValueService)
 	projectsHandler := routes.NewProjectsHandler(userService, heartbeatService)
 	homeHandler := routes.NewHomeHandler(userService, keyValueService)
-	loginHandler := routes.NewLoginHandler(userService, mailService, keyValueService)
+	loginHandler := routes.NewLoginHandler(userService, mailService, keyValueService, webAuthnService)
 	imprintHandler := routes.NewImprintHandler(keyValueService)
 	setupHandler := routes.NewSetupHandler(userService)
 	leaderboardHandler := condition.Ternary[bool, routes.Handler](config.App.LeaderboardEnabled, routes.NewLeaderboardHandler(userService, leaderboardService), routes.NewNoopHandler())
 	miscHandler := routes.NewMiscHandler(userService)
-
-	// Other Handlers
-	relayHandler := relay.NewRelayHandler()
 
 	// Setup Routing
 	router := chi.NewRouter()
@@ -294,7 +293,6 @@ func main() {
 	projectsHandler.RegisterRoutes(rootRouter)
 	settingsHandler.RegisterRoutes(rootRouter)
 	subscriptionHandler.RegisterRoutes(rootRouter)
-	relayHandler.RegisterRoutes(rootRouter)
 	miscHandler.RegisterRoutes(rootRouter)
 
 	// API route registrations
