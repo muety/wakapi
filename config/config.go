@@ -176,6 +176,7 @@ type serverConfig struct {
 	ListenSocket     string   `yaml:"listen_socket" default:"" env:"WAKAPI_LISTEN_SOCKET"`
 	ListenSocketMode uint32   `yaml:"listen_socket_mode" default:"0666" env:"WAKAPI_LISTEN_SOCKET_MODE"`
 	TimeoutSec       int      `yaml:"timeout_sec" default:"30" env:"WAKAPI_TIMEOUT_SEC"`
+	LogFormat        string   `yaml:"log_format" default:"text" env:"WAKAPI_LOG_FORMAT"`
 	BasePath         string   `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
 	PublicUrl        string   `yaml:"public_url" default:"http://localhost:3000" env:"WAKAPI_PUBLIC_URL"`
 	PublicNetUrl     *url.URL `yaml:"-"`
@@ -592,7 +593,7 @@ func Load(configFlag string, version string) *Config {
 
 	env = config.Env
 
-	InitLogger(config.IsDev())
+	InitLogger(config.Server.LogFormat)
 
 	config.Version = strings.TrimSpace(version)
 	tagVersionMatch, _ := regexp.MatchString(`\d+\.\d+\.\d+`, config.Version)
