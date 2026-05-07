@@ -34,6 +34,8 @@ func DefaultTemplateFuncs() template.FuncMap {
 		"title":          strings.Title,
 		"join":           strings.Join,
 		"add":            add,
+		"div":            div,
+		"mod":            mod,
 		"capitalize":     strutil.Capitalize,
 		"lower":          strings.ToLower,
 		"toRunes":        utils.ToRunes,
@@ -128,4 +130,18 @@ func defaultErrorRedirectTarget() string {
 
 func add(i, j int) int {
 	return i + j
+}
+
+func div(i, j int) int {
+	if j == 0 {
+		return 0
+	}
+	return i / j
+}
+
+func mod(i, j int) int {
+	if j == 0 {
+		return 0
+	}
+	return i % j
 }

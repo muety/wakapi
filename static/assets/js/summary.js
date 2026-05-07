@@ -14,6 +14,7 @@ const entitiesCanvas = document.getElementById('chart-entities')
 const categoriesCanvas = document.getElementById('chart-categories')
 const timelineCanvas = document.getElementById('chart-timeline')
 const hourlyCanvas = document.getElementById('chart-hourly')
+const meetingsCanvas = document.getElementById('chart-meetings')
 
 const projectContainer = document.getElementById('project-container')
 const osContainer = document.getElementById('os-container')
@@ -26,10 +27,11 @@ const entityContainer = document.getElementById('entity-container')
 const categoryContainer = document.getElementById('category-container')
 const timelineContainer = document.getElementById('timeline-container')
 const hourlyContainer = document.getElementById('hourly-container')
+const meetingsContainer = document.getElementById('meetings-container')
 
-const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer, categoryContainer, timelineContainer, hourlyContainer]
-const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas, categoriesCanvas, timelineCanvas, hourlyCanvas]
-const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches, wakapiData.entities, wakapiData.categories, wakapiData.timelineStats, wakapiData.hourlyBreakdown]
+const containers = [projectContainer, osContainer, editorContainer, languageContainer, machineContainer, labelContainer, branchContainer, entityContainer, categoryContainer, timelineContainer, hourlyContainer, meetingsContainer]
+const canvases = [projectsCanvas, osCanvas, editorsCanvas, languagesCanvas, machinesCanvas, labelsCanvas, branchesCanvas, entitiesCanvas, categoriesCanvas, timelineCanvas, hourlyCanvas, meetingsCanvas]
+const data = [wakapiData.projects, wakapiData.operatingSystems, wakapiData.editors, wakapiData.languages, wakapiData.machines, wakapiData.labels, wakapiData.branches, wakapiData.entities, wakapiData.categories, wakapiData.timelineStats, wakapiData.hourlyBreakdown, wakapiData.meetingsBreakdown]
 
 let topNPickers = [...document.getElementsByClassName('top-picker')]
 topNPickers.sort(((a, b) => parseInt(a.attributes['data-entity'].value) - parseInt(b.attributes['data-entity'].value)))
@@ -89,6 +91,8 @@ function draw(subselection) {
     }
 
     function shouldUpdate(index) {
+        // charts without a topN picker (e.g. meetings at index 11) always update
+        if (showTopN[index] === undefined) return !subselection || subselection.includes(index)
         return !subselection || (subselection.includes(index) && data[index].length >= showTopN[index])
     }
 
@@ -651,6 +655,99 @@ function draw(subselection) {
     charts[8] = categoryChart ? categoryChart : charts[8]
     charts[9] = timelineChart ? timelineChart : charts[9]
     charts[10] = hourlyBreakdownChart ? hourlyBreakdownChart : charts[10]
+
+    // Meeting / calls gantt chart — same style as hourly breakdown but grouped by editor
+    const meetingColors = {
+        teams:   '#6264a7',  // MS Teams purple
+        zoom:    '#2d8cff',  // Zoom blue
+        meet:    '#1a73e8',  // Google Meet blue
+        webex:   '#00bceb',  // Webex cyan
+        slack:   '#4a154b',  // Slack aubergine
+        skype:   '#00aff0',  // Skype blue
+        whereby: '#f3f5f5',  // Whereby light
+    }
+    function getMeetingColor(editorName) {
+        const lower = (editorName || '').toLowerCase()
+        for (const [key, color] of Object.entries(meetingColors)) {
+            if (lower.includes(key)) return color
+        }
+        return '#8b5cf6'
+    }
+
+    let meetingsChart = meetingsCanvas && shouldUpdate(11)
+        ? (() => {
+            const rows = wakapiData.meetingsBreakdown || []
+            if (!rows || rows.length === 0) {
+                const ph = meetingsContainer ? meetingsContainer.querySelector('.placeholder-container') : null
+                if (ph) ph.classList.remove('hidden')
+                return null
+            }
+            return new Chart(meetingsCanvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: rows.map(r => r.editor),
+                    datasets: rows.flatMap((row, i) => {
+                        let pre = 0
+                        return row.items.map((item) => {
+                            let rowData = rows.map(() => null)
+                            const fromTime = new Date(item.from_time)
+                            const toTime = new Date(fromTime.getTime() + (item.duration / 1e9 * 1e3))
+                            rowData[i] = [+fromTime - pre, +toTime - pre, `${fromTime.toLocaleTimeString()} – ${toTime.toLocaleTimeString()} (${(item.duration / 1e9).toString().toHHMMSS()})${item.label ? ' · ' + item.label : ''}`]
+                            pre = +toTime
+                            return {
+                                data: rowData,
+                                backgroundColor: getMeetingColor(row.editor),
+                                hoverBackgroundColor: getMeetingColor(row.editor) + 'cc',
+                                label: row.editor,
+                                stack: row.editor,
+                                skipNull: true,
+                            }
+                        })
+                    })
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            stacked: true,
+                            min: +new Date(wakapiData.meetingsBreakdownFromTime),
+                            max: +new Date(wakapiData.meetingsBreakdownToTime),
+                            ticks: {
+                                stepSize: 1000 * 60 * 60,
+                                callback: (value) => new Date(value).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }),
+                            },
+                            title: { display: true, text: 'Time' }
+                        },
+                        y: {
+                            stacked: true,
+                            title: { display: true, text: 'App' }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => ` ${context.raw[2]}`
+                            }
+                        },
+                        legend: { display: false },
+                        zoom: {
+                            pan: { enabled: true },
+                            zoom: {
+                                wheel: { enabled: true, modifierKey: 'ctrl' },
+                                pinch: { enabled: true },
+                                mode: 'x',
+                            },
+                            limits: { x: { min: 'original', max: 'original' } },
+                        }
+                    }
+                }
+            })
+        })()
+        : null
+
+    charts[11] = meetingsChart ? meetingsChart : charts[11]
 }
 
 function parseTopN() {

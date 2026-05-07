@@ -4,8 +4,9 @@
 
 /* Base definition */
 body {
-    font-family: 'Source Sans 3', 'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+    font-family: 'Inter', 'Source Sans 3', 'Roboto', 'Helvetica Neue', sans-serif;
     position: relative;
+    letter-spacing: -0.01em;
 }
 
 main {
@@ -17,16 +18,24 @@ main {
 }
 
 :root {
-  --background: 17 24 39;
-  --card: 36 43 58;
-  --muted: 107 114 128;
-  --secondary: 156 163 175;
-  --foreground: 209 213 219;
-  --focused: 31 41 55;
-  --primary: 255 255 255;
-  --accent: 4 120 87;
-  --danger: 220 38 38;
+  /* Richer, deeper dark palette */
+  --background: 10 13 20;
+  --card: 18 24 36;
+  --muted: 90 100 120;
+  --secondary: 140 152 172;
+  --foreground: 210 218 230;
+  --focused: 24 32 48;
+  --primary: 240 244 252;
+  --accent: 16 185 129;
+  --danger: 239 68 68;
+
+  /* Modern design tokens */
+  --card-border: rgba(255,255,255,0.06);
+  --card-border-accent: rgba(16,185,129,0.35);
+  --radius-card: 14px;
+  --radius-sm: 8px;
 }
+
 
 /* Additional classes */
 
@@ -67,27 +76,51 @@ main {
 }
 
 .btn-default {
-    @apply py-2 px-4 font-semibold rounded bg-focused hover:bg-card text-primary text-sm;
+    @apply py-2 px-4 font-semibold text-primary text-sm transition-all;
+    background: rgb(var(--focused));
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm);
+}
+.btn-default:hover {
+    background: rgb(var(--card));
+    border-color: rgba(255,255,255,0.1);
 }
 
 .btn-disabled {
-    @apply py-2 px-4 font-semibold rounded bg-focused text-muted text-sm;
+    @apply py-2 px-4 font-semibold text-muted text-sm opacity-50;
+    background: rgb(var(--focused));
+    border-radius: var(--radius-sm);
 }
 
 .btn-primary {
-    @apply py-2 px-4 font-semibold rounded bg-accent hover:bg-accent/80 text-primary text-sm;
+    @apply py-2 px-4 font-semibold text-primary text-sm transition-all;
+    background: rgb(var(--accent));
+    border-radius: var(--radius-sm);
+    letter-spacing: 0;
 }
+.btn-primary:hover { opacity: 0.88; }
 
 .btn-danger {
-    @apply py-2 px-4 font-semibold rounded bg-danger hover:bg-danger/80 text-primary text-sm;
+    @apply py-2 px-4 font-semibold text-primary text-sm transition-all;
+    background: rgb(var(--danger));
+    border-radius: var(--radius-sm);
 }
+.btn-danger:hover { opacity: 0.88; }
 
 .btn-small {
     @apply py-1 px-2;
 }
 
 .input-default {
-    @apply appearance-none bg-card focus:bg-focused text-foreground outline-none rounded w-full py-2 px-4;
+    @apply appearance-none text-foreground outline-none w-full py-2 px-4 transition-all;
+    background: rgb(var(--focused));
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm);
+}
+.input-default:focus {
+    background: rgb(var(--card));
+    border-color: rgba(16,185,129,0.4);
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.08);
 }
 
 .select-default {
@@ -95,19 +128,32 @@ main {
 }
 
 .menu-item {
-    @apply flex items-center text-sm font-semibold space-x-2 rounded hover:bg-card py-2 px-4 cursor-pointer;
+    @apply flex items-center text-sm font-semibold space-x-2 py-2 px-3 cursor-pointer transition-all;
+    border-radius: var(--radius-sm);
+    color: rgb(var(--secondary));
+}
+.menu-item:hover {
+    background: rgb(var(--focused));
+    color: rgb(var(--foreground));
 }
 
 .submenu-item {
-    @apply hover:bg-focused rounded p-1 text-right;
+    border-radius: var(--radius-sm);
+}
+.submenu-item:hover {
+    background: rgb(var(--focused));
 }
 
 .chip {
-    @apply text-xs bg-card rounded rounded-full py-1 px-2 font-semibold inline-block mb-1;
+    @apply text-xs font-semibold inline-block mb-1;
+    background: rgb(var(--focused));
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 2px 10px;
 }
 
 .link {
-    @apply font-semibold text-secondary hover:text-foreground;
+    @apply font-semibold text-secondary hover:text-foreground transition-colors;
 }
 
 .newsbox {
@@ -236,18 +282,105 @@ main {
     margin-left: 8px;
 }
 
+/* ── Modern card overrides ─────────────────────────────────────────────── */
+
+/* All bg-card elements get the refined border + radius */
+.bg-card {
+    border-color: var(--card-border) !important;
+}
+
+/* Chart & content cards */
+[id$="-container"] {
+    border: 1px solid var(--card-border) !important;
+    border-radius: var(--radius-card) !important;
+    transition: border-color 0.2s;
+}
+[id$="-container"]:hover {
+    border-color: rgba(255,255,255,0.10) !important;
+}
+
+/* KPI cards — accent border → subtle top accent line */
+.border-accent {
+    border-color: var(--card-border-accent) !important;
+    border-radius: var(--radius-card) !important;
+}
+
+/* KPI stat number */
+#summary-page .grid .flex-col > .font-semibold.text-xl {
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+/* KPI label */
+#summary-page .grid .flex-col > .text-xs.text-muted {
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* ── Navigation bar ────────────────────────────────────────────────────── */
+
+#main-menu {
+    background: rgba(10,13,20,0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--card-border);
+    border-radius: 0 0 12px 12px;
+    padding: 8px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    margin: -1rem -1rem 0;
+    width: calc(100% + 2rem);
+    max-width: none;
+}
+
+/* ── Popup menus ───────────────────────────────────────────────────────── */
+.popup {
+    background: rgb(var(--card)) !important;
+    border: 1px solid var(--card-border) !important;
+    border-radius: var(--radius-card) !important;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.5) !important;
+    backdrop-filter: blur(12px);
+}
+
+/* ── Progress bars ─────────────────────────────────────────────────────── */
+.bg-focused {
+    border-radius: 99px;
+}
+
+/* ── Time picker ───────────────────────────────────────────────────────── */
+#time-picker-dropdown {
+    border: 1px solid var(--card-border) !important;
+    border-radius: var(--radius-card) !important;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* ── Selection ─────────────────────────────────────────────────────────── */
+::selection {
+    background: rgba(16,185,129,0.25);
+    color: rgb(var(--primary));
+}
+
+/* ── Activity chart ────────────────────────────────────────────────────── */
+#summary-page svg {
+    border-radius: 8px;
+}
+
+/* ── Smooth transitions on interactive elements ────────────────────────── */
+a, button { transition: color 0.15s, background 0.15s, opacity 0.15s; }
+
 @media print {
-    /* Avoid the element from being breaked */
-    .no-break {
-        page-break-inside: avoid;
-    }
-
-    /* Don't print the element (as they are designed to interact with the user) */
-    .no-print {
-        display: none;
-    }
-
-    /* Ensure the background */
+    .no-break { page-break-inside: avoid; }
+    .no-print { display: none; }
     * {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;

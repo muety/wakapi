@@ -23,6 +23,34 @@ type SummaryViewModel struct {
 	RawQuery            string
 	UserFirstData       time.Time
 	DataRetentionMonths int
+	AILineChanges       int
+	HumanLineChanges    int
+	TotalLineChanges    int
+	AIPct               float64
+	HumanPct            float64
+	AIInputTokens       int
+	AIOutputTokens      int
+	AITotalTokens       int
+	AISessions          int
+	AIPromptLengthAvg   int
+	AIInputPct          float64
+	AIOutputPct         float64
+	// Meeting app gantt chart data
+	MeetingsBreakdown     MeetingsBreakdownViewModel
+	MeetingsBreakdownFrom time.Time
+	// AI tool breakdown (pre-computed list, sorted descending)
+	AIToolEntries       []AIToolEntry
+	// Top session by tokens: session ID → total tokens
+	AITopSessionTokens  int
+	AIAvgTokensPerSess  int
+}
+
+// AIToolEntry holds per-tool display data pre-computed in the route handler.
+type AIToolEntry struct {
+	Name    string
+	Seconds int
+	BarPct  float64 // 0–100, relative to the top tool
+	Label   string  // human-readable duration
 }
 
 type AvailableFilters struct {
@@ -57,6 +85,20 @@ type HourlyBreakdownItem struct {
 	Duration time.Duration `json:"duration"`
 	Entity   string        `json:"entity"`
 	Project  string        `json:"-"`
+}
+
+// MeetingsBreakdown — gantt rows for meeting app durations, grouped by editor name.
+type MeetingsBreakdownViewModel []*MeetingsRowViewModel
+
+type MeetingsRowViewModel struct {
+	Editor string               `json:"editor"`
+	Items  []*MeetingsBlockItem `json:"items"`
+}
+
+type MeetingsBlockItem struct {
+	FromTime time.Time     `json:"from_time"`
+	Duration time.Duration `json:"duration"`
+	Label    string        `json:"label"` // e.g. project or entity
 }
 
 func NewTimelineViewModel(summaries []*models.Summary) []*TimelineViewModel {

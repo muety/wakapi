@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/duke-git/lancet/v2/slice"
@@ -126,6 +127,9 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if summaryParams.RangeDays() > 1 { // get at most 24 hours of hourly breakdown
 		hourlyBreakdownFrom = summaryParams.To.Add(-24 * time.Hour)
 	}
+	// meeting app editors to detect (case-insensitive substring match)
+	meetingEditors := []string{"teams", "zoom", "meet", "webex", "slack", "skype", "whereby"}
+	var meetingsBreakdown view.MeetingsBreakdownViewModel
 	if durations, err := h.durationSrvc.Get(hourlyBreakdownFrom, summaryParams.To, summaryParams.User, summaryParams.Filters, nil, false); err == nil {
 		// for excessively many small segments, plotting is too performance-heavy and will freeze the browser (see https://github.com/muety/wakapi/issues/871)
 		// and the chart would be unreadable anyway, so we simply disable it
@@ -135,8 +139,132 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 				return s
 			}))
 		}
+		// build meetings breakdown from the same durations
+		meetingRows := make(map[string][]*view.MeetingsBlockItem)
+		for _, d := range durations {
+			editorLower := strings.ToLower(d.Editor)
+			for _, keyword := range meetingEditors {
+				if strings.Contains(editorLower, keyword) {
+					meetingRows[d.Editor] = append(meetingRows[d.Editor], &view.MeetingsBlockItem{
+						FromTime: d.Time.T(),
+						Duration: d.Duration,
+						Label:    d.Project,
+					})
+					break
+				}
+			}
+		}
+		if len(meetingRows) > 0 {
+			for editor, items := range meetingRows {
+				meetingsBreakdown = append(meetingsBreakdown, &view.MeetingsRowViewModel{
+					Editor: editor,
+					Items:  items,
+				})
+			}
+		}
 	} else {
 		conf.Log().Request(r).Error("failed to load hourly breakdown stats", "error", err)
+	}
+
+	// aggregate AI metrics from heartbeats in the selected range (single pass)
+	var aiLineChanges, humanLineChanges int
+	var aiInputTokens, aiOutputTokens, aiPromptLengthTotal int
+	seenSessions := make(map[string]struct{})
+	aiToolSecs := make(map[string]int)   // editor → seconds of AI tool usage
+	sessionTokens := make(map[string]int) // session ID → total tokens
+	// known AI tool names (must match utils/http.go aiTools set)
+	knownAITools := map[string]bool{
+		"claude": true, "chatgpt": true, "copilot": true, "codex": true,
+		"cursor": true, "windsurf": true, "cline": true, "roo-code": true,
+		"gemini": true, "pi": true, "goose": true,
+	}
+	if heartbeats, err := h.heartbeatsSrvc.GetAllWithin(summaryParams.From, summaryParams.To, user); err == nil {
+		for _, hb := range heartbeats {
+			aiLineChanges += hb.AILineChanges
+			humanLineChanges += hb.HumanLineChanges
+			aiInputTokens += hb.AIInputTokens
+			aiOutputTokens += hb.AIOutputTokens
+			aiPromptLengthTotal += hb.AIPromptLength
+			// count AI tool editor time (heartbeats = ~30s each)
+			editorLower := strings.ToLower(hb.Editor)
+			for tool := range knownAITools {
+				if strings.Contains(editorLower, tool) {
+					aiToolSecs[hb.Editor] += 30
+					break
+				}
+			}
+			if hb.AISession != "" {
+				seenSessions[hb.AISession] = struct{}{}
+				sessionTokens[hb.AISession] += hb.AIInputTokens + hb.AIOutputTokens
+			}
+		}
+	} else {
+		conf.Log().Request(r).Error("failed to load heartbeats for AI metrics", "error", err)
+	}
+	totalLineChanges := aiLineChanges + humanLineChanges
+	var aiPct, humanPct float64
+	if totalLineChanges > 0 {
+		aiPct = float64(aiLineChanges) / float64(totalLineChanges) * 100
+		humanPct = float64(humanLineChanges) / float64(totalLineChanges) * 100
+	}
+	aiTotalTokens := aiInputTokens + aiOutputTokens
+	aiSessions := len(seenSessions)
+	var aiPromptLengthAvg int
+	if aiSessions > 0 {
+		aiPromptLengthAvg = aiPromptLengthTotal / aiSessions
+	}
+	var aiInputPct, aiOutputPct float64
+	if aiTotalTokens > 0 {
+		aiInputPct = float64(aiInputTokens) / float64(aiTotalTokens) * 100
+		aiOutputPct = float64(aiOutputTokens) / float64(aiTotalTokens) * 100
+	}
+	// tokens per session stats
+	var aiTopSessionTokens, aiAvgTokensPerSess int
+	if len(sessionTokens) > 0 {
+		totalSessionTokens := 0
+		for _, t := range sessionTokens {
+			totalSessionTokens += t
+			if t > aiTopSessionTokens {
+				aiTopSessionTokens = t
+			}
+		}
+		aiAvgTokensPerSess = totalSessionTokens / len(sessionTokens)
+	}
+	// build sorted AIToolEntries for the template
+	aiToolMaxSeconds := 0
+	for _, s := range aiToolSecs {
+		if s > aiToolMaxSeconds {
+			aiToolMaxSeconds = s
+		}
+	}
+	aiToolEntries := make([]view.AIToolEntry, 0, len(aiToolSecs))
+	for name, secs := range aiToolSecs {
+		pct := 0.0
+		if aiToolMaxSeconds > 0 {
+			pct = float64(secs) / float64(aiToolMaxSeconds) * 100
+		}
+		var label string
+		if secs >= 3600 {
+			label = fmt.Sprintf("%dh %dm", secs/3600, (secs%3600)/60)
+		} else if secs >= 60 {
+			label = fmt.Sprintf("%dm", secs/60)
+		} else {
+			label = fmt.Sprintf("%ds", secs)
+		}
+		aiToolEntries = append(aiToolEntries, view.AIToolEntry{
+			Name:    name,
+			Seconds: secs,
+			BarPct:  pct,
+			Label:   label,
+		})
+	}
+	// sort descending by seconds
+	for i := 0; i < len(aiToolEntries); i++ {
+		for j := i + 1; j < len(aiToolEntries); j++ {
+			if aiToolEntries[j].Seconds > aiToolEntries[i].Seconds {
+				aiToolEntries[i], aiToolEntries[j] = aiToolEntries[j], aiToolEntries[i]
+			}
+		}
 	}
 
 	vm := view.SummaryViewModel{
@@ -154,8 +282,25 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		UserFirstData:       firstData,
 		DataRetentionMonths: h.config.App.DataRetentionMonths,
 		Timeline:            timeline,
-		HourlyBreakdown:     hourlyBreakdown,
-		HourlyBreakdownFrom: hourlyBreakdownFrom,
+		HourlyBreakdown:       hourlyBreakdown,
+		HourlyBreakdownFrom:   hourlyBreakdownFrom,
+		MeetingsBreakdown:     meetingsBreakdown,
+		MeetingsBreakdownFrom: hourlyBreakdownFrom,
+		AILineChanges:     aiLineChanges,
+		HumanLineChanges:  humanLineChanges,
+		TotalLineChanges:  totalLineChanges,
+		AIPct:             aiPct,
+		HumanPct:          humanPct,
+		AIInputTokens:     aiInputTokens,
+		AIOutputTokens:    aiOutputTokens,
+		AITotalTokens:     aiTotalTokens,
+		AISessions:        aiSessions,
+		AIPromptLengthAvg: aiPromptLengthAvg,
+		AIInputPct:        aiInputPct,
+		AIOutputPct:       aiOutputPct,
+		AIToolEntries:      aiToolEntries,
+		AITopSessionTokens: aiTopSessionTokens,
+		AIAvgTokensPerSess: aiAvgTokensPerSess,
 	}
 
 	templates[conf.SummaryTemplate].Execute(w, vm)
