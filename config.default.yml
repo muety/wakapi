@@ -89,6 +89,7 @@ security:
   cookie_max_age: 172800
   allow_signup: true                    # whether to allow new user creation at all
   oidc_allow_signup: true               # allow registration of new users from oidc
+  oidc_insecure: false                   # skip tls certificate validation for oidc provider
   disable_local_auth: false             # disable login via local credentials (username and password) to enforce OIDC provider login
   disable_webauthn: true                # disable login via webauthn (security keys, biometrics, etc.)
   signup_captcha: false

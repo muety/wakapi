@@ -2,7 +2,9 @@ package config
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -74,10 +76,21 @@ func (token *IdTokenPayload) getClaimValue(claimName string) string {
 
 var oidcProviders = make(map[string]*OidcProvider)
 
+func GetOidcContext(ctx context.Context) context.Context {
+	tp := http.DefaultTransport.(*http.Transport).Clone()
+	tp.DisableCompression = true
+	tp.TLSClientConfig = &tls.Config{
+		InsecureSkipVerify: cfg.Security.OidcInsecure,
+	}
+	return oidc.ClientContext(ctx, &http.Client{
+		Transport: tp,
+	})
+}
+
 func RegisterOidcProvider(providerCfg *oidcProviderConfig) {
 	cfg := Get()
 
-	provider, err := oidc.NewProvider(context.Background(), providerCfg.Endpoint)
+	provider, err := oidc.NewProvider(GetOidcContext(context.Background()), providerCfg.Endpoint)
 	if err != nil {
 		Log().Fatal(fmt.Sprintf("failed to initialize oidc provider at %s", providerCfg.Endpoint), "error", err)
 		return

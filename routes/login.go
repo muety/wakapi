@@ -429,7 +429,7 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 	routeutils.ClearOidcState(r, w)
 
 	// exchange auth code for access token and id token
-	authToken, err := provider.OAuth2.Exchange(r.Context(), code)
+	authToken, err := provider.OAuth2.Exchange(conf.GetOidcContext(r.Context()), code)
 	if err != nil {
 		errMsg := "failed to exchange authorization code for access token"
 		conf.Log().Request(r).Error(errMsg, "provider", provider.Name)
@@ -449,7 +449,7 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// verify id token
-	idTokenPayload, err := routeutils.DecodeOidcIdToken(rawIdToken, provider, r.Context())
+	idTokenPayload, err := routeutils.DecodeOidcIdToken(rawIdToken, provider, conf.GetOidcContext(r.Context()))
 	if err != nil || idTokenPayload == nil {
 		errMsg := "failed to verify and decode id_token"
 		conf.Log().Request(r).Error(errMsg, "provider", provider.Name, "id_token", rawIdToken) // save to log, because does not grant any access

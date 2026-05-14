@@ -127,6 +127,7 @@ type appConfig struct {
 type securityConfig struct {
 	AllowSignup      bool `yaml:"allow_signup" default:"true" env:"WAKAPI_ALLOW_SIGNUP"`
 	OidcAllowSignup  bool `yaml:"oidc_allow_signup" default:"true" env:"WAKAPI_OIDC_ALLOW_SIGNUP"`
+	OidcInsecure     bool `yaml:"oidc_insecure" default:"false" env:"WAKAPI_OIDC_INSECURE"`
 	DisableLocalAuth bool `yaml:"disable_local_auth" default:"false" env:"WAKAPI_DISABLE_LOCAL_AUTH"`
 	DisableWebAuthn  bool `yaml:"disable_webauthn" default:"true" env:"WAKAPI_DISABLE_WEBAUTHN"`
 	SignupCaptcha    bool `yaml:"signup_captcha" default:"false" env:"WAKAPI_SIGNUP_CAPTCHA"`
