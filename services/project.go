@@ -36,13 +36,21 @@ func NewProjectService(aliasService IAliasService, heartbeatRepo repositories.IH
 		heartbeatSrvc: heartbeatSrvc,
 	}
 
-	sub := srv.eventBus.Subscribe(0, config.EventHeartbeatCreate)
+	sub1 := srv.eventBus.Subscribe(0, config.EventHeartbeatCreate)
 	go func(sub *hub.Subscription) {
 		for m := range sub.Receiver {
 			heartbeat := m.Fields[config.FieldPayload].(*models.Heartbeat)
 			srv.checkInvalidateProjectStatsCache(heartbeat)
 		}
-	}(&sub)
+	}(&sub1)
+
+	sub2 := srv.eventBus.Subscribe(0, config.TopicAlias)
+	go func(sub *hub.Subscription) {
+		for m := range sub.Receiver {
+			userId := m.Fields[config.FieldUserId].(string)
+			srv.invalidateProjectStatsCache(userId)
+		}
+	}(&sub2)
 
 	return srv
 }
@@ -141,19 +149,22 @@ func (srv *ProjectService) populateUniqueUserProjects(userId string) {
 	}
 }
 
-func (srv *ProjectService) checkInvalidateProjectStatsCache(newHeartbeat *models.Heartbeat) {
+func (srv *ProjectService) invalidateProjectStatsCache(userId string) {
 	var invalidated bool
-	if uniqueProjects, found := srv.cache.Get(srv.getUserProjectsCacheKey(newHeartbeat.UserID)); found && !uniqueProjects.(datastructure.Set[string]).Contain(newHeartbeat.Project) {
-		for _, k := range maputil.Keys[string, cache.Item](srv.cache.Items()) {
-			if strings.HasPrefix(k, fmt.Sprintf("project_stats_%s_", newHeartbeat.UserID)) {
-				srv.cache.Delete(k)
-				invalidated = true
-			}
+	for _, k := range maputil.Keys[string, cache.Item](srv.cache.Items()) {
+		if strings.HasPrefix(k, fmt.Sprintf("project_stats_%s_", userId)) {
+			srv.cache.Delete(k)
+			invalidated = true
 		}
 	}
-
 	if invalidated {
-		srv.cache.Delete(srv.getUserProjectsCacheKey(newHeartbeat.UserID))
+		srv.cache.Delete(srv.getUserProjectsCacheKey(userId))
+	}
+}
+
+func (srv *ProjectService) checkInvalidateProjectStatsCache(newHeartbeat *models.Heartbeat) {
+	if uniqueProjects, found := srv.cache.Get(srv.getUserProjectsCacheKey(newHeartbeat.UserID)); found && !uniqueProjects.(datastructure.Set[string]).Contain(newHeartbeat.Project) {
+		srv.invalidateProjectStatsCache(newHeartbeat.UserID)
 	}
 }
 
