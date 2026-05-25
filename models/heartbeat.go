@@ -15,13 +15,13 @@ import (
 type Heartbeat struct {
 	ID              uint64 `json:"-" gorm:"primary_key" hash:"ignore"`
 	User            *User  `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" hash:"ignore"`
-	UserID          string `json:"-" gorm:"not null; index:idx_time_user; index:idx_user_project"` // idx_user_project is for quickly fetching a user's project list (settings page)
+	UserID          string `json:"-" gorm:"not null; index:idx_time_user; index:idx_time_user_project_lang,priority:1; index:idx_user_project"` // idx_user_project is for quickly fetching a user's project list (settings page)
 	Entity          string `json:"entity" gorm:"not null"`
 	Type            string `json:"type" gorm:"size:255"`
 	Category        string `json:"category" gorm:"size:255"`
-	Project         string `json:"project" gorm:"index:idx_project; index:idx_user_project"`
+	Project         string `json:"project" gorm:"index:idx_project; index:idx_time_user_project_lang,priority:3; index:idx_user_project"`
 	Branch          string `json:"branch" gorm:"index:idx_branch"`
-	Language        string `json:"language" gorm:"index:idx_language"`
+	Language        string `json:"language" gorm:"index:idx_language; index:idx_time_user_project_lang,priority:4"`
 	IsWrite         bool   `json:"is_write"`
 	Editor          string `json:"editor" gorm:"index:idx_editor" hash:"ignore"`                     // ignored because editor might be parsed differently by wakatime
 	OperatingSystem string `json:"operating_system" gorm:"index:idx_operating_system" hash:"ignore"` // ignored because os might be parsed differently by wakatime
@@ -29,7 +29,7 @@ type Heartbeat struct {
 	UserAgent       string `json:"user_agent" hash:"ignore" gorm:"type:varchar(255)"`
 	// note: on sqlite, table will have an additional column `time_real`, introduced "manually" by migration 20260111
 	// see https://github.com/muety/wakapi/issues/882 for details
-	Time             CustomTime `json:"time" gorm:"timeScale:3; index:idx_time; index:idx_time_user; not null" swaggertype:"primitive,number"`
+	Time             CustomTime `json:"time" gorm:"timeScale:3; index:idx_time; index:idx_time_user; index:idx_time_user_project_lang,priority:2; not null" swaggertype:"primitive,number"`
 	Hash             string     `json:"-" hash:"ignore" gorm:"type:varchar(17); uniqueIndex"`
 	Origin           string     `json:"-" hash:"ignore" gorm:"type:varchar(255)"`
 	OriginId         string     `json:"-" hash:"ignore" gorm:"type:varchar(255)"`
