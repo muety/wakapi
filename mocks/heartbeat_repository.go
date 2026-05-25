@@ -154,8 +154,8 @@ func (m *HeartbeatRepositoryMock) DeleteByUserBefore(user *models.User, t time.T
 	return args.Error(0)
 }
 
-func (m *HeartbeatRepositoryMock) GetUserProjectStats(user *models.User, from, to time.Time, search string, limit, offset int) ([]*models.ProjectStats, error) {
-	args := m.Called(user, from, to, search, limit, offset)
+func (m *HeartbeatRepositoryMock) GetUserProjectStats(user *models.User, from, to time.Time) ([]*models.ProjectStats, error) {
+	args := m.Called(user, from, to)
 	if args.Get(0) != nil {
 		return args.Get(0).([]*models.ProjectStats), args.Error(1)
 	}

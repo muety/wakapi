@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"math"
 	"testing"
 	"time"
 
@@ -66,7 +65,7 @@ func (suite *ProjectServiceTestSuite) TestProjectService_GetUserProjectStats_Pag
 		{Project: "project5", Count: 50, Last: models.CustomTime(now.Add(1 * time.Hour))},
 	}
 
-	suite.HeartbeatRepository.On("GetUserProjectStats", suite.TestUser, mock.Anything, mock.Anything, "", math.MaxInt32, 0).Return(rawStats, nil).Once()
+	suite.HeartbeatRepository.On("GetUserProjectStats", suite.TestUser, mock.Anything, mock.Anything).Return(rawStats, nil).Once()
 	suite.AliasService.On("GetAliasOrDefault", suite.TestUser.ID, models.SummaryProject, "project1").Return("project1", nil)
 	suite.AliasService.On("GetAliasOrDefault", suite.TestUser.ID, models.SummaryProject, "project2").Return("project2", nil)
 	suite.AliasService.On("GetAliasOrDefault", suite.TestUser.ID, models.SummaryProject, "project3").Return("project3", nil)
@@ -95,7 +94,7 @@ func (suite *ProjectServiceTestSuite) TestProjectService_GetUserProjectStats_Ali
 		{Project: "other-project", Count: 2, First: models.CustomTime(now.Add(2 * time.Hour)), Last: models.CustomTime(now.Add(4 * time.Hour)), TopLanguage: "Go"},
 	}
 
-	suite.HeartbeatRepository.On("GetUserProjectStats", suite.TestUser, mock.Anything, mock.Anything, "", math.MaxInt32, 0).Return(rawStats, nil).Once()
+	suite.HeartbeatRepository.On("GetUserProjectStats", suite.TestUser, mock.Anything, mock.Anything).Return(rawStats, nil).Once()
 	suite.AliasService.On("MayInitializeUser", suite.TestUser.ID).Return()
 	suite.AliasService.On("GetAliasOrDefault", suite.TestUser.ID, models.SummaryProject, "wakapi-web").Return("wakapi", nil)
 	suite.AliasService.On("GetAliasOrDefault", suite.TestUser.ID, models.SummaryProject, "wakapi-mobile").Return("wakapi", nil)
@@ -127,7 +126,7 @@ func (suite *ProjectServiceTestSuite) TestProjectService_GetUserProjectStats_Sea
 		{Project: "other-project", Count: 2, First: models.CustomTime(now.Add(2 * time.Hour)), Last: models.CustomTime(now.Add(4 * time.Hour)), TopLanguage: "Go"},
 	}
 
-	suite.HeartbeatRepository.On("GetUserProjectStats", suite.TestUser, mock.Anything, mock.Anything, "", math.MaxInt32, 0).Return(rawStats, nil).Once()
+	suite.HeartbeatRepository.On("GetUserProjectStats", suite.TestUser, mock.Anything, mock.Anything).Return(rawStats, nil).Once()
 	suite.AliasService.On("MayInitializeUser", suite.TestUser.ID).Return()
 	suite.AliasService.On("GetAliasOrDefault", suite.TestUser.ID, models.SummaryProject, "wakapi-web").Return("wakapi", nil)
 	suite.AliasService.On("GetAliasOrDefault", suite.TestUser.ID, models.SummaryProject, "wakapi-mobile").Return("wakapi", nil)

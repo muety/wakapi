@@ -79,7 +79,7 @@ func (srv *ProjectService) GetUserProjectStats(user *models.User, from, to time.
 		to = time.Now()
 	}
 
-	rawResults, err := srv.repository.GetUserProjectStats(user, from, to, "", math.MaxInt32, 0)
+	rawResults, err := srv.repository.GetUserProjectStats(user, from, to)
 	if err != nil {
 		return nil, err
 	}

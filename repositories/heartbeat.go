@@ -252,11 +252,10 @@ func (r *HeartbeatRepository) DeleteByUserBefore(user *models.User, t time.Time)
 	return nil
 }
 
-func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to time.Time, search string, limit, offset int) ([]*models.ProjectStats, error) {
+func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to time.Time) ([]*models.ProjectStats, error) {
 	var projectStats []*models.ProjectStats
 
-	// note: limit / offset doesn't really improve query performance
-	// query takes quite long, depending on the number of heartbeats (~ 7 seconds for ~ 500k heartbeats)
+	// note: query takes quite long, depending on the number of heartbeats (~ 7 seconds for ~ 500k heartbeats)
 	// TODO: refactor this to use summaries once we implemented persisting filtered, multi-interval summaries
 	// see https://github.com/muety/wakapi/issues/524#issuecomment-1731668391
 
@@ -266,14 +265,6 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 		sql.Named("userid", user.ID),
 		sql.Named("from", from.Format(time.RFC3339)),
 		sql.Named("to", to.Format(time.RFC3339)),
-		sql.Named("limit", limit),
-		sql.Named("offset", offset),
-	}
-
-	searchClause := ""
-	if search != "" {
-		args = append(args, sql.Named("search", "%"+search+"%"))
-		searchClause = condition.Ternary(r.config.Db.IsPostgres(), "and project ILIKE @search", "and LOWER(project) LIKE LOWER(@search)")
 	}
 
 	querySqlite := "with project_stats as (" +
@@ -286,7 +277,6 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 		" and project != ''" +
 		" and time_real between julianday(@from) and julianday(@to)" +
 		" and language is not null and language != '' " +
-		searchClause +
 		" group by project, user_id" +
 		"), language_stats as (" +
 		"select project, language, count(*) as language_count," +
@@ -296,12 +286,10 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 		" and project != ''" +
 		" and time_real between julianday(@from) and julianday(@to)" +
 		" and language is not null and language != '' " +
-		searchClause +
 		" group by project, language" +
 		") select ps.project, ps.first, ps.last, ps.cnt as count, ls.language as top_language " +
 		"from project_stats ps" +
-		" left join language_stats ls on ps.project = ls.project and ls.rn = 1 " +
-		"order by ps.last desc "
+		" left join language_stats ls on ps.project = ls.project and ls.rn = 1 "
 
 	queryDefault := "with project_stats as (" +
 		"select project, user_id," +
@@ -313,7 +301,6 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 		" and project != ''" +
 		" and time between @from and @to" +
 		" and language is not null and language != '' " +
-		searchClause +
 		" group by project, user_id" +
 		"), language_stats as (" +
 		"select project, language, count(*) as language_count," +
@@ -323,14 +310,12 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 		" and project != ''" +
 		" and time between @from and @to" +
 		" and language is not null and language != '' " +
-		searchClause +
 		" group by project, language" +
 		") select ps.project, ps.first, ps.last, ps.cnt as count, ls.language as top_language " +
 		"from project_stats ps" +
-		" left join language_stats ls on ps.project = ls.project and ls.rn = 1 " +
-		"order by ps.last desc "
+		" left join language_stats ls on ps.project = ls.project and ls.rn = 1 "
+
 	query := condition.Ternary(r.config.Db.IsSQLite(), querySqlite, queryDefault)
-	query += "limit @limit offset @offset"
 
 	if err := r.db.
 		Raw(query, args...).
