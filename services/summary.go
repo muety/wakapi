@@ -74,6 +74,13 @@ func NewSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatSer
 		}
 	}(&sub2)
 
+	sub3 := srv.eventBus.Subscribe(0, config.TopicAlias) // published from alias service
+	go func(sub *hub.Subscription) {
+		for m := range sub.Receiver {
+			srv.invalidateUserCache(m.Fields[config.FieldUserId].(string))
+		}
+	}(&sub3)
+
 	return srv
 }
 
