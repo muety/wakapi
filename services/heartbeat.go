@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -24,16 +25,18 @@ type HeartbeatService struct {
 	eventBus            *hub.Hub
 	repository          repositories.IHeartbeatRepository
 	languageMappingSrvc ILanguageMappingService
+	aliasService        IAliasService
 	entityCacheLock     *sync.RWMutex
 }
 
-func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, languageMappingService ILanguageMappingService) *HeartbeatService {
+func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, languageMappingService ILanguageMappingService, aliasService IAliasService) *HeartbeatService {
 	srv := &HeartbeatService{
 		config:              config.Get(),
 		cache:               cache.New(24*time.Hour, 24*time.Hour),
 		eventBus:            config.EventBus(),
 		repository:          heartbeatRepo,
 		languageMappingSrvc: languageMappingService,
+		aliasService:        aliasService,
 		entityCacheLock:     &sync.RWMutex{},
 	}
 
@@ -302,14 +305,66 @@ func (srv *HeartbeatService) GetUserProjectStats(user *models.User, from, to tim
 		to = time.Now()
 	}
 
-	results, err := srv.repository.GetUserProjectStats(user, from, to, search, limit, offset)
-	if err == nil {
-		srv.cache.Set(cacheKey, results, 12*time.Hour)
+	rawResults, err := srv.repository.GetUserProjectStats(user, from, to, "", math.MaxInt32, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	merged := make(map[string]*models.ProjectStats)
+	maxCounts := make(map[string]int64)
+
+	for _, stats := range rawResults {
+		aliasKey, _ := srv.aliasService.GetAliasOrDefault(user.ID, models.SummaryProject, stats.Project)
+
+		if existing, ok := merged[aliasKey]; ok {
+			existing.Count += stats.Count
+
+			if stats.First.T().Before(existing.First.T()) {
+				existing.First = stats.First
+			}
+
+			if stats.Last.T().After(existing.Last.T()) {
+				existing.Last = stats.Last
+			}
+
+			if stats.Count > maxCounts[aliasKey] {
+				existing.TopLanguage = stats.TopLanguage
+				maxCounts[aliasKey] = stats.Count
+			}
+		} else {
+			merged[aliasKey] = &models.ProjectStats{
+				UserId:      stats.UserId,
+				Project:     aliasKey,
+				TopLanguage: stats.TopLanguage,
+				Count:       stats.Count,
+				First:       stats.First,
+				Last:        stats.Last,
+			}
+			maxCounts[aliasKey] = stats.Count
+		}
+	}
+
+	aggregatedResults := make([]*models.ProjectStats, 0, len(merged))
+	for _, v := range merged {
+		if search == "" || strings.Contains(strings.ToLower(v.Project), strings.ToLower(search)) {
+			aggregatedResults = append(aggregatedResults, v)
+		}
+	}
+
+	sort.Slice(aggregatedResults, func(i, j int) bool {
+		return aggregatedResults[i].Last.T().After(aggregatedResults[j].Last.T())
+	})
+
+	paginatedResults := utils.SubSlice[*models.ProjectStats](aggregatedResults, uint(offset), uint(offset+limit))
+
+	srv.cache.Set(cacheKey, paginatedResults, 12*time.Hour)
+	if search == "" && (limit != math.MaxInt32 || offset != 0) {
+		srv.cache.Set(fmt.Sprintf("project_stats_%s_%d_%d_%d_%d_", user.ID, from.Unix(), to.Unix(), math.MaxInt32, 0), aggregatedResults, 12*time.Hour)
 	}
 
 	go srv.populateUniqueUserProjects(user.ID)
 
-	return results, err
+	return paginatedResults, nil
 }
 
 // GetUserAgentsByUser returns a list of all user agents that have been recorded for the given user.

@@ -189,7 +189,7 @@ func main() {
 	userService = services.NewUserService(keyValueService, mailService, apiKeyService, userRepository)
 	languageMappingService = services.NewLanguageMappingService(languageMappingRepository)
 	projectLabelService = services.NewProjectLabelService(projectLabelRepository)
-	heartbeatService = services.NewHeartbeatService(heartbeatRepository, languageMappingService)
+	heartbeatService = services.NewHeartbeatService(heartbeatRepository, languageMappingService, aliasService)
 	durationService = services.NewDurationService(durationRepository, heartbeatService, userService, languageMappingService)
 	summaryService = services.NewSummaryService(summaryRepository, heartbeatService, durationService, aliasService, projectLabelService)
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService, durationService)
