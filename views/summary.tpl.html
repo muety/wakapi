@@ -100,7 +100,7 @@
             </div>
             <div class="flex flex-col w-full p-4 pt-2 rounded-md text-foreground bg-card leading-none border-2 border-accent">
                 <span class="text-xs text-muted font-semibold">AI coding ratio</span>
-                <span class="font-semibold text-xl truncate">{{ mulf64 (.Summary.CategoryRatio "ai coding" "ai coding" "coding") 100 }} %</span>
+                <span class="font-semibold text-xl truncate">{{ printf "%.0f" (mulf64 (.Summary.CategoryRatio "ai coding" "ai coding" "coding") 100) }} %</span>
             </div>
         </div>
 
