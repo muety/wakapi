@@ -414,9 +414,6 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
 
-	// clear any existing id token on the session, just because
-	routeutils.ClearOidcIdTokenPayload(r, w)
-
 	// validate oauth state param
 	savedState := routeutils.GetOidcState(r)
 	if state == "" || savedState != state {
@@ -496,7 +493,6 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 		user = newUser
 	}
 
-	routeutils.SetOidcIdTokenPayload(idTokenPayload, r, w) // save to session, only used by middleware for automatic redirection upon expiry
 	h.finishUserLogin(user, r, w)
 	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 }

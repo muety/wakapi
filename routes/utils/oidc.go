@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -34,41 +33,6 @@ func GetOidcState(r *http.Request) string {
 func ClearOidcState(r *http.Request, w http.ResponseWriter) {
 	session, _ := conf.GetSessionStore().Get(r, conf.CookieKeySession)
 	delete(session.Values, conf.SessionValueOidcState)
-	session.Save(r, w)
-}
-
-func SetOidcIdTokenPayload(payload *conf.IdTokenPayload, r *http.Request, w http.ResponseWriter) {
-	encoded, err := json.Marshal(payload)
-	if err != nil {
-		conf.Log().Request(r).Error("failed marshal oidc id token", "error", err.Error())
-		return
-	}
-
-	session, _ := conf.GetSessionStore().Get(r, conf.CookieKeySession)
-	session.Values[conf.SessionValueOidcIdTokenPayload] = string(encoded)
-	session.Save(r, w)
-}
-
-func GetOidcIdTokenPayload(r *http.Request) *conf.IdTokenPayload {
-	session, _ := conf.GetSessionStore().Get(r, conf.CookieKeySession)
-
-	encoded, ok := session.Values[conf.SessionValueOidcIdTokenPayload]
-	if !ok {
-		return nil
-	}
-
-	var payload conf.IdTokenPayload
-	if err := json.Unmarshal([]byte(encoded.(string)), &payload); err != nil {
-		conf.Log().Request(r).Error("failed unmarshal oidc id token", "error", err.Error())
-		return nil
-	}
-
-	return &payload
-}
-
-func ClearOidcIdTokenPayload(r *http.Request, w http.ResponseWriter) {
-	session, _ := conf.GetSessionStore().Get(r, conf.CookieKeySession)
-	delete(session.Values, conf.SessionValueOidcIdTokenPayload)
 	session.Save(r, w)
 }
 

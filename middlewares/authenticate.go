@@ -13,7 +13,6 @@ import (
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
-	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 )
@@ -80,12 +79,6 @@ func (m *AuthenticateMiddleware) Handler(h http.Handler) http.Handler {
 
 func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	var user *models.User
-
-	if m.tryHandleOidc(w, r) {
-		// user has expired oidc token, thus is redirected to provider and will come back to callback endpoint
-		// notably, if user does have a valid, non-expired id token, they will also have a valid auth cookie, so proceed as usual
-		return
-	}
 
 	user, err := m.tryGetUserByCookie(r)
 	if err != nil {
@@ -219,32 +212,4 @@ func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.Us
 	// if cookie is not properly signed
 
 	return user, nil
-}
-
-// redirect if oidc id token was found, but expired
-// returns true if further authentication can be skipped
-func (m *AuthenticateMiddleware) tryHandleOidc(w http.ResponseWriter, r *http.Request) bool {
-	idToken := routeutils.GetOidcIdTokenPayload(r)
-	if idToken == nil {
-		return false
-	}
-
-	if !idToken.IsValid() { // expired
-		provider, err := m.config.Security.GetOidcProvider(idToken.ProviderName)
-		if err != nil {
-			conf.Log().Request(r).Error("failed to get provider from id token", "provider", idToken.ProviderName, "sub", idToken.Subject)
-			return false
-		}
-
-		if _, err := m.userSrvc.GetUserByOidc(provider.Name, idToken.Subject); err != nil {
-			conf.Log().Request(r).Error("got expired oidc token for non-oidc user", "provider", idToken.ProviderName, "sub", idToken.Subject)
-			return false
-		}
-
-		state := routeutils.SetNewOidcState(r, w)
-		http.Redirect(w, r, provider.OAuth2.AuthCodeURL(state), http.StatusFound)
-		return true
-	}
-
-	return false
 }
