@@ -2,12 +2,14 @@ package utils
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/duke-git/lancet/v2/random"
 	conf "github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/models"
+	"golang.org/x/oauth2"
 )
 
 func SetOidcState(state string, r *http.Request, w http.ResponseWriter) {
@@ -37,41 +39,6 @@ func ClearOidcState(r *http.Request, w http.ResponseWriter) {
 	session.Save(r, w)
 }
 
-func SetOidcIdTokenPayload(payload *conf.IdTokenPayload, r *http.Request, w http.ResponseWriter) {
-	encoded, err := json.Marshal(payload)
-	if err != nil {
-		conf.Log().Request(r).Error("failed marshal oidc id token", "error", err.Error())
-		return
-	}
-
-	session, _ := conf.GetSessionStore().Get(r, conf.CookieKeySession)
-	session.Values[conf.SessionValueOidcIdTokenPayload] = string(encoded)
-	session.Save(r, w)
-}
-
-func GetOidcIdTokenPayload(r *http.Request) *conf.IdTokenPayload {
-	session, _ := conf.GetSessionStore().Get(r, conf.CookieKeySession)
-
-	encoded, ok := session.Values[conf.SessionValueOidcIdTokenPayload]
-	if !ok {
-		return nil
-	}
-
-	var payload conf.IdTokenPayload
-	if err := json.Unmarshal([]byte(encoded.(string)), &payload); err != nil {
-		conf.Log().Request(r).Error("failed unmarshal oidc id token", "error", err.Error())
-		return nil
-	}
-
-	return &payload
-}
-
-func ClearOidcIdTokenPayload(r *http.Request, w http.ResponseWriter) {
-	session, _ := conf.GetSessionStore().Get(r, conf.CookieKeySession)
-	delete(session.Values, conf.SessionValueOidcIdTokenPayload)
-	session.Save(r, w)
-}
-
 func DecodeOidcIdToken(token string, provider *conf.OidcProvider, ctx context.Context) (*conf.IdTokenPayload, error) {
 	idToken, err := provider.Verifier.Verify(ctx, token)
 	if err != nil {
@@ -81,8 +48,6 @@ func DecodeOidcIdToken(token string, provider *conf.OidcProvider, ctx context.Co
 	var payload conf.IdTokenPayload
 	if err := idToken.Claims(&payload); err != nil {
 		return nil, err
-	} else if !payload.IsValid() {
-		return nil, errors.New("invalid oidc id token payload")
 	}
 	payload.ProviderName = provider.Name
 
@@ -93,4 +58,55 @@ func DecodeOidcIdToken(token string, provider *conf.OidcProvider, ctx context.Co
 
 	payload.UsernameClaim = provider.UsernameClaim
 	return &payload, nil
+}
+
+func RefreshOidcIdToken(ctx context.Context, provider *conf.OidcProvider, refreshToken string) (*oauth2.Token, error) {
+	ts := provider.OAuth2.TokenSource(ctx, &oauth2.Token{RefreshToken: refreshToken})
+	return ts.Token()
+}
+
+func ExtractOidcAuth(w http.ResponseWriter, r *http.Request, config *conf.Config) (*conf.IdTokenPayload, error) {
+	providerCookie, err := r.Cookie(models.OidcProviderCookieKey)
+	if err != nil {
+		return nil, errors.New("missing authentication")
+	}
+	idTokenCookie, err := r.Cookie(models.OidcIdTokenCookieKey)
+	if err != nil {
+		return nil, errors.New("missing authentication")
+	}
+	refreshToken, _ := r.Cookie(models.OidcRefreshTokenCookieKey)
+
+	provider, err := conf.GetOidcProvider(providerCookie.Value)
+	if err != nil {
+		return nil, errors.New("invalid OIDC provider")
+	}
+
+	oidcContext := conf.GetOidcContext(r.Context())
+	idTokenPayload, err := DecodeOidcIdToken(idTokenCookie.Value, provider, oidcContext)
+	if err == nil {
+		return idTokenPayload, nil
+	}
+
+	_, ok := errors.AsType[*oidc.TokenExpiredError](err)
+	if !ok || refreshToken == nil {
+		return nil, err
+	}
+
+	authToken, err := RefreshOidcIdToken(oidcContext, provider, refreshToken.Value)
+	if err != nil {
+		return nil, err
+	}
+	rawIdToken, ok := authToken.Extra("id_token").(string)
+	if !ok {
+		return nil, err
+	}
+	idTokenPayload, err = DecodeOidcIdToken(rawIdToken, provider, oidcContext)
+	if err != nil {
+		return nil, err
+	}
+
+	http.SetCookie(w, config.CreateCookie(models.OidcIdTokenCookieKey, rawIdToken))
+	http.SetCookie(w, config.CreateCookie(models.OidcRefreshTokenCookieKey, authToken.RefreshToken))
+
+	return idTokenPayload, nil
 }

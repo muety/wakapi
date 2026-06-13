@@ -38,10 +38,6 @@ func (token *IdTokenPayload) Exp() time.Time {
 	return time.Unix(token.Expiry, 0)
 }
 
-func (token *IdTokenPayload) IsValid() bool {
-	return token.Exp().After(time.Now())
-}
-
 func (token *IdTokenPayload) Username() string {
 	// Check custom claim first if configured
 	if token.UsernameClaim != "" {
@@ -96,7 +92,7 @@ func RegisterOidcProvider(providerCfg *oidcProviderConfig) {
 		return
 	}
 
-	scopes := []string{oidc.ScopeOpenID, "profile", "email"}
+	scopes := []string{oidc.ScopeOpenID, "profile", "email", "offline_access"}
 	for _, s := range providerCfg.Scopes {
 		if s != oidc.ScopeOpenID && s != "profile" && s != "email" {
 			scopes = append(scopes, s)
