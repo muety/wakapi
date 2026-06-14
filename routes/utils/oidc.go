@@ -65,7 +65,7 @@ func RefreshOidcIdToken(ctx context.Context, provider *conf.OidcProvider, refres
 	return ts.Token()
 }
 
-func ExtractOidcAuth(w http.ResponseWriter, r *http.Request, config *conf.Config) (*conf.IdTokenPayload, error) {
+func ExtractOidcAuth(w http.ResponseWriter, r *http.Request) (*conf.IdTokenPayload, error) {
 	providerCookie, err := r.Cookie(models.OidcProviderCookieKey)
 	if err != nil {
 		return nil, errors.New("missing authentication")
@@ -105,8 +105,8 @@ func ExtractOidcAuth(w http.ResponseWriter, r *http.Request, config *conf.Config
 		return nil, err
 	}
 
-	http.SetCookie(w, config.CreateCookie(models.OidcIdTokenCookieKey, rawIdToken))
-	http.SetCookie(w, config.CreateCookie(models.OidcRefreshTokenCookieKey, authToken.RefreshToken))
+	http.SetCookie(w, conf.Get().CreateCookie(models.OidcIdTokenCookieKey, rawIdToken))
+	http.SetCookie(w, conf.Get().CreateCookie(models.OidcRefreshTokenCookieKey, authToken.RefreshToken))
 
 	return idTokenPayload, nil
 }

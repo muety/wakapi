@@ -222,7 +222,7 @@ func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.Us
 }
 
 func (m *AuthenticateMiddleware) tryGetUserByOidc(w http.ResponseWriter, r *http.Request) (*models.User, error) {
-	idTokenPayload, err := routeutils.ExtractOidcAuth(w, r, m.config)
+	idTokenPayload, err := routeutils.ExtractOidcAuth(w, r)
 	if err != nil {
 		return nil, err
 	}
