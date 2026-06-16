@@ -5,15 +5,20 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
+	"time"
 
+	"github.com/oauth2-proxy/mockoidc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
+	testutils "github.com/muety/wakapi/utils/test"
 )
 
 func TestAuthenticateMiddleware_tryGetUserByApiKeyHeader_Success(t *testing.T) {
@@ -276,6 +281,181 @@ func TestAuthenticateMiddleware_tryGetUserByTrustedHeader_Signup(t *testing.T) {
 		assert.Nil(t, result)
 		userServiceMock.AssertNumberOfCalls(t, "GetUserById", 2)
 	}
+}
+
+func TestAuthenticateMiddleware_tryGetUserByOidc_NoToken(t *testing.T) {
+	config.Set(config.Empty())
+
+	userServiceMock := new(mocks.UserServiceMock)
+
+	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
+	w := httptest.NewRecorder()
+
+	sut := NewAuthenticateMiddleware(userServiceMock)
+
+	result, err := sut.tryGetUserByOidc(w, r)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+}
+
+func TestAuthenticateMiddleware_tryGetUserByOidc_ValidToken(t *testing.T) {
+	const (
+		testProvider = "mock"
+		testSub      = "testsub"
+		testEmail    = "test@example.com"
+	)
+	var testUser = &models.User{ID: "testuser"}
+
+	oidcMock, _ := mockoidc.Run()
+	defer oidcMock.Shutdown()
+
+	cfg := config.Empty()
+	config.Set(cfg)
+	config.WithOidcProvider(cfg, testProvider, oidcMock.ClientID, oidcMock.ClientSecret, oidcMock.Addr()+"/oidc", "")
+
+	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
+	w := httptest.NewRecorder()
+
+	session, err := oidcMock.SessionStore.NewSession(
+		"openid profile email",
+		"",
+		&mockoidc.MockUser{
+			Subject:           testSub,
+			Email:             testEmail,
+			PreferredUsername: testUser.ID,
+		},
+		"code",
+		"method",
+	)
+	assert.NoError(t, err)
+
+	idToken, err := session.IDToken(oidcMock.Config(), oidcMock.Keypair, time.Now())
+	assert.NoError(t, err)
+
+	r.AddCookie(cfg.CreateCookie(config.CookieKeyOidcProvider, testProvider))
+	r.AddCookie(cfg.CreateCookie(config.CookieKeyOidcIdToken, idToken))
+
+	userServiceMock := new(mocks.UserServiceMock)
+	userServiceMock.On("GetUserByOidc", testProvider, testSub).Return(testUser, nil)
+
+	sut := NewAuthenticateMiddleware(userServiceMock)
+
+	result, err := sut.tryGetUserByOidc(w, r)
+	assert.NoError(t, err)
+	assert.Equal(t, testUser, result)
+}
+
+func TestAuthenticateMiddleware_tryGetUserByOidc_ExpiredTokenNoRefreshToken(t *testing.T) {
+	const (
+		testProvider = "mock"
+		testSub      = "testsub"
+		testEmail    = "test@example.com"
+	)
+	var testUser = &models.User{ID: "testuser"}
+
+	oidcMock, _ := mockoidc.Run()
+	defer oidcMock.Shutdown()
+
+	cfg := config.Empty()
+	config.Set(cfg)
+	config.WithOidcProvider(cfg, testProvider, oidcMock.ClientID, oidcMock.ClientSecret, oidcMock.Addr()+"/oidc", "")
+
+	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
+	w := httptest.NewRecorder()
+
+	session, err := oidcMock.SessionStore.NewSession(
+		"openid profile email",
+		"",
+		&mockoidc.MockUser{
+			Subject:           testSub,
+			Email:             testEmail,
+			PreferredUsername: testUser.ID,
+		},
+		"code",
+		"method",
+	)
+	assert.NoError(t, err)
+
+	oidcMockConfig := oidcMock.Config()
+	// Ensure the token is expired
+	tokenIssuedTime := time.Now().Add(-oidcMockConfig.AccessTTL * 2)
+
+	idToken, err := session.IDToken(oidcMockConfig, oidcMock.Keypair, tokenIssuedTime)
+	assert.NoError(t, err)
+
+	r.AddCookie(cfg.CreateCookie(config.CookieKeyOidcProvider, testProvider))
+	r.AddCookie(cfg.CreateCookie(config.CookieKeyOidcIdToken, idToken))
+
+	userServiceMock := new(mocks.UserServiceMock)
+	userServiceMock.On("GetUserByOidc", testProvider, testSub).Return(testUser, nil)
+
+	sut := NewAuthenticateMiddleware(userServiceMock)
+
+	_, err = sut.tryGetUserByOidc(w, r)
+	assert.Error(t, err)
+}
+
+func TestAuthenticateMiddleware_tryGetUserByOidc_ExpiredTokenWithRefreshToken(t *testing.T) {
+	const (
+		testProvider = "mock"
+		testSub      = "testsub"
+		testEmail    = "test@example.com"
+	)
+	var testUser = &models.User{ID: "testuser"}
+
+	oidcMock, _ := mockoidc.Run()
+	defer oidcMock.Shutdown()
+
+	cfg := config.Empty()
+	config.Set(cfg)
+	config.WithOidcProvider(cfg, testProvider, oidcMock.ClientID, oidcMock.ClientSecret, oidcMock.Addr()+"/oidc", "")
+
+	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
+	w := httptest.NewRecorder()
+
+	session, err := oidcMock.SessionStore.NewSession(
+		"openid profile email",
+		"",
+		&mockoidc.MockUser{
+			Subject:           testSub,
+			Email:             testEmail,
+			PreferredUsername: testUser.ID,
+		},
+		"code",
+		"method",
+	)
+	assert.NoError(t, err)
+
+	oidcMockConfig := oidcMock.Config()
+	// Ensure the token is expired
+	tokenIssuedTime := time.Now().Add(-oidcMockConfig.AccessTTL * 2)
+
+	idToken, err := session.IDToken(oidcMockConfig, oidcMock.Keypair, tokenIssuedTime)
+	assert.NoError(t, err)
+	refreshToken, err := session.RefreshToken(oidcMockConfig, oidcMock.Keypair, tokenIssuedTime)
+	assert.NoError(t, err)
+
+	r.AddCookie(cfg.CreateCookie(config.CookieKeyOidcProvider, testProvider))
+	r.AddCookie(cfg.CreateCookie(config.CookieKeyOidcIdToken, idToken))
+	r.AddCookie(cfg.CreateCookie(config.CookieKeyOidcRefreshToken, refreshToken))
+
+	userServiceMock := new(mocks.UserServiceMock)
+	userServiceMock.On("GetUserByOidc", testProvider, testSub).Return(testUser, nil)
+
+	sut := NewAuthenticateMiddleware(userServiceMock)
+
+	result, err := sut.tryGetUserByOidc(w, r)
+	assert.NoError(t, err)
+	assert.Equal(t, testUser, result)
+
+	// Check that refresh token and id token are set
+	testutils.AssertContainsHeaderMatching(t, w.Header(), "Set-Cookie", func(value string) bool {
+		return strings.Contains(value, "oidc_id_token=")
+	}, "OIDC id_token cookie not set in response")
+	testutils.AssertContainsHeaderMatching(t, w.Header(), "Set-Cookie", func(value string) bool {
+		return strings.Contains(value, "oidc_refresh_token=")
+	})
 }
 
 // TODO: somehow test cookie auth function

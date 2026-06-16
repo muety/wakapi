@@ -18,6 +18,7 @@ import (
 	"github.com/muety/wakapi/models"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/utils"
+	testutils "github.com/muety/wakapi/utils/test"
 	"github.com/oauth2-proxy/mockoidc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -53,19 +54,6 @@ const (
 	testUserNewPassword      = "ssssshhhhhh"
 	testPasswordSalt         = "salty"
 )
-
-func AssertContainsHeaderMatching(t assert.TestingT, headers http.Header, headerName string, predicate func(string) bool, msgAndArgs ...interface{}) bool {
-	values := headers.Values(headerName)
-	if len(values) == 0 {
-		return assert.Fail(t, fmt.Sprintf("header %s not found in response", headerName), msgAndArgs...)
-	}
-	for _, value := range values {
-		if predicate(value) {
-			return true
-		}
-	}
-	return assert.Fail(t, fmt.Sprintf("header matching predicate not found for %s", headerName), msgAndArgs...)
-}
 
 func (suite *LoginHandlerTestSuite) SetupSuite() {
 	if m, err := mockoidc.Run(); err == nil {
@@ -490,13 +478,13 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success() {
 	assert.Empty(suite.T(), suite.getSessionError(r))
 	assert.Equal(suite.T(), "/summary", w.Header().Get("Location"))
 
-	AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
 		return strings.Contains(value, "oidc_id_token=")
 	}, "OIDC id_token cookie not set in response")
-	AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
 		return strings.Contains(value, "oidc_provider="+testProvider)
 	}, "OIDC provider cookie not set in response")
-	AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
 		return strings.Contains(value, "oidc_refresh_token=")
 	}, "OIDC refresh token not set in response")
 }
@@ -532,13 +520,13 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success_CreateUser(
 	assert.Empty(suite.T(), suite.getSessionError(r))
 	assert.Equal(suite.T(), "/summary", w.Header().Get("Location"))
 
-	AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
 		return strings.Contains(value, "oidc_id_token=")
 	}, "OIDC id_token cookie not set in response")
-	AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
 		return strings.Contains(value, "oidc_provider="+testProvider)
 	}, "OIDC provider cookie not set in response")
-	AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
 		return strings.Contains(value, "oidc_refresh_token=")
 	}, "OIDC refresh token not set in response")
 }
@@ -590,13 +578,13 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success_CreateUser_
 	assert.Empty(suite.T(), suite.getSessionError(r))
 	assert.Equal(suite.T(), "/summary", w.Header().Get("Location"))
 
-	AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
 		return strings.Contains(value, "oidc_id_token=")
 	}, "OIDC id_token cookie not set in response")
-	AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
 		return strings.Contains(value, "oidc_provider=custom-claim-provider")
 	}, "OIDC provider cookie not set in response")
-	AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
 		return strings.Contains(value, "oidc_refresh_token=")
 	}, "OIDC refresh token not set in response")
 }

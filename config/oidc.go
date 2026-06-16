@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/oauth2"
 )
 
@@ -22,6 +23,7 @@ type OidcProvider struct {
 
 type IdTokenPayload struct {
 	Issuer            string                 `json:"iss"`
+	Audience          jwt.ClaimStrings       `json:"aud"`
 	Subject           string                 `json:"sub"`
 	Expiry            int64                  `json:"exp"`
 	Name              string                 `json:"name"`
@@ -34,8 +36,67 @@ type IdTokenPayload struct {
 	UsernameClaim     string                 `json:"-"`
 }
 
-func (token *IdTokenPayload) Exp() time.Time {
-	return time.Unix(token.Expiry, 0)
+// Implement jwt.Claims methods
+
+func (token *IdTokenPayload) GetExpirationTime() (*jwt.NumericDate, error) {
+	return &jwt.NumericDate{
+		Time: time.Unix(token.Expiry, 0),
+	}, nil
+}
+
+func (token *IdTokenPayload) GetIssuedAt() (*jwt.NumericDate, error) {
+	if token.AllClaims == nil {
+		return nil, fmt.Errorf("no token claims found")
+	}
+	iatVal, ok := token.AllClaims["iat"]
+	if !ok {
+		return nil, fmt.Errorf("no issued_at claim found")
+	}
+	iatInt, ok := iatVal.(int64)
+	if !ok {
+		return nil, fmt.Errorf("issued_at claim is not a number")
+	}
+	return &jwt.NumericDate{
+		Time: time.Unix(iatInt, 0),
+	}, nil
+}
+
+func (token *IdTokenPayload) GetNotBefore() (*jwt.NumericDate, error) {
+	if token.AllClaims == nil {
+		return nil, fmt.Errorf("no token claims found")
+	}
+	iatVal, ok := token.AllClaims["nbf"]
+	if !ok {
+		return nil, fmt.Errorf("no not_before claim found")
+	}
+	iatInt, ok := iatVal.(int64)
+	if !ok {
+		return nil, fmt.Errorf("not_before claim is not a number")
+	}
+	return &jwt.NumericDate{
+		Time: time.Unix(iatInt, 0),
+	}, nil
+}
+
+func (token *IdTokenPayload) GetIssuer() (string, error) {
+	if token.Issuer == "" {
+		return "", fmt.Errorf("no issuer specified")
+	}
+	return token.Issuer, nil
+}
+
+func (token *IdTokenPayload) GetSubject() (string, error) {
+	if token.Subject == "" {
+		return "", fmt.Errorf("no subject specified")
+	}
+	return token.Subject, nil
+}
+
+func (token *IdTokenPayload) GetAudience() (jwt.ClaimStrings, error) {
+	if len(token.Audience) == 0 {
+		return nil, fmt.Errorf("no audience specified")
+	}
+	return token.Audience, nil
 }
 
 func (token *IdTokenPayload) Username() string {
