@@ -153,7 +153,7 @@ func RegisterOidcProvider(providerCfg *oidcProviderConfig) {
 		return
 	}
 
-	scopes := []string{oidc.ScopeOpenID, "profile", "email", "offline_access"}
+	scopes := []string{oidc.ScopeOpenID, "profile", "email"}
 	for _, s := range providerCfg.Scopes {
 		if s != oidc.ScopeOpenID && s != "profile" && s != "email" {
 			scopes = append(scopes, s)
