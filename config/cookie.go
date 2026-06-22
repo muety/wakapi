@@ -50,6 +50,7 @@ func (config *cookieConfig) newAuthCookie() {
 	}
 
 	config.authCookie = securecookie.New(authKeys[:64], authKeys[64:])
+	config.authCookie.SetSerializer(securecookie.JSONEncoder{})
 }
 
 func (config *cookieConfig) init() {
