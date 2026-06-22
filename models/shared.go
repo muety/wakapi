@@ -19,10 +19,13 @@ import (
 )
 
 const (
-	UserKey               = "user"
-	ImprintKey            = "imprint"
-	AuthCookieKey         = config.CookieKeyAuth
-	PersistentIntervalKey = "wakapi_summary_interval"
+	UserKey                   = "user"
+	ImprintKey                = "imprint"
+	AuthCookieKey             = config.CookieKeyAuth
+	OidcIdTokenCookieKey      = config.CookieKeyOidcIdToken
+	OidcRefreshTokenCookieKey = config.CookieKeyOidcRefreshToken
+	OidcProviderCookieKey     = config.CookieKeyOidcProvider
+	PersistentIntervalKey     = "wakapi_summary_interval"
 )
 
 var (

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -360,6 +361,12 @@ func (h *SettingsHandler) actionChangeUserId(w http.ResponseWriter, r *http.Requ
 
 	if _, err := h.userSrvc.ChangeUserId(user, newUserId); err != nil {
 		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
+	}
+
+	oidcProviders := h.config.Security.ListOidcProviders()
+	if slices.Contains(oidcProviders, user.AuthType) {
+		// OIDC Users will remain authenticated, just return ok
+		return actionResult{http.StatusOK, fmt.Sprintf("Successfully changed your username to %s", newUserId), "", nil}
 	}
 
 	routeutils.SetSuccess(r, w, fmt.Sprintf("Successfully changed your username to %s, please log back in.", newUserId))

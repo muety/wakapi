@@ -12,8 +12,8 @@ var sessionStore *sessions.CookieStore
 
 func NewSessionStore() *sessions.CookieStore {
 	store := sessions.NewCookieStore(
-		Get().Security.SessionKey,
-		Get().Security.SessionKey,
+		Get().Security.SessionKeyBytes,
+		Get().Security.SessionKeyBytes,
 	)
 
 	if Get().Security.InsecureCookies {

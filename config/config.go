@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -46,12 +47,14 @@ const (
 	KeyInviteCode                   = "invite"
 	KeySharedData                   = "shared_data"
 
-	CookieKeySession               = "wakapi_session"
-	CookieKeyAuth                  = "wakapi_auth"
-	SessionValueOidcState          = "oidc_state"
-	SessionValueOidcIdTokenPayload = "oidc_id_token"
-	SessionValueWebAuthn           = "webauthn_session"
-	SessionValueWebAuthnExpiresAt  = "webauthn_session_expires_at"
+	CookieKeySession              = "wakapi_session"
+	CookieKeyAuth                 = "wakapi_auth"
+	CookieKeyOidcIdToken          = "oidc_id_token"
+	CookieKeyOidcRefreshToken     = "oidc_refresh_token"
+	CookieKeyOidcProvider         = "oidc_provider"
+	SessionValueOidcState         = "oidc_state"
+	SessionValueWebAuthn          = "webauthn_session"
+	SessionValueWebAuthnExpiresAt = "webauthn_session_expires_at"
 
 	SimpleDateFormat     = "2006-01-02"
 	SimpleDateTimeFormat = "2006-01-02 15:04:05"
@@ -147,7 +150,8 @@ type securityConfig struct {
 	LoginMaxRate                 string                     `yaml:"login_max_rate" default:"10/1m" env:"WAKAPI_LOGIN_MAX_RATE"`
 	PasswordResetMaxRate         string                     `yaml:"password_reset_max_rate" default:"5/1h" env:"WAKAPI_PASSWORD_RESET_MAX_RATE"`
 	SecureCookie                 *securecookie.SecureCookie `yaml:"-"`
-	SessionKey                   []byte                     `yaml:"-"`
+	SessionKey                   string                     `yaml:"session_key" default:"" env:"WAKAPI_SESSION_KEY"` // base64 encoded key, used to encrypt sessions
+	SessionKeyBytes              []byte                     `yaml:"-"`
 	OidcProviders                []oidcProviderConfig       `yaml:"oidc"`
 	trustReverseProxyIpsParsed   []net.IPNet
 }
@@ -615,7 +619,16 @@ func Load(configFlag string, version string) *Config {
 
 	hashKey := securecookie.GenerateRandomKey(64)
 	blockKey := securecookie.GenerateRandomKey(32)
-	sessionKey := securecookie.GenerateRandomKey(32)
+
+	sessionKey := make([]byte, base64.StdEncoding.DecodedLen(len(config.Security.SessionKey)))
+	sessionKeyLen, err := base64.StdEncoding.Decode(sessionKey, []byte(config.Security.SessionKey))
+	if err != nil || sessionKeyLen < 32 {
+		if config.Security.SessionKey != "" {
+			slog.Warn("⚠️ Failed to decode session key, generating a random one")
+		}
+		sessionKey = securecookie.GenerateRandomKey(32)
+	}
+	config.Security.SessionKeyBytes = sessionKey[:32]
 
 	if IsDev(env) {
 		slog.Warn("⚠️ using temporary keys to sign and encrypt cookies in dev mode, make sure to set env to production for real-world use")
@@ -627,7 +640,6 @@ func Load(configFlag string, version string) *Config {
 	}
 
 	config.Security.SecureCookie = securecookie.New(hashKey, blockKey)
-	config.Security.SessionKey = sessionKey
 	config.Security.ParseTrustReverseProxyIPs()
 
 	config.Server.BasePath = strings.TrimSuffix(config.Server.BasePath, "/")

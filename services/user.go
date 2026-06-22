@@ -25,6 +25,7 @@ import (
 type UserService struct {
 	config              *config.Config
 	cache               *cache.Cache
+	subjectCache        *cache.Cache
 	eventBus            *hub.Hub
 	keyValueService     IKeyValueService
 	mailService         IMailService
@@ -39,6 +40,7 @@ func NewUserService(keyValueService IKeyValueService, mailService IMailService, 
 		config:             config.Get(),
 		eventBus:           config.EventBus(),
 		cache:              cache.New(1*time.Hour, 2*time.Hour),
+		subjectCache:       cache.New(1*time.Hour, 2*time.Hour),
 		keyValueService:    keyValueService,
 		apiKeyService:      apiKeyService,
 		mailService:        mailService,
@@ -169,10 +171,31 @@ func (srv *UserService) GetUserByOidc(provider, sub string) (*models.User, error
 	if sub == "" || provider == "" {
 		return nil, errors.New("sub and provider must not be empty")
 	}
-	return srv.repository.FindOne(models.User{
+	cacheKey := fmt.Sprintf("%s_%s", provider, sub)
+	userId, ok := srv.subjectCache.Get(cacheKey)
+	if ok {
+		// UserID in cache, try getting user from main cache or repository
+		user, err := srv.GetUserById(userId.(string))
+		if err == nil {
+			return user, nil
+		}
+		// User with id not found removing cache entry
+		srv.subjectCache.Delete(cacheKey)
+	}
+	// UserID either not in cache or user not found, try getting user from repository and update cache
+	user, err := srv.repository.FindOne(models.User{
 		Sub:      sub,
 		AuthType: provider,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Found user, setting both sub-> id cache, and user cache
+	srv.cache.SetDefault(user.ID, user)
+	srv.cache.SetDefault(cacheKey, user.ID)
+
+	return user, nil
 }
 
 func (srv *UserService) GetAll() ([]*models.User, error) {

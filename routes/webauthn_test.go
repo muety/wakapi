@@ -561,7 +561,7 @@ func createAndLoadConfig() {
 	blockKey := securecookie.GenerateRandomKey(32)
 	sessionKey := securecookie.GenerateRandomKey(32)
 	cfg.Security.SecureCookie = securecookie.New(hashKey, blockKey)
-	cfg.Security.SessionKey = sessionKey
+	cfg.Security.SessionKeyBytes = sessionKey
 	cfg.Security.CookieMaxAgeSec = 120
 	cfg.Security.PasswordResetMaxRate = "0/1m"
 	cfg.Security.LoginMaxRate = "1000/1m"
