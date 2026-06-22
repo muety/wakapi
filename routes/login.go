@@ -643,7 +643,7 @@ func (h *LoginHandler) getOidcProvider(w http.ResponseWriter, r *http.Request) *
 
 func (h *LoginHandler) finishUserLogin(user *models.User, r *http.Request, w http.ResponseWriter, setAuthCookie bool) {
 	if setAuthCookie {
-		encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, user.ID)
+		encoded, err := conf.GetAuthCookie().Encode(models.AuthCookieKey, user.ID)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			conf.Log().Request(r).Error("failed to encode secure cookie", "error", err)

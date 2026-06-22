@@ -557,11 +557,7 @@ func (suite *WebAuthnTestSuite) getLoginCookies(userID, password string) []*http
 func createAndLoadConfig() {
 	cfg := config.Empty()
 	cfg.Security.PasswordSalt = testPasswordSalt
-	hashKey := securecookie.GenerateRandomKey(64)
-	blockKey := securecookie.GenerateRandomKey(32)
-	sessionKey := securecookie.GenerateRandomKey(32)
-	cfg.Security.SecureCookie = securecookie.New(hashKey, blockKey)
-	cfg.Security.SessionKeyBytes = sessionKey
+	cfg.Security.CookieKeyBytes = securecookie.GenerateRandomKey(128)
 	cfg.Security.CookieMaxAgeSec = 120
 	cfg.Security.PasswordResetMaxRate = "0/1m"
 	cfg.Security.LoginMaxRate = "1000/1m"
@@ -569,5 +565,5 @@ func createAndLoadConfig() {
 	cfg.Server.PublicUrl = "https://example.com"
 	config.Set(cfg)
 	config.InitWebAuthn(cfg)
-	config.ResetSessionStore()
+	config.InitializeCookies()
 }

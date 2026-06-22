@@ -11,7 +11,6 @@ import (
 	"github.com/gofrs/uuid/v5"
 
 	conf "github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
@@ -205,7 +204,7 @@ func (m *AuthenticateMiddleware) tryGetUserByTrustedHeader(r *http.Request, crea
 }
 
 func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.User, error) {
-	username, err := helpers.ExtractCookieAuth(r, m.config)
+	username, err := routeutils.ExtractCookieAuth(r)
 	if err != nil {
 		return nil, err
 	}
