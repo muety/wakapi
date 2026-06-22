@@ -643,14 +643,14 @@ func (h *LoginHandler) getOidcProvider(w http.ResponseWriter, r *http.Request) *
 
 func (h *LoginHandler) finishUserLogin(user *models.User, r *http.Request, w http.ResponseWriter, setAuthCookie bool) {
 	if setAuthCookie {
-		encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, user.ID)
+		cookie, err := routeutils.CreateAuthCookie(user.ID)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			conf.Log().Request(r).Error("failed to encode secure cookie", "error", err)
 			templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
 			return
 		}
-		http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded))
+		http.SetCookie(w, cookie)
 	}
 
 	user.LastLoggedInAt = models.CustomTime(time.Now())

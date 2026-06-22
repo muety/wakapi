@@ -95,12 +95,10 @@ func (suite *LoginHandlerTestSuite) BeforeTest(suiteName, testName string) {
 	suite.UserService.On("Count").Return(1, nil).Maybe()
 
 	cfg := config.Empty()
-	cfg.Security.SecureCookie = securecookie.New(
-		securecookie.GenerateRandomKey(64),
-		securecookie.GenerateRandomKey(32),
-	)
+	cfg.Security.CookieKeyBytes = securecookie.GenerateRandomKey(128)
 	cfg.Security.PasswordSalt = testPasswordSalt
 	config.Set(cfg)
+	config.InitializeCookiesForTesting() // avoid having to deal with session cookies in tests
 	suite.Cfg = cfg
 
 	suite.resetOidcMockTtl()
