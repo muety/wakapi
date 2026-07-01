@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/duke-git/lancet/v2/slice"
@@ -29,15 +30,21 @@ type SummaryHandler struct {
 	durationSrvc   services.IDurationService
 	aliasSrvc      services.IAliasService
 	heartbeatsSrvc services.IHeartbeatService
+	commitSrvc     services.ICommitService
 }
 
-func NewSummaryHandler(summaryService services.ISummaryService, userService services.IUserService, heartbeatsService services.IHeartbeatService, durationService services.IDurationService, aliasService services.IAliasService) *SummaryHandler {
+func NewSummaryHandler(summaryService services.ISummaryService, userService services.IUserService, heartbeatsService services.IHeartbeatService, durationService services.IDurationService, aliasService services.IAliasService, commitServices ...services.ICommitService) *SummaryHandler {
+	var commitService services.ICommitService
+	if len(commitServices) > 0 {
+		commitService = commitServices[0]
+	}
 	return &SummaryHandler{
 		summarySrvc:    summaryService,
 		userSrvc:       userService,
 		heartbeatsSrvc: heartbeatsService,
 		durationSrvc:   durationService,
 		aliasSrvc:      aliasService,
+		commitSrvc:     commitService,
 		config:         conf.Get(),
 	}
 }
@@ -139,6 +146,8 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		conf.Log().Request(r).Error("failed to load hourly breakdown stats", "error", err)
 	}
 
+	commitCheckpoints := h.fetchCommitCheckpoints(user, summary, summaryParams)
+
 	vm := view.SummaryViewModel{
 		SharedLoggedInViewModel: view.SharedLoggedInViewModel{
 			SharedViewModel: view.NewSharedViewModel(h.config, nil),
@@ -156,9 +165,103 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		Timeline:            timeline,
 		HourlyBreakdown:     hourlyBreakdown,
 		HourlyBreakdownFrom: hourlyBreakdownFrom,
+		CommitCheckpoints:   commitCheckpoints,
 	}
 
 	templates[conf.SummaryTemplate].Execute(w, vm)
+}
+
+func (h *SummaryHandler) fetchCommitCheckpoints(user *models.User, summary *models.Summary, params *models.SummaryParams) []*view.CommitCheckpointProject {
+	if h.commitSrvc == nil || h.durationSrvc == nil || user == nil || summary == nil || params == nil {
+		return nil
+	}
+
+	links, err := h.commitSrvc.ListLinks(user)
+	if err != nil {
+		return nil
+	}
+
+	relevantProjects := h.relevantCheckpointProjects(summary, params)
+	if len(relevantProjects) == 0 {
+		return nil
+	}
+
+	from := params.From
+	to := params.To
+	checkpoints := make([]*view.CommitCheckpointProject, 0, len(links))
+
+	for _, info := range links {
+		if info == nil || info.Link == nil || !relevantProjects[info.Link.Project] {
+			continue
+		}
+
+		result, err := h.commitSrvc.GetCommits(user, info.Link.Project, "", "", 1, 200, &from, &to)
+		if err != nil || result == nil {
+			continue
+		}
+
+		repo := result.Repo
+		if repo == nil && info.Repo != nil {
+			repo = info.Repo
+		}
+
+		filters := &models.Filters{}
+		if result.Branch != "" {
+			filters.Branch = models.OrFilter{result.Branch}
+		}
+		durations, err := h.durationSrvc.Get(from, to, user, filters, nil, false)
+		if err != nil {
+			continue
+		}
+		durations = filterCheckpointDurations(durations, info.Link.Project, result.Branch)
+
+		project := view.NewCommitCheckpointProject(info.Link.Project, result.Branch, repo, durations, result.Stats, result.Commits, from, to)
+		if project == nil || project.TotalSeconds <= 0 || len(project.Points) < 2 {
+			continue
+		}
+		checkpoints = append(checkpoints, project)
+	}
+
+	sort.SliceStable(checkpoints, func(i, j int) bool {
+		if checkpoints[i].TotalSeconds == checkpoints[j].TotalSeconds {
+			return checkpoints[i].Project < checkpoints[j].Project
+		}
+		return checkpoints[i].TotalSeconds > checkpoints[j].TotalSeconds
+	})
+
+	return checkpoints
+}
+
+func filterCheckpointDurations(durations models.Durations, project, branch string) models.Durations {
+	filtered := make(models.Durations, 0, len(durations))
+	for _, duration := range durations {
+		if duration == nil || duration.Project != project {
+			continue
+		}
+		if branch != "" && duration.Branch != branch {
+			continue
+		}
+		filtered = append(filtered, duration)
+	}
+	return filtered
+}
+
+func (h *SummaryHandler) relevantCheckpointProjects(summary *models.Summary, params *models.SummaryParams) map[string]bool {
+	projects := map[string]bool{}
+	if params.IsProjectDetails() {
+		if project := params.GetProjectFilter(); project != "" {
+			projects[project] = true
+		}
+		return projects
+	}
+
+	for _, project := range summary.Projects {
+		if project == nil || project.Total <= 0 {
+			continue
+		}
+		projects[project.Key] = true
+	}
+	return projects
 }
 
 func (h *SummaryHandler) buildViewModel(r *http.Request, w http.ResponseWriter) *view.SummaryViewModel {

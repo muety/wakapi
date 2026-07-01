@@ -14,6 +14,7 @@ const entitiesCanvas = document.getElementById('chart-entities')
 const categoriesCanvas = document.getElementById('chart-categories')
 const timelineCanvas = document.getElementById('chart-timeline')
 const hourlyCanvas = document.getElementById('chart-hourly')
+const commitCheckpointCanvases = [...document.getElementsByClassName('commit-checkpoint-chart')]
 
 const projectContainer = document.getElementById('project-container')
 const osContainer = document.getElementById('os-container')
@@ -40,6 +41,7 @@ topNPickers.forEach(e => {
 })
 
 let charts = []
+let commitCheckpointCharts = []
 let showTopN = []
 
 Chart.defaults.font.family = 'Source Sans 3, Roboto, Helvetica Neue, Arial, sens-serif'
@@ -646,6 +648,146 @@ function draw(subselection) {
     charts[10] = hourlyBreakdownChart ? hourlyBreakdownChart : charts[10]
 }
 
+function drawCommitCheckpointCharts() {
+    if (!commitCheckpointCanvases.length || !wakapiData.commitCheckpoints) {
+        return
+    }
+
+    commitCheckpointCharts.forEach(c => c.destroy())
+    const vibrantColors = JSON.parse(window.localStorage.getItem('wakapi_vibrant_colors') || false)
+
+    commitCheckpointCharts = commitCheckpointCanvases.map((canvas, i) => {
+        const index = parseInt(canvas.attributes['data-index'].value)
+        const project = wakapiData.commitCheckpoints[index]
+        if (!project || !project.points || project.points.length < 2) {
+            return null
+        }
+
+        const from = +new Date(project.from)
+        const to = +new Date(project.to)
+        const rangeMs = Math.max(to - from, 0)
+        const projectColor = vibrantColors ? getRandomColor(project.project) : getColor(project.project, i % baseColors.length)
+        const color = hexToRgb(projectColor) || {r: 60, g: 130, b: 246}
+
+        return new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: project.project,
+                    data: project.points.map(point => ({
+                        x: +new Date(point.time),
+                        y: point.total_seconds,
+                        kind: point.kind,
+                        commitHash: point.commit_hash,
+                        commitTitle: point.commit_title,
+                    })),
+                    borderColor: `rgba(${color.r}, ${color.g}, ${color.b}, 1)`,
+                    borderWidth: 2,
+                    fill: false,
+                    pointBackgroundColor: (context) => checkpointPointColor(context.raw, color),
+                    pointBorderColor: (context) => checkpointPointColor(context.raw, color),
+                    pointHoverRadius: 6,
+                    pointRadius: (context) => checkpointPointRadius(context.raw),
+                    stepped: 'before',
+                    tension: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'nearest',
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        min: from,
+                        max: to,
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        },
+                        ticks: {
+                            maxRotation: 0,
+                            callback: value => formatCheckpointTime(value, rangeMs),
+                        },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        suggestedMax: project.max_accumulated_seconds,
+                        title: {
+                            display: true,
+                            text: 'Accumulated work (hh:mm:ss)'
+                        },
+                        ticks: {
+                            callback: value => value.toString().toHHMMSS(),
+                        },
+                    },
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: items => items.length ? formatCheckpointTooltipTime(items[0].raw.x) : '',
+                            label: context => checkpointTooltipLabel(context.raw),
+                        },
+                    },
+                },
+            },
+        })
+    }).filter(c => c)
+}
+
+function checkpointPointRadius(point) {
+    if (!point) return 0
+    if (point.kind === 'commit') return 5
+    if (point.kind === 'reset') return 3
+    if (point.kind === 'start' || point.kind === 'end') return 2
+    return 0
+}
+
+function checkpointPointColor(point, color) {
+    if (point && point.kind === 'commit') {
+        return '#22c55e'
+    }
+    if (point && point.kind === 'reset') {
+        return '#9ca3af'
+    }
+    return `rgba(${color.r}, ${color.g}, ${color.b}, 1)`
+}
+
+function checkpointTooltipLabel(point) {
+    if (!point) return ''
+    const duration = point.y.toString().toHHMMSS()
+    if (point.kind === 'commit') {
+        return ` Commit: ${point.commitTitle || point.commitHash || 'commit'} (${duration})`
+    }
+    if (point.kind === 'reset') {
+        return ' Reset to 00:00:00'
+    }
+    return ` Accumulated: ${duration}`
+}
+
+function formatCheckpointTime(value, rangeMs) {
+    const date = new Date(value)
+    if (rangeMs <= 48 * 60 * 60 * 1000) {
+        return date.toLocaleString([], {month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit'})
+    }
+    return date.toLocaleDateString([], {month: 'short', day: '2-digit'})
+}
+
+function formatCheckpointTooltipTime(value) {
+    return new Date(value).toLocaleString([], {
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+    })
+}
+
 function parseTopN() {
     showTopN = topNPickers.map(e => parseInt(e.value))
 }
@@ -729,5 +871,6 @@ window.addEventListener('load', function () {
     parseTopN()
     togglePlaceholders(getPresentDataMask())
     draw()
+    drawCommitCheckpointCharts()
     updateNumTotal()
 })

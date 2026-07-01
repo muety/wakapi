@@ -20,6 +20,7 @@ type SummaryViewModel struct {
 	Timeline            []*TimelineViewModel
 	HourlyBreakdown     []*HourlyBreakdownViewModel
 	HourlyBreakdownFrom time.Time
+	CommitCheckpoints   []*CommitCheckpointProject
 	RawQuery            string
 	UserFirstData       time.Time
 	DataRetentionMonths int
