@@ -34,6 +34,7 @@ func DefaultTemplateFuncs() template.FuncMap {
 		"title":          strings.Title,
 		"join":           strings.Join,
 		"add":            add,
+		"mulf64":         mulF64,
 		"capitalize":     strutil.Capitalize,
 		"lower":          strings.ToLower,
 		"toRunes":        utils.ToRunes,
@@ -128,4 +129,8 @@ func defaultErrorRedirectTarget() string {
 
 func add(i, j int) int {
 	return i + j
+}
+
+func mulF64(i, j float64) float64 {
+	return i * j
 }

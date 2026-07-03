@@ -731,7 +731,12 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_Cl
 	})
 
 	assert.Eventually(suite.T(), func() bool {
-		return suite.SummaryRepository.AssertCalled(suite.T(), "DeleteByUserAfter", TestUserId, historicalHeartbeatTime)
+		for _, call := range suite.SummaryRepository.Calls {
+			if call.Method == "DeleteByUserAfter" {
+				return true
+			}
+		}
+		return false
 	}, 2*time.Second, 20*time.Millisecond)
 
 	suite.SummaryRepository.AssertExpectations(suite.T())
@@ -761,7 +766,12 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_Ke
 	})
 
 	assert.Eventually(suite.T(), func() bool {
-		return suite.SummaryRepository.AssertCalled(suite.T(), "GetLastBySingleUser", TestUserId)
+		for _, call := range suite.SummaryRepository.Calls {
+			if call.Method == "GetLastBySingleUser" {
+				return true
+			}
+		}
+		return false
 	}, 2*time.Second, 20*time.Millisecond)
 
 	suite.SummaryRepository.AssertNotCalled(suite.T(), "DeleteByUserAfter", mock.Anything, mock.Anything)
@@ -794,7 +804,12 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_Sk
 	})
 
 	assert.Eventually(suite.T(), func() bool {
-		return suite.SummaryRepository.AssertCalled(suite.T(), "GetLastBySingleUser", TestUserId)
+		for _, call := range suite.SummaryRepository.Calls {
+			if call.Method == "GetLastBySingleUser" {
+				return true
+			}
+		}
+		return false
 	}, 2*time.Second, 20*time.Millisecond)
 
 	eventBus.Publish(hub.Message{

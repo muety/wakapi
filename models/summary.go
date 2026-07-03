@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/duke-git/lancet/v2/condition"
 	"github.com/duke-git/lancet/v2/mathutil"
 	"github.com/duke-git/lancet/v2/slice"
 )
@@ -289,6 +290,14 @@ func (s *Summary) FillBy(fromType uint8, toType uint8) {
 			})
 		}
 	}
+}
+
+func (s *Summary) CategoryRatio(c1 string, cAll ...string) float64 {
+	total1 := float64(s.TotalTimeByKey(SummaryCategory, c1))
+	totalAll := mathutil.Sum(slice.Map(cAll, func(i int, c string) float64 {
+		return float64(s.TotalTimeByKey(SummaryCategory, c))
+	})...)
+	return mathutil.RoundToFloat(condition.Ternary(totalAll > 0, total1/totalAll, 0), 2)
 }
 
 func (s *Summary) TotalTime() time.Duration {

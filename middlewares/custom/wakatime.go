@@ -21,6 +21,9 @@ import (
 
 const maxFailuresPerDay = 100
 
+// not really an error, it's the "seen all of these already, go back to sleep" signal
+var errNoNewHeartbeats = errors.New("no new heartbeats to relay")
+
 // WakatimeRelayMiddleware is a middleware to conditionally relay heartbeats to Wakatime (and other compatible services)
 type WakatimeRelayMiddleware struct {
 	httpClient   *http.Client
@@ -69,15 +72,15 @@ func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err := m.filterByCache(r)
+	// relayBody goes downstream, r.Body still has the full thing for the local store handler
+	relayBody, err := m.filterByCache(r)
+	if errors.Is(err, errNoNewHeartbeats) {
+		return
+	}
 	if err != nil {
 		slog.Warn("filter cache error", "error", err)
 		return
 	}
-
-	body, _ := io.ReadAll(r.Body)
-	r.Body.Close()
-	r.Body = io.NopCloser(bytes.NewBuffer(body))
 
 	// prevent cycles
 	downstreamInstanceId := ownInstanceId
@@ -104,7 +107,7 @@ func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	go m.send(
 		http.MethodPost,
 		url,
-		bytes.NewReader(body),
+		bytes.NewReader(relayBody),
 		headers,
 		user,
 	)
@@ -147,28 +150,35 @@ func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, heade
 	}
 }
 
-// filterByCache takes an HTTP request, tries to parse the body contents as heartbeats, checks against a local cache for whether a heartbeat has already been relayed before according to its hash and in-place filters these from the request's raw json body.
-// This method operates on the raw body data (interface{}), because serialization of models.Heartbeat is not necessarily identical to what the CLI has actually sent.
-// Purpose of this mechanism is mainly to prevent cyclic relays / loops.
-// Caution: this method does in-place changes to the request.
-func (m *WakatimeRelayMiddleware) filterByCache(r *http.Request) error {
+// filterByCache returns the JSON body for the relay request, minus any heartbeats we've already forwarded.
+// Works on the raw decoded form (interface{}) since models.Heartbeat doesn't round-trip 1:1 with what the CLI ships.
+// Point of all this: stop two linked instances from playing heartbeat ping-pong forever.
+// Original request body is left untouched so whoever runs after us still sees the full list.
+func (m *WakatimeRelayMiddleware) filterByCache(r *http.Request) ([]byte, error) {
 	heartbeats, err := routeutils.ParseHeartbeats(r)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	body, _ := io.ReadAll(r.Body)
-	r.Body.Close()
-	r.Body = io.NopCloser(bytes.NewBuffer(body))
+	// ParseHeartbeats already drained r.Body and put it back.
+	// Reading it again here, we need the raw form, because models.Heartbeat drops fields the CLI sends that we'd rather forward as-is though.
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+	r.Body = io.NopCloser(bytes.NewReader(body))
 
 	var rawData interface{}
-	if err := json.NewDecoder(io.NopCloser(bytes.NewBuffer(body))).Decode(&rawData); err != nil {
-		return err
+	if err := json.NewDecoder(bytes.NewReader(body)).Decode(&rawData); err != nil {
+		return nil, err
 	}
 
 	newData := make([]interface{}, 0, len(heartbeats))
 
 	process := func(heartbeat *models.Heartbeat, rawData interface{}) {
+		if heartbeat == nil {
+			return // just in case client send [null] or sth., shouldn't happen though
+		}
 		heartbeat = heartbeat.Hashed()
 		// we didn't see this particular heartbeat before
 		if _, found := m.hashCache.Get(heartbeat.Hash); !found {
@@ -186,7 +196,7 @@ func (m *WakatimeRelayMiddleware) filterByCache(r *http.Request) error {
 	}
 
 	if len(newData) == 0 {
-		return errors.New("no new heartbeats to relay")
+		return nil, errNoNewHeartbeats
 	}
 
 	if len(newData) != len(heartbeats) {
@@ -196,9 +206,8 @@ func (m *WakatimeRelayMiddleware) filterByCache(r *http.Request) error {
 
 	buf := bytes.Buffer{}
 	if err := json.NewEncoder(&buf).Encode(newData); err != nil {
-		return err
+		return nil, err
 	}
-	r.Body = io.NopCloser(&buf)
 
-	return nil
+	return buf.Bytes(), nil
 }

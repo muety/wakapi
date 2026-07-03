@@ -15,17 +15,19 @@ type HousekeepingService struct {
 	config        *config.Config
 	userSrvc      IUserService
 	heartbeatSrvc IHeartbeatService
+	projectSrvc   IProjectService
 	summarySrvc   ISummaryService
 	baseRepo      repositories.IBaseRepository
 	queueDefault  *artifex.Dispatcher
 	queueWorkers  *artifex.Dispatcher
 }
 
-func NewHousekeepingService(userService IUserService, heartbeatService IHeartbeatService, summaryService ISummaryService, baseRepository repositories.IBaseRepository) *HousekeepingService {
+func NewHousekeepingService(userService IUserService, heartbeatService IHeartbeatService, projectService IProjectService, summaryService ISummaryService, baseRepository repositories.IBaseRepository) *HousekeepingService {
 	return &HousekeepingService{
 		config:        config.Get(),
 		userSrvc:      userService,
 		heartbeatSrvc: heartbeatService,
+		projectSrvc:   projectService,
 		summarySrvc:   summaryService,
 		baseRepo:      baseRepository,
 		queueDefault:  config.GetDefaultQueue(),
@@ -92,7 +94,7 @@ func (s *HousekeepingService) CleanInactiveUsers(before time.Time) error {
 
 func (s *HousekeepingService) WarmUserProjectStatsCache(user *models.User) error {
 	slog.Info("pre-warming project stats cache for user", "userID", user.ID)
-	if _, err := s.heartbeatSrvc.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), "", nil, true); err != nil {
+	if _, err := s.projectSrvc.GetUserProjectStats(user, time.Time{}, utils.BeginOfToday(time.Local), "", nil, true); err != nil {
 		config.Log().Error("failed to pre-warm project stats cache", "userID", user.ID, "error", err)
 	}
 	return nil

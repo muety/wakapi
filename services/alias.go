@@ -7,6 +7,7 @@ import (
 
 	"github.com/becheran/wildmatch-go"
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
+	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
@@ -14,12 +15,14 @@ import (
 
 type AliasService struct {
 	config     *config.Config
+	eventBus   *hub.Hub
 	repository repositories.IAliasRepository
 }
 
 func NewAliasService(aliasRepo repositories.IAliasRepository) *AliasService {
 	return &AliasService{
 		config:     config.Get(),
+		eventBus:   config.EventBus(),
 		repository: aliasRepo,
 	}
 }
@@ -107,6 +110,11 @@ func (srv *AliasService) Create(alias *models.Alias) (*models.Alias, error) {
 	// reload entire cache (async, though)
 	go srv.MayInitializeUser(alias.UserID)
 
+	srv.eventBus.Publish(hub.Message{
+		Name:   config.EventAliasCreate,
+		Fields: map[string]interface{}{config.FieldUserId: alias.UserID},
+	})
+
 	return result, nil
 }
 
@@ -122,6 +130,11 @@ func (srv *AliasService) Delete(alias *models.Alias) error {
 	}
 	// reload entire cache (async, though)
 	go srv.MayInitializeUser(alias.UserID)
+
+	srv.eventBus.Publish(hub.Message{
+		Name:   config.EventAliasDelete,
+		Fields: map[string]interface{}{config.FieldUserId: alias.UserID},
+	})
 
 	return err
 }
@@ -149,6 +162,10 @@ func (srv *AliasService) DeleteMulti(aliases []*models.Alias) error {
 	// reload entire cache (async, though)
 	for k := range affectedUsers {
 		go srv.MayInitializeUser(k)
+		srv.eventBus.Publish(hub.Message{
+			Name:   config.EventAliasDelete,
+			Fields: map[string]interface{}{config.FieldUserId: k},
+		})
 	}
 
 	return err

@@ -144,7 +144,7 @@ func (h *LoginHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.finishUserLogin(user, r, w)
+	h.finishUserLogin(user, r, w, true)
 	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 }
 
@@ -156,8 +156,11 @@ func (h *LoginHandler) PostLogout(w http.ResponseWriter, r *http.Request) {
 	if user := middlewares.GetPrincipal(r); user != nil {
 		h.userSrvc.FlushUserCache(user.ID)
 	}
-	routeutils.ClearSession(r, w)                                    // clear all session data
-	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey)) // clear auth token
+	routeutils.ClearSession(r, w)                                                // clear all session data
+	http.SetCookie(w, h.config.GetClearCookie(models.AuthCookieKey))             // clear auth token
+	http.SetCookie(w, h.config.GetClearCookie(models.OidcIdTokenCookieKey))      // clear oidc id token
+	http.SetCookie(w, h.config.GetClearCookie(models.OidcRefreshTokenCookieKey)) // clear oidc refresh token
+	http.SetCookie(w, h.config.GetClearCookie(models.OidcProviderCookieKey))     // clear oidc provider cookie
 	http.Redirect(w, r, fmt.Sprintf("%s/", h.config.Server.BasePath), http.StatusFound)
 }
 
@@ -414,9 +417,6 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
 
-	// clear any existing id token on the session, just because
-	routeutils.ClearOidcIdTokenPayload(r, w)
-
 	// validate oauth state param
 	savedState := routeutils.GetOidcState(r)
 	if state == "" || savedState != state {
@@ -429,7 +429,7 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 	routeutils.ClearOidcState(r, w)
 
 	// exchange auth code for access token and id token
-	authToken, err := provider.OAuth2.Exchange(r.Context(), code)
+	authToken, err := provider.OAuth2.Exchange(conf.GetOidcContext(r.Context()), code)
 	if err != nil {
 		errMsg := "failed to exchange authorization code for access token"
 		conf.Log().Request(r).Error(errMsg, "provider", provider.Name)
@@ -449,7 +449,7 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// verify id token
-	idTokenPayload, err := routeutils.DecodeOidcIdToken(rawIdToken, provider, r.Context())
+	idTokenPayload, err := routeutils.DecodeOidcIdToken(rawIdToken, provider, conf.GetOidcContext(r.Context()))
 	if err != nil || idTokenPayload == nil {
 		errMsg := "failed to verify and decode id_token"
 		conf.Log().Request(r).Error(errMsg, "provider", provider.Name, "id_token", rawIdToken) // save to log, because does not grant any access
@@ -496,8 +496,13 @@ func (h *LoginHandler) GetOidcCallback(w http.ResponseWriter, r *http.Request) {
 		user = newUser
 	}
 
-	routeutils.SetOidcIdTokenPayload(idTokenPayload, r, w) // save to session, only used by middleware for automatic redirection upon expiry
-	h.finishUserLogin(user, r, w)
+	http.SetCookie(w, h.config.CreateCookie(models.OidcIdTokenCookieKey, rawIdToken))
+	if authToken.RefreshToken != "" {
+		http.SetCookie(w, h.config.CreateCookie(models.OidcRefreshTokenCookieKey, authToken.RefreshToken))
+	}
+	http.SetCookie(w, h.config.CreateCookie(models.OidcProviderCookieKey, provider.Name))
+
+	h.finishUserLogin(user, r, w, false)
 	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 }
 
@@ -595,7 +600,7 @@ func (h *LoginHandler) PostLoginWebAuthn(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	h.finishUserLogin(user, r, w)
+	h.finishUserLogin(user, r, w, true)
 	http.Redirect(w, r, fmt.Sprintf("%s/summary", h.config.Server.BasePath), http.StatusFound)
 }
 
@@ -636,19 +641,20 @@ func (h *LoginHandler) getOidcProvider(w http.ResponseWriter, r *http.Request) *
 	return provider
 }
 
-func (h *LoginHandler) finishUserLogin(user *models.User, r *http.Request, w http.ResponseWriter) {
-	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, user.ID)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		conf.Log().Request(r).Error("failed to encode secure cookie", "error", err)
-		templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
-		return
+func (h *LoginHandler) finishUserLogin(user *models.User, r *http.Request, w http.ResponseWriter, setAuthCookie bool) {
+	if setAuthCookie {
+		encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, user.ID)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			conf.Log().Request(r).Error("failed to encode secure cookie", "error", err)
+			templates[conf.LoginTemplate].Execute(w, h.buildViewModel(r, w, false).WithError("internal server error"))
+			return
+		}
+		http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded))
 	}
 
 	user.LastLoggedInAt = models.CustomTime(time.Now())
 	h.userSrvc.Update(user)
-
-	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded))
 }
 
 func (h *LoginHandler) coalesceExistingUser(username string) string {

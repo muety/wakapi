@@ -76,6 +76,7 @@ var (
 	userService            services.IUserService
 	languageMappingService services.ILanguageMappingService
 	projectLabelService    services.IProjectLabelService
+	projectService         services.IProjectService
 	durationService        services.IDurationService
 	summaryService         services.ISummaryService
 	leaderboardService     services.ILeaderboardService
@@ -190,13 +191,14 @@ func main() {
 	languageMappingService = services.NewLanguageMappingService(languageMappingRepository)
 	projectLabelService = services.NewProjectLabelService(projectLabelRepository)
 	heartbeatService = services.NewHeartbeatService(heartbeatRepository, languageMappingService)
+	projectService = services.NewProjectService(aliasService, heartbeatRepository, heartbeatService)
 	durationService = services.NewDurationService(durationRepository, heartbeatService, userService, languageMappingService)
 	summaryService = services.NewSummaryService(summaryRepository, heartbeatService, durationService, aliasService, projectLabelService)
 	aggregationService = services.NewAggregationService(userService, summaryService, heartbeatService, durationService)
 	reportService = services.NewReportService(summaryService, userService, mailService)
 	activityService = services.NewActivityService(summaryService)
 	diagnosticsService = services.NewDiagnosticsService(diagnosticsRepository)
-	housekeepingService = services.NewHousekeepingService(userService, heartbeatService, summaryService, aliasRepository) // can pass any repo here
+	housekeepingService = services.NewHousekeepingService(userService, heartbeatService, projectService, summaryService, aliasRepository) // can pass any repo here
 	miscService = services.NewMiscService(userService, heartbeatService, summaryService, keyValueService, mailService)
 	webAuthnService = services.NewWebAuthnService(webAuthnRepository)
 
@@ -235,7 +237,7 @@ func main() {
 	wakatimeV1SummariesHandler := wtV1Routes.NewSummariesHandler(userService, summaryService)
 	wakatimeV1StatsHandler := wtV1Routes.NewStatsHandler(userService, summaryService)
 	wakatimeV1UsersHandler := wtV1Routes.NewUsersHandler(userService, heartbeatService)
-	wakatimeV1ProjectsHandler := wtV1Routes.NewProjectsHandler(userService, heartbeatService)
+	wakatimeV1ProjectsHandler := wtV1Routes.NewProjectsHandler(userService, heartbeatService, projectService)
 	wakatimeV1HeartbeatsHandler := wtV1Routes.NewHeartbeatHandler(userService, heartbeatService)
 	wakatimeV1LeadersHandler := wtV1Routes.NewLeadersHandler(userService, leaderboardService)
 	wakatimeV1UserAgentsHandler := wtV1Routes.NewUserAgentsHandler(userService, heartbeatService)
@@ -245,7 +247,7 @@ func main() {
 	summaryHandler := routes.NewSummaryHandler(summaryService, userService, heartbeatService, durationService, aliasService)
 	settingsHandler := routes.NewSettingsHandler(userService, heartbeatService, durationService, summaryService, aliasService, aggregationService, languageMappingService, projectLabelService, keyValueService, mailService, apiKeyService, webAuthnService)
 	subscriptionHandler := routes.NewSubscriptionHandler(userService, mailService, keyValueService)
-	projectsHandler := routes.NewProjectsHandler(userService, heartbeatService)
+	projectsHandler := routes.NewProjectsHandler(userService, heartbeatService, projectService)
 	homeHandler := routes.NewHomeHandler(userService, keyValueService)
 	loginHandler := routes.NewLoginHandler(userService, mailService, keyValueService, webAuthnService)
 	imprintHandler := routes.NewImprintHandler(keyValueService)

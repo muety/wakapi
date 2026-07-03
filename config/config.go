@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -46,12 +47,14 @@ const (
 	KeyInviteCode                   = "invite"
 	KeySharedData                   = "shared_data"
 
-	CookieKeySession               = "wakapi_session"
-	CookieKeyAuth                  = "wakapi_auth"
-	SessionValueOidcState          = "oidc_state"
-	SessionValueOidcIdTokenPayload = "oidc_id_token"
-	SessionValueWebAuthn           = "webauthn_session"
-	SessionValueWebAuthnExpiresAt  = "webauthn_session_expires_at"
+	CookieKeySession              = "wakapi_session"
+	CookieKeyAuth                 = "wakapi_auth"
+	CookieKeyOidcIdToken          = "oidc_id_token"
+	CookieKeyOidcRefreshToken     = "oidc_refresh_token"
+	CookieKeyOidcProvider         = "oidc_provider"
+	SessionValueOidcState         = "oidc_state"
+	SessionValueWebAuthn          = "webauthn_session"
+	SessionValueWebAuthnExpiresAt = "webauthn_session_expires_at"
 
 	SimpleDateFormat     = "2006-01-02"
 	SimpleDateTimeFormat = "2006-01-02 15:04:05"
@@ -127,6 +130,7 @@ type appConfig struct {
 type securityConfig struct {
 	AllowSignup      bool `yaml:"allow_signup" default:"true" env:"WAKAPI_ALLOW_SIGNUP"`
 	OidcAllowSignup  bool `yaml:"oidc_allow_signup" default:"true" env:"WAKAPI_OIDC_ALLOW_SIGNUP"`
+	OidcInsecure     bool `yaml:"oidc_insecure" default:"false" env:"WAKAPI_OIDC_INSECURE"`
 	DisableLocalAuth bool `yaml:"disable_local_auth" default:"false" env:"WAKAPI_DISABLE_LOCAL_AUTH"`
 	DisableWebAuthn  bool `yaml:"disable_webauthn" default:"true" env:"WAKAPI_DISABLE_WEBAUTHN"`
 	SignupCaptcha    bool `yaml:"signup_captcha" default:"false" env:"WAKAPI_SIGNUP_CAPTCHA"`
@@ -146,7 +150,8 @@ type securityConfig struct {
 	LoginMaxRate                 string                     `yaml:"login_max_rate" default:"10/1m" env:"WAKAPI_LOGIN_MAX_RATE"`
 	PasswordResetMaxRate         string                     `yaml:"password_reset_max_rate" default:"5/1h" env:"WAKAPI_PASSWORD_RESET_MAX_RATE"`
 	SecureCookie                 *securecookie.SecureCookie `yaml:"-"`
-	SessionKey                   []byte                     `yaml:"-"`
+	SessionKey                   string                     `yaml:"session_key" default:"" env:"WAKAPI_SESSION_KEY"` // base64 encoded key, used to encrypt sessions
+	SessionKeyBytes              []byte                     `yaml:"-"`
 	OidcProviders                []oidcProviderConfig       `yaml:"oidc"`
 	trustReverseProxyIpsParsed   []net.IPNet
 }
@@ -176,6 +181,7 @@ type serverConfig struct {
 	ListenSocket     string   `yaml:"listen_socket" default:"" env:"WAKAPI_LISTEN_SOCKET"`
 	ListenSocketMode uint32   `yaml:"listen_socket_mode" default:"0666" env:"WAKAPI_LISTEN_SOCKET_MODE"`
 	TimeoutSec       int      `yaml:"timeout_sec" default:"30" env:"WAKAPI_TIMEOUT_SEC"`
+	LogFormat        string   `yaml:"log_format" default:"text" env:"WAKAPI_LOG_FORMAT"`
 	BasePath         string   `yaml:"base_path" default:"/" env:"WAKAPI_BASE_PATH"`
 	PublicUrl        string   `yaml:"public_url" default:"http://localhost:3000" env:"WAKAPI_PUBLIC_URL"`
 	PublicNetUrl     *url.URL `yaml:"-"`
@@ -592,7 +598,7 @@ func Load(configFlag string, version string) *Config {
 
 	env = config.Env
 
-	InitLogger(config.IsDev())
+	InitLogger(config.Server.LogFormat)
 
 	config.Version = strings.TrimSpace(version)
 	tagVersionMatch, _ := regexp.MatchString(`\d+\.\d+\.\d+`, config.Version)
@@ -613,7 +619,16 @@ func Load(configFlag string, version string) *Config {
 
 	hashKey := securecookie.GenerateRandomKey(64)
 	blockKey := securecookie.GenerateRandomKey(32)
-	sessionKey := securecookie.GenerateRandomKey(32)
+
+	sessionKey := make([]byte, base64.StdEncoding.DecodedLen(len(config.Security.SessionKey)))
+	sessionKeyLen, err := base64.StdEncoding.Decode(sessionKey, []byte(config.Security.SessionKey))
+	if err != nil || sessionKeyLen < 32 {
+		if config.Security.SessionKey != "" {
+			slog.Warn("⚠️ Failed to decode session key, generating a random one")
+		}
+		sessionKey = securecookie.GenerateRandomKey(32)
+	}
+	config.Security.SessionKeyBytes = sessionKey[:32]
 
 	if IsDev(env) {
 		slog.Warn("⚠️ using temporary keys to sign and encrypt cookies in dev mode, make sure to set env to production for real-world use")
@@ -625,7 +640,6 @@ func Load(configFlag string, version string) *Config {
 	}
 
 	config.Security.SecureCookie = securecookie.New(hashKey, blockKey)
-	config.Security.SessionKey = sessionKey
 	config.Security.ParseTrustReverseProxyIPs()
 
 	config.Server.BasePath = strings.TrimSuffix(config.Server.BasePath, "/")

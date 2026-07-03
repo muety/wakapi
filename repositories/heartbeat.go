@@ -252,11 +252,10 @@ func (r *HeartbeatRepository) DeleteByUserBefore(user *models.User, t time.Time)
 	return nil
 }
 
-func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to time.Time, search string, limit, offset int) ([]*models.ProjectStats, error) {
+func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to time.Time) ([]*models.ProjectStats, error) {
 	var projectStats []*models.ProjectStats
 
-	// note: limit / offset doesn't really improve query performance
-	// query takes quite long, depending on the number of heartbeats (~ 7 seconds for ~ 500k heartbeats)
+	// note: query takes quite long, depending on the number of heartbeats (~ 7 seconds for ~ 500k heartbeats)
 	// TODO: refactor this to use summaries once we implemented persisting filtered, multi-interval summaries
 	// see https://github.com/muety/wakapi/issues/524#issuecomment-1731668391
 
@@ -266,71 +265,53 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 		sql.Named("userid", user.ID),
 		sql.Named("from", from.Format(time.RFC3339)),
 		sql.Named("to", to.Format(time.RFC3339)),
-		sql.Named("limit", limit),
-		sql.Named("offset", offset),
 	}
 
-	searchClause := ""
-	if search != "" {
-		args = append(args, sql.Named("search", "%"+search+"%"))
-		searchClause = condition.Ternary(r.config.Db.IsPostgres(), "and project ILIKE @search", "and LOWER(project) LIKE LOWER(@search)")
-	}
-
-	querySqlite := "with project_stats as (" +
-		"select project, user_id," +
-		"concat(datetime(min(time_real)), '+00:00') as first," +
-		"concat(datetime(max(time_real)), '+00:00') as last," +
-		"count(*) as cnt " +
+	querySqlite := "with lang_grouped as (" +
+		"select project, language, count(*) as lang_cnt, min(time_real) as lang_min, max(time_real) as lang_max " +
 		"from heartbeats " +
 		"where user_id = @userid" +
 		" and project != ''" +
 		" and time_real between julianday(@from) and julianday(@to)" +
 		" and language is not null and language != '' " +
-		searchClause +
-		" group by project, user_id" +
-		"), language_stats as (" +
-		"select project, language, count(*) as language_count," +
-		"row_number() over (partition by project order by count(*) desc) as rn " +
-		"from heartbeats " +
-		"where user_id = @userid" +
-		" and project != ''" +
-		" and time_real between julianday(@from) and julianday(@to)" +
-		" and language is not null and language != '' " +
-		searchClause +
-		" group by project, language" +
-		") select ps.project, ps.first, ps.last, ps.cnt as count, ls.language as top_language " +
-		"from project_stats ps" +
-		" left join language_stats ls on ps.project = ls.project and ls.rn = 1 " +
-		"order by ps.last desc "
+		"group by project, language" +
+		"), ranked as (" +
+		"select project, language, lang_cnt, lang_min, lang_max, " +
+		"sum(lang_cnt) over (partition by project) as total_cnt, " +
+		"min(lang_min) over (partition by project) as overall_first, " +
+		"max(lang_max) over (partition by project) as overall_last, " +
+		"row_number() over (partition by project order by lang_cnt desc) as rn " +
+		"from lang_grouped" +
+		") select project, " +
+		"concat(datetime(overall_first), '+00:00') as first, " +
+		"concat(datetime(overall_last), '+00:00') as last, " +
+		"total_cnt as count, language as top_language, " +
+		"@userid as user_id " +
+		"from ranked " +
+		"where rn = 1"
 
-	queryDefault := "with project_stats as (" +
-		"select project, user_id," +
-		"min(time) as first," +
-		"max(time) as last," +
-		"count(*) as cnt " +
+	queryDefault := "with lang_grouped as (" +
+		"select project, language, count(*) as lang_cnt, min(time) as lang_min, max(time) as lang_max " +
 		"from heartbeats " +
 		"where user_id = @userid" +
 		" and project != ''" +
 		" and time between @from and @to" +
 		" and language is not null and language != '' " +
-		searchClause +
-		" group by project, user_id" +
-		"), language_stats as (" +
-		"select project, language, count(*) as language_count," +
-		"row_number() over (partition by project order by count(*) desc) as rn " +
-		"from heartbeats " +
-		"where user_id = @userid" +
-		" and project != ''" +
-		" and time between @from and @to" +
-		" and language is not null and language != '' " +
-		searchClause +
-		" group by project, language" +
-		") select ps.project, ps.first, ps.last, ps.cnt as count, ls.language as top_language " +
-		"from project_stats ps" +
-		" left join language_stats ls on ps.project = ls.project and ls.rn = 1 " +
-		"order by ps.last desc "
+		"group by project, language" +
+		"), ranked as (" +
+		"select project, language, lang_cnt, lang_min, lang_max, " +
+		"sum(lang_cnt) over (partition by project) as total_cnt, " +
+		"min(lang_min) over (partition by project) as overall_first, " +
+		"max(lang_max) over (partition by project) as overall_last, " +
+		"row_number() over (partition by project order by lang_cnt desc) as rn " +
+		"from lang_grouped" +
+		") select project, overall_first as first, overall_last as last, " +
+		"total_cnt as count, language as top_language, " +
+		"@userid as user_id " +
+		"from ranked " +
+		"where rn = 1"
+
 	query := condition.Ternary(r.config.Db.IsSQLite(), querySqlite, queryDefault)
-	query += "limit @limit offset @offset"
 
 	if err := r.db.
 		Raw(query, args...).

@@ -2,9 +2,10 @@ package config
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"net/http"
 	"strings"
-	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
@@ -30,14 +31,6 @@ type IdTokenPayload struct {
 	ProviderName      string                 `json:"provider_name"` // custom field, not part of actual id token response
 	AllClaims         map[string]interface{} `json:"-"`
 	UsernameClaim     string                 `json:"-"`
-}
-
-func (token *IdTokenPayload) Exp() time.Time {
-	return time.Unix(token.Expiry, 0)
-}
-
-func (token *IdTokenPayload) IsValid() bool {
-	return token.Exp().After(time.Now())
 }
 
 func (token *IdTokenPayload) Username() string {
@@ -74,10 +67,21 @@ func (token *IdTokenPayload) getClaimValue(claimName string) string {
 
 var oidcProviders = make(map[string]*OidcProvider)
 
+func GetOidcContext(ctx context.Context) context.Context {
+	tp := http.DefaultTransport.(*http.Transport).Clone()
+	tp.DisableCompression = true
+	tp.TLSClientConfig = &tls.Config{
+		InsecureSkipVerify: cfg.Security.OidcInsecure,
+	}
+	return oidc.ClientContext(ctx, &http.Client{
+		Transport: tp,
+	})
+}
+
 func RegisterOidcProvider(providerCfg *oidcProviderConfig) {
 	cfg := Get()
 
-	provider, err := oidc.NewProvider(context.Background(), providerCfg.Endpoint)
+	provider, err := oidc.NewProvider(GetOidcContext(context.Background()), providerCfg.Endpoint)
 	if err != nil {
 		Log().Fatal(fmt.Sprintf("failed to initialize oidc provider at %s", providerCfg.Endpoint), "error", err)
 		return

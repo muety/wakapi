@@ -207,7 +207,7 @@ func (suite *WakatimeRelayMiddlewareTestSuite) TestFilterByCache_Bulk() {
 	req, _ := http.NewRequest(http.MethodPost, "/api/heartbeats", bytes.NewBuffer(body))
 	req = suite.withUser(req, user)
 
-	err := suite.sut.filterByCache(req)
+	_, err := suite.sut.filterByCache(req)
 	suite.NoError(err)
 
 	// Now hb1 and hb2 are in cache. Try again with hb2 and hb3
@@ -220,13 +220,19 @@ func (suite *WakatimeRelayMiddlewareTestSuite) TestFilterByCache_Bulk() {
 	req2, _ := http.NewRequest(http.MethodPost, "/api/heartbeats", bytes.NewBuffer(body2))
 	req2 = suite.withUser(req2, user)
 
-	err = suite.sut.filterByCache(req2)
+	relayBody, err := suite.sut.filterByCache(req2)
 	suite.NoError(err)
 
+	// upstream gets only hb3, hb2 is old news
 	var filtered []interface{}
-	json.NewDecoder(req2.Body).Decode(&filtered)
+	json.NewDecoder(bytes.NewReader(relayBody)).Decode(&filtered)
 	suite.Len(filtered, 1)
 	suite.Equal("/tmp/3.go", filtered[0].(map[string]interface{})["entity"])
+
+	// but r.Body still carries both, otherwise the local store eats one
+	var passedThrough []interface{}
+	json.NewDecoder(req2.Body).Decode(&passedThrough)
+	suite.Len(passedThrough, 2)
 }
 
 func (suite *WakatimeRelayMiddlewareTestSuite) withUser(r *http.Request, user *models.User) *http.Request {

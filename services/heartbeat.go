@@ -2,17 +2,14 @@ package services
 
 import (
 	"fmt"
-	"math"
 	"strings"
 	"sync"
 	"time"
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
-	"github.com/duke-git/lancet/v2/maputil"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/repositories"
-	"github.com/muety/wakapi/utils"
 	"github.com/patrickmn/go-cache"
 
 	"github.com/muety/wakapi/models"
@@ -46,7 +43,6 @@ func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, langua
 			heartbeat := m.Fields[config.FieldPayload].(*models.Heartbeat)
 			srv.cache.IncrementInt64(srv.countByUserCacheKey(heartbeat.UserID), 1) // increment doesn't update expiration time
 			srv.cache.IncrementInt64(srv.countTotalCacheKey(), 1)
-			srv.checkInvalidateProjectStatsCache(heartbeat)
 			srv.checkInvalidateRangeCache(heartbeat)
 		}
 	}(&sub1)
@@ -276,42 +272,6 @@ func (srv *HeartbeatService) DeleteByUserBefore(user *models.User, t time.Time) 
 	return srv.repository.DeleteByUserBefore(user, t)
 }
 
-func (srv *HeartbeatService) GetUserProjectStats(user *models.User, from, to time.Time, search string, pageParams *utils.PageParams, skipCache bool) ([]*models.ProjectStats, error) {
-	// for projects page, call this like: GetUserProjectStats(&models.User{ID: "n1try"}, time.Time{}, utils.BeginOfToday(time.Local), false)
-
-	var (
-		limit  = math.MaxInt32
-		offset = 0
-	)
-
-	if pageParams != nil {
-		limit = pageParams.Limit()
-		offset = pageParams.Offset()
-	}
-
-	cacheKey := fmt.Sprintf("project_stats_%s_%d_%d_%d_%d_%s", user.ID, from.Unix(), to.Unix(), limit, offset, search)
-	if results, found := srv.cache.Get(cacheKey); found && !skipCache {
-		return results.([]*models.ProjectStats), nil
-	} else if search == "" {
-		if results, found := srv.cache.Get(fmt.Sprintf("project_stats_%s_%d_%d_%d_%d_", user.ID, from.Unix(), to.Unix(), math.MaxInt32, 0)); found && !skipCache {
-			return utils.SubSlice[*models.ProjectStats](results.([]*models.ProjectStats), uint(offset), uint(offset+limit)), nil
-		}
-	}
-
-	if to.IsZero() {
-		to = time.Now()
-	}
-
-	results, err := srv.repository.GetUserProjectStats(user, from, to, search, limit, offset)
-	if err == nil {
-		srv.cache.Set(cacheKey, results, 12*time.Hour)
-	}
-
-	go srv.populateUniqueUserProjects(user.ID)
-
-	return results, err
-}
-
 // GetUserAgentsByUser returns a list of all user agents that have been recorded for the given user.
 func (srv *HeartbeatService) GetUserAgentsByUser(user *models.User) ([]*models.UserAgent, error) {
 	userAgents, err := srv.repository.GetUserAgentsByUser(user)
@@ -350,10 +310,6 @@ func (srv *HeartbeatService) augmentedAsync(in chan *models.Heartbeat, languageM
 
 func (srv *HeartbeatService) getEntityUserCacheKey(entityType uint8, userId string) string {
 	return fmt.Sprintf("entity_set_%d_%s", entityType, userId)
-}
-
-func (srv *HeartbeatService) getUserProjectsCacheKey(userId string) string {
-	return fmt.Sprintf("unique_projects_%s", userId)
 }
 
 func (srv *HeartbeatService) getUserFirstCacheKey(userId string) string {
@@ -422,30 +378,6 @@ func (srv *HeartbeatService) filtersToColumnMap(filters *models.Filters) map[str
 		}
 	}
 	return columnMap
-}
-
-func (srv *HeartbeatService) populateUniqueUserProjects(userId string) {
-	userProjectsCacheKey := srv.getUserProjectsCacheKey(userId)
-	if _, found := srv.cache.Get(userProjectsCacheKey); !found {
-		projects, _ := srv.GetEntitySetByUser(models.SummaryProject, userId)
-		srv.cache.Set(userProjectsCacheKey, datastructure.New[string](projects...), cache.NoExpiration)
-	}
-}
-
-func (srv *HeartbeatService) checkInvalidateProjectStatsCache(newHeartbeat *models.Heartbeat) {
-	// checks the cache of unique projects and clears the user's project_stats_* cache items if the new heartbeat is for a new, unseen project
-	var invalidated bool
-	if uniqueProjects, found := srv.cache.Get(srv.getUserProjectsCacheKey(newHeartbeat.UserID)); found && !uniqueProjects.(datastructure.Set[string]).Contain(newHeartbeat.Project) {
-		for _, k := range maputil.Keys[string, cache.Item](srv.cache.Items()) {
-			if strings.HasPrefix(k, fmt.Sprintf("project_stats_%s_", newHeartbeat.UserID)) {
-				srv.cache.Delete(k)
-				invalidated = true
-			}
-		}
-	}
-	if invalidated {
-		go srv.populateUniqueUserProjects(newHeartbeat.UserID)
-	}
 }
 
 func (srv *HeartbeatService) checkInvalidateRangeCache(newHeartbeat *models.Heartbeat) {

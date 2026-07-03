@@ -18,6 +18,7 @@ import (
 	"github.com/muety/wakapi/models"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/utils"
+	testutils "github.com/muety/wakapi/utils/test"
 	"github.com/oauth2-proxy/mockoidc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -476,7 +477,16 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success() {
 	assert.Equal(suite.T(), http.StatusFound, w.Code)
 	assert.Empty(suite.T(), suite.getSessionError(r))
 	assert.Equal(suite.T(), "/summary", w.Header().Get("Location"))
-	assert.Contains(suite.T(), w.Header().Get("Set-Cookie"), "wakapi_auth=")
+
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+		return strings.Contains(value, "oidc_id_token=")
+	}, "OIDC id_token cookie not set in response")
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+		return strings.Contains(value, "oidc_provider="+testProvider)
+	}, "OIDC provider cookie not set in response")
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+		return strings.Contains(value, "oidc_refresh_token=")
+	}, "OIDC refresh token not set in response")
 }
 
 func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success_CreateUser() {
@@ -509,7 +519,16 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success_CreateUser(
 	assert.Equal(suite.T(), http.StatusFound, w.Code)
 	assert.Empty(suite.T(), suite.getSessionError(r))
 	assert.Equal(suite.T(), "/summary", w.Header().Get("Location"))
-	assert.Contains(suite.T(), w.Header().Get("Set-Cookie"), "wakapi_auth=")
+
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+		return strings.Contains(value, "oidc_id_token=")
+	}, "OIDC id_token cookie not set in response")
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+		return strings.Contains(value, "oidc_provider="+testProvider)
+	}, "OIDC provider cookie not set in response")
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+		return strings.Contains(value, "oidc_refresh_token=")
+	}, "OIDC refresh token not set in response")
 }
 
 func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success_CreateUser_CustomUsernameClaim() {
@@ -558,7 +577,16 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success_CreateUser_
 	assert.Equal(suite.T(), http.StatusFound, w.Code)
 	assert.Empty(suite.T(), suite.getSessionError(r))
 	assert.Equal(suite.T(), "/summary", w.Header().Get("Location"))
-	assert.Contains(suite.T(), w.Header().Get("Set-Cookie"), "wakapi_auth=")
+
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+		return strings.Contains(value, "oidc_id_token=")
+	}, "OIDC id_token cookie not set in response")
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+		return strings.Contains(value, "oidc_provider=custom-claim-provider")
+	}, "OIDC provider cookie not set in response")
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+		return strings.Contains(value, "oidc_refresh_token=")
+	}, "OIDC refresh token not set in response")
 }
 
 func (suite *LoginHandlerTestSuite) TestGetOidcLogin_CustomScopesRequested() {

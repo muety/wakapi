@@ -8,6 +8,7 @@ server:
   listen_ipv6: ::1                    # set to '-' to disable ipv6
   listen_socket:                      # set to '-' to disable unix sockets
   listen_socket_mode: 0666            # permission mode to create unix socket with
+  log_format: text                    # format for structured logging (text or json)
   timeout_sec: 30                     # request timeout
   tls_cert_path:                      # leave blank to not use https
   tls_key_path:                       # leave blank to not use https
@@ -84,10 +85,12 @@ db:
 
 security:
   password_salt:                        # change this
+  session_key:                          # optional, base64-encoded custom key used to encrypt session cookies
   insecure_cookies: true                # should be set to 'false', except when not running with HTTPS (e.g. on localhost)
   cookie_max_age: 172800
   allow_signup: true                    # whether to allow new user creation at all
   oidc_allow_signup: true               # allow registration of new users from oidc
+  oidc_insecure: false                   # skip tls certificate validation for oidc provider
   disable_local_auth: false             # disable login via local credentials (username and password) to enforce OIDC provider login
   disable_webauthn: true                # disable login via webauthn (security keys, biometrics, etc.)
   signup_captcha: false
