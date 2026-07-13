@@ -144,11 +144,11 @@
 - [x] run `npm run build` to confirm templates/assets compile; manual verification tracked in Post-Completion
 
 ### Task 6: Verify acceptance criteria
-- [ ] verify all requirements from Overview are implemented (searchable project filter; branch filter, project-page only, debounced 1.2s, min 3 chars, project-scoped)
-- [ ] verify edge cases: empty/short branch query returns no request/`[]`; no project selected still returns results (global); selecting a branch reloads with `?branch=` and the backend applies it
-- [ ] run full Go test suite: `go test ./...`
-- [ ] run `go vet ./...` and `go build ./...`
-- [ ] confirm no regression to the other four filters and existing API endpoints
+- [x] verify all requirements from Overview are implemented (searchable project filter; branch filter, project-page only, debounced 1.2s, min 3 chars, project-scoped)
+- [x] verify edge cases: empty/short branch query returns no request/`[]`; no project selected still returns results (global); selecting a branch reloads with `?branch=` and the backend applies it
+- [x] run full Go test suite: `go test ./...`
+- [x] run `go vet ./...` and `go build ./...`
+- [x] confirm no regression to the other four filters and existing API endpoints
 
 ### Task 7: Update documentation
 - [ ] update `README.md` / API docs if the new `GET /api/branches` endpoint should be listed
