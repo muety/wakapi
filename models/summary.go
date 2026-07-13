@@ -446,7 +446,16 @@ func (s *SummaryParams) HasFilters() bool {
 }
 
 func (s *SummaryParams) IsProjectDetails() bool {
-	if !s.HasFilters() || s.Filters.EntityCount() > 1 {
+	if !s.HasFilters() {
+		return false
+	}
+	// a project-details view is scoped to a single project; a branch filter is allowed as a
+	// sub-filter (narrowing the project to one branch) without leaving the project-details view
+	entityCount := s.Filters.EntityCount()
+	if s.Filters.Branch.Exists() {
+		entityCount--
+	}
+	if entityCount > 1 {
 		return false
 	}
 	_, entity, filters := s.Filters.One()

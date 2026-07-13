@@ -48,7 +48,7 @@
                 remote: true,
                 minChars: 3,
                 debounceMs: 1200,
-                project: '{{ .GetProjectFilter }}',
+                project: wakapiData.currentProject,
             })" @vue:mounted="mounted"></div>
             {{ end }}
 
@@ -415,6 +415,7 @@
     wakapiData.hourlyBreakdownFromTime = {{ .HourlyBreakdownFrom | json }}
     wakapiData.hourlyBreakdownToTime = {{ .SummaryParams.To | json }}
     wakapiData.availableProjectNames = {{ .AvailableFilters.ProjectNames | json }}
+    wakapiData.currentProject = {{ .GetProjectFilter | json }}
     wakapiData.availableLanguageNames = {{ .AvailableFilters.LanguageNames | json }}
     wakapiData.availableMachineNames = {{ .AvailableFilters.MachineNames | json }}
     wakapiData.availableLabelNames = {{ .AvailableFilters.LabelNames | json }}

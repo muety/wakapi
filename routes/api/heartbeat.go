@@ -78,9 +78,9 @@ func (h *HeartbeatApiHandler) GetBranches(w http.ResponseWriter, r *http.Request
 	user := middlewares.GetPrincipal(r)
 
 	project := r.URL.Query().Get("project")
-	query := r.URL.Query().Get("q")
+	query := strings.TrimSpace(r.URL.Query().Get("q"))
 
-	if len(strings.TrimSpace(query)) < 3 {
+	if len(query) < 3 {
 		helpers.RespondJSON(w, r, http.StatusOK, []string{})
 		return
 	}

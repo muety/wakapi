@@ -16,9 +16,6 @@ function ComboboxFilter({type, options, selection, remote, minChars, debounceMs,
         visibleOptions: [],
         _debounceTimer: null,
         _boundOutside: null,
-        display() {
-            return this.type.capitalize()
-        },
         onInput() {
             this.open = true
             if (this.remote) {

@@ -235,7 +235,11 @@ func (r *HeartbeatRepository) SearchBranchesByUser(userId, project, query string
 		Where("branch <> ''").
 		Where("LOWER(branch) LIKE ?", "%"+strings.ToLower(query)+"%")
 
-	if project != "" {
+	// "-" is the sentinel for the "unknown" project (heartbeats stored with an empty project),
+	// mirroring models.OrFilter.MatchAny; an empty string means "search across all projects"
+	if project == "-" {
+		q = q.Where("project = ?", "")
+	} else if project != "" {
 		q = q.Where("project = ?", project)
 	}
 
