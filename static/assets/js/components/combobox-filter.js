@@ -81,6 +81,8 @@ function ComboboxFilter({type, options, selection, remote, minChars, debounceMs,
                 const val = this.selection === 'unknown' ? '-' : this.selection  // will break if the value is actually named "unknown"
                 if (this.selection) query.set(this.type, val)
                 else query.delete(this.type)
+                // branches are project-scoped, so changing/clearing the project invalidates any active branch filter
+                if (this.type === 'project') query.delete('branch')
                 window.location.search = query.toString()
             })
         },
