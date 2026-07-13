@@ -137,11 +137,11 @@
 **Files:**
 - Modify: `views/summary.tpl.html`
 
-- [ ] add `<script src="assets/js/components/combobox-filter.js?v={{ getCacheBuster }}"></script>` alongside the existing component scripts
-- [ ] replace the Project `EntityFilter({...})` `v-scope` with `ComboboxFilter({ type: 'project', options: wakapiData.availableProjectNames.toSorted(), selection: null, remote: false })`
-- [ ] add a Branch `ComboboxFilter` immediately after Project, wrapped in `{{ if .IsProjectDetails }} … {{ end }}`, configured `{ type: 'branch', options: [], selection: null, remote: true, minChars: 3, debounceMs: 1200, project: '{{ .GetProjectFilter }}' }`
-- [ ] leave Language / Machine / Label / Category as existing `EntityFilter` native selects (no change)
-- [ ] run `npm run build` to confirm templates/assets compile; manual verification tracked in Post-Completion
+- [x] add `<script src="assets/js/components/combobox-filter.js?v={{ getCacheBuster }}"></script>` alongside the existing component scripts
+- [x] replace the Project `EntityFilter({...})` `v-scope` with `ComboboxFilter({ type: 'project', options: wakapiData.availableProjectNames.toSorted(), selection: null, remote: false })`
+- [x] add a Branch `ComboboxFilter` immediately after Project, wrapped in `{{ if .IsProjectDetails }} … {{ end }}`, configured `{ type: 'branch', options: [], selection: null, remote: true, minChars: 3, debounceMs: 1200, project: '{{ .GetProjectFilter }}' }`
+- [x] leave Language / Machine / Label / Category as existing `EntityFilter` native selects (no change)
+- [x] run `npm run build` to confirm templates/assets compile; manual verification tracked in Post-Completion
 
 ### Task 6: Verify acceptance criteria
 - [ ] verify all requirements from Overview are implemented (searchable project filter; branch filter, project-page only, debounced 1.2s, min 3 chars, project-scoped)
