@@ -100,10 +100,10 @@
 - Modify: `services/heartbeat.go`
 - Modify: `mocks/heartbeat_service.go`
 
-- [ ] add `SearchBranchesByUser(string, string, string, int) ([]string, error)` to the `IHeartbeatService` interface in `services/services.go`
-- [ ] implement `SearchBranchesByUser` on `HeartbeatService` in `services/heartbeat.go` as a passthrough to the repository, trimming empty/whitespace-only results (mirror the filtering in `GetEntitySetByUser`); do not cache
-- [ ] add the matching mock method to `mocks/heartbeat_service.go` (testify `m.Called(...)` returning `[]string, error`)
-- [ ] run `go build ./...` — must succeed before next task
+- [x] add `SearchBranchesByUser(string, string, string, int) ([]string, error)` to the `IHeartbeatService` interface in `services/services.go`
+- [x] implement `SearchBranchesByUser` on `HeartbeatService` in `services/heartbeat.go` as a passthrough to the repository, trimming empty/whitespace-only results (mirror the filtering in `GetEntitySetByUser`); do not cache
+- [x] add the matching mock method to `mocks/heartbeat_service.go` (testify `m.Called(...)` returning `[]string, error`)
+- [x] run `go build ./...` — must succeed before next task
 
 ### Task 3: `GET /api/branches` handler + tests
 

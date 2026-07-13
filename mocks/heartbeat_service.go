@@ -107,6 +107,11 @@ func (m *HeartbeatServiceMock) GetEntitySetByUser(u uint8, user string) ([]strin
 	return args.Get(0).([]string), args.Error(1)
 }
 
+func (m *HeartbeatServiceMock) SearchBranchesByUser(userId string, project string, query string, limit int) ([]string, error) {
+	args := m.Called(userId, project, query, limit)
+	return args.Get(0).([]string), args.Error(1)
+}
+
 func (m *HeartbeatServiceMock) DeleteBefore(time time.Time) error {
 	args := m.Called(time)
 	return args.Error(0)

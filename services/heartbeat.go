@@ -257,6 +257,21 @@ func (srv *HeartbeatService) GetEntitySetByUser(entityType uint8, userId string)
 	return filtered, nil
 }
 
+func (srv *HeartbeatService) SearchBranchesByUser(userId, project, query string, limit int) ([]string, error) {
+	results, err := srv.repository.SearchBranchesByUser(userId, project, query, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	filtered := make([]string, 0, len(results))
+	for _, r := range results {
+		if strings.TrimSpace(r) != "" {
+			filtered = append(filtered, r)
+		}
+	}
+	return filtered, nil
+}
+
 func (srv *HeartbeatService) DeleteBefore(t time.Time) error {
 	go srv.cache.Flush()
 	return srv.repository.DeleteBefore(t)

@@ -47,6 +47,7 @@ type IHeartbeatRepository interface {
 	CountByUser(*models.User) (int64, error)
 	CountByUsers([]*models.User) ([]*models.CountByUser, error)
 	GetEntitySetByUser(uint8, string) ([]string, error)
+	SearchBranchesByUser(string, string, string, int) ([]string, error)
 	DeleteBefore(time.Time) error
 	DeleteByUser(*models.User) error
 	DeleteByUserBefore(*models.User, time.Time) error
