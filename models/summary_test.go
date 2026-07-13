@@ -365,4 +365,34 @@ func TestSummaryParams_IsProjectDetails(t *testing.T) {
 		assert.Len(t, sut.Filters.Project, 3)
 		assert.False(t, sut.IsProjectDetails())
 	})
+
+	t.Run("project and branch", func(t *testing.T) {
+		sut := &SummaryParams{
+			Filters: &Filters{
+				Project: []string{"wakapi"},
+				Branch:  []string{"main"},
+			},
+		}
+		assert.True(t, sut.IsProjectDetails())
+	})
+
+	t.Run("branch only", func(t *testing.T) {
+		sut := &SummaryParams{
+			Filters: &Filters{
+				Branch: []string{"main"},
+			},
+		}
+		assert.False(t, sut.IsProjectDetails())
+	})
+
+	t.Run("project, language and branch", func(t *testing.T) {
+		sut := &SummaryParams{
+			Filters: &Filters{
+				Project:  []string{"wakapi"},
+				Language: []string{"Go"},
+				Branch:   []string{"main"},
+			},
+		}
+		assert.False(t, sut.IsProjectDetails())
+	})
 }
