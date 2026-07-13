@@ -124,13 +124,13 @@
 - Create: `static/assets/js/components/combobox-filter.js`
 - Modify: `views/entity-filter.tpl.html`
 
-- [ ] add a `#combobox-filter-template` block to `views/entity-filter.tpl.html`: a label, a text input bound to `query`, and a dropdown `<ul>`/list of `visibleOptions` shown when `open`; reuse existing `.entity-filter-control` / input styling
-- [ ] create `combobox-filter.js` exporting `ComboboxFilter({ type, options, selection, remote, minChars, debounceMs, project })` (petite-vue object with `$template`, `$delimiters: ['${','}']`)
-- [ ] implement local mode: `visibleOptions` = `options` filtered by case-insensitive substring of `query`
-- [ ] implement remote mode: on input clear any pending timer; if `query.length < minChars` clear options + show hint; else start a `debounceMs` timer that fetches `api/branches?project=<project>&q=<query>`, sets `visibleOptions`, toggles a `loading` flag, and handles fetch errors gracefully (clear options, `console` log, no crash)
-- [ ] implement `select(option)`: set `selection`, then update `window.location.search` (build `URLSearchParams`, set/delete `type` with the existing `unknown` → `-` mapping) and reload — matching `entity-filter.js`
-- [ ] implement `mounted`: pre-fill `query`/`selection` when the URL already has the `type` param; add outside-click / Escape handling to close the dropdown
-- [ ] frontend has no unit tests — run `npm run build` (or `build:tailwind`) to confirm assets compile; manual verification is tracked in Post-Completion
+- [x] add a `#combobox-filter-template` block to `views/entity-filter.tpl.html`: a label, a text input bound to `query`, and a dropdown `<ul>`/list of `visibleOptions` shown when `open`; reuse existing `.entity-filter-control` / input styling
+- [x] create `combobox-filter.js` exporting `ComboboxFilter({ type, options, selection, remote, minChars, debounceMs, project })` (petite-vue object with `$template`, `$delimiters: ['${','}']`)
+- [x] implement local mode: `visibleOptions` = `options` filtered by case-insensitive substring of `query`
+- [x] implement remote mode: on input clear any pending timer; if `query.length < minChars` clear options + show hint; else start a `debounceMs` timer that fetches `api/branches?project=<project>&q=<query>`, sets `visibleOptions`, toggles a `loading` flag, and handles fetch errors gracefully (clear options, `console` log, no crash)
+- [x] implement `select(option)`: set `selection`, then update `window.location.search` (build `URLSearchParams`, set/delete `type` with the existing `unknown` → `-` mapping) and reload — matching `entity-filter.js`
+- [x] implement `mounted`: pre-fill `query`/`selection` when the URL already has the `type` param; add outside-click / Escape handling to close the dropdown
+- [x] frontend has no unit tests — run `npm run build` (or `build:tailwind`) to confirm assets compile; manual verification is tracked in Post-Completion
 
 ### Task 5: Wire Project + Branch filters into the summary page
 

@@ -7,3 +7,25 @@
         </select>
     </div>
 </template>
+
+<template id="combobox-filter-template">
+    <div :id="type + '-filter-form'" class="entity-filter-control relative" @keydown="onKeydown">
+        <label :for="'input-' + type + '-filter'"><span class="iconify inline mr-1" data-icon="mdi:filter"></span> ${type}</label>
+        <input type="text"
+               :id="'input-' + type + '-filter'"
+               class="select-default"
+               :placeholder="'Filter by ' + type + ' ...'"
+               v-model="query"
+               @input="onInput"
+               @focus="onFocus"
+               autocomplete="off">
+        <ul v-show="open" class="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-card text-foreground rounded-md shadow z-50 text-sm">
+            <li v-if="loading" class="px-2.5 py-1.5 text-muted">Searching …</li>
+            <li v-if="!loading && hint" class="px-2.5 py-1.5 text-muted">${hint}</li>
+            <li v-for="o in visibleOptions"
+                :key="o"
+                @mousedown.prevent="select(o)"
+                class="px-2.5 py-1.5 cursor-pointer hover:bg-focused truncate">${o}</li>
+        </ul>
+    </div>
+</template>
