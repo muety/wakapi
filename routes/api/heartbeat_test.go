@@ -107,6 +107,87 @@ func TestHeartbeatHandler_Post_Timeliness(t *testing.T) {
 	})
 }
 
+func withPrincipal(req *http.Request, user *models.User) *http.Request {
+	sharedData := config.NewSharedData()
+	ctx := context.WithValue(req.Context(), config.KeySharedData, sharedData)
+	req = req.WithContext(ctx)
+	routeutils.SetPrincipal(req, user)
+	return req
+}
+
+func TestHeartbeatHandler_GetBranches(t *testing.T) {
+	config.Set(config.Empty())
+
+	user := &models.User{ID: "testuser"}
+
+	t.Run("should return empty array without calling the service when query is shorter than 3 chars", func(t *testing.T) {
+		userServiceMock := new(mocks.UserServiceMock)
+		heartbeatServiceMock := new(mocks.HeartbeatServiceMock)
+		handler := NewHeartbeatApiHandler(userServiceMock, heartbeatServiceMock, nil)
+
+		req := httptest.NewRequest(http.MethodGet, "/api/branches?q=ab", nil)
+		req = withPrincipal(req, user)
+		rec := httptest.NewRecorder()
+
+		handler.GetBranches(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+
+		var branches []string
+		err := json.Unmarshal(rec.Body.Bytes(), &branches)
+		assert.NoError(t, err)
+		assert.Empty(t, branches)
+
+		heartbeatServiceMock.AssertNotCalled(t, "SearchBranchesByUser", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("should forward exact args to the service and return the branches as a JSON string array", func(t *testing.T) {
+		userServiceMock := new(mocks.UserServiceMock)
+		heartbeatServiceMock := new(mocks.HeartbeatServiceMock)
+		handler := NewHeartbeatApiHandler(userServiceMock, heartbeatServiceMock, nil)
+
+		expected := []string{"main", "maintenance"}
+		heartbeatServiceMock.On("SearchBranchesByUser", "testuser", "myproject", "mai", 50).Return(expected, nil)
+
+		req := httptest.NewRequest(http.MethodGet, "/api/branches?project=myproject&q=mai", nil)
+		req = withPrincipal(req, user)
+		rec := httptest.NewRecorder()
+
+		handler.GetBranches(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+
+		var branches []string
+		err := json.Unmarshal(rec.Body.Bytes(), &branches)
+		assert.NoError(t, err)
+		assert.Equal(t, expected, branches)
+
+		heartbeatServiceMock.AssertExpectations(t)
+	})
+
+	t.Run("should reject an unauthenticated request", func(t *testing.T) {
+		router := chi.NewRouter()
+		apiRouter := chi.NewRouter()
+		apiRouter.Use(middlewares.NewSharedDataMiddleware())
+		router.Mount("/api", apiRouter)
+
+		userServiceMock := new(mocks.UserServiceMock)
+		heartbeatServiceMock := new(mocks.HeartbeatServiceMock)
+		handler := NewHeartbeatApiHandler(userServiceMock, heartbeatServiceMock, nil)
+		handler.RegisterRoutes(apiRouter)
+
+		req := httptest.NewRequest(http.MethodGet, "/api/branches?q=main", nil)
+		rec := httptest.NewRecorder()
+
+		router.ServeHTTP(rec, req)
+		res := rec.Result()
+		defer res.Body.Close()
+
+		assert.Equal(t, http.StatusUnauthorized, res.StatusCode)
+		heartbeatServiceMock.AssertNotCalled(t, "SearchBranchesByUser", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	})
+}
+
 func Test_fillPlaceholders(t *testing.T) {
 	heartbeatServiceMock := new(mocks.HeartbeatServiceMock)
 	heartbeatServiceMock.On("GetLatestByUser", mock.Anything).Return(&models.Heartbeat{

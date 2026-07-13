@@ -111,12 +111,12 @@
 - Modify: `routes/api/heartbeat.go`
 - Modify: `routes/api/heartbeat_test.go`
 
-- [ ] add a new route group in `HeartbeatApiHandler.RegisterRoutes` using `middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler` (cookie + API key), registering `r.Get("/branches", h.GetBranches)`
-- [ ] implement `GetBranches`: resolve principal via `middlewares.GetPrincipal(r)`; read `project` and `q` query params; if `len(strings.TrimSpace(q)) < 3` write `200` with JSON `[]`; else call `heartbeatSrvc.SearchBranchesByUser(user.ID, project, q, 50)`; on error log + `500`; on success JSON-encode the `[]string`
-- [ ] write handler test: `q` shorter than 3 chars returns `200` and empty array without calling the service
-- [ ] write handler test: valid `q` (+ `project`) forwards exact args to the mocked service and returns the mocked branches as a JSON string array
-- [ ] write handler test: unauthenticated request is rejected (mirror existing auth assertions in `heartbeat_test.go`)
-- [ ] run `go test ./routes/... ./services/... ./repositories/...` — must pass before next task
+- [x] add a new route group in `HeartbeatApiHandler.RegisterRoutes` using `middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler` (cookie + API key), registering `r.Get("/branches", h.GetBranches)`
+- [x] implement `GetBranches`: resolve principal via `middlewares.GetPrincipal(r)`; read `project` and `q` query params; if `len(strings.TrimSpace(q)) < 3` write `200` with JSON `[]`; else call `heartbeatSrvc.SearchBranchesByUser(user.ID, project, q, 50)`; on error log + `500`; on success JSON-encode the `[]string`
+- [x] write handler test: `q` shorter than 3 chars returns `200` and empty array without calling the service
+- [x] write handler test: valid `q` (+ `project`) forwards exact args to the mocked service and returns the mocked branches as a JSON string array
+- [x] write handler test: unauthenticated request is rejected (mirror existing auth assertions in `heartbeat_test.go`)
+- [x] run `go test ./routes/... ./services/... ./repositories/...` — must pass before next task
 
 ### Task 4: `ComboboxFilter` petite-vue component
 

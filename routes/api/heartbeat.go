@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/go-chi/chi/v5"
@@ -55,6 +56,44 @@ func (h *HeartbeatApiHandler) RegisterRoutes(router chi.Router) {
 			r.Options(route.Pattern, cors.AllowAll().HandlerFunc)
 		}
 	})
+
+	router.Group(func(r chi.Router) {
+		r.Use(
+			middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler,
+		)
+		r.Get("/branches", h.GetBranches)
+	})
+}
+
+// @Summary Search distinct branch names for the current user
+// @ID get-branches
+// @Tags heartbeat
+// @Produce json
+// @Param project query string false "Project to scope the search to"
+// @Param q query string false "Case-insensitive substring to search for (min. 3 chars)"
+// @Security ApiKeyAuth
+// @Success 200 {array} string
+// @Router /branches [get]
+func (h *HeartbeatApiHandler) GetBranches(w http.ResponseWriter, r *http.Request) {
+	user := middlewares.GetPrincipal(r)
+
+	project := r.URL.Query().Get("project")
+	query := r.URL.Query().Get("q")
+
+	if len(strings.TrimSpace(query)) < 3 {
+		helpers.RespondJSON(w, r, http.StatusOK, []string{})
+		return
+	}
+
+	branches, err := h.heartbeatSrvc.SearchBranchesByUser(user.ID, project, query, 50)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(conf.ErrInternalServerError))
+		conf.Log().Request(r).Error("failed to search branches", "userID", user.ID, "error", err)
+		return
+	}
+
+	helpers.RespondJSON(w, r, http.StatusOK, branches)
 }
 
 // @Summary Push a new heartbeat
