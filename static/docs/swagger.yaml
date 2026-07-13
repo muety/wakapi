@@ -646,6 +646,32 @@ info:
   title: Wakapi API
   version: "1.0"
 paths:
+  /branches:
+    get:
+      operationId: get-branches
+      parameters:
+      - description: Project to scope the search to
+        in: query
+        name: project
+        type: string
+      - description: Case-insensitive substring to search for (min. 3 chars)
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: Search distinct branch names for the current user
+      tags:
+      - heartbeat
   /compat/shields/v1/{user}/{interval}/{filter}:
     get:
       description: Retrieve total time for a given entity (e.g. a project) within

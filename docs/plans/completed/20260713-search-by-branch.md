@@ -151,9 +151,9 @@
 - [x] confirm no regression to the other four filters and existing API endpoints
 
 ### Task 7: Update documentation
-- [ ] update `README.md` / API docs if the new `GET /api/branches` endpoint should be listed
-- [ ] update `CLAUDE.md` if new patterns were introduced (e.g. the `ComboboxFilter` component)
-- [ ] move this plan to `docs/plans/completed/` (create the directory if needed)
+- [x] update `README.md` / API docs if the new `GET /api/branches` endpoint should be listed — README defers all endpoint docs to the Swagger UI; regenerated `static/docs/` (docs.go/swagger.json/swagger.yaml) via `swag init -o static/docs` so `/branches` (get-branches) is now documented. No manual README edit needed.
+- [x] update `CLAUDE.md` if new patterns were introduced (e.g. the `ComboboxFilter` component) — no project-level `CLAUDE.md` exists in the repo; not creating one solely for this component (skipped - not applicable).
+- [x] move this plan to `docs/plans/completed/` (create the directory if needed)
 
 ## Post-Completion
 *Items requiring manual intervention or external systems — no checkboxes, informational only*
