@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/duke-git/lancet/v2/condition"
@@ -219,6 +220,28 @@ func (r *HeartbeatRepository) GetEntitySetByUser(entityType uint8, userId string
 		Model(&models.Heartbeat{}).
 		Distinct(models.GetEntityColumn(entityType)).
 		Where(&models.Heartbeat{UserID: userId}).
+		Find(&results).Error; err != nil {
+		return nil, err
+	}
+	return results, nil
+}
+
+func (r *HeartbeatRepository) SearchBranchesByUser(userId, project, query string, limit int) ([]string, error) {
+	var results []string
+	q := r.db.
+		Model(&models.Heartbeat{}).
+		Distinct(models.GetEntityColumn(models.SummaryBranch)).
+		Where("user_id = ?", userId).
+		Where("branch <> ''").
+		Where("LOWER(branch) LIKE ?", "%"+strings.ToLower(query)+"%")
+
+	if project != "" {
+		q = q.Where("project = ?", project)
+	}
+
+	if err := q.
+		Order("branch").
+		Limit(limit).
 		Find(&results).Error; err != nil {
 		return nil, err
 	}
