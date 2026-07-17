@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -11,7 +12,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/duke-git/lancet/v2/strutil"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/gorilla/securecookie"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
@@ -97,6 +101,9 @@ func (suite *LoginHandlerTestSuite) BeforeTest(suiteName, testName string) {
 	cfg := config.Empty()
 	cfg.Security.CookieKeyBytes = securecookie.GenerateRandomKey(128)
 	cfg.Security.PasswordSalt = testPasswordSalt
+	cfg.Security.LoginMaxRate = "100/1m"
+	cfg.Security.SignupMaxRate = "100/1m"
+	cfg.Security.PasswordResetMaxRate = "100/1m"
 	config.Set(cfg)
 	config.InitializeCookies()
 	suite.Cfg = cfg
@@ -748,6 +755,108 @@ func (suite *LoginHandlerTestSuite) assertCookieAbsent(w *httptest.ResponseRecor
 			}
 		}
 	}
+}
+
+func (suite *LoginHandlerTestSuite) TestPostLogin_RateLimiting() {
+	suite.Cfg.Security.LoginMaxRate = "2/1m"
+	suite.Cfg.Security.ParseTrustReverseProxyIPs()
+
+	router := chi.NewRouter()
+	router.Use(middleware.ClientIPFromRemoteAddr)
+	suite.Sut.RegisterRoutes(router)
+
+	form := url.Values{}
+	form.Add("username", testUserExistingId)
+	form.Add("password", testUserExistingPassword)
+
+	suite.UserService.On("GetUserById", testUserExistingId).Return(suite.TestUser, nil)
+	suite.UserService.On("Update", mock.Anything).Return(suite.TestUser, nil)
+
+	// First request - 302 Found
+	req1 := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(form.Encode()))
+	req1.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	w1 := httptest.NewRecorder()
+	router.ServeHTTP(w1, req1)
+	assert.Equal(suite.T(), http.StatusFound, w1.Code)
+
+	// Second request - 302 Found
+	req2 := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(form.Encode()))
+	req2.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	w2 := httptest.NewRecorder()
+	router.ServeHTTP(w2, req2)
+	assert.Equal(suite.T(), http.StatusFound, w2.Code)
+
+	// Third request - 429 Too Many Requests
+	req3 := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(form.Encode()))
+	req3.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	w3 := httptest.NewRecorder()
+	router.ServeHTTP(w3, req3)
+	assert.Equal(suite.T(), http.StatusTooManyRequests, w3.Code)
+}
+
+func (suite *LoginHandlerTestSuite) TestPostLogin_RateLimiting_TrustReverseProxy() {
+	suite.Cfg.Security.TrustReverseProxyIps = "192.168.0.0/24"
+	suite.Cfg.Security.LoginMaxRate = "1/1m"
+	suite.Cfg.Security.SignupMaxRate = "100/1m"
+	suite.Cfg.Security.PasswordResetMaxRate = "100/1m"
+	suite.Cfg.Security.ParseTrustReverseProxyIPs()
+
+	router := chi.NewRouter() // analogously to main.go
+	trustedProxies := suite.Cfg.Security.TrustReverseProxyIPs()
+	if len(trustedProxies) > 0 {
+		cidrs := slice.Map[net.IPNet, string](trustedProxies, func(_ int, ipNet net.IPNet) string {
+			return ipNet.String()
+		})
+		router.Use(middleware.ClientIPFromXFF(cidrs...))
+	} else {
+		router.Use(middleware.ClientIPFromRemoteAddr)
+	}
+	suite.Sut.RegisterRoutes(router)
+
+	form := url.Values{}
+	form.Add("username", testUserExistingId)
+	form.Add("password", testUserExistingPassword)
+
+	suite.UserService.On("GetUserById", testUserExistingId).Return(suite.TestUser, nil)
+	suite.UserService.On("Update", mock.Anything).Return(suite.TestUser, nil)
+
+	// Scenario: spoofing attempt through trusted proxy
+	// Request from trusted proxy (192.168.0.10), representing client (1.1.1.1) who tries to spoof 2.2.2.2.
+	reqA1 := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(form.Encode()))
+	reqA1.RemoteAddr = "192.168.0.10:12345"
+	reqA1.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	reqA1.Header.Add("X-Forwarded-For", "2.2.2.2, 1.1.1.1") // Left is spoofed, right is appended by trusted proxy
+	wA1 := httptest.NewRecorder()
+	router.ServeHTTP(wA1, reqA1)
+	assert.Equal(suite.T(), http.StatusFound, wA1.Code)
+
+	// Subsequent request from trusted proxy representing same client (1.1.1.1) trying to spoof different IP (3.3.3.3).
+	reqA2 := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(form.Encode()))
+	reqA2.RemoteAddr = "192.168.0.10:12345"
+	reqA2.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	reqA2.Header.Add("X-Forwarded-For", "3.3.3.3, 1.1.1.1")
+	wA2 := httptest.NewRecorder()
+	router.ServeHTTP(wA2, reqA2)
+	assert.Equal(suite.T(), http.StatusTooManyRequests, wA2.Code)
+
+	// Scenario: Legitimate proxy requests from trusted proxy
+	// Trusted proxy forwards request from client (5.5.5.5). Should map to 5.5.5.5. (Status 302)
+	reqB1 := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(form.Encode()))
+	reqB1.RemoteAddr = "192.168.0.10:12345"
+	reqB1.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	reqB1.Header.Add("X-Forwarded-For", "5.5.5.5")
+	wB1 := httptest.NewRecorder()
+	router.ServeHTTP(wB1, reqB1)
+	assert.Equal(suite.T(), http.StatusFound, wB1.Code)
+
+	// Trusted proxy forwards request from client (6.6.6.6). Should map to 6.6.6.6. (Status 302)
+	reqB2 := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(form.Encode()))
+	reqB2.RemoteAddr = "192.168.0.10:12345"
+	reqB2.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	reqB2.Header.Add("X-Forwarded-For", "6.6.6.6")
+	wB2 := httptest.NewRecorder()
+	router.ServeHTTP(wB2, reqB2)
+	assert.Equal(suite.T(), http.StatusFound, wB2.Code)
 }
 
 // TODO: test all remaining endpoints

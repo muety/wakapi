@@ -12,6 +12,7 @@ import (
 	"github.com/duke-git/lancet/v2/random"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httprate"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -46,18 +47,33 @@ func NewLoginHandler(userService services.IUserService, mailService services.IMa
 
 func (h *LoginHandler) RegisterRoutes(router chi.Router) {
 	router.Get("/login", h.GetIndex)
+
+	loginLimit, loginWindow := h.config.Security.GetLoginMaxRate()
 	router.
-		With(httprate.LimitByRealIP(h.config.Security.GetLoginMaxRate())).
+		With(httprate.LimitBy(loginLimit, loginWindow, func(r *http.Request) (string, error) {
+			return httprate.CanonicalizeIP(middleware.GetClientIP(r.Context())), nil
+		})).
 		Post("/login", h.PostLogin)
+
 	router.Get("/signup", h.GetSignup)
+
+	signupLimit, signupWindow := h.config.Security.GetSignupMaxRate()
 	router.
-		With(httprate.LimitByRealIP(h.config.Security.GetSignupMaxRate())).
+		With(httprate.LimitBy(signupLimit, signupWindow, func(r *http.Request) (string, error) {
+			return httprate.CanonicalizeIP(middleware.GetClientIP(r.Context())), nil
+		})).
 		Post("/signup", h.PostSignup)
+
 	router.Get("/set-password", h.GetSetPassword)
 	router.Post("/set-password", h.PostSetPassword)
+
 	router.Get("/reset-password", h.GetResetPassword)
+
+	resetLimit, resetWindow := h.config.Security.GetPasswordResetMaxRate()
 	router.
-		With(httprate.LimitByRealIP(h.config.Security.GetPasswordResetMaxRate())).
+		With(httprate.LimitBy(resetLimit, resetWindow, func(r *http.Request) (string, error) {
+			return httprate.CanonicalizeIP(middleware.GetClientIP(r.Context())), nil
+		})).
 		Post("/reset-password", h.PostResetPassword)
 	router.Get("/oidc/{provider}/login", h.GetOidcLogin)
 	router.Get("/oidc/{provider}/callback", h.GetOidcCallback)

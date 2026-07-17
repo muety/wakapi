@@ -87,9 +87,9 @@ func RegisterOidcProvider(providerCfg *oidcProviderConfig) {
 		return
 	}
 
-	scopes := []string{oidc.ScopeOpenID, "profile", "email"}
+	scopes := []string{oidc.ScopeOpenID, oidc.ScopeProfile, oidc.ScopeEmail}
 	for _, s := range providerCfg.Scopes {
-		if s != oidc.ScopeOpenID && s != "profile" && s != "email" {
+		if s != oidc.ScopeOpenID && s != oidc.ScopeProfile && s != oidc.ScopeEmail {
 			scopes = append(scopes, s)
 		}
 	}
