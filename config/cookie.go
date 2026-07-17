@@ -62,16 +62,6 @@ func InitializeCookies() {
 	cookieConfigInstance.init()
 }
 
-func InitializeCookiesForTesting() {
-	// Set the session store to a noop implementation that cannot store any data.
-	// (idk how else to keep the tests working without having to manually remove the session cookie)
-	cookieConfigInstance.sessionStore = sessions.NewCookieStore(
-		[]byte{},
-		[]byte{},
-	)
-	cookieConfigInstance.newAuthCookie()
-}
-
 func GetSessionStore() *sessions.CookieStore {
 	if cookieConfigInstance.sessionStore == nil {
 		cookieConfigInstance.newSessionStore()

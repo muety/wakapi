@@ -19,11 +19,9 @@ func CreateAuthCookie(username string) (*http.Cookie, error) {
 
 	var expiry time.Time
 	if config.Security.CookieMaxAgeSec > 0 {
-		// Expiration time is set, encode it in the cookie, so they cannot be used after expiry
-		expiry = time.Now().Add(time.Duration(config.Security.CookieMaxAgeSec) * time.Second)
+		expiry = time.Now().Add(time.Duration(config.Security.CookieMaxAgeSec) * time.Second) // expiration time is set, encode it in the cookie, so they cannot be used after expiry
 	} else {
-		// Cookies only last for the session, so we set the expiry to 2h, which should last long enough for most sessions
-		expiry = time.Now().Add(2 * time.Hour)
+		expiry = time.Now().Add(2 * time.Hour) // cookies only last for the session, so we set the expiry to 2h, which should last long enough for most sessions
 	}
 
 	cookieData := cookieKeyData{
@@ -52,8 +50,7 @@ func ExtractCookieAuth(r *http.Request) (username *string, err error) {
 	if cookieData.Username == "" {
 		return nil, errors.New("missing username")
 	}
-	expiry := time.Unix(cookieData.Expiry, 0)
-	if time.Now().After(expiry) {
+	if time.Now().After(time.Unix(cookieData.Expiry, 0)) {
 		return nil, errors.New("cookie is expired")
 	}
 

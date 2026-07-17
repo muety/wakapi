@@ -98,7 +98,7 @@ func (suite *LoginHandlerTestSuite) BeforeTest(suiteName, testName string) {
 	cfg.Security.CookieKeyBytes = securecookie.GenerateRandomKey(128)
 	cfg.Security.PasswordSalt = testPasswordSalt
 	config.Set(cfg)
-	config.InitializeCookiesForTesting() // avoid having to deal with session cookies in tests
+	config.InitializeCookies()
 	suite.Cfg = cfg
 
 	suite.resetOidcMockTtl()
@@ -234,7 +234,7 @@ func (suite *LoginHandlerTestSuite) TestPostLogin_EmptyLoginForm() {
 	suite.UserService.AssertExpectations(suite.T())
 	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
 	assert.Contains(suite.T(), string(body), "Missing parameters")
-	assert.Empty(suite.T(), w.Header().Get("Set-Cookie"))
+	suite.assertCookieAbsent(w, config.CookieKeyAuth, config.CookieKeyOidcIdToken, config.CookieKeyOidcRefreshToken, config.CookieKeyOidcProvider)
 }
 
 func (suite *LoginHandlerTestSuite) TestPostLogin_NonExistingUser() {
@@ -255,7 +255,7 @@ func (suite *LoginHandlerTestSuite) TestPostLogin_NonExistingUser() {
 	suite.UserService.AssertExpectations(suite.T())
 	assert.Equal(suite.T(), http.StatusNotFound, w.Code)
 	assert.Contains(suite.T(), string(body), "Resource not found")
-	assert.Empty(suite.T(), w.Header().Get("Set-Cookie"))
+	suite.assertCookieAbsent(w, config.CookieKeyAuth, config.CookieKeyOidcIdToken, config.CookieKeyOidcRefreshToken, config.CookieKeyOidcProvider)
 }
 
 func (suite *LoginHandlerTestSuite) TestPostLogin_WrongPassword() {
@@ -275,7 +275,7 @@ func (suite *LoginHandlerTestSuite) TestPostLogin_WrongPassword() {
 	suite.UserService.AssertExpectations(suite.T())
 	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
 	assert.Contains(suite.T(), string(body), "Invalid credentials")
-	assert.Empty(suite.T(), w.Header().Get("Set-Cookie"))
+	suite.assertCookieAbsent(w, config.CookieKeyAuth, config.CookieKeyOidcIdToken, config.CookieKeyOidcRefreshToken, config.CookieKeyOidcProvider)
 }
 
 func (suite *LoginHandlerTestSuite) TestPostLogin_LocalAuthenticationDisabled_NonExistingUser() {
@@ -295,7 +295,7 @@ func (suite *LoginHandlerTestSuite) TestPostLogin_LocalAuthenticationDisabled_No
 	suite.UserService.AssertExpectations(suite.T())
 	assert.Equal(suite.T(), http.StatusForbidden, w.Code)
 	assert.Contains(suite.T(), string(body), "Local authentication is disabled on this server")
-	assert.Empty(suite.T(), w.Header().Get("Set-Cookie"))
+	suite.assertCookieAbsent(w, config.CookieKeyAuth, config.CookieKeyOidcIdToken, config.CookieKeyOidcRefreshToken, config.CookieKeyOidcProvider)
 }
 
 func (suite *LoginHandlerTestSuite) TestPostSignup_Success() {
@@ -629,7 +629,7 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_SignupDisabled() {
 	assert.Equal(suite.T(), http.StatusFound, w.Code)
 	assert.Equal(suite.T(), "registration is disabled on this server", suite.getSessionError(r))
 	assert.Equal(suite.T(), "/login", w.Header().Get("Location"))
-	assert.Empty(suite.T(), w.Header().Get("Set-Cookie"))
+	suite.assertCookieAbsent(w, config.CookieKeyAuth, config.CookieKeyOidcIdToken, config.CookieKeyOidcRefreshToken, config.CookieKeyOidcProvider)
 }
 
 func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_InvalidState() {
@@ -645,7 +645,7 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_InvalidState() {
 	assert.Equal(suite.T(), http.StatusFound, w.Code)
 	assert.Equal(suite.T(), "suspicious operation, got invalid state in oidc callback", suite.getSessionError(r))
 	assert.Equal(suite.T(), "/login", w.Header().Get("Location"))
-	assert.Empty(suite.T(), w.Header().Get("Set-Cookie"))
+	suite.assertCookieAbsent(w, config.CookieKeyAuth, config.CookieKeyOidcIdToken, config.CookieKeyOidcRefreshToken, config.CookieKeyOidcProvider)
 }
 
 func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_AuthExchangeFailure() {
@@ -665,7 +665,7 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_AuthExchangeFailure
 	assert.Equal(suite.T(), http.StatusFound, w.Code)
 	assert.Equal(suite.T(), "failed to exchange authorization code for access token", suite.getSessionError(r))
 	assert.Equal(suite.T(), "/login", w.Header().Get("Location"))
-	assert.Empty(suite.T(), w.Header().Get("Set-Cookie"))
+	suite.assertCookieAbsent(w, config.CookieKeyAuth, config.CookieKeyOidcIdToken, config.CookieKeyOidcRefreshToken, config.CookieKeyOidcProvider)
 }
 
 func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_IdTokenExpired() {
@@ -683,7 +683,7 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_IdTokenExpired() {
 	assert.Equal(suite.T(), http.StatusFound, w.Code)
 	assert.Equal(suite.T(), "failed to verify and decode id_token", suite.getSessionError(r))
 	assert.Equal(suite.T(), "/login", w.Header().Get("Location"))
-	assert.Empty(suite.T(), w.Header().Get("Set-Cookie"))
+	suite.assertCookieAbsent(w, config.CookieKeyAuth, config.CookieKeyOidcIdToken, config.CookieKeyOidcRefreshToken, config.CookieKeyOidcProvider)
 }
 
 func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_NoMatchingProvider() {
@@ -733,6 +733,21 @@ func (suite *LoginHandlerTestSuite) authorizeUser(user mockoidc.User, provider s
 func (suite *LoginHandlerTestSuite) resetOidcMockTtl() {
 	suite.OidcMock.AccessTTL = 600 * time.Second
 	suite.OidcMock.RefreshTTL = 60 * time.Minute
+}
+
+func (suite *LoginHandlerTestSuite) assertCookieAbsent(w *httptest.ResponseRecorder, keys ...string) {
+	cookies := w.Result().Cookies()
+	if len(keys) == 0 {
+		assert.Empty(suite.T(), cookies)
+		return
+	}
+	for _, c := range cookies {
+		for _, k := range keys {
+			if c.Name == k {
+				suite.FailNowf("cookie set", "Expected cookie %q to be absent, but got: %s", k, c.Raw)
+			}
+		}
+	}
 }
 
 // TODO: test all remaining endpoints
