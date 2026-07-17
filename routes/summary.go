@@ -61,10 +61,12 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 	rawQuery := r.URL.RawQuery
 	q := r.URL.Query()
 	if q.Get("interval") == "" && q.Get("from") == "" {
-		// If the PersistentIntervalKey cookie is set, redirect to the correct summary page
+		// If the PersistentIntervalKey cookie is set, redirect to the correct summary page,
+		// preserving any other query params (e.g. a project filter)
 		if intervalCookie, _ := r.Cookie(models.PersistentIntervalKey); intervalCookie != nil {
-			redirectAddress := fmt.Sprintf("%s/summary?interval=%s", h.config.Server.BasePath, intervalCookie.Value)
-			http.Redirect(w, r, redirectAddress, http.StatusFound)
+			q.Set("interval", intervalCookie.Value)
+			http.Redirect(w, r, fmt.Sprintf("%s/summary?%s", h.config.Server.BasePath, q.Encode()), http.StatusFound)
+			return
 		}
 
 		q.Set("interval", "today")

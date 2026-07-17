@@ -32,7 +32,7 @@
             {{ range $i, $project := .Projects }}
             <li class="projects-item relative">
                 <div class="color-fading" style="{{ $.BackgroundIntensity $i | cssSafe }}"></div>
-                <a href="summary?interval=any&project={{ $project.Project }}" title="Project '{{ $project.Project }}' ({{ $project.Count }} heartbeats)">
+                <a href="summary?project={{ $project.Project }}" title="Project '{{ $project.Project }}' ({{ $project.Count }} heartbeats)">
                     <span class="text-lg font-semibold truncate">{{ $project.Project }}
                         {{ if $.LangIcon $project.TopLanguage }}
                         <span class="align-middle leading-none"><span class="iconify inline text-foreground text-lg ml-1" data-icon="{{ $.LangIcon $project.TopLanguage | urlSafe }}"></span></span>
