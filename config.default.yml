@@ -85,7 +85,7 @@ db:
 
 security:
   password_salt:                        # change this
-  session_key:                          # optional, base64-encoded custom key used to encrypt session cookies
+  cookie_key:                           # optional, base64-encoded custom key used derive session and authentication keys
   insecure_cookies: true                # should be set to 'false', except when not running with HTTPS (e.g. on localhost)
   cookie_max_age: 172800
   allow_signup: true                    # whether to allow new user creation at all

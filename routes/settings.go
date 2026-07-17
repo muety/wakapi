@@ -331,16 +331,6 @@ func (h *SettingsHandler) actionChangePassword(w http.ResponseWriter, r *http.Re
 		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
 	}
 
-	login := &models.Login{
-		Username: user.ID,
-		Password: user.Password,
-	}
-	encoded, err := h.config.Security.SecureCookie.Encode(models.AuthCookieKey, login.Username)
-	if err != nil {
-		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
-	}
-
-	http.SetCookie(w, h.config.CreateCookie(models.AuthCookieKey, encoded))
 	return actionResult{http.StatusOK, "password was updated successfully", "", nil}
 }
 
