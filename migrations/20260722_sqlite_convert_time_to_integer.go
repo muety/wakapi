@@ -26,8 +26,16 @@ func init() {
 				return nil
 			}
 
-			if err := backupSQLiteDb(cfg.Db.Name); err != nil {
-				return fmt.Errorf("failed to backup database before migration: %w", err)
+			colType1, err1 := getColumnTypeSqlite(db, "heartbeats", "time")
+			colType2, err2 := getColumnTypeSqlite(db, "durations", "time")
+			if colType1 == "integer" && colType2 == "integer" {
+				return nil
+			}
+
+			if err1 == nil && err2 != nil {
+				if err := backupSqliteDb(cfg.Db.Name); err != nil {
+					return fmt.Errorf("failed to backup database before migration: %w", err)
+				}
 			}
 
 			if err := convertTimeColumn(db, "heartbeats"); err != nil {
@@ -102,10 +110,12 @@ func convertTimeColumn(db *gorm.DB, tblName string) error {
 	}
 
 	// check if time column type is already INTEGER
-	for _, c := range info {
-		if c.Name == "time" && strings.ToLower(c.Type) == "integer" {
-			return nil // already converted
-		}
+	colType, err := getColumnTypeSqlite(db, tblName, "time")
+	if err != nil {
+		return err
+	}
+	if colType == "integer" {
+		return nil
 	}
 
 	// build CREATE TABLE for the new table without time_real and with time as INTEGER

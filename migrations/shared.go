@@ -2,11 +2,13 @@ package migrations
 
 import (
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/muety/wakapi/models"
@@ -142,7 +144,25 @@ func dequeueBackedUpView(db *gorm.DB, name string) error {
 	return db.Exec("DELETE FROM "+viewBackupTable+" WHERE name = ?", name).Error
 }
 
-func backupSQLiteDb(dbPath string) error {
+func getColumnTypeSqlite(db *gorm.DB, tblName, colName string) (string, error) {
+	var info []colInfo
+	if err := db.Raw(fmt.Sprintf("pragma table_info(%s)", tblName)).Scan(&info).Error; err != nil {
+		return "", err
+	}
+	if len(info) == 0 {
+		return "", errors.New("no columns found")
+	}
+
+	for _, c := range info {
+		if c.Name == colName {
+			return strings.ToLower(c.Type), nil
+		}
+	}
+
+	return "", errors.New("column not found")
+}
+
+func backupSqliteDb(dbPath string) error {
 	info, err := os.Stat(dbPath)
 	if err != nil {
 		return fmt.Errorf("failed to stat database file: %w", err)
