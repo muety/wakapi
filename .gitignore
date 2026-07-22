@@ -22,3 +22,4 @@ scripts/mysql_to_*.yml
 *.db-journal
 *.db-shm
 *.db-wal
+*.db*.gz

@@ -1,7 +1,13 @@
 package migrations
 
 import (
+	"compress/gzip"
+	"fmt"
+	"io"
 	"log/slog"
+	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
@@ -134,4 +140,43 @@ func dequeueBackedUpView(db *gorm.DB, name string) error {
 		return nil
 	}
 	return db.Exec("DELETE FROM "+viewBackupTable+" WHERE name = ?", name).Error
+}
+
+func backupSQLiteDb(dbPath string) error {
+	info, err := os.Stat(dbPath)
+	if err != nil {
+		return fmt.Errorf("failed to stat database file: %w", err)
+	}
+	if info.IsDir() {
+		return fmt.Errorf("database path is a directory: %s", dbPath)
+	}
+
+	absPath, err := filepath.Abs(dbPath)
+	if err != nil {
+		return fmt.Errorf("failed to resolve absolute path: %w", err)
+	}
+
+	timestamp := time.Now().Format("20060102_150405")
+	backupPath := absPath + ".bak." + timestamp + ".gz"
+
+	srcFile, err := os.Open(dbPath)
+	if err != nil {
+		return fmt.Errorf("failed to open database file: %w", err)
+	}
+	defer srcFile.Close()
+
+	dstFile, err := os.Create(backupPath)
+	if err != nil {
+		return fmt.Errorf("failed to create backup file: %w", err)
+	}
+	defer dstFile.Close()
+
+	gzWriter := gzip.NewWriter(dstFile)
+	defer gzWriter.Close()
+
+	if _, err := io.Copy(gzWriter, srcFile); err != nil {
+		return fmt.Errorf("failed to write backup: %w", err)
+	}
+
+	return nil
 }
