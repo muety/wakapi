@@ -57,6 +57,15 @@ type HourlyBreakdownItem struct {
 	Duration time.Duration `json:"duration"`
 	Entity   string        `json:"entity"`
 	Project  string        `json:"-"`
+	// Timeout is the heartbeat gap threshold used to decide whether two
+	// adjacent segments belong to the same activity block during coalescing.
+	// It mirrors the per-user models.Duration.Timeout value.
+	Timeout time.Duration `json:"-"`
+}
+
+// TimeEnd returns the exclusive end time of this item.
+func (h *HourlyBreakdownItem) TimeEnd() time.Time {
+	return h.FromTime.Add(h.Duration)
 }
 
 func NewTimelineViewModel(summaries []*models.Summary) []*TimelineViewModel {
@@ -83,6 +92,7 @@ func NewHourlyBreakdownItems(durations models.Durations, resolve models.AliasRes
 				Duration: duration.Duration,
 				Entity:   duration.Entity,
 				Project:  duration.Project,
+				Timeout:  duration.Timeout,
 			}
 		})
 
@@ -95,25 +105,66 @@ func NewHourlyBreakdownItems(durations models.Durations, resolve models.AliasRes
 	return hourlyBreakdowns
 }
 
+// coalesceHourlyBreakdownItems merges chronologically adjacent items whose gap
+// is no larger than the user's heartbeat timeout. The input slice must already
+// be sorted ascending by FromTime (as guaranteed by NewHourlyBreakdownViewModel).
+// Coalescing reduces the number of chart bars and prevents the chart from
+// becoming unreadably fragmented on AI-assisted or fast-switching sessions.
+func coalesceHourlyBreakdownItems(items HourlyBreakdownItems) HourlyBreakdownItems {
+	if len(items) == 0 {
+		return items
+	}
+
+	merged := make(HourlyBreakdownItems, 0, len(items))
+	current := &HourlyBreakdownItem{
+		FromTime: items[0].FromTime,
+		Duration: items[0].Duration,
+		Entity:   items[0].Entity,
+		Project:  items[0].Project,
+		Timeout:  items[0].Timeout,
+	}
+
+	for _, next := range items[1:] {
+		gap := next.FromTime.Sub(current.TimeEnd())
+		if gap <= current.Timeout {
+			// extend the current block to absorb this segment
+			current.Duration = next.TimeEnd().Sub(current.FromTime)
+			// keep the timeout of the earliest segment in the block
+		} else {
+			merged = append(merged, current)
+			current = &HourlyBreakdownItem{
+				FromTime: next.FromTime,
+				Duration: next.Duration,
+				Entity:   next.Entity,
+				Project:  next.Project,
+				Timeout:  next.Timeout,
+			}
+		}
+	}
+	merged = append(merged, current)
+
+	return merged
+}
+
 func NewHourlyBreakdownViewModel(items HourlyBreakdownItems) HourlyBreakdownsViewModel {
 	hourlyBreakdownMap := slice.GroupWith(items, func(item *HourlyBreakdownItem) string { return item.Project })
 
 	hourlyBreakdown := make([]*HourlyBreakdownViewModel, 0)
-	for project, items := range hourlyBreakdownMap {
+	for project, projectItems := range hourlyBreakdownMap {
+		// sort ascending by start time before coalescing
+		slice.SortBy(projectItems, func(i, j *HourlyBreakdownItem) bool {
+			return i.FromTime.Before(j.FromTime)
+		})
+		// coalesce contiguous segments so the chart stays readable regardless
+		// of how fragmented the raw duration data is (fixes #952)
+		coalesced := coalesceHourlyBreakdownItems(projectItems)
 		hourlyBreakdown = append(hourlyBreakdown, &HourlyBreakdownViewModel{
-			Items:   items,
+			Items:   coalesced,
 			Project: project,
 		})
 	}
 
-	hourlyBreakdownSorted := slice.Map(hourlyBreakdown, func(_ int, item *HourlyBreakdownViewModel) *HourlyBreakdownViewModel {
-		slice.SortBy(item.Items, func(i, j *HourlyBreakdownItem) bool {
-			return i.FromTime.Before(j.FromTime)
-		})
-		return item
-	})
-
-	return hourlyBreakdownSorted
+	return hourlyBreakdown
 }
 
 func (s SummaryViewModel) UserDataExpiring() bool {
