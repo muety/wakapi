@@ -129,14 +129,14 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		hourlyBreakdownFrom = summaryParams.To.Add(-24 * time.Hour)
 	}
 	if durations, err := h.durationSrvc.Get(hourlyBreakdownFrom, summaryParams.To, summaryParams.User, summaryParams.Filters, nil, false); err == nil {
-		// for excessively many small segments, plotting is too performance-heavy and will freeze the browser (see https://github.com/muety/wakapi/issues/871)
-		// and the chart would be unreadable anyway, so we simply disable it
-		if len(durations) <= 200 {
-			hourlyBreakdown = view.NewHourlyBreakdownViewModel(view.NewHourlyBreakdownItems(durations, func(t uint8, k string) string {
-				s, _ := h.aliasSrvc.GetAliasOrDefault(user.ID, t, k)
-				return s
-			}))
-		}
+		// Segments are coalesced inside NewHourlyBreakdownViewModel, so there is
+		// no longer a need to cap the number of raw segments here. Previously
+		// a hard limit of 200 caused the chart to silently show 'No data' for
+		// high-frequency sessions (e.g. AI-assisted coding). See issue #952.
+		hourlyBreakdown = view.NewHourlyBreakdownViewModel(view.NewHourlyBreakdownItems(durations, func(t uint8, k string) string {
+			s, _ := h.aliasSrvc.GetAliasOrDefault(user.ID, t, k)
+			return s
+		}))
 	} else {
 		conf.Log().Request(r).Error("failed to load hourly breakdown stats", "error", err)
 	}
