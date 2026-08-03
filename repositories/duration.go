@@ -112,29 +112,16 @@ func (r *DurationRepository) DeleteByUserBefore(user *models.User, t time.Time) 
 }
 
 func (r *DurationRepository) queryAddTimeFilterBetween(q *gorm.DB, from, to time.Time) *gorm.DB {
-	if r.config.Db.IsSQLite() {
-		q = q.
-			Where("time_real >= julianday(?)", from.Local()).
-			Where("time_real < julianday(?)", to.Local())
-	} else {
-		q = q.
-			Where("time >= ?", from.Local()).
-			Where("time < ?", to.Local())
-	}
-	return q
+	return q.
+		Where("time >= ?", models.CustomTime(from.Local())).
+		Where("time < ?", models.CustomTime(to.Local()))
 }
 
 func (r *DurationRepository) queryAddTimeFilterLessEqual(q *gorm.DB, t time.Time) *gorm.DB {
-	if r.config.Db.IsSQLite() {
-		return q.Where("time_real <= julianday(?)", t.Local())
-	}
-	return q.Where("time <= ?", t.Local())
+	return q.Where("time <= ?", models.CustomTime(t.Local()))
 }
 
 func (r *DurationRepository) queryAddTimeSorting(q *gorm.DB, desc bool) *gorm.DB {
 	order := condition.Ternary(desc, "desc", "asc")
-	if r.config.Db.IsSQLite() {
-		return q.Order("time_real " + order)
-	}
 	return q.Order("time " + order)
 }

@@ -16,6 +16,9 @@ func init() {
 			if hasRun(name, db) {
 				return nil
 			}
+			if !db.Migrator().HasColumn(&models.User{}, "webauthn_id") {
+				return nil
+			}
 
 			var users []*models.User
 			if err := db.Where("webauthn_id IS NULL OR webauthn_id = ''").Find(&users).Error; err != nil {

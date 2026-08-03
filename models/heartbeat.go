@@ -27,7 +27,7 @@ type Heartbeat struct {
 	OperatingSystem string `json:"operating_system" gorm:"index:idx_operating_system" hash:"ignore"` // ignored because os might be parsed differently by wakatime
 	Machine         string `json:"machine" gorm:"index:idx_machine" hash:"ignore"`                   // ignored because wakatime api doesn't return machines currently
 	UserAgent       string `json:"user_agent" hash:"ignore" gorm:"type:varchar(255)"`
-	// note: on sqlite, table will have an additional column `time_real`, introduced "manually" by migration 20260111
+	// note: on sqlite, the time column is stored as INTEGER (Unix epoch milliseconds) rather than TEXT
 	// see https://github.com/muety/wakapi/issues/882 for details
 	Time             CustomTime `json:"time" gorm:"timeScale:3; index:idx_time; index:idx_time_user; index:idx_time_user_project_lang,priority:2; not null" swaggertype:"primitive,number"`
 	Hash             string     `json:"-" hash:"ignore" gorm:"type:varchar(17); uniqueIndex"`

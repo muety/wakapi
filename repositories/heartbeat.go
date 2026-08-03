@@ -263,34 +263,11 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 
 	args := []interface{}{
 		sql.Named("userid", user.ID),
-		sql.Named("from", from.Format(time.RFC3339)),
-		sql.Named("to", to.Format(time.RFC3339)),
+		sql.Named("from", models.CustomTime(from)),
+		sql.Named("to", models.CustomTime(to)),
 	}
 
-	querySqlite := "with lang_grouped as (" +
-		"select project, language, count(*) as lang_cnt, min(time_real) as lang_min, max(time_real) as lang_max " +
-		"from heartbeats " +
-		"where user_id = @userid" +
-		" and project != ''" +
-		" and time_real between julianday(@from) and julianday(@to)" +
-		" and language is not null and language != '' " +
-		"group by project, language" +
-		"), ranked as (" +
-		"select project, language, lang_cnt, lang_min, lang_max, " +
-		"sum(lang_cnt) over (partition by project) as total_cnt, " +
-		"min(lang_min) over (partition by project) as overall_first, " +
-		"max(lang_max) over (partition by project) as overall_last, " +
-		"row_number() over (partition by project order by lang_cnt desc) as rn " +
-		"from lang_grouped" +
-		") select project, " +
-		"concat(datetime(overall_first), '+00:00') as first, " +
-		"concat(datetime(overall_last), '+00:00') as last, " +
-		"total_cnt as count, language as top_language, " +
-		"@userid as user_id " +
-		"from ranked " +
-		"where rn = 1"
-
-	queryDefault := "with lang_grouped as (" +
+	query := "with lang_grouped as (" +
 		"select project, language, count(*) as lang_cnt, min(time) as lang_min, max(time) as lang_max " +
 		"from heartbeats " +
 		"where user_id = @userid" +
@@ -310,8 +287,6 @@ func (r *HeartbeatRepository) GetUserProjectStats(user *models.User, from, to ti
 		"@userid as user_id " +
 		"from ranked " +
 		"where rn = 1"
-
-	query := condition.Ternary(r.config.Db.IsSQLite(), querySqlite, queryDefault)
 
 	if err := r.db.
 		Raw(query, args...).
@@ -336,9 +311,6 @@ func (r *HeartbeatRepository) GetUserAgentsByUser(user *models.User) ([]*models.
 	return results, nil
 }
 
-// since sqlite doesn't datetime column type, naive string comparison / sorting won't properly respect timezones
-// this is problematic in case of heartbeats in mixed zones, see https://github.com/muety/wakapi/issues/882
-
 func (r *HeartbeatRepository) buildTimeFilteredQuery(userId string, from, to time.Time) *gorm.DB {
 	query := r.db.Model(&models.Heartbeat{}).Where(&models.Heartbeat{UserID: userId})
 	query = r.queryAddTimeFilterBetween(query, from, to)
@@ -347,29 +319,16 @@ func (r *HeartbeatRepository) buildTimeFilteredQuery(userId string, from, to tim
 }
 
 func (r *HeartbeatRepository) queryAddTimeFilterBetween(q *gorm.DB, from, to time.Time) *gorm.DB {
-	if r.config.Db.IsSQLite() {
-		q = q.
-			Where("time_real >= julianday(?)", from.Local()).
-			Where("time_real < julianday(?)", to.Local())
-	} else {
-		q = q.
-			Where("time >= ?", from.Local()).
-			Where("time < ?", to.Local())
-	}
-	return q
+	return q.
+		Where("time >= ?", models.CustomTime(from.Local())).
+		Where("time < ?", models.CustomTime(to.Local()))
 }
 
 func (r *HeartbeatRepository) queryAddTimeFilterLessEqual(q *gorm.DB, t time.Time) *gorm.DB {
-	if r.config.Db.IsSQLite() {
-		return q.Where("time_real <= julianday(?)", t.Local())
-	}
-	return q.Where("time <= ?", t.Local())
+	return q.Where("time <= ?", models.CustomTime(t.Local()))
 }
 
 func (r *HeartbeatRepository) queryAddTimeSorting(q *gorm.DB, desc bool) *gorm.DB {
 	order := condition.Ternary(desc, "desc", "asc")
-	if r.config.Db.IsSQLite() {
-		return q.Order("time_real " + order)
-	}
 	return q.Order("time " + order)
 }
