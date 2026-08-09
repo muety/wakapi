@@ -129,10 +129,8 @@ func (h *SummaryHandler) GetIndex(w http.ResponseWriter, r *http.Request) {
 		hourlyBreakdownFrom = summaryParams.To.Add(-24 * time.Hour)
 	}
 	if durations, err := h.durationSrvc.Get(hourlyBreakdownFrom, summaryParams.To, summaryParams.User, summaryParams.Filters, nil, false); err == nil {
-		// Segments are coalesced inside NewHourlyBreakdownViewModel, so there is
-		// no longer a need to cap the number of raw segments here. Previously
-		// a hard limit of 200 caused the chart to silently show 'No data' for
-		// high-frequency sessions (e.g. AI-assisted coding). See issue #952.
+		// We previously had a hard limit of 200 segments max., but after we changed them to be coalesced inside the view model,
+		// there's no more need to limit number of durations. See https://github.com/muety/wakapi/issues/952.
 		hourlyBreakdown = view.NewHourlyBreakdownViewModel(view.NewHourlyBreakdownItems(durations, func(t uint8, k string) string {
 			s, _ := h.aliasSrvc.GetAliasOrDefault(user.ID, t, k)
 			return s
