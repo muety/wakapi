@@ -81,7 +81,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userAgentHeader := r.Header.Get("User-Agent")
-	opSysHeader, editorHeader, _ := utils.ParseUserAgent(userAgentHeader)
+	parsedHeader, _ := utils.ParseUserAgent(userAgentHeader)
 	machineNameHeader := r.Header.Get("X-Machine-Name")
 
 	creationResults := make(v1.HeartbeatCreationResults, len(heartbeats))
@@ -97,15 +97,15 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 		}
 
 		userAgent := userAgentHeader
-		opSys := opSysHeader
-		editor := editorHeader
+		opSys := parsedHeader.OS
+		editor := parsedHeader.Editor
 		machineName := machineNameHeader
 
 		if hb.UserAgent != "" {
 			userAgent = hb.UserAgent
-			localOpSys, localEditor, _ := utils.ParseUserAgent(userAgent)
-			opSys = condition.Ternary[bool, string](localOpSys != "", localOpSys, opSys)
-			editor = condition.Ternary[bool, string](localEditor != "", localEditor, editor)
+			localParsed, _ := utils.ParseUserAgent(userAgent)
+			opSys = condition.Ternary[bool, string](localParsed.OS != "", localParsed.OS, opSys)
+			editor = condition.Ternary[bool, string](localParsed.Editor != "", localParsed.Editor, editor)
 		}
 		if hb.Machine != "" {
 			machineName = hb.Machine
