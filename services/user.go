@@ -108,7 +108,7 @@ func (srv *UserService) GetUserByKey(key string, requireFullAccessKey bool) (*mo
 		return nil, errors.New("key must not be empty")
 	}
 
-	cacheKey := fmt.Sprintf("key_%s", key)
+	cacheKey := fmt.Sprintf("key_%s_%t", key, requireFullAccessKey)
 	if u, ok := srv.cache.Get(cacheKey); ok {
 		return u.(*models.User), nil
 	}
