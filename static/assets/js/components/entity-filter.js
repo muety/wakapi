@@ -24,8 +24,10 @@ function EntityFilter({type, options, selection}) {
                 const val = query.get(type) === '-' ? 'unknown' : query.get(type)
                 if (!this.options.includes(val)) {
                     this.options = [val, ...this.options]
+                    this.$nextTick(() => { this.selection = val })
+                } else {
+                    this.selection = val
                 }
-                this.selection = val
             }
         }
     }
