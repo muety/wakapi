@@ -16,14 +16,23 @@ func init() {
 			}
 
 			// See https://github.com/muety/wakapi/issues/962
+			// Fix at least the most common ones ...
 			if err := db.Exec(`
 				update heartbeats
 				set editor = case
-					when lower(editor) in ('opus', 'fable', 'mythos', 'sonnet', 'haiku') and lower(user_agent) like '%claude-code/%' then 'Claude'
-					when lower(editor) in ('gpt') and lower(user_agent) like '%codex-cli/%' then 'Codex-cli'
+					when user_agent like '%claude-code%' then 'Claude-code'
+					when user_agent like '%codex-cli%' then 'Codex-cli'
+					when user_agent like '%opencode-cli%' then 'Opencode-cli'
+					when user_agent like '%OpenCode%' then 'Opencode'
 					else editor
 				end
-				where (lower(editor) in ('opus', 'fable', 'mythos', 'sonnet', 'haiku') and lower(user_agent) like '%claude-code/%') or (lower(editor) in ('gpt') and lower(user_agent) like '%codex-cli/%')
+				where category = 'ai coding'
+				  and (
+					user_agent like '%claude-code%'
+					or user_agent like '%codex-cli%'
+					or user_agent like '%opencode-cli%'
+					or user_agent like '%OpenCode%'
+				  )
 			`).Error; err != nil {
 				return err
 			}
