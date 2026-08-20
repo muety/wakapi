@@ -18,7 +18,7 @@
             <a id="time-option-last_12_months" class="submenu-item hover:bg-focused rounded p-1 text-right w-full text-foreground px-2 font-semibold text-sm" :href="intervalLink('last_12_months')" @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker" data-hotkey="4">Past 12 Months <kbd>4</kbd></a>
             <a id="time-option-any" class="submenu-item hover:bg-focused rounded p-1 text-right w-full text-foreground px-2 font-semibold text-sm" :href="intervalLink('any')" @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker" data-hotkey="a">All Time <kbd>A</kbd></a>
             <hr class="my-2">
-            <form id="time-picker-form" class="flex flex-col space-y-1">
+            <form id="time-picker-form" class="flex flex-col space-y-1" @submit.prevent="onSubmit">
                 <div class="flex flex-col space-x-1 bg-background rounded p-1 border-2 border-focused">
                     <label for="from-date-picker" class="text-secondary text-xs ml-2">Start:</label>
                     <input v-model="fromDate" id="from-date-picker" type="date" name="from" max="toDate" class="text-sm text-foreground bg-background cursor-pointer" required data-trigger-for="showDropdownTimepicker">

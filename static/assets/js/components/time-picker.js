@@ -13,8 +13,14 @@ function TimePicker({ fromDate, toDate, timeSelection }) {
             queryParams.set('interval', interval)
             return `summary?${queryParams.toString()}`
         },
-        onDateUpdated() {
-            document.getElementById('time-picker-form').submit()
+        onSubmit() {
+            const query = new URLSearchParams(window.location.search)
+            query.delete('interval')
+            query.delete('start')
+            query.set('from', this.fromDate)
+            query.set('to', this.toDate)
+            this.state.showDropdownTimepicker = false
+            window.location.search = query.toString()
         },
         mounted() {
             window.addEventListener('click', (e) => {
