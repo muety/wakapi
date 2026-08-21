@@ -4,8 +4,7 @@ import (
 	"hash/fnv"
 	"io"
 	"math/rand"
-
-	"github.com/gofrs/uuid/v5"
+	"uuid"
 )
 
 func RandFromSeedString(seed string) (*rand.Rand, error) {
@@ -21,10 +20,11 @@ func UUIDFromSeed(seed string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	gen := uuid.NewGenWithOptions(uuid.WithRandomReader(rng))
-	id, err := gen.NewV4()
-	if err != nil {
+	var id uuid.UUID
+	if _, err := io.ReadFull(rng, id[:]); err != nil {
 		return "", err
 	}
+	id[6] = (id[6] & 0x0f) | 0x40 // Version 4
+	id[8] = (id[8] & 0x3f) | 0x80 // Variant 10
 	return id.String(), nil
 }

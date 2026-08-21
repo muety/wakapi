@@ -18,8 +18,8 @@ import (
 	"encoding/gob"
 	"log/slog"
 	"net/url"
+	"uuid"
 
-	"github.com/gofrs/uuid/v5"
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/configor"
 	"github.com/muety/wakapi/data"
@@ -605,7 +605,7 @@ func Load(configFlag string, version string) *Config {
 		config.Version = "v" + config.Version
 	}
 
-	config.InstanceId = uuid.Must(uuid.NewV4()).String()
+	config.InstanceId = uuid.NewV4().String()
 	config.App.Colors = readColors()
 	config.Db.Dialect = resolveDbDialect(config.Db.Type)
 	if config.Db.Type == "cockroach" {

@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/gofrs/uuid/v5"
+	"uuid"
 )
 
 const HtmlType = "text/html; charset=UTF-8"
@@ -42,7 +41,7 @@ func (m *Mail) Sanitized() *Mail {
 		m.Date = time.Now()
 	}
 	if m.MessageID == "" {
-		m.MessageID = fmt.Sprintf("<%s@%s>", uuid.Must(uuid.NewV4()).String(), m.From.Domain())
+		m.MessageID = fmt.Sprintf("<%s@%s>", uuid.NewV4().String(), m.From.Domain())
 	}
 	return m
 }

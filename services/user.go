@@ -7,11 +7,11 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+	"uuid"
 
 	"github.com/duke-git/lancet/v2/convertor"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/validator"
-	"github.com/gofrs/uuid/v5"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/patrickmn/go-cache"
 	"gorm.io/gorm"
@@ -275,8 +275,8 @@ func (srv *UserService) CountCurrentlyOnline() (int, error) {
 func (srv *UserService) CreateOrGet(signup *models.Signup, isAdmin bool) (*models.User, bool, error) {
 	u := &models.User{
 		ID:         signup.Username,
-		WebauthnID: uuid.Must(uuid.NewV4()).String(),
-		ApiKey:     uuid.Must(uuid.NewV4()).String(),
+		WebauthnID: uuid.NewV4().String(),
+		ApiKey:     uuid.NewV4().String(),
 		Email:      signup.Email,
 		Location:   signup.Location,
 		Password:   signup.Password,
@@ -333,7 +333,7 @@ func (srv *UserService) ChangeUserId(user *models.User, newUserId string) (*mode
 
 func (srv *UserService) ResetApiKey(user *models.User) (*models.User, error) {
 	srv.FlushUserCache(user.ID)
-	user.ApiKey = uuid.Must(uuid.NewV4()).String()
+	user.ApiKey = uuid.NewV4().String()
 	return srv.Update(user)
 }
 
@@ -354,11 +354,11 @@ func (srv *UserService) SetWakatimeApiCredentials(user *models.User, apiKey stri
 }
 
 func (srv *UserService) GenerateResetToken(user *models.User) (*models.User, error) {
-	return srv.repository.UpdateField(user, "reset_token", uuid.Must(uuid.NewV4()))
+	return srv.repository.UpdateField(user, "reset_token", uuid.NewV4())
 }
 
 func (srv *UserService) GenerateUnsubscribeToken(user *models.User) (*models.User, error) {
-	return srv.repository.UpdateField(user, "unsubscribe_token", uuid.Must(uuid.NewV4()))
+	return srv.repository.UpdateField(user, "unsubscribe_token", uuid.NewV4())
 }
 
 func (srv *UserService) Delete(user *models.User) error {

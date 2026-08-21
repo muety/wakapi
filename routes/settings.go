@@ -10,13 +10,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"uuid"
 
 	"github.com/duke-git/lancet/v2/condition"
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/gofrs/uuid/v5"
 	"github.com/gorilla/schema"
 
 	conf "github.com/muety/wakapi/config"
@@ -879,7 +879,7 @@ func (h *SettingsHandler) actionGenerateInvite(w http.ResponseWriter, r *http.Re
 	}
 
 	user := middlewares.GetPrincipal(r)
-	inviteCode := uuid.Must(uuid.NewV4()).String()[0:8]
+	inviteCode := uuid.NewV4().String()[0:8]
 
 	if err := h.keyValueSrvc.PutString(&models.KeyStringValue{
 		Key:   fmt.Sprintf("%s_%s", conf.KeyInviteCode, inviteCode),
@@ -953,7 +953,7 @@ func (h *SettingsHandler) actionAddApiKey(w http.ResponseWriter, r *http.Request
 		loadTemplates()
 	}
 
-	apiKey := uuid.Must(uuid.NewV4()).String()
+	apiKey := uuid.NewV4().String()
 
 	if _, err := h.apiKeySrvc.Create(&models.ApiKey{
 		User:     middlewares.GetPrincipal(r),

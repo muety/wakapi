@@ -6,9 +6,9 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"uuid"
 
 	"github.com/duke-git/lancet/v2/slice"
-	"github.com/gofrs/uuid/v5"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -193,7 +193,7 @@ func (m *AuthenticateMiddleware) tryGetUserByTrustedHeader(r *http.Request, crea
 	// register new user solely based on upstream provided username (see https://github.com/muety/wakapi/issues/808)
 	signup := &models.Signup{
 		Username: remoteUser,
-		Password: uuid.Must(uuid.NewV4()).String(), // throwaway random string as password
+		Password: uuid.NewV4().String(), // throwaway random string as password
 	}
 
 	conf.Log().Request(r).Warn("registering new remotely authenticated user based on trusted header auth", "user_id", remoteUser)

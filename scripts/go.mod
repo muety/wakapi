@@ -1,6 +1,6 @@
 module github.com/muety/wakapi/scripts
 
-go 1.26.0
+go 1.27.0
 
 replace github.com/muety/wakapi => ..
 

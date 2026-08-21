@@ -9,11 +9,11 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"uuid"
 
 	"github.com/descope/virtualwebauthn"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/gofrs/uuid/v5"
 	"github.com/gorilla/securecookie"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -525,11 +525,11 @@ func mergeCookies(base []*http.Cookie, updates []*http.Cookie) []*http.Cookie {
 }
 
 func createUser() *models.User {
-	userID := uuid.Must(uuid.NewV4()).String()
+	userID := uuid.NewV4().String()
 	passwdHash, _ := utils.HashPassword(userID+"_password", testPasswordSalt)
 	return &models.User{
 		ID:          userID,
-		WebauthnID:  uuid.Must(uuid.NewV4()).String(),
+		WebauthnID:  uuid.NewV4().String(),
 		AuthType:    "local",
 		Password:    passwdHash,
 		Credentials: []*models.WebAuthnCredential{},
