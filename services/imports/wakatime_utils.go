@@ -130,6 +130,7 @@ func mapHeartbeat(
 		Language:        entry.Language,
 		IsWrite:         entry.IsWrite,
 		Editor:          ua.Editor,
+		AIModel:         ua.AIModel,
 		OperatingSystem: ua.Os,
 		Machine:         ma.Value,
 		UserAgent:       ua.Value,

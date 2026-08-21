@@ -11,6 +11,7 @@ type UserAgent struct {
 	Value     string    `json:"value"`
 	Os        string    `json:"os"`
 	Editor    string    `json:"editor"`
+	AIModel   string    `json:"ai_model"`
 	FirstSeen time.Time `gorm:"column:first_seen"`
 	LastSeen  time.Time `gorm:"column:last_seen"`
 }

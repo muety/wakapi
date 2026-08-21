@@ -14,6 +14,7 @@ type UserAgentsViewModel struct {
 type UserAgentEntry struct {
 	Id                 string `json:"id"`
 	Editor             string `json:"editor"`
+	AIModel            string `json:"ai_model"`
 	Os                 string `json:"os"`
 	Value              string `json:"value"`
 	Version            string `json:"version"`              // currently not implemented
@@ -26,6 +27,7 @@ type UserAgentEntry struct {
 func (e *UserAgentEntry) FromModel(userAgent *models.UserAgent) *UserAgentEntry {
 	e.Id = userAgent.Id
 	e.Editor = userAgent.Editor
+	e.AIModel = userAgent.AIModel
 	e.Os = userAgent.Os
 	e.Value = userAgent.Value
 	e.FirstSeen = userAgent.FirstSeen.Format(time.RFC3339)

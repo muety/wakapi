@@ -301,10 +301,10 @@ func (r *HeartbeatRepository) GetUserAgentsByUser(user *models.User) ([]*models.
 	var results []*models.UserAgent
 	if err := r.db.
 		Model(&models.Heartbeat{}).
-		Select("user_agent as value, operating_system as os, editor, min(time) as first_seen, max(time) as last_seen").
+		Select("user_agent as value, operating_system as os, editor, ai_model, min(time) as first_seen, max(time) as last_seen").
 		Where(&models.Heartbeat{UserID: user.ID}).
 		Not("user_agent = ''").
-		Group("user_agent, operating_system, editor").
+		Group("user_agent, operating_system, editor, ai_model").
 		Find(&results).Error; err != nil {
 		return nil, err
 	}
