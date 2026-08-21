@@ -99,6 +99,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 		userAgent := userAgentHeader
 		opSys := parsedHeader.OS
 		editor := parsedHeader.Editor
+		aiModel := parsedHeader.AIModel
 		machineName := machineNameHeader
 
 		if hb.UserAgent != "" {
@@ -106,9 +107,13 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 			localParsed, _ := utils.ParseUserAgent(userAgent)
 			opSys = condition.Ternary[bool, string](localParsed.OS != "", localParsed.OS, opSys)
 			editor = condition.Ternary[bool, string](localParsed.Editor != "", localParsed.Editor, editor)
+			aiModel = condition.Ternary[bool, string](localParsed.AIModel != "", localParsed.AIModel, aiModel)
 		}
 		if hb.Machine != "" {
 			machineName = hb.Machine
+		}
+		if hb.AIModel != "" {
+			aiModel = hb.AIModel
 		}
 
 		hb = fillPlaceholders(hb, user, h.heartbeatSrvc)
@@ -118,6 +123,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 		hb.Machine = machineName
 		hb.OperatingSystem = opSys
 		hb.Editor = editor
+		hb.AIModel = aiModel
 		hb.UserAgent = userAgent
 
 		if !hb.Valid() || !hb.Timely(h.config.App.HeartbeatsMaxAge()) {

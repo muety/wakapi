@@ -105,6 +105,29 @@ func TestHeartbeatHandler_Post_Timeliness(t *testing.T) {
 
 		heartbeatServiceMock.AssertExpectations(t)
 	})
+
+	t.Run("should parse ai_model from payload and user-agent", func(t *testing.T) {
+		now := time.Now().Unix()
+
+		body := fmt.Sprintf(`[{"entity": "file1.go", "time": %d, "ai_model": "claude-3-5-sonnet"}, {"entity": "file2.go", "time": %d, "user_agent": "wakatime/v1.0 (linux-6.6.0-x86_64) go1.21 opus/4.1-medium claude-code/2.1.45"}]`, now, now)
+		req := httptest.NewRequest(http.MethodPost, "/heartbeats", bytes.NewBufferString(body))
+
+		sharedData := config.NewSharedData()
+		ctx := context.WithValue(req.Context(), config.KeySharedData, sharedData)
+		req = req.WithContext(ctx)
+		routeutils.SetPrincipal(req, user)
+
+		rec := httptest.NewRecorder()
+
+		heartbeatServiceMock.On("InsertBatch", mock.MatchedBy(func(hbs []*models.Heartbeat) bool {
+			return len(hbs) == 2 && hbs[0].AIModel == "claude-3-5-sonnet" && hbs[1].AIModel == "opus" && hbs[1].Editor == "Claude"
+		})).Return(nil)
+
+		handler.Post(rec, req)
+
+		assert.Equal(t, http.StatusCreated, rec.Code)
+		heartbeatServiceMock.AssertExpectations(t)
+	})
 }
 
 func Test_fillPlaceholders(t *testing.T) {

@@ -1,10 +1,11 @@
 package models
 
 import (
-	"github.com/duke-git/lancet/v2/strutil"
-	"github.com/muety/wakapi/config"
 	"regexp"
 	"strings"
+
+	"github.com/duke-git/lancet/v2/strutil"
+	"github.com/muety/wakapi/config"
 )
 
 // special treatment for system-wide entities (language, editors, os) that are known to commonly cause confusion
@@ -19,6 +20,7 @@ func initLookup() {
 		SummaryLanguage: cfg.App.GetCanonicalLanguageNames(),
 		SummaryEditor:   {},
 		SummaryOS:       {},
+		SummaryAiModel:  {},
 	}
 }
 

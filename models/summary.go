@@ -23,6 +23,7 @@ const (
 	SummaryBranch   uint8 = 6
 	SummaryEntity   uint8 = 7
 	SummaryCategory uint8 = 8
+	SummaryAiModel  uint8 = 9
 )
 
 const UnknownSummaryKey = "unknown"

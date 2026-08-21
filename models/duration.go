@@ -26,6 +26,7 @@ type Duration struct {
 	OperatingSystem string        `json:"operating_system"`
 	Machine         string        `json:"machine"`
 	Category        string        `json:"category"`
+	AIModel         string        `json:"ai_model"`
 	Branch          string        `json:"branch"`
 	Entity          string        `json:"Entity"`
 	Extension       string        `json:"-"`
@@ -85,6 +86,7 @@ func NewDurationFromHeartbeat(h *Heartbeat) *Duration {
 		OperatingSystem: h.OperatingSystem,
 		Machine:         h.Machine,
 		Category:        h.Category,
+		AIModel:         h.AIModel,
 		Branch:          h.Branch,
 		Entity:          h.Entity,
 		Extension:       extension,
@@ -145,6 +147,8 @@ func (d *Duration) GetKey(t uint8) (key string) {
 		key = d.Entity
 	case SummaryCategory:
 		key = d.Category
+	case SummaryAiModel:
+		key = d.AIModel
 	}
 
 	if key == "" {

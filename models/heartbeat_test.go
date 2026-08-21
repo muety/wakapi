@@ -63,6 +63,7 @@ func TestHeartbeat_GetKey(t *testing.T) {
 	assert.Equal(t, UnknownSummaryKey, sut.GetKey(SummaryOS))
 	assert.Equal(t, UnknownSummaryKey, sut.GetKey(SummaryMachine))
 	assert.Equal(t, UnknownSummaryKey, sut.GetKey(SummaryCategory))
+	assert.Equal(t, UnknownSummaryKey, sut.GetKey(SummaryAiModel))
 	assert.Equal(t, UnknownSummaryKey, sut.GetKey(SummaryLanguage))
 	assert.Equal(t, UnknownSummaryKey, sut.GetKey(SummaryEditor))
 	assert.Equal(t, UnknownSummaryKey, sut.GetKey(255))
@@ -86,6 +87,7 @@ func TestHeartbeat_Hashed(t *testing.T) {
 		UserAgent:       "ua1",
 		Origin:          "origin1",
 		OriginId:        "originid1",
+		AIModel:         "claude-3-5-sonnet",
 		Lines:           10,
 		LineNo:          5,
 		CursorPos:       100,
@@ -180,6 +182,12 @@ func TestHeartbeat_Hashed(t *testing.T) {
 	h21.OriginId = "originid2"
 	h21.Hashed()
 	assert.Equal(t, h1.Hash, h21.Hash)
+
+	// different ai model -> same hash
+	h22 := *h1
+	h22.AIModel = "gpt-4o"
+	h22.Hashed()
+	assert.Equal(t, h1.Hash, h22.Hash)
 }
 
 func TestHeartbeat_Hashed_NoCollision(t *testing.T) {

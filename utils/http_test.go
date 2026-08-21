@@ -341,7 +341,7 @@ func TestCommon_ParseUserAgent(t *testing.T) {
 		assert.True(t, checkErr(err, test.outError))
 		assert.Equal(t, test.outOs, parsed.OS)
 		assert.Equal(t, test.outEditor, parsed.Editor)
-		assert.Equal(t, test.outAiModel, parsed.AiModel)
+		assert.Equal(t, test.outAiModel, parsed.AIModel)
 	}
 }
 

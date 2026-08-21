@@ -9,4 +9,5 @@ WHERE t1.id < t2.id
   AND t1.editor = t2.editor
   AND t1.machine = t2.machine
   AND t1.operating_system = t2.operating_system
+  AND t1.ai_model = t2.ai_model
   AND t1.user_id = t2.user_id;

@@ -141,7 +141,7 @@ func ParsePageParamsWithDefault(r *http.Request, page, size int) *PageParams {
 type ParsedUserAgent struct {
 	OS      string
 	Editor  string
-	AiModel string
+	AIModel string
 }
 
 // ParseUserAgent extracts the operating system, editor and – if present – the
@@ -190,7 +190,7 @@ func ParseUserAgent(ua string) (ParsedUserAgent, error) {
 			return ParsedUserAgent{
 				OS:      os,
 				Editor:  editor,
-				AiModel: aiModel,
+				AIModel: aiModel,
 			}, nil
 		}
 	}
