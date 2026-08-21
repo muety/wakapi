@@ -95,9 +95,9 @@ script:pre-request {
   bru.setVar('tsStartOfDayIso', startOfDay.toISOString())
   bru.setVar('tsEndOfDayIso', endOfDay.toISOString())
   bru.setVar('tsEndOfTomorrowIso', endOfTomorrow.toISOString())
-  bru.setVar('ts1', now.clone().startOf('hour').format('x') / 1000)
-  bru.setVar('ts2', now.clone().startOf('hour').add(1, 'm').format('x') / 1000)
-  bru.setVar('ts3', now.clone().startOf('hour').add(2, 'm').format('x') / 1000)
+  bru.setVar('ts1', now.clone().add(-3, 'm').format('x') / 1000)
+  bru.setVar('ts2', now.clone().add(-2, 'm').format('x') / 1000)
+  bru.setVar('ts3', now.clone().add(-1, 'm').format('x') / 1000)
   bru.setVar('ts4', now.clone().add(-1, 'months').format('x') / 1000)  // last month
   bru.setVar('todayDate', startOfDay.format('YYYY-MM-DD'))
   bru.setVar('todayDateIso', startOfDay.toISOString(true))
