@@ -354,11 +354,11 @@ func (srv *UserService) SetWakatimeApiCredentials(user *models.User, apiKey stri
 }
 
 func (srv *UserService) GenerateResetToken(user *models.User) (*models.User, error) {
-	return srv.repository.UpdateField(user, "reset_token", uuid.NewV4())
+	return srv.repository.UpdateField(user, "reset_token", uuid.NewV4().String())
 }
 
 func (srv *UserService) GenerateUnsubscribeToken(user *models.User) (*models.User, error) {
-	return srv.repository.UpdateField(user, "unsubscribe_token", uuid.NewV4())
+	return srv.repository.UpdateField(user, "unsubscribe_token", uuid.NewV4().String())
 }
 
 func (srv *UserService) Delete(user *models.User) error {
