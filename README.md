@@ -148,11 +148,13 @@ This can be configured either on the **client-side (preferred)** on a system-wid
 **Example:**
 ```ini
 [settings]
-api_key = defaults-to-this-api-key-when-not-defined-below
+api_key = waka-api-key
+
 [api_urls]
 .* = https://wakapi.dev/api|wakapi-api-key
-.* = https://api.wakatime.com/api/v1|waka-api-key
 ```
+
+The API key in `[settings]` is used for WakaTime's default API, while `[api_urls]` defines additional destinations. Do not add multiple `.*` entries because duplicate keys are invalid in an INI file and are ignored by `wakatime-cli`.
 
 See [wakatime-cli usage](https://github.com/wakatime/wakatime-cli/blob/develop/USAGE.md#api-urls-section) for details.
 
