@@ -106,8 +106,8 @@ func (r *SummaryRepository) GetByUserWithin(user *models.User, from, to time.Tim
 
 	queryConditions := []clause.Interface{
 		clause.Where{Exprs: r.db.Statement.BuildCondition("user_id = ?", user.ID)},
-		clause.Where{Exprs: r.db.Statement.BuildCondition("from_time >= ?", from.Local())},
-		clause.Where{Exprs: r.db.Statement.BuildCondition("to_time <= ?", to.Local())},
+		clause.Where{Exprs: r.db.Statement.BuildCondition("from_time >= ?", models.CustomTime(from.Local()))},
+		clause.Where{Exprs: r.db.Statement.BuildCondition("to_time <= ?", models.CustomTime(to.Local()))},
 	}
 
 	q := r.db.Model(&models.Summary{}).
@@ -168,7 +168,7 @@ func (r *SummaryRepository) DeleteByUser(userId string) error {
 func (r *SummaryRepository) DeleteByUserBefore(userId string, t time.Time) error {
 	if err := r.db.
 		Where("user_id = ?", userId).
-		Where("to_time <= ?", t.Local()).
+		Where("to_time <= ?", models.CustomTime(t.Local())).
 		Delete(models.Summary{}).Error; err != nil {
 		return err
 	}
@@ -178,7 +178,7 @@ func (r *SummaryRepository) DeleteByUserBefore(userId string, t time.Time) error
 func (r *SummaryRepository) DeleteByUserAfter(userId string, t time.Time) error {
 	if err := r.db.
 		Where("user_id = ?", userId).
-		Where("to_time >= ?", t.Local()).
+		Where("to_time >= ?", models.CustomTime(t.Local())).
 		Delete(models.Summary{}).Error; err != nil {
 		return err
 	}

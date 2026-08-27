@@ -94,7 +94,7 @@ func (r *UserRepository) GetByLastActiveAfter(t time.Time) ([]*models.User, erro
 	if err := r.db.
 		Select(utils.QuoteSql(r.db, "user as %s", "id")).
 		Table("(?) as q", subQuery1).
-		Where("time >= ?", t.Local()).
+		Where("time >= ?", models.CustomTime(t.Local())).
 		Scan(&userIds).Error; err != nil {
 		return nil, err
 	}
