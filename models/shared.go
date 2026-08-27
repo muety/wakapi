@@ -28,12 +28,6 @@ const (
 	PersistentIntervalKey     = "wakapi_summary_interval"
 )
 
-var (
-	hacksInitialized     bool
-	postgresTimezoneHack bool
-	sqliteMode           bool
-)
-
 type KeyStringValue struct {
 	Key   string `gorm:"primary_key"`
 	Value string `gorm:"type:text"`
@@ -85,21 +79,11 @@ func (j *CustomTime) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func initHacks() {
-	postgresTimezoneHack = config.Get().Db.IsPostgres()
-	sqliteMode = config.Get().Db.IsSQLite()
-	hacksInitialized = true
-}
-
 func (j *CustomTime) Scan(value interface{}) error {
 	var (
 		t   time.Time
 		err error
 	)
-
-	if !hacksInitialized {
-		initHacks()
-	}
 
 	switch v := value.(type) {
 	case int64:
@@ -121,14 +105,13 @@ func (j *CustomTime) Scan(value interface{}) error {
 		}
 	case time.Time:
 		t = v
+		// see https://github.com/muety/wakapi/issues/771
+		// -> "reinterpret" postgres dates (received as UTC) in local zone, assuming they had also originally been inserted as such
+		if v.Location() == time.UTC {
+			t = utils.SetZone(t, time.Local)
+		}
 	default:
 		return errors.New(fmt.Sprintf("unsupported type: %T", value))
-	}
-
-	// see https://github.com/muety/wakapi/issues/771
-	// -> "reinterpret" postgres dates (received as UTC) in local zone, assuming they had also originally been inserted as such
-	if postgresTimezoneHack {
-		t = utils.SetZone(t, time.Local)
 	}
 
 	t = t.In(time.Local).Round(time.Millisecond)
@@ -138,12 +121,8 @@ func (j *CustomTime) Scan(value interface{}) error {
 }
 
 func (j CustomTime) Value() (driver.Value, error) {
-	if !hacksInitialized {
-		initHacks()
-	}
-
 	t := j.T().Round(time.Millisecond)
-	if sqliteMode {
+	if config.Get().Db.IsSQLite() {
 		return t.UnixMilli(), nil
 	}
 	return t, nil

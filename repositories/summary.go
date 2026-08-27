@@ -101,6 +101,29 @@ func (r *SummaryRepository) Insert(summary *models.Summary) error {
 	return nil
 }
 
+func (r *SummaryRepository) GetByUser(user *models.User) ([]*models.Summary, error) {
+	var summaries []*models.Summary
+
+	queryConditions := []clause.Interface{
+		clause.Where{Exprs: r.db.Statement.BuildCondition("user_id = ?", user.ID)},
+	}
+
+	q := r.db.Model(&models.Summary{}).Order("from_time asc")
+	for _, c := range queryConditions {
+		q.Statement.AddClause(c)
+	}
+
+	if err := q.Find(&summaries).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.populateItems(summaries, queryConditions); err != nil {
+		return nil, err
+	}
+
+	return summaries, nil
+}
+
 func (r *SummaryRepository) GetByUserWithin(user *models.User, from, to time.Time) ([]*models.Summary, error) {
 	var summaries []*models.Summary
 

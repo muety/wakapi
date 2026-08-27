@@ -99,6 +99,22 @@ func (r *HeartbeatRepository) StreamWithinBatched(from, to time.Time, user *mode
 	return out, nil
 }
 
+func (r *HeartbeatRepository) StreamByUserBatched(user *models.User, batchSize int) (chan []*models.Heartbeat, error) {
+	out := make(chan []*models.Heartbeat)
+
+	q := r.db.Model(&models.Heartbeat{}).Where(&models.Heartbeat{UserID: user.ID})
+	q = r.queryAddTimeSorting(q, false)
+	rows, err := q.Rows()
+	if err != nil {
+		return nil, err
+	}
+
+	go streamRowsBatched[models.Heartbeat](rows, out, r.db, batchSize, func(err error) {
+		conf.Log().Error("failed to scan heartbeats row", "user", user.ID, "error", err)
+	})
+	return out, nil
+}
+
 func (r *HeartbeatRepository) GetAllWithinByFilters(from, to time.Time, user *models.User, filterMap map[string][]string) ([]*models.Heartbeat, error) {
 	// https://stackoverflow.com/a/20765152/3112139
 	var heartbeats []*models.Heartbeat

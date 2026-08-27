@@ -565,7 +565,7 @@ func readColors() map[string]map[string]string {
 	return colors
 }
 
-func resolveDbDialect(dbType string) string {
+func ResolveDbDialect(dbType string) string {
 	if dbType == "cockroach" {
 		return "postgres"
 	}
@@ -583,6 +583,9 @@ func Set(config *Config) {
 }
 
 func Get() *Config {
+	if cfg == nil {
+		cfg = Empty()
+	}
 	return cfg
 }
 
@@ -607,7 +610,7 @@ func Load(configFlag string, version string) *Config {
 
 	config.InstanceId = uuid.NewV4().String()
 	config.App.Colors = readColors()
-	config.Db.Dialect = resolveDbDialect(config.Db.Type)
+	config.Db.Dialect = ResolveDbDialect(config.Db.Type)
 	if config.Db.Type == "cockroach" {
 		slog.Warn("cockroach is not officially supported, it is strongly recommended to migrate to postgres instead")
 	}

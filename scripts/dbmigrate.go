@@ -105,9 +105,6 @@ var cFlag *string
 func init() {
 	cfg = &config{}
 
-	wakapiConfig.Set(wakapiConfig.Empty())
-	wakapiConfig.Get().Db.Dialect = cfg.Source.Dialect // only required because of the "postgresTimezoneHack" in shared.go
-
 	if f := flag.Lookup("config"); f == nil {
 		cFlag = flag.String("config", "sqlite2mysql.yml", "config file location")
 	} else {
@@ -119,6 +116,11 @@ func init() {
 	if err := configor.New(&configor.Config{}).Load(cfg, mustConfigPath()); err != nil {
 		log.Fatalln("failed to read config", err)
 	}
+
+	wakapiConfig.Set(wakapiConfig.Empty())
+	// required because CustomTime.Value() (-> writing, thus target dialect) works differently on SQLite (CustomTime.Scan() (-> reading) is agnostic of the dialect)
+	// see https://github.com/muety/wakapi/issues/972
+	wakapiConfig.Get().Db.Dialect = wakapiConfig.ResolveDbDialect(cfg.Target.Dialect)
 
 	log.Printf("attempting to open %s source database\n", cfg.Source.Dialect)
 	if db, err := getDb(&cfg.Source); err != nil {
@@ -312,7 +314,7 @@ func main() {
 		log.Println("Migrating summaries ...")
 		bar = progressbar.Default(int64(len(users)))
 		for _, user := range users {
-			if data, err := summarySource.GetByUserWithin(user, time.Time{}, time.Now()); err == nil {
+			if data, err := summarySource.GetByUser(user); err == nil {
 				for _, e := range data {
 					id := e.ID
 					e.ID = 0
@@ -351,7 +353,7 @@ func main() {
 		log.Println("Migrating heartbeats ...")
 		bar = progressbar.Default(int64(len(users)))
 		for _, user := range users {
-			if data, err := heartbeatSource.StreamWithinBatched(time.Time{}, time.Now(), user, InsertBatchSize); err == nil {
+			if data, err := heartbeatSource.StreamByUserBatched(user, InsertBatchSize); err == nil {
 				for heartbeats := range data {
 					fixHeartbeatsBatched(heartbeats)
 					if err := heartbeatTarget.InsertBatch(heartbeats); err != nil {

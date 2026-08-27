@@ -43,6 +43,7 @@ type IHeartbeatRepository interface {
 	StreamWithin(time.Time, time.Time, *models.User) (chan *models.Heartbeat, error)
 	StreamWithinByFilters(time.Time, time.Time, *models.User, map[string][]string) (chan *models.Heartbeat, error)
 	StreamWithinBatched(time.Time, time.Time, *models.User, int) (chan []*models.Heartbeat, error)
+	StreamByUserBatched(*models.User, int) (chan []*models.Heartbeat, error)
 	Count(bool) (int64, error)
 	CountByUser(*models.User) (int64, error)
 	CountByUsers([]*models.User) ([]*models.CountByUser, error)
@@ -108,6 +109,7 @@ type ISummaryRepository interface {
 	Insert(*models.Summary) error
 	InsertWithRetry(*models.Summary) error
 	GetAll() ([]*models.Summary, error)
+	GetByUser(*models.User) ([]*models.Summary, error)
 	GetByUserWithin(*models.User, time.Time, time.Time) ([]*models.Summary, error)
 	GetLastByUser() ([]*models.TimeByUser, error)
 	GetLastBySingleUser(string) (time.Time, error)

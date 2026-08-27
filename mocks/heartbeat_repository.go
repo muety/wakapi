@@ -113,6 +113,14 @@ func (m *HeartbeatRepositoryMock) StreamWithinBatched(from, to time.Time, user *
 	return nil, args.Error(1)
 }
 
+func (m *HeartbeatRepositoryMock) StreamByUserBatched(user *models.User, batchSize int) (chan []*models.Heartbeat, error) {
+	args := m.Called(user, batchSize)
+	if args.Get(0) != nil {
+		return args.Get(0).(chan []*models.Heartbeat), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
 func (m *HeartbeatRepositoryMock) Count(distinct bool) (int64, error) {
 	args := m.Called(distinct)
 	return args.Get(0).(int64), args.Error(1)
