@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -20,17 +21,17 @@ type OidcProvider struct {
 }
 
 type IdTokenPayload struct {
-	Issuer            string                 `json:"iss"`
-	Subject           string                 `json:"sub"`
-	Expiry            int64                  `json:"exp"`
-	Name              string                 `json:"name"`
-	Nickname          string                 `json:"nickname"`
-	PreferredUsername string                 `json:"preferred_username"`
-	Email             string                 `json:"email"`
-	EmailVerified     bool                   `json:"email_verified"`
-	ProviderName      string                 `json:"provider_name"` // custom field, not part of actual id token response
-	AllClaims         map[string]interface{} `json:"-"`
-	UsernameClaim     string                 `json:"-"`
+	Issuer            string         `json:"iss"`
+	Subject           string         `json:"sub"`
+	Expiry            int64          `json:"exp"`
+	Name              string         `json:"name"`
+	Nickname          string         `json:"nickname"`
+	PreferredUsername string         `json:"preferred_username"`
+	Email             string         `json:"email"`
+	EmailVerified     bool           `json:"email_verified"`
+	ProviderName      string         `json:"provider_name"` // custom field, not part of actual id token response
+	AllClaims         map[string]any `json:"-"`
+	UsernameClaim     string         `json:"-"`
 }
 
 func (token *IdTokenPayload) Username() string {
@@ -87,6 +88,11 @@ func RegisterOidcProvider(providerCfg *oidcProviderConfig) {
 		return
 	}
 
+	name := strings.ToLower(providerCfg.Name)
+	if _, ok := oidcProviders[name]; ok {
+		slog.Warn("duplicate oidc provider name after normalization, overwriting previous registration", "provider", name)
+	}
+
 	scopes := []string{oidc.ScopeOpenID, oidc.ScopeProfile, oidc.ScopeEmail}
 	for _, s := range providerCfg.Scopes {
 		if s != oidc.ScopeOpenID && s != oidc.ScopeProfile && s != oidc.ScopeEmail {
@@ -97,13 +103,13 @@ func RegisterOidcProvider(providerCfg *oidcProviderConfig) {
 	oauth2Conf := oauth2.Config{
 		ClientID:     providerCfg.ClientID,
 		ClientSecret: providerCfg.ClientSecret,
-		RedirectURL:  fmt.Sprintf("%s/oidc/%s/callback", cfg.Server.GetPublicUrl(), providerCfg.Name),
+		RedirectURL:  fmt.Sprintf("%s/oidc/%s/callback", cfg.Server.GetPublicUrl(), name),
 		Endpoint:     provider.Endpoint(),
 		Scopes:       scopes,
 	}
 
-	oidcProviders[providerCfg.Name] = &OidcProvider{
-		Name:          providerCfg.Name,
+	oidcProviders[name] = &OidcProvider{
+		Name:          name,
 		DisplayName:   providerCfg.String(),
 		UsernameClaim: providerCfg.UsernameClaim,
 		OAuth2:        &oauth2Conf,
@@ -112,7 +118,7 @@ func RegisterOidcProvider(providerCfg *oidcProviderConfig) {
 }
 
 func GetOidcProvider(name string) (*OidcProvider, error) {
-	provider, ok := oidcProviders[name]
+	provider, ok := oidcProviders[strings.ToLower(name)]
 	if !ok {
 		return nil, fmt.Errorf("oidc provider not found: %s", name)
 	}

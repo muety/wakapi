@@ -767,6 +767,12 @@ func BeginningOfWakatime() time.Time {
 
 func initOpenIDConnect(config *Config) {
 	// openid connect
+	for i := range config.Security.OidcProviders {
+		if name := strings.ToLower(config.Security.OidcProviders[i].Name); name != config.Security.OidcProviders[i].Name {
+			slog.Warn("oidc provider name is not lowercase, normalizing it", "provider", config.Security.OidcProviders[i].Name, "normalized", name)
+			config.Security.OidcProviders[i].Name = name
+		}
+	}
 	for _, c := range config.Security.OidcProviders {
 		RegisterOidcProvider(&c)
 		slog.Info("registered openid connect provider", "provider", c.Name)

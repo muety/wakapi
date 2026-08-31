@@ -454,6 +454,32 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLogin_Redirect() {
 	assert.Contains(suite.T(), w.Header().Get("Location"), fmt.Sprintf("state=%s", routeutils.GetOidcState(r)))
 }
 
+func (suite *LoginHandlerTestSuite) TestGetOidcLogin_RedirectWithMixedCaseParam() {
+	r := httptest.NewRequest(http.MethodGet, "/oidc/{provider}/login", nil)
+	r = WithUrlParam(r, "provider", "Mock")
+	w := httptest.NewRecorder()
+
+	suite.Sut.GetOidcLogin(w, r)
+
+	assert.Empty(suite.T(), suite.getSessionError(r))
+	assert.Equal(suite.T(), http.StatusFound, w.Code)
+	assert.True(suite.T(), strings.HasPrefix(w.Header().Get("Location"), suite.OidcMock.AuthorizationEndpoint()))
+}
+
+func (suite *LoginHandlerTestSuite) TestGetOidcLogin_MixedCaseRegistration() {
+	suite.setupOidcProvider("MockProvider")
+
+	r := httptest.NewRequest(http.MethodGet, "/oidc/{provider}/login", nil)
+	r = WithUrlParam(r, "provider", "mockprovider")
+	w := httptest.NewRecorder()
+
+	suite.Sut.GetOidcLogin(w, r)
+
+	assert.Empty(suite.T(), suite.getSessionError(r))
+	assert.Equal(suite.T(), http.StatusFound, w.Code)
+	assert.True(suite.T(), strings.HasPrefix(w.Header().Get("Location"), suite.OidcMock.AuthorizationEndpoint()))
+}
+
 func (suite *LoginHandlerTestSuite) TestGetOidcLogin_NoMatchingProvider() {
 	r := httptest.NewRequest(http.MethodGet, "/oidc/{provider}/login", nil)
 	r = WithUrlParam(r, "provider", "mock2")
@@ -492,6 +518,28 @@ func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success() {
 	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
 		return strings.Contains(value, "oidc_refresh_token=")
 	}, "OIDC refresh token not set in response")
+}
+
+func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success_MixedCaseProvider() {
+	suite.setupOidcProvider("MockProvider")
+
+	url := suite.authorizeUser(suite.OidcUserExisting, "mockprovider")
+	r := httptest.NewRequest(http.MethodGet, url, nil)
+	r = WithUrlParam(r, "provider", "mockprovider")
+	w := httptest.NewRecorder()
+
+	routeutils.SetOidcState(testOauthState, r, w)
+	suite.UserService.On("GetUserByOidc", "mockprovider", suite.OidcUserExisting.Subject).Return(suite.TestUser, nil)
+	suite.UserService.On("Update", mock.Anything).Return(suite.TestUser, nil)
+
+	suite.Sut.GetOidcCallback(w, r)
+
+	suite.UserService.AssertExpectations(suite.T())
+	assert.Equal(suite.T(), http.StatusFound, w.Code)
+	assert.Empty(suite.T(), suite.getSessionError(r))
+	testutils.AssertContainsHeaderMatching(suite.T(), w.Header(), "Set-Cookie", func(value string) bool {
+		return strings.Contains(value, "oidc_provider=mockprovider")
+	}, "OIDC provider cookie not set to canonical lowercase value in response")
 }
 
 func (suite *LoginHandlerTestSuite) TestGetOidcLoginCallback_Success_CreateUser() {
