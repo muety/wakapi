@@ -11,6 +11,7 @@ import (
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/wakatime/v1"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 )
 
@@ -102,7 +103,18 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	summary, err, status := h.loadUserSummary(requestedUser, rangeFrom, rangeTo, helpers.ParseSummaryFilters(r))
+	filters := helpers.ParseSummaryFilters(r)
+
+	if authorizedUser == nil || requestedUser.ID != authorizedUser.ID {
+		// third parties may only filter by entity types the user has opted in to share, otherwise, filtered totals would leak the existence and duration of private entities
+		if err := routeutils.CheckFilterPermissions(filters, requestedUser); err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte(err.Error()))
+			return
+		}
+	}
+
+	summary, err, status := h.loadUserSummary(requestedUser, rangeFrom, rangeTo, filters)
 	if err != nil {
 		w.WriteHeader(status)
 		w.Write([]byte(err.Error()))
@@ -133,12 +145,18 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		}
 		if !requestedUser.ShareProjects {
 			stats.Data.Projects = make([]*v1.SummariesEntry, 0)
+			// branches are only shared in combination with projects, see GetBadgeParams
+			stats.Data.Branches = make([]*v1.SummariesEntry, 0)
 		}
 		if !requestedUser.ShareOSs {
 			stats.Data.OperatingSystems = make([]*v1.SummariesEntry, 0)
 		}
 		if !requestedUser.ShareMachines {
 			stats.Data.Machines = make([]*v1.SummariesEntry, 0)
+		}
+		// there is no dedicated opt-in flag for categories, so only show them if any data is shared at all
+		if !requestedUser.AnyDataShared() {
+			stats.Data.Categories = make([]*v1.SummariesEntry, 0)
 		}
 	}
 

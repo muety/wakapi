@@ -50,36 +50,30 @@ func GetBadgeParams(reqPath string, authorizedUser, requestedUser *models.User) 
 		return nil, nil, errors.New("requested time range too broad")
 	}
 
-	var permitEntity bool
 	var filters *models.Filters
 	switch filterEntity {
 	case "project":
-		permitEntity = requestedUser.ShareProjects
 		filters = models.NewFiltersWith(models.SummaryProject, filterKey)
 	case "os":
-		permitEntity = requestedUser.ShareOSs
 		filters = models.NewFiltersWith(models.SummaryOS, filterKey)
 	case "editor":
-		permitEntity = requestedUser.ShareEditors
 		filters = models.NewFiltersWith(models.SummaryEditor, filterKey)
 	case "language":
-		permitEntity = requestedUser.ShareLanguages
 		filters = models.NewFiltersWith(models.SummaryLanguage, filterKey)
 	case "machine":
-		permitEntity = requestedUser.ShareMachines
 		filters = models.NewFiltersWith(models.SummaryMachine, filterKey)
 	case "label":
-		permitEntity = requestedUser.ShareLabels
 		filters = models.NewFiltersWith(models.SummaryLabel, filterKey)
 		// branches are intentionally omitted here, as only relevant in combination with a project filter
 	default:
 		// non-entity-specific request, just a general, in-total query
-		permitEntity = true
 		filters = &models.Filters{}
 	}
 
-	if !permitEntity && !isSameUser {
-		return nil, nil, errors.New("user did not opt in to share entity-specific data")
+	if !isSameUser {
+		if err := CheckFilterPermissions(filters, requestedUser); err != nil {
+			return nil, nil, err
+		}
 	}
 
 	return interval, filters, nil
