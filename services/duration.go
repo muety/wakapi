@@ -188,7 +188,7 @@ func (srv *DurationService) getCached(from, to time.Time, user *models.User, fil
 func (srv *DurationService) getLive(from, to time.Time, user *models.User, interval time.Duration, includeEntities bool) (models.Durations, error) {
 	heartbeatsTimeout := interval
 
-	heartbeats, err := srv.heartbeatService.StreamAllWithinRaw(from, to, user)
+	heartbeats, err := srv.heartbeatService.StreamAllWithinExcludingHeartbeats(from, to, user, models.ExcludeFromDurations)
 	if err != nil {
 		return nil, err
 	}

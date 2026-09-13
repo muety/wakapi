@@ -52,6 +52,11 @@ func (m *HeartbeatServiceMock) StreamAllWithinRaw(t time.Time, t2 time.Time, u *
 	return args.Get(0).(chan *models.Heartbeat), args.Error(1)
 }
 
+func (m *HeartbeatServiceMock) StreamAllWithinExcludingHeartbeats(t time.Time, t2 time.Time, u *models.User, exclusions []models.HeartbeatExclusionFilter) (chan *models.Heartbeat, error) {
+	args := m.Called(t, t2, u, exclusions)
+	return args.Get(0).(chan *models.Heartbeat), args.Error(1)
+}
+
 func (m *HeartbeatServiceMock) GetAllWithinByFilters(time time.Time, time2 time.Time, user *models.User, filters *models.Filters) ([]*models.Heartbeat, error) {
 	args := m.Called(time, time2, user, filters)
 	return args.Get(0).([]*models.Heartbeat), args.Error(1)

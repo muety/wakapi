@@ -158,6 +158,12 @@ func (srv *HeartbeatService) StreamAllWithinRaw(from, to time.Time, user *models
 	return srv.repository.StreamWithin(from, to, user) // no augmentation
 }
 
+// StreamAllWithinExcludingHeartbeats streams heartbeats within the given interval without augmenting them,
+// excluding heartbeats matching any of the given exclusions (see models.ExcludeFromDurations).
+func (srv *HeartbeatService) StreamAllWithinExcludingHeartbeats(from, to time.Time, user *models.User, exclusions []models.HeartbeatExclusionFilter) (chan *models.Heartbeat, error) {
+	return srv.repository.StreamWithinExcludingHeartbeats(from, to, user, exclusions) // no augmentation
+}
+
 func (srv *HeartbeatService) GetAllWithinByFilters(from, to time.Time, user *models.User, filters *models.Filters) ([]*models.Heartbeat, error) {
 	heartbeats, err := srv.repository.GetAllWithinByFilters(from, to, user, srv.filtersToColumnMap(filters))
 	if err != nil {

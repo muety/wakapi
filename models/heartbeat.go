@@ -12,6 +12,31 @@ import (
 	"github.com/gohugoio/hashstructure"
 )
 
+const (
+	// https://github.com/wakatime/wakatime-cli/blob/5fb9caaef329a697c196ab67747d7875b5749c8b/pkg/heartbeat/entity.go#L24-L29
+	HeartbeatTypeFile   = "file"
+	HeartbeatTypeDomain = "domain"
+	HeartbeatTypeUrl    = "url"
+	HeartbeatTypeEvent  = "event"
+	HeartbeatTypeApp    = "app"
+)
+
+const (
+	// https://github.com/wakatime/wakatime-cli/blob/5fb9caaef329a697c196ab67747d7875b5749c8b/pkg/heartbeat/category.go#L63-L84
+	HeartbeatCategoryAiCoding = "ai coding"
+)
+
+type HeartbeatExclusionFilter struct {
+	Type     string
+	Category string
+}
+
+// ExcludeFromDurations holds heartbeats which shall be excluded when aggregating durations, and thus won't contribute to any kind of statistics.
+// E.g. exclude heartbeats sent by AI coding agents to capture "thinking time", i.e. AI session activity without a file entity associated (see https://github.com/muety/wakapi/issues/964).
+var ExcludeFromDurations = []HeartbeatExclusionFilter{
+	{Type: HeartbeatTypeApp, Category: HeartbeatCategoryAiCoding},
+}
+
 type Heartbeat struct {
 	ID              uint64 `json:"-" gorm:"primary_key" hash:"ignore"`
 	User            *User  `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" hash:"ignore"`
