@@ -1,18 +1,19 @@
 package routes
 
 import (
-	"github.com/go-chi/chi/v5"
-	"github.com/muety/wakapi/config"
-	"github.com/muety/wakapi/middlewares"
-	"github.com/muety/wakapi/mocks"
-	"github.com/muety/wakapi/models"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/middlewares"
+	"github.com/muety/wakapi/mocks"
+	"github.com/muety/wakapi/models"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -61,7 +62,7 @@ func TestHomeHandler_Get_NotLoggedIn(t *testing.T) {
 
 			data, err := io.ReadAll(res.Body)
 			if err != nil {
-				t.Errorf("unextected error. Error: %s", err)
+				t.Errorf("unexpected error. Error: %s", err)
 			}
 
 			assert.Contains(t, string(data), "<a href=\"login\" class=\"btn-primary\">")
@@ -79,14 +80,18 @@ func TestHomeHandler_Get_LoggedIn(t *testing.T) {
 	userServiceMock := new(mocks.UserServiceMock)
 	userServiceMock.On("GetUserByKey", user1.ApiKey, false).Return(&user1, nil)
 	userServiceMock.On("GetUserById", user1.ID).Return(&user1, nil)
+	userServiceMock.On("CountCurrentlyOnline").Return(0, nil)
 
 	keyValueServiceMock := new(mocks.KeyValueServiceMock)
+	keyValueServiceMock.On("GetString", config.KeyLatestTotalTime).Return(&models.KeyStringValue{Key: config.KeyLatestTotalTime, Value: "0"}, nil)
+	keyValueServiceMock.On("GetString", config.KeyLatestTotalUsers).Return(&models.KeyStringValue{Key: config.KeyLatestTotalUsers, Value: "0"}, nil)
+	keyValueServiceMock.On("GetString", config.KeyNewsbox).Return(&models.KeyStringValue{Key: config.KeyNewsbox, Value: ""}, nil)
 
 	homeHandler := NewHomeHandler(userServiceMock, keyValueServiceMock)
 	homeHandler.RegisterRoutes(router)
 
 	t.Run("when requesting frontpage", func(t *testing.T) {
-		t.Run("should redirect in case of api key auth", func(t *testing.T) {
+		t.Run("should not authenticate via api key", func(t *testing.T) {
 			rec := httptest.NewRecorder()
 
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -98,7 +103,14 @@ func TestHomeHandler_Get_LoggedIn(t *testing.T) {
 			res := rec.Result()
 			defer res.Body.Close()
 
-			assert.Equal(t, http.StatusFound, res.StatusCode)
+			assert.Equal(t, http.StatusOK, res.StatusCode)
+
+			data, err := io.ReadAll(res.Body)
+			if err != nil {
+				t.Errorf("unexpected error. Error: %s", err)
+			}
+
+			assert.Contains(t, string(data), "<a href=\"login\" class=\"btn-primary\">")
 		})
 
 		t.Run("should redirect in case of trusted header auth", func(t *testing.T) {

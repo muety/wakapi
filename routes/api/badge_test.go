@@ -73,7 +73,7 @@ func TestBadgeHandler_Get(t *testing.T) {
 
 			data, err := io.ReadAll(res.Body)
 			if err != nil {
-				t.Errorf("unextected error. Error: %s", err)
+				t.Errorf("unexpected error. Error: %s", err)
 			}
 
 			assert.True(t, strings.HasPrefix(string(data), "<svg")) // alternatively, use assert.HTTPBodyContains() ?
@@ -94,7 +94,7 @@ func TestBadgeHandler_Get(t *testing.T) {
 
 			data, err := io.ReadAll(res.Body)
 			if err != nil {
-				t.Errorf("unextected error. Error: %s", err)
+				t.Errorf("unexpected error. Error: %s", err)
 			}
 
 			assert.False(t, strings.HasPrefix(string(data), "<svg"))
@@ -114,7 +114,7 @@ func TestBadgeHandler_Get(t *testing.T) {
 
 			data, err := io.ReadAll(res.Body)
 			if err != nil {
-				t.Errorf("unextected error. Error: %s", err)
+				t.Errorf("unexpected error. Error: %s", err)
 			}
 
 			assert.False(t, strings.HasPrefix(string(data), "<svg"))

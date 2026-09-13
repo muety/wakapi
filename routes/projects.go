@@ -33,7 +33,7 @@ func NewProjectsHandler(userService services.IUserService, heartbeatService serv
 func (h *ProjectsHandler) RegisterRoutes(router chi.Router) {
 	r := chi.NewRouter()
 	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userService).
+		middlewares.NewWebAuthenticateMiddleware(h.userService).
 			WithRedirectTarget(defaultErrorRedirectTarget()).
 			WithRedirectErrorMessage("unauthorized").Handler,
 	)

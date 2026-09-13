@@ -273,7 +273,8 @@ Wakapi supports different types of user authentication.
 * **Cookie:** This method is used in the browser. Users authenticate by sending along an encrypted, secure, HTTP-only cookie (`wakapi_auth`) that was set in the server's response upon login.
 * **API key:**
     * **Via header:** This method is inspired by [WakaTime's auth. mechanism](https://wakatime.com/developers/#authentication) and is the common way to authenticate against API endpoints. Users set the `Authorization` header to `Basic <BASE64_TOKEN>`, where the latter part corresponds to your base64-hashed API key.
-    * **Vis query param:** Alternatively, users can also pass their plain API key as a query parameter (e.g. `?api_key=86648d74-19c5-452b-ba01-fb3ec70d4c2f`) in the URL with every request.
+    * **Via query param:** Alternatively, users can also pass their plain API key as a query parameter (e.g. `?api_key=86648d74-19c5-452b-ba01-fb3ec70d4c2f`) in the URL with every request.
+    * Note that API keys are only accepted for API endpoints (i.e. routes under `/api`), but not for regular web routes
 * **Trusted header:** This mechanism allows to delegate authentication to a **reverse proxy** (e.g. for SSO), that Wakapi will then trust blindly. See [#534](https://github.com/muety/wakapi/issues/534) for details.
     * Must be enabled via `trusted_header_auth` and configuring `trust_reverse_proxy_ip` in the config
     * Warning: This type of authentication is quite prone to misconfiguration. Make sure that your reverse proxy properly strips relevant headers from client requests.

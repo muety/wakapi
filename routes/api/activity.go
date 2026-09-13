@@ -37,7 +37,7 @@ func NewActivityApiHandler(userService services.IUserService, activityService se
 func (h *ActivityApiHandler) RegisterRoutes(router chi.Router) {
 	r := chi.NewRouter()
 	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userService).WithOptionalFor("/api/activity/chart/").Handler,
+		middlewares.NewApiAuthenticateMiddleware(h.userService).WithOptionalFor("/api/activity/chart/").Handler,
 		middleware.Compress(9, "image/svg+xml"),
 	)
 	r.Get("/chart/{userWithExt}", h.GetActivityChart)

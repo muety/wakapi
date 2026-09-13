@@ -34,7 +34,7 @@ func NewLeadersHandler(userService services.IUserService, leaderboardService ser
 
 func (h *LeadersHandler) RegisterRoutes(router chi.Router) {
 	router.Group(func(r chi.Router) {
-		r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalFor("/").Handler)
+		r.Use(middlewares.NewApiAuthenticateMiddleware(h.userSrvc).WithOptionalFor("/").Handler)
 		r.Get("/compat/wakatime/v1/leaders", h.Get)
 	})
 }

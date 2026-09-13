@@ -26,7 +26,7 @@ func NewSetupHandler(userService services.IUserService) *SetupHandler {
 func (h *SetupHandler) RegisterRoutes(router chi.Router) {
 	r := chi.NewRouter()
 
-	authMiddleware := middlewares.NewAuthenticateMiddleware(h.userService).
+	authMiddleware := middlewares.NewWebAuthenticateMiddleware(h.userService).
 		WithRedirectTarget(defaultErrorRedirectTarget()).
 		WithRedirectErrorMessage("unauthorized").
 		WithOptionalFor("/")

@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gorilla/securecookie"
 	"github.com/oauth2-proxy/mockoidc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -18,8 +20,92 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	testutils "github.com/muety/wakapi/utils/test"
 )
+
+func TestAuthenticateMiddleware_ServeHTTP_ApiKeyRejectedForWebModality(t *testing.T) {
+	config.Set(config.Empty())
+
+	testApiKey := "z5uig69cn9ut93n"
+	testToken := base64.StdEncoding.EncodeToString([]byte(testApiKey))
+
+	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
+	r.Header.Set("Authorization", fmt.Sprintf("Basic %s", testToken))
+	w := httptest.NewRecorder()
+
+	userServiceMock := new(mocks.UserServiceMock)
+
+	sut := NewWebAuthenticateMiddleware(userServiceMock)
+	nextCalled := false
+	sut.ServeHTTP(w, r, func(_ http.ResponseWriter, _ *http.Request) {
+		nextCalled = true
+	})
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.False(t, nextCalled)
+	userServiceMock.AssertNotCalled(t, "GetUserByKey")
+}
+
+func TestAuthenticateMiddleware_ServeHTTP_ApiKeyAcceptedForApiModality(t *testing.T) {
+	config.Set(config.Empty())
+
+	testApiKey := "z5uig69cn9ut93n"
+	testToken := base64.StdEncoding.EncodeToString([]byte(testApiKey))
+	testUser := &models.User{ID: "user01", ApiKey: testApiKey}
+
+	r := httptest.NewRequest(http.MethodGet, "/api/summary", nil)
+	r.Header.Set("Authorization", fmt.Sprintf("Basic %s", testToken))
+	r = r.WithContext(context.WithValue(r.Context(), config.KeySharedData, config.NewSharedData()))
+	w := httptest.NewRecorder()
+
+	userServiceMock := new(mocks.UserServiceMock)
+	userServiceMock.On("GetUserByKey", testApiKey, false).Return(testUser, nil)
+
+	sut := NewApiAuthenticateMiddleware(userServiceMock)
+	nextCalled := false
+	var principal *models.User
+	sut.ServeHTTP(w, r, func(_ http.ResponseWriter, req *http.Request) {
+		nextCalled = true
+		principal = GetPrincipal(req)
+	})
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.True(t, nextCalled)
+	assert.Equal(t, testUser, principal)
+}
+
+func TestAuthenticateMiddleware_ServeHTTP_CookieAcceptedForWebModality(t *testing.T) {
+	cfg := config.Empty()
+	cfg.Security.CookieKeyBytes = securecookie.GenerateRandomKey(128)
+	config.Set(cfg)
+	config.InitializeCookies()
+
+	testUser := &models.User{ID: "user01"}
+
+	authCookie, err := routeutils.CreateAuthCookie(testUser.ID)
+	assert.NoError(t, err)
+
+	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
+	r.AddCookie(authCookie)
+	r = r.WithContext(context.WithValue(r.Context(), config.KeySharedData, config.NewSharedData()))
+	w := httptest.NewRecorder()
+
+	userServiceMock := new(mocks.UserServiceMock)
+	userServiceMock.On("GetUserById", testUser.ID).Return(testUser, nil)
+
+	sut := NewWebAuthenticateMiddleware(userServiceMock)
+	nextCalled := false
+	var principal *models.User
+	sut.ServeHTTP(w, r, func(_ http.ResponseWriter, req *http.Request) {
+		nextCalled = true
+		principal = GetPrincipal(req)
+	})
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.True(t, nextCalled)
+	assert.Equal(t, testUser, principal)
+}
 
 func TestAuthenticateMiddleware_tryGetUserByApiKeyHeader_Success(t *testing.T) {
 	testApiKey := "z5uig69cn9ut93n"

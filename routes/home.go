@@ -36,7 +36,7 @@ func NewHomeHandler(userService services.IUserService, keyValueService services.
 
 func (h *HomeHandler) RegisterRoutes(router chi.Router) {
 	router.Group(func(r chi.Router) {
-		r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).WithOptionalFor("/").Handler)
+		r.Use(middlewares.NewWebAuthenticateMiddleware(h.userSrvc).WithOptionalFor("/").Handler)
 		r.Get("/", h.GetIndex)
 	})
 }

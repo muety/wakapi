@@ -44,7 +44,7 @@ func NewSummaryHandler(summaryService services.ISummaryService, userService serv
 
 func (h *SummaryHandler) RegisterRoutes(router chi.Router) {
 	r := chi.NewRouter()
-	r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).
+	r.Use(middlewares.NewWebAuthenticateMiddleware(h.userSrvc).
 		WithRedirectTarget(defaultErrorRedirectTarget()).
 		WithRedirectErrorMessage("unauthorized").Handler,
 	)

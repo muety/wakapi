@@ -107,7 +107,7 @@ func (h *SubscriptionHandler) RegisterRoutes(router chi.Router) {
 
 	subRouterPrivate := chi.NewRouter()
 	subRouterPrivate.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).
+		middlewares.NewWebAuthenticateMiddleware(h.userSrvc).
 			WithRedirectTarget(defaultErrorRedirectTarget()).
 			WithRedirectErrorMessage("unauthorized").Handler,
 	)

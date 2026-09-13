@@ -23,8 +23,20 @@ const (
 )
 
 var (
-	errEmptyKey = fmt.Errorf("the api_key is empty")
+	errEmptyKey        = fmt.Errorf("the api_key is empty")
+	errUnauthenticated = errors.New("no authentication modality succeeded")
 )
+
+type AuthModality uint8
+
+const (
+	AuthModalityCookie AuthModality = 1 << iota
+	AuthModalityOidc
+	AuthModalityApiKey
+	AuthModalityTrustedHeader
+)
+
+const authModalityAll = AuthModalityCookie | AuthModalityOidc | AuthModalityApiKey | AuthModalityTrustedHeader
 
 type AuthenticateMiddleware struct {
 	config               *conf.Config
@@ -34,6 +46,7 @@ type AuthenticateMiddleware struct {
 	redirectTarget       string // optional
 	redirectErrorMessage string // optional
 	requireFullAccessKey bool   // true only for heartbeat routes
+	allowedModalities    AuthModality
 }
 
 func NewAuthenticateMiddleware(userService services.IUserService) *AuthenticateMiddleware {
@@ -43,7 +56,28 @@ func NewAuthenticateMiddleware(userService services.IUserService) *AuthenticateM
 		optionalForPaths:     []string{},
 		optionalForMethods:   []string{},
 		requireFullAccessKey: false,
+		allowedModalities:    authModalityAll,
 	}
+}
+
+func NewWebAuthenticateMiddleware(userService services.IUserService) *AuthenticateMiddleware {
+	return NewAuthenticateMiddleware(userService).WithModalities(AuthModalityCookie, AuthModalityOidc, AuthModalityTrustedHeader)
+}
+
+func NewApiAuthenticateMiddleware(userService services.IUserService) *AuthenticateMiddleware {
+	return NewAuthenticateMiddleware(userService).WithModalities(AuthModalityCookie, AuthModalityOidc, AuthModalityApiKey, AuthModalityTrustedHeader)
+}
+
+func (m *AuthenticateMiddleware) WithModalities(modalities ...AuthModality) *AuthenticateMiddleware {
+	m.allowedModalities = 0
+	for _, modality := range modalities {
+		m.allowedModalities |= modality
+	}
+	return m
+}
+
+func (m *AuthenticateMiddleware) allows(modality AuthModality) bool {
+	return m.allowedModalities&modality != 0
 }
 
 func (m *AuthenticateMiddleware) WithOptionalFor(paths ...string) *AuthenticateMiddleware {
@@ -79,18 +113,21 @@ func (m *AuthenticateMiddleware) Handler(h http.Handler) http.Handler {
 
 func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	var user *models.User
+	err := errUnauthenticated
 
-	user, err := m.tryGetUserByCookie(r)
-	if err != nil {
+	if m.allows(AuthModalityCookie) {
+		user, err = m.tryGetUserByCookie(r)
+	}
+	if err != nil && m.allows(AuthModalityOidc) {
 		user, err = m.tryGetUserByOidc(w, r)
 	}
-	if err != nil {
+	if err != nil && m.allows(AuthModalityApiKey) {
 		user, err = m.tryGetUserByApiKeyHeader(r)
 	}
-	if err != nil {
+	if err != nil && m.allows(AuthModalityApiKey) {
 		user, err = m.tryGetUserByApiKeyQuery(r)
 	}
-	if err != nil && m.config.Security.TrustedHeaderAuth {
+	if err != nil && m.allows(AuthModalityTrustedHeader) && m.config.Security.TrustedHeaderAuth {
 		user, err = m.tryGetUserByTrustedHeader(r, m.config.Security.TrustedHeaderAuthAllowSignup)
 	}
 

@@ -27,7 +27,7 @@ func NewSummaryApiHandler(userService services.IUserService, summaryService serv
 
 func (h *SummaryApiHandler) RegisterRoutes(router chi.Router) {
 	r := chi.NewRouter()
-	r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler)
+	r.Use(middlewares.NewApiAuthenticateMiddleware(h.userSrvc).Handler)
 	r.Get("/", h.Get)
 
 	router.Mount("/summary", r)

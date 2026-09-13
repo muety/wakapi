@@ -29,7 +29,7 @@ func NewUserAgentsHandler(userService services.IUserService, heartbeatsService s
 
 func (h *UserAgentsHandler) RegisterRoutes(router chi.Router) {
 	router.Group(func(r chi.Router) {
-		r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler)
+		r.Use(middlewares.NewApiAuthenticateMiddleware(h.userSrvc).Handler)
 		r.Get("/compat/wakatime/v1/users/{user}/user_agents", h.Get)
 	})
 }

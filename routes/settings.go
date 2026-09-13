@@ -99,7 +99,7 @@ func NewSettingsHandler(
 func (h *SettingsHandler) RegisterRoutes(router chi.Router) {
 	r := chi.NewRouter()
 	r.Use(
-		middlewares.NewAuthenticateMiddleware(h.userSrvc).
+		middlewares.NewWebAuthenticateMiddleware(h.userSrvc).
 			WithRedirectTarget(defaultErrorRedirectTarget()).
 			WithRedirectErrorMessage("unauthorized").Handler,
 	)

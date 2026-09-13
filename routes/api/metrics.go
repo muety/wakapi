@@ -91,7 +91,7 @@ func (h *MetricsHandler) RegisterRoutes(router chi.Router) {
 	slog.Info("exposing prometheus metrics under /api/metrics")
 
 	r := chi.NewRouter()
-	r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler)
+	r.Use(middlewares.NewApiAuthenticateMiddleware(h.userSrvc).Handler)
 	r.Get("/", h.Get)
 
 	router.Mount("/metrics", r)

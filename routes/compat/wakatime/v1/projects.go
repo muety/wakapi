@@ -36,7 +36,7 @@ func NewProjectsHandler(userService services.IUserService, heartbeatsService ser
 
 func (h *ProjectsHandler) RegisterRoutes(router chi.Router) {
 	router.Group(func(r chi.Router) {
-		r.Use(middlewares.NewAuthenticateMiddleware(h.userSrvc).Handler)
+		r.Use(middlewares.NewApiAuthenticateMiddleware(h.userSrvc).Handler)
 		r.Get("/compat/wakatime/v1/users/{user}/projects", h.Get)
 		r.Get("/compat/wakatime/v1/users/{user}/projects/{id}", h.GetOne)
 	})
