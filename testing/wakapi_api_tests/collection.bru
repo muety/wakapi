@@ -99,6 +99,15 @@ script:pre-request {
   bru.setVar('ts2', now.clone().add(-2, 'm').format('x') / 1000)
   bru.setVar('ts3', now.clone().add(-1, 'm').format('x') / 1000)
   bru.setVar('ts4', now.clone().add(-1, 'months').format('x') / 1000)  // last month
+
+  // AI thinking time test heartbeats (see issue #964).
+  // Must be created within heartbeats_max_age (7 days in testing config), which is why fixed, far-in-the-past timestamps cannot be used.
+  // Run-scope variables (computed once per run, but shared across all requests of that run), so that
+  // heartbeat creation and summary verification always look at the same heartbeats.
+  if (!bru.getVar('tsAiApp1')) {
+    bru.setVar('tsAiApp1', now.clone().add(-30, 's').unix())
+    bru.setVar('tsAiApp2', now.clone().add(60, 's').unix())
+  }
   bru.setVar('todayDate', startOfDay.format('YYYY-MM-DD'))
   bru.setVar('todayDateIso', startOfDay.toISOString(true))
   bru.setVar('yesterdayDate', startOfYesterday.format('YYYY-MM-DD'))

@@ -1,0 +1,60 @@
+meta {
+  name: Create heartbeats (AI thinking time)
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/users/current/heartbeats.bulk
+  body: json
+  auth: bearer
+}
+
+docs {
+  Creates heartbeats for testing the "AI thinking time" exclusion from duration aggregations (see issue #964).
+
+  Sends 2x app heartbeats (AI "thinking time", as sent by AI plugins like e.g. the Claude Code extension), 90s apart (= one heartbeat session, if not excluded).
+
+  No file heartbeats are created here on purpose: the regular heartbeat creation tests above already provide the positive control for regular (non-AI) heartbeats being counted as usual, especially their exact-duration assertions (e.g. the Shield badge tests).
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+body:json {
+  [{
+      "entity": "Claude foo-session",
+      "project": "wakapi",
+      "language": null,
+      "is_write": false,
+      "type": "app",
+      "category": "ai coding",
+      "branch": null,
+      "time": {{tsAiApp1}}
+  },
+  {
+      "entity": "Claude foo-session",
+      "project": "wakapi",
+      "language": null,
+      "is_write": false,
+      "type": "app",
+      "category": "ai coding",
+      "branch": null,
+      "time": {{tsAiApp2}}
+  }]
+}
+
+assert {
+  res.status: eq 201
+}
+
+tests {
+  test("Response body is correct", function () {
+      expect(res.body.responses.length).to.eql(2);
+      for (const r of res.body.responses) {
+          expect(r.length).to.eql(2);
+          expect(r[1]).to.eql(201);
+      }
+  });
+}

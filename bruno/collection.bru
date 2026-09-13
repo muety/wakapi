@@ -22,6 +22,7 @@ script:pre-request {
   }
   
   bru.setVar('tsNow', parseInt(new Date().getTime() / 1000))
+  bru.setVar('ts90sAgo', parseInt((new Date().getTime() - 1000*60*1.5) / 1000))
   bru.setVar('ts1MinAgo', parseInt((new Date().getTime() - 1000*60*1) / 1000))
   bru.setVar('ts2MinAgo', parseInt((new Date().getTime() - 1000*60*2) / 1000))
   bru.setVar('ts1HourAgo', parseInt((new Date().getTime() - 1000*60*60*1) / 1000))

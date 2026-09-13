@@ -1,0 +1,52 @@
+meta {
+  name: Get summary (AI thinking time excluded)
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{BASE_URL}}/api/summary?interval=today&project=wakapi
+  body: none
+  auth: bearer
+}
+
+params:query {
+  interval: today
+  project: wakapi
+}
+
+docs {
+  Validates that "AI thinking time" heartbeats (type=app, category="ai coding", as sent by AI plugins like e.g. the Claude Code extension) are excluded from duration aggregations (see issue #964).
+  Prerequisite: the "Create heartbeats (AI thinking time)" request in the Heartbeats folder has been run before — that request "squashes" an AI heartbeat session between the regular file heartbeats creating by the other tests in the Heartbeats folder.
+
+  Note: filtering by project bypasses the caches and computes the summary based on raw heartbeats, which is why no `?recompute=` is required.
+
+  Asserted qualitatively (rather than by exact durations) on purpose, such that re-running the collection against a not freshly initialized database ( thus having accumulated heartbeats) does not break these tests.
+}
+
+auth:bearer {
+  token: {{WRITEUSER_TOKEN}}
+}
+
+assert {
+  res.status: eq 200
+  res('user_id'): eq writeuser
+  res('projects'): length 1
+  res('projects[0].total'): gt 0
+  res('languages'): length 1
+  res('categories'): length 1
+}
+
+tests {
+  test("AI thinking heartbeats are not counted as language", function () {
+      const unknownLanguage = res.body.languages.find((l) => l.key.toLowerCase() === "unknown")
+      expect(unknownLanguage).to.be.undefined;
+      expect(res.body.languages[0].key).to.eql("Go");
+  });
+  
+  test("AI thinking heartbeats are not counted as category", function () {
+      const aiCoding = res.body.categories.find((c) => c.key.toLowerCase() === "ai coding")
+      expect(aiCoding).to.be.undefined;
+      expect(res.body.categories[0].key).to.eql("coding");
+  });
+}
