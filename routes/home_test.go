@@ -9,10 +9,12 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/securecookie"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -72,13 +74,15 @@ func TestHomeHandler_Get_NotLoggedIn(t *testing.T) {
 }
 
 func TestHomeHandler_Get_LoggedIn(t *testing.T) {
-	config.Set(config.Empty())
+	cfg := config.Empty()
+	cfg.Security.CookieKeyBytes = securecookie.GenerateRandomKey(128)
+	config.Set(cfg)
+	config.InitializeCookies()
 
 	router := chi.NewRouter()
 	router.Use(middlewares.NewSharedDataMiddleware())
 
 	userServiceMock := new(mocks.UserServiceMock)
-	userServiceMock.On("GetUserByKey", user1.ApiKey, false).Return(&user1, nil)
 	userServiceMock.On("GetUserById", user1.ID).Return(&user1, nil)
 	userServiceMock.On("CountCurrentlyOnline").Return(0, nil)
 
@@ -91,6 +95,23 @@ func TestHomeHandler_Get_LoggedIn(t *testing.T) {
 	homeHandler.RegisterRoutes(router)
 
 	t.Run("when requesting frontpage", func(t *testing.T) {
+		t.Run("should redirect in case of cookie auth", func(t *testing.T) {
+			authCookie, err := routeutils.CreateAuthCookie(user1.ID)
+			assert.NoError(t, err)
+
+			rec := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			req.AddCookie(authCookie)
+
+			router.ServeHTTP(rec, req)
+			res := rec.Result()
+			defer res.Body.Close()
+
+			assert.Equal(t, http.StatusFound, res.StatusCode)
+			assert.Equal(t, "/summary", res.Header.Get("Location"))
+		})
+
 		t.Run("should not authenticate via api key", func(t *testing.T) {
 			rec := httptest.NewRecorder()
 

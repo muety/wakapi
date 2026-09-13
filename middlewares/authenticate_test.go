@@ -47,6 +47,27 @@ func TestAuthenticateMiddleware_ServeHTTP_ApiKeyRejectedForWebModality(t *testin
 	userServiceMock.AssertNotCalled(t, "GetUserByKey")
 }
 
+func TestAuthenticateMiddleware_ServeHTTP_ApiKeyQueryRejectedForWebModality(t *testing.T) {
+	config.Set(config.Empty())
+
+	testApiKey := "z5uig69cn9ut93n"
+
+	r := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/summary?api_key=%s", testApiKey), nil)
+	w := httptest.NewRecorder()
+
+	userServiceMock := new(mocks.UserServiceMock)
+
+	sut := NewWebAuthenticateMiddleware(userServiceMock)
+	nextCalled := false
+	sut.ServeHTTP(w, r, func(_ http.ResponseWriter, _ *http.Request) {
+		nextCalled = true
+	})
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.False(t, nextCalled)
+	userServiceMock.AssertNotCalled(t, "GetUserByKey")
+}
+
 func TestAuthenticateMiddleware_ServeHTTP_ApiKeyAcceptedForApiModality(t *testing.T) {
 	config.Set(config.Empty())
 
@@ -105,6 +126,54 @@ func TestAuthenticateMiddleware_ServeHTTP_CookieAcceptedForWebModality(t *testin
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.True(t, nextCalled)
 	assert.Equal(t, testUser, principal)
+}
+
+func TestAuthenticateMiddleware_ServeHTTP_ApiKeyQueryAcceptedForApiModality(t *testing.T) {
+	config.Set(config.Empty())
+
+	testApiKey := "z5uig69cn9ut93n"
+	testUser := &models.User{ID: "user01", ApiKey: testApiKey}
+
+	r := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/summary?api_key=%s", testApiKey), nil)
+	r = r.WithContext(context.WithValue(r.Context(), config.KeySharedData, config.NewSharedData()))
+	w := httptest.NewRecorder()
+
+	userServiceMock := new(mocks.UserServiceMock)
+	userServiceMock.On("GetUserByKey", testApiKey, false).Return(testUser, nil)
+
+	sut := NewApiAuthenticateMiddleware(userServiceMock)
+	nextCalled := false
+	var principal *models.User
+	sut.ServeHTTP(w, r, func(_ http.ResponseWriter, req *http.Request) {
+		nextCalled = true
+		principal = GetPrincipal(req)
+	})
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.True(t, nextCalled)
+	assert.Equal(t, testUser, principal)
+}
+
+func TestAuthenticateMiddleware_WithModalities(t *testing.T) {
+	userServiceMock := new(mocks.UserServiceMock)
+
+	sut := NewAuthenticateMiddleware(userServiceMock)
+	assert.True(t, sut.allows(AuthModalityCookie))
+	assert.True(t, sut.allows(AuthModalityOidc))
+	assert.True(t, sut.allows(AuthModalityApiKey))
+	assert.True(t, sut.allows(AuthModalityTrustedHeader))
+
+	sut.WithModalities(AuthModalityApiKey)
+	assert.False(t, sut.allows(AuthModalityCookie))
+	assert.False(t, sut.allows(AuthModalityOidc))
+	assert.True(t, sut.allows(AuthModalityApiKey))
+	assert.False(t, sut.allows(AuthModalityTrustedHeader))
+
+	sut.WithModalities()
+	assert.False(t, sut.allows(AuthModalityCookie))
+	assert.False(t, sut.allows(AuthModalityOidc))
+	assert.False(t, sut.allows(AuthModalityApiKey))
+	assert.False(t, sut.allows(AuthModalityTrustedHeader))
 }
 
 func TestAuthenticateMiddleware_tryGetUserByApiKeyHeader_Success(t *testing.T) {
