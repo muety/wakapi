@@ -10,18 +10,18 @@ require (
 	github.com/alitto/pond/v2 v2.7.1
 	github.com/becheran/wildmatch-go v1.0.0
 	github.com/cespare/xxhash/v2 v2.3.0
-	github.com/coreos/go-oidc/v3 v3.20.0
+	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/dchest/captcha v1.1.0
 	github.com/descope/virtualwebauthn v1.0.3
 	github.com/duke-git/lancet/v2 v2.3.9
 	github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6
 	github.com/emersion/go-smtp v0.25.0
-	github.com/getsentry/sentry-go v0.48.0
+	github.com/getsentry/sentry-go v0.49.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/go-chi/httprate v0.16.0
-	github.com/go-webauthn/webauthn v0.17.4
-	github.com/gohugoio/hashstructure v1.0.0
+	github.com/go-webauthn/webauthn v0.18.1
+	github.com/gohugoio/hashstructure v1.1.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/gorilla/schema v1.4.1
 	github.com/gorilla/securecookie v1.1.2
@@ -39,15 +39,15 @@ require (
 	github.com/rs/cors v1.11.1
 	github.com/samber/slog-multi v1.8.0
 	github.com/samber/slog-sentry/v2 v2.11.0
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.1
 	github.com/stripe/stripe-go/v74 v74.30.0
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.6
 	go.uber.org/atomic v1.11.0
-	golang.org/x/crypto v0.55.0
-	golang.org/x/oauth2 v0.36.0
+	golang.org/x/crypto v0.57.0
+	golang.org/x/oauth2 v0.37.0
 	gorm.io/driver/mysql v1.6.0
-	gorm.io/driver/postgres v1.6.2
+	gorm.io/driver/postgres v1.6.3
 	gorm.io/gorm v1.31.2
 )
 
@@ -57,29 +57,29 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/glebarez/go-sqlite v1.23.0 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.5 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
-	github.com/go-openapi/jsonpointer v1.0.0 // indirect
-	github.com/go-openapi/jsonreference v1.0.0 // indirect
-	github.com/go-openapi/spec v0.22.9 // indirect
-	github.com/go-openapi/swag/conv v0.29.0 // indirect
-	github.com/go-openapi/swag/jsonutils v0.29.0 // indirect
-	github.com/go-openapi/swag/loading v0.29.0 // indirect
-	github.com/go-openapi/swag/pools v0.29.0 // indirect
-	github.com/go-openapi/swag/stringutils v0.29.0 // indirect
-	github.com/go-openapi/swag/typeutils v0.29.0 // indirect
-	github.com/go-openapi/swag/yamlutils v0.29.0 // indirect
-	github.com/go-sql-driver/mysql v1.10.0 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.5 // indirect
+	github.com/go-openapi/jsonpointer v1.0.1 // indirect
+	github.com/go-openapi/jsonreference v1.0.2 // indirect
+	github.com/go-openapi/spec v1.0.1 // indirect
+	github.com/go-openapi/swag/conv v0.29.2 // indirect
+	github.com/go-openapi/swag/jsonutils v0.29.2 // indirect
+	github.com/go-openapi/swag/loading v0.29.2 // indirect
+	github.com/go-openapi/swag/pools v0.29.2 // indirect
+	github.com/go-openapi/swag/stringutils v0.29.2 // indirect
+	github.com/go-openapi/swag/typeutils v0.29.2 // indirect
+	github.com/go-openapi/swag/yamlutils v0.29.2 // indirect
+	github.com/go-sql-driver/mysql v1.10.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
-	github.com/go-webauthn/x v0.3.0 // indirect
+	github.com/go-webauthn/x v0.3.1 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.10.0 // indirect
+	github.com/jackc/pgx/v5 v5.11.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
@@ -92,25 +92,25 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/slog-common v0.22.0 // indirect
-	github.com/stretchr/objx v0.5.2 // indirect
+	github.com/stretchr/objx v0.5.3 // indirect
 	github.com/swaggo/files v1.0.1 // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/exp v0.0.0-20260820142414-ca536658362e // indirect
-	golang.org/x/image v0.45.0 // indirect
-	golang.org/x/mod v0.40.0 // indirect
-	golang.org/x/net v0.58.0 // indirect
-	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/text v0.41.0 // indirect
-	golang.org/x/tools v0.49.0 // indirect
+	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
+	golang.org/x/image v0.46.0 // indirect
+	golang.org/x/mod v0.41.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/text v0.42.0 // indirect
+	golang.org/x/tools v0.50.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.75.3 // indirect
+	modernc.org/libc v1.75.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.57.0 // indirect
+	modernc.org/sqlite v1.58.0 // indirect
 )
 
 godebug x509negativeserial=1 // https://stackoverflow.com/a/79062183/3112139
