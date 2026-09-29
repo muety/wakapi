@@ -110,16 +110,19 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 		jobs := make([]*AggregationJob, 0)
 
 		wg := sync.WaitGroup{}
-		wg.Add(1)
 
 		// regenerate durations for the user if requested
 		// generally not needed, because event listener in durations service will take care of generating new durations on a regular interval
 		if includeDurations {
-			srv.queuedDurationWorkers.Dispatch(func() {
+			wg.Add(1)
+			if err := srv.queuedDurationWorkers.Dispatch(func() {
 				slog.Info("regenerating user durations as part of summary aggregation", "user", user.ID)
 				defer wg.Done()
 				srv.durationService.Regenerate(&u, true)
-			})
+			}); err != nil {
+				wg.Done()
+				config.Log().Error("failed to dispatch durations generation job", "userID", u.ID, "error", err)
+			}
 		}
 
 		// generate actual summary aggregation jobs
