@@ -112,6 +112,8 @@ type IDurationService interface {
 	Regenerate(*models.User, bool)
 	RegenerateAll()
 	DeleteByUser(*models.User) error
+	DeleteByUserBefore(*models.User, time.Time) error
+	DeleteByUserAfter(*models.User, time.Time) error
 }
 
 type ISummaryService interface {

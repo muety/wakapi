@@ -199,7 +199,7 @@ func main() {
 	reportService = services.NewReportService(summaryService, userService, mailService)
 	activityService = services.NewActivityService(summaryService)
 	diagnosticsService = services.NewDiagnosticsService(diagnosticsRepository)
-	housekeepingService = services.NewHousekeepingService(userService, heartbeatService, projectService, summaryService, aliasRepository) // can pass any repo here
+	housekeepingService = services.NewHousekeepingService(userService, heartbeatService, durationService, projectService, summaryService, aliasRepository) // can pass any repo here
 	miscService = services.NewMiscService(userService, heartbeatService, summaryService, keyValueService, mailService)
 	webAuthnService = services.NewWebAuthnService(webAuthnRepository)
 

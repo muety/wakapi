@@ -191,6 +191,14 @@ func (srv *DurationService) DeleteByUser(user *models.User) error {
 	return srv.repository.DeleteByUser(user)
 }
 
+func (srv *DurationService) DeleteByUserBefore(user *models.User, t time.Time) error {
+	return srv.repository.DeleteByUserBefore(user, t)
+}
+
+func (srv *DurationService) DeleteByUserAfter(user *models.User, t time.Time) error {
+	return srv.repository.DeleteByUserAfter(user, t)
+}
+
 func (srv *DurationService) getCached(from, to time.Time, user *models.User, filters *models.Filters) (models.Durations, error) {
 	languageMappings, err := srv.languageMappingService.ResolveByUser(user.ID)
 	if err != nil {

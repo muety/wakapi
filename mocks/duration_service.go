@@ -1,9 +1,10 @@
 package mocks
 
 import (
+	"time"
+
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/mock"
-	"time"
 )
 
 type DurationServiceMock struct {
@@ -24,5 +25,15 @@ func (m *DurationServiceMock) RegenerateAll() {
 
 func (m *DurationServiceMock) DeleteByUser(u *models.User) error {
 	args := m.Called(u)
+	return args.Error(0)
+}
+
+func (m *DurationServiceMock) DeleteByUserBefore(u *models.User, t time.Time) error {
+	args := m.Called(u, t)
+	return args.Error(0)
+}
+
+func (m *DurationServiceMock) DeleteByUserAfter(u *models.User, t time.Time) error {
+	args := m.Called(u, t)
 	return args.Error(0)
 }
