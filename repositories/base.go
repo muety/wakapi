@@ -103,6 +103,7 @@ func InsertBatchChunked[T any](data []T, model T, db *gorm.DB, txPerBatch bool) 
 				return err
 			}
 		}
+		return nil
 	}
 
 	return db.Transaction(func(tx *gorm.DB) error {
