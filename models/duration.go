@@ -18,7 +18,7 @@ type Duration struct {
 	User   *User  `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" hash:"ignore"` // this foreign key constraint will not exist on sqlite, see 20260925_drop_orphaned_durations.go
 	UserID string `json:"user_id" gorm:"not null; index:idx_time_duration_user"`
 	// Note: on sqlite, the time column is stored as INTEGER (Unix epoch milliseconds) rather than TEXT, see https://github.com/muety/wakapi/issues/882 for details
-	Time            CustomTime    `json:"time" hash:"ignore" gorm:"not null; index:idx_time_duration; index:idx_time_duration_user"` // time of first heartbeat of this duration
+	Time            CustomTime    `json:"time" hash:"ignore" gorm:"not null; index:idx_time_duration_user"` // time of first heartbeat of this duration
 	Duration        time.Duration `json:"duration" hash:"ignore" gorm:"not null"`
 	Project         string        `json:"project"`
 	Language        string        `json:"language"`
