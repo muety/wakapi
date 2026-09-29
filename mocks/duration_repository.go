@@ -66,3 +66,8 @@ func (m *DurationRepositoryMock) DeleteByUserBefore(u *models.User, t time.Time)
 	args := m.Called(u, t)
 	return args.Error(0)
 }
+
+func (m *DurationRepositoryMock) DeleteByUserAfter(u *models.User, t time.Time) error {
+	args := m.Called(u, t)
+	return args.Error(0)
+}

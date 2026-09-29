@@ -67,6 +67,7 @@ type IDurationRepository interface {
 	GetLatestByUser(*models.User) (*models.Duration, error)
 	DeleteByUser(*models.User) error
 	DeleteByUserBefore(*models.User, time.Time) error
+	DeleteByUserAfter(*models.User, time.Time) error
 }
 
 type IDiagnosticsRepository interface {

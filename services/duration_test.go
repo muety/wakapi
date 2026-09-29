@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/leandro-lugaresi/hub"
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
@@ -590,6 +592,96 @@ func (suite *DurationServiceTestSuite) TestDuration_Hashed() {
 	d20.AIModel = "aimodel2"
 	d20.Hashed()
 	assert.NotEqual(suite.T(), d1.GroupHash, d20.GroupHash)
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_HeartbeatCreateEvent_DeletesDurations() {
+	sut, eventBus := suite.createSut()
+	sut.lastUserJob[suite.TestUser.ID] = time.Now()
+
+	now := time.Now().Truncate(time.Second)
+	t1 := now.Add(-1 * time.Hour)
+	t2 := now.Add(-30 * time.Minute)
+	t3 := now.Add(-2 * time.Hour)
+
+	// 1. Initial heartbeat: triggers DeleteByUserAfter on cache miss and initializes dirtyFrom
+	suite.DurationRepository.On("DeleteByUserAfter", suite.TestUser, t1).Return(nil).Once()
+
+	eventBus.Publish(hub.Message{
+		Name: config.EventHeartbeatCreate,
+		Fields: map[string]interface{}{
+			config.FieldPayload: &models.Heartbeat{
+				User:   suite.TestUser,
+				UserID: suite.TestUser.ID,
+				Time:   models.CustomTime(t1),
+			},
+		},
+	})
+
+	assert.Eventually(suite.T(), func() bool {
+		for _, call := range suite.DurationRepository.Calls {
+			if call.Method == "DeleteByUserAfter" && call.Arguments.Get(1).(time.Time).Equal(t1) {
+				return true
+			}
+		}
+		return false
+	}, 2*time.Second, 20*time.Millisecond)
+
+	dirtyFromVal, ok := sut.dirtyFrom.Get("dirty_from_" + suite.TestUser.ID)
+	assert.True(suite.T(), ok)
+	assert.Equal(suite.T(), t1, dirtyFromVal.(time.Time))
+
+	// 2. Subsequent heartbeat with timestamp after dirtyFrom: skips DeleteByUserAfter
+	eventBus.Publish(hub.Message{
+		Name: config.EventHeartbeatCreate,
+		Fields: map[string]interface{}{
+			config.FieldPayload: &models.Heartbeat{
+				User:   suite.TestUser,
+				UserID: suite.TestUser.ID,
+				Time:   models.CustomTime(t2),
+			},
+		},
+	})
+
+	time.Sleep(100 * time.Millisecond)
+	suite.DurationRepository.AssertNumberOfCalls(suite.T(), "DeleteByUserAfter", 1)
+
+	// 3. Out-of-order heartbeat with timestamp before dirtyFrom: triggers DeleteByUserAfter and updates dirtyFrom
+	suite.DurationRepository.On("DeleteByUserAfter", suite.TestUser, t3).Return(nil).Once()
+
+	eventBus.Publish(hub.Message{
+		Name: config.EventHeartbeatCreate,
+		Fields: map[string]interface{}{
+			config.FieldPayload: &models.Heartbeat{
+				User:   suite.TestUser,
+				UserID: suite.TestUser.ID,
+				Time:   models.CustomTime(t3),
+			},
+		},
+	})
+
+	assert.Eventually(suite.T(), func() bool {
+		for _, call := range suite.DurationRepository.Calls {
+			if call.Method == "DeleteByUserAfter" && call.Arguments.Get(1).(time.Time).Equal(t3) {
+				return true
+			}
+		}
+		return false
+	}, 2*time.Second, 20*time.Millisecond)
+
+	dirtyFromVal, ok = sut.dirtyFrom.Get("dirty_from_" + suite.TestUser.ID)
+	assert.True(suite.T(), ok)
+	assert.Equal(suite.T(), t3, dirtyFromVal.(time.Time))
+
+	suite.DurationRepository.AssertExpectations(suite.T())
+	_ = sut
+}
+
+func (suite *DurationServiceTestSuite) createSut() (*DurationService, *hub.Hub) {
+	originalEventBus := config.EventBus()
+	defer config.SetEventBus(originalEventBus)
+	eventBus := hub.New()
+	config.SetEventBus(eventBus)
+	return NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService), eventBus
 }
 
 func filterHeartbeats(from, to time.Time, heartbeats []*models.Heartbeat) []*models.Heartbeat {

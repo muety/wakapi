@@ -111,6 +111,15 @@ func (r *DurationRepository) DeleteByUserBefore(user *models.User, t time.Time) 
 	return nil
 }
 
+func (r *DurationRepository) DeleteByUserAfter(user *models.User, t time.Time) error {
+	q := r.db.Model(models.Duration{}).Where("user_id = ?", user.ID)
+	q = r.queryAddTimeFilterGreaterEqual(q, t.Local())
+	if err := q.Delete(models.Duration{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *DurationRepository) queryAddTimeFilterBetween(q *gorm.DB, from, to time.Time) *gorm.DB {
 	return q.
 		Where("time >= ?", models.CustomTime(from.Local())).
@@ -119,6 +128,17 @@ func (r *DurationRepository) queryAddTimeFilterBetween(q *gorm.DB, from, to time
 
 func (r *DurationRepository) queryAddTimeFilterLessEqual(q *gorm.DB, t time.Time) *gorm.DB {
 	return q.Where("time <= ?", models.CustomTime(t.Local()))
+}
+
+func (r *DurationRepository) queryAddTimeFilterGreaterEqual(q *gorm.DB, t time.Time) *gorm.DB {
+	switch r.GetDialector() {
+	case conf.SQLDialectMysql:
+		return q.Where("DATE_ADD(time, INTERVAL (duration / 1000) MICROSECOND) >= ?", models.CustomTime(t.Local())) // nanoseconds to microseconds
+	case conf.SQLDialectPostgres:
+		return q.Where("time + (duration / 1000000000.0 * interval '1 second') >= ?", models.CustomTime(t.Local())) // nanoseconds to seconds
+	default: // sqlite
+		return q.Where("time + (duration / 1000000) >= ?", t.Local().UnixMilli()) // nanoseconds to milliseconds
+	}
 }
 
 func (r *DurationRepository) queryAddTimeSorting(q *gorm.DB, desc bool) *gorm.DB {
