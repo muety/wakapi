@@ -91,10 +91,21 @@ func (r *BaseRepository) VacuumOrOptimize() {
 	conf.Log().Info("skipping vacuuming or optimization, because running on neither sqlite, nor postgres, nor mysql")
 }
 
-func InsertBatchChunked[T any](data []T, model T, db *gorm.DB) error {
+func InsertBatchChunked[T any](data []T, model T, db *gorm.DB, txPerBatch bool) error {
 	// insert in chunks, because otherwise sqlite (later also mysql) will complain about too many placeholders in prepared query, see https://github.com/muety/wakapi/issues/840
+	chunks := slice.Chunk[T](data, chunkSize)
+
+	if txPerBatch {
+		for _, chunk := range chunks {
+			if err := db.Transaction(func(tx *gorm.DB) error {
+				return insertBatch[T](chunk, model, tx)
+			}); err != nil {
+				return err
+			}
+		}
+	}
+
 	return db.Transaction(func(tx *gorm.DB) error {
-		chunks := slice.Chunk[T](data, chunkSize)
 		for _, chunk := range chunks {
 			if err := insertBatch[T](chunk, model, tx); err != nil {
 				return err

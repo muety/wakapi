@@ -31,7 +31,7 @@ func (r *HeartbeatRepository) GetAll() ([]*models.Heartbeat, error) {
 }
 
 func (r *HeartbeatRepository) InsertBatch(heartbeats []*models.Heartbeat) error {
-	return InsertBatchChunked[*models.Heartbeat](heartbeats, &models.Heartbeat{}, r.db)
+	return InsertBatchChunked[*models.Heartbeat](heartbeats, &models.Heartbeat{}, r.db, false)
 }
 
 func (r *HeartbeatRepository) GetLatestByUser(user *models.User) (*models.Heartbeat, error) {

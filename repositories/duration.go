@@ -90,7 +90,7 @@ func (r *DurationRepository) GetLatestByUser(user *models.User) (*models.Duratio
 }
 
 func (r *DurationRepository) InsertBatch(durations []*models.Duration) error {
-	return InsertBatchChunked[*models.Duration](durations, &models.Duration{}, r.db)
+	return InsertBatchChunked[*models.Duration](durations, &models.Duration{}, r.db, true)
 }
 
 func (r *DurationRepository) DeleteByUser(user *models.User) error {
