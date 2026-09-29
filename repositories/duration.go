@@ -112,7 +112,11 @@ func (r *DurationRepository) DeleteByUserBefore(user *models.User, t time.Time) 
 }
 
 func (r *DurationRepository) DeleteByUserAfter(user *models.User, t time.Time) error {
-	q := r.db.Model(models.Duration{}).Where("user_id = ?", user.ID)
+	q := r.db.Model(models.Duration{}).
+		Where("user_id = ?", user.ID).
+		// we do this just to narrow down the amount of data, since the DATE_ADD() / arithmetic expression prevents from using the index and thus results in a full scan
+		// we optimistically assume that a duration is never longer than 12 hours, which is a safe assumption
+		Where("time >= ?", models.CustomTime(t.Add(-12*time.Hour).Local()))
 	q = r.queryAddTimeFilterGreaterEqual(q, t.Local())
 	if err := q.Delete(models.Duration{}).Error; err != nil {
 		return err
