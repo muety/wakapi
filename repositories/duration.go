@@ -133,7 +133,7 @@ func (r *DurationRepository) queryAddTimeFilterLessEqual(q *gorm.DB, t time.Time
 func (r *DurationRepository) queryAddTimeFilterGreaterEqual(q *gorm.DB, t time.Time) *gorm.DB {
 	switch r.GetDialector() {
 	case conf.SQLDialectMysql:
-		return q.Where("DATE_ADD(time, INTERVAL (duration / 1000) MICROSECOND) >= ?", models.CustomTime(t.Local())) // nanoseconds to microseconds
+		return q.Where("DATE_ADD(`time`, INTERVAL (`duration` DIV 1000) MICROSECOND) >= ?", models.CustomTime(t.Local())) // nanoseconds to microseconds
 	case conf.SQLDialectPostgres:
 		return q.Where("time + (duration / 1000000000.0 * interval '1 second') >= ?", models.CustomTime(t.Local())) // nanoseconds to seconds
 	default: // sqlite
