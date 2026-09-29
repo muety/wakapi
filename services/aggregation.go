@@ -56,7 +56,7 @@ func (srv *AggregationService) Schedule() {
 	slog.Info("scheduling summary aggregation")
 
 	if _, err := srv.queueDefault.DispatchCron(func() {
-		if err := srv.AggregateSummaries(datastructure.New[string]()); err != nil {
+		if err := srv.AggregateSummaries(datastructure.New[string](), false); err != nil {
 			config.Log().Error("failed to regenerate summaries", "error", err)
 		}
 	}, srv.config.App.GetAggregationTimeCron()); err != nil {
@@ -64,7 +64,8 @@ func (srv *AggregationService) Schedule() {
 	}
 }
 
-func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[string]) error {
+// AggregateSummaries generates summaries for the given users. If full is true, it also regenerates durations from scratch instead of incrementally.
+func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[string], full bool) error {
 	if err := srv.lockUsers(userIds); err != nil {
 		return err
 	}
@@ -115,7 +116,7 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 		srv.queuedDurationWorkers.Dispatch(func() {
 			slog.Info("regenerating user durations as part of summary aggregation", "user", user.ID)
 			defer wg.Done()
-			srv.durationService.Regenerate(&u, true)
+			srv.durationService.Regenerate(&u, full)
 		})
 
 		// generate actual summary aggregation jobs
