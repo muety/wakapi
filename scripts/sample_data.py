@@ -211,7 +211,7 @@ class ConfigParams:
         self.n_projects = 0
         self.offset = 0
         self.seed = 0
-        self.batch = False
+        self.batch_size = 1
 
 
 def generate_data(n: int, n_projects: int = 5, n_past_hours: int = 24) -> List[Heartbeat]:
@@ -266,8 +266,7 @@ def post_data_sync(data: List[Heartbeat], url: str, api_key: str):
 def make_gui(callback: Callable[[ConfigParams, Callable[[int], None]], None]) -> ('QApplication', 'QWidget'):
     # https://doc.qt.io/qt-6/qtwidgets-module.html
     from PyQt6.QtCore import Qt
-    from PyQt6.QtWidgets import QApplication, QWidget, QFormLayout, QHBoxLayout, QVBoxLayout, QGroupBox, QLabel, \
-        QLineEdit, QSpinBox, QProgressBar, QPushButton, QCheckBox, QMessageBox
+    from PyQt6.QtWidgets import QApplication, QWidget, QFormLayout, QHBoxLayout, QVBoxLayout, QGroupBox, QLabel, QLineEdit, QSpinBox, QProgressBar, QPushButton, QMessageBox
 
     # Main app
     app = QApplication([])
@@ -321,14 +320,16 @@ def make_gui(callback: Callable[[ConfigParams, Callable[[int], None]], None]) ->
     seed_input.setMaximum(2147483647)
     seed_input.setValue(1337)
 
-    batch_checkbox = QCheckBox('Batch Mode')
-    batch_checkbox.setTristate(False)
+    batch_size_input_label = QLabel('Batch Size:')
+    batch_size_input = QSpinBox()
+    batch_size_input.setMinimum(1)
+    batch_size_input.setValue(1)
 
     form_layout_2.addRow(heartbeats_input_label, heartbeats_input)
     form_layout_2.addRow(projects_input_label, projects_input)
     form_layout_2.addRow(offset_input_label, offset_input)
     form_layout_2.addRow(seed_input_label, seed_input)
-    form_layout_2.addRow(batch_checkbox)
+    form_layout_2.addRow(batch_size_input_label, batch_size_input)
 
     # Bottom controls
     bottom_layout = QHBoxLayout()
@@ -357,7 +358,7 @@ def make_gui(callback: Callable[[ConfigParams, Callable[[int], None]], None]) ->
         params.n_projects = projects_input.value()
         params.offset = offset_input.value()
         params.seed = seed_input.value()
-        params.batch = batch_checkbox.isChecked()
+        params.batch_size = batch_size_input.value()
         return params
 
     def update_progress(inc=1):
@@ -401,6 +402,13 @@ def projects_count(value: str) -> int:
     return n
 
 
+def positive_int(value: str) -> int:
+    n = int(value)
+    if n < 1:
+        raise argparse.ArgumentTypeError('must be at least 1 (use 1 to disable batching)')
+    return n
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Wakapi test data insertion script.')
     parser.add_argument('--headless', default=False, help='do not show a gui', action='store_true')
@@ -410,7 +418,7 @@ def parse_arguments():
     parser.add_argument('-p', '--projects', type=projects_count, default=5, help=f'number of different fake projects to generate (1-{len(PROJECTS)})')
     parser.add_argument('-o', '--offset', type=int, default=24, help='negative time offset in hours from now for to be used as an interval within which to generate heartbeats for')
     parser.add_argument('-s', '--seed', type=int, default=2020, help='a seed for initializing the pseudo-random number generator')
-    parser.add_argument('-b', '--batch', default=False, help='batch mode (push all heartbeats at once)', action='store_true')
+    parser.add_argument('-b', '--batch-size', type=positive_int, default=1, metavar='N', help='maximum number of heartbeats per request, 1 to disable batching (default)')
     return parser.parse_args()
 
 
@@ -422,7 +430,7 @@ def args_to_params(parsed_args: argparse.Namespace) -> (ConfigParams, bool):
     params.seed = parsed_args.seed
     params.api_url = parsed_args.url
     params.api_key = parsed_args.apikey
-    params.batch = parsed_args.batch
+    params.batch_size = parsed_args.batch_size
     return params, not parsed_args.headless
 
 
@@ -439,15 +447,11 @@ def run(params: ConfigParams, update_progress: Callable[[int], None], on_error: 
         params.offset * -1 if params.offset < 0 else params.offset
     )
 
-    # batch-mode won't work when using sqlite backend
     try:
-        if params.batch:
-            post_data_sync(data, f'{params.api_url}/heartbeats', params.api_key)
-            update_progress(len(data))
-        else:
-            for d in data:
-                post_data_sync([d], f'{params.api_url}/heartbeats', params.api_key)
-                update_progress(1)
+        for i in range(0, len(data), params.batch_size):
+            chunk = data[i:i + params.batch_size]
+            post_data_sync(chunk, f'{params.api_url}/heartbeats', params.api_key)
+            update_progress(len(chunk))
     except RequestError as e:
         on_error(str(e))
 
