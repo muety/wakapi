@@ -279,7 +279,9 @@ func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Reques
 		return actionResult{http.StatusBadRequest, "", "cannot unset email while subscription is active", nil}
 	}
 
-	tzChanged := user.Location != payload.Location
+	oldLoc := condition.Ternary(user.Location == "", "Local", user.Location)
+	newLoc := condition.Ternary(payload.Location == "", "Local", payload.Location)
+	tzChanged := oldLoc != newLoc
 
 	user.Email = payload.Email
 	user.Location = payload.Location
