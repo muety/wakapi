@@ -207,26 +207,30 @@ func (srv *AggregationService) process(job AggregationJob) {
 
 func generateUserJobs(user *models.User, from time.Time) (jobs []*AggregationJob) {
 	var to time.Time
+	tz := time.Local
+	if user != nil {
+		tz = user.TZ()
+	}
 
 	// Go to next day of either user's first heartbeat or latest aggregation
-	from = from.Add(-1 * time.Second)
+	from = from.In(tz).Add(-1 * time.Second)
 	from = time.Date(
 		from.Year(),
 		from.Month(),
 		from.Day()+aggregateIntervalDays,
 		0, 0, 0, 0,
-		from.Location(),
+		tz,
 	)
 
 	// Iteratively aggregate per-day summaries until end of yesterday is reached
-	end := getStartOfToday().Add(-1 * time.Second)
+	end := getStartOfToday(tz).Add(-1 * time.Second)
 	for from.Before(end) && to.Before(end) {
 		to = time.Date(
 			from.Year(),
 			from.Month(),
 			from.Day()+aggregateIntervalDays,
 			0, 0, 0, 0,
-			from.Location(),
+			tz,
 		)
 		jobs = append(jobs, &AggregationJob{user, from, to})
 		from = to
@@ -255,7 +259,7 @@ func (srv *AggregationService) unlockUsers(userIds datastructure.Set[string]) {
 	}
 }
 
-func getStartOfToday() time.Time {
-	now := time.Now()
-	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 1, now.Location())
+func getStartOfToday(tz *time.Location) time.Time {
+	now := time.Now().In(tz)
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 1, tz)
 }

@@ -256,7 +256,7 @@ func (srv *DurationService) getLive(from, to time.Time, user *models.User, inter
 		// Skip heartbeats that span across two adjacent summaries (assuming there are no more than 1 summary per day).
 		// This is relevant to prevent the time difference between generating summaries from raw heartbeats and aggregating pre-generated summaries.
 		// For the latter case, the very last heartbeat of a day won't be counted, so we don't want to count it here either
-		sameDay := datetime.BeginOfDay(d1.Time.T()) == datetime.BeginOfDay(latest.Time.T())
+		sameDay := datetime.BeginOfDay(d1.Time.T().In(user.TZ())).Equal(datetime.BeginOfDay(latest.Time.T().In(user.TZ())))
 		dur := condition.Ternary[bool, time.Duration](sameDay, d1.Time.T().Sub(latest.Time.T().Add(latest.Duration)), 0)
 		latest.Duration += condition.Ternary[bool, time.Duration](dur < heartbeatsTimeout, dur, heartbeatPadding)
 
