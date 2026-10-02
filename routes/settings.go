@@ -277,6 +277,8 @@ func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Reques
 		return actionResult{http.StatusBadRequest, "", "cannot unset email while subscription is active", nil}
 	}
 
+	tzChanged := user.Location != payload.Location
+
 	user.Email = payload.Email
 	user.Location = payload.Location
 	user.StartOfWeek = payload.StartOfWeek
@@ -288,6 +290,22 @@ func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Reques
 			return actionResult{http.StatusBadRequest, "", "got invalid user data (email already taken?)", nil}
 		}
 		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
+	}
+
+	if tzChanged { // existing summaries are aligned to the old time zone's day boundaries, so they need to be regenerated
+		if h.isAggregationLocked(user.ID) {
+			return actionResult{http.StatusOK, "user updated successfully, please regenerate your summaries manually", "", nil}
+		}
+
+		go func(user *models.User, r *http.Request) {
+			h.toggleAggregationLock(user.ID, true)
+			defer h.toggleAggregationLock(user.ID, false)
+			if err := h.regenerateSummaries(user); err != nil {
+				conf.Log().Request(r).Error("failed to regenerate summaries after time zone change", "userID", user.ID, "error", err)
+			}
+		}(user, r)
+
+		return actionResult{http.StatusAccepted, "user updated successfully, your summaries are being regenerated to match your new time zone - this may take up to a couple of minutes", "", nil}
 	}
 
 	return actionResult{http.StatusOK, "user updated successfully", "", nil}
