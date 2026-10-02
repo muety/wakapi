@@ -21,19 +21,30 @@ func TestCustomTime_Value_SQLite(t *testing.T) {
 	assert.Equal(t, now.UnixMilli(), val)
 }
 
-func TestCustomTime_Value_NonSQLite(t *testing.T) {
-	for _, dialect := range []string{config.SQLDialectPostgres, config.SQLDialectMysql} {
-		config.Set(config.Empty())
-		config.Get().Db.Dialect = dialect
+func TestCustomTime_Value_MySQL(t *testing.T) {
+	config.Set(config.Empty())
+	config.Get().Db.Dialect = config.SQLDialectMysql
 
-		now := time.Date(2026, 8, 27, 14, 30, 0, 123000000, time.UTC)
-		ct := CustomTime(now)
+	now := time.Date(2026, 8, 27, 14, 30, 0, 123000000, time.UTC)
+	ct := CustomTime(now)
 
-		val, err := ct.Value()
-		assert.NoError(t, err)
-		assert.IsType(t, time.Time{}, val)
-		assert.Equal(t, now.Round(time.Millisecond), val)
-	}
+	val, err := ct.Value()
+	assert.NoError(t, err)
+	assert.IsType(t, time.Time{}, val)
+	assert.Equal(t, now.Round(time.Millisecond), val)
+}
+
+func TestCustomTime_Value_Postgres(t *testing.T) {
+	config.Set(config.Empty())
+	config.Get().Db.Dialect = config.SQLDialectPostgres
+
+	now := time.Date(2026, 8, 27, 14, 30, 0, 123000000, time.UTC) // intentionally convert to local time, see the hack we have in place there
+	ct := CustomTime(now)
+
+	val, err := ct.Value()
+	assert.NoError(t, err)
+	assert.IsType(t, time.Time{}, val)
+	assert.Equal(t, now.In(time.Local).Round(time.Millisecond), val)
 }
 
 func TestCustomTime_Scan(t *testing.T) {

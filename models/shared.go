@@ -91,8 +91,8 @@ func (j *CustomTime) Scan(value interface{}) error {
 	case float64:
 		t = time.UnixMilli(int64(v))
 	case string:
-		// this is only for safety / backwards compatibility, because, the driver itself should already properly parse dates
-		// however, that's not always guaranteed, e.g. see https://github.com/glebarez/go-sqlite/issues/186
+		// This is only for safety / backwards compatibility, because, the driver itself should already properly parse dates
+		// However, that's not always guaranteed, e.g. see https://github.com/glebarez/go-sqlite/issues/186
 		t, err = time.Parse("2006-01-02 15:04:05-07:00", v) // string format used by glebarez/sqlite driver
 		if err != nil {
 			t, err = time.Parse(time.RFC3339, v) // iso format used by ncruces/go-sqlite3 driver and others
@@ -105,8 +105,11 @@ func (j *CustomTime) Scan(value interface{}) error {
 		}
 	case time.Time:
 		t = v
-		// see https://github.com/muety/wakapi/issues/771
-		// -> "reinterpret" postgres dates (received as UTC) in local zone, assuming they had also originally been inserted as such
+		// See https://github.com/muety/wakapi/issues/771 -> "reinterpret" Postgres dates (received as UTC) in local zone, assuming they had also originally been inserted as such.
+		// To clarify: you'd expect this to be guarded by a check for whether we're actually dealing with Postgres. We used to have this, but intentionally removed it in 8143ca1 to fix the dbmigrate.go.
+		// The reason this works nonetheless is "by accident", because only for Postgres will dates actually be retrieved with a UTC timestamp.
+		// For SQLite, we'll get int64 anyway, and for MySQL, everything will be converted to local server time due to `loc=Local` in the connection string (see https://dev.mysql.com/doc/refman/8.4/en/datetime.html).
+		// Counterpart of this is in `Value()` (see below).
 		if v.Location() == time.UTC {
 			t = utils.SetZone(t, time.Local)
 		}
@@ -124,6 +127,12 @@ func (j CustomTime) Value() (driver.Value, error) {
 	t := j.T().Round(time.Millisecond)
 	if config.Get().Db.IsSQLite() {
 		return t.UnixMilli(), nil
+	}
+	if config.Get().Db.IsPostgres() {
+		// Hack: because we use `timestamp` column type (not `timestamptz` or sth.) for Postgres, time zone information will simply get stripped,
+		// i.e. only the wall clock time gets persisted (e.g. "17:00 +02:00" -> "17:00").
+		// When retrieving dates via Scan() (see above) we already have this hack in place to always interpret UTC as local tz. This is the "write" part of the hack.
+		return t.In(time.Local), nil
 	}
 	return t, nil
 }
