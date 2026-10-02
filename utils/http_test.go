@@ -107,6 +107,22 @@ var userAgents = []struct {
 		nil,
 	},
 	{
+		// https://github.com/muety/wakapi/issues/979
+		"wakatime/v2.7.0 (linux-6.8.0-110-generic-x86_64) go1.25.9 neovim/0.9 wakatime.nvim/12.0.0",
+		"Linux",
+		"neovim",
+		"",
+		nil,
+	},
+	{
+		// neovim lua plugin standalone (without editor token)
+		"wakatime/v2.7.0 (linux-6.8.0-110-generic-x86_64) go1.25.9 wakatime.nvim/12.0.0",
+		"Linux",
+		"neovim",
+		"",
+		nil,
+	},
+	{
 		"wakatime/v1.102.1 (windows-10.0.27723.1000-x86_64) go1.22.5 Skype/unknown windows-wakatime/0.5.0", // desktop-wakatime
 		"Windows",
 		"Skype",
@@ -430,6 +446,17 @@ func TestExtractAiModel(t *testing.T) {
 			"qwen-code CLI with qwen model",
 			"wakatime/v1.0 (linux-6.6.0-x86_64) go1.21 qwen/3-coder-plus qwen-code-cli/1.0.0",
 			"qwen",
+		},
+		{
+			// https://github.com/muety/wakapi/issues/979
+			"neovim with wakatime.nvim returns empty",
+			"wakatime/v2.7.0 (linux-6.8.0-110-generic-x86_64) go1.25.9 neovim/0.9 wakatime.nvim/12.0.0",
+			"",
+		},
+		{
+			"neovim with AI model and wakatime.nvim",
+			"wakatime/v2.7.0 (linux-6.8.0-110-generic-x86_64) go1.25.9 opus/4.1-medium neovim/0.9 wakatime.nvim/12.0.0",
+			"opus",
 		},
 	}
 

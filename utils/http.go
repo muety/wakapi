@@ -270,6 +270,8 @@ func isAiHarness(lowerName string) bool {
 }
 
 func extractEditor(ua string, parts []string, aiModel string) string {
+	// Preferably, the editor is reported as a "standalone" token in the UA string, e.g. "vscode/1.95.3" or "GoLand/2019.3.4".
+	// Some editor integrations (e.g. emacs-wakatime), only report the plugin name with a separate editor token, so we try to parse the editor from the plugin name as a fallback.
 	var primaryEditor string
 	var wakatimePluginEditor string
 	var aiHarness string
@@ -291,21 +293,19 @@ func extractEditor(ua string, parts []string, aiModel string) string {
 			continue // skip programming language runtimes (e.g., "Python3.8.0", "go1.21.3")
 		}
 
-		// track plugins ending with "-wakatime" (e.g., "vscode-wakatime")
-		if strings.HasSuffix(nameLower, "-wakatime") {
-			candidate := strings.TrimSuffix(name, "-wakatime")
-			if !knownOs.Contain(strings.ToLower(candidate)) { // make sure to not mistakenly pick up "windows-wakatime" or "linux-wakatime"
-				wakatimePluginEditor = candidate
+		// track plugins (e.g., "vscode-wakatime", "wakatime.nvim")
+		if pluginEditor, isPlugin := extractPluginEditor(name); isPlugin {
+			if pluginEditor != "" {
+				wakatimePluginEditor = pluginEditor
 			}
 			continue
 		}
 
-		// skip the AI model token so it is not picked as the editor
 		if aiModel != "" && nameLower == strings.ToLower(aiModel) {
-			continue
+			continue // skip ai model token so it is not picked as the editor
 		}
 
-		// track known AI harness tokens (e.g., "claude-code", "Claude", "codex-cli") so that the harness (not the model!) is reported as the editor
+		// track known ai harness tokens (e.g., "claude-code", "Claude", "codex-cli") so that the harness (not the model!) is reported as the editor
 		if isAiHarness(nameLower) {
 			if aiHarness == "" {
 				aiHarness = name
@@ -318,7 +318,7 @@ func extractEditor(ua string, parts []string, aiModel string) string {
 		}
 	}
 
-	// prefer AI harness, then primary editor, then wakatime plugin editor
+	// prefer ai harness, then primary editor, then wakatime plugin editor
 	return condition.Ternary[bool, string](
 		aiHarness != "", aiHarness,
 		condition.Ternary[bool, string](primaryEditor != "", primaryEditor, wakatimePluginEditor),
@@ -349,12 +349,16 @@ func extractAiModel(ua string, parts []string) string {
 		if isRuntime(name) {
 			continue
 		}
-		if strings.HasSuffix(name, "-wakatime") {
+		if _, isPlugin := extractPluginEditor(name); isPlugin {
+			// Heartbeats with an AI model token will presumably also always have a "standalone" editor or ai harness component and don't require the editor to be inferred from the plugin name
+			// Standalone AI tools always identify themselves with a dedicated harness token (e.g., "claude-code/2.1.45"), "AI-first" IDEs usually (fingers crossed) report their own editor token (e.g. "Cursor/1.105.1")
 			continue
 		}
 		candidates = append(candidates, p)
 	}
 
+	// for "normal" heartbeats, only one candidate will remain after filtering core-, runtime and plugin tokens (namely the editor name)
+	// for ai heartbeats, there'll always be the model name, followed by either the agent harness or editor name
 	if len(candidates) < 2 {
 		return ""
 	}
@@ -365,6 +369,24 @@ func extractAiModel(ua string, parts []string) string {
 	}
 
 	return c0Name
+}
+
+// extractPluginEditor extracts the editor represented by a WakaTime plugin token (e.g., "vscode-wakatime" -> "vscode", "wakatime.nvim" -> "neovim").
+// If the token is a WakaTime plugin but does not represent a specific editor (e.g., "windows-wakatime"), isPlugin is true and editor is empty.
+func extractPluginEditor(name string) (string, bool) {
+	lower := strings.ToLower(name)
+	if strings.HasSuffix(lower, "-wakatime") {
+		candidate := name[:len(name)-len("-wakatime")]
+		if !knownOs.Contain(strings.ToLower(candidate)) {
+			return candidate, true
+		}
+		return "", true
+	}
+	// special treatment for neovim lua plugin, see https://github.com/muety/wakapi/issues/979 (only a fallback in case "neovim/0.9" part goes missing for whatever reason
+	if lower == "wakatime.nvim" {
+		return "neovim", true
+	}
+	return "", false
 }
 
 // isRuntime heuristically checks if a string is a language runtime rather than an editor.
