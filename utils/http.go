@@ -258,8 +258,7 @@ func extractOS(parts []string) string {
 }
 
 // isAiHarness checks whether a token represents an AI harness or parser.
-// wakatime-cli AI harnesses conventionally use a "-cli" / "-tui" suffix,
-// an "antigravity-" / "codex-" prefix, or match a known AI parser name in aiTools.
+// wakatime-cli AI harnesses conventionally use a "-cli" / "-tui" suffix, an "antigravity-" / "codex-" prefix, or match a known AI parser name in aiTools.
 func isAiHarness(lowerName string) bool {
 	if strings.HasSuffix(lowerName, "-cli") ||
 		strings.HasSuffix(lowerName, "-tui") ||
@@ -275,9 +274,7 @@ func extractEditor(ua string, parts []string, aiModel string) string {
 	var wakatimePluginEditor string
 	var aiHarness string
 
-	aiModelLower := strings.ToLower(aiModel)
-
-	// Scan parts for editors, AI harnesses, and plugins
+	// scan parts for editors, AI harnesses, and plugins
 	for i := 1; i < len(parts); i++ {
 		p := parts[i]
 		if !strings.Contains(p, "/") {
@@ -290,7 +287,6 @@ func extractEditor(ua string, parts []string, aiModel string) string {
 		if nameLower == "wakatime" || editorMiddlewares.Contain(nameLower) {
 			continue // skip wakatime core components and known middlewares
 		}
-
 		if isRuntime(nameLower) {
 			continue // skip programming language runtimes (e.g., "Python3.8.0", "go1.21.3")
 		}
@@ -305,7 +301,7 @@ func extractEditor(ua string, parts []string, aiModel string) string {
 		}
 
 		// skip the AI model token so it is not picked as the editor
-		if aiModelLower != "" && nameLower == aiModelLower {
+		if aiModel != "" && nameLower == strings.ToLower(aiModel) {
 			continue
 		}
 
@@ -329,8 +325,7 @@ func extractEditor(ua string, parts []string, aiModel string) string {
 	)
 }
 
-// extractAiModel returns the AI model name (e.g. "opus", "gpt", "gemini", "composer", "swe", "M")
-// from a user agent string, or an empty string if the user agent does not contain an AI model token.
+// extractAiModel returns the AI model name (e.g. "opus", "gpt", "gemini", "composer", "swe", "M") from a user agent string, or an empty string if the user agent does not contain an AI model token.
 //
 // AI session heartbeats that include a model format the user agent by prepending the model (e.g. "opus/4.1-medium", "gpt/5.5-high", "gemini/3-flash-preview") in front of the AI harness or IDE editor token
 // See https://github.com/wakatime/wakatime-cli/blob/cb6c885aa57ec70f55acbb581c25fd3d367db853/pkg/ai/ai.go#L958-L989.
@@ -339,47 +334,37 @@ func extractEditor(ua string, parts []string, aiModel string) string {
 // - If the first token is an AI harness (e.g. "Claude/2.1.118 PyCharm/2023.1"), it represents the harness itself without a separate model token.
 // - Single-token or non-AI user agents return empty.
 func extractAiModel(ua string, parts []string) string {
-	candidates := extractCandidates(parts)
-	if len(candidates) < 2 {
-		return ""
-	}
-
-	c0Name := strings.Split(candidates[0], "/")[0]
-	c0Lower := strings.ToLower(c0Name)
-
-	if isAiHarness(c0Lower) {
-		return "" // first token is the AI harness itself (e.g. Claude/2.1.118 in PyCharm)
-	}
-
-	return c0Name
-}
-
-// extractCandidates filters user agent parts for tokens with a version slash,
-// excluding wakatime core, middlewares, runtimes, and -wakatime plugins.
-func extractCandidates(parts []string) []string {
 	var candidates []string
+
 	for i := 1; i < len(parts); i++ {
 		p := parts[i]
 		if !strings.Contains(p, "/") {
 			continue
 		}
 
-		name := strings.Split(p, "/")[0]
-		nameLower := strings.ToLower(name)
-
-		if nameLower == "wakatime" || editorMiddlewares.Contain(nameLower) {
+		name := strings.ToLower(strings.Split(p, "/")[0])
+		if name == "wakatime" || editorMiddlewares.Contain(name) {
 			continue
 		}
-		if isRuntime(nameLower) {
+		if isRuntime(name) {
 			continue
 		}
-		if strings.HasSuffix(nameLower, "-wakatime") {
+		if strings.HasSuffix(name, "-wakatime") {
 			continue
 		}
-
 		candidates = append(candidates, p)
 	}
-	return candidates
+
+	if len(candidates) < 2 {
+		return ""
+	}
+
+	c0Name := strings.Split(candidates[0], "/")[0]
+	if isAiHarness(strings.ToLower(c0Name)) {
+		return "" // first token is the AI harness itself (e.g. Claude/2.1.118 in PyCharm)
+	}
+
+	return c0Name
 }
 
 // isRuntime heuristically checks if a string is a language runtime rather than an editor.
