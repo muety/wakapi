@@ -5,6 +5,7 @@ import (
 
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -28,6 +29,10 @@ func init() {
 			if !cfg.Db.IsMySQL() || !db.Migrator().HasTable(&models.SummaryItem{}) {
 				return nil
 			}
+
+			// this is only supported from mysql 5.7.9 and mariadb 10.5.2, see https://github.com/muety/wakapi/issues/981
+			// however, we require mysql 8 and mariadb 11.4 in the project requirements anyway, so we can just enforce index renaming here
+			db.Dialector.(*mysql.Dialector).Config.DontSupportRenameIndex = false
 
 			indexCandidates := []string{
 				"fk_summaries_projects",
