@@ -367,6 +367,16 @@ func main() {
 
 			bar.Add(1)
 		}
+
+		if cfg.Target.Dialect == "postgres" {
+			// For postgres, need to update the seqno for the heartbeats_id_seq on migration
+			count, err := heartbeatSource.Count(false)
+			if err != nil {
+				dbTarget.Raw(fmt.Sprintf("ALTER SEQUENCE heartbeats_id_seq RESTART WITH %s;", count + 1))
+			} else {
+				log.Print("warning: failed to ")
+			}
+		}
 	}
 }
 
