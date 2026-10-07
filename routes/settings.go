@@ -227,6 +227,10 @@ func (h *SettingsHandler) GetWebAuthnOptions(w http.ResponseWriter, r *http.Requ
 	if h.config.IsDev() {
 		loadTemplates()
 	}
+	if h.config.Security.DisableWebAuthn {
+		routeutils.RespondJSONError(w, http.StatusForbidden, "webauthn is disabled on this server")
+		return
+	}
 	user := middlewares.GetPrincipal(r)
 	if user.AuthType != "local" {
 		routeutils.RespondJSONError(w, http.StatusBadRequest, "webauthn is only available for local users")

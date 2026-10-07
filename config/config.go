@@ -772,6 +772,11 @@ func initOpenIDConnect(config *Config) {
 }
 
 func InitWebAuthn(config *Config) {
+	if config.Security.DisableWebAuthn {
+		slog.Info("webauthn is disabled, skipping initialization")
+		return
+	}
+
 	gob.Register(&webauthn.SessionData{})
 
 	parsedURL, err := url.Parse(config.Server.PublicUrl)

@@ -171,6 +171,27 @@ func (suite *WebAuthnTestSuite) TestWebauthn_RegisterDeniedForNonLocalUsers() {
 	suite.Equal(http.StatusBadRequest, res.StatusCode)
 }
 
+func (suite *WebAuthnTestSuite) TestWebauthn_OptionsDeniedWhenDisabled() {
+	cookies := suite.loginAsUser(suite.UserA)
+
+	config.Get().Security.DisableWebAuthn = true
+	config.WebAuthn = nil // simulate initialization being skipped when disabled
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/settings/webauthn/options", nil)
+	for _, c := range cookies {
+		req.AddCookie(c)
+	}
+	suite.Router.ServeHTTP(rec, req)
+
+	res := rec.Result()
+	body, _ := io.ReadAll(res.Body)
+	defer res.Body.Close()
+
+	suite.Equal(http.StatusForbidden, res.StatusCode)
+	suite.Contains(string(body), "webauthn is disabled on this server")
+}
+
 func (suite *WebAuthnTestSuite) TestWebauthn_RegisterAndLogin() {
 	cookieUserA := suite.loginAsUser(suite.UserA)
 
