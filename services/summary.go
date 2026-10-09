@@ -476,7 +476,7 @@ func (srv *SummaryService) mergeSummaryItems(existing []*models.SummaryItem, new
 
 func (srv *SummaryService) getMissingIntervals(from, to time.Time, summaries []*models.Summary, precise bool) []*models.Interval {
 	if len(summaries) == 0 {
-		return []*models.Interval{{from, to}}
+		return []*models.Interval{{Start: from, End: to}}
 	}
 
 	intervals := make([]*models.Interval, 0)
