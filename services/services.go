@@ -16,6 +16,7 @@ type IAggregationService interface {
 	Schedule()
 	AggregateSummaries(datastructure.Set[string], bool) error
 	AggregateDurations(datastructure.Set[string]) error
+	IsLocked(string) bool
 }
 
 type IMiscService interface {

@@ -26,6 +26,7 @@ type AggregationService struct {
 	heartbeatService      IHeartbeatService
 	durationService       IDurationService
 	inProgress            datastructure.Set[string]
+	allInProgress         bool
 	queueDefault          *artifex.Dispatcher
 	queueSummaryWorkers   *artifex.Dispatcher
 	queuedDurationWorkers *artifex.Dispatcher
@@ -105,22 +106,26 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 	}
 
 	// Generate summary aggregation jobs
+	var allWg sync.WaitGroup
 	for _, user := range users {
 		u := *user
 		jobs := make([]*AggregationJob, 0)
 
-		wg := sync.WaitGroup{}
+		durationsWg := &sync.WaitGroup{}
 
 		// regenerate durations for the user if requested
 		// generally not needed, because event listener in durations service will take care of generating new durations on a regular interval
 		if includeDurations {
-			wg.Add(1)
+			durationsWg.Add(1)
+			allWg.Add(1)
 			if err := srv.queuedDurationWorkers.Dispatch(func() {
-				slog.Info("regenerating user durations as part of summary aggregation", "user", user.ID)
-				defer wg.Done()
+				defer allWg.Done()
+				defer durationsWg.Done()
+				slog.Info("regenerating user durations as part of summary aggregation", "user", u.ID)
 				srv.durationService.Regenerate(&u, true)
 			}); err != nil {
-				wg.Done()
+				durationsWg.Done()
+				allWg.Done()
 				config.Log().Error("failed to dispatch durations generation job", "userID", u.ID, "error", err)
 			}
 		}
@@ -151,15 +156,19 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 		// dispatch the jobs for current user
 		for _, jobRef := range jobs {
 			job := *jobRef
+			allWg.Add(1)
 			if err := srv.queueSummaryWorkers.Dispatch(func() {
-				wg.Wait()
+				defer allWg.Done()
+				durationsWg.Wait()
 				srv.process(job)
 			}); err != nil {
+				allWg.Done()
 				config.Log().Error("failed to dispatch summary generation job", "userID", job.User.ID)
 			}
 		}
 	}
 
+	allWg.Wait()
 	return nil
 }
 
@@ -182,12 +191,19 @@ func (srv *AggregationService) AggregateDurations(userIds datastructure.Set[stri
 		return err
 	}
 
+	var wg sync.WaitGroup
 	for _, u := range users {
 		user := &(*u)
-		srv.queuedDurationWorkers.Dispatch(func() {
+		wg.Add(1)
+		if err := srv.queuedDurationWorkers.Dispatch(func() {
+			defer wg.Done()
 			srv.durationService.Regenerate(user, true)
-		})
+		}); err != nil {
+			wg.Done()
+			config.Log().Error("failed to dispatch durations generation job", "userID", user.ID, "error", err)
+		}
 	}
+	wg.Wait()
 
 	return nil
 }
@@ -239,9 +255,32 @@ func generateUserJobs(user *models.User, from time.Time) (jobs []*AggregationJob
 	return jobs
 }
 
+func (srv *AggregationService) IsLocked(userId string) bool {
+	aggregationLock.Lock()
+	defer aggregationLock.Unlock()
+	return srv.allInProgress || (srv.inProgress != nil && srv.inProgress.Contain(userId))
+}
+
 func (srv *AggregationService) lockUsers(userIds datastructure.Set[string]) error {
 	aggregationLock.Lock()
 	defer aggregationLock.Unlock()
+
+	if srv.inProgress == nil {
+		srv.inProgress = datastructure.New[string]()
+	}
+
+	if userIds == nil || userIds.IsEmpty() {
+		if srv.allInProgress || !srv.inProgress.IsEmpty() {
+			return errors.New("aggregation already in progress for at least of the request users")
+		}
+		srv.allInProgress = true
+		return nil
+	}
+
+	if srv.allInProgress {
+		return errors.New("aggregation already in progress for at least of the request users")
+	}
+
 	for uid := range userIds {
 		if srv.inProgress.Contain(uid) {
 			return errors.New("aggregation already in progress for at least of the request users")
@@ -254,6 +293,16 @@ func (srv *AggregationService) lockUsers(userIds datastructure.Set[string]) erro
 func (srv *AggregationService) unlockUsers(userIds datastructure.Set[string]) {
 	aggregationLock.Lock()
 	defer aggregationLock.Unlock()
+
+	if userIds == nil || userIds.IsEmpty() {
+		srv.allInProgress = false
+		return
+	}
+
+	if srv.inProgress == nil {
+		return
+	}
+
 	for uid := range userIds {
 		srv.inProgress.Delete(uid)
 	}

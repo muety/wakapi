@@ -799,7 +799,16 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 		countAfter, _ := h.heartbeatSrvc.CountByUser(user)
 		slog.Info("downloaded heartbeats for user", "count", count, "userID", user.ID, "importedCount", countAfter-countBefore)
 
-		h.regenerateSummaries(user)
+		if h.tryLockAggregation(user.ID) {
+			func() {
+				defer h.toggleAggregationLock(user.ID, false)
+				if err := h.regenerateSummaries(user); err != nil {
+					conf.Log().Request(r).Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
+				}
+			}()
+		} else {
+			conf.Log().Request(r).Warn("summary regeneration already in progress after import", "userID", user.ID)
+		}
 
 		if !user.HasData {
 			user.HasData = true
@@ -1268,7 +1277,10 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 func (h *SettingsHandler) tryLockAggregation(userId string) bool {
 	h.aggregationLocksMutex.Lock()
 	defer h.aggregationLocksMutex.Unlock()
-	if h.aggregationLocks[userId] {
+	if h.aggregationLocks == nil {
+		h.aggregationLocks = make(map[string]bool)
+	}
+	if h.aggregationLocks[userId] || (h.aggregationSrvc != nil && h.aggregationSrvc.IsLocked(userId)) {
 		return false
 	}
 	h.aggregationLocks[userId] = true
@@ -1278,6 +1290,9 @@ func (h *SettingsHandler) tryLockAggregation(userId string) bool {
 func (h *SettingsHandler) toggleAggregationLock(userId string, locked bool) {
 	h.aggregationLocksMutex.Lock()
 	defer h.aggregationLocksMutex.Unlock()
+	if h.aggregationLocks == nil {
+		h.aggregationLocks = make(map[string]bool)
+	}
 	h.aggregationLocks[userId] = locked
 }
 
@@ -1285,7 +1300,7 @@ func (h *SettingsHandler) isAggregationLocked(userId string) bool {
 	h.aggregationLocksMutex.RLock()
 	defer h.aggregationLocksMutex.RUnlock()
 	locked, _ := h.aggregationLocks[userId]
-	return locked
+	return locked || (h.aggregationSrvc != nil && h.aggregationSrvc.IsLocked(userId))
 }
 
 func getVal[T any](values *map[string]interface{}, key string, fallback T) T {
