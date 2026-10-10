@@ -179,7 +179,9 @@ func makeBulkResponse(results []*v1.HeartbeatCreationResult) *v1.HeartbeatRespon
 	return vm
 }
 
-// request-scoped, lazily populated cache for resolving heartbeat placeholders, not safe for concurrent use
+// Request-scoped, lazily populated cache for resolving heartbeat placeholders, not safe for concurrent use.
+// Note that even after adding service-level caching, this cache still makes sense:
+// if a batch of 30 heartbeats is processed (in fillPlaceholders()) while service cache is cold, it would fire 30 identical queries, while this one shrinks it to one
 type placeholderCache struct {
 	user            *models.User
 	srv             services.IHeartbeatService
@@ -193,7 +195,7 @@ func newPlaceholderCache(user *models.User, srv services.IHeartbeatService) *pla
 
 func (c *placeholderCache) getLatest() *models.Heartbeat {
 	if c.latest == nil {
-		latest, err := c.srv.GetLatestByUser(c.user)
+		latest, err := c.srv.GetLatestByUser(c.user, false)
 		if err != nil {
 			return nil
 		}
@@ -206,7 +208,7 @@ func (c *placeholderCache) getLatestByProject(project string) *models.Heartbeat 
 	if latest, ok := c.latestByProject[project]; ok {
 		return latest
 	}
-	latest, err := c.srv.GetLatestByFilters(c.user, models.NewFiltersWith(models.SummaryProject, project))
+	latest, err := c.srv.GetLatestByFilters(c.user, models.NewFiltersWith(models.SummaryProject, project), false)
 	if err != nil {
 		return nil
 	}

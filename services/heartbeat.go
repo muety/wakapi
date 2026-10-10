@@ -21,7 +21,7 @@ type HeartbeatService struct {
 	eventBus            *hub.Hub
 	repository          repositories.IHeartbeatRepository
 	languageMappingSrvc ILanguageMappingService
-	entityCacheLock     *sync.RWMutex
+	cacheLock           *sync.RWMutex
 }
 
 func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, languageMappingService ILanguageMappingService) *HeartbeatService {
@@ -31,7 +31,7 @@ func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, langua
 		eventBus:            config.EventBus(),
 		repository:          heartbeatRepo,
 		languageMappingSrvc: languageMappingService,
-		entityCacheLock:     &sync.RWMutex{},
+		cacheLock:           &sync.RWMutex{}, // if this turns out as a bottleneck, we might switch to per-user caches organized in a map
 	}
 
 	// using event hub is an unnecessary indirection here, however, we might
@@ -44,6 +44,7 @@ func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, langua
 			srv.cache.IncrementInt64(srv.countByUserCacheKey(heartbeat.UserID), 1) // increment doesn't update expiration time
 			srv.cache.IncrementInt64(srv.countTotalCacheKey(), 1)
 			srv.checkInvalidateRangeCache(heartbeat)
+			srv.updateLatestHeartbeatCache(heartbeat)
 		}
 	}(&sub1)
 
@@ -185,16 +186,61 @@ func (srv *HeartbeatService) StreamAllWithinByFilters(from, to time.Time, user *
 	return srv.augmentedAsync(c, languageMapping)
 }
 
-func (srv *HeartbeatService) GetLatestByUser(user *models.User) (*models.Heartbeat, error) {
-	return srv.repository.GetLatestByUser(user)
+func (srv *HeartbeatService) GetLatestByUser(user *models.User, skipCache bool) (*models.Heartbeat, error) {
+	// cached because repo query is expensive since there is no index on (user_id, project, time)
+	// adding an index isn't really worth it though, because this function is called from only a single place currently
+	cacheKey := srv.latestByUserCacheKey(user.ID)
+	if !skipCache {
+		if result, found := srv.cache.Get(cacheKey); found {
+			srv.cacheLock.RLock()
+			defer srv.cacheLock.RUnlock()
+			return result.(*models.Heartbeat), nil
+		}
+	}
+
+	heartbeat, err := srv.repository.GetLatestByUser(user)
+	if err != nil {
+		return nil, err
+	}
+
+	if heartbeat.ID > 0 {
+		srv.cacheLock.Lock()
+		defer srv.cacheLock.Unlock()
+		srv.cache.Set(cacheKey, cloneHeartbeat(heartbeat), cache.NoExpiration)
+	}
+	return heartbeat, nil
 }
 
 func (srv *HeartbeatService) GetLatestByOriginAndUser(origin string, user *models.User) (*models.Heartbeat, error) {
 	return srv.repository.GetLatestByOriginAndUser(origin, user)
 }
 
-func (srv *HeartbeatService) GetLatestByFilters(user *models.User, filters *models.Filters) (*models.Heartbeat, error) {
-	return srv.repository.GetLatestByFilters(user, srv.filtersToColumnMap(filters))
+func (srv *HeartbeatService) GetLatestByFilters(user *models.User, filters *models.Filters, skipCache bool) (*models.Heartbeat, error) {
+	columnMap := srv.filtersToColumnMap(filters)
+
+	// cached because see above (GetLatestByUser)
+	projectFilter, isSingleProjectFilter := isSingleProjectFilter(columnMap)
+	cacheKey := srv.latestByProjectCacheKey(user.ID, projectFilter)
+
+	if isSingleProjectFilter && !skipCache {
+		if result, found := srv.cache.Get(cacheKey); found {
+			srv.cacheLock.RLock()
+			defer srv.cacheLock.RUnlock()
+			return result.(*models.Heartbeat), nil
+		}
+	}
+
+	heartbeat, err := srv.repository.GetLatestByFilters(user, columnMap)
+	if err != nil {
+		return nil, err
+	}
+
+	if isSingleProjectFilter && heartbeat != nil && heartbeat.ID > 0 {
+		srv.cacheLock.Lock()
+		defer srv.cacheLock.Unlock()
+		srv.cache.Set(cacheKey, cloneHeartbeat(heartbeat), cache.NoExpiration)
+	}
+	return heartbeat, nil
 }
 
 func (srv *HeartbeatService) GetFirstAll() ([]*models.TimeByUser, error) {
@@ -242,8 +288,8 @@ func (srv *HeartbeatService) GetRangeByUser(user *models.User) (*models.RangeByU
 func (srv *HeartbeatService) GetEntitySetByUser(entityType uint8, userId string) ([]string, error) {
 	cacheKey := srv.getEntityUserCacheKey(entityType, userId)
 	if results, found := srv.cache.Get(cacheKey); found {
-		srv.entityCacheLock.RLock()
-		defer srv.entityCacheLock.RUnlock()
+		srv.cacheLock.RLock()
+		defer srv.cacheLock.RUnlock()
 		return results.(datastructure.Set[string]).Values(), nil
 	}
 
@@ -326,13 +372,21 @@ func (srv *HeartbeatService) getUserLastCacheKey(userId string) string {
 	return fmt.Sprintf("user_last_%s", userId)
 }
 
+func (srv *HeartbeatService) latestByUserCacheKey(userId string) string {
+	return fmt.Sprintf("latest_heartbeat_user_%s", userId)
+}
+
+func (srv *HeartbeatService) latestByProjectCacheKey(userId, project string) string {
+	return fmt.Sprintf("latest_heartbeat_project_%s_%s", userId, project)
+}
+
 func (srv *HeartbeatService) updateEntityUserCache(entityType uint8, entityKey string, userId string) {
 	cacheKey := srv.getEntityUserCacheKey(entityType, userId)
 	if entities, found := srv.cache.Get(cacheKey); found {
 		entitySet := entities.(datastructure.Set[string])
 
-		srv.entityCacheLock.Lock()
-		defer srv.entityCacheLock.Unlock()
+		srv.cacheLock.Lock()
+		defer srv.cacheLock.Unlock()
 
 		if !entitySet.Contain(entityKey) {
 			entitySet.Add(entityKey)
@@ -399,4 +453,41 @@ func (srv *HeartbeatService) checkInvalidateRangeCache(newHeartbeat *models.Hear
 	if found && newHeartbeat.Time.T().After(last.(time.Time)) {
 		srv.cache.Delete(keyLast)
 	}
+}
+
+// updateLatestHeartbeatCache keeps the latest heartbeat-cache entries along the user and (user, project) dimensions up to date, analogous to how checkInvalidateRangeCache
+// like updateEntityUserCache, it only refreshes entries that are already populated, rather than eagerly creating one for every heartbeat seen
+func (srv *HeartbeatService) updateLatestHeartbeatCache(newHeartbeat *models.Heartbeat) {
+	srv.refreshLatestCacheEntry(srv.latestByUserCacheKey(newHeartbeat.UserID), newHeartbeat)
+	srv.refreshLatestCacheEntry(srv.latestByProjectCacheKey(newHeartbeat.UserID, newHeartbeat.Project), newHeartbeat)
+}
+
+func (srv *HeartbeatService) refreshLatestCacheEntry(key string, newHeartbeat *models.Heartbeat) {
+	srv.cacheLock.Lock() // write lock throughout, as this is a read-modify-write operation
+	defer srv.cacheLock.Unlock()
+
+	cached, found := srv.cache.Get(key)
+	if !found {
+		return
+	}
+	if latest, ok := cached.(*models.Heartbeat); ok && newHeartbeat.Time.T().After(latest.Time.T()) {
+		srv.cache.Set(key, cloneHeartbeat(newHeartbeat), cache.NoExpiration)
+	}
+}
+
+// isSingleProjectFilter tells whether the given repository filter map consists of exactly one entry, which is a single project value
+func isSingleProjectFilter(columnMap map[string][]string) (string, bool) {
+	if len(columnMap) != 1 {
+		return "", false
+	}
+	values, isProject := columnMap[models.GetEntityColumn(models.SummaryProject)]
+	if !isProject || len(values) != 1 {
+		return "", false
+	}
+	return values[0], true
+}
+
+func cloneHeartbeat(heartbeat *models.Heartbeat) *models.Heartbeat {
+	clone := *heartbeat
+	return &clone
 }

@@ -153,7 +153,7 @@ func TestHeartbeatHandler_Post_Placeholders(t *testing.T) {
 
 		rec := httptest.NewRecorder()
 
-		heartbeatServiceMock.On("GetLatestByFilters", mock.Anything, mock.Anything).Return(&models.Heartbeat{Branch: "last-branch", Language: "last-language"}, nil).Times(2)
+		heartbeatServiceMock.On("GetLatestByFilters", mock.Anything, mock.Anything, false).Return(&models.Heartbeat{Branch: "last-branch", Language: "last-language"}, nil).Times(2)
 		heartbeatServiceMock.On("InsertBatch", mock.MatchedBy(func(hbs []*models.Heartbeat) bool {
 			return len(hbs) == 3 &&
 				hbs[0].Branch == "last-branch" && hbs[0].Language == "last-language" &&
@@ -171,10 +171,10 @@ func TestHeartbeatHandler_Post_Placeholders(t *testing.T) {
 func Test_fillPlaceholders(t *testing.T) {
 	newMock := func() *mocks.HeartbeatServiceMock {
 		m := new(mocks.HeartbeatServiceMock)
-		m.On("GetLatestByUser", mock.Anything).Return(&models.Heartbeat{
+		m.On("GetLatestByUser", mock.Anything, mock.Anything).Return(&models.Heartbeat{
 			Project: "project1",
 		}, nil)
-		m.On("GetLatestByFilters", mock.Anything, mock.Anything).Return(&models.Heartbeat{
+		m.On("GetLatestByFilters", mock.Anything, mock.Anything, mock.Anything).Return(&models.Heartbeat{
 			Project:  "must not be used",
 			Branch:   "replaced2",
 			Language: "replaced3",

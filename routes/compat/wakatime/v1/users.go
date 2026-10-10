@@ -49,7 +49,7 @@ func (h *UsersHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := v1.NewFromUser(wakapiUser)
-	if hb, err := h.heartbeatSrvc.GetLatestByUser(wakapiUser); err == nil {
+	if hb, err := h.heartbeatSrvc.GetLatestByUser(wakapiUser, false); err == nil {
 		user = user.WithLatestHeartbeat(hb)
 	} else {
 		conf.Log().Request(r).Error("error occurred", "error", err.Error())

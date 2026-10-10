@@ -52,11 +52,11 @@ func TestUsersHandler_Get(t *testing.T) {
 	userServiceMock.On("GetUserByKey", "basic-user-api-key", false).Return(basicUser, nil)
 
 	heartbeatServiceMock := new(mocks.HeartbeatServiceMock)
-	heartbeatServiceMock.On("GetLatestByUser", adminUser).Return(&models.Heartbeat{
+	heartbeatServiceMock.On("GetLatestByUser", adminUser, false).Return(&models.Heartbeat{
 		CreatedAt: models.CustomTime(time.Date(2022, 2, 2, 22, 22, 22, 5, time.UTC)),
 		Time:      models.CustomTime(time.Date(2022, 2, 2, 22, 22, 22, 6, time.UTC)),
 	}, nil)
-	heartbeatServiceMock.On("GetLatestByUser", basicUser).Return(&models.Heartbeat{
+	heartbeatServiceMock.On("GetLatestByUser", basicUser, false).Return(&models.Heartbeat{
 		CreatedAt: models.CustomTime(time.Date(2022, 2, 2, 22, 22, 22, 5, time.UTC)),
 		Time:      models.CustomTime(time.Date(2022, 2, 2, 22, 22, 22, 6, time.UTC)),
 	}, nil)
