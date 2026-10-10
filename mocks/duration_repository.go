@@ -44,6 +44,9 @@ func (m *DurationRepositoryMock) StreamByUserBatched(u *models.User, i int) (cha
 
 func (m *DurationRepositoryMock) GetLatestByUser(u *models.User) (*models.Duration, error) {
 	args := m.Called(u)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*models.Duration), args.Error(1)
 }
 

@@ -86,7 +86,7 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 	// while durations themselves store the interval (aka. heartbeats timeout) they were computed for, we currently don't support actually storing durations at different intervals
 	// if an interval different from the user's preference is requested, recompute durations live from heartbeats and skip cache
 	effectiveTimeout := getEffectiveTimeout(user, customTimeout)
-	skipCache = skipCache || effectiveTimeout != user.HeartbeatsTimeout() || filters.IsProjectDetails() // related: https://github.com/muety/wakapi/issues/876
+	skipCache = skipCache || effectiveTimeout != user.HeartbeatsTimeout()
 
 	// recompute live
 	if skipCache {
@@ -108,21 +108,44 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 
 	// fill missing
 	// for simplicity, we assume no missing durations before 'from' or between 'from' and 'to'
-	if len(cached) == 0 || cached.Last().TimeEnd().Before(to) {
-		from := from
-		if len(cached) > 0 {
-			from = cached.Last().TimeEnd().Add(time.Second)
+	var latestTime time.Time
+	if filters != nil && !filters.IsEmpty() {
+		if latest, err := srv.repository.GetLatestByUser(user); err == nil && latest != nil {
+			latestTime = latest.TimeEnd()
+		} else if len(cached) > 0 {
+			latestTime = cached.Last().TimeEnd()
 		}
+	} else if len(cached) > 0 {
+		latestTime = cached.Last().TimeEnd()
+	}
 
-		missing, err := srv.getLive(from, to, user, effectiveTimeout, filters.IsProjectDetails())
-		if err != nil {
-			return nil, err
+	if latestTime.IsZero() {
+		if len(cached) == 0 {
+			missing, err := srv.getLive(from, to, user, effectiveTimeout, filters.IsProjectDetails())
+			if err != nil {
+				return nil, err
+			}
+
+			languageMappings, _ := srv.languageMappingService.ResolveByUser(user.ID)
+			durations = missing.Augmented(languageMappings)
+		} else {
+			durations = append(durations, cached...)
 		}
+	} else if latestTime.Before(to) {
+		missingFrom := condition.Ternary(from.After(latestTime), from, latestTime.Add(time.Second))
+		if missingFrom.Before(to) {
+			missing, err := srv.getLive(missingFrom, to, user, effectiveTimeout, filters.IsProjectDetails())
+			if err != nil {
+				return nil, err
+			}
 
-		languageMappings, _ := srv.languageMappingService.ResolveByUser(user.ID)
-		durations, err = srv.merge(cached, missing.Augmented(languageMappings), user)
-		if err != nil {
-			return nil, err
+			languageMappings, _ := srv.languageMappingService.ResolveByUser(user.ID)
+			durations, err = srv.merge(cached, missing.Augmented(languageMappings), user)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			durations = append(durations, cached...)
 		}
 	} else {
 		durations = append(durations, cached...)
