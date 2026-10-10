@@ -84,6 +84,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 	parsedHeader, _ := utils.ParseUserAgent(userAgentHeader)
 	machineNameHeader := r.Header.Get("X-Machine-Name")
 
+	phCache := newPlaceholderCache(user, h.heartbeatSrvc)
 	creationResults := make(v1.HeartbeatCreationResults, len(heartbeats))
 	validHeartbeats := make([]*models.Heartbeat, 0, len(heartbeats))
 
@@ -116,7 +117,7 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 			aiModel = hb.AIModel
 		}
 
-		hb = fillPlaceholders(hb, user, h.heartbeatSrvc)
+		hb = fillPlaceholders(hb, phCache)
 
 		hb.User = user
 		hb.UserID = user.ID
@@ -178,8 +179,43 @@ func makeBulkResponse(results []*v1.HeartbeatCreationResult) *v1.HeartbeatRespon
 	return vm
 }
 
+// request-scoped, lazily populated cache for resolving heartbeat placeholders, not safe for concurrent use
+type placeholderCache struct {
+	user            *models.User
+	srv             services.IHeartbeatService
+	latest          *models.Heartbeat
+	latestByProject map[string]*models.Heartbeat
+}
+
+func newPlaceholderCache(user *models.User, srv services.IHeartbeatService) *placeholderCache {
+	return &placeholderCache{user: user, srv: srv, latestByProject: make(map[string]*models.Heartbeat)}
+}
+
+func (c *placeholderCache) getLatest() *models.Heartbeat {
+	if c.latest == nil {
+		latest, err := c.srv.GetLatestByUser(c.user)
+		if err != nil {
+			return nil
+		}
+		c.latest = latest
+	}
+	return c.latest
+}
+
+func (c *placeholderCache) getLatestByProject(project string) *models.Heartbeat {
+	if latest, ok := c.latestByProject[project]; ok {
+		return latest
+	}
+	latest, err := c.srv.GetLatestByFilters(c.user, models.NewFiltersWith(models.SummaryProject, project))
+	if err != nil {
+		return nil
+	}
+	c.latestByProject[project] = latest
+	return latest
+}
+
 // inplace!
-func fillPlaceholders(hb *models.Heartbeat, user *models.User, srv services.IHeartbeatService) *models.Heartbeat {
+func fillPlaceholders(hb *models.Heartbeat, cache *placeholderCache) *models.Heartbeat {
 	// wakatime has a special keyword that indicates to use the most recent project for a given heartbeat
 	// in chrome, the browser extension sends this keyword for (most?) heartbeats
 	// presumably the idea behind this is that if you're coding, your browsing activity will likely also relate to that coding project
@@ -191,21 +227,21 @@ func fillPlaceholders(hb *models.Heartbeat, user *models.User, srv services.IHea
 
 	if hb.IsPlaceholderProject() {
 		// get project of latest heartbeat by user
-		if latest, err := srv.GetLatestByUser(user); latest != nil && err == nil {
+		if latest := cache.getLatest(); latest != nil {
 			hb.Project = latest.Project
 		}
 	}
 
 	if hb.IsPlaceholderLanguage() {
 		// get language of latest heartbeat by user and project
-		if latest, err := srv.GetLatestByFilters(user, models.NewFiltersWith(models.SummaryProject, hb.Project)); latest != nil && err == nil {
+		if latest := cache.getLatestByProject(hb.Project); latest != nil {
 			hb.Language = latest.Language
 		}
 	}
 
 	if hb.IsPlaceholderBranch() {
 		// get branch of latest heartbeat by user and project
-		if latest, err := srv.GetLatestByFilters(user, models.NewFiltersWith(models.SummaryProject, hb.Project)); latest != nil && err == nil {
+		if latest := cache.getLatestByProject(hb.Project); latest != nil {
 			hb.Branch = latest.Branch
 		}
 	}
