@@ -7,19 +7,42 @@ import (
 	"time"
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
-	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestAggregationService_GenerateUserJobs_Timezones(t *testing.T) {
+type AggregationServiceTestSuite struct {
+	suite.Suite
+	UserService      *mocks.UserServiceMock
+	SummaryService   *mocks.SummaryServiceMock
+	HeartbeatService *mocks.HeartbeatServiceMock
+	DurationService  *mocks.DurationServiceMock
+}
+
+func (suite *AggregationServiceTestSuite) SetupSuite() {
+	config.Set(config.Empty())
+}
+
+func (suite *AggregationServiceTestSuite) BeforeTest(suiteName, testName string) {
+	suite.UserService = new(mocks.UserServiceMock)
+	suite.SummaryService = new(mocks.SummaryServiceMock)
+	suite.HeartbeatService = new(mocks.HeartbeatServiceMock)
+	suite.DurationService = new(mocks.DurationServiceMock)
+}
+
+func TestAggregationServiceTestSuite(t *testing.T) {
+	suite.Run(t, new(AggregationServiceTestSuite))
+}
+
+func (suite *AggregationServiceTestSuite) TestAggregationService_GenerateUserJobs_Timezones() {
 	nyTz, err := time.LoadLocation("America/New_York")
-	assert.NoError(t, err)
+	suite.Require().NoError(err)
 	tokyoTz, err := time.LoadLocation("Asia/Tokyo")
-	assert.NoError(t, err)
+	suite.Require().NoError(err)
 
 	now := time.Now()
 
@@ -52,7 +75,7 @@ func TestAggregationService_GenerateUserJobs_Timezones(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		suite.T().Run(tt.name, func(t *testing.T) {
 			jobs := generateUserJobs(tt.user, fromUTC)
 			assert.NotEmpty(t, jobs)
 
@@ -93,104 +116,98 @@ func TestAggregationService_GenerateUserJobs_Timezones(t *testing.T) {
 	}
 }
 
-func TestAggregationService_GetStartOfToday(t *testing.T) {
+func (suite *AggregationServiceTestSuite) TestAggregationService_GetStartOfToday() {
 	tokyoTz, err := time.LoadLocation("Asia/Tokyo")
-	assert.NoError(t, err)
+	suite.Require().NoError(err)
 
 	nyTz, err := time.LoadLocation("America/New_York")
-	assert.NoError(t, err)
+	suite.Require().NoError(err)
 
 	todayTokyo := getStartOfToday(tokyoTz)
 	todayNY := getStartOfToday(nyTz)
 
-	assert.Equal(t, 0, todayTokyo.Hour())
-	assert.Equal(t, 0, todayTokyo.Minute())
-	assert.Equal(t, 0, todayTokyo.Second())
-	assert.Equal(t, "Asia/Tokyo", todayTokyo.Location().String())
+	suite.Equal(0, todayTokyo.Hour())
+	suite.Equal(0, todayTokyo.Minute())
+	suite.Equal(0, todayTokyo.Second())
+	suite.Equal("Asia/Tokyo", todayTokyo.Location().String())
 
-	assert.Equal(t, 0, todayNY.Hour())
-	assert.Equal(t, 0, todayNY.Minute())
-	assert.Equal(t, 0, todayNY.Second())
-	assert.Equal(t, "America/New_York", todayNY.Location().String())
+	suite.Equal(0, todayNY.Hour())
+	suite.Equal(0, todayNY.Minute())
+	suite.Equal(0, todayNY.Second())
+	suite.Equal("America/New_York", todayNY.Location().String())
 }
 
-func TestAggregationService_LockUsers_EmptySetLocksAll(t *testing.T) {
-	srv := &AggregationService{
-		inProgress: datastructure.New[string](),
-	}
+func (suite *AggregationServiceTestSuite) TestAggregationService_LockUsers_EmptySetLocksAll() {
+	sut := NewAggregationService(suite.UserService, suite.SummaryService, suite.HeartbeatService, suite.DurationService)
 
-	assert.False(t, srv.IsLocked("u1"))
-	assert.False(t, srv.IsLocked("u2"))
+	suite.False(sut.IsLocked("u1"))
+	suite.False(sut.IsLocked("u2"))
 
-	err := srv.lockUsers(datastructure.New[string]())
-	assert.NoError(t, err)
-	assert.True(t, srv.IsLocked("u1"))
-	assert.True(t, srv.IsLocked("u2"))
+	err := sut.lockUsers(datastructure.New[string]())
+	suite.NoError(err)
+	suite.True(sut.IsLocked("u1"))
+	suite.True(sut.IsLocked("u2"))
 
-	err = srv.lockUsers(datastructure.New[string]())
-	assert.Error(t, err)
+	err = sut.lockUsers(datastructure.New[string]())
+	suite.Error(err)
 
-	err = srv.lockUsers(datastructure.New("u1"))
-	assert.Error(t, err)
+	err = sut.lockUsers(datastructure.New("u1"))
+	suite.Error(err)
 
-	srv.unlockUsers(datastructure.New[string]())
-	assert.False(t, srv.IsLocked("u1"))
-	assert.False(t, srv.IsLocked("u2"))
+	sut.unlockUsers(datastructure.New[string]())
+	suite.False(sut.IsLocked("u1"))
+	suite.False(sut.IsLocked("u2"))
 
-	err = srv.lockUsers(nil)
-	assert.NoError(t, err)
-	assert.True(t, srv.IsLocked("u1"))
-	assert.True(t, srv.IsLocked("u2"))
+	err = sut.lockUsers(nil)
+	suite.NoError(err)
+	suite.True(sut.IsLocked("u1"))
+	suite.True(sut.IsLocked("u2"))
 
-	srv.unlockUsers(nil)
-	assert.False(t, srv.IsLocked("u1"))
-	assert.False(t, srv.IsLocked("u2"))
+	sut.unlockUsers(nil)
+	suite.False(sut.IsLocked("u1"))
+	suite.False(sut.IsLocked("u2"))
 }
 
-func TestAggregationService_LockUsers_SpecificUsers(t *testing.T) {
-	srv := &AggregationService{
-		inProgress: datastructure.New[string](),
-	}
+func (suite *AggregationServiceTestSuite) TestAggregationService_LockUsers_SpecificUsers() {
+	sut := NewAggregationService(suite.UserService, suite.SummaryService, suite.HeartbeatService, suite.DurationService)
 
-	err := srv.lockUsers(datastructure.New("u1"))
-	assert.NoError(t, err)
-	assert.True(t, srv.IsLocked("u1"))
-	assert.False(t, srv.IsLocked("u2"))
+	err := sut.lockUsers(datastructure.New("u1"))
+	suite.NoError(err)
+	suite.True(sut.IsLocked("u1"))
+	suite.False(sut.IsLocked("u2"))
 
-	err = srv.lockUsers(datastructure.New("u1"))
-	assert.Error(t, err)
+	err = sut.lockUsers(datastructure.New("u1"))
+	suite.Error(err)
 
-	err = srv.lockUsers(datastructure.New[string]())
-	assert.Error(t, err)
-	err = srv.lockUsers(nil)
-	assert.Error(t, err)
+	err = sut.lockUsers(datastructure.New[string]())
+	suite.Error(err)
+	err = sut.lockUsers(nil)
+	suite.Error(err)
 
-	err = srv.lockUsers(datastructure.New("u2"))
-	assert.NoError(t, err)
-	assert.True(t, srv.IsLocked("u1"))
-	assert.True(t, srv.IsLocked("u2"))
+	err = sut.lockUsers(datastructure.New("u2"))
+	suite.NoError(err)
+	suite.True(sut.IsLocked("u1"))
+	suite.True(sut.IsLocked("u2"))
 
-	srv.unlockUsers(datastructure.New("u1"))
-	assert.False(t, srv.IsLocked("u1"))
-	assert.True(t, srv.IsLocked("u2"))
+	sut.unlockUsers(datastructure.New("u1"))
+	suite.False(sut.IsLocked("u1"))
+	suite.True(sut.IsLocked("u2"))
 
-	err = srv.lockUsers(datastructure.New[string]())
-	assert.Error(t, err)
+	err = sut.lockUsers(datastructure.New[string]())
+	suite.Error(err)
 
-	srv.unlockUsers(datastructure.New("u2"))
-	assert.False(t, srv.IsLocked("u2"))
+	sut.unlockUsers(datastructure.New("u2"))
+	suite.False(sut.IsLocked("u2"))
 
-	err = srv.lockUsers(datastructure.New[string]())
-	assert.NoError(t, err)
-	assert.True(t, srv.IsLocked("u1"))
-	assert.True(t, srv.IsLocked("u2"))
-	srv.unlockUsers(datastructure.New[string]())
+	err = sut.lockUsers(datastructure.New[string]())
+	suite.NoError(err)
+	suite.True(sut.IsLocked("u1"))
+	suite.True(sut.IsLocked("u2"))
+	sut.unlockUsers(datastructure.New[string]())
 }
 
-func TestAggregationService_LockUsers_ConcurrentMutualExclusion(t *testing.T) {
-	srv := &AggregationService{
-		inProgress: datastructure.New[string](),
-	}
+func (suite *AggregationServiceTestSuite) TestAggregationService_LockUsers_ConcurrentMutualExclusion() {
+	sut := NewAggregationService(suite.UserService, suite.SummaryService, suite.HeartbeatService, suite.DurationService)
 
 	const goroutines = 50
 	var successCount atomic.Int32
@@ -200,24 +217,22 @@ func TestAggregationService_LockUsers_ConcurrentMutualExclusion(t *testing.T) {
 	for i := 0; i < goroutines; i++ {
 		go func() {
 			defer wg.Done()
-			if err := srv.lockUsers(datastructure.New("u1")); err == nil {
+			if err := sut.lockUsers(datastructure.New("u1")); err == nil {
 				successCount.Add(1)
 			}
 		}()
 	}
 	wg.Wait()
 
-	assert.Equal(t, int32(1), successCount.Load())
-	assert.True(t, srv.IsLocked("u1"))
+	suite.Equal(int32(1), successCount.Load())
+	suite.True(sut.IsLocked("u1"))
 
-	srv.unlockUsers(datastructure.New("u1"))
-	assert.False(t, srv.IsLocked("u1"))
+	sut.unlockUsers(datastructure.New("u1"))
+	suite.False(sut.IsLocked("u1"))
 }
 
-func TestAggregationService_LockUsers_ConcurrentGlobalVersusIndividual(t *testing.T) {
-	srv := &AggregationService{
-		inProgress: datastructure.New[string](),
-	}
+func (suite *AggregationServiceTestSuite) TestAggregationService_LockUsers_ConcurrentGlobalVersusIndividual() {
+	sut := NewAggregationService(suite.UserService, suite.SummaryService, suite.HeartbeatService, suite.DurationService)
 
 	const total = 50
 	var globalSuccess atomic.Int32
@@ -229,14 +244,14 @@ func TestAggregationService_LockUsers_ConcurrentGlobalVersusIndividual(t *testin
 		if i%2 == 0 {
 			go func() {
 				defer wg.Done()
-				if err := srv.lockUsers(datastructure.New[string]()); err == nil {
+				if err := sut.lockUsers(datastructure.New[string]()); err == nil {
 					globalSuccess.Add(1)
 				}
 			}()
 		} else {
 			go func() {
 				defer wg.Done()
-				if err := srv.lockUsers(datastructure.New("u1")); err == nil {
+				if err := sut.lockUsers(datastructure.New("u1")); err == nil {
 					individualSuccess.Add(1)
 				}
 			}()
@@ -245,55 +260,39 @@ func TestAggregationService_LockUsers_ConcurrentGlobalVersusIndividual(t *testin
 	wg.Wait()
 
 	if globalSuccess.Load() > 0 {
-		assert.Equal(t, int32(1), globalSuccess.Load())
-		assert.Equal(t, int32(0), individualSuccess.Load())
-		srv.unlockUsers(datastructure.New[string]())
+		suite.Equal(int32(1), globalSuccess.Load())
+		suite.Equal(int32(0), individualSuccess.Load())
+		sut.unlockUsers(datastructure.New[string]())
 	} else {
-		assert.Equal(t, int32(1), individualSuccess.Load())
-		assert.Equal(t, int32(0), globalSuccess.Load())
-		srv.unlockUsers(datastructure.New("u1"))
+		suite.Equal(int32(1), individualSuccess.Load())
+		suite.Equal(int32(0), globalSuccess.Load())
+		sut.unlockUsers(datastructure.New("u1"))
 	}
 }
 
-func TestAggregationService_AggregateSummaries_WaitAndLock(t *testing.T) {
-	config.Set(config.Empty())
-	cfg := config.Get()
-
-	queueSummary := artifex.NewDispatcher(2, 64)
-	queueSummary.Start()
-	defer queueSummary.Stop()
-
-	queueDuration := artifex.NewDispatcher(2, 64)
-	queueDuration.Start()
-	defer queueDuration.Stop()
+func (suite *AggregationServiceTestSuite) TestAggregationService_AggregateSummaries_WaitAndLock() {
+	yesterdayMidnight := getStartOfToday(time.UTC).AddDate(0, 0, -1)
+	twoDaysAgoMidnight := yesterdayMidnight.AddDate(0, 0, -1)
 
 	testUser := &models.User{
 		ID:       "u_lock_test",
 		Location: "UTC",
 	}
 
-	mockUserSrvc := &mocks.UserServiceMock{}
-	mockSummarySrvc := &mocks.SummaryServiceMock{}
-	mockHeartbeatSrvc := &mocks.HeartbeatServiceMock{}
-	mockDurationSrvc := &mocks.DurationServiceMock{}
-
-	yesterdayMidnight := getStartOfToday(time.UTC).AddDate(0, 0, -1)
-	twoDaysAgoMidnight := yesterdayMidnight.AddDate(0, 0, -1)
-
-	mockUserSrvc.On("GetManyMapped").Return(map[string]*models.User{
+	suite.UserService.On("GetManyMapped").Return(map[string]*models.User{
 		"u_lock_test": testUser,
 	}, nil)
 
-	mockSummarySrvc.On("GetLatestByUser").Return([]*models.TimeByUser{
+	suite.SummaryService.On("GetLatestByUser").Return([]*models.TimeByUser{
 		{User: "u_lock_test", Time: models.CustomTime(twoDaysAgoMidnight)},
 	}, nil)
 
-	mockHeartbeatSrvc.On("GetFirstAll").Return([]*models.TimeByUser{}, nil)
+	suite.HeartbeatService.On("GetFirstAll").Return([]*models.TimeByUser{}, nil)
 
 	inJobChan := make(chan struct{}, 1)
 	finishJobChan := make(chan struct{})
 
-	mockSummarySrvc.On("Summarize", mock.Anything, mock.Anything, testUser, (*time.Duration)(nil), (*models.Filters)(nil)).
+	suite.SummaryService.On("Summarize", mock.Anything, mock.Anything, testUser, (*models.Filters)(nil), (*time.Duration)(nil)).
 		Run(func(args mock.Arguments) {
 			select {
 			case inJobChan <- struct{}{}:
@@ -303,67 +302,48 @@ func TestAggregationService_AggregateSummaries_WaitAndLock(t *testing.T) {
 		}).
 		Return(&models.Summary{UserID: "u_lock_test"}, nil)
 
-	mockSummarySrvc.On("Insert", mock.Anything).Return(nil)
+	suite.SummaryService.On("Insert", mock.Anything).Return(nil)
 
-	srv := &AggregationService{
-		config:                cfg,
-		userService:           mockUserSrvc,
-		summaryService:        mockSummarySrvc,
-		heartbeatService:      mockHeartbeatSrvc,
-		durationService:       mockDurationSrvc,
-		inProgress:            datastructure.New[string](),
-		queueSummaryWorkers:   queueSummary,
-		queuedDurationWorkers: queueDuration,
-	}
+	sut := NewAggregationService(suite.UserService, suite.SummaryService, suite.HeartbeatService, suite.DurationService)
 
 	aggDone := make(chan error, 1)
 	go func() {
-		aggDone <- srv.AggregateSummaries(datastructure.New("u_lock_test"), false)
+		aggDone <- sut.AggregateSummaries(datastructure.New("u_lock_test"), false)
 	}()
 
 	<-inJobChan
-	assert.True(t, srv.IsLocked("u_lock_test"))
+	suite.True(sut.IsLocked("u_lock_test"))
 
-	err := srv.lockUsers(datastructure.New("u_lock_test"))
-	assert.Error(t, err)
+	err := sut.lockUsers(datastructure.New("u_lock_test"))
+	suite.Error(err)
 
-	err = srv.AggregateSummaries(datastructure.New("u_lock_test"), false)
-	assert.Error(t, err)
+	err = sut.AggregateSummaries(datastructure.New("u_lock_test"), false)
+	suite.Error(err)
 
 	close(finishJobChan)
 
 	err = <-aggDone
-	assert.NoError(t, err)
-	assert.False(t, srv.IsLocked("u_lock_test"))
+	suite.NoError(err)
+	suite.False(sut.IsLocked("u_lock_test"))
 
-	mockSummarySrvc.AssertExpectations(t)
-	mockUserSrvc.AssertExpectations(t)
+	suite.SummaryService.AssertExpectations(suite.T())
+	suite.UserService.AssertExpectations(suite.T())
 }
 
-func TestAggregationService_AggregateDurations_WaitAndLock(t *testing.T) {
-	config.Set(config.Empty())
-	cfg := config.Get()
-
-	queueDuration := artifex.NewDispatcher(2, 64)
-	queueDuration.Start()
-	defer queueDuration.Stop()
-
+func (suite *AggregationServiceTestSuite) TestAggregationService_AggregateDurations_WaitAndLock() {
 	testUser := &models.User{
 		ID:       "u_dur_test",
 		Location: "UTC",
 	}
 
-	mockUserSrvc := &mocks.UserServiceMock{}
-	mockDurationSrvc := &mocks.DurationServiceMock{}
-
-	mockUserSrvc.On("GetManyMapped").Return(map[string]*models.User{
+	suite.UserService.On("GetManyMapped").Return(map[string]*models.User{
 		"u_dur_test": testUser,
 	}, nil)
 
 	inJobChan := make(chan struct{}, 1)
 	finishJobChan := make(chan struct{})
 
-	mockDurationSrvc.On("Regenerate", mock.Anything, true).
+	suite.DurationService.On("Regenerate", mock.Anything, true).
 		Run(func(args mock.Arguments) {
 			select {
 			case inJobChan <- struct{}{}:
@@ -373,31 +353,25 @@ func TestAggregationService_AggregateDurations_WaitAndLock(t *testing.T) {
 		}).
 		Return(nil)
 
-	srv := &AggregationService{
-		config:                cfg,
-		userService:           mockUserSrvc,
-		durationService:       mockDurationSrvc,
-		inProgress:            datastructure.New[string](),
-		queuedDurationWorkers: queueDuration,
-	}
+	sut := NewAggregationService(suite.UserService, suite.SummaryService, suite.HeartbeatService, suite.DurationService)
 
 	aggDone := make(chan error, 1)
 	go func() {
-		aggDone <- srv.AggregateDurations(datastructure.New("u_dur_test"))
+		aggDone <- sut.AggregateDurations(datastructure.New("u_dur_test"))
 	}()
 
 	<-inJobChan
-	assert.True(t, srv.IsLocked("u_dur_test"))
+	suite.True(sut.IsLocked("u_dur_test"))
 
-	err := srv.lockUsers(datastructure.New("u_dur_test"))
-	assert.Error(t, err)
+	err := sut.lockUsers(datastructure.New("u_dur_test"))
+	suite.Error(err)
 
 	close(finishJobChan)
 
 	err = <-aggDone
-	assert.NoError(t, err)
-	assert.False(t, srv.IsLocked("u_dur_test"))
+	suite.NoError(err)
+	suite.False(sut.IsLocked("u_dur_test"))
 
-	mockDurationSrvc.AssertExpectations(t)
-	mockUserSrvc.AssertExpectations(t)
+	suite.DurationService.AssertExpectations(suite.T())
+	suite.UserService.AssertExpectations(suite.T())
 }
