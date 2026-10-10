@@ -1,0 +1,29 @@
+package mocks
+
+import (
+	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
+	"github.com/stretchr/testify/mock"
+)
+
+type AggregationServiceMock struct {
+	mock.Mock
+}
+
+func (m *AggregationServiceMock) Schedule() {
+	m.Called()
+}
+
+func (m *AggregationServiceMock) AggregateSummaries(userIds datastructure.Set[string], includeDurations bool) error {
+	args := m.Called(userIds, includeDurations)
+	return args.Error(0)
+}
+
+func (m *AggregationServiceMock) AggregateDurations(userIds datastructure.Set[string]) error {
+	args := m.Called(userIds)
+	return args.Error(0)
+}
+
+func (m *AggregationServiceMock) IsLocked(userId string) bool {
+	args := m.Called(userId)
+	return args.Bool(0)
+}

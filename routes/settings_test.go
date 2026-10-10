@@ -8,46 +8,70 @@ import (
 	"sync/atomic"
 	"testing"
 
-	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/muety/wakapi/config"
+	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
-type stubAggregationService struct {
-	lockedUsers map[string]bool
-}
-
-func (s *stubAggregationService) Schedule() {}
-func (s *stubAggregationService) AggregateSummaries(u datastructure.Set[string], b bool) error { return nil }
-func (s *stubAggregationService) AggregateDurations(u datastructure.Set[string]) error { return nil }
-func (s *stubAggregationService) IsLocked(userId string) bool { return s.lockedUsers[userId] }
-
 type SettingsHandlerTestSuite struct {
 	suite.Suite
-	Cfg *config.Config
-	Sut *SettingsHandler
+	Cfg                    *config.Config
+	Sut                    *SettingsHandler
+	IsLockedMockCall       *mock.Call
+	UserService            *mocks.UserServiceMock
+	HeartbeatService       *mocks.HeartbeatServiceMock
+	DurationService        *mocks.DurationServiceMock
+	SummaryService         *mocks.SummaryServiceMock
+	AliasService           *mocks.AliasServiceMock
+	AggregationService     *mocks.AggregationServiceMock
+	LanguageMappingService *mocks.LanguageMappingServiceMock
+	ProjectLabelService    *mocks.ProjectLabelServiceMock
+	KeyValueService        *mocks.KeyValueServiceMock
+	MailService            *mocks.MailServiceMock
+	ApiKeyService          *mocks.MockApiKeyService
+	WebAuthnService        *mocks.WebAuthnServiceMock
 }
 
 func TestSettingsHandlerTestSuite(t *testing.T) {
 	suite.Run(t, new(SettingsHandlerTestSuite))
 }
 
-func (suite *SettingsHandlerTestSuite) SetupSuite() {
-}
-
-func (suite *SettingsHandlerTestSuite) TearDownSuite() {
-}
-
 func (suite *SettingsHandlerTestSuite) BeforeTest(suiteName, testName string) {
-	config.Set(config.Empty())
-	suite.Cfg = config.Get()
+	suite.Cfg = config.Empty()
 	suite.Cfg.Env = "production"
+	config.Set(suite.Cfg)
 
-	suite.Sut = &SettingsHandler{
-		config:           suite.Cfg,
-		aggregationLocks: make(map[string]bool),
-	}
+	suite.UserService = new(mocks.UserServiceMock)
+	suite.HeartbeatService = new(mocks.HeartbeatServiceMock)
+	suite.DurationService = new(mocks.DurationServiceMock)
+	suite.SummaryService = new(mocks.SummaryServiceMock)
+	suite.AliasService = new(mocks.AliasServiceMock)
+	suite.AggregationService = new(mocks.AggregationServiceMock)
+	suite.LanguageMappingService = new(mocks.LanguageMappingServiceMock)
+	suite.ProjectLabelService = new(mocks.ProjectLabelServiceMock)
+	suite.KeyValueService = new(mocks.KeyValueServiceMock)
+	suite.MailService = new(mocks.MailServiceMock)
+	suite.ApiKeyService = new(mocks.MockApiKeyService)
+	suite.WebAuthnService = new(mocks.WebAuthnServiceMock)
+
+	suite.Sut = NewSettingsHandler(
+		suite.UserService,
+		suite.HeartbeatService,
+		suite.DurationService,
+		suite.SummaryService,
+		suite.AliasService,
+		suite.AggregationService,
+		suite.LanguageMappingService,
+		suite.ProjectLabelService,
+		suite.KeyValueService,
+		suite.MailService,
+		suite.ApiKeyService,
+		suite.WebAuthnService,
+	)
+
+	suite.IsLockedMockCall = suite.AggregationService.On("IsLocked", mock.Anything).Return(false).Maybe()
 }
 
 func (suite *SettingsHandlerTestSuite) TestSettingsHandler_TryLockAggregation() {
@@ -57,7 +81,6 @@ func (suite *SettingsHandlerTestSuite) TestSettingsHandler_TryLockAggregation() 
 
 	suite.True(suite.Sut.tryLockAggregation(user))
 	suite.True(suite.Sut.isAggregationLocked(user))
-
 	suite.False(suite.Sut.tryLockAggregation(user))
 
 	suite.True(suite.Sut.tryLockAggregation("otherUser"))
@@ -70,10 +93,9 @@ func (suite *SettingsHandlerTestSuite) TestSettingsHandler_TryLockAggregation() 
 }
 
 func (suite *SettingsHandlerTestSuite) TestSettingsHandler_TryLockAggregation_ServiceLocked() {
-	stub := &stubAggregationService{
-		lockedUsers: map[string]bool{"serviceUser": true},
-	}
-	suite.Sut.aggregationSrvc = stub
+	suite.IsLockedMockCall.Unset()
+	suite.AggregationService.On("IsLocked", "serviceUser").Return(true).Maybe()
+	suite.AggregationService.On("IsLocked", mock.Anything).Return(false).Maybe()
 
 	suite.False(suite.Sut.tryLockAggregation("serviceUser"))
 	suite.True(suite.Sut.isAggregationLocked("serviceUser"))
@@ -88,7 +110,7 @@ func (suite *SettingsHandlerTestSuite) TestSettingsHandler_TryLockAggregation_Co
 	var wg sync.WaitGroup
 
 	wg.Add(goroutines)
-	for i := 0; i < goroutines; i++ {
+	for range goroutines {
 		go func() {
 			defer wg.Done()
 			if suite.Sut.tryLockAggregation(user) {
