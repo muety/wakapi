@@ -185,3 +185,20 @@ func (suite *FiltersTestSuite) TestFilters_WithProjectLabels() {
 	assert.Contains(suite.T(), sut2.Project, "anchr")
 	assert.Contains(suite.T(), sut2.Label, "oss")
 }
+
+func (suite *FiltersTestSuite) TestFilters_IsProjectDetails() {
+	var nilFilters *Filters
+	assert.False(suite.T(), nilFilters.IsProjectDetails())
+
+	emptyFilters := &Filters{}
+	assert.False(suite.T(), emptyFilters.IsProjectDetails())
+
+	projectFilters := NewFiltersWith(SummaryProject, "wakapi")
+	assert.True(suite.T(), projectFilters.IsProjectDetails())
+
+	languageFilters := NewFiltersWith(SummaryLanguage, "go")
+	assert.False(suite.T(), languageFilters.IsProjectDetails())
+
+	filteredOnlyProject := NewFiltersWith(SummaryProject, "wakapi").WithSelectFilteredOnly()
+	assert.False(suite.T(), filteredOnlyProject.IsProjectDetails())
+}

@@ -1,9 +1,10 @@
 package models
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSummary_FillMissing(t *testing.T) {
@@ -363,6 +364,13 @@ func TestSummaryParams_IsProjectDetails(t *testing.T) {
 		}
 
 		assert.Len(t, sut.Filters.Project, 3)
+		assert.False(t, sut.IsProjectDetails())
+	})
+
+	t.Run("single project with select filtered only", func(t *testing.T) {
+		sut := &SummaryParams{
+			Filters: (&Filters{Project: []string{"wakapi"}}).WithSelectFilteredOnly(),
+		}
 		assert.False(t, sut.IsProjectDetails())
 	})
 }

@@ -323,6 +323,8 @@ func (f *Filters) WithProjectLabels(resolve ProjectLabelReverseResolver) *Filter
 	return f
 }
 
+// IsProjectDetails indicates whether the filters request a project details view (which requires fine-grained entity and branch breakdowns).
+// If SelectFilteredOnly is true (e.g. badge requests or all-time project summary API calls), the caller only requires the aggregated total for the project and drops other entity types, so no actual entity-level breakdown is required.
 func (f *Filters) IsProjectDetails() bool {
-	return f != nil && f.Project != nil && f.Project.Exists()
+	return f != nil && !f.SelectFilteredOnly && f.Project != nil && f.Project.Exists()
 }

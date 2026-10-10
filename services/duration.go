@@ -105,27 +105,39 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 		config.Log().Error("failed to get cached durations", "user", user.ID, "from", from, "to", to, "error", err)
 		cached = models.Durations{}
 	}
+	durations = cached
 
 	// fill missing
 	// for simplicity, we assume no missing durations before 'from' or between 'from' and 'to'
-	if len(cached) == 0 || cached.Last().TimeEnd().Before(to) {
-		from := from
-		if len(cached) > 0 {
-			from = cached.Last().TimeEnd().Add(time.Second)
+	latestTime := srv.getLatestTime(user, cached, filters)
+	var missingFrom time.Time
+	if latestTime.IsZero() {
+		if len(cached) == 0 {
+			missingFrom = from // everything's missing, recompute everything live from start to end
 		}
+	} else if latestTime.Before(to) {
+		missingFrom = condition.Ternary(from.After(latestTime), from, latestTime.Add(time.Second)) // some parts are missing
+	} else {
+		//nothing missing, cache is complete
+	}
 
-		missing, err := srv.getLive(from, to, user, effectiveTimeout, filters.IsProjectDetails())
+	if !missingFrom.IsZero() && missingFrom.Before(to) {
+		missing, err := srv.getLive(missingFrom, to, user, effectiveTimeout, filters.IsProjectDetails())
 		if err != nil {
 			return nil, err
 		}
 
 		languageMappings, _ := srv.languageMappingService.ResolveByUser(user.ID)
-		durations, err = srv.merge(cached, missing.Augmented(languageMappings), user)
-		if err != nil {
-			return nil, err
+		augmented := missing.Augmented(languageMappings)
+
+		if len(cached) == 0 {
+			durations = augmented
+		} else {
+			durations, err = srv.merge(cached, augmented, user)
+			if err != nil {
+				return nil, err
+			}
 		}
-	} else {
-		durations = append(durations, cached...)
 	}
 
 	return srv.filter(durations, user, filters), nil
@@ -197,6 +209,18 @@ func (srv *DurationService) DeleteByUserBefore(user *models.User, t time.Time) e
 
 func (srv *DurationService) DeleteByUserAfter(user *models.User, t time.Time) error {
 	return srv.repository.DeleteByUserAfter(user, t)
+}
+
+func (srv *DurationService) getLatestTime(user *models.User, existingDurations models.Durations, filters *models.Filters) time.Time {
+	if filters != nil && !filters.IsEmpty() {
+		if latest, err := srv.repository.GetLatestByUser(user); err == nil && latest != nil {
+			return latest.TimeEnd()
+		}
+	}
+	if len(existingDurations) > 0 {
+		return existingDurations.Last().TimeEnd()
+	}
+	return time.Time{}
 }
 
 func (srv *DurationService) getCached(from, to time.Time, user *models.User, filters *models.Filters) (models.Durations, error) {

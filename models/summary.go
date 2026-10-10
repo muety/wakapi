@@ -446,8 +446,9 @@ func (s *SummaryParams) HasFilters() bool {
 	return s.Filters != nil && !s.Filters.IsEmpty()
 }
 
+// IsProjectDetails indicates whether the summary parameters request a project details view.
 func (s *SummaryParams) IsProjectDetails() bool {
-	if !s.HasFilters() || s.Filters.EntityCount() > 1 {
+	if !s.HasFilters() || s.Filters.EntityCount() > 1 || s.Filters.SelectFilteredOnly {
 		return false
 	}
 	_, entity, filters := s.Filters.One()
