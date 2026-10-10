@@ -340,14 +340,14 @@ func (srv *DurationService) merge(d1, d2 models.Durations, user *models.User) (m
 		} else {
 			middleLeft.Duration += diff
 			middleLeft.Hashed()
-			merged = append(merged, middleLeft) // left is extended, right is kept
+			merged = append(merged, middleLeft, middleRight) // left is extended, right is kept
 		}
 	} else {
 		merged = append(merged, middleLeft, middleRight) // both are kept as is
 	}
 
 	if len(d2) > 1 {
-		merged = append(merged, d2[1:len(d2)-1]...)
+		merged = append(merged, d2[1:]...)
 	}
 	return merged, nil
 }

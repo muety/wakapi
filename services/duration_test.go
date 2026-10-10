@@ -771,6 +771,219 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_SameDayTimezone()
 	assert.Len(suite.T(), durationsMidnight, 2)
 }
 
+func (suite *DurationServiceTestSuite) TestDurationService_Get_Filter_Cached_TailRecovery() {
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
+
+	from := suite.TestStartTime.Add(-24 * time.Hour)
+	to := suite.TestStartTime.Add(2 * time.Hour)
+
+	cachedDurations := []*models.Duration{
+		{
+			UserID:   TestUserId,
+			Project:  TestProject1,
+			Language: TestLanguageGo,
+			Time:     models.CustomTime(suite.TestStartTime),
+			Duration: 10 * time.Minute,
+		},
+	}
+	latestDuration := &models.Duration{
+		UserID:   TestUserId,
+		Project:  TestProject2,
+		Time:     models.CustomTime(suite.TestStartTime.Add(1 * time.Hour)),
+		Duration: 10 * time.Minute,
+	}
+
+	testFilters := models.NewFiltersWith(models.SummaryLanguage, TestLanguageGo)
+
+	suite.DurationRepository.On("GetAllWithinByFilters", from, to, suite.TestUser, mock.Anything).Return(cachedDurations, nil).Once()
+	suite.DurationRepository.On("GetLatestByUser", suite.TestUser).Return(latestDuration, nil).Once()
+
+	liveHeartbeat := &models.Heartbeat{
+		UserID:   TestUserId,
+		Project:  TestProject1,
+		Language: TestLanguageGo,
+		Time:     models.CustomTime(suite.TestStartTime.Add(1*time.Hour + 30*time.Minute)),
+	}
+	expectedMissingFrom := latestDuration.TimeEnd().Add(time.Second)
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", expectedMissingFrom, to, suite.TestUser, models.ExcludeFromDurations).
+		Return(streamSlice([]*models.Heartbeat{liveHeartbeat}), nil).Once()
+
+	durations, err := sut.Get(from, to, suite.TestUser, testFilters, nil, false)
+	assert.NoError(suite.T(), err)
+	assert.Len(suite.T(), durations, 2)
+	assert.Equal(suite.T(), TestLanguageGo, durations[0].Language)
+	assert.Equal(suite.T(), TestLanguageGo, durations[1].Language)
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_Get_Filter_Cached_NoLiveNeeded() {
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
+
+	from := suite.TestStartTime.Add(-24 * time.Hour)
+	to := suite.TestStartTime.Add(1 * time.Hour)
+
+	cachedDurations := []*models.Duration{
+		{
+			UserID:   TestUserId,
+			Project:  TestProject1,
+			Language: TestLanguageGo,
+			Time:     models.CustomTime(suite.TestStartTime),
+			Duration: 10 * time.Minute,
+		},
+	}
+	latestDuration := &models.Duration{
+		UserID:   TestUserId,
+		Project:  TestProject2,
+		Time:     models.CustomTime(suite.TestStartTime.Add(1 * time.Hour)),
+		Duration: 30 * time.Minute,
+	}
+
+	testFilters := models.NewFiltersWith(models.SummaryLanguage, TestLanguageGo)
+
+	suite.DurationRepository.On("GetAllWithinByFilters", from, to, suite.TestUser, mock.Anything).Return(cachedDurations, nil).Once()
+	suite.DurationRepository.On("GetLatestByUser", suite.TestUser).Return(latestDuration, nil).Once()
+
+	durations, err := sut.Get(from, to, suite.TestUser, testFilters, nil, false)
+	assert.NoError(suite.T(), err)
+	assert.Len(suite.T(), durations, 1)
+	assert.Equal(suite.T(), TestLanguageGo, durations[0].Language)
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_Get_Filter_Cached_EmptyCache_NoLiveNeeded() {
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
+
+	from := suite.TestStartTime.Add(-24 * time.Hour)
+	to := suite.TestStartTime.Add(1 * time.Hour)
+
+	latestDuration := &models.Duration{
+		UserID:   TestUserId,
+		Project:  TestProject2,
+		Time:     models.CustomTime(suite.TestStartTime.Add(1 * time.Hour)),
+		Duration: 30 * time.Minute,
+	}
+
+	testFilters := models.NewFiltersWith(models.SummaryLanguage, TestLanguageGo)
+
+	suite.DurationRepository.On("GetAllWithinByFilters", from, to, suite.TestUser, mock.Anything).Return([]*models.Duration{}, nil).Once()
+	suite.DurationRepository.On("GetLatestByUser", suite.TestUser).Return(latestDuration, nil).Once()
+
+	durations, err := sut.Get(from, to, suite.TestUser, testFilters, nil, false)
+	assert.NoError(suite.T(), err)
+	assert.Empty(suite.T(), durations)
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_Get_ProjectFilter_SelectFilteredOnly() {
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
+
+	from := suite.TestStartTime.Add(-24 * time.Hour)
+	to := suite.TestStartTime.Add(1 * time.Hour)
+
+	cachedDurations := []*models.Duration{
+		{
+			UserID:   TestUserId,
+			Project:  TestProject1,
+			Language: TestLanguageGo,
+			Time:     models.CustomTime(suite.TestStartTime),
+			Duration: 10 * time.Minute,
+		},
+	}
+	latestDuration := &models.Duration{
+		UserID:   TestUserId,
+		Project:  TestProject2,
+		Time:     models.CustomTime(suite.TestStartTime.Add(1 * time.Hour)),
+		Duration: 30 * time.Minute,
+	}
+
+	// SelectFilteredOnly indicates project total only, so skipCache is false and cached durations are used
+	testFilters := models.NewFiltersWith(models.SummaryProject, TestProject1).WithSelectFilteredOnly()
+
+	suite.DurationRepository.On("GetAllWithinByFilters", from, to, suite.TestUser, mock.Anything).Return(cachedDurations, nil).Once()
+	suite.DurationRepository.On("GetLatestByUser", suite.TestUser).Return(latestDuration, nil).Once()
+
+	durations, err := sut.Get(from, to, suite.TestUser, testFilters, nil, false)
+	assert.NoError(suite.T(), err)
+	assert.Len(suite.T(), durations, 1)
+	assert.Equal(suite.T(), TestProject1, durations[0].Project)
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_Merge() {
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
+
+	t0 := suite.TestStartTime
+	d1 := models.Durations{
+		(&models.Duration{
+			UserID:   TestUserId,
+			Project:  TestProject1,
+			Time:     models.CustomTime(t0),
+			Duration: 5 * time.Minute,
+		}).Hashed(),
+	}
+
+	// Case 1: multiple items in d2, ensure last item is NOT dropped
+	d2Multiple := models.Durations{
+		(&models.Duration{
+			UserID:   TestUserId,
+			Project:  TestProject2,
+			Time:     models.CustomTime(t0.Add(1 * time.Hour)),
+			Duration: 5 * time.Minute,
+		}).Hashed(),
+		(&models.Duration{
+			UserID:   TestUserId,
+			Project:  TestProject2,
+			Time:     models.CustomTime(t0.Add(2 * time.Hour)),
+			Duration: 5 * time.Minute,
+		}).Hashed(),
+		(&models.Duration{
+			UserID:   TestUserId,
+			Project:  TestProject2,
+			Time:     models.CustomTime(t0.Add(3 * time.Hour)),
+			Duration: 5 * time.Minute,
+		}).Hashed(),
+	}
+
+	merged, err := sut.merge(d1, d2Multiple, suite.TestUser)
+	assert.NoError(suite.T(), err)
+	assert.Len(suite.T(), merged, 4)
+	assert.Equal(suite.T(), t0.Add(3*time.Hour), merged[3].Time.T())
+
+	// Case 2: diff < timeout, different hash - ensure middleRight is NOT dropped
+	d2CloseDiffHash := models.Durations{
+		(&models.Duration{
+			UserID:   TestUserId,
+			Project:  TestProject2,
+			Time:     models.CustomTime(t0.Add(6 * time.Minute)), // 1 min after d1 ends
+			Duration: 5 * time.Minute,
+		}).Hashed(),
+		(&models.Duration{
+			UserID:   TestUserId,
+			Project:  TestProject2,
+			Time:     models.CustomTime(t0.Add(20 * time.Minute)),
+			Duration: 5 * time.Minute,
+		}).Hashed(),
+	}
+
+	merged2, err := sut.merge(d1, d2CloseDiffHash, suite.TestUser)
+	assert.NoError(suite.T(), err)
+	assert.Len(suite.T(), merged2, 3)
+	assert.Equal(suite.T(), 6*time.Minute, merged2[0].Duration)          // extended by 1 min
+	assert.Equal(suite.T(), TestProject2, merged2[1].Project)            // middleRight kept
+	assert.Equal(suite.T(), t0.Add(20*time.Minute), merged2[2].Time.T()) // d2[1] kept
+
+	// Case 3: diff < timeout, same hash - merged into single
+	d2CloseSameHash := models.Durations{
+		(&models.Duration{
+			UserID:   TestUserId,
+			Project:  TestProject1,
+			Time:     models.CustomTime(t0.Add(6 * time.Minute)),
+			Duration: 5 * time.Minute,
+		}).Hashed(),
+	}
+
+	merged3, err := sut.merge(d1, d2CloseSameHash, suite.TestUser)
+	assert.NoError(suite.T(), err)
+	assert.Len(suite.T(), merged3, 1)
+	assert.Equal(suite.T(), 11*time.Minute, merged3[0].Duration) // 5m + 1m gap + 5m
+}
+
 func (suite *DurationServiceTestSuite) createSut() (*DurationService, *hub.Hub) {
 	originalEventBus := config.EventBus()
 	defer config.SetEventBus(originalEventBus)
