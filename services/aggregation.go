@@ -26,7 +26,7 @@ type AggregationService struct {
 	heartbeatService      IHeartbeatService
 	durationService       IDurationService
 	inProgress            datastructure.Set[string]
-	allInProgress         bool
+	inProgressAll         bool
 	queueDefault          *artifex.Dispatcher
 	queueSummaryWorkers   *artifex.Dispatcher
 	queuedDurationWorkers *artifex.Dispatcher
@@ -65,7 +65,7 @@ func (srv *AggregationService) Schedule() {
 	}
 }
 
-// AggregateSummaries generates summaries for the given users. If includeDurations is true, it also regenerates durations from scratch.
+// AggregateSummaries generates summaries for the given users. If includeDurations is true, it also regenerates durations from scratch. Blocks until all done.
 func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[string], includeDurations bool) error {
 	if err := srv.lockUsers(userIds); err != nil {
 		return err
@@ -106,26 +106,27 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 	}
 
 	// Generate summary aggregation jobs
-	var allWg sync.WaitGroup
+	wgGlobal := &sync.WaitGroup{}
+
 	for _, user := range users {
 		u := *user
 		jobs := make([]*AggregationJob, 0)
-
-		durationsWg := &sync.WaitGroup{}
+		wg := &sync.WaitGroup{}
 
 		// regenerate durations for the user if requested
 		// generally not needed, because event listener in durations service will take care of generating new durations on a regular interval
 		if includeDurations {
-			durationsWg.Add(1)
-			allWg.Add(1)
+			wg.Add(1)
+			wgGlobal.Add(1)
+
 			if err := srv.queuedDurationWorkers.Dispatch(func() {
-				defer allWg.Done()
-				defer durationsWg.Done()
+				defer wgGlobal.Done()
+				defer wg.Done()
 				slog.Info("regenerating user durations as part of summary aggregation", "user", u.ID)
 				srv.durationService.Regenerate(&u, true)
 			}); err != nil {
-				durationsWg.Done()
-				allWg.Done()
+				wg.Done()
+				wgGlobal.Done()
 				config.Log().Error("failed to dispatch durations generation job", "userID", u.ID, "error", err)
 			}
 		}
@@ -156,22 +157,24 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 		// dispatch the jobs for current user
 		for _, jobRef := range jobs {
 			job := *jobRef
-			allWg.Add(1)
+			wgGlobal.Add(1)
+
 			if err := srv.queueSummaryWorkers.Dispatch(func() {
-				defer allWg.Done()
-				durationsWg.Wait()
+				defer wgGlobal.Done()
+				wg.Wait()
 				srv.process(job)
 			}); err != nil {
-				allWg.Done()
+				wgGlobal.Done()
 				config.Log().Error("failed to dispatch summary generation job", "userID", job.User.ID)
 			}
 		}
 	}
 
-	allWg.Wait()
+	wgGlobal.Wait()
 	return nil
 }
 
+// AggregateDurations generates durations for the given users. Blocks until all done.
 func (srv *AggregationService) AggregateDurations(userIds datastructure.Set[string]) (err error) {
 	if err := srv.lockUsers(userIds); err != nil {
 		return err
@@ -191,10 +194,12 @@ func (srv *AggregationService) AggregateDurations(userIds datastructure.Set[stri
 		return err
 	}
 
-	var wg sync.WaitGroup
+	wg := &sync.WaitGroup{}
+
 	for _, u := range users {
 		user := &(*u)
 		wg.Add(1)
+
 		if err := srv.queuedDurationWorkers.Dispatch(func() {
 			defer wg.Done()
 			srv.durationService.Regenerate(user, true)
@@ -203,8 +208,8 @@ func (srv *AggregationService) AggregateDurations(userIds datastructure.Set[stri
 			config.Log().Error("failed to dispatch durations generation job", "userID", user.ID, "error", err)
 		}
 	}
-	wg.Wait()
 
+	wg.Wait()
 	return nil
 }
 
@@ -258,27 +263,23 @@ func generateUserJobs(user *models.User, from time.Time) (jobs []*AggregationJob
 func (srv *AggregationService) IsLocked(userId string) bool {
 	aggregationLock.Lock()
 	defer aggregationLock.Unlock()
-	return srv.allInProgress || (srv.inProgress != nil && srv.inProgress.Contain(userId))
+	return srv.inProgressAll || srv.inProgress.Contain(userId)
 }
 
 func (srv *AggregationService) lockUsers(userIds datastructure.Set[string]) error {
 	aggregationLock.Lock()
 	defer aggregationLock.Unlock()
 
-	if srv.inProgress == nil {
-		srv.inProgress = datastructure.New[string]()
-	}
-
 	if userIds == nil || userIds.IsEmpty() {
-		if srv.allInProgress || !srv.inProgress.IsEmpty() {
-			return errors.New("aggregation already in progress for at least of the request users")
+		if srv.inProgressAll || !srv.inProgress.IsEmpty() {
+			return errors.New("aggregation already in progress for at least of the requested users")
 		}
-		srv.allInProgress = true
+		srv.inProgressAll = true
 		return nil
 	}
 
-	if srv.allInProgress {
-		return errors.New("aggregation already in progress for at least of the request users")
+	if srv.inProgressAll {
+		return errors.New("aggregation already in progress for at least of the requested users")
 	}
 
 	for uid := range userIds {
@@ -295,11 +296,7 @@ func (srv *AggregationService) unlockUsers(userIds datastructure.Set[string]) {
 	defer aggregationLock.Unlock()
 
 	if userIds == nil || userIds.IsEmpty() {
-		srv.allInProgress = false
-		return
-	}
-
-	if srv.inProgress == nil {
+		srv.inProgressAll = false
 		return
 	}
 

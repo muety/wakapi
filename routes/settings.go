@@ -800,12 +800,12 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 		slog.Info("downloaded heartbeats for user", "count", count, "userID", user.ID, "importedCount", countAfter-countBefore)
 
 		if h.tryLockAggregation(user.ID) {
-			func() {
+			func(user *models.User, r *http.Request) {
 				defer h.toggleAggregationLock(user.ID, false)
 				if err := h.regenerateSummaries(user); err != nil {
 					conf.Log().Request(r).Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
 				}
-			}()
+			}(user, r)
 		} else {
 			conf.Log().Request(r).Warn("summary regeneration already in progress after import", "userID", user.ID)
 		}
@@ -1257,10 +1257,8 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 	}
 
 	vm := &view.SettingsViewModel{
-		SharedLoggedInViewModel: view.SharedLoggedInViewModel{
-			SharedViewModel: view.NewSharedViewModel(h.config, nil),
-			User:            user,
-		},
+		SharedViewModel:       view.NewSharedViewModel(h.config, nil),
+		User:                  user,
 		LanguageMappings:      mappings,
 		Aliases:               combinedAliases,
 		Labels:                combinedLabels,
@@ -1284,10 +1282,7 @@ func (h *SettingsHandler) tryLockAggregation(userId string) bool {
 	// but is otherwise superseded by the aggregation service's own locking mechanism
 	h.aggregationLocksMutex.Lock()
 	defer h.aggregationLocksMutex.Unlock()
-	if h.aggregationLocks == nil {
-		h.aggregationLocks = make(map[string]bool)
-	}
-	if h.aggregationLocks[userId] || (h.aggregationSrvc != nil && h.aggregationSrvc.IsLocked(userId)) {
+	if h.aggregationLocks[userId] || h.aggregationSrvc.IsLocked(userId) {
 		return false
 	}
 	h.aggregationLocks[userId] = true
@@ -1297,9 +1292,6 @@ func (h *SettingsHandler) tryLockAggregation(userId string) bool {
 func (h *SettingsHandler) toggleAggregationLock(userId string, locked bool) {
 	h.aggregationLocksMutex.Lock()
 	defer h.aggregationLocksMutex.Unlock()
-	if h.aggregationLocks == nil {
-		h.aggregationLocks = make(map[string]bool)
-	}
 	h.aggregationLocks[userId] = locked
 }
 
@@ -1307,7 +1299,7 @@ func (h *SettingsHandler) isAggregationLocked(userId string) bool {
 	h.aggregationLocksMutex.RLock()
 	defer h.aggregationLocksMutex.RUnlock()
 	locked, _ := h.aggregationLocks[userId]
-	return locked || (h.aggregationSrvc != nil && h.aggregationSrvc.IsLocked(userId))
+	return locked || h.aggregationSrvc.IsLocked(userId)
 }
 
 func getVal[T any](values *map[string]interface{}, key string, fallback T) T {
