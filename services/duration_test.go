@@ -771,6 +771,110 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_SameDayTimezone()
 	assert.Len(suite.T(), durationsMidnight, 2)
 }
 
+func (suite *DurationServiceTestSuite) TestDurationService_Get_ProjectFilter_Cached() {
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
+
+	from := suite.TestStartTime.Add(-24 * time.Hour)
+	to := suite.TestStartTime.Add(2 * time.Hour)
+
+	cachedDurations := []*models.Duration{
+		{
+			UserID:   TestUserId,
+			Project:  TestProject1,
+			Language: TestLanguageGo,
+			Time:     models.CustomTime(suite.TestStartTime),
+			Duration: 10 * time.Minute,
+		},
+	}
+	latestDuration := &models.Duration{
+		UserID:   TestUserId,
+		Project:  TestProject2,
+		Time:     models.CustomTime(suite.TestStartTime.Add(1 * time.Hour)),
+		Duration: 10 * time.Minute,
+	}
+
+	testFilters := models.NewFiltersWith(models.SummaryProject, TestProject1)
+
+	suite.DurationRepository.On("GetAllWithinByFilters", from, to, suite.TestUser, mock.Anything).Return(cachedDurations, nil).Once()
+	suite.DurationRepository.On("GetLatestByUser", suite.TestUser).Return(latestDuration, nil).Once()
+
+	liveHeartbeat := &models.Heartbeat{
+		UserID:   TestUserId,
+		Project:  TestProject1,
+		Language: TestLanguageGo,
+		Time:     models.CustomTime(suite.TestStartTime.Add(1*time.Hour + 30*time.Minute)),
+	}
+	expectedMissingFrom := latestDuration.TimeEnd().Add(time.Second)
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", expectedMissingFrom, to, suite.TestUser, models.ExcludeFromDurations).
+		Return(streamSlice([]*models.Heartbeat{liveHeartbeat}), nil).Once()
+
+	durations, err := sut.Get(from, to, suite.TestUser, testFilters, nil, false)
+	assert.NoError(suite.T(), err)
+	assert.Len(suite.T(), durations, 2)
+	assert.Equal(suite.T(), TestProject1, durations[0].Project)
+	assert.Equal(suite.T(), TestProject1, durations[1].Project)
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_Get_ProjectFilter_Cached_NoLiveNeeded() {
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
+
+	from := suite.TestStartTime.Add(-24 * time.Hour)
+	to := suite.TestStartTime.Add(1 * time.Hour)
+
+	cachedDurations := []*models.Duration{
+		{
+			UserID:   TestUserId,
+			Project:  TestProject1,
+			Language: TestLanguageGo,
+			Time:     models.CustomTime(suite.TestStartTime),
+			Duration: 10 * time.Minute,
+		},
+	}
+	latestDuration := &models.Duration{
+		UserID:   TestUserId,
+		Project:  TestProject2,
+		Time:     models.CustomTime(suite.TestStartTime.Add(1 * time.Hour)),
+		Duration: 30 * time.Minute,
+	}
+
+	testFilters := models.NewFiltersWith(models.SummaryProject, TestProject1)
+
+	suite.DurationRepository.On("GetAllWithinByFilters", from, to, suite.TestUser, mock.Anything).Return(cachedDurations, nil).Once()
+	suite.DurationRepository.On("GetLatestByUser", suite.TestUser).Return(latestDuration, nil).Once()
+
+	durations, err := sut.Get(from, to, suite.TestUser, testFilters, nil, false)
+	assert.NoError(suite.T(), err)
+	assert.Len(suite.T(), durations, 1)
+	assert.Equal(suite.T(), TestProject1, durations[0].Project)
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_Get_ProjectFilter_Cached_EmptyCache() {
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
+
+	from := time.Unix(0, 0)
+	to := suite.TestStartTime.Add(2 * time.Hour)
+
+	latestDuration := &models.Duration{
+		UserID:   TestUserId,
+		Project:  TestProject2,
+		Time:     models.CustomTime(suite.TestStartTime.Add(1 * time.Hour)),
+		Duration: 10 * time.Minute,
+	}
+
+	testFilters := models.NewFiltersWith(models.SummaryProject, TestProject1)
+
+	suite.DurationRepository.On("GetAllWithinByFilters", from, to, suite.TestUser, mock.Anything).Return([]*models.Duration{}, nil).Once()
+	suite.DurationRepository.On("GetLatestByUser", suite.TestUser).Return(latestDuration, nil).Once()
+
+	expectedMissingFrom := latestDuration.TimeEnd().Add(time.Second)
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", expectedMissingFrom, to, suite.TestUser, models.ExcludeFromDurations).
+		Return(streamSlice([]*models.Heartbeat{}), nil).Once()
+
+	durations, err := sut.Get(from, to, suite.TestUser, testFilters, nil, false)
+	assert.NoError(suite.T(), err)
+	assert.Empty(suite.T(), durations)
+}
+
 func (suite *DurationServiceTestSuite) createSut() (*DurationService, *hub.Hub) {
 	originalEventBus := config.EventBus()
 	defer config.SetEventBus(originalEventBus)

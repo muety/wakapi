@@ -10,6 +10,7 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -824,6 +825,68 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_Sk
 	suite.SummaryRepository.AssertNumberOfCalls(suite.T(), "GetLastBySingleUser", 1)
 	suite.SummaryRepository.AssertNotCalled(suite.T(), "DeleteByUserAfter", mock.Anything, mock.Anything)
 	_ = sut
+}
+
+func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve_ProjectFilter_AllTime() {
+	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+
+	from := utils.UnixEra()
+	to := suite.TestStartTime.Add(2 * time.Hour)
+
+	filters := models.NewFiltersWith(models.SummaryProject, TestProject1)
+
+	expectedDurations := []*models.Duration{
+		{
+			UserID:          TestUserId,
+			Project:         TestProject1,
+			Language:        TestLanguageGo,
+			Editor:          TestEditorGoland,
+			OperatingSystem: TestOsLinux,
+			Machine:         TestMachine1,
+			Branch:          TestBranchMaster,
+			Entity:          TestEntity1,
+			Time:            models.CustomTime(suite.TestStartTime),
+			Duration:        30 * time.Minute,
+			NumHeartbeats:   15,
+		},
+	}
+
+	suite.DurationService.On("Get", from, to, suite.TestUser, filters, (*time.Duration)(nil), false).
+		Return(models.Durations(expectedDurations), nil).Once()
+
+	result, err := sut.Retrieve(from, to, suite.TestUser, filters, nil)
+	assert.NoError(suite.T(), err)
+	assert.NotNil(suite.T(), result)
+	assert.Equal(suite.T(), 30*time.Minute, result.TotalTime())
+	assert.Equal(suite.T(), 15, result.NumHeartbeats)
+	assert.Len(suite.T(), result.Projects, 1)
+	assert.Equal(suite.T(), TestProject1, result.Projects[0].Key)
+	assert.Len(suite.T(), result.Languages, 1)
+	assert.Equal(suite.T(), TestLanguageGo, result.Languages[0].Key)
+	assert.Len(suite.T(), result.Branches, 1)
+	assert.Equal(suite.T(), TestBranchMaster, result.Branches[0].Key)
+	assert.Len(suite.T(), result.Entities, 1)
+	assert.Equal(suite.T(), TestEntity1, result.Entities[0].Key)
+}
+
+func (suite *SummaryServiceTestSuite) TestSummaryService_Retrieve_ProjectFilter_AllTime_Empty() {
+	sut := NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService)
+
+	from := utils.UnixEra()
+	to := suite.TestStartTime.Add(2 * time.Hour)
+
+	filters := models.NewFiltersWith(models.SummaryProject, TestProject1)
+
+	suite.DurationService.On("Get", from, to, suite.TestUser, filters, (*time.Duration)(nil), false).
+		Return(models.Durations{}, nil).Once()
+
+	result, err := sut.Retrieve(from, to, suite.TestUser, filters, nil)
+	assert.NoError(suite.T(), err)
+	assert.NotNil(suite.T(), result)
+	assert.Equal(suite.T(), time.Duration(0), result.TotalTime())
+	assert.Equal(suite.T(), 0, result.NumHeartbeats)
+	assert.Empty(suite.T(), result.Projects)
+	assert.Empty(suite.T(), result.Languages)
 }
 
 func (suite *SummaryServiceTestSuite) createSut() (*SummaryService, *hub.Hub) {
