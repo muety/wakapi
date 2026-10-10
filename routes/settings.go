@@ -863,8 +863,13 @@ func (h *SettingsHandler) actionClearData(w http.ResponseWriter, r *http.Request
 	user := middlewares.GetPrincipal(r)
 	slog.Info("user requested to delete all data", "userID", user.ID)
 
+	if !h.tryLockAggregation(user.ID) { // simply misuse the aggregation locking for data deletion as well
+		return actionResult{http.StatusConflict, "", "data deletion for this user is already in progress, try again later", nil}
+	}
+
 	go func(user *models.User, r *http.Request) {
 		slog.Info("deleting summaries for user", "userID", user.ID)
+		defer h.toggleAggregationLock(user.ID, false)
 		if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
 			conf.Log().Request(r).Error("failed to clear summaries", "error", err)
 		}
@@ -1275,6 +1280,8 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 }
 
 func (h *SettingsHandler) tryLockAggregation(userId string) bool {
+	// note that the way this lock is currently used, it effectively only locks the (short) pre-aggregation phase of deleting user data
+	// but is otherwise superseded by the aggregation service's own locking mechanism
 	h.aggregationLocksMutex.Lock()
 	defer h.aggregationLocksMutex.Unlock()
 	if h.aggregationLocks == nil {
