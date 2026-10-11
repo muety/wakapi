@@ -187,8 +187,6 @@ func (srv *HeartbeatService) StreamAllWithinByFilters(from, to time.Time, user *
 }
 
 func (srv *HeartbeatService) GetLatestByUser(user *models.User, skipCache bool) (*models.Heartbeat, error) {
-	// cached because repo query is expensive since there is no index on (user_id, project, time)
-	// adding an index isn't really worth it though, because this function is called from only a single place currently
 	cacheKey := srv.latestByUserCacheKey(user.ID)
 	if !skipCache {
 		if result, found := srv.cache.Get(cacheKey); found {
@@ -218,7 +216,7 @@ func (srv *HeartbeatService) GetLatestByOriginAndUser(origin string, user *model
 func (srv *HeartbeatService) GetLatestByFilters(user *models.User, filters *models.Filters, skipCache bool) (*models.Heartbeat, error) {
 	columnMap := srv.filtersToColumnMap(filters)
 
-	// cached because see above (GetLatestByUser)
+	// cached because see above (GetLatestByUser); cache misses are served by idx_user_project_time
 	projectFilter, isSingleProjectFilter := isSingleProjectFilter(columnMap)
 	cacheKey := srv.latestByProjectCacheKey(user.ID, projectFilter)
 
