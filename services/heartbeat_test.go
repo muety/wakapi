@@ -83,16 +83,16 @@ func (suite *HeartbeatServiceTestSuite) TestHeartbeatService_GetLatestByUser_Cac
 	suite.HeartbeatRepository.AssertExpectations(suite.T())
 }
 
-func (suite *HeartbeatServiceTestSuite) TestHeartbeatService_GetLatestByUser_DoesNotCacheEmptyResult() {
-	suite.HeartbeatRepository.On("GetLatestByUser", suite.user).Return(&models.Heartbeat{}, nil)
+func (suite *HeartbeatServiceTestSuite) TestHeartbeatService_GetLatestByUser_CachesEmptyResult() {
+	suite.HeartbeatRepository.On("GetLatestByUser", suite.user).Return(&models.Heartbeat{}, nil).Once()
 
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		result, err := suite.sut.GetLatestByUser(suite.user, false)
 		suite.Require().NoError(err)
 		suite.Zero(result.ID)
 	}
 
-	suite.HeartbeatRepository.AssertNumberOfCalls(suite.T(), "GetLatestByUser", 2)
+	suite.HeartbeatRepository.AssertNumberOfCalls(suite.T(), "GetLatestByUser", 1)
 }
 
 func (suite *HeartbeatServiceTestSuite) TestHeartbeatService_GetLatestByUser_CacheRefreshedByHeartbeatEvents() {
@@ -190,8 +190,8 @@ func (suite *HeartbeatServiceTestSuite) TestHeartbeatService_GetLatestByFilters_
 	suite.HeartbeatRepository.AssertNumberOfCalls(suite.T(), "GetLatestByFilters", 5)
 }
 
-func (suite *HeartbeatServiceTestSuite) TestHeartbeatService_GetLatestByFilters_DoesNotCacheMissingRows() {
-	suite.HeartbeatRepository.On("GetLatestByFilters", suite.user, map[string][]string{"project": {"p1"}}).Return((*models.Heartbeat)(nil), nil)
+func (suite *HeartbeatServiceTestSuite) TestHeartbeatService_GetLatestByFilters_CachesMissingRows() {
+	suite.HeartbeatRepository.On("GetLatestByFilters", suite.user, map[string][]string{"project": {"p1"}}).Return((*models.Heartbeat)(nil), nil).Once()
 
 	for range 2 {
 		result, err := suite.sut.GetLatestByFilters(suite.user, models.NewFiltersWith(models.SummaryProject, "p1"), false)
@@ -199,5 +199,15 @@ func (suite *HeartbeatServiceTestSuite) TestHeartbeatService_GetLatestByFilters_
 		suite.Nil(result)
 	}
 
-	suite.HeartbeatRepository.AssertNumberOfCalls(suite.T(), "GetLatestByFilters", 2)
+	suite.HeartbeatRepository.AssertNumberOfCalls(suite.T(), "GetLatestByFilters", 1)
+
+	// once a heartbeat for that project arrives, the cached 'missing' sentinel must be upgraded to the real one
+	suite.publishHeartbeat(createTestHeartbeatAt(2, suite.user.ID, "p1", time.Unix(200, 0)))
+
+	suite.Eventually(func() bool {
+		result, err := suite.sut.GetLatestByFilters(suite.user, models.NewFiltersWith(models.SummaryProject, "p1"), false)
+		return err == nil && result != nil && result.ID == 2
+	}, 2*time.Second, 20*time.Millisecond)
+
+	suite.HeartbeatRepository.AssertNumberOfCalls(suite.T(), "GetLatestByFilters", 1)
 }

@@ -203,11 +203,11 @@ func (srv *HeartbeatService) GetLatestByUser(user *models.User, skipCache bool) 
 		return nil, err
 	}
 
-	if heartbeat.ID > 0 {
-		srv.cacheLock.Lock()
-		defer srv.cacheLock.Unlock()
-		srv.cache.Set(cacheKey, cloneHeartbeat(heartbeat), cache.NoExpiration)
-	}
+	// cache even when no row was found
+	// such an entry is treated as time-zero by refreshLatestCacheEntry and hence upgraded automatically once a heartbeat arrives
+	srv.cacheLock.Lock()
+	defer srv.cacheLock.Unlock()
+	srv.cache.SetDefault(cacheKey, cloneHeartbeat(heartbeat))
 	return heartbeat, nil
 }
 
@@ -235,10 +235,16 @@ func (srv *HeartbeatService) GetLatestByFilters(user *models.User, filters *mode
 		return nil, err
 	}
 
-	if isSingleProjectFilter && heartbeat != nil && heartbeat.ID > 0 {
+	if isSingleProjectFilter {
 		srv.cacheLock.Lock()
 		defer srv.cacheLock.Unlock()
-		srv.cache.Set(cacheKey, cloneHeartbeat(heartbeat), cache.NoExpiration)
+		if heartbeat != nil {
+			srv.cache.SetDefault(cacheKey, cloneHeartbeat(heartbeat))
+		} else {
+			// cache misses (typed-nil sentinel) as well
+			// the sentinel is treated as time-zero by refreshLatestCacheEntry and hence upgraded automatically once a heartbeat for that project arrives
+			srv.cache.SetDefault(cacheKey, heartbeat)
+		}
 	}
 	return heartbeat, nil
 }
@@ -277,7 +283,7 @@ func (srv *HeartbeatService) GetLastByUser(user *models.User) (time.Time, error)
 		return time.Time{}, err
 	}
 
-	srv.cache.Set(cacheKey, result.Last.T(), cache.NoExpiration)
+	srv.cache.SetDefault(cacheKey, result.Last.T())
 	return result.Last.T(), nil
 }
 
@@ -305,7 +311,7 @@ func (srv *HeartbeatService) GetEntitySetByUser(entityType uint8, userId string)
 		}
 	}
 
-	srv.cache.Set(cacheKey, datastructure.New(filtered...), cache.NoExpiration)
+	srv.cache.SetDefault(cacheKey, datastructure.New(filtered...))
 	return filtered, nil
 }
 
@@ -468,10 +474,11 @@ func (srv *HeartbeatService) refreshLatestCacheEntry(key string, newHeartbeat *m
 
 	cached, found := srv.cache.Get(key)
 	if !found {
-		return
+		return // intentionally don't pre-fill cache from incoming heartbeats, because we can't be sure there are no newer ones in the databaes
 	}
-	if latest, ok := cached.(*models.Heartbeat); ok && newHeartbeat.Time.T().After(latest.Time.T()) {
-		srv.cache.Set(key, cloneHeartbeat(newHeartbeat), cache.NoExpiration)
+	// a cached nil pointer (or zero-value struct) indicates "known to have no heartbeats" and is effectively time-zero, i.e. always replaced
+	if latest, ok := cached.(*models.Heartbeat); ok && (latest == nil || newHeartbeat.Time.T().After(latest.Time.T())) {
+		srv.cache.SetDefault(key, cloneHeartbeat(newHeartbeat))
 	}
 }
 
