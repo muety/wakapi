@@ -22,10 +22,13 @@ import (
 )
 
 const maxAuthFailuresPerHour = 10
-const maxRelayRetries = 4 // initial try counts as "retry" as well in our current implementation
+const maxRelayAttempts = 5 // one initial attempt plus four retries, after 1s, 10s, 100s and 1000s
 
 // not really an error, it's the "seen all of these already, go back to sleep" signal
 var errNoNewHeartbeats = errors.New("no new heartbeats to relay")
+
+// signals a relay failure that will not resolve itself by retrying (e.g. invalid api keys)
+var errRelayPermanent = errors.New("permanent wakatime relay failure")
 
 // WakatimeRelayMiddleware is a middleware to conditionally relay heartbeats to Wakatime (and other compatible services)
 type WakatimeRelayMiddleware struct {
@@ -33,15 +36,17 @@ type WakatimeRelayMiddleware struct {
 	hashCache       *cache.Cache
 	authFailedCache *cache.Cache
 	eventBus        *hub.Hub
+	backoffUnit     time.Duration // exposed for testing only
 }
 
 type exponentialBase10Backoff struct {
-	n int
+	n    int
+	unit time.Duration
 }
 
 func (e *exponentialBase10Backoff) CalculateInterval() time.Duration {
 	e.n++
-	return time.Duration(int64(math.Pow10(e.n-1))) * time.Second
+	return time.Duration(int64(math.Pow10(e.n-1))) * e.unit
 }
 
 func NewWakatimeRelayMiddleware() *WakatimeRelayMiddleware {
@@ -55,6 +60,7 @@ func NewWakatimeRelayMiddleware() *WakatimeRelayMiddleware {
 		hashCache:       cache.New(10*time.Minute, 10*time.Minute),
 		authFailedCache: cache.New(1*time.Hour, 1*time.Hour),
 		eventBus:        config.EventBus(),
+		backoffUnit:     1 * time.Second,
 	}
 }
 
@@ -116,6 +122,7 @@ func (m *WakatimeRelayMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	url := user.WakaTimeURL(config.WakatimeApiUrl) + config.WakatimeApiHeartbeatsBulkUrl
 
+	// note: if downstream wakatime is down for a while, this will leak goroutines (each call for up to ~19 mins) -> should keep an eye on this
 	go m.trySend(
 		http.MethodPost,
 		url,
@@ -132,25 +139,34 @@ func (m *WakatimeRelayMiddleware) trySend(method, url string, body io.Reader, he
 		return
 	}
 
-	var backoff *exponentialBase10Backoff
+	var attempts int
+
 	if err := retry.Retry(func() error {
-		if err := m.send(method, url, bytes.NewReader(bodyBytes), headers, forUser); err != nil {
-			slog.Warn("wakatime heartbeat relay failed, retrying", "error", err)
-			return err
+		attempts++
+		err := m.send(method, url, bytes.NewReader(bodyBytes), headers, forUser)
+		if err == nil {
+			return nil
 		}
-		return nil
+		if errors.Is(err, errRelayPermanent) {
+			slog.Warn("wakatime heartbeat relay failed permanently and was not retried", "userID", forUser.ID, "error", err)
+			return nil // stop retrying, e.g. a revoked api key will not start working again by itself
+		}
+		if attempts < maxRelayAttempts {
+			slog.Warn("wakatime heartbeat relay failed, retrying", "userID", forUser.ID, "attempt", attempts, "maxAttempts", maxRelayAttempts, "error", err)
+		}
+		return err
 	},
-		retry.RetryTimes(maxRelayRetries),
-		retry.RetryWithCustomBackoff(backoff),
+		retry.RetryTimes(maxRelayAttempts),
+		retry.RetryWithCustomBackoff(&exponentialBase10Backoff{unit: m.backoffUnit}), // fresh instance per call as it is stateful
 	); err != nil {
-		slog.Warn("wakatime heartbeat relay failed eventually after all retries", "error", err)
+		slog.Warn("wakatime heartbeat relay failed eventually after all retries", "userID", forUser.ID, "maxAttempts", maxRelayAttempts, "error", err)
 	}
 }
 
 func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, headers http.Header, forUser *models.User) error {
 	request, err := http.NewRequest(method, url, body)
 	if err != nil {
-		return errors.Join(errors.New("error constructing relayed request"), err)
+		return errors.Join(fmt.Errorf("error constructing relayed request: %w", err), errRelayPermanent)
 	}
 
 	for k, v := range headers {
@@ -163,6 +179,7 @@ func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, heade
 	if err != nil {
 		return errors.Join(errors.New("error executing relayed request"), err)
 	}
+	defer response.Body.Close()
 
 	if response.StatusCode < 200 || response.StatusCode >= 300 { // apparently, wakatime api might return a 302 (with whatever target) as a failure indicator, see https://github.com/muety/wakapi/issues/986
 		if response.StatusCode == http.StatusUnauthorized || response.StatusCode == http.StatusForbidden {
@@ -170,19 +187,18 @@ func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, heade
 				m.authFailedCache.SetDefault(forUser.ID, 0) // TODO: use leaky bucket instead of expiring cache?
 			}
 			n, _ := m.authFailedCache.IncrementInt(forUser.ID, 1)
-			if n >= maxAuthFailuresPerHour {
+			if n == maxAuthFailuresPerHour {
 				m.eventBus.Publish(hub.Message{
 					Name:   config.EventWakatimeFailure,
 					Fields: map[string]interface{}{config.FieldUser: forUser, config.FieldPayload: n},
 				})
 			}
-
-			return fmt.Errorf("failed to relay wakatime heartbeat due to authorization error (user %s, status %d, attempt %d)", forUser.ID, response.StatusCode, n)
+			return fmt.Errorf("failed to relay wakatime heartbeat due to authorization error (user %s, status %d, consecutive failures: %d): %w", forUser.ID, response.StatusCode, n, errRelayPermanent)
 		}
-
-		return fmt.Errorf("failed to replay wakatime heartbeat (user %s, status %d", forUser.ID, response.StatusCode)
+		return fmt.Errorf("failed to relay wakatime heartbeat (user %s, status %d)", forUser.ID, response.StatusCode)
 	}
 
+	m.authFailedCache.Delete(forUser.ID) // any success resets the consecutive auth failure counter
 	return nil
 }
 

@@ -8,14 +8,20 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
+
+const relayBulkURL = "https://api.wakatime.com/api/v1/users/current/heartbeats.bulk"
 
 type MockRoundTripper struct {
 	mock.Mock
@@ -233,6 +239,133 @@ func (suite *WakatimeRelayMiddlewareTestSuite) TestFilterByCache_Bulk() {
 	var passedThrough []interface{}
 	json.NewDecoder(req2.Body).Decode(&passedThrough)
 	suite.Len(passedThrough, 2)
+}
+
+func (suite *WakatimeRelayMiddlewareTestSuite) TestTrySend_RetriesTransientFailureUntilSuccess() {
+	suite.sut.backoffUnit = 0 // make backoff intervals instantaneous for testing
+	user := &models.User{ID: "test-user", WakatimeApiKey: "waka_123"}
+
+	suite.mockRoundTripper.On("RoundTrip", mock.Anything).Return(&http.Response{StatusCode: http.StatusInternalServerError, Body: io.NopCloser(strings.NewReader("boom"))}, nil).Once()
+	suite.mockRoundTripper.On("RoundTrip", mock.Anything).Return(&http.Response{StatusCode: http.StatusCreated, Body: io.NopCloser(strings.NewReader("{}"))}, nil).Once()
+
+	suite.sut.trySend(http.MethodPost, relayBulkURL, strings.NewReader("[]"), http.Header{}, user)
+
+	suite.mockRoundTripper.AssertNumberOfCalls(suite.T(), "RoundTrip", 2)
+	suite.mockRoundTripper.AssertExpectations(suite.T())
+}
+
+func (suite *WakatimeRelayMiddlewareTestSuite) TestTrySend_ExhaustsAllRelayAttempts() {
+	suite.sut.backoffUnit = 0
+	user := &models.User{ID: "test-user", WakatimeApiKey: "waka_123"}
+
+	suite.mockRoundTripper.On("RoundTrip", mock.Anything).Return(&http.Response{StatusCode: http.StatusServiceUnavailable, Body: io.NopCloser(strings.NewReader("unavailable"))}, nil).Times(maxRelayAttempts)
+
+	suite.sut.trySend(http.MethodPost, relayBulkURL, strings.NewReader("[]"), http.Header{}, user)
+
+	// must not exceed maxRelayAttempts (initial plus four retries), testify would panic on an extra call
+	suite.mockRoundTripper.AssertNumberOfCalls(suite.T(), "RoundTrip", maxRelayAttempts)
+	suite.mockRoundTripper.AssertExpectations(suite.T())
+}
+
+func (suite *WakatimeRelayMiddlewareTestSuite) TestTrySend_AuthFailureIsNotRetried() {
+	user := &models.User{ID: "test-user", WakatimeApiKey: "waka_123"}
+	suite.sut.eventBus = hub.New()
+	sub := suite.sut.eventBus.Subscribe(100, config.EventWakatimeFailure)
+
+	suite.mockRoundTripper.On("RoundTrip", mock.Anything).Return(&http.Response{StatusCode: http.StatusForbidden, Body: io.NopCloser(strings.NewReader("forbidden"))}, nil).Once()
+
+	suite.sut.trySend(http.MethodPost, relayBulkURL, strings.NewReader("[]"), http.Header{}, user)
+
+	suite.mockRoundTripper.AssertNumberOfCalls(suite.T(), "RoundTrip", 1)
+	suite.mockRoundTripper.AssertExpectations(suite.T())
+
+	select {
+	case m := <-sub.Receiver:
+		suite.Fail("no event should be published below the auth failure threshold", m.Name)
+	default:
+	}
+}
+
+func (suite *WakatimeRelayMiddlewareTestSuite) TestTrySend_AuthFailureEventFiresOnceAtThreshold() {
+	user := &models.User{ID: "test-user", WakatimeApiKey: "waka_123"}
+	suite.sut.eventBus = hub.New()
+	sub := suite.sut.eventBus.Subscribe(100, config.EventWakatimeFailure)
+
+	suite.mockRoundTripper.On("RoundTrip", mock.Anything).Return(&http.Response{StatusCode: http.StatusUnauthorized, Body: io.NopCloser(strings.NewReader("invalid api key"))}, nil).Times(maxAuthFailuresPerHour + 1)
+
+	// auth failures are not retried, so each trySend equals exactly one request, i.e. one counted failure
+	for range maxAuthFailuresPerHour + 1 {
+		suite.sut.trySend(http.MethodPost, relayBulkURL, strings.NewReader("[]"), http.Header{}, user)
+	}
+
+	suite.mockRoundTripper.AssertNumberOfCalls(suite.T(), "RoundTrip", maxAuthFailuresPerHour+1)
+
+	var event hub.Message
+	select {
+	case event = <-sub.Receiver:
+	case <-time.After(2 * time.Second):
+		suite.Fail("expected wakatime.failure event after 10 consecutive auth failures")
+	}
+	suite.Equal(maxAuthFailuresPerHour, event.Fields[config.FieldPayload])
+	suite.Equal(user, event.Fields[config.FieldUser])
+
+	select {
+	case m := <-sub.Receiver:
+		suite.Fail("event should fire only once per window", m.Name)
+	default:
+	}
+}
+
+func (suite *WakatimeRelayMiddlewareTestSuite) TestSend_SuccessResetsAuthFailureCounter() {
+	user := &models.User{ID: "test-user", WakatimeApiKey: "waka_123"}
+	suite.sut.eventBus = hub.New()
+	sub := suite.sut.eventBus.Subscribe(100, config.EventWakatimeFailure)
+	suite.sut.httpClient.Transport = http.DefaultTransport
+
+	var requests int32
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if atomic.AddInt32(&requests, 1) == 5 {
+			w.WriteHeader(http.StatusCreated)
+			return
+		}
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer ts.Close()
+
+	// requests 1-4 fail, #5 succeeds and resets the counter, 6-14 fail again (9 consecutive)
+	for range 14 {
+		suite.sut.send(http.MethodPost, ts.URL, strings.NewReader("[]"), http.Header{}, user)
+	}
+
+	select {
+	case m := <-sub.Receiver:
+		suite.Fail("no event expected while consecutive failures stay below the threshold", m.Name)
+	default:
+	}
+
+	// 15th request is the 10th consecutive failure after the reset
+	suite.sut.send(http.MethodPost, ts.URL, strings.NewReader("[]"), http.Header{}, user)
+
+	var event hub.Message
+	select {
+	case event = <-sub.Receiver:
+	case <-time.After(2 * time.Second):
+		suite.Fail("expected wakatime.failure event on the 10th consecutive auth failure")
+	}
+	suite.Equal(maxAuthFailuresPerHour, event.Fields[config.FieldPayload])
+
+	select {
+	case m := <-sub.Receiver:
+		suite.Fail("event should fire only once per window", m.Name)
+	default:
+	}
+}
+
+func TestExponentialBase10Backoff_Intervals(t *testing.T) {
+	backoff := &exponentialBase10Backoff{unit: time.Second}
+	for _, want := range []time.Duration{1 * time.Second, 10 * time.Second, 100 * time.Second, 1000 * time.Second} {
+		assert.Equal(t, want, backoff.CalculateInterval())
+	}
 }
 
 func (suite *WakatimeRelayMiddlewareTestSuite) withUser(r *http.Request, user *models.User) *http.Request {
