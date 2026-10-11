@@ -227,23 +227,30 @@ func fillPlaceholders(hb *models.Heartbeat, cache *placeholderCache) *models.Hea
 		hb.ClearPlaceholders() // ignore placeholders for data sent by browser plugin
 	}
 
+	var latestHeartbeat *models.Heartbeat
+
 	if hb.IsPlaceholderProject() {
 		// get project of latest heartbeat by user
 		if latest := cache.getLatest(); latest != nil {
 			hb.Project = latest.Project
+			latestHeartbeat = latest
 		}
 	}
 
 	if hb.IsPlaceholderLanguage() {
 		// get language of latest heartbeat by user and project
-		if latest := cache.getLatestByProject(hb.Project); latest != nil {
+		if latestHeartbeat != nil && latestHeartbeat.Project == hb.Project {
+			hb.Language = latestHeartbeat.Language // reuse the one we just found above
+		} else if latest := cache.getLatestByProject(hb.Project); latest != nil {
 			hb.Language = latest.Language
 		}
 	}
 
 	if hb.IsPlaceholderBranch() {
 		// get branch of latest heartbeat by user and project
-		if latest := cache.getLatestByProject(hb.Project); latest != nil {
+		if latestHeartbeat != nil && latestHeartbeat.Project == hb.Project {
+			hb.Branch = latestHeartbeat.Branch // reuse the one we just found above
+		} else if latest := cache.getLatestByProject(hb.Project); latest != nil {
 			hb.Branch = latest.Branch
 		}
 	}

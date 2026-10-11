@@ -172,7 +172,9 @@ func Test_fillPlaceholders(t *testing.T) {
 	newMock := func() *mocks.HeartbeatServiceMock {
 		m := new(mocks.HeartbeatServiceMock)
 		m.On("GetLatestByUser", mock.Anything, mock.Anything).Return(&models.Heartbeat{
-			Project: "project1",
+			Project:  "project1",
+			Branch:   "replaced2_by_project",
+			Language: "replaced3_by_project",
 		}, nil)
 		m.On("GetLatestByFilters", mock.Anything, mock.Anything, mock.Anything).Return(&models.Heartbeat{
 			Project:  "must not be used",
@@ -186,19 +188,35 @@ func Test_fillPlaceholders(t *testing.T) {
 		t.Run("should replace project, language and branch properly", func(t *testing.T) {
 			srv := newMock()
 			hb := &models.Heartbeat{
+				Project:  "project9",
+				Branch:   "<<LAST_BRANCH>>",
+				Language: "<<LAST_LANGUAGE>>",
+			}
+			hb = fillPlaceholders(hb, newPlaceholderCache(&models.User{}, srv))
+
+			assert.Len(t, srv.Calls, 1)
+			filters := srv.Calls[0].Arguments.Get(1).(*models.Filters)
+
+			assert.Equal(t, "project9", filters.Project[0])
+			assert.Equal(t, "project9", hb.Project)
+			assert.Equal(t, "replaced2", hb.Branch)
+			assert.Equal(t, "replaced3", hb.Language)
+		})
+
+		t.Run("should replace project, language and branch properly with a single lookup", func(t *testing.T) {
+			srv := newMock()
+			hb := &models.Heartbeat{
 				Project:  "<<LAST_PROJECT>>",
 				Branch:   "<<LAST_BRANCH>>",
 				Language: "<<LAST_LANGUAGE>>",
 			}
 			hb = fillPlaceholders(hb, newPlaceholderCache(&models.User{}, srv))
 
-			assert.Len(t, srv.Calls, 2)
-			filters := srv.Calls[1].Arguments.Get(1).(*models.Filters)
+			assert.Len(t, srv.Calls, 1) // only one call because project-resolved heartbeat is reused
 
-			assert.Equal(t, "project1", filters.Project[0])
 			assert.Equal(t, "project1", hb.Project)
-			assert.Equal(t, "replaced2", hb.Branch)
-			assert.Equal(t, "replaced3", hb.Language)
+			assert.Equal(t, "replaced2_by_project", hb.Branch)
+			assert.Equal(t, "replaced3_by_project", hb.Language)
 		})
 
 		t.Run("should replace nothing if no placeholders given", func(t *testing.T) {
