@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 	"testing"
@@ -603,8 +604,14 @@ func (suite *DurationServiceTestSuite) TestDurationService_HeartbeatCreateEvent_
 	t2 := now.Add(-30 * time.Minute)
 	t3 := now.Add(-2 * time.Hour)
 
+	// the listener does its work in a separate goroutine, so signal deleted timestamps via a channel instead of polling mock.Calls from the test, which races with the mock's internal bookkeeping
+	deleted := make(chan time.Time, 10)
+	onDeleted := func(call *mock.Call) *mock.Call {
+		return call.Run(func(args mock.Arguments) { deleted <- args.Get(1).(time.Time) })
+	}
+
 	// 1. Initial heartbeat: triggers DeleteByUserAfter on cache miss and initializes dirtyFrom
-	suite.DurationRepository.On("DeleteByUserAfter", suite.TestUser, t1).Return(nil).Once()
+	onDeleted(suite.DurationRepository.On("DeleteByUserAfter", suite.TestUser, t1).Return(nil).Once())
 
 	eventBus.Publish(hub.Message{
 		Name: config.EventHeartbeatCreate,
@@ -617,18 +624,8 @@ func (suite *DurationServiceTestSuite) TestDurationService_HeartbeatCreateEvent_
 		},
 	})
 
-	assert.Eventually(suite.T(), func() bool {
-		for _, call := range suite.DurationRepository.Calls {
-			if call.Method == "DeleteByUserAfter" && call.Arguments.Get(1).(time.Time).Equal(t1) {
-				return true
-			}
-		}
-		return false
-	}, 2*time.Second, 20*time.Millisecond)
-
-	dirtyFromVal, ok := sut.dirtyFrom.Get("dirty_from_" + suite.TestUser.ID)
-	assert.True(suite.T(), ok)
-	assert.Equal(suite.T(), t1, dirtyFromVal.(time.Time))
+	suite.awaitDeleted(deleted, t1)
+	suite.awaitDirtyFrom(sut, t1)
 
 	// 2. Subsequent heartbeat with timestamp after dirtyFrom: skips DeleteByUserAfter
 	eventBus.Publish(hub.Message{
@@ -646,7 +643,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_HeartbeatCreateEvent_
 	suite.DurationRepository.AssertNumberOfCalls(suite.T(), "DeleteByUserAfter", 1)
 
 	// 3. Out-of-order heartbeat with timestamp before dirtyFrom: triggers DeleteByUserAfter and updates dirtyFrom
-	suite.DurationRepository.On("DeleteByUserAfter", suite.TestUser, t3).Return(nil).Once()
+	onDeleted(suite.DurationRepository.On("DeleteByUserAfter", suite.TestUser, t3).Return(nil).Once())
 
 	eventBus.Publish(hub.Message{
 		Name: config.EventHeartbeatCreate,
@@ -659,21 +656,63 @@ func (suite *DurationServiceTestSuite) TestDurationService_HeartbeatCreateEvent_
 		},
 	})
 
-	assert.Eventually(suite.T(), func() bool {
-		for _, call := range suite.DurationRepository.Calls {
-			if call.Method == "DeleteByUserAfter" && call.Arguments.Get(1).(time.Time).Equal(t3) {
-				return true
-			}
-		}
-		return false
-	}, 2*time.Second, 20*time.Millisecond)
-
-	dirtyFromVal, ok = sut.dirtyFrom.Get("dirty_from_" + suite.TestUser.ID)
-	assert.True(suite.T(), ok)
-	assert.Equal(suite.T(), t3, dirtyFromVal.(time.Time))
+	suite.awaitDeleted(deleted, t3)
+	suite.awaitDirtyFrom(sut, t3)
 
 	suite.DurationRepository.AssertExpectations(suite.T())
 	_ = sut
+}
+
+func (suite *DurationServiceTestSuite) awaitDeleted(deleted chan time.Time, expected time.Time) {
+	suite.T().Helper()
+	select {
+	case actual := <-deleted:
+		assert.Equal(suite.T(), expected, actual)
+	case <-time.After(2 * time.Second):
+		suite.T().Fatalf("timed out waiting for durations to be deleted after %v", expected)
+	}
+}
+
+func (suite *DurationServiceTestSuite) awaitDirtyFrom(sut *DurationService, expected time.Time) {
+	suite.T().Helper()
+	// go-cache is internally synchronized, so reading it from the test goroutine is safe
+	assert.Eventually(suite.T(), func() bool {
+		dirtyFrom, ok := sut.dirtyFrom.Get("dirty_from_" + suite.TestUser.ID)
+		return ok && dirtyFrom.(time.Time).Equal(expected)
+	}, 2*time.Second, 20*time.Millisecond)
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_Pending_RegenerationsAreDeduplicated() {
+	// regeneration for a single user can be triggered concurrently from different queues (heartbeat event
+	// listener, aggregation service, RegenerateAll), so acquiring the pending marker has to be atomic
+	sut, _ := suite.createSut()
+
+	const racers = 50
+	acquired := make(chan bool, racers)
+	for i := 0; i < racers; i++ {
+		go func() { acquired <- sut.acquirePending(suite.TestUser.ID) }()
+	}
+
+	wins := 0
+	for i := 0; i < racers; i++ {
+		if <-acquired {
+			wins++
+		}
+	}
+	assert.Equal(suite.T(), 1, wins, "only one regeneration per user should proceed")
+
+	sut.releasePending(suite.TestUser.ID)
+	assert.True(suite.T(), sut.acquirePending(suite.TestUser.ID), "regeneration should be acquirable again after release")
+
+	// distinct users should not interfere with each other
+	others := make(chan bool, racers)
+	for i := 0; i < racers; i++ {
+		userId := fmt.Sprintf("user_%d", i)
+		go func() { others <- sut.acquirePending(userId) }()
+	}
+	for i := 0; i < racers; i++ {
+		assert.True(suite.T(), <-others)
+	}
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_SameDayTimezone() {

@@ -721,7 +721,11 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_Cl
 	}
 
 	suite.SummaryRepository.On("GetLastBySingleUser", TestUserId).Return(latestSummaryTime, nil).Once()
-	suite.SummaryRepository.On("DeleteByUserAfter", TestUserId, historicalHeartbeatTime).Return(nil).Once()
+	deleted := make(chan time.Time, 1)
+	suite.SummaryRepository.On("DeleteByUserAfter", TestUserId, historicalHeartbeatTime).Return(nil).Once().Run(func(args mock.Arguments) {
+		// the listener runs in its own goroutine, so signal via channel instead of polling mock.Calls, which would race with the mock's internal bookkeeping
+		deleted <- args.Get(1).(time.Time)
+	})
 
 	eventBus.Publish(hub.Message{
 		Name: config.EventHeartbeatCreate,
@@ -730,14 +734,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_Cl
 		},
 	})
 
-	assert.Eventually(suite.T(), func() bool {
-		for _, call := range suite.SummaryRepository.Calls {
-			if call.Method == "DeleteByUserAfter" {
-				return true
-			}
-		}
-		return false
-	}, 2*time.Second, 20*time.Millisecond)
+	suite.awaitDeleted(deleted, historicalHeartbeatTime)
 
 	suite.SummaryRepository.AssertExpectations(suite.T())
 	_ = sut
@@ -765,14 +762,9 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_Ke
 		},
 	})
 
-	assert.Eventually(suite.T(), func() bool {
-		for _, call := range suite.SummaryRepository.Calls {
-			if call.Method == "GetLastBySingleUser" {
-				return true
-			}
-		}
-		return false
-	}, 2*time.Second, 20*time.Millisecond)
+	// the heartbeat cache is written last within the listener, so it doubles as a barrier for "event fully processed"
+	// go-cache is internally synchronized, so polling it from the test is safe
+	suite.awaitProcessedHeartbeat(sut, recentHeartbeatTime)
 
 	suite.SummaryRepository.AssertNotCalled(suite.T(), "DeleteByUserAfter", mock.Anything, mock.Anything)
 	_ = sut
@@ -803,14 +795,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_Sk
 		},
 	})
 
-	assert.Eventually(suite.T(), func() bool {
-		for _, call := range suite.SummaryRepository.Calls {
-			if call.Method == "GetLastBySingleUser" {
-				return true
-			}
-		}
-		return false
-	}, 2*time.Second, 20*time.Millisecond)
+	suite.awaitProcessedHeartbeat(sut, now)
 
 	eventBus.Publish(hub.Message{
 		Name: config.EventHeartbeatCreate,
@@ -819,11 +804,32 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_Sk
 		},
 	})
 
-	time.Sleep(100 * time.Millisecond) // give the subscriber a moment to potentially process the second message
+	// wait for the second event to be fully processed instead of sleeping, so that the "not called" assertions below are deterministic (and race-free)
+	suite.awaitProcessedHeartbeat(sut, now.Add(1*time.Minute))
 
 	suite.SummaryRepository.AssertNumberOfCalls(suite.T(), "GetLastBySingleUser", 1)
 	suite.SummaryRepository.AssertNotCalled(suite.T(), "DeleteByUserAfter", mock.Anything, mock.Anything)
 	_ = sut
+}
+
+func (suite *SummaryServiceTestSuite) awaitDeleted(deleted chan time.Time, expected time.Time) {
+	suite.T().Helper()
+	select {
+	case actual := <-deleted:
+		assert.Equal(suite.T(), expected, actual)
+	case <-time.After(2 * time.Second):
+		suite.T().Fatalf("timed out waiting for summaries to be deleted after %v", expected)
+	}
+}
+
+// awaitProcessedHeartbeat waits until the listener finished handling an event with the given timestamp.
+// The heartbeat cache is the last thing written in the listener, and go-cache is internally synchronized.
+func (suite *SummaryServiceTestSuite) awaitProcessedHeartbeat(sut *SummaryService, expected time.Time) {
+	suite.T().Helper()
+	assert.Eventually(suite.T(), func() bool {
+		latest, ok := sut.heartbeatCache.Get("latest_heartbeat_" + TestUserId)
+		return ok && latest.(time.Time).Equal(expected)
+	}, 2*time.Second, 20*time.Millisecond)
 }
 
 func (suite *SummaryServiceTestSuite) createSut() (*SummaryService, *hub.Hub) {

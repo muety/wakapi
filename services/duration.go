@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/duke-git/lancet/v2/condition"
@@ -33,6 +34,7 @@ type DurationService struct {
 	lastUserJob            map[string]time.Time
 	dirtyFrom              *cache.Cache // earliest heartbeat per user after which no durations exist yet
 	queue                  *artifex.Dispatcher
+	pendingLock            sync.Mutex
 	pending                datastructure.Set[string] // currently running per-user regeneration jobs
 }
 
@@ -144,12 +146,12 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 }
 
 func (srv *DurationService) Regenerate(user *models.User, forceAll bool) {
-	if srv.pending.Contain(user.ID) {
+	// regeneration jobs may run concurrently across queues (heartbeat event listener, aggregation, RegenerateAll)
+	if !srv.acquirePending(user.ID) {
 		config.Log().Warn("skipping regeneration of durations for user, because already running", "user", user.ID)
 		return
 	}
-	srv.pending.Add(user.ID)
-	defer srv.pending.Delete(user.ID)
+	defer srv.releasePending(user.ID)
 
 	var from time.Time
 	latest, err := srv.repository.GetLatestByUser(user)
@@ -391,6 +393,24 @@ func (srv *DurationService) filtersToColumnMap(filters *models.Filters) map[stri
 	}
 
 	return columnMap
+}
+
+func (srv *DurationService) acquirePending(userId string) bool {
+	srv.pendingLock.Lock()
+	defer srv.pendingLock.Unlock()
+
+	if srv.pending.Contain(userId) {
+		return false
+	}
+	srv.pending.Add(userId)
+	return true
+}
+
+func (srv *DurationService) releasePending(userId string) {
+	srv.pendingLock.Lock()
+	defer srv.pendingLock.Unlock()
+
+	srv.pending.Delete(userId)
 }
 
 func getEffectiveTimeout(user *models.User, overrideTimeout *time.Duration) time.Duration {
