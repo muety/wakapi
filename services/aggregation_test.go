@@ -332,20 +332,30 @@ func (suite *AggregationServiceTestSuite) TestAggregationService_AggregateSummar
 }
 
 func (suite *AggregationServiceTestSuite) TestAggregationService_AggregateSummaries_IncrementalDurationsRegeneration() {
+	suite.assertDurationsRegenBeforeSummarize(types.DurationsRegenerationIncremental, false, "u_dur_regen")
+}
+
+func (suite *AggregationServiceTestSuite) TestAggregationService_AggregateSummaries_FullDurationsRegeneration() {
+	suite.assertDurationsRegenBeforeSummarize(types.DurationsRegenerationFull, true, "u_dur_regen_full")
+}
+
+// assertDurationsRegenBeforeSummarize asserts that a user's summary jobs only start after user's durations regeneration has finished,
+// that the aggregation lock spans the whole run, and that AggregateSummaries returns only once both durations regeneration and summaries have completed.
+func (suite *AggregationServiceTestSuite) assertDurationsRegenBeforeSummarize(mode types.DurationsRegenerationMode, expectForceAll bool, userId string) {
 	yesterdayMidnight := getStartOfToday(time.UTC).AddDate(0, 0, -1)
 	twoDaysAgoMidnight := yesterdayMidnight.AddDate(0, 0, -1)
 
 	testUser := &models.User{
-		ID:       "u_dur_regen",
+		ID:       userId,
 		Location: "UTC",
 	}
 
 	suite.UserService.On("GetManyMapped").Return(map[string]*models.User{
-		"u_dur_regen": testUser,
+		userId: testUser,
 	}, nil)
 
 	suite.SummaryService.On("GetLatestByUser").Return([]*models.TimeByUser{
-		{User: "u_dur_regen", Time: models.CustomTime(twoDaysAgoMidnight)},
+		{User: userId, Time: models.CustomTime(twoDaysAgoMidnight)},
 	}, nil)
 
 	suite.HeartbeatService.On("GetFirstAll").Return([]*models.TimeByUser{}, nil)
@@ -353,9 +363,10 @@ func (suite *AggregationServiceTestSuite) TestAggregationService_AggregateSummar
 	durStarted := make(chan struct{}, 1)
 	durFinish := make(chan struct{})
 	sumStarted := make(chan struct{}, 1)
+	var sumCompleted atomic.Int32
 
-	// expect durations regeneration to run incrementally (i.e. with forceAll == false)
-	suite.DurationService.On("Regenerate", testUser, false).
+	// expect durations regeneration to run with the force flag derived from the mode
+	suite.DurationService.On("Regenerate", testUser, expectForceAll).
 		Run(func(args mock.Arguments) {
 			select {
 			case durStarted <- struct{}{}:
@@ -372,15 +383,20 @@ func (suite *AggregationServiceTestSuite) TestAggregationService_AggregateSummar
 			default:
 			}
 		}).
-		Return(&models.Summary{UserID: "u_dur_regen"}, nil)
+		Return(&models.Summary{UserID: userId}, nil)
 
-	suite.SummaryService.On("Insert", mock.Anything).Return(nil)
+	// insert is called by the summary job right after summarizing, and before its wgGlobal.Done() fires
+	suite.SummaryService.On("Insert", mock.Anything).
+		Run(func(args mock.Arguments) {
+			sumCompleted.Add(1)
+		}).
+		Return(nil)
 
 	sut := NewAggregationService(suite.UserService, suite.SummaryService, suite.HeartbeatService, suite.DurationService)
 
 	aggDone := make(chan error, 1)
 	go func() {
-		aggDone <- sut.AggregateSummaries(datastructure.New("u_dur_regen"), types.DurationsRegenerationIncremental)
+		aggDone <- sut.AggregateSummaries(datastructure.New(userId), mode)
 	}()
 
 	<-durStarted
@@ -389,16 +405,28 @@ func (suite *AggregationServiceTestSuite) TestAggregationService_AggregateSummar
 	time.Sleep(500 * time.Millisecond)
 	suite.Zero(len(sumStarted), "summary aggregation started before durations regeneration finished")
 
-	close(durFinish)
+	// the aggregation lock must still be held for the entire duration of the run
+	suite.True(sut.IsLocked(userId))
+	suite.Error(sut.AggregateSummaries(datastructure.New(userId), types.DurationsRegenerationNone))
 
-	err := <-aggDone
-	suite.NoError(err)
+	close(durFinish)
 
 	select {
 	case <-sumStarted:
 	case <-time.After(5 * time.Second):
 		suite.Fail("summary aggregation did not run after durations regeneration finished")
 	}
+
+	select {
+	case err := <-aggDone:
+		suite.NoError(err)
+	case <-time.After(5 * time.Second):
+		suite.Fail("aggregate summaries did not return")
+	}
+
+	// once AggregateSummaries returned, all summary jobs must have run to completion and the lock be released
+	suite.Equal(int32(2), sumCompleted.Load(), "aggregate summaries returned before all summary jobs completed")
+	suite.False(sut.IsLocked(userId))
 
 	suite.DurationService.AssertExpectations(suite.T())
 	suite.SummaryService.AssertExpectations(suite.T())

@@ -57,6 +57,9 @@ type AggregationJob struct {
 func (srv *AggregationService) Schedule() {
 	slog.Info("scheduling summary aggregation")
 
+	// Note that QueueDefault (single worker) will be blocked while summary aggregation is running, but should be acceptable for now.
+	// Alternative would be to introduce another queue (QueueAggregation or such) solely for this purpose.
+	// actual aggregation jobs run on QueueProcessing, durations generation runs on QueueProcessing2.
 	if _, err := srv.queueDefault.DispatchCron(func() {
 		if err := srv.AggregateSummaries(datastructure.New[string](), types.DurationsRegenerationIncremental); err != nil {
 			config.Log().Error("failed to regenerate summaries", "error", err)
@@ -112,27 +115,6 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 	for _, user := range users {
 		u := *user
 		jobs := make([]*AggregationJob, 0)
-		wg := &sync.WaitGroup{}
-
-		// regenerate durations for the user
-		// incremental regeneration mainly serves as catch-up fallback, as the event listener in durations service will also take care of generating new durations on a regular interval
-		if durationsMode != types.DurationsRegenerationNone {
-			forceAll := durationsMode == types.DurationsRegenerationFull
-
-			wg.Add(1)
-			wgGlobal.Add(1)
-
-			if err := srv.queuedDurationWorkers.Dispatch(func() {
-				defer wgGlobal.Done()
-				defer wg.Done()
-				slog.Info("regenerating user durations as part of summary aggregation", "user", u.ID, "full", forceAll)
-				srv.durationService.Regenerate(&u, forceAll)
-			}); err != nil {
-				wg.Done()
-				wgGlobal.Done()
-				config.Log().Error("failed to dispatch durations generation job", "userID", u.ID, "error", err)
-			}
-		}
 
 		// generate actual summary aggregation jobs
 		for _, e := range lastUserSummaryTimes {
@@ -157,23 +139,45 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 			}
 		}
 
-		// dispatch the jobs for current user
-		for _, jobRef := range jobs {
-			job := *jobRef
+		// dispatch this user's summary jobs
+		dispatchSummaryJobs := func() {
+			for _, jobRef := range jobs {
+				job := *jobRef
+				wgGlobal.Add(1)
+
+				if err := srv.queueSummaryWorkers.Dispatch(func() {
+					defer wgGlobal.Done()
+					srv.process(job)
+				}); err != nil {
+					wgGlobal.Done()
+					config.Log().Error("failed to dispatch summary generation job", "userID", job.User.ID)
+				}
+			}
+		}
+
+		// regenerate durations for the user
+		// incremental regeneration mainly serves as catch-up fallback, as the event listener in durations service will also take care of generating new durations on a regular interval
+		if durationsMode != types.DurationsRegenerationNone {
+			forceAll := durationsMode == types.DurationsRegenerationFull
+
 			wgGlobal.Add(1)
 
-			if err := srv.queueSummaryWorkers.Dispatch(func() {
+			if err := srv.queuedDurationWorkers.Dispatch(func() {
 				defer wgGlobal.Done()
-				wg.Wait()
-				srv.process(job)
+				slog.Info("regenerating user durations as part of summary aggregation", "user", u.ID, "full", forceAll)
+				srv.durationService.Regenerate(&u, forceAll)
+				dispatchSummaryJobs()
 			}); err != nil {
 				wgGlobal.Done()
-				config.Log().Error("failed to dispatch summary generation job", "userID", job.User.ID)
+				config.Log().Error("failed to dispatch durations generation job", "userID", u.ID, "error", err)
+				dispatchSummaryJobs() // only dispatch after durations generation is done to not block worker slots while just waiting for this to finish
 			}
+		} else {
+			dispatchSummaryJobs()
 		}
 	}
 
-	wgGlobal.Wait()
+	wgGlobal.Wait() // optionally for one durations generation job, followed by n summary aggregation jobs
 	return nil
 }
 
