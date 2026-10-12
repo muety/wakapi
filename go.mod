@@ -27,6 +27,7 @@ require (
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.4.0
 	github.com/hashicorp/golang-lru v1.0.2
+	github.com/jellydator/ttlcache/v3 v3.4.1
 	github.com/jinzhu/configor v1.2.2
 	github.com/leandro-lugaresi/hub v1.1.2
 	github.com/lpar/gzipped/v2 v2.1.0
@@ -34,7 +35,6 @@ require (
 	github.com/muety/artifex/v2 v2.0.1-0.20221201142708-74e7d3f6feaf
 	github.com/narqo/go-badge v0.0.0-20230821190521-c9a75c019a59
 	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
-	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/cors v1.11.1
 	github.com/samber/slog-multi v1.8.0
@@ -84,7 +84,6 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/kevinpollet/nego v0.0.0-20211010160919-a65cd48cee43 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
-	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect

@@ -626,9 +626,9 @@ func (suite *DurationServiceTestSuite) TestDurationService_HeartbeatCreateEvent_
 		return false
 	}, 2*time.Second, 20*time.Millisecond)
 
-	dirtyFromVal, ok := sut.dirtyFrom.Get("dirty_from_" + suite.TestUser.ID)
-	assert.True(suite.T(), ok)
-	assert.Equal(suite.T(), t1, dirtyFromVal.(time.Time))
+	dirtyFromItem := sut.dirtyFrom.Get("dirty_from_" + suite.TestUser.ID)
+	assert.NotNil(suite.T(), dirtyFromItem)
+	assert.Equal(suite.T(), t1, dirtyFromItem.Value())
 
 	// 2. Subsequent heartbeat with timestamp after dirtyFrom: skips DeleteByUserAfter
 	eventBus.Publish(hub.Message{
@@ -668,9 +668,9 @@ func (suite *DurationServiceTestSuite) TestDurationService_HeartbeatCreateEvent_
 		return false
 	}, 2*time.Second, 20*time.Millisecond)
 
-	dirtyFromVal, ok = sut.dirtyFrom.Get("dirty_from_" + suite.TestUser.ID)
-	assert.True(suite.T(), ok)
-	assert.Equal(suite.T(), t3, dirtyFromVal.(time.Time))
+	dirtyFromItem = sut.dirtyFrom.Get("dirty_from_" + suite.TestUser.ID)
+	assert.NotNil(suite.T(), dirtyFromItem)
+	assert.Equal(suite.T(), t3, dirtyFromItem.Value())
 
 	suite.DurationRepository.AssertExpectations(suite.T())
 	_ = sut

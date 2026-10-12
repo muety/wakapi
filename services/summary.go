@@ -13,18 +13,18 @@ import (
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/slice"
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/repositories"
-	"github.com/patrickmn/go-cache"
 )
 
 type SummaryService struct {
 	config              *config.Config
-	cache               *cache.Cache
-	heartbeatCache      *cache.Cache
+	cache               *ttlcache.Cache[string, *models.Summary]
+	heartbeatCache      *ttlcache.Cache[string, time.Time]
 	eventBus            *hub.Hub
 	repository          repositories.ISummaryRepository
 	heartbeatService    IHeartbeatService
@@ -34,10 +34,22 @@ type SummaryService struct {
 }
 
 func NewSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatService IHeartbeatService, durationService IDurationService, aliasService IAliasService, projectLabelService IProjectLabelService) *SummaryService {
+	summaryCache := ttlcache.New[string, *models.Summary](
+		ttlcache.WithTTL[string, *models.Summary](24*time.Hour),
+		ttlcache.WithDisableTouchOnHit[string, *models.Summary](),
+	)
+	go summaryCache.Start()
+
+	heartbeatCache := ttlcache.New[string, time.Time](
+		ttlcache.WithTTL[string, time.Time](24*time.Hour),
+		ttlcache.WithDisableTouchOnHit[string, time.Time](),
+	)
+	go heartbeatCache.Start()
+
 	srv := &SummaryService{
 		config:              config.Get(),
-		cache:               cache.New(24*time.Hour, 24*time.Hour),
-		heartbeatCache:      cache.New(24*time.Hour, 24*time.Hour),
+		cache:               summaryCache,
+		heartbeatCache:      heartbeatCache,
 		eventBus:            config.EventBus(),
 		repository:          summaryRepo,
 		heartbeatService:    heartbeatService,
@@ -59,7 +71,8 @@ func NewSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatSer
 			heartbeat := m.Fields[config.FieldPayload].(*models.Heartbeat)
 			cacheKey := fmt.Sprintf("latest_heartbeat_%s", heartbeat.UserID)
 
-			if latestHeartbeatTime, ok := srv.heartbeatCache.Get(cacheKey); !ok || heartbeat.Time.T().Before(latestHeartbeatTime.(time.Time)) {
+			latestHeartbeatItem := srv.heartbeatCache.Get(cacheKey)
+			if latestHeartbeatItem == nil || heartbeat.Time.T().Before(latestHeartbeatItem.Value()) {
 				if latestSummaryTime, err := srv.GetLatestBySingleUser(heartbeat.UserID); err != nil {
 					config.Log().Error("failed to retrieve latest summary time for user", "user", heartbeat.UserID, "error", err)
 				} else if latestSummaryTime.After(heartbeat.Time.T()) {
@@ -70,7 +83,7 @@ func NewSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatSer
 				}
 			}
 
-			srv.heartbeatCache.SetDefault(cacheKey, heartbeat.Time.T())
+			srv.heartbeatCache.Set(cacheKey, heartbeat.Time.T(), ttlcache.DefaultTTL)
 		}
 	}(&sub2)
 
@@ -93,8 +106,8 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f type
 	// Check cache (or skip for sub second-level date precision)
 	cacheKey := srv.getHash(from.String(), to.String(), user.ID, filters.Hash(), strconv.Itoa(int(requestedTimeout)), "--aliased")
 	if to.Truncate(time.Second).Equal(to) && from.Truncate(time.Second).Equal(from) {
-		if cacheResult, ok := srv.cache.Get(cacheKey); ok && !skipCache {
-			return cacheResult.(*models.Summary).Sorted().InTZ(user.TZ()), nil
+		if item := srv.cache.Get(cacheKey); item != nil && !skipCache {
+			return item.Value().Sorted().InTZ(user.TZ()), nil
 		}
 	}
 
@@ -133,7 +146,7 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f type
 		summary.Entities = nil
 	}
 
-	srv.cache.SetDefault(cacheKey, summary)
+	srv.cache.Set(cacheKey, summary, ttlcache.DefaultTTL)
 	return summary.Sorted().InTZ(user.TZ()), nil
 }
 
@@ -551,7 +564,7 @@ func (srv *SummaryService) getHash(args ...string) string {
 }
 
 func (srv *SummaryService) invalidateUserCache(userId string) {
-	for key := range srv.cache.Items() {
+	for _, key := range srv.cache.Keys() {
 		if strings.Contains(key, userId) {
 			srv.cache.Delete(key)
 		}
