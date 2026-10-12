@@ -51,7 +51,7 @@ func NewDurationService(durationRepository repositories.IDurationRepository, hea
 	}
 
 	// TODO: refactor to updating durations on-the-fly as heartbeats flow in, instead of batch-wise
-	sub1 := srv.eventBus.Subscribe(0, config.EventHeartbeatCreate)
+	sub1 := srv.eventBus.Subscribe(32, config.EventHeartbeatCreate)
 	go func(sub *hub.Subscription) {
 		for m := range sub.Receiver {
 			heartbeat := m.Fields[config.FieldPayload].(*models.Heartbeat)
