@@ -24,6 +24,7 @@ import (
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/models/view"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
@@ -977,7 +978,7 @@ func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
 		return err
 	}
 
-	if err := h.aggregationSrvc.AggregateSummaries(datastructure.New(user.ID), true); err != nil { // involves regenerating durations as well
+	if err := h.aggregationSrvc.AggregateSummaries(datastructure.New(user.ID), types.DurationsRegenerationFull); err != nil { // involves regenerating durations as well
 		conf.Log().Error("failed to regenerate summaries", "error", err)
 		return err
 	}

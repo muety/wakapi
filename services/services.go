@@ -14,7 +14,7 @@ import (
 
 type IAggregationService interface {
 	Schedule()
-	AggregateSummaries(datastructure.Set[string], bool) error
+	AggregateSummaries(datastructure.Set[string], types.DurationsRegenerationMode) error
 	AggregateDurations(datastructure.Set[string]) error
 	IsLocked(string) bool
 }

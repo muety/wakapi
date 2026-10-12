@@ -10,6 +10,7 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/models/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -308,7 +309,7 @@ func (suite *AggregationServiceTestSuite) TestAggregationService_AggregateSummar
 
 	aggDone := make(chan error, 1)
 	go func() {
-		aggDone <- sut.AggregateSummaries(datastructure.New("u_lock_test"), false)
+		aggDone <- sut.AggregateSummaries(datastructure.New("u_lock_test"), types.DurationsRegenerationNone)
 	}()
 
 	<-inJobChan
@@ -317,7 +318,7 @@ func (suite *AggregationServiceTestSuite) TestAggregationService_AggregateSummar
 	err := sut.lockUsers(datastructure.New("u_lock_test"))
 	suite.Error(err)
 
-	err = sut.AggregateSummaries(datastructure.New("u_lock_test"), false)
+	err = sut.AggregateSummaries(datastructure.New("u_lock_test"), types.DurationsRegenerationNone)
 	suite.Error(err)
 
 	close(finishJobChan)
@@ -326,6 +327,80 @@ func (suite *AggregationServiceTestSuite) TestAggregationService_AggregateSummar
 	suite.NoError(err)
 	suite.False(sut.IsLocked("u_lock_test"))
 
+	suite.SummaryService.AssertExpectations(suite.T())
+	suite.UserService.AssertExpectations(suite.T())
+}
+
+func (suite *AggregationServiceTestSuite) TestAggregationService_AggregateSummaries_IncrementalDurationsRegeneration() {
+	yesterdayMidnight := getStartOfToday(time.UTC).AddDate(0, 0, -1)
+	twoDaysAgoMidnight := yesterdayMidnight.AddDate(0, 0, -1)
+
+	testUser := &models.User{
+		ID:       "u_dur_regen",
+		Location: "UTC",
+	}
+
+	suite.UserService.On("GetManyMapped").Return(map[string]*models.User{
+		"u_dur_regen": testUser,
+	}, nil)
+
+	suite.SummaryService.On("GetLatestByUser").Return([]*models.TimeByUser{
+		{User: "u_dur_regen", Time: models.CustomTime(twoDaysAgoMidnight)},
+	}, nil)
+
+	suite.HeartbeatService.On("GetFirstAll").Return([]*models.TimeByUser{}, nil)
+
+	durStarted := make(chan struct{}, 1)
+	durFinish := make(chan struct{})
+	sumStarted := make(chan struct{}, 1)
+
+	// expect durations regeneration to run incrementally (i.e. with forceAll == false)
+	suite.DurationService.On("Regenerate", testUser, false).
+		Run(func(args mock.Arguments) {
+			select {
+			case durStarted <- struct{}{}:
+			default:
+			}
+			<-durFinish
+		}).
+		Return(nil)
+
+	suite.SummaryService.On("Summarize", mock.Anything, mock.Anything, testUser, (*models.Filters)(nil), (*time.Duration)(nil)).
+		Run(func(args mock.Arguments) {
+			select {
+			case sumStarted <- struct{}{}:
+			default:
+			}
+		}).
+		Return(&models.Summary{UserID: "u_dur_regen"}, nil)
+
+	suite.SummaryService.On("Insert", mock.Anything).Return(nil)
+
+	sut := NewAggregationService(suite.UserService, suite.SummaryService, suite.HeartbeatService, suite.DurationService)
+
+	aggDone := make(chan error, 1)
+	go func() {
+		aggDone <- sut.AggregateSummaries(datastructure.New("u_dur_regen"), types.DurationsRegenerationIncremental)
+	}()
+
+	<-durStarted
+
+	// summary aggregation for a user must not start before that user's durations regeneration has finished
+	time.Sleep(500 * time.Millisecond)
+	suite.Zero(len(sumStarted), "summary aggregation started before durations regeneration finished")
+
+	close(durFinish)
+
+	err := <-aggDone
+	suite.NoError(err)
+
+	select {
+	case <-sumStarted:
+	case <-time.After(5 * time.Second):
+		suite.Fail("summary aggregation did not run after durations regeneration finished")
+	}
+
+	suite.DurationService.AssertExpectations(suite.T())
 	suite.SummaryService.AssertExpectations(suite.T())
 	suite.UserService.AssertExpectations(suite.T())
 }

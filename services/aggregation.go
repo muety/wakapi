@@ -11,6 +11,7 @@ import (
 	"github.com/muety/wakapi/config"
 
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/models/types"
 )
 
 const (
@@ -57,7 +58,7 @@ func (srv *AggregationService) Schedule() {
 	slog.Info("scheduling summary aggregation")
 
 	if _, err := srv.queueDefault.DispatchCron(func() {
-		if err := srv.AggregateSummaries(datastructure.New[string](), false); err != nil {
+		if err := srv.AggregateSummaries(datastructure.New[string](), types.DurationsRegenerationIncremental); err != nil {
 			config.Log().Error("failed to regenerate summaries", "error", err)
 		}
 	}, srv.config.App.GetAggregationTimeCron()); err != nil {
@@ -65,8 +66,8 @@ func (srv *AggregationService) Schedule() {
 	}
 }
 
-// AggregateSummaries generates summaries for the given users. If includeDurations is true, it also regenerates durations from scratch. Blocks until all done.
-func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[string], includeDurations bool) error {
+// AggregateSummaries generates summaries for the given users. Depending on the mode, it additionally regenerates users' durations, either only incrementally or entirely. Blocks until all done.
+func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[string], durationsMode types.DurationsRegenerationMode) error {
 	if err := srv.lockUsers(userIds); err != nil {
 		return err
 	}
@@ -113,17 +114,19 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 		jobs := make([]*AggregationJob, 0)
 		wg := &sync.WaitGroup{}
 
-		// regenerate durations for the user if requested
-		// generally not needed, because event listener in durations service will take care of generating new durations on a regular interval
-		if includeDurations {
+		// regenerate durations for the user
+		// incremental regeneration mainly serves as catch-up fallback, as the event listener in durations service will also take care of generating new durations on a regular interval
+		if durationsMode != types.DurationsRegenerationNone {
+			forceAll := durationsMode == types.DurationsRegenerationFull
+
 			wg.Add(1)
 			wgGlobal.Add(1)
 
 			if err := srv.queuedDurationWorkers.Dispatch(func() {
 				defer wgGlobal.Done()
 				defer wg.Done()
-				slog.Info("regenerating user durations as part of summary aggregation", "user", u.ID)
-				srv.durationService.Regenerate(&u, true)
+				slog.Info("regenerating user durations as part of summary aggregation", "user", u.ID, "full", forceAll)
+				srv.durationService.Regenerate(&u, forceAll)
 			}); err != nil {
 				wg.Done()
 				wgGlobal.Done()
