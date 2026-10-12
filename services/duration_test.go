@@ -749,10 +749,10 @@ func (suite *DurationServiceTestSuite) awaitDeleted(deleted chan time.Time, expe
 
 func (suite *DurationServiceTestSuite) awaitDirtyFrom(sut *DurationService, expected time.Time) {
 	suite.T().Helper()
-	// go-cache is internally synchronized, so reading it from the test goroutine is safe
+	// ttlcache is internally synchronized, so reading it from the test goroutine is safe
 	assert.Eventually(suite.T(), func() bool {
-		dirtyFrom, ok := sut.dirtyFrom.Get("dirty_from_" + suite.TestUser.ID)
-		return ok && dirtyFrom.(time.Time).Equal(expected)
+		dirtyFrom := sut.dirtyFrom.Get("dirty_from_" + suite.TestUser.ID)
+		return dirtyFrom != nil && dirtyFrom.Value().Equal(expected)
 	}, 2*time.Second, 20*time.Millisecond)
 }
 

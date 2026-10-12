@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/duke-git/lancet/v2/slice"
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/leandro-lugaresi/hub"
-	"github.com/patrickmn/go-cache"
 
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -15,17 +15,23 @@ import (
 
 type ProjectLabelService struct {
 	config     *config.Config
-	cache      *cache.Cache
+	cache      *ttlcache.Cache[string, []*models.ProjectLabel]
 	eventBus   *hub.Hub
 	repository repositories.IProjectLabelRepository
 }
 
 func NewProjectLabelService(projectLabelRepository repositories.IProjectLabelRepository) *ProjectLabelService {
+	c := ttlcache.New[string, []*models.ProjectLabel](
+		ttlcache.WithTTL[string, []*models.ProjectLabel](24*time.Hour),
+		ttlcache.WithDisableTouchOnHit[string, []*models.ProjectLabel](),
+	)
+	go c.Start()
+
 	return &ProjectLabelService{
 		config:     config.Get(),
 		eventBus:   config.EventBus(),
 		repository: projectLabelRepository,
-		cache:      cache.New(24*time.Hour, 24*time.Hour),
+		cache:      c,
 	}
 }
 
@@ -34,15 +40,15 @@ func (srv *ProjectLabelService) GetById(id uint) (*models.ProjectLabel, error) {
 }
 
 func (srv *ProjectLabelService) GetByUser(userId string) ([]*models.ProjectLabel, error) {
-	if labels, found := srv.cache.Get(userId); found {
-		return labels.([]*models.ProjectLabel), nil
+	if item := srv.cache.Get(userId); item != nil {
+		return item.Value(), nil
 	}
 
 	labels, err := srv.repository.GetByUser(userId)
 	if err != nil {
 		return nil, err
 	}
-	srv.cache.Set(userId, labels, cache.DefaultExpiration)
+	srv.cache.Set(userId, labels, ttlcache.DefaultTTL)
 	return labels, nil
 }
 

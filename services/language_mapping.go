@@ -4,11 +4,11 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
-	"github.com/patrickmn/go-cache"
 )
 
 /*
@@ -20,17 +20,23 @@ import (
 
 type LanguageMappingService struct {
 	config     *config.Config
-	cache      *cache.Cache
+	cache      *ttlcache.Cache[string, []*models.LanguageMapping]
 	eventBus   *hub.Hub
 	repository repositories.ILanguageMappingRepository
 }
 
 func NewLanguageMappingService(languageMappingsRepo repositories.ILanguageMappingRepository) *LanguageMappingService {
+	c := ttlcache.New[string, []*models.LanguageMapping](
+		ttlcache.WithTTL[string, []*models.LanguageMapping](24*time.Hour),
+		ttlcache.WithDisableTouchOnHit[string, []*models.LanguageMapping](),
+	)
+	go c.Start()
+
 	return &LanguageMappingService{
 		config:     config.Get(),
 		eventBus:   config.EventBus(),
 		repository: languageMappingsRepo,
-		cache:      cache.New(24*time.Hour, 24*time.Hour),
+		cache:      c,
 	}
 }
 
@@ -39,15 +45,15 @@ func (srv *LanguageMappingService) GetById(id uint) (*models.LanguageMapping, er
 }
 
 func (srv *LanguageMappingService) GetByUser(userId string) ([]*models.LanguageMapping, error) {
-	if mappings, found := srv.cache.Get(userId); found {
-		return mappings.([]*models.LanguageMapping), nil
+	if item := srv.cache.Get(userId); item != nil {
+		return item.Value(), nil
 	}
 
 	mappings, err := srv.repository.GetByUser(userId)
 	if err != nil {
 		return nil, err
 	}
-	srv.cache.Set(userId, mappings, cache.DefaultExpiration)
+	srv.cache.Set(userId, mappings, ttlcache.DefaultTTL)
 	return mappings, nil
 }
 
