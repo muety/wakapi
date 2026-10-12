@@ -371,10 +371,10 @@ func main() {
 		if cfg.Target.Dialect == "postgres" {
 			// For postgres, need to update the seqno for the heartbeats_id_seq on migration
 			count, err := heartbeatSource.Count(false)
-			if err != nil {
-				dbTarget.Raw(fmt.Sprintf("ALTER SEQUENCE heartbeats_id_seq RESTART WITH %s;", count + 1))
+			if err == nil {
+				dbTarget.Exec(fmt.Sprintf("ALTER SEQUENCE heartbeats_id_seq RESTART WITH %d;", count+1))
 			} else {
-				log.Print("warning: failed to ")
+				log.Fatalln("warning: failed to update initial sequence number for heartbeats, with error ", err)
 			}
 		}
 	}
