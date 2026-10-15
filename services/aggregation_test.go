@@ -1,6 +1,7 @@
 package services
 
 import (
+	"slices"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -77,7 +78,7 @@ func (suite *AggregationServiceTestSuite) TestAggregationService_GenerateUserJob
 
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
-			jobs := generateUserJobs(tt.user, fromUTC)
+			jobs := slices.Collect(generateUserJobs(tt.user, fromUTC))
 			assert.NotEmpty(t, jobs)
 
 			endOfYesterday := getStartOfToday(tt.tz).Add(-1 * time.Second)

@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"iter"
 	"log/slog"
 	"sync"
 	"time"
@@ -114,9 +115,9 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 
 	for _, user := range users {
 		u := *user
-		jobs := make([]*AggregationJob, 0)
 
-		// generate actual summary aggregation jobs
+		// determine start times for summary aggregation (actual jobs are only generated lazily upon dispatch to keep memory usage low, see #997)
+		var starts []time.Time
 		for _, e := range lastUserSummaryTimes {
 			if e.User != user.ID {
 				continue
@@ -126,12 +127,12 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 				// Case 1: User has aggregated summaries already
 				// -> Spawn jobs to create summaries from their latest aggregation to now
 				slog.Info("generating summary aggregation jobs for user", "user", u.ID, "from", e.Time.T())
-				jobs = append(jobs, generateUserJobs(&u, e.Time.T())...)
+				starts = append(starts, e.Time.T())
 			} else if t := firstUserHeartbeatLookup[e.User]; t.Valid() {
 				// Case 2: User has no aggregated summaries, yet, but has heartbeats
 				// -> Spawn jobs to create summaries from their first heartbeat to now
 				slog.Info("generating summary aggregation jobs for user", "user", u.ID, "from", t.T())
-				jobs = append(jobs, generateUserJobs(&u, t.T())...)
+				starts = append(starts, t.T())
 			} else {
 				// Case 3: User doesn't have heartbeats at all
 				// -> Nothing to do
@@ -139,18 +140,20 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 			}
 		}
 
-		// dispatch this user's summary jobs
+		// generate and dispatch this user's summary jobs
+		// dispatching blocks while the queue is full, so at most the queue's capacity number of jobs is held in memory at a time
 		dispatchSummaryJobs := func() {
-			for _, jobRef := range jobs {
-				job := *jobRef
-				wgGlobal.Add(1)
+			for _, start := range starts {
+				for job := range generateUserJobs(&u, start) {
+					wgGlobal.Add(1)
 
-				if err := srv.queueSummaryWorkers.Dispatch(func() {
-					defer wgGlobal.Done()
-					srv.process(job)
-				}); err != nil {
-					wgGlobal.Done()
-					config.Log().Error("failed to dispatch summary generation job", "userID", job.User.ID)
+					if err := srv.queueSummaryWorkers.Dispatch(func() {
+						defer wgGlobal.Done()
+						srv.process(job)
+					}); err != nil {
+						wgGlobal.Done()
+						config.Log().Error("failed to dispatch summary generation job", "userID", job.User.ID)
+					}
 				}
 			}
 		}
@@ -233,38 +236,40 @@ func (srv *AggregationService) process(job AggregationJob) {
 	}
 }
 
-func generateUserJobs(user *models.User, from time.Time) (jobs []*AggregationJob) {
-	var to time.Time
-	tz := time.Local
-	if user != nil {
-		tz = user.TZ()
-	}
+func generateUserJobs(user *models.User, start time.Time) iter.Seq[AggregationJob] {
+	return func(yield func(AggregationJob) bool) {
+		var to time.Time
+		tz := time.Local
+		if user != nil {
+			tz = user.TZ()
+		}
 
-	// Go to next day of either user's first heartbeat or latest aggregation
-	from = from.In(tz).Add(-1 * time.Second)
-	from = time.Date(
-		from.Year(),
-		from.Month(),
-		from.Day()+aggregateIntervalDays,
-		0, 0, 0, 0,
-		tz,
-	)
-
-	// Iteratively aggregate per-day summaries until end of yesterday is reached
-	end := getStartOfToday(tz).Add(-1 * time.Second)
-	for from.Before(end) && to.Before(end) {
-		to = time.Date(
+		// go to next day of either user's first heartbeat or latest aggregation
+		from := start.In(tz).Add(-1 * time.Second)
+		from = time.Date(
 			from.Year(),
 			from.Month(),
 			from.Day()+aggregateIntervalDays,
 			0, 0, 0, 0,
 			tz,
 		)
-		jobs = append(jobs, &AggregationJob{user, from, to})
-		from = to
-	}
 
-	return jobs
+		// iteratively aggregate per-day summaries until end of yesterday is reached
+		end := getStartOfToday(tz).Add(-1 * time.Second)
+		for from.Before(end) && to.Before(end) {
+			to = time.Date(
+				from.Year(),
+				from.Month(),
+				from.Day()+aggregateIntervalDays,
+				0, 0, 0, 0,
+				tz,
+			)
+			if !yield(AggregationJob{user, from, to}) {
+				return
+			}
+			from = to
+		}
+	}
 }
 
 func (srv *AggregationService) IsLocked(userId string) bool {
