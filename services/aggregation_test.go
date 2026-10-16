@@ -353,6 +353,47 @@ func (suite *AggregationServiceTestSuite) TestAggregationService_AggregateSummar
 	suite.UserService.AssertExpectations(suite.T())
 }
 
+func (suite *AggregationServiceTestSuite) TestAggregationService_AggregateSummaries_UserWithoutPriorSummaries() {
+	yesterdayMidnight := getStartOfToday(time.UTC).AddDate(0, 0, -1)
+	twoDaysAgoMidnight := yesterdayMidnight.AddDate(0, 0, -1)
+
+	testUser := &models.User{
+		ID:       "u_new_user",
+		Location: "UTC",
+	}
+
+	suite.UserService.On("GetManyMapped").Return(map[string]*models.User{
+		"u_new_user": testUser,
+	}, nil)
+
+	// User has NO prior summaries (e.g. empty result or not in list)
+	suite.SummaryService.On("GetLatestByUser").Return([]*models.TimeByUser{}, nil)
+
+	// User has heartbeats from two days ago
+	suite.HeartbeatService.On("GetFirstAll").Return([]*models.TimeByUser{
+		{User: "u_new_user", Time: models.CustomTime(twoDaysAgoMidnight)},
+	}, nil)
+
+	summarized := atomic.Int32{}
+	suite.SummaryService.On("Summarize", mock.Anything, mock.Anything, testUser, (*models.Filters)(nil), (*time.Duration)(nil)).
+		Run(func(args mock.Arguments) {
+			summarized.Add(1)
+		}).
+		Return(&models.Summary{UserID: "u_new_user"}, nil)
+
+	suite.SummaryService.On("Insert", mock.Anything).Return(nil)
+
+	sut := NewAggregationService(suite.UserService, suite.SummaryService, suite.HeartbeatService, suite.DurationService)
+
+	err := sut.AggregateSummaries(datastructure.New("u_new_user"), types.DurationsRegenerationNone)
+	suite.NoError(err)
+	suite.Equal(int32(2), summarized.Load(), "summary aggregation should have generated jobs from first heartbeat")
+
+	suite.SummaryService.AssertExpectations(suite.T())
+	suite.HeartbeatService.AssertExpectations(suite.T())
+	suite.UserService.AssertExpectations(suite.T())
+}
+
 func (suite *AggregationServiceTestSuite) TestAggregationService_AggregateSummaries_IncrementalDurationsRegeneration() {
 	suite.assertDurationsRegenBeforeSummarize(types.DurationsRegenerationIncremental, false, "u_dur_regen")
 }

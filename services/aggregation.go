@@ -94,10 +94,14 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 		return err
 	}
 
-	// Build actual lookup table from it
 	firstUserHeartbeatLookup := make(map[string]models.CustomTime)
 	for _, e := range firstUserHeartbeatTimes {
 		firstUserHeartbeatLookup[e.User] = e.Time
+	}
+
+	lastUserSummaryLookup := make(map[string]models.CustomTime)
+	for _, e := range lastUserSummaryTimes {
+		lastUserSummaryLookup[e.User] = e.Time
 	}
 
 	// Fetch complete user objects
@@ -124,26 +128,20 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 
 		// determine start times for summary aggregation (actual jobs are only generated lazily upon dispatch to keep memory usage low, see #997)
 		var starts []time.Time
-		for _, e := range lastUserSummaryTimes {
-			if e.User != user.ID {
-				continue
-			}
-
-			if e.Time.Valid() {
-				// Case 1: User has aggregated summaries already
-				// -> Spawn jobs to create summaries from their latest aggregation to now
-				slog.Info("generating summary aggregation jobs for user", "user", u.ID, "from", e.Time.T())
-				starts = append(starts, e.Time.T())
-			} else if t := firstUserHeartbeatLookup[e.User]; t.Valid() {
-				// Case 2: User has no aggregated summaries, yet, but has heartbeats
-				// -> Spawn jobs to create summaries from their first heartbeat to now
-				slog.Info("generating summary aggregation jobs for user", "user", u.ID, "from", t.T())
-				starts = append(starts, t.T())
-			} else {
-				// Case 3: User doesn't have heartbeats at all
-				// -> Nothing to do
-				slog.Info("skipping summary aggregation because user has no heartbeats", "user", u.ID)
-			}
+		if lastSummary, ok := lastUserSummaryLookup[u.ID]; ok && lastSummary.Valid() {
+			// Case 1: User has aggregated summaries already
+			// -> Spawn jobs to create summaries from their latest aggregation to now
+			slog.Info("generating summary aggregation jobs for user", "user", u.ID, "from", lastSummary.T())
+			starts = append(starts, lastSummary.T())
+		} else if firstHeartbeat, ok := firstUserHeartbeatLookup[u.ID]; ok && firstHeartbeat.Valid() {
+			// Case 2: User has no aggregated summaries, yet, but has heartbeats
+			// -> Spawn jobs to create summaries from their first heartbeat to now
+			slog.Info("generating summary aggregation jobs for user", "user", u.ID, "from", firstHeartbeat.T())
+			starts = append(starts, firstHeartbeat.T())
+		} else {
+			// Case 3: User doesn't have heartbeats at all
+			// -> Nothing to do
+			slog.Info("skipping summary aggregation because user has no heartbeats", "user", u.ID)
 		}
 
 		// generate and dispatch this user's summary jobs lazily under backpressure
