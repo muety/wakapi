@@ -86,6 +86,13 @@ func TestCustomTime_Scan(t *testing.T) {
 	assert.Equal(t, 14, ct5.T().Hour())
 	assert.Equal(t, 30, ct5.T().Minute())
 	assert.Equal(t, time.Local, ct5.T().Location())
+
+	// nil / NULL
+	var ctNil CustomTime
+	err = ctNil.Scan(nil)
+	assert.NoError(t, err)
+	assert.False(t, ctNil.Valid())
+	assert.True(t, ctNil.T().IsZero())
 }
 
 func TestResolveDbDialect(t *testing.T) {

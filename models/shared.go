@@ -86,6 +86,9 @@ func (j *CustomTime) Scan(value interface{}) error {
 	)
 
 	switch v := value.(type) {
+	case nil:
+		*j = CustomTime(time.Time{})
+		return nil
 	case int64:
 		t = time.UnixMilli(v)
 	case float64:
