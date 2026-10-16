@@ -41,6 +41,8 @@ let icons = [
     'ic:round-dashboard',
     'ci:settings-filled',
     'akar-icons:chevron-down',
+    'akar-icons:chevron-left',
+    'akar-icons:chevron-right',
     'ls:logout',
     'fluent:key-32-filled',
     'majesticons:clipboard-copy',
