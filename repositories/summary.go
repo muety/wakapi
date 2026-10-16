@@ -154,12 +154,12 @@ func (r *SummaryRepository) GetByUserWithin(user *models.User, from, to time.Tim
 
 func (r *SummaryRepository) GetLastByUser() ([]*models.TimeByUser, error) {
 	var result []*models.TimeByUser
-	r.db.Model(&models.User{}).
+	err := r.db.Model(&models.User{}).
 		Select(utils.QuoteSql(r.db, "users.id as %s, max(to_time) as time", "user")). // TODO: check timezone
 		Joins("left join summaries on users.id = summaries.user_id").
 		Group("users.id").
-		Scan(&result)
-	return result, nil
+		Scan(&result).Error
+	return result, err
 }
 
 func (r *SummaryRepository) GetLastBySingleUser(userId string) (time.Time, error) {
