@@ -47,7 +47,7 @@ func InitQueue(name string, workers int) error {
 		return fmt.Errorf("queue '%s' already existing", name)
 	}
 	slog.Info("creating job queue", "name", name, "workers", workers)
-	jobQueues[name] = artifex.NewDispatcher(workers, 4096)
+	jobQueues[name] = artifex.NewDispatcher(workers, 0)
 	jobQueues[name].Start()
 	return nil
 }

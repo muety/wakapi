@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	aggregateIntervalDays int = 1
+	aggregateIntervalDays  int = 1
+	maxDispatchSummaryJobs int = 64
 )
 
 var aggregationLock = sync.Mutex{}
@@ -112,6 +113,11 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 
 	// Generate summary aggregation jobs
 	wgGlobal := &sync.WaitGroup{}
+	// artifex does not block upon dispatching into a saturated worker pool, but instead eagerly spawns goroutines
+	// This semaphore enforces actual backpressure so that the lazy user jobs generator only yields up to 64 at a time
+	// See https://github.com/muety/wakapi/issues/997
+	// To clarify: jobs are still only being _processed_ with the queue's configured concurrency, but we still don't want to _dispatch_ thousands of (waiting) goroutines to save memory
+	sem := make(chan struct{}, maxDispatchSummaryJobs)
 
 	for _, user := range users {
 		u := *user
@@ -140,17 +146,21 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 			}
 		}
 
-		// generate and dispatch this user's summary jobs
-		// dispatching blocks while the queue is full, so at most the queue's capacity number of jobs is held in memory at a time
+		// generate and dispatch this user's summary jobs lazily under backpressure
 		dispatchSummaryJobs := func() {
 			for _, start := range starts {
 				for job := range generateUserJobs(&u, start) {
+					sem <- struct{}{}
 					wgGlobal.Add(1)
 
 					if err := srv.queueSummaryWorkers.Dispatch(func() {
-						defer wgGlobal.Done()
+						defer func() {
+							<-sem
+							wgGlobal.Done()
+						}()
 						srv.process(job)
 					}); err != nil {
+						<-sem
 						wgGlobal.Done()
 						config.Log().Error("failed to dispatch summary generation job", "userID", job.User.ID)
 					}
