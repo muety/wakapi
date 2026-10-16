@@ -118,6 +118,27 @@ func (suite *AggregationServiceTestSuite) TestAggregationService_GenerateUserJob
 	}
 }
 
+func (suite *AggregationServiceTestSuite) TestAggregationService_GenerateUserJobs_MidnightDSTTransition() {
+	pyTz, err := time.LoadLocation("America/Asuncion")
+	suite.Require().NoError(err)
+
+	user := &models.User{ID: "u_py", Location: "America/Asuncion"}
+
+	// Start 2 days before the Oct 5-6 2024 midnight DST transition in America/Asuncion
+	from := time.Date(2024, 10, 4, 12, 0, 0, 0, pyTz)
+
+	jobs := slices.Collect(generateUserJobs(user, from))
+	suite.NotEmpty(jobs)
+
+	// Ensure jobs advance monotonically and sequentially without getting stuck
+	for i, job := range jobs {
+		suite.True(job.To.After(job.From), "job %d did not advance: from=%s, to=%s", i, job.From, job.To)
+		if i < len(jobs)-1 {
+			suite.True(job.To.Equal(jobs[i+1].From), "job %d not contiguous with job %d", i, i+1)
+		}
+	}
+}
+
 func (suite *AggregationServiceTestSuite) TestAggregationService_GetStartOfToday() {
 	tokyoTz, err := time.LoadLocation("Asia/Tokyo")
 	suite.Require().NoError(err)

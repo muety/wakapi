@@ -256,7 +256,7 @@ func generateUserJobs(user *models.User, start time.Time) iter.Seq[AggregationJo
 
 		// iteratively aggregate per-day summaries until end of yesterday is reached
 		end := getStartOfToday(tz).Add(-1 * time.Second)
-		for from.Before(end) && to.Before(end) {
+		for from.Before(end) {
 			to = time.Date(
 				from.Year(),
 				from.Month(),
@@ -264,6 +264,11 @@ func generateUserJobs(user *models.User, start time.Time) iter.Seq[AggregationJo
 				0, 0, 0, 0,
 				tz,
 			)
+			if !to.After(from) {
+				// in case of midnight DST transitions (e.g. falling back to 23:00 of the previous day), time.Date won't advance -> ensure strict forward progress by at least 24h
+				// see https://github.com/muety/wakapi/issues/997
+				to = from.Add(24 * time.Hour)
+			}
 			if !yield(AggregationJob{user, from, to}) {
 				return
 			}
