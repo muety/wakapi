@@ -4,6 +4,7 @@ import (
 	"crypto/hkdf"
 	"crypto/sha256"
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
@@ -17,6 +18,7 @@ func deriveKey(info string, keyLen int) ([]byte, error) {
 }
 
 type cookieConfig struct {
+	sync.RWMutex
 	sessionStore *sessions.CookieStore
 	authCookie   *securecookie.SecureCookie
 }
@@ -36,11 +38,26 @@ func (config *cookieConfig) newSessionStore() {
 	store.Options.SameSite = http.SameSiteLaxMode
 	store.Options.HttpOnly = true
 
-	if Get().Security.InsecureCookies {
-		store.Options.Secure = false
-	}
+	config.applySessionStoreOptions(store)
 
 	config.sessionStore = store
+}
+
+func (config *cookieConfig) applySessionStoreOptions(store *sessions.CookieStore) {
+	cfg := Get()
+	path := cfg.Server.BasePath
+	if path == "" {
+		path = "/"
+	}
+	store.Options.Path = path
+	store.Options.MaxAge = cfg.Security.CookieMaxAgeSec
+	store.MaxAge(cfg.Security.CookieMaxAgeSec)
+
+	if cfg.Security.InsecureCookies {
+		store.Options.Secure = false
+	} else {
+		store.Options.Secure = true
+	}
 }
 
 func (config *cookieConfig) newAuthCookie() {
@@ -59,17 +76,27 @@ func (config *cookieConfig) init() {
 }
 
 func InitializeCookies() {
+	cookieConfigInstance.Lock()
+	defer cookieConfigInstance.Unlock()
 	cookieConfigInstance.init()
 }
 
 func GetSessionStore() *sessions.CookieStore {
+	cookieConfigInstance.Lock()
+	defer cookieConfigInstance.Unlock()
+
 	if cookieConfigInstance.sessionStore == nil {
 		cookieConfigInstance.newSessionStore()
+	} else {
+		cookieConfigInstance.applySessionStoreOptions(cookieConfigInstance.sessionStore)
 	}
 	return cookieConfigInstance.sessionStore
 }
 
 func GetAuthCookie() *securecookie.SecureCookie {
+	cookieConfigInstance.Lock()
+	defer cookieConfigInstance.Unlock()
+
 	if cookieConfigInstance.authCookie == nil {
 		cookieConfigInstance.newAuthCookie()
 	}

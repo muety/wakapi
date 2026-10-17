@@ -116,7 +116,7 @@ func (m *AuthenticateMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	err := errUnauthenticated
 
 	if m.allows(AuthModalityCookie) {
-		user, err = m.tryGetUserByCookie(r)
+		user, err = m.tryGetUserByCookie(w, r)
 	}
 	if err != nil && m.allows(AuthModalityOidc) {
 		user, err = m.tryGetUserByOidc(w, r)
@@ -240,19 +240,26 @@ func (m *AuthenticateMiddleware) tryGetUserByTrustedHeader(r *http.Request, crea
 	return m.userSrvc.GetUserById(remoteUser)
 }
 
-func (m *AuthenticateMiddleware) tryGetUserByCookie(r *http.Request) (*models.User, error) {
-	username, err := routeutils.ExtractCookieAuth(r)
+func (m *AuthenticateMiddleware) tryGetUserByCookie(w http.ResponseWriter, r *http.Request) (*models.User, error) {
+	cookieData, err := routeutils.ExtractCookieAuthData(r)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := m.userSrvc.GetUserById(*username)
+	user, err := m.userSrvc.GetUserById(cookieData.Username)
 	if err != nil {
 		return nil, err
 	}
 
 	// no need to check password here, as securecookie decoding will fail anyway,
 	// if cookie is not properly signed
+
+	if w != nil && routeutils.ShouldRefreshCookie(cookieData.Expiry) {
+		if cookie, err := routeutils.CreateAuthCookie(user.ID); err == nil {
+			http.SetCookie(w, cookie)
+		}
+		_ = routeutils.RefreshSession(r, w)
+	}
 
 	return user, nil
 }
