@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"gorm.io/gorm"
 )
 
 const (
@@ -402,6 +403,53 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Cached_EmptyCache
 	assert.Equal(suite.T(), 1, durations[1].NumHeartbeats)
 	assert.Equal(suite.T(), 3, durations[2].NumHeartbeats)
 	suite.HeartbeatService.AssertNumberOfCalls(suite.T(), "StreamAllWithinExcludingHeartbeats", 1)
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_Regenerate_SkipsUsersWithoutDurationsAndHeartbeats() {
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
+
+	ghostUser := &models.User{ID: "ghost"}
+
+	suite.DurationRepository.On("GetLatestByUser", suite.TestUser).Return(nil, gorm.ErrRecordNotFound)
+	suite.HeartbeatService.On("GetLatestByUser", suite.TestUser, false).Return(&models.Heartbeat{UserID: TestUserId}, nil)
+	suite.DurationRepository.On("GetLatestByUser", ghostUser).Return(nil, gorm.ErrRecordNotFound)
+	suite.HeartbeatService.On("GetLatestByUser", ghostUser, false).Return((*models.Heartbeat)(nil), nil)
+
+	sut.Regenerate(suite.TestUser, false)
+	sut.Regenerate(ghostUser, false)
+
+	suite.DurationRepository.AssertNotCalled(suite.T(), "GetAllWithinByFilters", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	suite.HeartbeatService.AssertNotCalled(suite.T(), "StreamAllWithinExcludingHeartbeats", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	suite.DurationRepository.AssertNotCalled(suite.T(), "InsertBatch", mock.Anything)
+	suite.DurationRepository.AssertNotCalled(suite.T(), "DeleteByUser", mock.Anything)
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_Regenerate_PersistsInitialDurationsForUserWithoutDurations() {
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
+
+	from := time.Time{} // no durations in DB yet -> regeneration starts from zero time
+
+	suite.DurationRepository.On("GetLatestByUser", suite.TestUser).Return(nil, gorm.ErrRecordNotFound)
+	suite.HeartbeatService.On("GetLatestByUser", suite.TestUser, false).Return(&models.Heartbeat{UserID: TestUserId, Time: models.CustomTime(suite.TestStartTime)}, nil)
+	suite.DurationRepository.On("GetAllWithinByFilters", from, mock.Anything, suite.TestUser, mock.Anything).Return([]*models.Duration{}, nil)
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", from, mock.Anything, suite.TestUser, models.ExcludeFromDurations).Return(streamSlice(filterHeartbeats(from, time.Now(), suite.TestHeartbeats)), nil)
+	suite.DurationRepository.On("InsertBatch", mock.Anything).Return(nil)
+
+	sut.Regenerate(suite.TestUser, false)
+
+	suite.HeartbeatService.AssertNumberOfCalls(suite.T(), "StreamAllWithinExcludingHeartbeats", 1)
+	suite.DurationRepository.AssertNumberOfCalls(suite.T(), "InsertBatch", 1)
+
+	var inserted []*models.Duration
+	for _, c := range suite.DurationRepository.Calls {
+		if c.Method == "InsertBatch" {
+			inserted = c.Arguments.Get(0).([]*models.Duration)
+		}
+	}
+	assert.Len(suite.T(), inserted, 3)
+	assert.Equal(suite.T(), 30*time.Second, inserted[0].Duration)
+	assert.Equal(suite.T(), 20*time.Second, inserted[1].Duration)
+	assert.Equal(suite.T(), 15*time.Second, inserted[2].Duration)
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomInterval() {

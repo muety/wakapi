@@ -164,6 +164,14 @@ func (srv *DurationService) Regenerate(user *models.User, forceAll bool) {
 		from = latest.TimeEnd()
 	}
 
+	// short-circuit regeneration for users that have neither persisted durations nor any heartbeats at all
+	if !forceAll && from.IsZero() {
+		if latestHeartbeat, err := srv.heartbeatService.GetLatestByUser(user, false); err == nil && (latestHeartbeat == nil || latestHeartbeat.Time.T().IsZero()) {
+			slog.Info("skipping duration regeneration, because user has neither durations nor heartbeats", "user", user.ID)
+			return
+		}
+	}
+
 	slog.Info("generating ephemeral durations for user up until now", "user", user.ID, "from", from)
 
 	durations, err := srv.Get(from, time.Now(), user, nil, nil, forceAll)
