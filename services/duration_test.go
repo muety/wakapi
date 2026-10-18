@@ -378,6 +378,32 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Cached() {
 	assert.Equal(suite.T(), 3, durations[2].NumHeartbeats)
 }
 
+func (suite *DurationServiceTestSuite) TestDurationService_Get_Cached_EmptyCache_ZeroFromTime_ComputesLive() {
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
+
+	var (
+		from      = time.Time{}
+		to        = suite.TestStartTime.Add(1 * time.Hour)
+		durations models.Durations
+		err       error
+	)
+
+	suite.DurationRepository.On("GetAllWithinByFilters", from, to, suite.TestUser, mock.Anything).Return([]*models.Duration{}, nil)
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", from, to, suite.TestUser, models.ExcludeFromDurations).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
+
+	durations, err = sut.Get(from, to, suite.TestUser, nil, nil, false)
+
+	assert.Nil(suite.T(), err)
+	assert.Len(suite.T(), durations, 3)
+	assert.Equal(suite.T(), 30*time.Second, durations[0].Duration)
+	assert.Equal(suite.T(), 20*time.Second, durations[1].Duration)
+	assert.Equal(suite.T(), 15*time.Second, durations[2].Duration)
+	assert.Equal(suite.T(), 3, durations[0].NumHeartbeats)
+	assert.Equal(suite.T(), 1, durations[1].NumHeartbeats)
+	assert.Equal(suite.T(), 3, durations[2].NumHeartbeats)
+	suite.HeartbeatService.AssertNumberOfCalls(suite.T(), "StreamAllWithinExcludingHeartbeats", 1)
+}
+
 func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomInterval() {
 	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
 

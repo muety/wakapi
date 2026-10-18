@@ -112,18 +112,23 @@ func (srv *DurationService) Get(from, to time.Time, user *models.User, filters *
 	// fill missing
 	// for simplicity, we assume no missing durations before 'from' or between 'from' and 'to'
 	latestTime := srv.getLatestTime(user, cached, filters)
-	var missingFrom time.Time
+	var (
+		missingFrom time.Time
+		needLive    bool
+	)
 	if latestTime.IsZero() {
 		if len(cached) == 0 {
-			missingFrom = from // everything's missing, recompute everything live from start to end
+			missingFrom = from // everything's missing, recompute everything live from start to end (even if start is zero time)
+			needLive = true
 		}
 	} else if latestTime.Before(to) {
 		missingFrom = condition.Ternary(from.After(latestTime), from, latestTime.Add(time.Second)) // some parts are missing
+		needLive = true
 	} else {
 		//nothing missing, cache is complete
 	}
 
-	if !missingFrom.IsZero() && missingFrom.Before(to) {
+	if needLive && (missingFrom.IsZero() || missingFrom.Before(to)) {
 		missing, err := srv.getLive(missingFrom, to, user, effectiveTimeout, filters.IsProjectDetails())
 		if err != nil {
 			return nil, err
