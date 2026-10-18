@@ -7,10 +7,12 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/becheran/wildmatch-go"
 	"github.com/duke-git/lancet/v2/condition"
+	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/leandro-lugaresi/hub"
@@ -25,6 +27,8 @@ type SummaryService struct {
 	config              *config.Config
 	cache               *cache.Cache
 	heartbeatCache      *cache.Cache
+	userCacheKeys       map[string]datastructure.Set[string] // active cache keys tracked per user for targeted invalidation
+	userCacheLock       sync.Mutex
 	eventBus            *hub.Hub
 	repository          repositories.ISummaryRepository
 	heartbeatService    IHeartbeatService
@@ -38,6 +42,7 @@ func NewSummaryService(summaryRepo repositories.ISummaryRepository, heartbeatSer
 		config:              config.Get(),
 		cache:               cache.New(24*time.Hour, 24*time.Hour),
 		heartbeatCache:      cache.New(24*time.Hour, 24*time.Hour),
+		userCacheKeys:       make(map[string]datastructure.Set[string]),
 		eventBus:            config.EventBus(),
 		repository:          summaryRepo,
 		heartbeatService:    heartbeatService,
@@ -134,6 +139,14 @@ func (srv *SummaryService) Aliased(from, to time.Time, user *models.User, f type
 	}
 
 	srv.cache.SetDefault(cacheKey, summary)
+
+	srv.userCacheLock.Lock()
+	if _, ok := srv.userCacheKeys[user.ID]; !ok {
+		srv.userCacheKeys[user.ID] = datastructure.New[string]()
+	}
+	srv.userCacheKeys[user.ID].Add(cacheKey)
+	srv.userCacheLock.Unlock()
+
 	return summary.Sorted().InTZ(user.TZ()), nil
 }
 
@@ -551,8 +564,15 @@ func (srv *SummaryService) getHash(args ...string) string {
 }
 
 func (srv *SummaryService) invalidateUserCache(userId string) {
-	for key := range srv.cache.Items() {
-		if strings.Contains(key, userId) {
+	srv.userCacheLock.Lock()
+	keys, found := srv.userCacheKeys[userId]
+	if found {
+		delete(srv.userCacheKeys, userId)
+	}
+	srv.userCacheLock.Unlock()
+
+	if found {
+		for key := range keys {
 			srv.cache.Delete(key)
 		}
 	}
