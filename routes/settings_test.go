@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -136,4 +138,68 @@ func (suite *SettingsHandlerTestSuite) TestSettingsHandler_ActionRegenerateSumma
 	result := suite.Sut.actionRegenerateSummaries(w, req)
 	suite.Equal(http.StatusConflict, result.code)
 	suite.Contains(result.error, "already in progress")
+}
+
+func (suite *SettingsHandlerTestSuite) TestSettingsHandler_ActionSetWakatimeApiKey_DoesNotFollowRedirects() {
+	suite.Cfg.Env = "dev"  // to allow plain http and loopback addresses in ValidateWakatimeUrl
+	suite.Cfg.Server.PublicNetUrl, _ = url.Parse("http://localhost:3000")
+
+	var redirectTargetHits atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case config.WakatimeApiUserUrl:
+			http.Redirect(w, r, "/redirected", http.StatusFound)
+		case "/redirected":
+			redirectTargetHits.Add(1)  // must never be hit
+			w.WriteHeader(http.StatusOK)
+		default:
+			w.WriteHeader(http.StatusUnauthorized)
+		}
+	}))
+	defer srv.Close()
+
+	user := &models.User{ID: "test_user"}
+	result := suite.Sut.actionSetWakatimeApiKey(httptest.NewRecorder(), newWakatimeSettingsRequest(user, srv.URL))
+
+	suite.Equal(http.StatusBadRequest, result.code)
+	suite.Zero(redirectTargetHits.Load()) // the 3xx must be returned as-is, rather than being followed
+	suite.Empty(result.success)
+	suite.Contains(result.error, "WakaTime")
+	suite.UserService.AssertNotCalled(suite.T(), "SetWakatimeApiCredentials", mock.Anything, mock.Anything, mock.Anything)
+}
+
+func (suite *SettingsHandlerTestSuite) TestSettingsHandler_ActionSetWakatimeApiKey_AcceptsSuccessfulHealthcheck() {
+	suite.Cfg.Env = "dev"
+	suite.Cfg.Server.PublicNetUrl, _ = url.Parse("http://localhost:3000")
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == config.WakatimeApiUserUrl {
+			w.WriteHeader(http.StatusOK)
+		} else {
+			w.WriteHeader(http.StatusUnauthorized)
+		}
+	}))
+	defer srv.Close()
+
+	user := &models.User{ID: "test_user"}
+	suite.UserService.On("SetWakatimeApiCredentials", user, "some_key", srv.URL).Return(user, nil).Once()
+
+	result := suite.Sut.actionSetWakatimeApiKey(httptest.NewRecorder(), newWakatimeSettingsRequest(user, srv.URL))
+
+	suite.Equal(http.StatusOK, result.code)
+	suite.Empty(result.error)
+	suite.UserService.AssertNumberOfCalls(suite.T(), "SetWakatimeApiCredentials", 1)
+}
+
+func newWakatimeSettingsRequest(user *models.User, apiUrl string) *http.Request {
+	form := url.Values{
+		"api_key": {"some_key"},
+		"api_url": {apiUrl},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/settings", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	sharedData := config.NewSharedData()
+	sharedData.Set(config.MiddlewareKeyPrincipal, user)
+	return req.WithContext(context.WithValue(req.Context(), config.KeySharedData, sharedData))
 }

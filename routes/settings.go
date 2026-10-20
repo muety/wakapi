@@ -94,8 +94,13 @@ func NewSettingsHandler(
 		mailSrvc:            mailService,
 		apiKeySrvc:          apiKeyService,
 		WebAuthnSrvc:        webAuthnService,
-		httpClient:          &http.Client{Timeout: 10 * time.Second},
-		aggregationLocks:    make(map[string]bool),
+		httpClient: &http.Client{
+			Timeout: 10 * time.Second,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse // forbid following redirects
+			},
+		},
+		aggregationLocks: make(map[string]bool),
 	}
 }
 
@@ -963,7 +968,15 @@ func (h *SettingsHandler) validateWakatimeKey(apiKey string, baseUrl string) boo
 
 	request.Header = headers
 
-	if _, err = utils.RaiseForStatus(h.httpClient.Do(request)); err != nil {
+	res, err := utils.RaiseForStatus(h.httpClient.Do(request))
+	if err != nil {
+		return false
+	}
+	defer res.Body.Close()
+
+	// as the client does not follow redirects and RaiseForStatus only raises for 4xx and 5xx, a 3xx status must be treated as an error, too
+	// e.g. wakatime may respond with a 302 as a failure indicator, see https://github.com/muety/wakapi/issues/986
+	if res.StatusCode >= 300 && res.StatusCode < 400 {
 		return false
 	}
 
