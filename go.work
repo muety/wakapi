@@ -1,0 +1,10 @@
+go 1.27.0
+
+// At some point, we might think about making the *.go files in scripts/ actual Go modules, e.g. under cmd/dbmigrate, cmd/email_checker, cmd/healthcheck, instead of having three "package main"s in the repo.
+// That way, we could get rid of the extra go.mod and go.sum files and have "unified" go test ./..., etc. for the whole project repo.
+// Only drawback would be that we'd have to include the scripts' additional dependencies (e.g. progressbar/v3) with the main project.
+
+use (
+	.
+	./scripts
+)
