@@ -612,5 +612,292 @@ func TestAuthenticateMiddleware_tryGetUserByOidc_ExpiredTokenWithRefreshToken(t 
 		return strings.Contains(value, "oidc_refresh_token=")
 	})
 }
+func TestAuthenticateMiddleware_tryGetUserByCookie_ValidYoungSession(t *testing.T) {
+	cfg := config.Empty()
+	cfg.Security.CookieKeyBytes = securecookie.GenerateRandomKey(128)
+	cfg.Security.CookieMaxAgeSec = 3600
+	config.Set(cfg)
+	config.InitializeCookies()
 
-// TODO: somehow test cookie auth function
+	testUser := &models.User{ID: "testuser01"}
+	// 50 minutes remaining (> 30 minute half threshold) -> should not refresh
+	authCookie, err := routeutils.CreateAuthCookieWithExpiry(testUser.ID, time.Now().Add(50*time.Minute))
+	assert.NoError(t, err)
+
+	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
+	r.AddCookie(authCookie)
+	w := httptest.NewRecorder()
+
+	userServiceMock := new(mocks.UserServiceMock)
+	userServiceMock.On("GetUserById", testUser.ID).Return(testUser, nil)
+
+	sut := NewWebAuthenticateMiddleware(userServiceMock)
+	user, err := sut.tryGetUserByCookie(w, r)
+
+	assert.NoError(t, err)
+	assert.Equal(t, testUser, user)
+	assert.Empty(t, w.Header().Values("Set-Cookie"))
+}
+
+func TestAuthenticateMiddleware_tryGetUserByCookie_ValidSessionPastThresholdRefreshes(t *testing.T) {
+	cfg := config.Empty()
+	cfg.Security.CookieKeyBytes = securecookie.GenerateRandomKey(128)
+	cfg.Security.CookieMaxAgeSec = 3600
+	config.Set(cfg)
+	config.InitializeCookies()
+
+	testUser := &models.User{ID: "testuser01"}
+	// 20 minutes remaining (<= 30 minute half threshold) -> should refresh
+	authCookie, err := routeutils.CreateAuthCookieWithExpiry(testUser.ID, time.Now().Add(20*time.Minute))
+	assert.NoError(t, err)
+
+	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
+	r.AddCookie(authCookie)
+	w := httptest.NewRecorder()
+
+	userServiceMock := new(mocks.UserServiceMock)
+	userServiceMock.On("GetUserById", testUser.ID).Return(testUser, nil)
+
+	sut := NewWebAuthenticateMiddleware(userServiceMock)
+	user, err := sut.tryGetUserByCookie(w, r)
+
+	assert.NoError(t, err)
+	assert.Equal(t, testUser, user)
+
+	cookies := w.Result().Cookies()
+	var refreshedCookie *http.Cookie
+	for _, c := range cookies {
+		if c.Name == config.CookieKeyAuth {
+			refreshedCookie = c
+			break
+		}
+	}
+	assert.NotNil(t, refreshedCookie)
+	assert.Equal(t, 3600, refreshedCookie.MaxAge)
+
+	var refreshedData routeutils.CookieKeyData
+	err = config.GetAuthCookie().Decode(config.CookieKeyAuth, refreshedCookie.Value, &refreshedData)
+	assert.NoError(t, err)
+	assert.Equal(t, testUser.ID, refreshedData.Username)
+	assert.True(t, time.Unix(refreshedData.Expiry, 0).After(time.Now().Add(50*time.Minute)))
+}
+
+func TestAuthenticateMiddleware_tryGetUserByCookie_WithSessionCookieRefreshesBoth(t *testing.T) {
+	cfg := config.Empty()
+	cfg.Security.CookieKeyBytes = securecookie.GenerateRandomKey(128)
+	cfg.Security.CookieMaxAgeSec = 3600
+	config.Set(cfg)
+	config.InitializeCookies()
+
+	testUser := &models.User{ID: "testuser01"}
+	authCookie, err := routeutils.CreateAuthCookieWithExpiry(testUser.ID, time.Now().Add(15*time.Minute))
+	assert.NoError(t, err)
+
+	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
+	r.AddCookie(authCookie)
+
+	session, err := config.GetSessionStore().Get(r, config.CookieKeySession)
+	assert.NoError(t, err)
+	session.Values["session_data"] = "test"
+	wInit := httptest.NewRecorder()
+	assert.NoError(t, session.Save(r, wInit))
+
+	for _, c := range wInit.Result().Cookies() {
+		if c.Name == config.CookieKeySession {
+			r.AddCookie(c)
+			break
+		}
+	}
+
+	w := httptest.NewRecorder()
+	userServiceMock := new(mocks.UserServiceMock)
+	userServiceMock.On("GetUserById", testUser.ID).Return(testUser, nil)
+
+	sut := NewWebAuthenticateMiddleware(userServiceMock)
+	user, err := sut.tryGetUserByCookie(w, r)
+
+	assert.NoError(t, err)
+	assert.Equal(t, testUser, user)
+
+	cookies := w.Result().Cookies()
+	var hasAuth, hasSession bool
+	for _, c := range cookies {
+		if c.Name == config.CookieKeyAuth {
+			hasAuth = true
+		}
+		if c.Name == config.CookieKeySession {
+			hasSession = true
+		}
+	}
+	assert.True(t, hasAuth)
+	assert.True(t, hasSession)
+}
+
+func TestAuthenticateMiddleware_tryGetUserByCookie_Expired(t *testing.T) {
+	cfg := config.Empty()
+	cfg.Security.CookieKeyBytes = securecookie.GenerateRandomKey(128)
+	cfg.Security.CookieMaxAgeSec = 3600
+	config.Set(cfg)
+	config.InitializeCookies()
+
+	testUser := &models.User{ID: "testuser01"}
+	authCookie, err := routeutils.CreateAuthCookieWithExpiry(testUser.ID, time.Now().Add(-10*time.Minute))
+	assert.NoError(t, err)
+
+	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
+	r.AddCookie(authCookie)
+	w := httptest.NewRecorder()
+
+	userServiceMock := new(mocks.UserServiceMock)
+	sut := NewWebAuthenticateMiddleware(userServiceMock)
+	user, err := sut.tryGetUserByCookie(w, r)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "cookie is expired")
+	assert.Nil(t, user)
+	assert.Empty(t, w.Header().Values("Set-Cookie"))
+	userServiceMock.AssertNotCalled(t, "GetUserById")
+}
+
+func TestAuthenticateMiddleware_tryGetUserByCookie_Invalid(t *testing.T) {
+	cfg := config.Empty()
+	cfg.Security.CookieKeyBytes = securecookie.GenerateRandomKey(128)
+	config.Set(cfg)
+	config.InitializeCookies()
+
+	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
+	r.AddCookie(&http.Cookie{Name: config.CookieKeyAuth, Value: "malformed.cookie.value"})
+	w := httptest.NewRecorder()
+
+	userServiceMock := new(mocks.UserServiceMock)
+	sut := NewWebAuthenticateMiddleware(userServiceMock)
+	user, err := sut.tryGetUserByCookie(w, r)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "cookie is invalid")
+	assert.Nil(t, user)
+	assert.Empty(t, w.Header().Values("Set-Cookie"))
+}
+
+func TestAuthenticateMiddleware_tryGetUserByCookie_Missing(t *testing.T) {
+	cfg := config.Empty()
+	config.Set(cfg)
+
+	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
+	w := httptest.NewRecorder()
+
+	userServiceMock := new(mocks.UserServiceMock)
+	sut := NewWebAuthenticateMiddleware(userServiceMock)
+	user, err := sut.tryGetUserByCookie(w, r)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "missing authentication")
+	assert.Nil(t, user)
+}
+
+func TestAuthenticateMiddleware_tryGetUserByCookie_UserNotFound(t *testing.T) {
+	cfg := config.Empty()
+	cfg.Security.CookieKeyBytes = securecookie.GenerateRandomKey(128)
+	cfg.Security.CookieMaxAgeSec = 3600
+	config.Set(cfg)
+	config.InitializeCookies()
+
+	authCookie, err := routeutils.CreateAuthCookieWithExpiry("deleted_user", time.Now().Add(10*time.Minute))
+	assert.NoError(t, err)
+
+	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
+	r.AddCookie(authCookie)
+	w := httptest.NewRecorder()
+
+	userServiceMock := new(mocks.UserServiceMock)
+	userServiceMock.On("GetUserById", "deleted_user").Return(nil, errors.New("record not found"))
+
+	sut := NewWebAuthenticateMiddleware(userServiceMock)
+	user, err := sut.tryGetUserByCookie(w, r)
+
+	assert.Error(t, err)
+	assert.Nil(t, user)
+	// Refreshed cookie must not be set if user does not exist in DB
+	assert.Empty(t, w.Header().Values("Set-Cookie"))
+}
+
+func TestAuthenticateMiddleware_ServeHTTP_CookieAutoRefreshEndToEnd(t *testing.T) {
+	cfg := config.Empty()
+	cfg.Security.CookieKeyBytes = securecookie.GenerateRandomKey(128)
+	cfg.Security.CookieMaxAgeSec = 3600
+	config.Set(cfg)
+	config.InitializeCookies()
+
+	testUser := &models.User{ID: "active_user"}
+	authCookie, err := routeutils.CreateAuthCookieWithExpiry(testUser.ID, time.Now().Add(10*time.Minute))
+	assert.NoError(t, err)
+
+	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
+	r.AddCookie(authCookie)
+	r = r.WithContext(context.WithValue(r.Context(), config.KeySharedData, config.NewSharedData()))
+	w := httptest.NewRecorder()
+
+	userServiceMock := new(mocks.UserServiceMock)
+	userServiceMock.On("GetUserById", testUser.ID).Return(testUser, nil)
+
+	sut := NewWebAuthenticateMiddleware(userServiceMock).WithRedirectTarget("/login")
+	nextCalled := false
+	var principal *models.User
+	sut.ServeHTTP(w, r, func(_ http.ResponseWriter, req *http.Request) {
+		nextCalled = true
+		principal = GetPrincipal(req)
+	})
+
+	assert.True(t, nextCalled)
+	assert.Equal(t, testUser, principal)
+
+	var refreshedCookie *http.Cookie
+	for _, c := range w.Result().Cookies() {
+		if c.Name == config.CookieKeyAuth {
+			refreshedCookie = c
+			break
+		}
+	}
+	assert.NotNil(t, refreshedCookie)
+	assert.Equal(t, 3600, refreshedCookie.MaxAge)
+}
+
+func TestAuthenticateMiddleware_ServeHTTP_CookieExpiredRedirectsAndClears(t *testing.T) {
+	cfg := config.Empty()
+	cfg.Security.CookieKeyBytes = securecookie.GenerateRandomKey(128)
+	cfg.Security.CookieMaxAgeSec = 3600
+	config.Set(cfg)
+	config.InitializeCookies()
+
+	authCookie, err := routeutils.CreateAuthCookieWithExpiry("expired_user", time.Now().Add(-5*time.Minute))
+	assert.NoError(t, err)
+
+	r := httptest.NewRequest(http.MethodGet, "/summary", nil)
+	r.AddCookie(authCookie)
+	w := httptest.NewRecorder()
+
+	userServiceMock := new(mocks.UserServiceMock)
+	sut := NewWebAuthenticateMiddleware(userServiceMock).
+		WithRedirectTarget("/login").
+		WithRedirectErrorMessage("unauthorized")
+
+	nextCalled := false
+	sut.ServeHTTP(w, r, func(_ http.ResponseWriter, _ *http.Request) {
+		nextCalled = true
+	})
+
+	assert.False(t, nextCalled)
+	assert.Equal(t, http.StatusFound, w.Code)
+	assert.Equal(t, "/login", w.Header().Get("Location"))
+
+	// Verify that auth cookie is cleared (MaxAge -1)
+	var clearedAuthCookie *http.Cookie
+	for _, c := range w.Result().Cookies() {
+		if c.Name == config.CookieKeyAuth {
+			clearedAuthCookie = c
+			break
+		}
+	}
+	assert.NotNil(t, clearedAuthCookie)
+	assert.Equal(t, -1, clearedAuthCookie.MaxAge)
+}
