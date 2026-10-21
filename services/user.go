@@ -12,8 +12,8 @@ import (
 	"github.com/duke-git/lancet/v2/convertor"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/validator"
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/leandro-lugaresi/hub"
-	"github.com/patrickmn/go-cache"
 	"gorm.io/gorm"
 
 	"github.com/muety/wakapi/config"
@@ -24,28 +24,46 @@ import (
 
 type UserService struct {
 	config              *config.Config
-	cache               *cache.Cache
-	subjectCache        *cache.Cache
+	cache               *ttlcache.Cache[string, any]
+	subjectCache        *ttlcache.Cache[string, string]
 	eventBus            *hub.Hub
 	keyValueService     IKeyValueService
 	mailService         IMailService
 	apiKeyService       IApiKeyService
 	repository          repositories.IUserRepository
-	currentOnlineUsers  *cache.Cache
+	currentOnlineUsers  *ttlcache.Cache[string, bool]
 	countersInitialized atomic.Bool
 }
 
 func NewUserService(keyValueService IKeyValueService, mailService IMailService, apiKeyService IApiKeyService, userRepo repositories.IUserRepository) *UserService {
+	cache := ttlcache.New[string, any](
+		ttlcache.WithTTL[string, any](1*time.Hour),
+		ttlcache.WithDisableTouchOnHit[string, any](),
+	)
+	go cache.Start()
+
+	subjectCache := ttlcache.New[string, string](
+		ttlcache.WithTTL[string, string](1*time.Hour),
+		ttlcache.WithDisableTouchOnHit[string, string](),
+	)
+	go subjectCache.Start()
+
+	currentOnlineUsers := ttlcache.New[string, bool](
+		ttlcache.WithTTL[string, bool](models.DefaultHeartbeatsTimeout),
+		ttlcache.WithDisableTouchOnHit[string, bool](),
+	)
+	go currentOnlineUsers.Start()
+
 	srv := &UserService{
 		config:             config.Get(),
 		eventBus:           config.EventBus(),
-		cache:              cache.New(1*time.Hour, 2*time.Hour),
-		subjectCache:       cache.New(1*time.Hour, 2*time.Hour),
+		cache:              cache,
+		subjectCache:       subjectCache,
 		keyValueService:    keyValueService,
 		apiKeyService:      apiKeyService,
 		mailService:        mailService,
 		repository:         userRepo,
-		currentOnlineUsers: cache.New(models.DefaultHeartbeatsTimeout, 1*time.Minute),
+		currentOnlineUsers: currentOnlineUsers,
 	}
 
 	sub1 := srv.eventBus.Subscribe(0, config.EventWakatimeFailure)
@@ -77,7 +95,7 @@ func NewUserService(keyValueService IKeyValueService, mailService IMailService, 
 			if time.Now().Sub(heartbeat.Time.T()) > models.DefaultHeartbeatsTimeout {
 				continue
 			}
-			srv.currentOnlineUsers.SetDefault(heartbeat.UserID, true)
+			srv.currentOnlineUsers.Set(heartbeat.UserID, true, ttlcache.DefaultTTL)
 		}
 	}(&sub2)
 
@@ -90,8 +108,8 @@ func (srv *UserService) GetUserById(userId string) (*models.User, error) {
 	}
 
 	cacheKey := fmt.Sprintf("id_%s", userId)
-	if u, ok := srv.cache.Get(cacheKey); ok {
-		return u.(*models.User), nil
+	if item := srv.cache.Get(cacheKey); item != nil {
+		return item.Value().(*models.User), nil
 	}
 
 	u, err := srv.repository.FindOne(models.User{ID: userId})
@@ -99,7 +117,7 @@ func (srv *UserService) GetUserById(userId string) (*models.User, error) {
 		return nil, err
 	}
 
-	srv.cache.SetDefault(cacheKey, u)
+	srv.cache.Set(cacheKey, u, ttlcache.DefaultTTL)
 	return u, nil
 }
 
@@ -109,19 +127,19 @@ func (srv *UserService) GetUserByKey(key string, requireFullAccessKey bool) (*mo
 	}
 
 	cacheKey := fmt.Sprintf("key_%s_%t", key, requireFullAccessKey)
-	if u, ok := srv.cache.Get(cacheKey); ok {
-		return u.(*models.User), nil
+	if item := srv.cache.Get(cacheKey); item != nil {
+		return item.Value().(*models.User), nil
 	}
 
 	u, err := srv.repository.FindOne(models.User{ApiKey: key})
 	if err == nil {
-		srv.cache.SetDefault(cacheKey, u)
+		srv.cache.Set(cacheKey, u, ttlcache.DefaultTTL)
 		return u, nil
 	}
 
 	apiKey, err := srv.apiKeyService.GetByApiKey(key, requireFullAccessKey)
 	if err == nil {
-		srv.cache.SetDefault(cacheKey, apiKey.User)
+		srv.cache.Set(cacheKey, apiKey.User, ttlcache.DefaultTTL)
 		return apiKey.User, nil
 	}
 
@@ -174,10 +192,10 @@ func (srv *UserService) GetUserByOidc(provider, sub string) (*models.User, error
 		return nil, errors.New("sub and provider must not be empty")
 	}
 	cacheKey := fmt.Sprintf("%s_%s", provider, sub)
-	userId, ok := srv.subjectCache.Get(cacheKey)
-	if ok {
+	item := srv.subjectCache.Get(cacheKey)
+	if item != nil {
 		// UserID in cache, try getting user from main cache or repository
-		user, err := srv.GetUserById(userId.(string))
+		user, err := srv.GetUserById(item.Value())
 		if err == nil {
 			return user, nil
 		}
@@ -194,8 +212,8 @@ func (srv *UserService) GetUserByOidc(provider, sub string) (*models.User, error
 	}
 
 	// Found user, setting both sub-> id cache, and user cache
-	srv.cache.SetDefault(fmt.Sprintf("id_%s", user.ID), user)
-	srv.cache.SetDefault(cacheKey, user.ID)
+	srv.cache.Set(fmt.Sprintf("id_%s", user.ID), user, ttlcache.DefaultTTL)
+	srv.subjectCache.Set(cacheKey, user.ID, ttlcache.DefaultTTL)
 
 	return user, nil
 }
@@ -239,8 +257,8 @@ func (srv *UserService) GetActive(exact bool) ([]*models.User, error) {
 	}
 
 	cacheKey := fmt.Sprintf("%s--active", minDate.String())
-	if u, ok := srv.cache.Get(cacheKey); ok {
-		return u.([]*models.User), nil
+	if item := srv.cache.Get(cacheKey); item != nil {
+		return item.Value().([]*models.User), nil
 	}
 
 	results, err := srv.repository.GetByLastActiveAfter(minDate)
@@ -248,7 +266,7 @@ func (srv *UserService) GetActive(exact bool) ([]*models.User, error) {
 		return nil, err
 	}
 
-	srv.cache.SetDefault(cacheKey, results)
+	srv.cache.Set(cacheKey, results, ttlcache.DefaultTTL)
 	return results, nil
 }
 
@@ -264,12 +282,12 @@ func (srv *UserService) CountCurrentlyOnline() (int, error) {
 			return 0, err
 		}
 		for _, r := range result {
-			srv.currentOnlineUsers.SetDefault(r.ID, true)
+			srv.currentOnlineUsers.Set(r.ID, true, ttlcache.DefaultTTL)
 		}
 		srv.countersInitialized.Store(true)
 	}
 
-	return srv.currentOnlineUsers.ItemCount(), nil
+	return srv.currentOnlineUsers.Len(), nil
 }
 
 func (srv *UserService) CreateOrGet(signup *models.Signup, isAdmin bool) (*models.User, bool, error) {
@@ -387,14 +405,14 @@ func (srv *UserService) MapUsersById(users []*models.User) map[string]*models.Us
 }
 
 func (srv *UserService) FlushCache() {
-	srv.cache.Flush()
+	srv.cache.DeleteAll()
 }
 
 func (srv *UserService) FlushUserCache(userId string) {
 	srv.cache.Delete(fmt.Sprintf("id_%s", userId))
 	srv.cache.Delete(userId)
 	for k, item := range srv.cache.Items() {
-		if u, ok := item.Object.(*models.User); ok && u.ID == userId {
+		if u, ok := item.Value().(*models.User); ok && u.ID == userId {
 			srv.cache.Delete(k)
 		}
 	}

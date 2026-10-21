@@ -5,6 +5,7 @@ import (
 	"github.com/duke-git/lancet/v2/maputil"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/go-chi/chi/v5"
+	"github.com/jellydator/ttlcache/v3"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -13,22 +14,27 @@ import (
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
 	"github.com/narqo/go-badge"
-	"github.com/patrickmn/go-cache"
 	"net/http"
 	"time"
 )
 
 type BadgeHandler struct {
 	config      *conf.Config
-	cache       *cache.Cache
+	cache       *ttlcache.Cache[string, []byte]
 	userSrvc    services.IUserService
 	summarySrvc services.ISummaryService
 }
 
 func NewBadgeHandler(userService services.IUserService, summaryService services.ISummaryService) *BadgeHandler {
+	cache := ttlcache.New[string, []byte](
+		ttlcache.WithTTL[string, []byte](time.Hour),
+		ttlcache.WithDisableTouchOnHit[string, []byte](),
+	)
+	go cache.Start()
+
 	return &BadgeHandler{
 		config:      conf.Get(),
-		cache:       cache.New(time.Hour, time.Hour),
+		cache:       cache,
 		userSrvc:    userService,
 		summarySrvc: summaryService,
 	}
@@ -59,8 +65,8 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	cacheKey := fmt.Sprintf("%s_%v_%s_%s", user.ID, *interval.Key, filters.Hash(), r.URL.RawQuery)
 	noCache := utils.IsNoCache(r, 1*time.Hour)
-	if cacheResult, ok := h.cache.Get(cacheKey); ok && !noCache {
-		respondSvg(w, cacheResult.([]byte))
+	if cacheItem := h.cache.Get(cacheKey); cacheItem != nil && !noCache {
+		respondSvg(w, cacheItem.Value())
 		return
 	}
 
@@ -91,7 +97,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	badgeSvg, err := badge.RenderBytes(badgeData.Label, badgeData.Message, badge.Color(badgeData.Color))
-	h.cache.SetDefault(cacheKey, badgeSvg)
+	h.cache.Set(cacheKey, badgeSvg, ttlcache.DefaultTTL)
 	respondSvg(w, badgeSvg)
 }
 

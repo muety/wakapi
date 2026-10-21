@@ -10,15 +10,16 @@ import (
 	"log/slog"
 	"math"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/duke-git/lancet/v2/retry"
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	routeutils "github.com/muety/wakapi/routes/utils"
-	"github.com/patrickmn/go-cache"
 )
 
 const maxAuthFailuresPerHour = 10
@@ -33,8 +34,9 @@ var errRelayPermanent = errors.New("permanent wakatime relay failure")
 // WakatimeRelayMiddleware is a middleware to conditionally relay heartbeats to Wakatime (and other compatible services)
 type WakatimeRelayMiddleware struct {
 	httpClient      *http.Client
-	hashCache       *cache.Cache
-	authFailedCache *cache.Cache
+	hashCache       *ttlcache.Cache[string, bool]
+	authFailedCache *ttlcache.Cache[string, int]
+	authFailedMutex sync.Mutex
 	eventBus        *hub.Hub
 	backoffUnit     time.Duration // exposed for testing only
 }
@@ -50,6 +52,18 @@ func (e *exponentialBase10Backoff) CalculateInterval() time.Duration {
 }
 
 func NewWakatimeRelayMiddleware() *WakatimeRelayMiddleware {
+	hashCache := ttlcache.New[string, bool](
+		ttlcache.WithTTL[string, bool](10*time.Minute),
+		ttlcache.WithDisableTouchOnHit[string, bool](),
+	)
+	go hashCache.Start()
+
+	authFailedCache := ttlcache.New[string, int](
+		ttlcache.WithTTL[string, int](1*time.Hour),
+		ttlcache.WithDisableTouchOnHit[string, int](),
+	)
+	go authFailedCache.Start()
+
 	return &WakatimeRelayMiddleware{
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
@@ -57,8 +71,8 @@ func NewWakatimeRelayMiddleware() *WakatimeRelayMiddleware {
 				return http.ErrUseLastResponse // forbid following redirects
 			},
 		},
-		hashCache:       cache.New(10*time.Minute, 10*time.Minute),
-		authFailedCache: cache.New(1*time.Hour, 1*time.Hour),
+		hashCache:       hashCache,
+		authFailedCache: authFailedCache,
 		eventBus:        config.EventBus(),
 		backoffUnit:     1 * time.Second,
 	}
@@ -183,10 +197,16 @@ func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, heade
 
 	if response.StatusCode < 200 || response.StatusCode >= 300 { // apparently, wakatime api might return a 302 (with whatever target) as a failure indicator, see https://github.com/muety/wakapi/issues/986
 		if response.StatusCode == http.StatusUnauthorized || response.StatusCode == http.StatusForbidden {
-			if _, found := m.authFailedCache.Get(forUser.ID); !found {
-				m.authFailedCache.SetDefault(forUser.ID, 0) // TODO: use leaky bucket instead of expiring cache?
+			var n int
+			m.authFailedMutex.Lock()
+			if item := m.authFailedCache.Get(forUser.ID); item != nil {
+				n = item.Value() + 1
+				m.authFailedCache.Set(forUser.ID, n, ttlcache.PreviousOrDefaultTTL)
+			} else {
+				n = 1
+				m.authFailedCache.Set(forUser.ID, n, ttlcache.DefaultTTL)
 			}
-			n, _ := m.authFailedCache.IncrementInt(forUser.ID, 1)
+			m.authFailedMutex.Unlock()
 			if n == maxAuthFailuresPerHour {
 				m.eventBus.Publish(hub.Message{
 					Name:   config.EventWakatimeFailure,
@@ -233,8 +253,8 @@ func (m *WakatimeRelayMiddleware) filterByCache(r *http.Request) ([]byte, error)
 		}
 		heartbeat = heartbeat.Hashed()
 		// we didn't see this particular heartbeat before
-		if _, found := m.hashCache.Get(heartbeat.Hash); !found {
-			m.hashCache.SetDefault(heartbeat.Hash, true)
+		if item := m.hashCache.Get(heartbeat.Hash); item == nil {
+			m.hashCache.Set(heartbeat.Hash, true, ttlcache.DefaultTTL)
 			newData = append(newData, rawData)
 		}
 	}

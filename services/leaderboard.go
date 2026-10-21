@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
@@ -15,12 +16,11 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
-	"github.com/patrickmn/go-cache"
 )
 
 type LeaderboardService struct {
 	config         *config.Config
-	cache          *cache.Cache
+	cache          *ttlcache.Cache[string, any]
 	eventBus       *hub.Hub
 	repository     repositories.ILeaderboardRepository
 	summaryService ISummaryService
@@ -31,9 +31,15 @@ type LeaderboardService struct {
 }
 
 func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, summaryService ISummaryService, userService IUserService) *LeaderboardService {
+	c := ttlcache.New[string, any](
+		ttlcache.WithTTL[string, any](6*time.Hour),
+		ttlcache.WithDisableTouchOnHit[string, any](),
+	)
+	go c.Start()
+
 	srv := &LeaderboardService{
 		config:         config.Get(),
-		cache:          cache.New(6*time.Hour, 6*time.Hour),
+		cache:          c,
 		eventBus:       config.EventBus(),
 		repository:     leaderboardRepo,
 		summaryService: summaryService,
@@ -68,7 +74,7 @@ func NewLeaderboardService(leaderboardRepo repositories.ILeaderboardRepository, 
 				if err := srv.repository.DeleteByUser(user.ID); err != nil {
 					config.Log().Error("failed to clear leaderboard for user", "userID", user.ID, "error", err)
 				}
-				srv.cache.Flush()
+				srv.cache.DeleteAll()
 			}
 		}
 	}(&onUserUpdate)
@@ -137,7 +143,7 @@ func (srv *LeaderboardService) ComputeLeaderboard(users []*models.User, interval
 		}
 	}
 
-	srv.cache.Flush()
+	srv.cache.DeleteAll()
 	slog.Info("finished leaderboard generation")
 	return nil
 }
@@ -150,13 +156,13 @@ func (srv *LeaderboardService) ExistsAnyByUser(userId string) (bool, error) {
 func (srv *LeaderboardService) CountUsers(excludeZero bool) (int64, error) {
 	// check cache
 	cacheKey := fmt.Sprintf("count_total_%v", excludeZero)
-	if cacheResult, ok := srv.cache.Get(cacheKey); ok {
-		return cacheResult.(int64), nil
+	if item := srv.cache.Get(cacheKey); item != nil {
+		return item.Value().(int64), nil
 	}
 
 	count, err := srv.repository.CountUsers(excludeZero)
 	if err != nil {
-		srv.cache.SetDefault(cacheKey, count)
+		srv.cache.Set(cacheKey, count, ttlcache.DefaultTTL)
 	}
 	return count, err
 }
@@ -172,8 +178,8 @@ func (srv *LeaderboardService) GetByIntervalAndUser(interval *models.IntervalKey
 func (srv *LeaderboardService) GetAggregatedByInterval(interval *models.IntervalKey, by *uint8, pageParams *utils.PageParams, resolveUsers bool) (models.Leaderboard, error) {
 	// check cache
 	cacheKey := srv.getHash(interval, by, "", pageParams)
-	if cacheResult, ok := srv.cache.Get(cacheKey); ok {
-		return cacheResult.([]*models.LeaderboardItemRanked), nil
+	if item := srv.cache.Get(cacheKey); item != nil {
+		return item.Value().([]*models.LeaderboardItemRanked), nil
 	}
 
 	items, err := srv.repository.GetAllAggregatedByInterval(interval, by, pageParams.Limit(), pageParams.Offset())
@@ -194,15 +200,15 @@ func (srv *LeaderboardService) GetAggregatedByInterval(interval *models.Interval
 		}
 	}
 
-	srv.cache.SetDefault(cacheKey, items)
+	srv.cache.Set(cacheKey, items, ttlcache.DefaultTTL)
 	return items, nil
 }
 
 func (srv *LeaderboardService) GetAggregatedByIntervalAndUser(interval *models.IntervalKey, userId string, by *uint8, resolveUser bool) (models.Leaderboard, error) {
 	// check cache
 	cacheKey := srv.getHash(interval, by, userId, nil)
-	if cacheResult, ok := srv.cache.Get(cacheKey); ok {
-		return cacheResult.([]*models.LeaderboardItemRanked), nil
+	if item := srv.cache.Get(cacheKey); item != nil {
+		return item.Value().([]*models.LeaderboardItemRanked), nil
 	}
 
 	items, err := srv.repository.GetAggregatedByUserAndInterval(userId, interval, by, 0, 0)
@@ -221,7 +227,7 @@ func (srv *LeaderboardService) GetAggregatedByIntervalAndUser(interval *models.I
 		}
 	}
 
-	srv.cache.SetDefault(cacheKey, items)
+	srv.cache.Set(cacheKey, items, ttlcache.DefaultTTL)
 	return items, nil
 }
 

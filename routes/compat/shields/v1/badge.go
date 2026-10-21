@@ -10,25 +10,31 @@ import (
 	"github.com/muety/wakapi/models/types"
 	routeutils "github.com/muety/wakapi/routes/utils"
 
+	"github.com/jellydator/ttlcache/v3"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/shields/v1"
 	"github.com/muety/wakapi/services"
-	"github.com/patrickmn/go-cache"
 )
 
 type BadgeHandler struct {
 	config      *conf.Config
 	userSrvc    services.IUserService
 	summarySrvc services.ISummaryService
-	cache       *cache.Cache
+	cache       *ttlcache.Cache[string, *v1.BadgeData]
 }
 
 func NewBadgeHandler(summaryService services.ISummaryService, userService services.IUserService) *BadgeHandler {
+	cache := ttlcache.New[string, *v1.BadgeData](
+		ttlcache.WithTTL[string, *v1.BadgeData](time.Hour),
+		ttlcache.WithDisableTouchOnHit[string, *v1.BadgeData](),
+	)
+	go cache.Start()
+
 	return &BadgeHandler{
 		summarySrvc: summaryService,
 		userSrvc:    userService,
-		cache:       cache.New(time.Hour, time.Hour),
+		cache:       cache,
 		config:      conf.Get(),
 	}
 }
@@ -64,8 +70,8 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	filters.WithSelectFilteredOnly()
 
 	cacheKey := fmt.Sprintf("%s_%v_%s", user.ID, *interval.Key, filters.Hash())
-	if cacheResult, ok := h.cache.Get(cacheKey); ok {
-		helpers.RespondJSON(w, r, http.StatusOK, cacheResult.(*v1.BadgeData))
+	if cacheItem := h.cache.Get(cacheKey); cacheItem != nil {
+		helpers.RespondJSON(w, r, http.StatusOK, cacheItem.Value())
 		return
 	}
 
@@ -84,7 +90,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vm := v1.NewBadgeDataFrom(summary)
-	h.cache.SetDefault(cacheKey, vm)
+	h.cache.Set(cacheKey, vm, ttlcache.DefaultTTL)
 	helpers.RespondJSON(w, r, http.StatusOK, vm)
 }
 

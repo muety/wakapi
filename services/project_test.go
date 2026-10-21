@@ -165,9 +165,7 @@ func (suite *ProjectServiceTestSuite) TestProjectService_EventHeartbeatCreate_In
 	})
 
 	assert.Eventually(suite.T(), func() bool {
-		_, foundStats := sut.cache.Get(cacheKeyStats)
-		_, foundProjects := sut.cache.Get(cacheKeyProjects)
-		return !foundStats && !foundProjects
+		return sut.cache.Get(cacheKeyStats) == nil && sut.cache.Get(cacheKeyProjects) == nil
 	}, 2*time.Second, 20*time.Millisecond)
 }
 
@@ -190,8 +188,6 @@ func (suite *ProjectServiceTestSuite) TestProjectService_EventAliasChanged_Inval
 	})
 
 	assert.Eventually(suite.T(), func() bool {
-		_, foundStats := sut.cache.Get(cacheKeyStats)
-		_, foundProjects := sut.cache.Get(cacheKeyProjects)
-		return !foundStats && !foundProjects
+		return sut.cache.Get(cacheKeyStats) == nil && sut.cache.Get(cacheKeyProjects) == nil
 	}, 2*time.Second, 20*time.Millisecond)
 }
