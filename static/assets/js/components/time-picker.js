@@ -14,8 +14,7 @@ function TimePicker({ fromDate, toDate, timeSelection }) {
             return `summary?${queryParams.toString()}`
         },
         // Step to the previous (-1) or next (+1) period. `toDate` is exclusive (midnight after the range).
-        // Named periods (today, this week / month / year) snap to the full previous / next period,
-        // anchored at their start, so a partial "this week" steps to the whole week before.
+        // Named periods (today, this week / month / year) snap to the full previous / next period, anchored at their start, so a partial "this week" steps to the whole week before.
         // Custom ranges spanning whole calendar months step by months, all others by their length in days.
         shiftedRange(direction) {
             const parse = (s) => {
