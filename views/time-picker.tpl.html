@@ -1,8 +1,16 @@
 <template id="time-picker-template">
-    <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-card py-2 px-4 cursor-pointer justify-end" @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker">
-        <span class="iconify inline text-2xl text-secondary grow" data-icon="fa-regular:calendar-alt"></span>
-        <a v-cloak id="current-time-selection" class="text-foreground -mb-1">${timeSelection}</a>
-        <span class="iconify inline text-2xl text-secondary" data-icon="akar-icons:chevron-down"></span>
+    <div class="flex items-center whitespace-nowrap">
+        <a v-cloak v-show="canShift(-1)" :href="shiftLink(-1)" id="time-picker-prev" class="text-secondary rounded hover:bg-card hover:text-foreground py-1 px-2 shrink-0" title="Previous period" aria-label="Previous period">
+            <span class="iconify inline" data-icon="akar-icons:chevron-left"></span>
+        </a>
+        <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-card py-2 px-1 cursor-pointer justify-end" @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker" style="padding: .5rem .5rem">
+            <span class="iconify inline text-xl text-secondary grow" data-icon="fa-regular:calendar-alt"></span>
+            <a v-cloak id="current-time-selection" class="text-foreground -mb-1">${timeSelection}</a>
+            <span class="iconify inline text-xl text-secondary" data-icon="akar-icons:chevron-down"></span>
+        </div>
+        <a v-cloak v-show="canShift(1)" :href="shiftLink(1)" id="time-picker-next" class="text-secondary rounded hover:bg-card hover:text-foreground py-1 px-2 shrink-0" title="Next period" aria-label="Next period">
+            <span class="iconify inline" data-icon="akar-icons:chevron-right"></span>
+        </a>
     </div>
 
     <div v-cloak v-show="state.showDropdownTimepicker" class="z-10 absolute top-0 right-0 popup mt-12 w-40" id="time-picker-dropdown">
