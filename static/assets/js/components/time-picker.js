@@ -1,4 +1,4 @@
-function TimePicker({ fromDate, toDate, timeSelection }) {
+function TimePicker({fromDate, toDate, timeSelection}) {
     return {
         $template: '#time-picker-template',
         $delimiters: ['${', '}'],
@@ -14,7 +14,7 @@ function TimePicker({ fromDate, toDate, timeSelection }) {
             return `summary?${queryParams.toString()}`
         },
         // Step to the previous (-1) or next (+1) period. `toDate` is exclusive (midnight after the range).
-        // Named periods (today, this week / month / year) snap to the full previous / next period, anchored at their start, so a partial "this week" steps to the whole week before.
+        // Named periods snap to the full previous / next period of their nominal length, anchored at their start, so a partial "this week" steps to the whole week before.
         // Custom ranges spanning whole calendar months step by months, all others by their length in days.
         shiftedRange(direction) {
             const parse = (s) => {
@@ -33,15 +33,34 @@ function TimePicker({ fromDate, toDate, timeSelection }) {
             const to = parse(this.toDate)
             if (isNaN(from) || isNaN(to) || to <= from) return null
 
+            // keys mirror the aliases in models/interval.go
             const namedSteps = {
-                today: ['days', 1],
-                yesterday: ['days', 1],
-                week: ['days', 7],
-                month: ['months', 1],
-                year: ['months', 12],
+                'today': ['days', 1],
+                'day': ['days', 1],
+                'yesterday': ['days', 1],
+                '24_hours': ['days', 1],
+                'last_24_hours': ['days', 1],
+                'last_day': ['days', 1],
+                'week': ['days', 7],
+                'last_week': ['days', 7],
+                '7_days': ['days', 7],
+                'last_7_days': ['days', 7],
+                '14_days': ['days', 14],
+                'last_14_days': ['days', 14],
+                '30_days': ['days', 30],
+                'last_30_days': ['days', 30],
+                'month': ['months', 1],
+                'last_month': ['months', 1],
+                '6_months': ['months', 6],
+                'last_6_months': ['months', 6],
+                'year': ['months', 12],
+                '12_months': ['months', 12],
+                'last_12_months': ['months', 12],
+                'last_year': ['months', 12],
             }
-            const interval = new URLSearchParams(window.location.search).get('interval')
-            if (interval === 'any') return null
+            const params = new URLSearchParams(window.location.search)
+            const interval = params.get('interval') || params.get('start')  // start is a server-side alias for interval (see helpers.ParseSummaryParams)
+            if (['any', 'all_time', 'All Time'].includes(interval)) return null  // no shifting for all time interval
 
             let step = namedSteps[interval]
             if (!step) {
@@ -54,7 +73,7 @@ function TimePicker({ fromDate, toDate, timeSelection }) {
 
             const [unit, size] = step
             const newFrom = add(from, unit, direction * size)
-            return { from: format(newFrom), to: format(add(newFrom, unit, size)) }
+            return {from: format(newFrom), to: format(add(newFrom, unit, size))}
         },
         canShift(direction) {
             const range = this.shiftedRange(direction)

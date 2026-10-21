@@ -1,6 +1,6 @@
 <template id="time-picker-template">
     <div class="flex items-center whitespace-nowrap">
-        <a v-cloak :href="shiftLink(-1)" id="time-picker-prev" class="text-secondary rounded hover:bg-card hover:text-foreground py-1 px-2 shrink-0" title="Previous period" aria-label="Previous period">
+        <a v-cloak v-show="canShift(-1)" :href="shiftLink(-1)" id="time-picker-prev" class="text-secondary rounded hover:bg-card hover:text-foreground py-1 px-2 shrink-0" title="Previous period" aria-label="Previous period">
             <span class="iconify inline" data-icon="akar-icons:chevron-left"></span>
         </a>
         <div class="menu-item flex items-center text-sm font-semibold space-x-2 rounded hover:bg-card py-2 px-1 cursor-pointer justify-end" @click="state.showDropdownTimepicker = !state.showDropdownTimepicker" data-trigger-for="showDropdownTimepicker" style="padding: .5rem .5rem">
