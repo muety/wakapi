@@ -57,7 +57,7 @@ func (h *HeartbeatHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	params := r.URL.Query()
 	dateParam := params.Get("date")
-	date, err := time.Parse(conf.SimpleDateFormat, dateParam)
+	date, err := helpers.ParseDateTimeTZ(dateParam, user.TZ())
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("bad date"))
