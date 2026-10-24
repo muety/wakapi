@@ -8,18 +8,17 @@ import (
 	"time"
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
-	"github.com/duke-git/lancet/v2/maputil"
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
-	"github.com/patrickmn/go-cache"
 )
 
 type ProjectService struct {
 	config        *config.Config
-	cache         *cache.Cache
+	cache         *ttlcache.Cache[string, any]
 	eventBus      *hub.Hub
 	repository    repositories.IHeartbeatRepository
 	aliasService  IAliasService
@@ -27,9 +26,15 @@ type ProjectService struct {
 }
 
 func NewProjectService(aliasService IAliasService, heartbeatRepo repositories.IHeartbeatRepository, heartbeatSrvc IHeartbeatService) *ProjectService {
+	c := ttlcache.New[string, any](
+		ttlcache.WithTTL[string, any](24*time.Hour),
+		ttlcache.WithDisableTouchOnHit[string, any](),
+	)
+	go c.Start()
+
 	srv := &ProjectService{
 		config:        config.Get(),
-		cache:         cache.New(24*time.Hour, 24*time.Hour),
+		cache:         c,
 		eventBus:      config.EventBus(),
 		repository:    heartbeatRepo,
 		aliasService:  aliasService,
@@ -67,11 +72,11 @@ func (srv *ProjectService) GetUserProjectStats(user *models.User, from, to time.
 	}
 
 	cacheKey := fmt.Sprintf("project_stats_%s_%d_%d_%d_%d_%s", user.ID, from.Unix(), to.Unix(), limit, offset, search)
-	if results, found := srv.cache.Get(cacheKey); found && !skipCache {
-		return results.([]*models.ProjectStats), nil
+	if item := srv.cache.Get(cacheKey); item != nil && !skipCache {
+		return item.Value().([]*models.ProjectStats), nil
 	} else if search == "" {
-		if results, found := srv.cache.Get(fmt.Sprintf("project_stats_%s_%d_%d_%d_%d_", user.ID, from.Unix(), to.Unix(), math.MaxInt32, 0)); found && !skipCache {
-			return utils.SubSlice[*models.ProjectStats](results.([]*models.ProjectStats), uint(offset), uint(offset+limit)), nil
+		if item := srv.cache.Get(fmt.Sprintf("project_stats_%s_%d_%d_%d_%d_", user.ID, from.Unix(), to.Unix(), math.MaxInt32, 0)); item != nil && !skipCache {
+			return utils.SubSlice[*models.ProjectStats](item.Value().([]*models.ProjectStats), uint(offset), uint(offset+limit)), nil
 		}
 	}
 
@@ -143,15 +148,15 @@ func (srv *ProjectService) GetUserProjectStats(user *models.User, from, to time.
 
 func (srv *ProjectService) populateUniqueUserProjects(userId string) {
 	userProjectsCacheKey := srv.getUserProjectsCacheKey(userId)
-	if _, found := srv.cache.Get(userProjectsCacheKey); !found {
+	if item := srv.cache.Get(userProjectsCacheKey); item == nil {
 		projects, _ := srv.heartbeatSrvc.GetEntitySetByUser(models.SummaryProject, userId)
-		srv.cache.Set(userProjectsCacheKey, datastructure.New[string](projects...), cache.NoExpiration)
+		srv.cache.Set(userProjectsCacheKey, datastructure.New[string](projects...), ttlcache.NoTTL)
 	}
 }
 
 func (srv *ProjectService) invalidateProjectStatsCache(userId string) {
 	var invalidated bool
-	for _, k := range maputil.Keys[string, cache.Item](srv.cache.Items()) {
+	for _, k := range srv.cache.Keys() {
 		if strings.HasPrefix(k, fmt.Sprintf("project_stats_%s_", userId)) {
 			srv.cache.Delete(k)
 			invalidated = true
@@ -163,7 +168,7 @@ func (srv *ProjectService) invalidateProjectStatsCache(userId string) {
 }
 
 func (srv *ProjectService) checkInvalidateProjectStatsCache(newHeartbeat *models.Heartbeat) {
-	if uniqueProjects, found := srv.cache.Get(srv.getUserProjectsCacheKey(newHeartbeat.UserID)); found && !uniqueProjects.(datastructure.Set[string]).Contain(newHeartbeat.Project) {
+	if item := srv.cache.Get(srv.getUserProjectsCacheKey(newHeartbeat.UserID)); item != nil && !item.Value().(datastructure.Set[string]).Contain(newHeartbeat.Project) {
 		srv.invalidateProjectStatsCache(newHeartbeat.UserID)
 	}
 }

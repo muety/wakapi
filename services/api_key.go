@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/leandro-lugaresi/hub"
-	"github.com/patrickmn/go-cache"
 
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
@@ -15,17 +15,23 @@ import (
 
 type ApiKeyService struct {
 	config     *config.Config
-	cache      *cache.Cache
+	cache      *ttlcache.Cache[string, []*models.ApiKey]
 	eventBus   *hub.Hub
 	repository repositories.IApiKeyRepository
 }
 
 func NewApiKeyService(apiKeyRepository repositories.IApiKeyRepository) *ApiKeyService {
+	c := ttlcache.New[string, []*models.ApiKey](
+		ttlcache.WithTTL[string, []*models.ApiKey](24*time.Hour),
+		ttlcache.WithDisableTouchOnHit[string, []*models.ApiKey](),
+	)
+	go c.Start()
+
 	srv := &ApiKeyService{
 		config:     config.Get(),
 		eventBus:   config.EventBus(),
 		repository: apiKeyRepository,
-		cache:      cache.New(24*time.Hour, 24*time.Hour),
+		cache:      c,
 	}
 
 	onApiKeyCreate := srv.eventBus.Subscribe(0, config.EventApiKeyCreate)
@@ -50,15 +56,15 @@ func (srv *ApiKeyService) GetByApiKey(apiKey string, requireFullAccessKey bool) 
 }
 
 func (srv *ApiKeyService) GetByUser(userId string) ([]*models.ApiKey, error) {
-	if userApiKeys, found := srv.cache.Get(userId); found {
-		return userApiKeys.([]*models.ApiKey), nil
+	if item := srv.cache.Get(userId); item != nil {
+		return item.Value(), nil
 	}
 
 	userApiKeys, err := srv.repository.GetByUser(userId)
 	if err != nil {
 		return nil, err
 	}
-	srv.cache.Set(userId, userApiKeys, cache.DefaultExpiration)
+	srv.cache.Set(userId, userApiKeys, ttlcache.DefaultTTL)
 	return userApiKeys, nil
 }
 
@@ -95,7 +101,7 @@ func (srv *ApiKeyService) notifyUpdate(apiKey *models.ApiKey, isDelete bool) {
 }
 
 func (srv *ApiKeyService) invalidateUserCache(userId string) {
-	for key := range srv.cache.Items() {
+	for _, key := range srv.cache.Keys() {
 		if strings.Contains(key, userId) {
 			srv.cache.Delete(key)
 		}

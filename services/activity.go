@@ -13,11 +13,11 @@ import (
 	"github.com/alitto/pond/v2"
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/duke-git/lancet/v2/datetime"
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
-	"github.com/patrickmn/go-cache"
 )
 
 const (
@@ -35,14 +35,20 @@ const (
 
 type ActivityService struct {
 	config         *config.Config
-	cache          *cache.Cache
+	cache          *ttlcache.Cache[string, string]
 	summaryService ISummaryService
 }
 
 func NewActivityService(summaryService ISummaryService) *ActivityService {
+	c := ttlcache.New[string, string](
+		ttlcache.WithTTL[string, string](6*time.Hour),
+		ttlcache.WithDisableTouchOnHit[string, string](),
+	)
+	go c.Start()
+
 	return &ActivityService{
 		config:         config.Get(),
-		cache:          cache.New(6*time.Hour, 6*time.Hour),
+		cache:          c,
 		summaryService: summaryService,
 	}
 }
@@ -51,15 +57,15 @@ func NewActivityService(summaryService ISummaryService) *ActivityService {
 // Please note: currently, only yearly charts ("last_12_months") are supported. However, we could fairly easily restructure this to support dynamic intervals.
 func (s *ActivityService) GetChart(user *models.User, interval *models.IntervalKey, darkTheme, hideAttribution, skipCache bool) (string, error) {
 	cacheKey := fmt.Sprintf("chart_%s_%s_%v_%v", user.ID, (*interval)[0], darkTheme, hideAttribution)
-	if result, found := s.cache.Get(cacheKey); found && !skipCache {
-		return result.(string), nil
+	if item := s.cache.Get(cacheKey); item != nil && !skipCache {
+		return item.Value(), nil
 	}
 
 	switch interval {
 	case models.IntervalPast12Months:
 		chart, err := s.getChartPastYear(user, darkTheme, hideAttribution)
 		if err == nil {
-			s.cache.SetDefault(cacheKey, chart) // TODO: cache compressed?
+			s.cache.Set(cacheKey, chart, ttlcache.DefaultTTL) // TODO: cache compressed?
 		}
 		return chart, err
 	default:

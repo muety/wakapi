@@ -13,12 +13,12 @@ import (
 	"github.com/duke-git/lancet/v2/maputil"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/duke-git/lancet/v2/tuple"
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
-	"github.com/patrickmn/go-cache"
 )
 
 const heartbeatPadding = 0 * time.Second
@@ -32,13 +32,19 @@ type DurationService struct {
 	userService            IUserService
 	languageMappingService ILanguageMappingService
 	lastUserJob            map[string]time.Time
-	dirtyFrom              *cache.Cache // earliest heartbeat per user after which no durations exist yet
+	dirtyFrom              *ttlcache.Cache[string, time.Time] // earliest heartbeat per user after which no durations exist yet
 	queue                  *artifex.Dispatcher
 	pendingLock            sync.Mutex
 	pending                datastructure.Set[string] // currently running per-user regeneration jobs
 }
 
 func NewDurationService(durationRepository repositories.IDurationRepository, heartbeatService IHeartbeatService, userService IUserService, languageMappingService ILanguageMappingService) *DurationService {
+	dirtyFrom := ttlcache.New[string, time.Time](
+		ttlcache.WithTTL[string, time.Time](6*time.Hour),
+		ttlcache.WithDisableTouchOnHit[string, time.Time](),
+	)
+	go dirtyFrom.Start()
+
 	srv := &DurationService{
 		config:                 config.Get(),
 		eventBus:               config.EventBus(),
@@ -46,7 +52,7 @@ func NewDurationService(durationRepository repositories.IDurationRepository, hea
 		userService:            userService,
 		languageMappingService: languageMappingService,
 		repository:             durationRepository,
-		dirtyFrom:              cache.New(6*time.Hour, 12*time.Hour),
+		dirtyFrom:              dirtyFrom,
 		lastUserJob:            make(map[string]time.Time),
 		queue:                  config.GetQueue(config.QueueProcessing),
 		pending:                datastructure.New[string](),
@@ -62,11 +68,12 @@ func NewDurationService(durationRepository repositories.IDurationRepository, hea
 			// clear already existing durations if incoming heartbeat is older
 			// this is more or less the durations equivalent of what's being done on a summary level in the summary service's event receiver
 			dirtyFromKey := srv.getDirtyFromCacheKey(user.ID)
-			if dirtyFrom, ok := srv.dirtyFrom.Get(dirtyFromKey); !ok || heartbeat.Time.T().Before(dirtyFrom.(time.Time)) {
+			dirtyFromItem := srv.dirtyFrom.Get(dirtyFromKey)
+			if dirtyFromItem == nil || heartbeat.Time.T().Before(dirtyFromItem.Value()) {
 				if err := srv.repository.DeleteByUserAfter(user, heartbeat.Time.T()); err != nil {
 					slog.Error("failed to delete durations newer than latest received heartbeat", "error", err, "user_id", user.ID, "heartbeat_id", heartbeat.ID)
 				} else {
-					srv.dirtyFrom.SetDefault(dirtyFromKey, heartbeat.Time.T())
+					srv.dirtyFrom.Set(dirtyFromKey, heartbeat.Time.T(), ttlcache.DefaultTTL)
 				}
 			}
 
