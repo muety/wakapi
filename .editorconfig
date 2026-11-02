@@ -1,0 +1,12 @@
+; https://editorconfig.org
+
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = false
+indent_style = space
+indent_size = 4
+
+[*.{bru,yml,yaml,json,webmanifest}]
+indent_size = 2
