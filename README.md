@@ -103,6 +103,11 @@ docker compose up -d
 
 If you prefer to persist data in a local directory while using SQLite as the database, make sure to set the correct `user` option in the Docker Compose configuration to avoid permission issues.
 
+### 🚀 One-Click Deploy
+
+<a href="https://repocloud.io/details/Wakapi/"><img src="https://d16t0pc4846x52.cloudfront.net/deploylobe.svg" alt="Deploy on RepoCloud" height="42"></a>
+<a href="https://railway.com/deploy/wakapi"><img src="https://railway.com/button.svg" alt="Deploy on Railway" height="42"></a>
+
 ### 🧑‍💻 Option 4: Compile and run from source
 
 ```bash
