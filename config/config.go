@@ -293,7 +293,7 @@ func (c *Config) createCookie(name, value, path string, maxAge int) *http.Cookie
 		path = "/"
 	}
 
-	return &http.Cookie{
+	cookie := &http.Cookie{
 		Name:     name,
 		Value:    value,
 		Path:     path,
@@ -302,6 +302,14 @@ func (c *Config) createCookie(name, value, path string, maxAge int) *http.Cookie
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	}
+
+	if maxAge > 0 {
+		cookie.Expires = time.Now().Add(time.Duration(maxAge) * time.Second)
+	} else if maxAge < 0 {
+		cookie.Expires = time.Unix(1, 0)
+	}
+
+	return cookie
 }
 
 func (c *Config) IsDev() bool {
