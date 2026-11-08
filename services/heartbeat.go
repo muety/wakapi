@@ -18,10 +18,12 @@ import (
 type HeartbeatService struct {
 	config              *config.Config
 	cache               *ttlcache.Cache[string, any]
+	countCache          *ttlcache.Cache[string, int64] // deliberately separate from cache, so count increments don't contend with the heartbeat cache's cacheLock
 	eventBus            *hub.Hub
 	repository          repositories.IHeartbeatRepository
 	languageMappingSrvc ILanguageMappingService
 	cacheLock           *sync.RWMutex
+	countLock           *sync.Mutex
 }
 
 func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, languageMappingService ILanguageMappingService) *HeartbeatService {
@@ -31,13 +33,21 @@ func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, langua
 	)
 	go c.Start()
 
+	countCache := ttlcache.New[string, int64](
+		ttlcache.WithTTL[string, int64](24*time.Hour),
+		ttlcache.WithDisableTouchOnHit[string, int64](),
+	)
+	go countCache.Start()
+
 	srv := &HeartbeatService{
 		config:              config.Get(),
 		cache:               c,
+		countCache:          countCache,
 		eventBus:            config.EventBus(),
 		repository:          heartbeatRepo,
 		languageMappingSrvc: languageMappingService,
 		cacheLock:           &sync.RWMutex{}, // if this turns out as a bottleneck, we might switch to per-user caches organized in a map
+		countLock:           &sync.Mutex{},
 	}
 
 	// using event hub is an unnecessary indirection here, however, we might
@@ -58,12 +68,10 @@ func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, langua
 }
 
 func (srv *HeartbeatService) incrementCount(key string, delta int64) {
-	srv.cacheLock.Lock()
-	defer srv.cacheLock.Unlock()
-	if item := srv.cache.Get(key); item != nil {
-		if val, ok := item.Value().(int64); ok {
-			srv.cache.Set(key, val+delta, ttlcache.PreviousOrDefaultTTL)
-		}
+	srv.countLock.Lock()
+	defer srv.countLock.Unlock()
+	if item := srv.countCache.Get(key); item != nil {
+		srv.countCache.Set(key, item.Value()+delta, ttlcache.PreviousOrDefaultTTL)
 	}
 }
 
@@ -98,24 +106,24 @@ func (srv *HeartbeatService) InsertBatch(heartbeats []*models.Heartbeat) error {
 }
 
 func (srv *HeartbeatService) Count(approximate bool) (int64, error) {
-	if item := srv.cache.Get(srv.countTotalCacheKey()); item != nil {
-		return item.Value().(int64), nil
+	if item := srv.countCache.Get(srv.countTotalCacheKey()); item != nil {
+		return item.Value(), nil
 	}
 	count, err := srv.repository.Count(approximate)
 	if err == nil {
-		srv.cache.Set(srv.countTotalCacheKey(), count, srv.countCacheTtl())
+		srv.countCache.Set(srv.countTotalCacheKey(), count, srv.countCacheTtl())
 	}
 	return count, err
 }
 
 func (srv *HeartbeatService) CountByUser(user *models.User) (int64, error) {
 	key := srv.countByUserCacheKey(user.ID)
-	if item := srv.cache.Get(key); item != nil {
-		return item.Value().(int64), nil
+	if item := srv.countCache.Get(key); item != nil {
+		return item.Value(), nil
 	}
 	count, err := srv.repository.CountByUser(user)
 	if err == nil {
-		srv.cache.Set(key, count, srv.countCacheTtl())
+		srv.countCache.Set(key, count, srv.countCacheTtl())
 	}
 	return count, err
 }
@@ -126,8 +134,8 @@ func (srv *HeartbeatService) CountByUsers(users []*models.User) ([]*models.Count
 
 	for _, u := range users {
 		key := srv.countByUserCacheKey(u.ID)
-		if item := srv.cache.Get(key); item != nil {
-			userCounts = append(userCounts, &models.CountByUser{User: u.ID, Count: item.Value().(int64)})
+		if item := srv.countCache.Get(key); item != nil {
+			userCounts = append(userCounts, &models.CountByUser{User: u.ID, Count: item.Value()})
 		} else {
 			missingUsers = append(missingUsers, u)
 		}
@@ -140,7 +148,7 @@ func (srv *HeartbeatService) CountByUsers(users []*models.User) ([]*models.Count
 
 	for _, uc := range counts {
 		key := srv.countByUserCacheKey(uc.User)
-		srv.cache.Set(key, uc.Count, srv.countCacheTtl())
+		srv.countCache.Set(key, uc.Count, srv.countCacheTtl())
 		userCounts = append(userCounts, uc)
 	}
 
@@ -327,17 +335,17 @@ func (srv *HeartbeatService) GetEntitySetByUser(entityType uint8, userId string)
 }
 
 func (srv *HeartbeatService) DeleteBefore(t time.Time) error {
-	go srv.cache.DeleteAll()
+	go srv.flushCaches()
 	return srv.repository.DeleteBefore(t)
 }
 
 func (srv *HeartbeatService) DeleteByUser(user *models.User) error {
-	go srv.cache.DeleteAll()
+	go srv.flushCaches()
 	return srv.repository.DeleteByUser(user)
 }
 
 func (srv *HeartbeatService) DeleteByUserBefore(user *models.User, t time.Time) error {
-	go srv.cache.DeleteAll()
+	go srv.flushCaches()
 	return srv.repository.DeleteByUserBefore(user, t)
 }
 
@@ -433,6 +441,11 @@ func (srv *HeartbeatService) notifyBatch(heartbeats []*models.Heartbeat) {
 			Fields: map[string]interface{}{config.FieldPayload: hb},
 		})
 	}
+}
+
+func (srv *HeartbeatService) flushCaches() {
+	srv.cache.DeleteAll()
+	srv.countCache.DeleteAll()
 }
 
 func (srv *HeartbeatService) countByUserCacheKey(userId string) string {
