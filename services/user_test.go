@@ -3,10 +3,11 @@ package services
 import (
 	"errors"
 	"testing"
+	"time"
 
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
-	"github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -84,15 +85,15 @@ func (suite *UserServiceTestSuite) TestUserService_GetByEmptyKey_Failed() {
 func (suite *UserServiceTestSuite) TestUserService_GetByKeyFromCache_Success() {
 	userCached := &models.User{ID: TestUserID, ApiKey: "cached-key"}
 
-	userCache := cache.New(cache.NoExpiration, cache.NoExpiration)
-	userCache.SetDefault("key_"+TestAPIKey+"_false", userCached)
+	userCache := ttlcache.New[string, any](ttlcache.WithTTL[string, any](ttlcache.NoTTL))
+	userCache.Set("key_"+TestAPIKey+"_false", userCached, ttlcache.DefaultTTL)
 
 	sut := &UserService{cache: userCache}
 
 	result, err := sut.GetUserByKey(TestAPIKey, false)
 	suite.Nil(err)
 	suite.NotNil(result)
-	suite.Equal(1, userCache.ItemCount())
+	suite.Equal(1, userCache.Len())
 	suite.Equal(userCached, result)
 	suite.Equal(userCached.ApiKey, result.ApiKey)
 }
@@ -186,4 +187,85 @@ func (suite *UserServiceTestSuite) TestUserService_GetUserByKey_ReadOnlyKeyCache
 	userFullAccess, err := sut.GetUserByKey(TestAPIKey, true)
 	suite.Nil(userFullAccess)
 	suite.NotNil(err)
+}
+
+func (suite *UserServiceTestSuite) TestUserService_GetUserById_CacheRetrievalAndFlushUserCache() {
+	sut := NewUserService(suite.KeyValueService, suite.MailService, suite.ApiKeyService, suite.UserRepo)
+
+	suite.UserRepo.On("FindOne", models.User{ID: TestUserID}).Return(suite.TestUser, nil).Once()
+
+	// 1. Initial retrieval - cache miss, repository called once
+	user, err := sut.GetUserById(TestUserID)
+	suite.Nil(err)
+	suite.Equal(suite.TestUser, user)
+
+	// 2. Second retrieval - cache hit, repository FindOne is not called again
+	userCached, err := sut.GetUserById(TestUserID)
+	suite.Nil(err)
+	suite.Equal(suite.TestUser, userCached)
+	suite.UserRepo.AssertNumberOfCalls(suite.T(), "FindOne", 1)
+
+	// 3. Evict cache via FlushUserCache
+	sut.FlushUserCache(TestUserID)
+
+	// 4. Setup mock expectation for repository call after eviction
+	suite.UserRepo.On("FindOne", models.User{ID: TestUserID}).Return(suite.TestUser, nil).Once()
+
+	// 5. Third retrieval after eviction - repository called again
+	userReloaded, err := sut.GetUserById(TestUserID)
+	suite.Nil(err)
+	suite.Equal(suite.TestUser, userReloaded)
+	suite.UserRepo.AssertNumberOfCalls(suite.T(), "FindOne", 2)
+}
+
+func (suite *UserServiceTestSuite) TestUserService_FlushCache() {
+	sut := NewUserService(suite.KeyValueService, suite.MailService, suite.ApiKeyService, suite.UserRepo)
+
+	suite.UserRepo.On("FindOne", models.User{ID: TestUserID}).Return(suite.TestUser, nil).Once()
+
+	// Populate cache
+	_, err := sut.GetUserById(TestUserID)
+	suite.Nil(err)
+	suite.NotZero(sut.cache.Len())
+
+	// Flush cache
+	sut.FlushCache()
+	suite.Zero(sut.cache.Len())
+}
+
+func (suite *UserServiceTestSuite) TestUserService_CacheTTLEviction() {
+	shortCache := ttlcache.New[string, any](
+		ttlcache.WithTTL[string, any](50*time.Millisecond),
+		ttlcache.WithDisableTouchOnHit[string, any](),
+	)
+	go shortCache.Start()
+	defer shortCache.Stop()
+
+	sut := &UserService{
+		cache:      shortCache,
+		repository: suite.UserRepo,
+	}
+
+	suite.UserRepo.On("FindOne", models.User{ID: TestUserID}).Return(suite.TestUser, nil).Twice()
+
+	// 1. Initial retrieval - cache miss
+	user1, err := sut.GetUserById(TestUserID)
+	suite.Nil(err)
+	suite.Equal(suite.TestUser, user1)
+	suite.UserRepo.AssertNumberOfCalls(suite.T(), "FindOne", 1)
+
+	// 2. Immediate retrieval - cache hit
+	userCached, err := sut.GetUserById(TestUserID)
+	suite.Nil(err)
+	suite.Equal(suite.TestUser, userCached)
+	suite.UserRepo.AssertNumberOfCalls(suite.T(), "FindOne", 1)
+
+	// 3. Wait for TTL to expire
+	time.Sleep(100 * time.Millisecond)
+
+	// 4. Retrieval after TTL - cache expired, repo called again
+	userExpired, err := sut.GetUserById(TestUserID)
+	suite.Nil(err)
+	suite.Equal(suite.TestUser, userExpired)
+	suite.UserRepo.AssertNumberOfCalls(suite.T(), "FindOne", 2)
 }
