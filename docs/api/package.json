@@ -1,0 +1,13 @@
+{
+  "name": "wakapi-api-docs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sourcey project for the navigable Wakapi API reference",
+  "scripts": {
+    "build": "sourcey build -c ./sourcey.config.ts -o ./dist",
+    "dev": "sourcey dev -c ./sourcey.config.ts"
+  },
+  "dependencies": {
+    "sourcey": "^3.9.5"
+  }
+}

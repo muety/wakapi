@@ -48,6 +48,14 @@
 * ✅ Lightning fast
 * ✅ Self-hosted
 
+## 📖 API Reference
+
+The REST API is documented as a navigable reference at
+<https://muety.github.io/wakapi/> (once GitHub Pages is enabled for this
+repository), generated from the OpenAPI spec in
+[`static/docs/swagger.yaml`](static/docs/swagger.yaml). To build it
+locally, see [`docs/api/README.md`](docs/api/README.md).
+
 ## ⌨️ How to use?
 
 There are different options for how to use Wakapi, ranging from our hosted cloud service to self-hosting it. Regardless of which option choose, you will always have to do the [client setup](#-client-setup) in addition.
