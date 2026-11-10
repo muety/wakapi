@@ -28,7 +28,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/getsentry/sentry-go v0.50.0 // indirect
 	github.com/glebarez/go-sqlite v1.23.0 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.6 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.8 // indirect
 	github.com/go-sql-driver/mysql v1.10.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/go-webauthn/webauthn v0.18.2 // indirect
@@ -45,6 +45,7 @@ require (
 	github.com/jackc/puddle/v2 v2.2.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/leandro-lugaresi/hub v1.1.2 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mileusna/useragent v1.3.5 // indirect
