@@ -18,10 +18,15 @@ definitions:
     type: object
   models.Heartbeat:
     properties:
+      ai_cached_input_tokens:
+        type: integer
       ai_input_tokens:
         type: integer
       ai_line_changes:
         type: integer
+      ai_model:
+        description: ignored because model might be parsed differently by wakatime
+        type: string
       ai_output_tokens:
         type: integer
       ai_prompt_length:
@@ -68,7 +73,7 @@ definitions:
         type: integer
       time:
         description: |-
-          note: on sqlite, table will have an additional column `time_real`, introduced "manually" by migration 20260111
+          note: on sqlite, the time column is stored as INTEGER (Unix epoch milliseconds) rather than TEXT
           see https://github.com/muety/wakapi/issues/882 for details
         type: number
       type:
@@ -193,10 +198,14 @@ definitions:
     type: object
   v1.HeartbeatEntry:
     properties:
+      ai_cached_input_tokens:
+        type: integer
       ai_input_tokens:
         type: integer
       ai_line_changes:
         type: integer
+      ai_model:
+        type: string
       ai_output_tokens:
         type: integer
       ai_prompt_length:
@@ -593,6 +602,8 @@ definitions:
     type: object
   v1.UserAgentEntry:
     properties:
+      ai_model:
+        type: string
       editor:
         type: string
       first_seen:

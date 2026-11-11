@@ -2,10 +2,14 @@ package models
 
 import (
 	"encoding/json"
+	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 )
 
 func TestHeartbeat_Valid_Success(t *testing.T) {
@@ -188,6 +192,12 @@ func TestHeartbeat_Hashed(t *testing.T) {
 	h22.AIModel = "gpt-4o"
 	h22.Hashed()
 	assert.Equal(t, h1.Hash, h22.Hash)
+
+	// different ai cached input tokens -> same hash
+	h23 := *h1
+	h23.AICachedInputTokens = 4096
+	h23.Hashed()
+	assert.Equal(t, h1.Hash, h23.Hash)
 }
 
 func TestHeartbeat_Hashed_NoCollision(t *testing.T) {
@@ -231,4 +241,135 @@ func TestHeartbeat_Unmarshal_IgnoreID(t *testing.T) {
 	raw3, err := json.Marshal(parsed)
 	assert.Nil(t, err)
 	assert.NotContains(t, raw3, "\"id\":")
+}
+
+func TestHeartbeat_AICachedInputTokens_JSON(t *testing.T) {
+	// JSON unmarshaling with ai_cached_input_tokens populated
+	raw := `{"entity":"test.go","type":"file","category":"ai coding","project":"wakapi","ai_input_tokens":100,"ai_output_tokens":50,"ai_cached_input_tokens":2500}`
+	var hb Heartbeat
+	err := json.Unmarshal([]byte(raw), &hb)
+	require.NoError(t, err)
+	assert.Equal(t, 100, hb.AIInputTokens)
+	assert.Equal(t, 50, hb.AIOutputTokens)
+	assert.Equal(t, 2500, hb.AICachedInputTokens)
+
+	// JSON unmarshaling when ai_cached_input_tokens is omitted
+	rawOmitted := `{"entity":"test.go","type":"file","category":"ai coding","project":"wakapi","ai_input_tokens":100}`
+	var hbOmitted Heartbeat
+	err = json.Unmarshal([]byte(rawOmitted), &hbOmitted)
+	require.NoError(t, err)
+	assert.Equal(t, 100, hbOmitted.AIInputTokens)
+	assert.Equal(t, 0, hbOmitted.AICachedInputTokens)
+
+	// JSON unmarshaling with zero
+	rawZero := `{"entity":"test.go","type":"file","category":"ai coding","project":"wakapi","ai_cached_input_tokens":0}`
+	var hbZero Heartbeat
+	err = json.Unmarshal([]byte(rawZero), &hbZero)
+	require.NoError(t, err)
+	assert.Equal(t, 0, hbZero.AICachedInputTokens)
+
+	// JSON marshaling includes field when non-zero
+	marshaled, err := json.Marshal(&hb)
+	require.NoError(t, err)
+	assert.Contains(t, string(marshaled), `"ai_cached_input_tokens":2500`)
+
+	// JSON marshaling omits field when zero due to omitempty
+	marshaledOmitted, err := json.Marshal(&hbOmitted)
+	require.NoError(t, err)
+	assert.NotContains(t, string(marshaledOmitted), "ai_cached_input_tokens")
+}
+
+func TestHeartbeat_AICachedInputTokens_MigrationAndPersistence(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "wakapi_migration_test.db")
+	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+	require.NoError(t, err)
+
+	sqlDb, err := db.DB()
+	require.NoError(t, err)
+	defer sqlDb.Close()
+
+	// Simulate existing Wakapi schema without ai_cached_input_tokens column
+	createLegacyHeartbeatsTable := `CREATE TABLE heartbeats (
+		id integer PRIMARY KEY AUTOINCREMENT,
+		user_id text NOT NULL,
+		entity text NOT NULL,
+		type text,
+		category text,
+		project text,
+		branch text,
+		language text,
+		is_write numeric,
+		editor text,
+		operating_system text,
+		machine text,
+		ai_model text,
+		user_agent varchar(255),
+		time integer NOT NULL,
+		hash varchar(17),
+		origin varchar(255),
+		origin_id varchar(255),
+		created_at integer NOT NULL,
+		lines integer,
+		line_no integer,
+		cursor_pos integer,
+		line_deletions integer,
+		line_additions integer,
+		project_root_count integer,
+		ai_line_changes integer,
+		ai_session text,
+		ai_input_tokens integer,
+		ai_output_tokens integer,
+		ai_prompt_length integer,
+		human_line_changes integer
+	);`
+	require.NoError(t, db.Exec(createLegacyHeartbeatsTable).Error)
+
+	now := time.Now()
+	legacyTime := CustomTime(now)
+	// Insert an existing row from an older Wakapi version
+	insertLegacyRow := `INSERT INTO heartbeats (user_id, entity, time, created_at, ai_input_tokens, ai_output_tokens)
+		VALUES ('user_old', 'main.go', ?, ?, 100, 50);`
+	require.NoError(t, db.Exec(insertLegacyRow, legacyTime, legacyTime).Error)
+
+	// Run AutoMigrate on the modern Heartbeat model (with AICachedInputTokens)
+	require.NoError(t, db.AutoMigrate(&Heartbeat{}))
+
+	// Verify table schema contains ai_cached_input_tokens column
+	type TableColumn struct {
+		Name string `gorm:"column:name"`
+	}
+	var columns []TableColumn
+	require.NoError(t, db.Raw("PRAGMA table_info(heartbeats)").Scan(&columns).Error)
+	columnNames := make([]string, len(columns))
+	for i, c := range columns {
+		columnNames[i] = c.Name
+	}
+	assert.Contains(t, columnNames, "ai_cached_input_tokens")
+
+	// Verify the legacy row reads back with AICachedInputTokens = 0
+	var oldHb Heartbeat
+	require.NoError(t, db.Where("user_id = ?", "user_old").First(&oldHb).Error)
+	assert.Equal(t, 100, oldHb.AIInputTokens)
+	assert.Equal(t, 50, oldHb.AIOutputTokens)
+	assert.Equal(t, 0, oldHb.AICachedInputTokens)
+
+	// Insert a new Heartbeat with AICachedInputTokens populated
+	newHb := &Heartbeat{
+		UserID:              "user_new",
+		Entity:              "worker.go",
+		Time:                CustomTime(now.Add(time.Minute)),
+		CreatedAt:           CustomTime(now),
+		AIInputTokens:       300,
+		AIOutputTokens:      150,
+		AICachedInputTokens: 7500,
+	}
+	newHb.Hashed()
+	require.NoError(t, db.Create(newHb).Error)
+
+	// Verify the new row persists and reads back accurately
+	var retrievedHb Heartbeat
+	require.NoError(t, db.Where("user_id = ?", "user_new").First(&retrievedHb).Error)
+	assert.Equal(t, 300, retrievedHb.AIInputTokens)
+	assert.Equal(t, 150, retrievedHb.AIOutputTokens)
+	assert.Equal(t, 7500, retrievedHb.AICachedInputTokens)
 }

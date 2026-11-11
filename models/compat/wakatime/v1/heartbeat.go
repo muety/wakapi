@@ -80,9 +80,10 @@ type HeartbeatEntry struct {
 	CreatedAt        time.Time `json:"created_at"`
 	AILineChanges    int       `json:"ai_line_changes"`
 	AISession        string    `json:"ai_session"`
-	AIInputTokens    int       `json:"ai_input_tokens"`
-	AIOutputTokens   int       `json:"ai_output_tokens"`
-	AIPromptLength   int       `json:"ai_prompt_length"`
+	AIInputTokens       int       `json:"ai_input_tokens"`
+	AIOutputTokens      int       `json:"ai_output_tokens"`
+	AICachedInputTokens int       `json:"ai_cached_input_tokens"`
+	AIPromptLength      int       `json:"ai_prompt_length"`
 	HumanLineChanges int       `json:"human_line_changes"`
 	AIModel          string    `json:"ai_model,omitempty"`
 }
@@ -112,9 +113,10 @@ func HeartbeatsToCompat(entries []*models.Heartbeat) []*HeartbeatEntry {
 			CreatedAt:        entry.CreatedAt.T(),
 			AILineChanges:    entry.AILineChanges,
 			AISession:        entry.AISession,
-			AIInputTokens:    entry.AIInputTokens,
-			AIOutputTokens:   entry.AIOutputTokens,
-			AIPromptLength:   entry.AIPromptLength,
+			AIInputTokens:       entry.AIInputTokens,
+			AIOutputTokens:      entry.AIOutputTokens,
+			AICachedInputTokens: entry.AICachedInputTokens,
+			AIPromptLength:      entry.AIPromptLength,
 			HumanLineChanges: entry.HumanLineChanges,
 			AIModel:          entry.AIModel,
 		}
