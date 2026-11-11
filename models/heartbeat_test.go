@@ -232,3 +232,26 @@ func TestHeartbeat_Unmarshal_IgnoreID(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotContains(t, raw3, "\"id\":")
 }
+
+func TestHeartbeat_Unmarshal_AICachedInputTokens(t *testing.T) {
+	raw := `{"entity":"claude-code","type":"app","time":1728422364.044,"ai_input_tokens":12,"ai_output_tokens":34,"ai_cached_input_tokens":5600}`
+
+	var parsed Heartbeat
+	assert.NoError(t, json.Unmarshal([]byte(raw), &parsed))
+	assert.Equal(t, 12, parsed.AIInputTokens)
+	assert.Equal(t, 34, parsed.AIOutputTokens)
+	assert.Equal(t, 5600, parsed.AICachedInputTokens)
+
+	// not serialized when unset
+	out, err := json.Marshal(&Heartbeat{Entity: "foo"})
+	assert.NoError(t, err)
+	assert.NotContains(t, string(out), "ai_cached_input_tokens")
+}
+
+func TestHeartbeat_Hashed_IgnoresAICachedInputTokens(t *testing.T) {
+	h1 := &Heartbeat{UserID: "user1", Entity: "entity1", Time: CustomTime(time.Unix(1600000000, 0))}
+	h2 := *h1
+	h2.AICachedInputTokens = 1234
+
+	assert.Equal(t, h1.Hashed().Hash, h2.Hashed().Hash)
+}
