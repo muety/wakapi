@@ -55,23 +55,24 @@ type Heartbeat struct {
 	UserAgent       string `json:"user_agent" hash:"ignore" gorm:"type:varchar(255)"`
 	// note: on sqlite, the time column is stored as INTEGER (Unix epoch milliseconds) rather than TEXT
 	// see https://github.com/muety/wakapi/issues/882 for details
-	Time             CustomTime `json:"time" gorm:"timeScale:3; index:idx_time; index:idx_time_user_project_lang,priority:2; index:idx_user_project_time,priority:3; not null" swaggertype:"primitive,number"`
-	Hash             string     `json:"-" hash:"ignore" gorm:"type:varchar(17); uniqueIndex"`
-	Origin           string     `json:"-" hash:"ignore" gorm:"type:varchar(255)"`
-	OriginId         string     `json:"-" hash:"ignore" gorm:"type:varchar(255)"`
-	CreatedAt        CustomTime `json:"created_at" gorm:"timeScale:3; not null" swaggertype:"primitive,number" hash:"ignore"` // https://gorm.io/docs/conventions.html#CreatedAt
-	Lines            int        `json:"lines,omitempty" hash:"ignore"`
-	LineNo           int        `json:"lineno,omitempty" hash:"ignore"`
-	CursorPos        int        `json:"cursorpos,omitempty" hash:"ignore"`
-	LineDeletions    int        `json:"line_deletions,omitempty" hash:"ignore"`
-	LineAdditions    int        `json:"line_additions,omitempty" hash:"ignore"`
-	ProjectRootCount int        `json:"project_root_count,omitempty" hash:"ignore"`
-	AILineChanges    int        `json:"ai_line_changes,omitempty" hash:"ignore"`
-	AISession        string     `json:"ai_session,omitempty" hash:"ignore"`
-	AIInputTokens    int        `json:"ai_input_tokens,omitempty" hash:"ignore"`
-	AIOutputTokens   int        `json:"ai_output_tokens,omitempty" hash:"ignore"`
-	AIPromptLength   int        `json:"ai_prompt_length,omitempty" hash:"ignore"`
-	HumanLineChanges int        `json:"human_line_changes,omitempty" hash:"ignore"`
+	Time                CustomTime `json:"time" gorm:"timeScale:3; index:idx_time; index:idx_time_user_project_lang,priority:2; index:idx_user_project_time,priority:3; not null" swaggertype:"primitive,number"`
+	Hash                string     `json:"-" hash:"ignore" gorm:"type:varchar(17); uniqueIndex"`
+	Origin              string     `json:"-" hash:"ignore" gorm:"type:varchar(255)"`
+	OriginId            string     `json:"-" hash:"ignore" gorm:"type:varchar(255)"`
+	CreatedAt           CustomTime `json:"created_at" gorm:"timeScale:3; not null" swaggertype:"primitive,number" hash:"ignore"` // https://gorm.io/docs/conventions.html#CreatedAt
+	Lines               int        `json:"lines,omitempty" hash:"ignore"`
+	LineNo              int        `json:"lineno,omitempty" hash:"ignore"`
+	CursorPos           int        `json:"cursorpos,omitempty" hash:"ignore"`
+	LineDeletions       int        `json:"line_deletions,omitempty" hash:"ignore"`
+	LineAdditions       int        `json:"line_additions,omitempty" hash:"ignore"`
+	ProjectRootCount    int        `json:"project_root_count,omitempty" hash:"ignore"`
+	AILineChanges       int        `json:"ai_line_changes,omitempty" hash:"ignore"`
+	AISession           string     `json:"ai_session,omitempty" hash:"ignore"`
+	AIInputTokens       int        `json:"ai_input_tokens,omitempty" hash:"ignore"`
+	AIOutputTokens      int        `json:"ai_output_tokens,omitempty" hash:"ignore"`
+	AICachedInputTokens int        `json:"ai_cached_input_tokens,omitempty" hash:"ignore"`
+	AIPromptLength      int        `json:"ai_prompt_length,omitempty" hash:"ignore"`
+	HumanLineChanges    int        `json:"human_line_changes,omitempty" hash:"ignore"`
 }
 
 func (h *Heartbeat) Valid() bool {
