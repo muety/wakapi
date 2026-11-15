@@ -66,7 +66,7 @@ func NewUserService(keyValueService IKeyValueService, mailService IMailService, 
 		currentOnlineUsers: currentOnlineUsers,
 	}
 
-	sub1 := srv.eventBus.Subscribe(0, config.EventWakatimeFailure)
+	subOnWakatimeFailure := srv.eventBus.Subscribe(0, config.EventWakatimeFailure)
 	go func(sub *hub.Subscription) {
 		for m := range sub.Receiver {
 			user := m.Fields[config.FieldUser].(*models.User)
@@ -86,9 +86,9 @@ func NewUserService(keyValueService IKeyValueService, mailService IMailService, 
 				}
 			}
 		}
-	}(&sub1)
+	}(&subOnWakatimeFailure)
 
-	sub2 := srv.eventBus.Subscribe(0, config.EventHeartbeatCreate)
+	subOnHeartbeatCreate := srv.eventBus.Subscribe(0, config.EventHeartbeatCreate)
 	go func(sub *hub.Subscription) {
 		for m := range sub.Receiver {
 			heartbeat := m.Fields[config.FieldPayload].(*models.Heartbeat)
@@ -97,7 +97,14 @@ func NewUserService(keyValueService IKeyValueService, mailService IMailService, 
 			}
 			srv.currentOnlineUsers.Set(heartbeat.UserID, true, ttlcache.DefaultTTL)
 		}
-	}(&sub2)
+	}(&subOnHeartbeatCreate)
+
+	subOnApiKeyDelete := srv.eventBus.Subscribe(0, config.EventApiKeyDelete)
+	go func(sub *hub.Subscription) {
+		for m := range sub.Receiver {
+			srv.FlushUserCache(m.Fields[config.FieldUserId].(string))
+		}
+	}(&subOnApiKeyDelete)
 
 	return srv
 }

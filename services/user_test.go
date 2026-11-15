@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/jellydator/ttlcache/v3"
+	"github.com/leandro-lugaresi/hub"
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/suite"
@@ -218,6 +220,49 @@ func (suite *UserServiceTestSuite) TestUserService_GetUserById_CacheRetrievalAnd
 	suite.UserRepo.AssertNumberOfCalls(suite.T(), "FindOne", 2)
 }
 
+func (suite *UserServiceTestSuite) TestUserService_ApiKeyDeleteEvent_FlushesUserCache() {
+	sut, eventBus := suite.createSut()
+
+	const deletedApiKey = "additional-key-to-be-deleted"
+	otherUser := &models.User{ID: "other-user", ApiKey: "other-key"}
+
+	suite.UserRepo.On("FindOne", models.User{ApiKey: deletedApiKey}).Return(nil, errors.New("not found"))
+	suite.ApiKeyService.On("GetByApiKey", deletedApiKey, false).Return(&models.ApiKey{ApiKey: deletedApiKey, UserID: TestUserID, User: suite.TestUser}, nil)
+	suite.UserRepo.On("FindOne", models.User{ID: otherUser.ID}).Return(otherUser, nil)
+
+	// 1. Prime cache: look up test user via their additional API key and another user by id
+	userByKey, err := sut.GetUserByKey(deletedApiKey, false)
+	suite.Nil(err)
+	suite.Equal(suite.TestUser, userByKey)
+
+	other, err := sut.GetUserById(otherUser.ID)
+	suite.Nil(err)
+	suite.Equal(otherUser, other)
+
+	// 2. Simulate deletion of the additional API key, as published by ApiKeyService.Delete()
+	eventBus.Publish(hub.Message{
+		Name: config.EventApiKeyDelete,
+		Fields: map[string]interface{}{
+			config.FieldPayload: &models.ApiKey{ApiKey: deletedApiKey, UserID: TestUserID},
+			config.FieldUserId:  TestUserID,
+		},
+	})
+
+	// 3. The event subscriber should flush all cache entries of the affected user ...
+	suite.Eventually(func() bool {
+		return sut.cache.Get("key_"+deletedApiKey+"_false") == nil
+	}, 2*time.Second, 20*time.Millisecond)
+
+	// ... while leaving other users' cache entries untouched
+	suite.NotNil(sut.cache.Get("id_" + otherUser.ID))
+
+	// 4. Re-lookup by the deleted key must hit the services again instead of returning stale cache
+	userReloaded, err := sut.GetUserByKey(deletedApiKey, false)
+	suite.Nil(err)
+	suite.Equal(suite.TestUser, userReloaded)
+	suite.ApiKeyService.AssertNumberOfCalls(suite.T(), "GetByApiKey", 2)
+}
+
 func (suite *UserServiceTestSuite) TestUserService_FlushCache() {
 	sut := NewUserService(suite.KeyValueService, suite.MailService, suite.ApiKeyService, suite.UserRepo)
 
@@ -268,4 +313,14 @@ func (suite *UserServiceTestSuite) TestUserService_CacheTTLEviction() {
 	suite.Nil(err)
 	suite.Equal(suite.TestUser, userExpired)
 	suite.UserRepo.AssertNumberOfCalls(suite.T(), "FindOne", 2)
+}
+
+func (suite *UserServiceTestSuite) createSut() (*UserService, *hub.Hub) {
+	// Same rationale as SummaryServiceTestSuite.createSut: instantiate the service against an
+	// isolated event bus to avoid cross-talk with subscribers of other tests / services sharing the global hub.
+	originalEventBus := config.EventBus()
+	defer config.SetEventBus(originalEventBus)
+	eventBus := hub.New()
+	config.SetEventBus(eventBus)
+	return NewUserService(suite.KeyValueService, suite.MailService, suite.ApiKeyService, suite.UserRepo), eventBus
 }
