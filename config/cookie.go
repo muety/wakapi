@@ -32,13 +32,18 @@ func (config *cookieConfig) newSessionStore() {
 		Log().Fatal("error while deriving session keys", "error", err)
 	}
 
+	cfg := Get()
+	path := cfg.Server.BasePath
+	if path == "" {
+		path = "/"
+	}
+
 	store := sessions.NewCookieStore(sessionKeys[:64], sessionKeys[64:])
+	store.Options.Path = path
+	store.Options.MaxAge = cfg.Security.CookieMaxAgeSec
 	store.Options.SameSite = http.SameSiteLaxMode
 	store.Options.HttpOnly = true
-
-	if Get().Security.InsecureCookies {
-		store.Options.Secure = false
-	}
+	store.Options.Secure = !cfg.Security.InsecureCookies
 
 	config.sessionStore = store
 }
