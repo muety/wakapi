@@ -60,31 +60,32 @@ type HeartbeatResponseData struct {
 // that is actually required for the import
 
 type HeartbeatEntry struct {
-	Id               string    `json:"id"`
-	Branch           string    `json:"branch"`
-	Category         string    `json:"category"`
-	Entity           string    `json:"entity"`
-	IsWrite          bool      `json:"is_write"`
-	Language         string    `json:"language"`
-	Project          string    `json:"project"`
-	Time             float64   `json:"time"`
-	Type             string    `json:"type"`
-	UserId           string    `json:"user_id"`
-	MachineNameId    string    `json:"machine_name_id"`
-	UserAgentId      string    `json:"user_agent_id"`
-	Lines            int       `json:"lines"`
-	LineNo           int       `json:"lineno"`
-	CursorPos        int       `json:"cursorpos"`
-	LineDeletions    int       `json:"line_deletions"`
-	LineAdditions    int       `json:"line_additions"`
-	CreatedAt        time.Time `json:"created_at"`
-	AILineChanges    int       `json:"ai_line_changes"`
-	AISession        string    `json:"ai_session"`
-	AIInputTokens    int       `json:"ai_input_tokens"`
-	AIOutputTokens   int       `json:"ai_output_tokens"`
-	AIPromptLength   int       `json:"ai_prompt_length"`
-	HumanLineChanges int       `json:"human_line_changes"`
-	AIModel          string    `json:"ai_model,omitempty"`
+	Id                  string    `json:"id"`
+	Branch              string    `json:"branch"`
+	Category            string    `json:"category"`
+	Entity              string    `json:"entity"`
+	IsWrite             bool      `json:"is_write"`
+	Language            string    `json:"language"`
+	Project             string    `json:"project"`
+	Time                float64   `json:"time"`
+	Type                string    `json:"type"`
+	UserId              string    `json:"user_id"`
+	MachineNameId       string    `json:"machine_name_id"`
+	UserAgentId         string    `json:"user_agent_id"`
+	Lines               int       `json:"lines"`
+	LineNo              int       `json:"lineno"`
+	CursorPos           int       `json:"cursorpos"`
+	LineDeletions       int       `json:"line_deletions"`
+	LineAdditions       int       `json:"line_additions"`
+	CreatedAt           time.Time `json:"created_at"`
+	AILineChanges       int       `json:"ai_line_changes"`
+	AISession           string    `json:"ai_session"`
+	AIInputTokens       int       `json:"ai_input_tokens"`
+	AIOutputTokens      int       `json:"ai_output_tokens"`
+	AICachedInputTokens int       `json:"ai_cached_input_tokens"`
+	AIPromptLength      int       `json:"ai_prompt_length"`
+	HumanLineChanges    int       `json:"human_line_changes"`
+	AIModel             string    `json:"ai_model,omitempty"`
 }
 
 func HeartbeatsToCompat(entries []*models.Heartbeat) []*HeartbeatEntry {
@@ -92,31 +93,32 @@ func HeartbeatsToCompat(entries []*models.Heartbeat) []*HeartbeatEntry {
 	for i := 0; i < len(entries); i++ {
 		entry := entries[i]
 		out[i] = &HeartbeatEntry{
-			Id:               strconv.FormatUint(entry.ID, 10),
-			Branch:           entry.Branch,
-			Category:         entry.Category,
-			Entity:           entry.Entity,
-			IsWrite:          entry.IsWrite,
-			Language:         entry.Language,
-			Project:          entry.Project,
-			Time:             float64(entry.Time.T().Unix()),
-			Type:             entry.Type,
-			UserId:           entry.UserID,
-			MachineNameId:    entry.Machine,
-			UserAgentId:      entry.UserAgent,
-			Lines:            entry.Lines,
-			LineNo:           entry.LineNo,
-			LineAdditions:    entry.LineAdditions,
-			LineDeletions:    entry.LineDeletions,
-			CursorPos:        entry.CursorPos,
-			CreatedAt:        entry.CreatedAt.T(),
-			AILineChanges:    entry.AILineChanges,
-			AISession:        entry.AISession,
-			AIInputTokens:    entry.AIInputTokens,
-			AIOutputTokens:   entry.AIOutputTokens,
-			AIPromptLength:   entry.AIPromptLength,
-			HumanLineChanges: entry.HumanLineChanges,
-			AIModel:          entry.AIModel,
+			Id:                  strconv.FormatUint(entry.ID, 10),
+			Branch:              entry.Branch,
+			Category:            entry.Category,
+			Entity:              entry.Entity,
+			IsWrite:             entry.IsWrite,
+			Language:            entry.Language,
+			Project:             entry.Project,
+			Time:                float64(entry.Time.T().Unix()),
+			Type:                entry.Type,
+			UserId:              entry.UserID,
+			MachineNameId:       entry.Machine,
+			UserAgentId:         entry.UserAgent,
+			Lines:               entry.Lines,
+			LineNo:              entry.LineNo,
+			LineAdditions:       entry.LineAdditions,
+			LineDeletions:       entry.LineDeletions,
+			CursorPos:           entry.CursorPos,
+			CreatedAt:           entry.CreatedAt.T(),
+			AILineChanges:       entry.AILineChanges,
+			AISession:           entry.AISession,
+			AIInputTokens:       entry.AIInputTokens,
+			AIOutputTokens:      entry.AIOutputTokens,
+			AICachedInputTokens: entry.AICachedInputTokens,
+			AIPromptLength:      entry.AIPromptLength,
+			HumanLineChanges:    entry.HumanLineChanges,
+			AIModel:             entry.AIModel,
 		}
 	}
 	return out

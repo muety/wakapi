@@ -18,6 +18,8 @@ definitions:
     type: object
   models.Heartbeat:
     properties:
+      ai_cached_input_tokens:
+        type: integer
       ai_input_tokens:
         type: integer
       ai_line_changes:
@@ -193,6 +195,8 @@ definitions:
     type: object
   v1.HeartbeatEntry:
     properties:
+      ai_cached_input_tokens:
+        type: integer
       ai_input_tokens:
         type: integer
       ai_line_changes:
