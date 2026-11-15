@@ -117,11 +117,11 @@ func (h *HeartbeatApiHandler) Post(w http.ResponseWriter, r *http.Request) {
 			aiModel = hb.AIModel
 		}
 
+		hb.Machine = machineName
 		hb = fillPlaceholders(hb, phCache)
 
 		hb.User = user
 		hb.UserID = user.ID
-		hb.Machine = machineName
 		hb.OperatingSystem = opSys
 		hb.Editor = editor
 		hb.AIModel = aiModel
@@ -185,34 +185,47 @@ func makeBulkResponse(results []*v1.HeartbeatCreationResult) *v1.HeartbeatRespon
 type placeholderCache struct {
 	user            *models.User
 	srv             services.IHeartbeatService
-	latest          *models.Heartbeat
-	latestByProject map[string]*models.Heartbeat
+	latest          map[string]*models.Heartbeat
+	latestByProject map[placeholderProjectKey]*models.Heartbeat
+}
+
+type placeholderProjectKey struct {
+	machine string
+	project string
 }
 
 func newPlaceholderCache(user *models.User, srv services.IHeartbeatService) *placeholderCache {
-	return &placeholderCache{user: user, srv: srv, latestByProject: make(map[string]*models.Heartbeat)}
-}
-
-func (c *placeholderCache) getLatest() *models.Heartbeat {
-	if c.latest == nil {
-		latest, err := c.srv.GetLatestByUser(c.user, false)
-		if err != nil {
-			return nil
-		}
-		c.latest = latest
+	return &placeholderCache{
+		user:            user,
+		srv:             srv,
+		latest:          make(map[string]*models.Heartbeat),
+		latestByProject: make(map[placeholderProjectKey]*models.Heartbeat),
 	}
-	return c.latest
 }
 
-func (c *placeholderCache) getLatestByProject(project string) *models.Heartbeat {
-	if latest, ok := c.latestByProject[project]; ok {
+func (c *placeholderCache) getLatest(machine string) *models.Heartbeat {
+	if latest, ok := c.latest[machine]; ok {
 		return latest
 	}
-	latest, err := c.srv.GetLatestByFilters(c.user, models.NewFiltersWith(models.SummaryProject, project), false)
+	latest, err := c.srv.GetLatestByFilters(c.user, models.NewFiltersWith(models.SummaryMachine, machine), false)
 	if err != nil {
 		return nil
 	}
-	c.latestByProject[project] = latest
+	c.latest[machine] = latest
+	return latest
+}
+
+func (c *placeholderCache) getLatestByProject(machine, project string) *models.Heartbeat {
+	key := placeholderProjectKey{machine: machine, project: project}
+	if latest, ok := c.latestByProject[key]; ok {
+		return latest
+	}
+	filters := models.NewFiltersWith(models.SummaryMachine, machine).With(models.SummaryProject, project)
+	latest, err := c.srv.GetLatestByFilters(c.user, filters, false)
+	if err != nil {
+		return nil
+	}
+	c.latestByProject[key] = latest
 	return latest
 }
 
@@ -225,32 +238,40 @@ func fillPlaceholders(hb *models.Heartbeat, cache *placeholderCache) *models.Hea
 	// see https://github.com/wakatime/browser-wakatime/pull/206
 	if hb.Type == "url" || hb.Type == "domain" {
 		hb.ClearPlaceholders() // ignore placeholders for data sent by browser plugin
+		return hb
+	}
+	if hb.Machine == "" {
+		hb.ClearPlaceholders() // never inherit context from an unidentified machine
+		return hb
 	}
 
 	var latestHeartbeat *models.Heartbeat
 
 	if hb.IsPlaceholderProject() {
-		// get project of latest heartbeat by user
-		if latest := cache.getLatest(); latest != nil {
+		// get project of latest heartbeat by user and machine
+		if latest := cache.getLatest(hb.Machine); latest != nil {
 			hb.Project = latest.Project
 			latestHeartbeat = latest
+		} else {
+			hb.ClearPlaceholders()
+			return hb
 		}
 	}
 
 	if hb.IsPlaceholderLanguage() {
-		// get language of latest heartbeat by user and project
+		// get language of latest heartbeat by user, machine and project
 		if latestHeartbeat != nil && latestHeartbeat.Project == hb.Project {
 			hb.Language = latestHeartbeat.Language // reuse the one we just found above
-		} else if latest := cache.getLatestByProject(hb.Project); latest != nil {
+		} else if latest := cache.getLatestByProject(hb.Machine, hb.Project); latest != nil {
 			hb.Language = latest.Language
 		}
 	}
 
 	if hb.IsPlaceholderBranch() {
-		// get branch of latest heartbeat by user and project
+		// get branch of latest heartbeat by user, machine and project
 		if latestHeartbeat != nil && latestHeartbeat.Project == hb.Project {
 			hb.Branch = latestHeartbeat.Branch // reuse the one we just found above
-		} else if latest := cache.getLatestByProject(hb.Project); latest != nil {
+		} else if latest := cache.getLatestByProject(hb.Machine, hb.Project); latest != nil {
 			hb.Branch = latest.Branch
 		}
 	}

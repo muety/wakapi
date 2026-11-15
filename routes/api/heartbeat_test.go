@@ -145,6 +145,7 @@ func TestHeartbeatHandler_Post_Placeholders(t *testing.T) {
 		now := time.Now().Unix()
 		body := fmt.Sprintf(`[{"entity": "file1.go", "time": %d, "project": "p1", "branch": "<<LAST_BRANCH>>", "language": "<<LAST_LANGUAGE>>"}, {"entity": "file2.go", "time": %d, "project": "p1", "branch": "<<LAST_BRANCH>>"}, {"entity": "file3.go", "time": %d, "project": "p2", "branch": "<<LAST_BRANCH>>"}]`, now, now, now)
 		req := httptest.NewRequest(http.MethodPost, "/heartbeats", bytes.NewBufferString(body))
+		req.Header.Set("X-Machine-Name", "laptop")
 
 		sharedData := config.NewSharedData()
 		ctx := context.WithValue(req.Context(), config.KeySharedData, sharedData)
@@ -168,10 +169,85 @@ func TestHeartbeatHandler_Post_Placeholders(t *testing.T) {
 	})
 }
 
+func TestHeartbeatHandler_Post_PlaceholderMachines(t *testing.T) {
+	cfg := config.Empty()
+	cfg.App.HeartbeatMaxAge = "168h"
+	config.Set(cfg)
+	user := &models.User{ID: "testuser", HasData: true}
+	srv := new(mocks.HeartbeatServiceMock)
+	srv.On("GetLatestByFilters", user, models.NewFiltersWith(models.SummaryMachine, "laptop"), false).
+		Return(&models.Heartbeat{Project: "work", Branch: "work-branch", Language: "Go"}, nil).Once()
+	srv.On("GetLatestByFilters", user, models.NewFiltersWith(models.SummaryMachine, "nas"), false).
+		Return(&models.Heartbeat{Project: "nas", Branch: "master", Language: "Shell"}, nil).Once()
+	srv.On("GetLatestByFilters", user, models.NewFiltersWith(models.SummaryMachine, "new-machine"), false).
+		Return((*models.Heartbeat)(nil), nil).Once()
+	srv.On("InsertBatch", mock.MatchedBy(func(hbs []*models.Heartbeat) bool {
+		if !assert.Len(t, hbs, 6) {
+			return false
+		}
+		for i, project := range []string{"work", "nas", "work", "", "", ""} {
+			assert.Equal(t, project, hbs[i].Project)
+		}
+		assert.Equal(t, "work-branch", hbs[0].Branch)
+		assert.Equal(t, "master", hbs[1].Branch)
+		assert.Equal(t, "Go", hbs[2].Language)
+		assert.Empty(t, hbs[3].Branch)
+		assert.Empty(t, hbs[3].Language)
+		return true
+	})).Return(nil).Once()
+
+	var heartbeats []map[string]interface{}
+	for _, machine := range []string{"", "nas", "", "new-machine", "new-machine", "nas"} {
+		heartbeats = append(heartbeats, map[string]interface{}{
+			"entity": "Slack", "type": "app", "time": time.Now().Unix(),
+			"machine": machine, "project": "<<LAST_PROJECT>>",
+			"branch": "<<LAST_BRANCH>>", "language": "<<LAST_LANGUAGE>>",
+		})
+	}
+	heartbeats[5]["type"] = "domain"
+	body, err := json.Marshal(heartbeats)
+	assert.NoError(t, err)
+	req := httptest.NewRequest(http.MethodPost, "/heartbeats", bytes.NewReader(body))
+	req.Header.Set("X-Machine-Name", "laptop")
+	req = req.WithContext(context.WithValue(req.Context(), config.KeySharedData, config.NewSharedData()))
+	routeutils.SetPrincipal(req, user)
+	rec := httptest.NewRecorder()
+	NewHeartbeatApiHandler(new(mocks.UserServiceMock), srv, nil).Post(rec, req)
+	assert.Equal(t, http.StatusCreated, rec.Code)
+	srv.AssertExpectations(t)
+}
+
+func Test_fillPlaceholders_MachineIsolation(t *testing.T) {
+	user := &models.User{ID: "testuser"}
+	t.Run("branch and language caches include the machine", func(t *testing.T) {
+		srv := new(mocks.HeartbeatServiceMock)
+		cache := newPlaceholderCache(user, srv)
+		for _, machine := range []string{"laptop", "nas"} {
+			filters := models.NewFiltersWith(models.SummaryMachine, machine).With(models.SummaryProject, "shared")
+			srv.On("GetLatestByFilters", user, filters, false).
+				Return(&models.Heartbeat{Branch: machine, Language: machine}, nil).Once()
+		}
+		for _, machine := range []string{"laptop", "nas", "laptop"} {
+			hb := fillPlaceholders(&models.Heartbeat{Machine: machine, Project: "shared", Branch: "<<LAST_BRANCH>>", Language: "<<LAST_LANGUAGE>>"}, cache)
+			assert.Equal(t, machine, hb.Branch)
+			assert.Equal(t, machine, hb.Language)
+		}
+		srv.AssertExpectations(t)
+	})
+	t.Run("missing machine clears placeholders without querying", func(t *testing.T) {
+		srv := new(mocks.HeartbeatServiceMock)
+		hb := fillPlaceholders(&models.Heartbeat{Project: "<<LAST_PROJECT>>", Branch: "<<LAST_BRANCH>>", Language: "<<LAST_LANGUAGE>>"}, newPlaceholderCache(user, srv))
+		assert.Empty(t, hb.Project)
+		assert.Empty(t, hb.Branch)
+		assert.Empty(t, hb.Language)
+		assert.Empty(t, srv.Calls)
+	})
+}
+
 func Test_fillPlaceholders(t *testing.T) {
 	newMock := func() *mocks.HeartbeatServiceMock {
 		m := new(mocks.HeartbeatServiceMock)
-		m.On("GetLatestByUser", mock.Anything, mock.Anything).Return(&models.Heartbeat{
+		m.On("GetLatestByFilters", mock.Anything, models.NewFiltersWith(models.SummaryMachine, "laptop"), false).Return(&models.Heartbeat{
 			Project:  "project1",
 			Branch:   "replaced2_by_project",
 			Language: "replaced3_by_project",
@@ -188,6 +264,7 @@ func Test_fillPlaceholders(t *testing.T) {
 		t.Run("should replace project, language and branch properly", func(t *testing.T) {
 			srv := newMock()
 			hb := &models.Heartbeat{
+				Machine:  "laptop",
 				Project:  "project9",
 				Branch:   "<<LAST_BRANCH>>",
 				Language: "<<LAST_LANGUAGE>>",
@@ -198,6 +275,7 @@ func Test_fillPlaceholders(t *testing.T) {
 			filters := srv.Calls[0].Arguments.Get(1).(*models.Filters)
 
 			assert.Equal(t, "project9", filters.Project[0])
+			assert.Equal(t, models.OrFilter{"laptop"}, filters.Machine)
 			assert.Equal(t, "project9", hb.Project)
 			assert.Equal(t, "replaced2", hb.Branch)
 			assert.Equal(t, "replaced3", hb.Language)
@@ -206,6 +284,7 @@ func Test_fillPlaceholders(t *testing.T) {
 		t.Run("should replace project, language and branch properly with a single lookup", func(t *testing.T) {
 			srv := newMock()
 			hb := &models.Heartbeat{
+				Machine:  "laptop",
 				Project:  "<<LAST_PROJECT>>",
 				Branch:   "<<LAST_BRANCH>>",
 				Language: "<<LAST_LANGUAGE>>",
@@ -250,6 +329,7 @@ func Test_fillPlaceholders(t *testing.T) {
 		t.Run("should dedupe language and branch lookups within a single heartbeat", func(t *testing.T) {
 			srv := newMock()
 			hb := &models.Heartbeat{
+				Machine:  "laptop",
 				Project:  "project3",
 				Branch:   "<<LAST_BRANCH>>",
 				Language: "<<LAST_LANGUAGE>>",
@@ -265,9 +345,9 @@ func Test_fillPlaceholders(t *testing.T) {
 			srv := newMock()
 			cache := newPlaceholderCache(&models.User{}, srv)
 
-			hb1 := fillPlaceholders(&models.Heartbeat{Project: "project3", Branch: "<<LAST_BRANCH>>", Language: "<<LAST_LANGUAGE>>"}, cache)
-			hb2 := fillPlaceholders(&models.Heartbeat{Project: "project3", Branch: "<<LAST_BRANCH>>"}, cache)
-			hb3 := fillPlaceholders(&models.Heartbeat{Project: "project4", Branch: "<<LAST_BRANCH>>"}, cache)
+			hb1 := fillPlaceholders(&models.Heartbeat{Machine: "laptop", Project: "project3", Branch: "<<LAST_BRANCH>>", Language: "<<LAST_LANGUAGE>>"}, cache)
+			hb2 := fillPlaceholders(&models.Heartbeat{Machine: "laptop", Project: "project3", Branch: "<<LAST_BRANCH>>"}, cache)
+			hb3 := fillPlaceholders(&models.Heartbeat{Machine: "laptop", Project: "project4", Branch: "<<LAST_BRANCH>>"}, cache)
 
 			assert.Len(t, srv.Calls, 2)
 			assert.Equal(t, "project3", srv.Calls[0].Arguments.Get(1).(*models.Filters).Project[0])
@@ -278,12 +358,12 @@ func Test_fillPlaceholders(t *testing.T) {
 			assert.Equal(t, "replaced3", hb1.Language)
 		})
 
-		t.Run("should dedupe latest-by-user lookups across heartbeats", func(t *testing.T) {
+		t.Run("should dedupe latest-by-machine lookups across heartbeats", func(t *testing.T) {
 			srv := newMock()
 			cache := newPlaceholderCache(&models.User{}, srv)
 
-			hb1 := fillPlaceholders(&models.Heartbeat{Project: "<<LAST_PROJECT>>"}, cache)
-			hb2 := fillPlaceholders(&models.Heartbeat{Project: "<<LAST_PROJECT>>"}, cache)
+			hb1 := fillPlaceholders(&models.Heartbeat{Machine: "laptop", Project: "<<LAST_PROJECT>>"}, cache)
+			hb2 := fillPlaceholders(&models.Heartbeat{Machine: "laptop", Project: "<<LAST_PROJECT>>"}, cache)
 
 			assert.Len(t, srv.Calls, 1)
 			assert.Equal(t, "project1", hb1.Project)

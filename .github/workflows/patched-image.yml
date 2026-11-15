@@ -1,0 +1,65 @@
+name: Publish patched image
+
+"on":
+  push:
+    branches:
+      - fix/machine-placeholders
+    tags:
+      - "2.18.2-machine-placeholders.*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Run unit tests
+        env:
+          CGO_ENABLED: "0"
+        run: |
+          mapfile -t packages < <(go list ./... | grep -v '^github.com/muety/wakapi/scripts$')
+          go test "${packages[@]}"
+
+  publish:
+    needs: test
+    if: github.repository == 'pedropombeiro/wakapi'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set version
+        env:
+          REVISION: ${{ github.sha }}
+        run: printf '2.18.2-machine-placeholders-%s\n' "$REVISION" > version.txt
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@v6
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha,format=long
+            type=ref,event=tag
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
