@@ -22,3 +22,16 @@ func TestHeartbeatsToCompat_AITokens(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, string(raw), `"ai_cached_input_tokens":3000`)
 }
+
+func TestHeartbeatsToCompat_AIPromptLength(t *testing.T) {
+	out := HeartbeatsToCompat([]*models.Heartbeat{{
+		ID:             1,
+		AIPromptLength: 40,
+	}})
+	assert.Len(t, out, 1)
+	assert.Equal(t, 40, out[0].AIPromptLength)
+
+	raw, err := json.Marshal(out[0])
+	assert.NoError(t, err)
+	assert.Contains(t, string(raw), `"ai_prompt_length":40`)
+}

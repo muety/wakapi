@@ -119,6 +119,12 @@ func mapHeartbeat(
 		}
 	}
 
+	// prefer the heartbeat's own ai_model (e.g. when importing from another wakapi instance), fall back to the one parsed from the user agent (e.g. when importing from wakatime.com)
+	aiModel := ua.AIModel
+	if entry.AIModel != "" {
+		aiModel = entry.AIModel
+	}
+
 	return (&models.Heartbeat{
 		User:            user,
 		UserID:          user.ID,
@@ -130,7 +136,7 @@ func mapHeartbeat(
 		Language:        entry.Language,
 		IsWrite:         entry.IsWrite,
 		Editor:          ua.Editor,
-		AIModel:         ua.AIModel,
+		AIModel:         aiModel,
 		OperatingSystem: ua.Os,
 		Machine:         ma.Value,
 		UserAgent:       ua.Value,
@@ -138,5 +144,13 @@ func mapHeartbeat(
 		Origin:          OriginWakatime,
 		OriginId:        entry.Id,
 		CreatedAt:       models.CustomTime(entry.CreatedAt),
+		AILineChanges:   entry.AILineChanges,
+		AISession:       entry.AISession,
+		AIInputTokens:   entry.AIInputTokens,
+		AIOutputTokens:  entry.AIOutputTokens,
+		// note: all ai fields are excluded from hashing, so imported heartbeats keep the same hash as before this mapping existed and duplicate detection is unchanged
+		AICachedInputTokens: entry.AICachedInputTokens,
+		AIPromptLength:      entry.AIPromptLength,
+		HumanLineChanges:    entry.HumanLineChanges,
 	}).Hashed()
 }
